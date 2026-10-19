@@ -1,0 +1,137 @@
+﻿@{
+    ViewBag.Title = T5V3Web.Content.Persian.TransferLeaveRemain;
+}
+
+
+<div class="page-header">
+    <h3>@T5V3Web.Content.Persian.TransferLeaveRemain</h3>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <label>@T5V3Web.Content.Persian.SelectPersonnel ...</label>
+    </div>
+    <div id="perdiv" class="panel-body">
+        @Html.Partial("_SelectUser", T5V3Web.Controllers.UserSelectionController.CreateModel(new List<long>()))
+    </div>
+</div>
+
+<label>@T5V3Web.Content.Persian.LeaveType</label>
+<select id="cmbLeaveTypes">
+    @foreach (T5V3.Model.LeaveType lt in ViewBag.LeaveTypes)
+    {
+        <option value="@lt.LeaveTypeID">@lt.LeaveName</option>
+    }
+</select>
+<label>@T5V3Web.Content.Persian.Year</label>
+<input id="txtYear" type="number" value="@T5V3.Misc.DateConverter.GetHijriYear(DateTime.Now)" />
+<button onclick="calc()" class=" btn btn-default">@T5V3Web.Content.Persian.Calculate</button>
+
+<div class="top-buffer">
+    <div class="col-sm-10">
+        <table class="table table-bordered table-hover table-responsive table-striped">
+            <thead>
+                <tr>
+                    <td>@T5V3Web.Content.Persian.BadgeNumber</td>
+                    <td>@T5V3Web.Content.Persian.Name</td>
+                    <td>@T5V3Web.Content.Persian.YearRemain</td>
+                    <td>@T5V3Web.Content.Persian.CurrentYear</td>
+                    <td>@T5V3Web.Content.Persian.HourlyTaken</td>
+                    <td>@T5V3Web.Content.Persian.Taken</td>
+                    <td>@T5V3Web.Content.Persian.LeaveRemain</td>
+                    <td>@T5V3Web.Content.Persian.ValidTransfer</td>
+                    <td>@T5V3Web.Content.Persian.Value</td>
+                </tr>
+            </thead>
+            <tbody id="tblBody"></tbody>
+        </table>
+    </div>
+    <div class="col-sm-2">
+        <input type="text" id="txtEdit" placeholder="@T5V3Web.Content.Persian.EditYearRemain" />
+        <button class="btn btn-default" onclick="changeValue()">@T5V3Web.Content.Persian.EditYearRemain</button>
+
+        <br />
+        <div class="top-buffer">
+            <button onclick="transfer()" class="btn btn-success btn-lg">@T5V3Web.Content.Persian.Transfer</button>
+        </div>
+    </div>
+</div>
+
+<input type="hidden" id="valYear" value="1" />
+<input type="hidden" id="valLeaveTypeID" value="1" />
+
+@section modals
+{
+    @Html.Partial("_OKDialog")
+}
+
+
+@section scripts{
+    <script>
+
+        function transfer() {
+            var selected = [];
+            $('#tblBody tr').each(function () {
+                selected.push({ key: $(this).find('.badg').html(), value: $(this).find('.trVal').val() });
+            });
+
+            var data = { year: $('#valYear').val(), leaveTypeID: $('#valLeaveTypeID').val(), old: selected };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(data),
+                type: "POST",
+                url: "/TransferRemainedLeave/Transfer",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                }
+            });
+        }
+
+        function changeValue() {
+            $('.trVal').val($('#txtEdit').val());
+        }
+
+        function calc() {
+            run_waitMe('win8');
+
+            var selected = [];
+            $('#perdiv input:checked').each(function () {
+                selected.push($(this).val());
+            });
+
+            $('#valYear').val($('#txtYear').val());
+            $('#valLeaveTypeID').val($('#cmbLeaveTypes').val());
+
+            var toEdit = { leaveTypeID: $('#cmbLeaveTypes').val(), year: $('#txtYear').val(), selectedBadgeNumbers: selected };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/TransferRemainedLeave/Calc",
+                success: function (data) {
+
+                    $('#tblBody').children().remove("tr");
+                    for (var i = 0; i < data.length; i++) {
+                        var tr = $('<tr>');
+                        tr.append("<td><label class='badg'>" + data[i].BadgeNumber + "</label></td>");
+                        tr.append("<td><label>" + data[i].Name + "</label></td>");
+                        tr.append("<td><label>" + data[i].ThisYear + "</label></td>");
+                        tr.append("<td><label>" + data[i].PreYears + "</label></td>");
+                        tr.append("<td><label>" + data[i].TakenHours + "</label></td>");
+                        tr.append("<td><label>" + data[i].Taken + "</label></td>");
+                        tr.append("<td><label>" + data[i].LeaveRemain + "</label></td>");
+                        tr.append("<td><label>" + data[i].ValidValue + "</label></td>");
+                        tr.append("<td><input class='trVal' type='text' value='" + data[i].TransferValue + "'/></td>");
+                        $('#tblBody').append(tr);
+                    }
+                    $('body').waitMe('hide');
+                }
+            });
+
+        }
+    </script>
+}

@@ -1,0 +1,86 @@
+﻿@model List<MyTime3.Models.RemainLeave>
+
+@foreach (MyTime3.Models.RemainLeave rl in Model)
+{
+    <text>
+        <div style="margin:3em" class="text-right blue-border">
+            <table>
+                <tbody>
+                    <tr>
+                        <td style="padding-left:150px">
+                            <label>@MyTime3.Content.PersianString.BadgeNumber</label>
+                        </td>
+                        <td>
+                            <label>@rl.BadgeNumber</label>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <label>@MyTime3.Content.PersianString.Name</label>
+                        </td>
+                        <td>
+                            <label>@rl.Name</label>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <label>@MyTime3.Content.PersianString.LeaveType</label>
+                        </td>
+                        <td>
+                            <label>@rl.LeaveTypeName</label>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <label>@MyTime3.Content.PersianString.DailyTaken</label>
+                        </td>
+                        <td>
+                            <label>@rl.DailyTaken</label>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <label>@MyTime3.Content.PersianString.HourlyTaken</label>
+                        </td>
+                        <td>
+                            <label>@rl.HourlyTaken</label>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <label>@MyTime3.Content.PersianString.Taken</label>
+                        </td>
+                        <td>
+                            <label>@rl.TotalTaken.ToString("0.00")</label>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <label>@MyTime3.Content.PersianString.Requested</label>
+                        </td>
+                        <td>
+                            <label>@rl.Requested.ToString("0.00")</label>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <label>@MyTime3.Content.PersianString.Remain</label>
+                        </td>
+                        <td>
+                            <label>@rl.Remain.ToString("0.00")</label>
+                        </td>
+                    </tr>
+
+
+                </tbody>
+            </table>
+        </div>
+    </text>
+}

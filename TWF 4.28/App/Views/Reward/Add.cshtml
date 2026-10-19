@@ -1,0 +1,207 @@
+﻿@model MyTime3.Models.RewardPenaltyRequest
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.InsertRewardAndPenalty;
+}
+@section TopStyle{
+    <link href="~/Content/style.css" rel="stylesheet" />
+}
+@section EndScript{
+    <script src="~/Scripts/index.js"></script>
+    <script>
+        
+        settings = {
+            format: "yyyy/mm/dd",
+            dateSeparator: "/",
+            autoClose: true,
+            labelLanguage: 'farsi'
+        }
+        renderToday();
+    </script>
+}
+<div class="card-header text-right">
+    <h3>@Html.Raw(MyTime3.Content.PersianString.InsertRewardAndPenalty)</h3>
+</div>
+
+<div class="card">
+    @using (@Html.BeginForm("Add", "Reward", FormMethod.Post, new { @class = "form" }))
+    {
+        <div class="text-right">
+
+
+            <div class="material-input text-right">
+                <div class="col-sm-3 col-sm-offset-1">
+                    <div class="group">
+                        <div class="material-dropdown" id="dropdownForBadgeNumber">
+                            <div class="dropdown">
+                                @if (1 == 1)
+                                {
+                                    var selected = ((List<SelectListItem>)ViewBag.SubUsers).Where(p => p.Selected).FirstOrDefault();
+                                    if (selected == null)
+                                    {
+                                        <input type="hidden" name="ForBadgeNumber" id="FromUserID">
+                                        <input data-toggle="dropdown" id="selectedPersonnelName" type="text" required>
+                                    }
+                                    else
+                                    {
+                                        <input id="FromUserID" name="ForBadgeNumber" type="hidden" value=@selected.Value>
+                                        <input data-toggle="dropdown" id="selectedPersonnelName" value="@selected.Text" type="text" required>
+                                    }
+                                }
+
+
+                                <span class="highlight"></span>
+                                <span class="bar"></span>
+                                <label>@MyTime3.Content.PersianString.For</label>
+
+                                <ul class="dropdown-menu" id="menuForBadgeNumber">
+                                    @foreach (SelectListItem personnel in ViewBag.SubUsers)
+                                    {
+                                        <li onclick="dropdownChanged('FromUserID','selectedPersonnelName','@personnel.Text', @personnel.Value)"><a rel="noopener noreferrer" style="cursor:pointer">@personnel.Text</a></li>
+                                    }
+                                </ul>
+
+                            </div>
+
+                            <span class="caret"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            @*<div class="form-group">
+                    <div class="col-sm-2 text-left">
+                        @Html.Label(MyTime3.Content.PersianString.For, new { @class = "formLabel" })
+                    </div>
+                    @Html.DropDownListFor(m => m.ForBadgeNumber, (List<SelectListItem>)ViewBag.SubUsers, new { @class = "formInput" })
+                </div>*@
+
+
+            <div id="divForDate">
+
+                <div class="material-input date-input text-right">
+                    <div class="col-sm-3 col-sm-offset-1">
+                        <div class="group">
+                            @*<input value="@(Model != null ? Model.ForDateHijri : " ")" class="datepicker-farsi" name="ForDateHijri" type="text">*@
+                            <input value="@(Model != null ? Model.ForDateHijri : " ")" class="datepicker-farsi" name="ForDateHijri" type="text">
+                            <span class="highlight"></span>
+                            <span class="bar"></span>
+                            <label>@MyTime3.Content.PersianString.Date</label>
+                        </div>
+                    </div>
+                    <div id="divforDate"></div>
+                    @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('ForDateHijri', this,null,null,'divforDate','datepicker3')">@MyTime3.Content.PersianString.SelectDate</a>*@
+                </div>
+            
+            </div>
+
+            @*<div class="form-group">
+                    <div class="col-sm-2 text-left">
+                        @Html.Label(MyTime3.Content.PersianString.Date, new { @class = "formLabel" })
+                    </div>
+                    @Html.TextBoxFor(m => m.ForDateHijri, new { @class = "formInput" })
+                    <a href="javascript:" onclick="displayDatePicker('ForDateHijri', this)">@MyTime3.Content.PersianString.SelectDate</a>
+                </div>*@
+
+
+            <div class="material-input text-right">
+                <div class="col-sm-3 col-sm-offset-1">
+                    <div class="group">
+                        <div class="material-dropdown" id="dropdownRewardPenaltyTypes">
+                            <div class="dropdown">
+                                @if (1 == 1)
+                                {
+                                    var selected = ((List<SelectListItem>)ViewBag.RewardPenaltyTypes).Where(p => p.Selected).FirstOrDefault();
+                                    if (selected == null)
+                                    {
+                                        <input type="hidden" name="RewardPenaltyType" id="RewardPenaltyTypeID">
+                                        <input data-toggle="dropdown" id="RewardPenaltyTypeName" type="text" required>
+                                    }
+                                    else
+                                    {
+                                        <input id="RewardPenaltyTypeID" name="RewardPenaltyType" type="hidden" value=@selected.Value>
+                                        <input data-toggle="dropdown" id="RewardPenaltyTypeName" value="@selected.Text" type="text" required>
+                                    }
+                                }
+
+
+                                <span class="highlight"></span>
+                                <span class="bar"></span>
+                                <label>@MyTime3.Content.PersianString.Type</label>
+
+                                <ul class="dropdown-menu" id="menuRewardPenaltyTypes">
+                                    @foreach (SelectListItem personnel in ViewBag.RewardPenaltyTypes)
+                                    {
+                                        <li onclick="dropdownChanged('RewardPenaltyTypeID','RewardPenaltyTypeName','@personnel.Text', @personnel.Value)"><a rel="noopener noreferrer" style="cursor:pointer">@personnel.Text</a></li>
+                                    }
+                                </ul>
+
+                            </div>
+
+                            <span class="caret"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            @*<div class="form-group">
+                    <div class="col-sm-2 text-left">
+                        @Html.Label(MyTime3.Content.PersianString.Type, new { @class = "formLabel" })
+                    </div>
+                    @Html.DropDownListFor(m => m.RewardPenaltyType, (List<SelectListItem>)ViewBag.RewardPenaltyTypes, new { @class = "formInput" })
+                </div>*@
+
+            <div id="divForTime" class="">
+
+                <div class="material-input text-right">
+                    <div class="col-sm-offset-1 col-sm-3">
+                        <div class="group">
+                            <input name="ValidValue" class="timespan-input" value="@(Model != null ? Model.ValidValue : " ")" type="text">
+                            <span class="highlight"></span>
+                            <span class="bar"></span>
+                            <label>@MyTime3.Content.PersianString.Value</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @*<div class="form-group">
+                    <div class="col-sm-2 text-left">
+                        @Html.Label(MyTime3.Content.PersianString.Value, new { @class = "formLabel" })
+                    </div>
+                    @Html.TextBoxFor(m => m.ValidValue, new { @class = "timeInput" })
+                </div>*@
+
+            <div id="divDesc">
+                <div class="material-input text-right">
+                    <div class="col-sm-offset-1 col-sm-3">
+                        <div class="group">
+                            <input name="Descriptions" value="@(Model!=null  ? Model.Descriptions  : "")" type="text">
+                            <span class="highlight"></span>
+                            <span class="bar"></span>
+                            <label>@MyTime3.Content.PersianString.Descriptions</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @*<div class="form-group">
+                    <div class="col-sm-2 text-left">
+                        @Html.Label(MyTime3.Content.PersianString.Descriptions, new { @class = "formLabel" })
+                    </div>
+                    @Html.TextBoxFor(m => m.Descriptions, new { @class = "formInput" })
+                </div>*@
+
+            <div style="margin-top:2em" class="form-group col-sm-offset-2">
+                <input type="submit" class="btn btn-primary btn-shadow btn-lg" value="@MyTime3.Content.PersianString.OK" />
+            </div>
+
+            <div class="form-group">
+                <label class="messageLabel">@ViewBag.Message</label>
+            </div>
+        </div>
+    }
+</div>
+

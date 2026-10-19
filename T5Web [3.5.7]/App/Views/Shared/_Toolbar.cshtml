@@ -1,0 +1,68 @@
+﻿<style>
+    .toolItem {
+        display: inline-block;
+        margin: 1em 1em 0 1em;
+        transition: 0.3s;
+    }
+
+        .toolItem a {
+            @(T5V3Web.Controllers.HomeController.ToolbarShow(this.Context) ? "color:#03a9f4 " : " color: white;")
+        }
+
+
+        .toolItem:hover {
+            transform: scale(1.2,1.2);
+        }
+</style>
+
+<div id="toolbarmaindiv" @(T5V3Web.Controllers.HomeController.ToolbarShow(this.Context) ? "class=hideToolbar" : "") style="transition: all 0.5s; padding: 5px; color: white; top: -25px; position: relative;">
+    <div class="row text-center">
+
+        <div id="tooldiv1" style="margin: auto; display: table; background-color: #03a9f4;">
+            <div id="tooldiv2" style="z-index: -10; position: absolute; margin: auto; display: table; background-color: white; border-style: solid; border-color: #03a9f4 transparent transparent transparent;border-width:7em;right:50%;transform:translateX(50%)">
+                <span> </span>
+                <div></div>
+            </div>
+
+
+            <div>
+                @{
+                    List<int> selectedItems = T5V3Web.Controllers.HomeController.GetToolbars(this.Context);
+
+                    System.Xml.Serialization.XmlSerializer x = new System.Xml.Serialization.XmlSerializer(typeof(List<T5V3Web.Models.ToolbarItemModel>));
+                    List<T5V3Web.Models.ToolbarItemModel> items = (List<T5V3Web.Models.ToolbarItemModel>)x.Deserialize(new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(T5V3Web.Properties.Resources.ToolbarItems)));
+                    foreach (var item in items)
+                    {
+                        if (selectedItems.Contains(item.ID))
+                        {
+                            <div class="toolItem">
+                                <a  rel="noopener noreferrer" href="@item.URL">
+                                    <i class="fa fa-3x @item.Icon"></i><br />
+                                    <span>@item.Title</span>
+                                </a>
+                            </div>
+                        }
+                    }
+                }
+            </div>
+
+
+
+            <div>
+                <div class="col-xs-6 text-left">
+                    <a  rel="noopener noreferrer" href="javascript:shtb()" style="color: white; vertical-align: bottom"><i id="toolbarShowHide" class="fa @(T5V3Web.Controllers.HomeController.ToolbarShow(this.Context) ? "fa-chevron-circle-down" : "fa-chevron-circle-up") "></i></a>
+                </div>
+                <div class="text-right col-xs-6">
+                    <a  rel="noopener noreferrer" href="javascript:tbstt()" style="color:white; vertical-align:bottom"><i class="fa fa-pencil-square-o"></i></a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    window.onresize = new function () {
+        $("#tooldiv2").width($("#tooldiv1").width());
+    }
+</script>

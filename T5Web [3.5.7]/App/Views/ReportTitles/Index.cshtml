@@ -1,0 +1,221 @@
+﻿@model T5V3Web.Models.ReportTitlesModel
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.ReportTitles;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.BaseData;
+    ViewBag.PageTag = "ReportTitles";
+}
+
+<div class="page-header">
+    <h3>@T5V3Web.Content.Persian.ReportTitles</h3>
+</div>
+
+
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-warning" style="height: 100px">
+            <div class="panel-heading">
+                <label>@T5V3Web.Content.Persian.TitlesChart</label>
+            </div>
+            <div class="panel-body ">
+                <input type="text" value="" onkeyup="search(this)" placeholder="@T5V3Web.Content.Persian.Search" />
+            </div>
+        </div>
+        <div class="right-align auto-scroll" id="tree" style="max-height: 200px;padding-top:20px;margin-bottom:30px;">
+        </div>
+    </div>
+
+    @*<div class="auto-scroll col-md-6" style="max-height:500px;padding-top:20px;margin-bottom:30px;">
+            <div class="right-align">
+                @Html.Partial("_SelectOneUser", null, new ViewDataDictionary())
+            </div>
+        </div>*@
+</div>
+
+@*@if (Model.Selected != null)
+    {
+        <input type="hidden" id="selectedtitleid" name="selectedtitleid" value="@Model.Selected.TitleID" />
+    }
+    else
+    {
+        <input type="hidden" id="selectedtitleid" name="selectedtitleid" value="-1" />
+    }*@
+
+<div class="panel panel-danger">
+    <div class="panel-heading">
+        <div class="btn-group">
+            <button type="button" style="display: none" id="showHis" onclick="ShowTitleHistory()" class="btn btn-default">دریافت گزارش سمت "<span id="titleName"></span>"</button>
+            <input type="hidden" id="selectedTitle" name="SelectedTitle" value="" />
+            <input type="hidden" id="selectedName" name="SelectedTitle" value="" />
+        </div>
+    </div>
+    @*<div class="panel-body">
+            <label>@T5V3Web.Content.Persian.SelectedTitle :</label>
+            @if (Model.Selected != null)
+            {
+                if (Model.Selected.TitleID > 0)
+                {
+                    <label id="selectedtitlename">@Model.Selected.TitleName</label>
+                }
+                else
+                {
+                    <label id="selectedtitlename">@T5V3Web.Content.Persian.Root</label>
+                }
+            }
+            else
+            {
+                <label id="selectedtitlename">@T5V3Web.Content.Persian.Root</label>
+            }
+        </div>*@
+</div>
+
+
+@section scripts{
+    <script>
+        loadList("");
+
+        function search(textbox) {
+            $("body").data("squery", textbox.value);
+            loadList(textbox.value);
+        }
+
+        function submitData() {
+            var toEdit = {
+                TitleID: $("#TitleID").val(),
+                DisplayName: $("#DisplayName").val(),
+                Duties: $("#Duties").val(),
+                EmailAddress: $("#EmailAddress").val(),
+                Observer: $('#chkObserver').is(':checked'),
+                Certs: $("#Certs").val(),
+                Address: $("#Address").val(),
+                TitleName: $("#TitleName").val(),
+                UpperTitleID: $("#selectedtitleid").val(),
+            };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/Title/Edit",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                    if (toEdit.TitleID == -1) {
+                        loadList($("body").data("squery"));
+                    }
+                    else {
+                        loadList($("body").data("squery"));
+                    }
+                }
+            });
+            invisiblePanel();
+        }
+
+        function invisiblePanel() {
+            $("#edit-panel").removeClass("visisble-visibility");
+            $("#edit-panel").addClass("collapsed-visibility");
+        }
+
+        function editNode(id) {
+            $("#edit-panel").removeClass("collapsed-visibility");
+            $("#edit-panel").addClass("visisble-visibility");
+            $('html, body').animate({
+                scrollTop: $("#edit-panel").offset().top
+            }, 500);
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Edit");
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                type: "GET",
+                url: "/Title/GetByID/" + id,
+                success: function (data) {
+                    $("#TitleID").val(data.TitleID);
+                    $("#DisplayName").val(data.DisplayName);
+                    $('#chkObserver').prop("checked", data.Observer);
+                    $("#Duties").val(data.Duties);
+                    $("#EmailAddress").val(data.EmailAddress);
+                    $("#Certs").val(data.Certs);
+                    $("#Address").val(data.Address);
+                    $("#TitleName").val(data.TitleName);
+                    $("#selectedtitleid").val(data.UpperTitleID);
+                    $("#ParentName").html(data.Upper);
+                    $("#btnGuardAccess").attr("onClick", "loadDepartments(" + data.TitleID + ")");
+                }
+            });
+        }
+
+        function confirmDelete(id) {
+            $("#dialog-confirm-delete").dialog({
+                resizable: false,
+                height: 160,
+                modal: true,
+                position: { my: "center", at: "center", of: window },
+                buttons: {
+                    "@T5V3Web.Content.Persian.OK": function () {
+                        $(this).dialog("close");
+
+                        $.ajax({
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            type: "POST",
+                            url: "/Title/Delete/" + id,
+                            success: function (data) {
+                                $("#msg-title").html("@T5V3Web.Content.Persian.Delete");
+                                $("#msg-body").html(data.Message);
+                                $("#myModal").modal();
+                                //loadlist($("body").data("page"), $("body").data("squery"));
+                                loadList($("body").data("squery"));
+                            }
+                        });
+                    },
+                    "@T5V3Web.Content.Persian.Cancel": function () {
+                        $(this).dialog("close");
+                    }
+                }
+            });
+        }
+
+        function loadList(searchQuery) {
+            if (searchQuery == null)
+                searchQuery = "";
+            $.get("/ReportTitles/GetTree?searchQuery=" + searchQuery, "", function (gdata) {
+                $('#tree').treeview({
+                    data: gdata,
+                    levels: 50,
+                    editRemoveLink: false,
+                    enableLinks: false,
+                    onNodeSelected: function (event, data) {
+                        $("#selectedtitleid").val(data.tags);
+                        $("#selectedtitlename").html(data.text);
+                    }
+                });
+            });
+
+        }
+
+
+        $(document).on("click",".node-tree",function (obj) {
+            if (!$(this).hasClass('node-selected')) {
+                $('#showHis').show();
+                $('#titleName').text(this.innerText);
+                $('#selectedName').val(this.innerText);
+                $('#selectedTitle').val($(this).attr('data-nodeid'));
+            } else {
+                $('#showHis').hide();
+                $('#titleName').text('');
+                $('#selectedTitle').val('');
+                $('#selectedName').val('');
+            }
+        });
+
+
+        function ShowTitleHistory() {
+            var titleId = $('#selectedTitle').val();
+            var titleName = $('#selectedName').val();
+            window.open("ReportTitles/Show?titleId=" + titleId + "&titleName=" + titleName, '_blank');
+        }
+
+
+    </script>
+}

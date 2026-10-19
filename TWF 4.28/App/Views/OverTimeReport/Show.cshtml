@@ -1,0 +1,108 @@
+﻿@model IEnumerable<MyTime3.Models.OverTimeForDay>
+
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.OverTimeReport;
+}
+
+<div class="page-header">
+    <h3>@Html.Raw(MyTime3.Content.PersianString.OverTimeReport)</h3>
+</div>
+
+<div style="overflow:auto">
+    @if (Model.Count() > 0)
+    {
+        <table class="table table-bordered table-hover table-striped table-responsive">
+            <thead>
+                <tr>
+                    <td><label>@MyTime3.Content.PersianString.BadgeNumber</label></td>
+                    <td><label>@MyTime3.Content.PersianString.Name</label></td>
+                    <td><label>@MyTime3.Content.PersianString.Date</label></td>
+                    <td><label>@MyTime3.Content.PersianString.OTBeforeReal</label></td>
+                    <td><label>@MyTime3.Content.PersianString.OTBeforeLast</label></td>
+                    <td><label>@MyTime3.Content.PersianString.OTAfterReal</label></td>
+                    <td><label>@MyTime3.Content.PersianString.OTAfterLast</label></td>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (MyTime3.Models.OverTimeForDay req in Model)
+                {
+                    <tr>
+                        <td>
+                            <label>@req.BadgeNumber</label>
+                        </td>
+                        <td>
+                            <label>@req.Name</label>
+                        </td>
+                        <td>
+                            <label>@req.ForDate</label>
+                        </td>
+
+                        <td>
+                            @if (req.BeforeValueReal != req.BeforeValueLast)
+                            {
+                                <label><font @(req.BeforeValueReal != "-" ? "color=red" : "")>@req.BeforeValueReal</font></label>
+                            }
+                            else
+                            {
+                                <label>@req.BeforeValueReal</label>
+                            }
+                        </td>
+                        <td>
+                            @using (Html.BeginForm("ChangeBefore", "OverTimeReport", FormMethod.Post))
+                            {
+                                <input type="hidden" name="fromDateHijri" value="@(((string)ViewBag.fromDateHijri))" />
+                                <input type="hidden" name="toDateHijri" value="@(((string)ViewBag.toDateHijri))" />
+                                foreach (string s in ((string[])ViewBag.selectedBadgeNumbers))
+                                {
+                                    <input type="hidden" name="allBadgeNumbers" value="@s" />
+                                }
+
+                                <div style="display:inline-block">
+                                    <input type="hidden" name="badgeNumber" value="@req.BadgeNumber" />
+                                    <input type="hidden" name="forDate" value="@req.ForDate" />
+                                    <input type="text" name="requredValue" style="text-align:left" value="@req.BeforeValueLast" />
+                                </div>
+                                <div style="display:inline-block">
+                                    <input type="submit" class="btn-link btn-sm" value="@MyTime3.Content.PersianString.OK" name="actionType" />
+                                    <input type="submit" class="btn-link btn-sm" value="@MyTime3.Content.PersianString.Cancel" name="actionType" />
+                                </div>
+                            }
+                        </td>
+
+                        <td>
+                            @if (req.AfterValueReal != req.AfterValueLast)
+                            {
+                                <label><font @(req.AfterValueReal != "-" ? "color=red" : "")>@req.AfterValueReal</font></label>
+                            }
+                            else
+                            {
+                                <label>@req.AfterValueReal</label>
+                            }
+                        </td>
+                        <td>
+                            @using (Html.BeginForm("ChangeAfter", "OverTimeReport", FormMethod.Post))
+                            {
+                                <input type="hidden" name="fromDateHijri" value="@(((string)ViewBag.fromDateHijri))" />
+                                <input type="hidden" name="toDateHijri" value="@(((string)ViewBag.toDateHijri))" />
+                                foreach (string s in ((string[])ViewBag.selectedBadgeNumbers))
+                                {
+                                    <input type="hidden" name="allBadgeNumbers" value="@s" />
+                                }
+
+                                <div style="display:inline-block">
+                                    <input type="hidden" name="badgeNumber" value="@req.BadgeNumber" />
+                                    <input type="hidden" name="forDate" value="@req.ForDate" />
+                                    <input name="requredValue" type="text" style="text-align:left" value="@req.AfterValueLast" />
+                                </div>
+                                <div style="display:inline-block">
+                                    <input type="submit" class="btn-link btn-sm" value="@MyTime3.Content.PersianString.OK" name="actionType" />
+                                    <input type="submit" class="btn-link btn-sm" value="@MyTime3.Content.PersianString.Cancel" name="actionType" />
+                                </div>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

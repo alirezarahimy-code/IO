@@ -1,0 +1,26 @@
+﻿@model T5V3Web.Models.USBManageModel
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.USBManagement;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.AttendanceData;
+    ViewBag.PageTag = "USBManagement";
+}
+
+
+<h3>@T5V3Web.Content.Persian.USBManagement</h3>
+<div class="horizontal-line"></div>
+
+
+<form method="post" enctype="multipart/form-data" action="/USBManagement/ReadRecords">
+    <input type="file" name="attlog"/>
+    <input type="submit" value="@T5V3Web.Content.Persian.ReadRecords"/>
+</form>
+
+@foreach (string log in Model.Logs)
+{
+    <li>@log</li> 
+}
+
+@foreach (long badge in Model.OutDBBadgeNumbers)
+{
+    <li>@badge</li>
+}

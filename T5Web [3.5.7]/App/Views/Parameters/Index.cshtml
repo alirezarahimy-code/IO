@@ -1,0 +1,282 @@
+﻿@model T5V3Web.Models.DataEntryModel<T5V3.Model.Paramtr>
+
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.Parameters;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.Reports;
+    ViewBag.PageTag = "Parameters";
+}
+
+
+<h3>@T5V3Web.Content.Persian.Parameters</h3>
+
+<div class="horizontal-line"></div>
+
+<form role="form" class="form-horizontal" method="post" action="/Parameters/Edit">
+    <div class="form-group">
+        <div class="col-sm-2 text-center">
+            <label class="control-label">@T5V3Web.Content.Persian.ParameterName</label>
+        </div>
+        <div class="col-sm-10">
+            <input class="form-control" type="text" name="ParameterName" value="@(Model.Selected != null ? Model.Selected.ParameterName : "")" />
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-2 text-center">
+            <label class="control-label">@T5V3Web.Content.Persian.UniqueSymbol</label>
+        </div>
+        <div class="col-sm-10">
+            <input class="form-control" type="text" name="UniqueSymbol" value="@(Model.Selected != null ? Model.Selected.UniqueSymbol : "")" />
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-2 text-center">
+            <label class="control-label">@T5V3Web.Content.Persian.Formula</label>
+        </div>
+
+        <div class="col-sm-8">
+            <input class="form-control left-align" type="text" id="txtFormula" name="Formula" value="@(Model.Selected != null ? Model.Selected.Formula : "")" />
+
+        </div>
+        <div class="col-sm-2 right-align">
+            <button type="button" onclick="showFormula()" class="btn btn-default">@T5V3Web.Content.Persian.Formula</button>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-2 text-center">
+            <input type="checkbox" name="IsSum" @(Model.Selected != null ? (Model.Selected.IsSum ? "checked=\"checked\"" : "") : "") />
+            <label class="control-label">@T5V3Web.Content.Persian.IsSum</label>
+        </div>
+        <div class="col-sm-10">
+            <input class="form-control left-align" type="text" name="SumFunction" value="@(Model.Selected != null ? Model.Selected.SumFunction : "")" />
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        @if (Model.Selected != null)
+        {
+            <input name="ParameterID" type="hidden" value="@Model.Selected.ParameterID" />
+            <input class="btn btn-default" type="submit" value="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Edit, T5V3Web.Content.Persian.Parameter))" />
+        }
+        else
+        {
+            <input name="ParameterID" type="hidden" value="-1" />
+            <input class="btn btn-default" type="submit" value="@(string.Format ("{0} {1}", T5V3Web.Content.Persian.Add2 , T5V3Web.Content.Persian.Parameter))" />
+        }
+    </div>
+
+    <div class="form-group">
+        <div class="col-sm-offset-1 col-sm-10 text-center">
+            @if (Model.ValidationMessage != null)
+            {
+                <div class="@((T5V3Web.Models.ValidationMessageType)Model.ValidationMessageType == T5V3Web.Models.ValidationMessageType.Error ? "alert alert-danger fade in" : "alert alert-success fade in")">
+                    @Model.ValidationMessage
+                    <a rel="noopener noreferrer" href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                </div>
+            }
+        </div>
+    </div>
+</form>
+
+
+<div class="horizontal-line"></div>
+
+<table class="table table-hover table-bordered table-striped table-responsive">
+    <thead>
+        <tr class="warning">
+            <td>@T5V3Web.Content.Persian.SelectDeleteEdit</td>
+            <td>@T5V3Web.Content.Persian.ParameterName</td>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (T5V3.Model.Paramtr c in Model.ItemsList)
+        {
+            <tr>
+                <td>
+                    <input data-toggle="tooltip" type="checkbox" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Select, c.ParameterName))" name="ids" value="@c.ParameterID" />
+                    <a rel="noopener noreferrer" rel="noopener noreferrer" onclick="confirmDelete(@c.ParameterID)" href="javascript:void(0)">
+                        <span data-toggle="tooltip" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Delete, c.ParameterName))" class="glyphicon glyphicon-remove"></span>
+                    </a>
+                    <a rel="noopener noreferrer" data-toggle="tooltip" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Edit, c.ParameterName))" href="/Parameters?pageNumber=@Model.PageNumber&parameterID=@c.ParameterID">
+                        <span class="glyphicon glyphicon-edit"></span>
+                    </a>
+                </td>
+                <td>
+                    <label>@c.ParameterName</label>
+                </td>
+
+            </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr class="danger">
+            <td>
+                <form role="form" method="get" action="/Parameters">
+                    <input type="hidden" name="pageNumber" value="@Model.PageNumber" />
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-sm btn-default" data-toggle="tooltip" title="@T5V3Web.Content.Persian.Add">
+                            <span class="glyphicon glyphicon-plus"></span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-default" data-toggle="tooltip" title="@T5V3Web.Content.Persian.DeleteSelectedItems" onclick="deleteAll()">
+                            <span class="glyphicon glyphicon-remove"></span>
+                        </button>
+                    </div>
+                </form>
+            </td>
+            <td>
+                @if (Model.HasPrePage)
+                {
+                    <a rel="noopener noreferrer" data-toggle="tooltip" title="@T5V3Web.Content.Persian.Previous" href="/Parameters?pageNumber=@(Model.PageNumber-1)"><span class="glyphicon glyphicon-forward"></span></a>
+                }
+                else
+                {
+                    <span class="glyphicon glyphicon-forward"></span>
+                }
+
+                <label>@(string.Format("{3} {0} {1} {2}", Model.PageNumber.ToString(), T5V3Web.Content.Persian.From, Model.TotalPageNumbers.ToString(), T5V3Web.Content.Persian.Page))</label>
+
+                @if (Model.HasNextPage)
+                {
+                    <a rel="noopener noreferrer" data-toggle="tooltip" title="@T5V3Web.Content.Persian.Next" href="/Parameters?pageNumber=@(Model.PageNumber+1)"><span class="glyphicon glyphicon-backward"></span></a>
+                }
+                else
+                {
+                    <span class="glyphicon glyphicon-backward"></span>
+                }
+            </td>
+        </tr>
+    </tfoot>
+</table>
+
+@section modals
+{
+    <div id="myModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 id="msg-title" class="modal-title"></h4>
+                </div>
+                <div class="modal-body">
+                    <p id="msg-body">
+                        <div id="tabs" style="font-family:Tahoma">
+                            <ul id="temp">
+                                <li><a rel="noopener noreferrer" href="#tabs-1">@T5V3Web.Content.Persian.T5Parameters</a></li>
+                                <li><a rel="noopener noreferrer" href="#tabs-2">@T5V3Web.Content.Persian.Schedule</a></li>
+                                <li><a rel="noopener noreferrer" href="#tabs-3">@T5V3Web.Content.Persian.LeaveTypes</a></li>
+                                <li><a rel="noopener noreferrer" href="#tabs-4">@T5V3Web.Content.Persian.UserParameters</a></li>
+                                <li><a rel="noopener noreferrer" href="#tabs-5">@T5V3Web.Content.Persian.Functions</a></li>
+                            </ul>
+                            <div id="tabs-1" style="height:400px;overflow:auto">
+                                <table class="table table-responsive table-striped table-bordered">
+                                    <tbody>
+                                        @foreach (T5V3.ReportGenerator.T5ParameterType p in Enum.GetValues(typeof(T5V3.ReportGenerator.T5ParameterType)))
+                                    {
+                                    <tr onclick="addText('[p@(T5V3.ReportGenerator.T5ParameterSymbols.GetSymbol(p))]')" style="cursor:pointer">
+                                        <td>@T5V3.ReportGenerator.T5ParameterName.GetName(p)</td>
+                                        <td>@T5V3.ReportGenerator.T5ParameterSymbols.GetSymbol(p)</td>
+                                    </tr>
+                                    }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="tabs-2" style="height:400px;overflow:auto">
+                                <table class="table table-responsive table-striped table-bordered">
+                                    <tbody>
+                                        @foreach (T5V3.Model.Schedule sc in ViewBag.db.ScheduleDA.GetAll())
+                                    {
+                                    <tr onclick="addText('[s@(sc.Symbol)]')" style="cursor:pointer">
+                                        <td>@sc.Name</td>
+                                        <td>@sc.Symbol</td>
+                                    </tr>
+                                    }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="tabs-3" style="height:400px;overflow:auto">
+                                <table class="table table-responsive table-striped table-bordered">
+                                    <tbody>
+                                        @foreach (T5V3.Model.LeaveType sc in ViewBag.db.LeaveTypeDA.GetAll())
+                                    {
+                                    <tr onclick="addText('[l@(sc.Symbol)]')" style="cursor:pointer">
+                                        <td>@sc.LeaveName</td>
+                                        <td>@sc.Symbol</td>
+                                    </tr>
+                                    }
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div id="tabs-4" style="height:400px;overflow:auto">
+                                <table class="table table-responsive table-striped table-bordered">
+                                    <tbody>
+                                        @foreach (T5V3.Model.Paramtr sc in ViewBag.db.ParameterDA.GetAll())
+                                    {
+                                    <tr onclick="addText('[u@(sc.UniqueSymbol)]')" style="cursor:pointer">
+                                        <td>@sc.ParameterName</td>
+                                        <td>@sc.UniqueSymbol</td>
+                                    </tr>
+                                    }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="tabs-5" style="height:400px;overflow:auto">
+                                <table class="table table-responsive table-striped table-bordered">
+                                    <tbody>
+                                        @{
+                                        List<string[]>
+                                            functionNames = new List<string[]>
+                                                () { new string[] { "If", "iif" }, new string[] { "Min", "min" }, new string[] { "Max", "max" }, new string[] { "ConstLen", "constlen" }, new string[] { "ToTimehhmm", "totimehhmm" }, new string[] { "ToTime", "totime" }, new string[] { "DatePart (sample)", "getdatepart" } };
+                                        foreach (string[] func in functionNames)
+                                        {
+                                    <tr onclick="addText('{@func[1]}')" style="cursor:pointer">
+                                        <td>@func[0]</td>
+                                        <td>@func[1]</td>
+                                    </tr>
+                                        }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <textarea id="txtEditFormula" class="text-left" style="direction:ltr; width:100%"></textarea>
+                    <button type="button" onclick="formulaOK()" class="top-buffer btn btn-default" data-dismiss="modal">@T5V3Web.Content.Persian.OK</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+}
+
+@section scripts
+{
+    @{
+        ViewDataDictionary temp = new ViewDataDictionary();
+        temp.Add(new KeyValuePair<string, object>("DeleteUrl", "/Parameters/Delete"));
+        temp.Add(new KeyValuePair<string, object>("DeleteAllUrl", "/Parameters/DeleteAll"));
+        @Html.Partial("_ConfirmDeleteScripts", temp);
+    }
+
+    <script>
+        $("#tabs").tabs();
+
+        function addText(text) {
+            var a = $("#txtEditFormula").val();
+            $("#txtEditFormula").val(a + text);
+            $("#txtEditFormula").focus();
+        }
+
+        function formulaOK()
+        {
+            $("#txtFormula").val($("#txtEditFormula").val());
+        }
+
+        function showFormula() {
+            $("#txtEditFormula").val($("#txtFormula").val());
+            $("#myModal").modal();
+        }
+    </script>
+}

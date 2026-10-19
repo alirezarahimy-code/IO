@@ -1,0 +1,546 @@
+﻿@model T5V3Web.Models.TotalControlModel
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.TotalControl;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.AttendanceControl;
+    ViewBag.PageTag = "TotalControl";
+}
+
+
+<h3>@T5V3Web.Content.Persian.TotalControl</h3>
+<div class="horizontal-line"></div>
+
+<div class="row">
+    <div class="col-sm-3 border-gray">
+        <form role="form" class="form-horizontal" method="post" action="/TotalControl/Show">
+            <div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <label>@T5V3Web.Content.Persian.SelectPersonnel</label>
+                    </div>
+                    <div class="panel-body">
+                        @Html.Partial("_SelectOneUser", Model.SelectedUser, new ViewDataDictionary())
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <label>@T5V3Web.Content.Persian.SelectTimeInterval</label>
+                    </div>
+                    <div class="panel-body">
+                        @{
+                            T5V3Web.Models.DateIntervalPickerModel temp = new T5V3Web.Models.DateIntervalPickerModel(1, Model.Year, Model.Month);
+                            temp.OnlyMonthly = true;
+                            @Html.Partial("_SelectDateInterval", temp);
+                        }
+                    </div>
+                </div>
+            </div>
+            <input class="btn btn-success mt-10" type="submit" value="@T5V3Web.Content.Persian.ShowReport" />
+        </form>
+
+        <div class="block-display mt-20">
+            @if (Model.SelectedUser != null)
+            {
+                <a   rel="noopener noreferrer" href="/InsertRecord/Index?badgeNumber=@(Model.SelectedUser.BadgeNumber.ToString())&referrer=/TotalControl?badgeNumber=@(Model.SelectedUser.BadgeNumber.ToString())">@T5V3Web.Content.Persian.InsertRecord</a>
+            }
+        </div>
+    </div>
+
+    <div class="col-sm-3 border-gray">
+        <table class="table table-bordered table-responsive">
+            <thead>
+                <tr class="warning">
+                    <td>@T5V3Web.Content.Persian.Day</td>
+                    <td>@T5V3Web.Content.Persian.DayOfWeek</td>
+                    <td>@T5V3Web.Content.Persian.RecordsCount</td>
+                </tr>
+            </thead>
+            <tbody id="daysGrid">
+                @foreach (T5V3.Attendance.ADayResult res in Model.Results)
+                {
+                    System.Globalization.PersianCalendar pc = new System.Globalization.PersianCalendar();
+
+                    <tr style="cursor:pointer; background-color:#@(T5V3Web.Controllers.TotalControlController.GetRowColor(res))">
+                        <td onclick="dayClick(this, '@(res.ForDate.ToString("yyyy-MM-dd"))')">@pc.GetDayOfMonth(res.ForDate)</td>
+                        <td onclick="dayClick(this,'@(res.ForDate.ToString("yyyy-MM-dd"))')">@T5V3.UI.MiscUI.DayOfWeekToString(res.ForDate.DayOfWeek)</td>
+                        <td onclick="dayClick(this,'@(res.ForDate.ToString("yyyy-MM-dd"))')">@res.Records.Count</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div id="daysDiv" class="col-sm-3 border-gray">
+        @foreach (T5V3.Attendance.ADayResult res in Model.Results)
+        {
+            <div class="collapsed-visibility" id="day@(res.ForDate.ToString("yyyy-MM-dd"))">
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <label>@T5V3Web.Content.Persian.SavedRecords</label>
+                    </div>
+                    <div class="panel-body auto-scroll" style="max-height:200px">
+                        <table class="table table-bordered table-hover table-responsive table-striped">
+                            <tr class="warning">
+                                <td>@T5V3Web.Content.Persian.Valid</td>
+                                <td>@T5V3Web.Content.Persian.Date</td>
+                                <td>@T5V3Web.Content.Persian.Time</td>
+                                <td class="no-wrap">@T5V3Web.Content.Persian.CheckType</td>
+                                <td>@T5V3Web.Content.Persian.Operation2</td>
+                                <td class="no-wrap">@T5V3Web.Content.Persian.RecordSource</td>
+                                <td class="no-wrap">@T5V3Web.Content.Persian.MachineNumber</td>
+                                <td></td>
+                            </tr>
+                            @foreach (T5V3.Attendance.ProcessedRecord record in res.Records)
+                            {
+                                <tr>
+                                    <td>
+                                        <input onchange="changeValid(this,@record.BadgeNumber ,'@record.CheckTime.ToString("yyyy-MM-dd HH:mm:ss")')" type="checkbox" @(record.IsValid ? "checked=\"checked\"" : "") />
+                                    </td>
+                                    <td>@T5V3.Misc.DateConverter.ToHijriDate(record.CheckTime)</td>
+                                    <td>@record.CheckTime.ToString("HH:mm")</td>
+                                    <td class="no-wrap">
+                                        <label class="inline-block-display">
+                                            <a  rel="noopener noreferrer" onclick="showChangeState('@record.CheckTime.ToString("yyyy_MM_dd_HH_mm_ss")')" href="javascript:">@T5V3Web.Controllers.TotalControlController.GetRecordTypeName(record.AttState, Model.AllLeaveTypes)</a>
+                                        </label>
+                                        <ul style="list-style:none;position:absolute;height:0px;overflow:visible;z-index:3;" id="stt_@(record.CheckTime.ToString("yyyy_MM_dd_HH_mm_ss"))" class="collapsed-visibility contextmenu">
+                                            <li class="block-display center-align w-100 border-gray back-lightGreen">
+                                                <a  rel="noopener noreferrer" onclick="changeState(0,@record.BadgeNumber,'@(record.CheckTime.ToString("yyyy-MM-dd HH:mm:ss"))')" href="javascript:">@T5V3Web.Content.Persian.In</a>
+                                            </li>
+                                            <li class="block-display center-align w-100 border-gray back-lightGreen">
+                                                <a  rel="noopener noreferrer" onclick="changeState(1,@record.BadgeNumber,'@(record.CheckTime.ToString("yyyy-MM-dd HH:mm:ss"))')" href="javascript:">@T5V3Web.Content.Persian.Out</a>
+                                            </li>
+                                            @foreach (T5V3.Model.LeaveType lt in Model.AllLeaveTypes)
+                                            {
+                                                if (lt.IsHourly)
+                                                {
+                                                    <li class="block-display center-align w-100 border-gray back-lightGreen">
+                                                        <a  rel="noopener noreferrer" onclick="changeState(@lt.StateKey,@record.BadgeNumber,'@(record.CheckTime.ToString("yyyy-MM-dd HH:mm:ss"))')" href="javascript:">@lt.LeaveName</a>
+                                                    </li>
+                                                }
+                                            }
+                                        </ul>
+                                    </td>
+                                    <td class="no-wrap">@T5V3.UI.MiscUI.RecordExeptionTypeToString(record.ExceptionType)</td>
+                                    <td class="no-wrap">@T5V3.UI.MiscUI.RecordSourceToString(record.Source)</td>
+                                    <td class="no-wrap">@record.MachineNumber</td>
+                                    <td><a  rel="noopener noreferrer" onclick="deleteRecord(@record.BadgeNumber,'@record.CheckTime.ToString("yyyy-MM-dd HH:mm:ss")')" href="javascript:">@T5V3Web.Content.Persian.Delete</a> </td>
+                                </tr>
+                            }
+                        </table>
+                    </div>
+                </div>
+
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <label>@T5V3Web.Content.Persian.InAndOutRecords</label>
+                    </div>
+                    <div class="panel-body auto-scroll" style="max-height:150px">
+                        <table class="table table-bordered table-hover table-responsive table-striped">
+                            <thead>
+                                <tr class="warning">
+                                    <td>@T5V3Web.Content.Persian.Date</td>
+                                    <td>@T5V3Web.Content.Persian.Time</td>
+                                    <td>@T5V3Web.Content.Persian.Operation2</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (res.ProcessedSchedule != null)
+                                {
+                                    if (!res.ProcessedSchedule.WOIn)
+                                    {
+                                        <tr>
+                                            @if (res.ProcessedSchedule.MainInTime != new DateTime())
+                                            {
+                                                <td>@T5V3.Misc.DateConverter.ToHijriDate(res.ProcessedSchedule.MainInTime)</td>
+                                            }
+                                            else
+                                            {
+                                                <td> </td>
+                                            }
+                                            <td>@res.ProcessedSchedule.MainInTime.ToString("HH:mm")</td>
+                                            <td>@T5V3Web.Content.Persian.In</td>
+                                        </tr>
+                                    }
+                                    if (!res.ProcessedSchedule.WOOut)
+                                    {
+                                        <tr>
+                                            @if (res.ProcessedSchedule.MainOutTime != new DateTime())
+                                            {
+                                            <td>@T5V3.Misc.DateConverter.ToHijriDate(res.ProcessedSchedule.MainOutTime)</td>
+                                            }
+                                            else
+                                            {
+                                                <td> </td>
+                                            }
+                                            
+                                            <td>@res.ProcessedSchedule.MainOutTime.ToString("HH:mm")</td>
+                                            <td>@T5V3Web.Content.Persian.Out</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <label>@T5V3Web.Content.Persian.Leaves</label>
+                    </div>
+                    <div class="panel-body auto-scroll" style="max-height:200px">
+                        <table class="table table-bordered table-hover table-responsive table-striped">
+                            <thead>
+                                <tr class="warning">
+                                    <td>@T5V3Web.Content.Persian.LeaveName</td>
+                                    <td>@T5V3Web.Content.Persian.From</td>
+                                    <td>@T5V3Web.Content.Persian.To</td>
+                                    <td>@T5V3Web.Content.Persian.Daily</td>
+                                    <td class="no-wrap">@T5V3Web.Content.Persian.ValidLen</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (res.IsDailyLeave)
+                                {
+                                    if (res.DailyLeaveValue.DailyLeaveType.LeaveType1 == T5V3.Model.LeaveTypeEnum.Leave)
+                                    {
+                                        <tr>
+                                            <td>@res.DailyLeaveValue.DailyLeaveType.LeaveName</td>
+                                            <td>@res.DailyLeaveValue.LeaveDateHijri</td>
+                                            <td>@res.DailyLeaveValue.LeaveDateHijri</td>
+                                            <td>
+                                                <input type="checkbox" class="inline-block-display w-60" checked="checked" />
+                                            </td>
+                                            <td>-</td>
+                                        </tr>
+                                    }
+                                }
+                                @if (res.ProcessedSchedule != null)
+                                {
+                                    foreach (T5V3.Attendance.InShiftExit isx in res.ProcessedSchedule.InShiftExits)
+                                    {
+                                        if (!isx.IsLessWork)
+                                        {
+                                            if (isx.lvType.LeaveType1 == T5V3.Model.LeaveTypeEnum.Leave)
+                                            {
+                                                <tr>
+                                                    <td>@isx.lvType.LeaveName</td>
+                                                    <td>@isx.FromTime.ToString("HH:mm")</td>
+                                                    <td>@isx.ToTime.ToString("HH:mm")</td>
+                                                    <td>
+                                                        <input type="checkbox" class="inline-block-display w-60" checked="checked" />
+                                                    </td>
+                                                    <td>@isx.ValidLen</td>
+                                                </tr>
+                                            }
+                                        }
+                                    }
+                                }
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <label>@T5V3Web.Content.Persian.Duties2</label>
+                    </div>
+                    <div class="panel-body auto-scroll" style="max-height:200px">
+                        <table class="table table-bordered table-hover table-responsive table-striped">
+                            <thead>
+                                <tr class="warning">
+                                    <td>@T5V3Web.Content.Persian.LeaveName</td>
+                                    <td>@T5V3Web.Content.Persian.From</td>
+                                    <td>@T5V3Web.Content.Persian.To</td>
+                                    <td>@T5V3Web.Content.Persian.Daily</td>
+                                    <td class="no-wrap">@T5V3Web.Content.Persian.ValidLen</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (res.IsDailyLeave)
+                                {
+                                    if (res.DailyLeaveValue.DailyLeaveType.LeaveType1 == T5V3.Model.LeaveTypeEnum.Duty)
+                                    {
+                                        <tr>
+                                            <td>@res.DailyLeaveValue.DailyLeaveType.LeaveName</td>
+                                            <td>@res.DailyLeaveValue.LeaveDateHijri</td>
+                                            <td>@res.DailyLeaveValue.LeaveDateHijri</td>
+                                            <td>
+                                                <input type="checkbox" class="inline-block-display w-60" checked="checked" />
+                                            </td>
+                                            <td>-</td>
+                                        </tr>
+                                    }
+                                }
+                                @if (res.ProcessedSchedule != null)
+                                {
+                                    foreach (T5V3.Attendance.InShiftExit isx in res.ProcessedSchedule.InShiftExits)
+                                    {
+                                        if (!isx.IsLessWork)
+                                        {
+                                            if (isx.lvType.LeaveType1 == T5V3.Model.LeaveTypeEnum.Duty)
+                                            {
+                                                <tr>
+                                                    <td>@isx.lvType.LeaveName</td>
+                                                    <td>@isx.FromTime.ToString("HH:mm")</td>
+                                                    <td>@isx.ToTime.ToString("HH:mm")</td>
+                                                    <td>
+                                                        <input type="checkbox" class="inline-block-display w-60" checked="checked" />
+                                                    </td>
+                                                    <td>@isx.ValidLen</td>
+                                                </tr>
+                                            }
+                                        }
+                                    }
+                                }
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <label>@T5V3Web.Content.Persian.OverTimes</label>
+                    </div>
+                    <div class="panel-body auto-scroll" style="max-height:150px">
+                        <table class="table table-bordered table-hover table-responsive table-striped">
+                            <thead>
+                                <tr class="warning">
+                                    <td class="no-wrap">@T5V3Web.Content.Persian.OverTimeType</td>
+                                    <td class="no-wrap">@T5V3Web.Content.Persian.From</td>
+                                    <td>@T5V3Web.Content.Persian.To</td>
+                                    <td class="no-wrap">@T5V3Web.Content.Persian.RealLen</td>
+                                    <td class="no-wrap">@T5V3Web.Content.Persian.ValidLen</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (res.ProcessedSchedule != null)
+                                {
+                                    if ((res.ProcessedSchedule.OverTimeBeforeReal != TimeSpan.FromTicks(0)) || (res.ProcessedSchedule.OverTimeBeforeLast != TimeSpan.FromTicks(0)))
+                                    {
+                                        <tr>
+                                            <td>@T5V3Web.Content.Persian.OTBefore</td>
+                                            <td>@res.ProcessedSchedule.MainInTime.ToString("HH:mm")</td>
+                                            <td>@res.CurrentShift.ActiveSchedule.FromTime.ToString("HH:mm")</td>
+                                            <td>@res.ProcessedSchedule.OverTimeBeforeReal</td>
+                                            <td>@res.ProcessedSchedule.OverTimeBeforeLast</td>
+                                        </tr>
+                                    }
+                                    if ((res.ProcessedSchedule.OverTimeAfterReal != TimeSpan.FromTicks(0)) || (res.ProcessedSchedule.OverTimeAfterLast != TimeSpan.FromTicks(0)))
+                                    {
+                                        <tr>
+                                            <td>@T5V3Web.Content.Persian.OTAfter</td>
+                                            <td>@res.CurrentShift.ActiveSchedule.ToTime.ToString("HH:mm")</td>
+                                            <td>@res.ProcessedSchedule.MainOutTime.ToString("HH:mm")</td>
+                                            <td>@res.ProcessedSchedule.OverTimeAfterReal</td>
+                                            <td>@res.ProcessedSchedule.OverTimeAfterLast</td>
+                                        </tr>
+                                    }
+                                }
+                                @foreach (T5V3.Attendance.FreeOverTime freeOT in res.FreeOverTimes)
+                                {
+                                    <tr>
+                                        <td>@T5V3Web.Content.Persian.FreeOT</td>
+                                        <td>@freeOT.FromTime.ToString("HH:mm")</td>
+                                        <td>@freeOT.ToTime.ToString("HH:mm")</td>
+                                        <td>@freeOT.RealLen</td>
+                                        <td>@freeOT.ValidLen</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <label>@T5V3Web.Content.Persian.LessWork</label>
+                    </div>
+                    <div class="panel-body auto-scroll" style="max-height:150px">
+                        <table class="table table-bordered table-hover table-responsive table-striped">
+                            <thead>
+                                <tr class="warning">
+                                    <td class="no-wrap">@T5V3Web.Content.Persian.Type</td>
+                                    <td class="no-wrap">@T5V3Web.Content.Persian.From</td>
+                                    <td>@T5V3Web.Content.Persian.To</td>
+                                    <td class="no-wrap">@T5V3Web.Content.Persian.RealLen</td>
+                                    <td class="no-wrap">@T5V3Web.Content.Persian.ValidLen</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (res.ProcessedSchedule != null)
+                                {
+                                    if ((res.ProcessedSchedule.LateReal != TimeSpan.FromTicks(0)) || (res.ProcessedSchedule.LateLast != TimeSpan.FromTicks(0)))
+                                    {
+                                        <tr>
+                                            <td>@T5V3Web.Content.Persian.Late</td>
+                                            <td>@res.CurrentShift.ActiveSchedule.FromTime.ToString("HH:mm")</td>
+                                            <td>@res.ProcessedSchedule.MainInTime.ToString("HH:mm")</td>
+                                            <td>@res.ProcessedSchedule.LateReal</td>
+                                            <td>@res.ProcessedSchedule.LateLast</td>
+                                        </tr>
+                                    }
+                                    if ((res.ProcessedSchedule.EarlyReal != TimeSpan.FromTicks(0)) || (res.ProcessedSchedule.EarlyLast != TimeSpan.FromTicks(0)))
+                                    {
+                                        <tr>
+                                            <td>@T5V3Web.Content.Persian.Early</td>
+                                            <td>@res.ProcessedSchedule.MainOutTime.ToString("HH:mm")</td>
+                                            <td>@res.CurrentShift.ActiveSchedule.ToTime.ToString("HH:mm")</td>
+                                            <td>@res.ProcessedSchedule.EarlyReal</td>
+                                            <td>@res.ProcessedSchedule.EarlyLast</td>
+                                        </tr>
+                                    }
+                                }
+                                @foreach (T5V3.Attendance.InShiftExit isx in res.ProcessedSchedule.InShiftExits)
+                                {
+                                    if (isx.IsLessWork)
+                                    {
+                                        <tr>
+                                            <td>@T5V3Web.Content.Persian.LessWork</td>
+                                            <td>@isx.FromTime.ToString("HH:mm")</td>
+                                            <td>@isx.ToTime.ToString("HH:mm")</td>
+                                            <td>@isx.Len</td>
+                                            <td>@isx.ValidLen</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+
+                    </div>
+                </div>
+
+
+            </div>
+        }
+    </div>
+
+    <div class="col-sm-3 border-gray">
+        <div id="tabs">
+            <ul>
+                <li class="float-right"><a  rel="noopener noreferrer" href="#tabs-1">@T5V3Web.Content.Persian.Parameters</a></li>
+                <li class="float-right"><a  rel="noopener noreferrer" href="#tabs-2">@T5V3Web.Content.Persian.Selected2</a></li>
+            </ul>
+            <div id="tabs-1">
+                @foreach (T5V3.Attendance.ADayResult res in Model.Results)
+                {
+                    if (res.CurrentShift != null)
+                    {
+                        <div id="val@(res.ForDate.ToString("yyyy-MM-dd"))" class="collapsed-visibility">
+                            @if (res.CurrentShift.ActiveSchedule != null)
+                            {
+                                <label class="block-display">@string.Format("{0} : {1}", T5V3Web.Content.Persian.Absent, res.ProcessedSchedule.Absent ? T5V3Web.Content.Persian.Yes : T5V3Web.Content.Persian.No)</label>
+                                <label class="block-display">@string.Format("{0} : {1}", T5V3Web.Content.Persian.ScheduleName, res.CurrentShift.ActiveSchedule.Name)</label>
+                                <label class="block-display">@string.Format("{0} : {1}", T5V3Web.Content.Persian.FromTime, T5V3.Attendance.ShiftProcessor.GetRealTimes(res.CurrentShift).WorkInterval.FromTime.ToString("HH:mm"))</label>
+                                <label class="block-display">@string.Format("{0} : {1}", T5V3Web.Content.Persian.ToTime, T5V3.Attendance.ShiftProcessor.GetRealTimes(res.CurrentShift).WorkInterval.ToTime.ToString("HH:mm"))</label>
+                                <label class="block-display">@string.Format("{0} : {1}", T5V3Web.Content.Persian.Late, res.ProcessedSchedule.LateLast.ToString("hh\\:mm"))</label>
+                                <label class="block-display">@string.Format("{0} : {1}", T5V3Web.Content.Persian.Early, res.ProcessedSchedule.EarlyLast.ToString("hh\\:mm"))</label>
+                                <label class="block-display">@string.Format("{0} : {1}", T5V3Web.Content.Persian.OTBefore, res.ProcessedSchedule.OverTimeBeforeLast.ToString("hh\\:mm"))</label>
+                                <label class="block-display">@string.Format("{0} : {1}", T5V3Web.Content.Persian.OTAfter, res.ProcessedSchedule.OverTimeAfterLast.ToString("hh\\:mm"))</label>
+                                <label class="block-display">@string.Format("{0} : {1}", T5V3Web.Content.Persian.SuspendTime, res.ProcessedSchedule.SuspendTime.ToString("hh\\:mm"))</label>
+                                <label class="block-display">@string.Format("{0} : {1}", T5V3Web.Content.Persian.State, T5V3Web.Controllers.TotalControlController.GetStateName(res))</label>
+                            }
+                            else
+                            {
+                                <label class="block-display">@string.Format("{0} : -", T5V3Web.Content.Persian.Absent)</label>
+                                <label class="block-display">@string.Format("{0} : -", T5V3Web.Content.Persian.ScheduleName)</label>
+                                <label class="block-display">@string.Format("{0} : -", T5V3Web.Content.Persian.FromTime)</label>
+                                <label class="block-display">@string.Format("{0} : -", T5V3Web.Content.Persian.ToTime)</label>
+                                <label class="block-display">@string.Format("{0} : -", T5V3Web.Content.Persian.Late)</label>
+                                <label class="block-display">@string.Format("{0} : -", T5V3Web.Content.Persian.Early)</label>
+                                <label class="block-display">@string.Format("{0} : -", T5V3Web.Content.Persian.OTBefore)</label>
+                                <label class="block-display">@string.Format("{0} : -", T5V3Web.Content.Persian.OTAfter)</label>
+                                <label class="block-display">@string.Format("{0} : -", T5V3Web.Content.Persian.SuspendTime)</label>
+                                <label class="block-display">@string.Format("{0} : -", T5V3Web.Content.Persian.State)</label>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+            <div id="tabs-2">
+                @{
+                    int index = -1;
+                    foreach (T5V3.Attendance.ADayResult res in Model.Results)
+                    {
+                        index++;
+                        <div id="cust@(res.ForDate.ToString("yyyy-MM-dd"))" class="collapsed-visibility">
+                            @for (int i = 0; i < Model.CustomDataNames.Count; i++)
+                            {
+                                <label class="block-display">@string.Format("{0} : {1}", Model.CustomDataNames[i], Model.CustomData.Rows[index][i])</label>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section scripts
+{
+    <script>
+        $(function () {
+            $("#tabs").tabs();
+        });
+
+        function showChangeState(name) {
+            $("ul.contextmenu").attr('class', 'collapsed-visibility contextmenu')
+            $('#stt_' + name).attr('class', 'visible-visibility contextmenu');
+        }
+
+        function changeValid(checkbox, badgeNumber, checkTime) {
+            var valid = checkbox.checked;
+            $.ajax("/TotalControl/ChangeRecordValid?badgeNumber=" + badgeNumber + "&checkTime=" + checkTime + "&newState=" + valid)
+                .done(function (res) {
+                    if (res == 'True') {
+                        alert('@(T5V3Web.Content.Persian.SuccessEdit)');
+                    }
+                }
+                );
+        }
+
+        function changeState(stt, badgeNumber, checkTime) {
+            $("ul.contextmenu").attr('class', 'collapsed-visibility contextmenu')
+            $.ajax("/TotalControl/ChangeRecordState?badgeNumber=" + badgeNumber + "&checkTime=" + checkTime + "&newState=" + stt)
+                .done(function (res) {
+                    if (res == 'True') {
+                        alert('@(T5V3Web.Content.Persian.SuccessEdit)');
+                    }
+                }
+                );
+        }
+
+        function deleteRecord(badgeNumber, checkTime) {
+            $.ajax("/TotalControl/DeleteRecord?badgeNumber=" + badgeNumber + "&checkTime=" + checkTime)
+                .done(function (res) {
+                    alert(res);
+                }
+                );
+        }
+
+        function dayClick(cell, datestr) {
+            invisibleAllDays();
+            $("#daysGrid tr").css("border", "none");
+            cell.parentNode.style.border = "3px solid blue";
+            $('#day' + datestr).attr('class', 'visible-visibility');
+            $('#day' + datestr + " div.collapsed-visibility").attr('class', 'visible-visibility');
+
+            $('#val' + datestr).attr('class', 'visible-visibility');
+            $('#cust' + datestr).attr('class', 'visible-visibility');
+
+        }
+
+        function invisibleAllDays() {
+            $('#daysDiv div.visible-visibility').attr('class', 'collapsed-visibility');
+            $('#tabs-1 div.visible-visibility').attr('class', 'collapsed-visibility');
+            $('#tabs-2 div.visible-visibility').attr('class', 'collapsed-visibility');
+        }
+    </script>
+}

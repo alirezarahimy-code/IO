@@ -1,0 +1,251 @@
+﻿@using T5V3Web.Controllers
+@using T5V3Web.Misc
+@model T5V3Web.Models.OprationLogModel
+
+@{
+    ViewBag.Title = "لاگ عملکرد کاربران";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    Personnel.DB.DBManager db = DBManagers.GetPersonnelSystem().DB;
+    //var userslist = db.UserInfos.GetAll().Where(a => a.WebUser.Equals(true));
+    var adminUser = HomeController.AdminUsersList().Where(a => a.WebUser == true);
+}
+
+<h2>گزارش عملکرد کاربران </h2>
+
+
+<form method="post">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <label>انتخاب محدوده زمانی ...</label>
+        </div>
+        <div class="panel-body">
+            <div>
+                <div class="form-horizontal">
+
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                            <label class="control-label">کاربر</label>
+                        </div>
+                        <div class="col-sm-10">
+                            <select class="form-control" name="badgNumber">
+                                @foreach (var x in adminUser)
+                                {
+                                    <option value="@x.BadgeNumber">@x.FirstName &nbsp; @x.LastName</option>
+
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                            <label class="control-label">عملیات</label>
+                        </div>
+                        <div class="col-sm-10">
+                            <select class="form-control" name="userAction">
+                                <option value="all">همه</option>
+                                <option value="add">افزودن</option>
+                                <option value="edit">ویرایش</option>
+                                <option value="delete">حذف</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                            <label class="control-label">بخش</label>
+                        </div>
+                        <div class="col-sm-10">
+                            <select class="form-control" name="userlocation">
+                                <option value="all">همه</option>
+                                <option value="مدرک تحصیلی">مدرک تحصیلی</option>
+                                <option value="سمت">سمت</option>
+                                <option value="انتخاب جانشین">انتخاب جانشین</option>
+                                <option value="نوع استخدام">نوع استخدام</option>
+                                <option value="نوع خروج">نوع خروج</option>
+                                <option value="شرح خروج">شرح خروج</option>
+                                <option value="تقویم">تقویم</option>
+                                <option value="ماه رمضان">ماه رمضان</option>
+                                <option value="قانون">قانون</option>
+                                <option value="قسمت">قسمت</option>
+                                <option value="گروهبندی پرسنل">گروهبندی پرسنل</option>
+                                <option value="ورود کاربران از طریق اکسل">ورود اطلاعات کاربران از excel</option>
+                                <option value="اطلاعات پرسنلی">اطلاعات پرسنلی</option>
+                                <option value="جدول زمانی">جدول زمانی</option>
+                                <option value="شیفت">شیفت</option>
+                                <option value="اختصاص شیفت به پرسنل">اختصاص شیفت به پرسنل</option>
+                                <option value="شیفت های موقت">شیفت های موقت</option>
+                                <option value="درج تردد">درج تردد</option>
+                                <option value="درج مرخصی و ماموریت روزانه">درج مرخصی و ماموریت روزانه</option>
+                                <option value="مدیریت اطلاعات USB">مدیریت اطلاعات USB</option>
+                                <option value="ویرایش تاخیر و تعجیل">ویرایش تاخیر و تعجیل</option>
+                                <option value="صدور مجوز کسر کار">صدور مجوز کسر کار</option>
+                                <option value="پیش کارت">پیش کارت</option>
+                                <option value="اعمال پیش کارت">اعمال پیش کارت</option>
+                                <option value="انتقال مانده مرخصی">انتقال مانده مرخصی</option>
+                                <option value="گیت">گیت</option>
+                                <option value="دستگاه">دستگاه</option>
+                                <option value="پارامترها">پارامترها</option>
+                                <option value="طراحی گزارش">طراحی گزارش</option>
+                                <option value="گردش کار">گردش کار</option>
+                                <option value="گردش کار سفارشی">گردش کار سفارشی</option>
+                                <option value="مدیر">مدیر</option>
+                                <option value="عملیات روی دستگاه ها">عملیات روی دستگاه ها</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                            <label class="control-label">از تاریخ</label>
+                        </div>
+                        <div class="col-sm-8">
+                            <input name="FromDateHijri1" type="text" value="" class="datepicker-farsi" style="width:126%">
+                            @*<input class="form-control" name="FromDateHijri1" type="text" value="">*@
+                        </div>
+                        <div class="col-sm-2 text-right">
+                            @*<a rel="noopener noreferrer" id="selectFrom1" href="javascript:" onclick="displayDatePicker('FromDateHijri1', this)">انتخاب</a>*@
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                            <label class="control-label">تا تاریخ</label>
+                        </div>
+                        <div class="col-sm-8">
+                            <input class="datepicker-farsi" style="width:126%" name="ToDateHijri1" type="text" value="">
+                            @*<input class="form-control" name="ToDateHijri1" type="text" value="">*@
+                        </div>
+                        <div class="col-sm-2 text-right">
+                            @*<a rel="noopener noreferrer" id="selectTo1" href="javascript:" onclick="displayDatePicker('ToDateHijri1', this)">انتخاب</a>*@
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                $(function () {
+                    $(".year-input").mask('9999');
+                })
+
+                function changeDateMode1(checkbox) {
+                    if (checkbox.checked == true) {
+                        $("[name='FromDateHijri1']").prop('disabled', true);
+                        $("[name='ToDateHijri1']").prop('disabled', true);
+
+                        $("[name='month1']").prop('disabled', false);
+                        $("[name='year1']").prop('disabled', false);
+
+                    }
+                    else {
+                        $("[name='FromDateHijri1']").prop('disabled', false);
+                        $("[name='ToDateHijri1']").prop('disabled', false);
+
+                        $("[name='month1']").prop('disabled', true);
+                        $("[name='year1']").prop('disabled', true);
+                    }
+                }
+            </script>
+
+            <input type="submit" class="btn btn-primary btn-shadow" value="نمایش">
+        </div>
+    </div>
+
+</form>
+
+<table class="table table-hover table-responsive table-striped">
+    <thead>
+        <tr>
+            <th>@T5V3Web.Content.Persian.BadgeNumber</th>
+            <th>نام و نام خانوادگی</th>
+            <th>آی پی سیستم</th>
+            <th>بخش</th>
+            <th>عملیات</th>
+            <th>تاریخ و زمان</th>
+            <th>نوع فعالیت</th>
+            <th>ابزار </th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (ViewBag.DUserData != null)
+        {
+
+            foreach (var log in ViewBag.DUserData)
+            {
+                <tr>
+                    <td>@log.BadgNumber</td>
+                    <td>@log.Name</td>
+                    <td>@log.IP</td>
+                    <td>@log.Location</td>
+                    <td>@OprationLogClass.GetUnitText(log.Unit.ToString())</td>
+                    <td>@PersianDate.ConvertDate.ToFa(log.Date, "d")</td>
+                    <td>@log.ActionName</td>
+                    <td><a type="button" class="btn btn-default" id="" href="javascript:showDetail(@log.Id)">مشاهده جزییات</a></td>
+                </tr>
+            }
+        }
+    </tbody>
+
+</table>
+@section modals
+{
+    <div id="showDetailModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 id="msg-title-transfer" class="modal-title">جزییات عملکرد کاربر</h4>
+                </div>
+                <table class="table table-hover table-responsive table-striped">
+                    <thead>
+                        <tr>
+                            <th>اطلاعات جدید</th>
+                            <th>اطلاعات قدیمی</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><label class="control-label" id="newParam"></label></td>
+                            <td><label class="control-label" id="oldParam"></label></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="modal-footer">
+                    <button type="button" data-dismiss="modal" class="btn btn-default">@T5V3Web.Content.Persian.Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+@section scripts
+{
+    <script src="~/Scripts/index.js"></script>
+    <script>
+        settings = {
+            format: "yyyy/mm/dd",
+            dateSeparator: "/",
+            autoClose: true,
+            labelLanguage: 'farsi'
+        }
+        renderToday();
+    </script>
+    <script>
+        function showDetail(id) {
+            var postData = { Id: id };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(postData),
+                type: "POST",
+                url: "/UserReport/GetReportByID",
+                success: function (data) {
+                    console.log(data.report);
+                    $("#newParam").text(data.report.ParamData);
+                    $("#oldParam").text(data.report.OldParamData);
+                    $("#showDetailModal").modal();
+                }
+            });
+        }
+
+    </script>
+}

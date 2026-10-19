@@ -1,0 +1,260 @@
+﻿@using DBFDriver
+@model T5V3Web.Models.TitleHistoryModel
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.ReportTitles;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.BaseData;
+    ViewBag.PageTag = "ReportTitles";
+    Personnel.PersonnelSystem ps = T5V3Web.Misc.DBManagers.GetPersonnelSystem();
+
+}
+
+<div class="page-header">
+    <h3>گزارش سمت "@Model.TitleName"</h3>
+</div>
+
+
+
+<!--<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-warning" style="height: 100px">
+            <div class="panel-heading">
+                <label>@T5V3Web.Content.Persian.TitlesChart</label>
+            </div>
+            <div class="panel-body ">
+                <input type="text" value="" onkeyup="search(this)" placeholder="@T5V3Web.Content.Persian.Search" />
+            </div>
+        </div>
+        <div class="right-align auto-scroll" id="tree" style="max-height: 200px;padding-top:20px;margin-bottom:30px;">
+        </div>
+    </div>-->
+
+    @*<div class="auto-scroll col-md-6" style="max-height:500px;padding-top:20px;margin-bottom:30px;">
+            <div class="right-align">
+                @Html.Partial("_SelectOneUser", null, new ViewDataDictionary())
+            </div>
+        </div>*@
+<!--</div>-->
+
+@*@if (Model.Selected != null)
+    {
+        <input type="hidden" id="selectedtitleid" name="selectedtitleid" value="@Model.Selected.TitleID" />
+    }
+    else
+    {
+        <input type="hidden" id="selectedtitleid" name="selectedtitleid" value="-1" />
+    }*@
+
+
+<div class=" card">
+
+    <table id="datatable" class="table table-hover table-bordered table-responsive table-striped">
+        <thead>
+            <tr>
+                <th>
+                    شناسه کاربری
+                </th>
+                <th>
+                    نام و نام خانوادگی
+                </th>
+                <th>
+                    از تاریخ
+                </th>
+                <th>
+                    تا تاریخ
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var titleHis in Model.TitleView.OrderByDescending(t=>t.FromDate))
+            {
+                    <tr>
+                        <td>
+                            <label>@titleHis.BadgeNumber</label>
+                        </td>
+                        <td>
+                            <label>@titleHis.FullName</label>
+                        </td>
+                        <td>
+                            <label>@T5V3.Misc.DateConverter.ToHijriDate(titleHis.FromDate)</label>
+                        </td>
+                        <td>
+                            <label>@((titleHis.ToDate.HasValue)? T5V3.Misc.DateConverter.ToHijriDate((DateTime)titleHis.ToDate).ToString() : "")</label>
+                        </td>
+                    </tr>
+              
+            }
+        </tbody>
+    </table>
+
+</div>
+
+
+
+@section scripts{
+    <script>
+        @*loadList("");
+
+        function search(textbox) {
+            $("body").data("squery", textbox.value);
+            loadList(textbox.value);
+        }
+
+        function submitData() {
+            var toEdit = {
+                TitleID: $("#TitleID").val(),
+                DisplayName: $("#DisplayName").val(),
+                Duties: $("#Duties").val(),
+                EmailAddress: $("#EmailAddress").val(),
+                Observer: $('#chkObserver').is(':checked'),
+                Certs: $("#Certs").val(),
+                Address: $("#Address").val(),
+                TitleName: $("#TitleName").val(),
+                UpperTitleID: $("#selectedtitleid").val(),
+            };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/Title/Edit",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                    if (toEdit.TitleID == -1) {
+                        loadList($("body").data("squery"));
+                    }
+                    else {
+                        loadList($("body").data("squery"));
+                    }
+                }
+            });
+            invisiblePanel();
+        }
+
+        function invisiblePanel() {
+            $("#edit-panel").removeClass("visisble-visibility");
+            $("#edit-panel").addClass("collapsed-visibility");
+        }
+
+        function editNode(id) {
+            $("#edit-panel").removeClass("collapsed-visibility");
+            $("#edit-panel").addClass("visisble-visibility");
+            $('html, body').animate({
+                scrollTop: $("#edit-panel").offset().top
+            }, 500);
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Edit");
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                type: "GET",
+                url: "/Title/GetByID/" + id,
+                success: function (data) {
+                    $("#TitleID").val(data.TitleID);
+                    $("#DisplayName").val(data.DisplayName);
+                    $('#chkObserver').prop("checked", data.Observer);
+                    $("#Duties").val(data.Duties);
+                    $("#EmailAddress").val(data.EmailAddress);
+                    $("#Certs").val(data.Certs);
+                    $("#Address").val(data.Address);
+                    $("#TitleName").val(data.TitleName);
+                    $("#selectedtitleid").val(data.UpperTitleID);
+                    $("#ParentName").html(data.Upper);
+                    $("#btnGuardAccess").attr("onClick", "loadDepartments(" + data.TitleID + ")");
+                }
+            });
+        }
+
+        function confirmDelete(id) {
+            $("#dialog-confirm-delete").dialog({
+                resizable: false,
+                height: 160,
+                modal: true,
+                position: { my: "center", at: "center", of: window },
+                buttons: {
+                    "@T5V3Web.Content.Persian.OK": function () {
+                        $(this).dialog("close");
+
+                        $.ajax({
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            type: "POST",
+                            url: "/Title/Delete/" + id,
+                            success: function (data) {
+                                $("#msg-title").html("@T5V3Web.Content.Persian.Delete");
+                                $("#msg-body").html(data.Message);
+                                $("#myModal").modal();
+                                //loadlist($("body").data("page"), $("body").data("squery"));
+                                loadList($("body").data("squery"));
+                            }
+                        });
+                    },
+                    "@T5V3Web.Content.Persian.Cancel": function () {
+                        $(this).dialog("close");
+                    }
+                }
+            });
+        }
+
+        function loadList(searchQuery) {
+            if (searchQuery == null)
+                searchQuery = "";
+            $.get("/ReportTitles/GetTree?searchQuery=" + searchQuery, "", function (gdata) {
+                $('#tree').treeview({
+                    data: gdata,
+                    levels: 50,
+                    editRemoveLink: false,
+                    enableLinks: false,
+                    onNodeSelected: function (event, data) {
+                        $("#selectedtitleid").val(data.tags);
+                        $("#selectedtitlename").html(data.text);
+                    }
+                });
+            });
+
+        }
+
+
+        $(document).on("click",".node-tree",function (obj) {
+            if (!$(this).hasClass('node-selected')) {
+                $('#showHis').show();
+                $('#titleName').text(this.innerText);
+                $('#selectedTitle').val($(this).attr('data-nodeid'));
+            } else {
+                $('#showHis').hide();
+                $('#titleName').text('');
+                $('#selectedTitle').val('');
+            }
+        });
+
+
+        function ShowTitleHistory() {
+            var titleId = $('#selectedTitle').val();
+            window.open("ReportTitles/Show?id="+titleId , '_blank');
+        }*@
+
+
+        $(document).ready(function () {
+            $.extend($.fn.dataTable.defaults,
+                {
+                    autoWidth: true,
+                    language: {
+                        search: '<span>جستجو :</span> _INPUT_',
+                        searchPlaceholder: 'بنویسید ...',
+                        lengthMenu: '<span>نمایش :</span> _MENU_',
+                        oPaginate: { 'sNext': 'بعدی', 'sPrevious': 'قبلی', 'sLast': 'آخرین', 'sFirst': 'اولین' }
+                    }
+                });
+
+        });
+
+        $(document).ready(function () {
+            $("#datatable").DataTable({
+                "order": [[3, "asc"]]
+            });
+        });
+    </script>
+    <link href="~/Scripts/datatables.net-bs4/css/dataTables.bootstrap4.min.css" rel="stylesheet" type="text/css" />
+    <script src="~/Scripts/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="~/Scripts/datatables.net-bs4/js/dataTables.bootstrap4.min.js"></script>
+}

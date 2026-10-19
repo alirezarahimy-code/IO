@@ -1,0 +1,11 @@
+﻿<form id="frmFontSize" method="post" action="/Home/ChangeFont">
+    <label style="color:white">@T5V3Web.Content.Persian.FontSize</label>
+    <select style="color:black" name="fontSize" onchange="javascript: { $('#frmFontSize').submit(); }">
+        @for (int i = 1; i < 11; i++)
+        {
+            <option value="@(i+10)" @(T5V3Web.Misc.GlobalHelper.GetUserFontSize(new HttpContextWrapper(HttpContext.Current)) == i + 10 ? "selected=selected" : "") @*onclick="javascript: { $('#frmFontSize').submit(); }"*@>
+                @i
+            </option>
+        }
+    </select>
+</form>

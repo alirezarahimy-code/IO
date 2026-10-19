@@ -1,0 +1,646 @@
+﻿@{
+    ViewBag.Title = T5V3Web.Content.Persian.AssignRules;
+}
+
+<div class="text-right card-header">
+    <h3>@T5V3Web.Content.Persian.AssignRules</h3>
+</div>
+
+
+<div id="tabs">
+    <ul>
+        <li><a rel="noopener noreferrer" href="#tabs-1">@T5V3Web.Content.Persian.AssignRuleToDepartment</a></li>
+        <li><a rel="noopener noreferrer" href="#tabs-2">@T5V3Web.Content.Persian.AssignRuleToPersonnel</a></li>
+    </ul>
+    <div id="tabs-1" style="display:table;width:100%">
+
+        <div class="right-align">
+            <div class="col-sm-6" id="tree">
+            </div>
+            <div class="col-sm-6">
+                <div class="center-align">
+                    @T5V3Web.Content.Persian.AssignedRules
+                </div>
+                <table class="text-center table-hover table table-bordered table-responsive table-striped">
+                    <thead>
+                        <tr class="">
+                            <td>@T5V3Web.Content.Persian.DeleteEdit</td>
+                            <td>
+                                @T5V3Web.Content.Persian.RuleName
+                            </td>
+                            <td>
+                                @T5V3Web.Content.Persian.FromDate
+                            </td>
+                            <td>
+                                @T5V3Web.Content.Persian.ToDate
+                            </td>
+                        </tr>
+                    </thead>
+                    <tbody id="tblBody"><tr><td colspan="4">@T5V3Web.Content.Persian.NoRuleAssigned</td></tr></tbody>
+                </table>
+                <div class="text-center">
+                    <button id="btnAddDeptRule" class="btn btn-default collapsed-visibility" onclick="addnew()">@T5V3Web.Content.Persian.AssignNewRule</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div id="tabs-2" style="display:table;width:100%">
+        @Html.Partial("_SelectUser", T5V3Web.Controllers.UserSelectionController.CreateModel(new List<long>()))
+        <div class="top-buffer">
+            <div class="center-align">
+                @T5V3Web.Content.Persian.AssignedRules
+            </div>
+            <table class="text-center table-hover table table-bordered table-responsive table-striped">
+                <thead>
+                    <tr class="">
+                        <td>@T5V3Web.Content.Persian.Delete</td>
+                        <td>
+                            @T5V3Web.Content.Persian.BadgeNumber
+                        </td>
+                        <td>
+                            @T5V3Web.Content.Persian.Name
+                        </td>
+                        <td>
+                            @T5V3Web.Content.Persian.RuleType
+                        </td>
+                        <td>
+                            @T5V3Web.Content.Persian.RuleName
+                        </td>
+                        <td>
+                            @T5V3Web.Content.Persian.FromDate
+                        </td>
+                        <td>
+                            @T5V3Web.Content.Persian.ToDate
+                        </td>
+                    </tr>
+                </thead>
+                <tbody id="perTblBody"><tr><td colspan="7">@T5V3Web.Content.Persian.NoRuleAssigned</td></tr></tbody>
+            </table>
+            <div class="text-center">
+                <button id="btnAddUserRule" class="btn btn-default collapsed-visibility" onclick="addnewUserRule()">@T5V3Web.Content.Persian.AssignNewRule</button>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+@section modals
+{
+    <div class="collapsed-visibility">
+        <div id="dialog-confirm-delete" title="@T5V3Web.Content.Persian.Delete">
+            <p id="dlg-msg">@T5V3Web.Content.Persian.AreyouSure</p>
+        </div>
+    </div>
+
+    <div id="personnel-inputs-modal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 id="form-title" class="modal-title"></h4>
+                </div>
+                <div class="modal-body">
+                    <p id="personnel-form-body">
+                        <div class="form-horizontal">
+
+                            <input type="hidden" id="userRuleID" />
+                            <div class="col-sm-8 col-sm-offset-1">
+                                @Html.Partial("_MaterialDropdown", new T5V3Web.Models.MaterialDropdownParameters()
+                                    {
+                                        Header = T5V3Web.Content.Persian.RuleType,
+                                        InputID = "RuleTypeID",
+                                        InputName = "",
+                                        ChangeMethod = "showRules",
+                                        TextboxID = "RuleTypeName",
+                                        Values = new List<KeyValuePair<string, string>>() {
+                                          new KeyValuePair<string,string > ("0",T5V3Web.Content.Persian.Department),
+                                          new KeyValuePair<string,string > ("1",T5V3Web.Content.Persian.Personnal),
+                                          new KeyValuePair<string,string > ("2",T5V3Web.Content.Persian.Schedule)
+                                      }
+                                    })
+                            </div>
+
+                            <div class="col-sm-8 col-sm-offset-1">
+
+                                @{List<KeyValuePair<string, string>> allRules = new List<KeyValuePair<string, string>>();}
+                                @foreach (T5V3.Model.Rule r in (List<T5V3.Model.Rule>)ViewBag.allRules)
+                                {
+                                    allRules.Add(new KeyValuePair<string, string>(r.RuleID.ToString(), r.ParamName));
+                                }
+                                @Html.Partial("_MaterialDropdown", new T5V3Web.Models.MaterialDropdownParameters()
+                                    {
+                                        DivID = "userRuleSec",
+                                        Header = T5V3Web.Content.Persian.Rule,
+                                        InputID = "cmbUserRule",
+                                        InputName = "",
+                                        ChangeMethod = "dropdownChanged",
+                                        TextboxID = "txtCmbUserRule",
+                                        Values = allRules
+                                    })
+
+                            </div>
+                            <div class="material-input date-input text-right">
+                                <div class="col-sm-8 col-sm-offset-1">
+                                    <div class="group">
+                                        @*<input id="txtUserFromDateHijri" name="UserFromDateHijri" type="text" required>*@
+                                        <input id="txtUserFromDateHijri" name="UserFromDateHijri" class="datepicker-farsi" style="width:100%" type="text" required>
+                                        <span class="highlight"></span>
+                                        <span class="bar"></span>
+                                        <label>@T5V3Web.Content.Persian.FromDate</label>
+                                    </div>
+                                </div>
+                                <div id="divfromDate"></div>
+                                @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('UserFromDateHijri', this, null, null, 'divfromDate', 'datepicker3')">@T5V3Web.Content.Persian.Select</a>*@
+                            </div>
+
+                            @*<div class="form-group">
+                                    <div class="col-sm-3 text-center">
+                                        <label class="control-label">@T5V3Web.Content.Persian.FromDate</label>
+                                    </div>
+                                    <div class="col-sm-9">
+                                        <div class="col-sm-8">
+                                            <input id="txtUserFromDateHijri" class="form-control align-left" name="UserFromDateHijri" type="text" value="" />
+                                        </div>
+                                        <div class="col-sm-4 text-right">
+                                            <a href="javascript:" onclick="displayDatePicker('UserFromDateHijri', this)">@T5V3Web.Content.Persian.Select</a>
+                                        </div>
+                                    </div>
+                                </div>*@
+
+                            <div class="material-input date-input text-right">
+                                <div class="col-sm-8 col-sm-offset-1">
+                                    <div class="group">
+                                        @*<input id="txtUserToDateHijri" name="UserToDateHijri" type="text" required>*@
+                                        <input id="txtUserToDateHijri" name="UserToDateHijri" class="datepicker-farsi" style="width:100%" type="text" required>
+                                        <span class="highlight"></span>
+                                        <span class="bar"></span>
+                                        <label>@T5V3Web.Content.Persian.ToDate</label>
+                                    </div>
+                                </div>
+                                <div id="divtoDate"></div>
+                                @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('UserToDateHijri', this, null, null, 'divtoDate', 'datepicker3')">@T5V3Web.Content.Persian.Select</a>*@
+                            </div>
+
+                            @*<div class="form-group">
+                                    <div class="col-sm-3 text-center">
+                                        <label class="control-label">@T5V3Web.Content.Persian.ToDate</label>
+                                    </div>
+                                    <div class="col-sm-9">
+                                        <div class="col-sm-8">
+                                            <input id="txtUserToDateHijri" class="form-control align-left" name="UserToDateHijri" type="text" value="" />
+                                        </div>
+                                        <div class="col-sm-4 text-right">
+                                            <a href="javascript:" onclick="displayDatePicker('UserToDateHijri', this)">@T5V3Web.Content.Persian.Select</a>
+                                        </div>
+                                    </div>
+                                </div>*@
+
+                        </div>
+
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button id="btnPersonnelEdit" onclick="submitDataPersonnel()" type="button" class="btn btn-success"></button>
+                    <button type="button" onclick="cancelPersonnel()" class="btn btn-default">@T5V3Web.Content.Persian.Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="inputs-modal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 id="form-title" class="modal-title"></h4>
+                </div>
+                <div class="modal-body">
+                    <p id="form-body">
+                        <div class="form-horizontal">
+
+                            <input type="hidden" id="deptID" />
+                            <input type="hidden" id="deptRuleID" />
+
+
+                            @*<div class="form-group">
+                                    <div class="col-sm-3 text-center">
+                                        <label class="control-label">@T5V3Web.Content.Persian.Rule</label>
+                                    </div>
+                                    <div class="col-sm-9">
+                                        <select id="cmbRule" class="form-control">
+                                            @foreach (T5V3.Model.Rule r in (List<T5V3.Model.Rule>)ViewBag.allRules)
+                                            {
+                                                <option value="@r.RuleID">@r.ParamName</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>*@
+
+                            <div class="form-group">
+                                <div class="col-sm-8 col-sm-offset-1">
+                                    @Html.Partial("_MaterialDropdown", new T5V3Web.Models.MaterialDropdownParameters()
+                                    {
+                                        Header = T5V3Web.Content.Persian.Rule,
+                                        InputID = "cmbRuleTypeID",
+                                        InputName = "",
+                                        ChangeMethod = "dropdownChanged",
+                                        TextboxID = "txtRuleTypeName",
+                                        Values = allRules
+                                    })
+                                </div>
+                            </div>
+
+
+                            <div class="form-group">
+                                <div class="col-sm-3 text-center">
+                                    <label class="control-label">@T5V3Web.Content.Persian.FromDate</label>
+                                </div>
+                                <div class="col-sm-9">
+                                    <div class="col-sm-8">
+                                        @*<input id="txtFromDateHijri" class="form-control align-left" name="FromDateHijri" type="text" value="" />*@
+                                        <input id="txtFromDateHijri" class="datepicker-farsi" style="width:100%" name="FromDateHijri" type="text" value="" />
+                                    </div>
+                                    <div class="col-sm-4 text-right">
+                                        @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('FromDateHijri', this)">@T5V3Web.Content.Persian.Select</a>*@
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-sm-3 text-center">
+                                    <label class="control-label">@T5V3Web.Content.Persian.ToDate</label>
+                                </div>
+                                <div class="col-sm-9">
+                                    <div class="col-sm-8">
+                                        @*<input id="txtToDateHijri" class="form-control align-left" name="ToDateHijri" type="text" value="" />*@
+                                        <input id="txtToDateHijri" class="datepicker-farsi" style="width:100%" name="ToDateHijri" type="text" value="" />
+                                    </div>
+                                    <div class="col-sm-4 text-right">
+                                        @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('ToDateHijri', this)">@T5V3Web.Content.Persian.Select</a>*@
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button id="btnEdit" onclick="submitData()" type="button" class="btn btn-success"></button>
+                    <button type="button" onclick="cancel()" class="btn btn-default">@T5V3Web.Content.Persian.Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="myModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 id="msg-title" class="modal-title"></h4>
+                </div>
+                <div class="modal-body">
+                    <p id="msg-body"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">@T5V3Web.Content.Persian.OK</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+}
+
+@section scripts
+{
+
+    <script src="~/Scripts/index.js"></script>
+    <script>
+        settings = {
+            format: "yyyy/mm/dd",
+            dateSeparator: "/",
+            autoClose: true,
+            labelLanguage: 'farsi'
+        }
+        renderToday();
+    </script>
+    <script>
+        $("#tabs").tabs();
+
+        $.get("/UserInfo/GetDeptsTree?deptID=" + "-1", "", (function (gdata) {
+            $('#tree').treeview({
+                data: gdata,
+                levels: 50,
+                enableLinks: false,
+                onNodeSelected: function (event, data) {
+                    loadList(data.tags);
+                }
+            });
+
+            $('#tree').treeview('selectNode', [0, { silent: true }]);
+            loadList($('#tree').treeview('getNode', 0).tags);
+        }));
+
+        function showRules(valueID, textID, text, value) {
+
+            $("#" + valueID).val(value);
+            $("#" + textID).val(text);
+
+            if (value == "0") {
+                $('#userRuleSec').hide();
+            }
+            else
+                $('#userRuleSec').show();
+
+            if (value == "2") {
+                $('#lblrulename').html("قانون بدون شیفت");
+            }
+            else
+                $('#lblrulename').html("قانون");
+
+
+        }
+
+        function userChanged() {
+            var selectedBadges = [];
+            var checkboxes = $("#tabs-2 input[type=checkbox][name=selectedBadgeNumbers]:checked");
+            for (var i = 0; i < checkboxes.length; i++)
+                selectedBadges.push(checkboxes[i].value);
+
+            if (selectedBadges.length > 0)
+                $("#btnAddUserRule").removeClass("collapsed-visibility");
+            else
+                $("#btnAddUserRule").addClass("collapsed-visibility");
+
+            var postData = { badgeNumbers: selectedBadges };
+
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(postData),
+                type: "POST",
+                url: "/AssignRule/GetUserRules",
+                success: function (data) {
+                    $("#perTblBody").html("<tr><td colspan=\"7\">@T5V3Web.Content.Persian.NoRuleAssigned</td></tr>");
+
+                    if (data.length > 0)
+                        $("#perTblBody").html("");
+                    for (var i = 0; i < data.length; i++) {
+                        var id = data[i].UserRuleID;
+                        var name = data[i].RuleName;
+
+                        var td1 = $("<td>");
+                        var td2 = $("<td><label>" + data[i].BadgeNumber + "</label></td>" + "<td><label>" + data[i].UserName + "</label></td>" + "<td><label>" + data[i].RuleTypeName + "</label></td>" + "<td><label>" + name + "</label></td>" + "<td><label>" + data[i].FromDateHijri + "</label></td>" + "<td><label>" + data[i].ToDateHijri + "</label>" + "</td>");
+                        td1.append(addLink("btn btn-sm", "confirmDeleteUserRule(" + id + ")", "javascript:void(0)", "@T5V3Web.Content.Persian.Delete" + " " + name, "glyphicon-remove"));
+                        //td1.append(addLink("btn btn-sm", "loadItemUserRule(" + id + "," + data[i].BadgeNumber + "," + data[i].RuleType + "," + data[i].RuleID + ",'" + data[i].FromDateHijri
+                        //      + "','" + data[i].ToDateHijri + "')", "javascript:void(0)", "@T5V3Web.Content.Persian.Edit" + " " + name, "glyphicon-edit"));
+                        var tr = $("<tr>");
+                        tr.append(td1);
+                        tr.append(td2);
+
+                        tr.appendTo($('#perTblBody'));
+                    }
+
+                }
+            });
+        }
+
+        function loadItemUserRule(id, badgeNumber, ruleType, ruleID, from, to) {
+            $("#btnPersonnelEdit").html("@T5V3Web.Content.Persian.Edit");
+
+            $("#userRuleID").val(id);
+            $("#cmbRuleType").val(ruleType);
+            $("#cmbUserRule").val(ruleID);
+            $("#txtUserFromDateHijri").val(from);
+            $("#txtUserToDateHijri").val(to);
+            $("#personnel-inputs-modal").modal();
+        }
+
+        function loadList(deptID) {
+            var postData = { deptID: deptID };
+            $("#deptID").val(deptID);
+            $("#btnAddDeptRule").removeClass("collapsed-visibility");
+
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(postData),
+                type: "POST",
+                url: "/AssignRule/GetDeptRules",
+                success: function (data) {
+                    $("#tblBody").html("<tr><td colspan=\"4\">@T5V3Web.Content.Persian.NoRuleAssigned</td></tr>");
+
+                    if (data.length > 0)
+                        $("#tblBody").html("");
+                    for (var i = 0; i < data.length; i++) {
+                        var id = data[i].DeptRuleID;
+                        var name = data[i].RuleName;
+
+                        var td1 = $("<td>");
+                        var td2 = $("<td><label>" + name + "</label></td>" + "<td><label>" + data[i].FromDateHijri + "</label></td>" + "<td><label>" + data[i].ToDateHijri + "</label>" + "</td>");
+                        td1.append(addLink("btn btn-sm", "confirmDelete(" + id + ")", "javascript:void(0)", "@T5V3Web.Content.Persian.Delete" + " " + name, "glyphicon-remove"));
+                        td1.append(addLink("btn btn-sm", "loadItem(" + id + "," + data[i].DepartmentID + "," + data[i].RuleID + ",'" + data[i].FromDateHijri
+                             + "','" + data[i].ToDateHijri + "','"+name+"')", "javascript:void(0)", "@T5V3Web.Content.Persian.Edit" + " " + name, "glyphicon-edit"));
+                        var tr = $("<tr>");
+                        tr.append(td1);
+                        tr.append(td2);
+
+                        tr.appendTo($('#tblBody'));
+                    }
+
+                }
+            });
+        }
+
+        function loadItem(id, deptID, ruleID, from, to, ruleName) {
+            $("#edit-panel").attr("class", "visisble-visibility panel panel-default");
+            $("#title-panel-label").html("@T5V3Web.Content.Persian.Edit");
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Edit");
+
+            $("#deptRuleID").val(id);
+            $("#deptID").val(deptID);
+
+            $("#cmbRuleTypeID").val(ruleID);
+            $("#txtRuleTypeName").val(ruleName);
+
+            $("#txtFromDateHijri").val(from);
+            $("#txtToDateHijri").val(to);
+            $("#inputs-modal").modal();
+        }
+
+
+        function confirmDelete(id) {
+            $("#dialog-confirm-delete").dialog({
+                resizable: false,
+                height: 160,
+                modal: true,
+                position: { my: "center", at: "center", of: window },
+                buttons: {
+                    "@T5V3Web.Content.Persian.OK": function () {
+                        $(this).dialog("close");
+
+                        $.ajax({
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            type: "POST",
+                            url: "/AssignRule/Delete/" + id,
+                            success: function (data) {
+                                $("#msg-title").html("@T5V3Web.Content.Persian.Delete");
+                                $("#msg-body").html(data.Message);
+                                $("#myModal").modal();
+
+                                loadList($("#deptID").val());
+
+                            }
+                        });
+                    },
+                    "@T5V3Web.Content.Persian.Cancel": function () {
+                        $(this).dialog("close");
+                    }
+                }
+            });
+        }
+
+
+        function confirmDeleteUserRule(id) {
+            $("#dialog-confirm-delete").dialog({
+                resizable: false,
+                height: 160,
+                modal: true,
+                position: { my: "center", at: "center", of: window },
+                buttons: {
+                    "@T5V3Web.Content.Persian.OK": function () {
+                        $(this).dialog("close");
+
+                        $.ajax({
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            type: "POST",
+                            url: "/AssignRule/DeleteUserRule/" + id,
+                            success: function (data) {
+                                $("#msg-title").html("@T5V3Web.Content.Persian.Delete");
+                                $("#msg-body").html(data.Message);
+                                $("#myModal").modal();
+
+                                userChanged();
+
+                            }
+                        });
+                    },
+                    "@T5V3Web.Content.Persian.Cancel": function () {
+                        $(this).dialog("close");
+                    }
+                }
+            });
+        }
+
+        function addnew() {
+            $("#edit-panel").attr("class", "visisble-visibility panel panel-default");
+            $("#title-panel-label").html("@T5V3Web.Content.Persian.Add2");
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Add");
+
+            $("#deptRuleID").val(-1);
+            $("#txtFromDateHijri").val("");
+            $("#txtToDateHijri").val("");
+            $("#inputs-modal").modal();
+
+        }
+
+        function addnewUserRule() {
+            //$("#edit-panel").attr("class", "visisble-visibility panel panel-default");
+            //$("#title-panel-label").html("@T5V3Web.Content.Persian.Add2");
+            $("#btnPersonnelEdit").html("@T5V3Web.Content.Persian.Add");
+
+            $("#userRuleID").val(-1);
+            $("#cmbRuleType").val(1);
+            $("#txtUserFromDateHijri").val("");
+            $("#txtUserToDateHijri").val("");
+            $("#personnel-inputs-modal").modal();
+        }
+
+        function cancel() {
+            $("#inputs-modal").modal('hide');
+        }
+
+        function cancelPersonnel() {
+            $("#personnel-inputs-modal").modal('hide');
+        }
+
+        function submitDataPersonnel() {
+            $("#personnel-inputs-modal").modal('hide');
+
+            var selectedBadges = [];
+            var checkboxes = $("#tabs-2 input[type=checkbox][name=selectedBadgeNumbers]:checked");
+            for (var i = 0; i < checkboxes.length; i++)
+                selectedBadges.push(checkboxes[i].value);
+
+            var toEdit = {
+                badgeNumbers: selectedBadges,
+                UserRuleID: $("#userRuleID").val(),
+                RuleType: $('#RuleTypeID').val(),
+                RuleID: $("#cmbUserRule").val(),
+                FromDateHijri: $("#txtUserFromDateHijri").val(),
+                ToDateHijri: $("#txtUserToDateHijri").val()
+            };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/AssignRule/EditPersonnelRule",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+
+                    userChanged();
+                }
+            });
+        }
+
+        function submitData() {
+            $("#inputs-modal").modal('hide');
+
+            var toEdit = {
+                DeptRuleID: $("#deptRuleID").val(),
+                DepartmentID: $('#deptID').val(),
+                RuleID: $("#cmbRuleTypeID").val(),
+                FromDateHijri: $("#txtFromDateHijri").val(),
+                ToDateHijri: $("#txtToDateHijri").val()
+            };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/AssignRule/Edit",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+
+                    loadList(toEdit.DepartmentID);
+                }
+            });
+        }
+
+        function addLink(clsName, clickEvent, refLnk, titleStr, iconName) {
+            var ico = $("<span>");
+            ico.attr("class", "glyphicon " + iconName);
+
+            var lnk = $("<a rel='noopener noreferrer' data-toggle=\"tooltip\">");
+            lnk.attr("title", titleStr);
+            lnk.attr("class", clsName);
+            lnk.attr("href", refLnk);
+            lnk.attr("onclick", clickEvent);
+            lnk.tooltip();
+
+            lnk.append(ico);
+            return lnk;
+        }
+    </script>
+}

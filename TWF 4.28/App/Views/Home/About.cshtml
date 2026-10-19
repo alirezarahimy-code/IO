@@ -1,0 +1,47 @@
+﻿@{
+    ViewBag.Title = MyTime3.Content.PersianString.About;
+}
+
+    <div class="text-right card-header">
+        <h3>@Html.Raw(MyTime3.Content.PersianString.About)</h3>
+    </div>
+
+<div class="card" style="background-color:white">
+    <div id="aboutForm">
+        <div id="header">
+            <h3>@Html.Raw(MyTime3.Content.PersianString.bode5)</h3>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="float-center">
+                    @Html.Raw(MyTime3.Content.PersianString.bode5Descriptions1)
+                </div>
+                <div class="float-center">
+                    @Html.Raw(MyTime3.Content.PersianString.bode5Descriptions2)
+                </div>
+                <div class="float-center">
+                    <img src="@Url.Action("MyBanner", "Home", new { index = 2 })" alt="Arm1" />
+                </div>
+            </div>
+            <div class="col-sm-6">
+                <img width="100" src="@Url.Action("MyBanner", "Home", new { index = 3 })" alt="Arm2" />
+                <div class="float-center">
+                    @Html.Raw(MyTime3.Content.PersianString.bode5Tel)
+                </div>
+                <div class="float-center">
+                    @Html.Raw(MyTime3.Content.PersianString.bode5Fac)
+                </div>
+            </div>
+        </div>
+
+        <br /><br />
+        <div class="float-center">
+            @Html.Raw(MyTime3.Content.PersianString.bode5Copy1)
+        </div>
+        <div class="float-center">
+            @Html.Raw(MyTime3.Content.PersianString.bode5Copy)
+        </div>
+
+    </div>
+</div>

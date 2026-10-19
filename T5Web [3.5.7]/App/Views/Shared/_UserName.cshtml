@@ -1,0 +1,9 @@
+﻿@if (T5V3Web.Authorization.LoginManager.GetBadgeNumber(this.Context) == "")
+{
+    <a  rel="noopener noreferrer" style="color:white" href="/Account/Login">[@T5V3Web.Content.Persian.Login]</a>
+}
+else
+{
+    @T5V3Web.Misc.GlobalHelper.GetLoggedInUserName(this.Context)
+    <a  rel="noopener noreferrer" style="color:white" href="/Account/Logout">[@T5V3Web.Content.Persian.Logout]</a>
+}

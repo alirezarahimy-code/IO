@@ -1,0 +1,133 @@
+﻿@if ((((List<MyTime3.Models.PersonnelModel>)ViewBag.Personnel) != null) && (((List<MyTime3.Models.PersonnelModel>)ViewBag.Personnel).Count > 0))
+{
+    <div>
+        @*<label>@MyTime3.Content.PersianString.SelectPersonnel</label>*@
+    </div>
+    <div>
+
+        <label for="radself" class="input-control radio">
+
+            <input id="radself" type="radio" name="isSelf" onchange="onSelfChanged(this)" value="true">
+            <span class="input-control__indicator"></span>@MyTime3.Content.PersianString.Self
+
+        </label>
+        <label style="margin-right:2em" for="radpers" class="input-control radio">
+
+            <input id="radpers" type="radio" name="isSelf" onchange="onSelfChanged(this)" value="false">
+            <span class="input-control__indicator"></span>@MyTime3.Content.PersianString.Personnel
+
+        </label>
+
+        @*<label>@MyTime3.Content.PersianString.Type</label>
+            <input type="radio" name="isSelf" class="radioInput" onchange="onSelfChanged(this)" checked="checked" value="true" />
+            <label>@MyTime3.Content.PersianString.Self</label>
+            <input type="radio" name="isSelf" class="radioInput" onchange="onSelfChanged(this)" value="false" />
+            <label>@MyTime3.Content.PersianString.Personnel</label>*@
+    </div>
+
+
+
+    <div id="divPersonnel" class="collapsed-visibility blue-border ">
+
+
+        <div class="material-input text-right">
+            @*<div class="col-sm-offset-1 col-sm-8">*@
+            <div class="group">
+                <input type="text" onkeyup="searchPersonnel(this)">
+                <span class="highlight"></span>
+                <span class="bar"></span>
+                <label>@MyTime3.Content.PersianString.Search</label>
+            </div>
+            @*</div>*@
+        </div>
+
+        <div style="margin-top:0" class="page-header"></div>
+
+        <div id="divPersonnelList" class="" style="padding-right:20px;margin:1em;">
+            @foreach (MyTime3.Models.PersonnelModel per in (List<MyTime3.Models.PersonnelModel>)ViewBag.Personnel)
+            {
+                <div class="text-right divOnePerson">
+                    <div class="mat-check">
+                        <div class="exp">
+                            <div class="checkbox">
+                                @*<form>*@
+                                    <div>
+                                        <input type="checkbox" id="check@(per.BadgeNumber)" name="SelectedBadgeNumbers" value="@per.BadgeNumber" />
+                                        <label for="check@(per.BadgeNumber)">
+                                            <span></span>@string.Format("{0} - {1} {2}", per.BadgeNumber, per.FirstName, per.LastName)
+                                        </label>
+                                    </div>
+                                @*</form>*@
+                            </div>
+                        </div>
+                    </div>
+
+                    @*<input type="checkbox" name="SelectedBadgeNumbers" value="@per.BadgeNumber" class="chkPersonnel">
+                        @Html.Label(string.Format("{0} - {1} {2}", per.BadgeNumber, per.FirstName, per.LastName))*@
+                    
+                </div>
+                
+            }
+        </div>
+
+
+        @*<label class="fonttahomalarg" id="lblSearch">@MyTime3.Content.PersianString.Search</label>
+            <input type="text" onkeyup="searchPersonnel(this)" />*@
+
+        <button class="btn btn-default" onclick="selectAll();return false">@MyTime3.Content.PersianString.SelectAll</button>
+        <button class="btn btn-default" onclick="reverse();return false">@MyTime3.Content.PersianString.Reverse</button>
+
+
+
+    </div>
+}
+
+<script>
+    function reverse() {
+        var divs = document.getElementsByClassName("divOnePerson");
+        for (var i = 0; i < divs.length; i++) {
+            if (!$(divs[i]).hasClass("collapsed-visibility")) {
+                if (divs[i].getElementsByTagName("input")[0].checked == true) {
+                    divs[i].getElementsByTagName("input")[0].checked = false;
+                }
+                else {
+                    divs[i].getElementsByTagName("input")[0].checked = true;
+                }
+            }
+        }
+    }
+    function selectAll() {
+        var divs = document.getElementsByClassName("divOnePerson");
+        for (var i = 0; i < divs.length; i++) {
+            if (!$(divs[i]).hasClass("collapsed-visibility")) {
+                divs[i].getElementsByTagName("input")[0].checked = true;
+            }
+        }
+    }
+    function searchPersonnel(txt) {
+        var patt = txt.value;
+        var divs = document.getElementsByClassName("divOnePerson");
+        for (var i = 0; i < divs.length; i++) {
+            var nameStr = divs[i].getElementsByTagName("label")[0].innerHTML;
+            var isChecked = divs[i].getElementsByTagName("input")[0].checked;
+
+            if ((nameStr.indexOf(patt) >= 0) || (isChecked == true))
+                $(divs[i]).removeClass("collapsed-visibility");
+            else
+                $(divs[i]).addClass("collapsed-visibility");
+        }
+    }
+    function onSelfChanged(a) {
+        if (a.value == 'true')
+            $("#divPersonnel").addClass("collapsed-visibility");
+        else
+            $("#divPersonnel").removeClass("collapsed-visibility");
+    }
+</script>
+
+<style>
+    div#divPersonnelList {
+        overflow-y: scroll;
+        height: 140px;
+    }
+</style>

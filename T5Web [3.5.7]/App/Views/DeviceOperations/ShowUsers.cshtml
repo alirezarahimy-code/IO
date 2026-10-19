@@ -1,0 +1,20 @@
+﻿@model IEnumerable<Personnel.Model.UserInfo>
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.DeviceOperations;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.Devices;
+    ViewBag.PageTag = "DeviceOperations";
+}
+
+<h3>@T5V3Web.Content.Persian.DeviceOperations</h3>
+
+<div class="horizontal-line"></div>
+
+
+<ul>
+    @foreach (Personnel.Model.UserInfo u in Model)
+    {
+        <li>
+            @u.DeviceName
+        </li> 
+    }
+</ul>

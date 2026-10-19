@@ -1,0 +1,15 @@
+﻿@model T5V3Web.Models.MaterialDateInputModel
+
+<div class="material-input date-input text-right">
+    <div class="">
+        <div class="group">
+            <input value="@(Model.OldValue != null ? Model.OldValue: " ")" name="@Model.Name" type="text" class="datepicker-farsi" style="width:100%">
+            <span class="highlight"></span>
+            <span class="bar"></span>
+            <label>@Model.Label</label>
+        </div>
+    </div>
+    <div id="divinterval@(Model.Name)"></div>
+    @*<a  rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('@Model.Name', this, null, null, 'divinterval@(Model.Name)', 'datepicker@(Model.Name)')">@T5V3Web.Content.Persian.Select</a>*@
+</div>
+

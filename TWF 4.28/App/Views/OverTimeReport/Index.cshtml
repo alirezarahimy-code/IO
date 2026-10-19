@@ -1,0 +1,85 @@
+﻿@model MyTime3.Models.ReportModel
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.OverTimeReport;
+}
+@section TopStyle{
+    <link href="~/Content/style.css" rel="stylesheet" />
+}
+@section EndScript{
+    <script src="~/Scripts/index.js"></script>
+    <script>
+
+        settings = {
+            format: "yyyy/mm/dd",
+            dateSeparator: "/",
+            autoClose: true,
+            labelLanguage: 'farsi'
+        }
+        renderToday();
+    </script>
+}
+<div class="page-header">
+    <h3>@Html.Raw(MyTime3.Content.PersianString.OverTimeReport)</h3>
+</div>
+
+@using (@Html.BeginForm("Show", "OverTimeReport", FormMethod.Get, new { @class = "form-horizontal text-right" }))
+{
+    <div style="padding-right:30px">
+        <div class="form-group">
+            <div class="col-sm-9 col-sm-offset-2">
+                @Html.Partial("~/Views/Shared/_SelectMultiUser.cshtml")
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-2 text-left">
+                @Html.Label(MyTime3.Content.PersianString.FromDate, new { @class = "formLabel" })
+            </div>
+            <div>
+                @*@Html.TextBoxFor(m => m.FromDateHijri, new { @class = "formInput" })*@
+                @Html.TextBoxFor(m => m.FromDateHijri, new { @class = "formInput datepicker-farsi" })
+                @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('FromDateHijri', this)">@MyTime3.Content.PersianString.SelectDate</a>*@
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-2 text-left">
+                @Html.Label(MyTime3.Content.PersianString.ToDate, new { @class = "formLabel" })
+            </div>
+            <div>
+                @*@Html.TextBoxFor(m => m.ToDateHijri, new { @class = "formInput" })*@
+                @Html.TextBoxFor(m => m.ToDateHijri, new { @class = "formInput datepicker-farsi" })
+                @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('ToDateHijri', this)">@MyTime3.Content.PersianString.SelectDate</a>*@
+            </div>
+        </div>
+
+
+        <div class="form-group">
+            <div class="col-sm-offset-2 text-right">
+                <input type="checkbox" value="true" name="showAllDays" />
+                @Html.Label(MyTime3.Content.PersianString.ShowAllDays, new { @class = "formLabel" })
+            </div>
+        </div>
+
+        <div class="form-group">
+        </div>
+
+        <div class="form-group top-buffer">
+            <div class="col-sm-offset-2">
+                <input type="submit" class="btn btn-default" value="@MyTime3.Content.PersianString.ShowReport" />
+            </div>
+        </div>
+
+        @if (Model.ErrorMessage != null)
+        {
+            <div class="form-group" style="padding-left:30px">
+                <div class="row text-center panel-danger panel">
+                    <div class="panel-heading">
+                        <label>@Model.ErrorMessage</label>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+

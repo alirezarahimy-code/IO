@@ -1,0 +1,224 @@
+﻿@model T5V3Web.Models.DataEntryModel<T5V3.Model.Shift>
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.Shifts;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.AttendanceData;
+    ViewBag.PageTag = "Shift";
+}
+
+<h3>@T5V3Web.Content.Persian.Shifts</h3>
+
+<div class="horizontal-line">
+</div>
+
+<form method="post" action="/Shift/Edit" role="form" class="form-horizontal">
+    <div class="row">
+        <div class="col-sm-4">
+            <div class="form-group">
+                <div class="col-sm-3">
+                    <label class="control-label">@T5V3Web.Content.Persian.ShiftName</label>
+                </div>
+                <div class="col-sm-9">
+                    <input class="form-control" placeholder="@T5V3Web.Content.Persian.ShiftName" name="ShiftName" type="text" value="@Model.Selected.ShiftName" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-3">
+                    <label class="control-label">@T5V3Web.Content.Persian.Unit</label>
+                </div>
+                <div class="col-sm-9">
+                    <select id="cmbUnit" name="Unit" class="form-control" onchange="createSchdulesTable()">
+                        <option @((Model.Selected.Unit == T5V3.Model.ShiftUnit.Day) ? "selected=selected" : "") value="@T5V3.Model.ShiftUnit.Day">@T5V3Web.Content.Persian.Day</option>
+                        <option @((Model.Selected.Unit == T5V3.Model.ShiftUnit.Week) ? "selected=selected" : "") value="@T5V3.Model.ShiftUnit.Week">@T5V3Web.Content.Persian.Week</option>
+                        <option @((Model.Selected.Unit == T5V3.Model.ShiftUnit.Month) ? "selected=selected" : "") value="@T5V3.Model.ShiftUnit.Month">@T5V3Web.Content.Persian.Month</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-3">
+                    <label class="control-label">@T5V3Web.Content.Persian.Period</label>
+                </div>
+                <div class="col-sm-9">
+                    <input id="txtPeriod" class="form-control number-input" placeholder="@T5V3Web.Content.Persian.Period" name="Period" type="text" onchange="createSchdulesTable()" value="@Model.Selected.Period" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-3">
+                    <label class="control-label">@T5V3Web.Content.Persian.WeekEnds</label>
+                </div>
+                <div class="col-sm-9 text-right">
+                    <div>
+                        <input @(Model.Selected.WeekEnds.Contains(DayOfWeek.Saturday) ? "checked=checked" : "") name="WeekEnds" type="checkbox" value="Saturday" />@T5V3Web.Content.Persian.Saturday
+                    </div>
+                    <div>
+                        <input @(Model.Selected.WeekEnds.Contains(DayOfWeek.Sunday) ? "checked=checked" : "") name="WeekEnds" type="checkbox" value="Sunday" />@T5V3Web.Content.Persian.Sunday
+                    </div>
+                    <div>
+                        <input @(Model.Selected.WeekEnds.Contains(DayOfWeek.Monday) ? "checked=checked" : "") name="WeekEnds" type="checkbox" value="Monday" />@T5V3Web.Content.Persian.Monday
+                    </div>
+                    <div>
+                        <input @(Model.Selected.WeekEnds.Contains(DayOfWeek.Tuesday) ? "checked=checked" : "") name="WeekEnds" type="checkbox" value="Tuesday" />@T5V3Web.Content.Persian.Tuesday
+                    </div>
+                    <div>
+                        <input @(Model.Selected.WeekEnds.Contains(DayOfWeek.Wednesday) ? "checked=checked" : "") name="WeekEnds" type="checkbox" value="Wednesday" />@T5V3Web.Content.Persian.Wednesday
+                    </div>
+                    <div>
+                        <input @(Model.Selected.WeekEnds.Contains(DayOfWeek.Thursday) ? "checked=checked" : "") name="WeekEnds" type="checkbox" value="Thursday" />@T5V3Web.Content.Persian.Thirsday
+                    </div>
+                    <div>
+                        <input @(Model.Selected.WeekEnds.Contains(DayOfWeek.Friday) ? "checked=checked" : "") name="WeekEnds" type="checkbox" value="Friday" />@T5V3Web.Content.Persian.Friday
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="col-sm-8">
+            <h4>@T5V3Web.Content.Persian.SchedulesString</h4>
+            <div style="border:1px solid black;padding:10px 5px 10px 5px;border-radius:4px;">
+                <ul id="schedules" style="list-style:none;padding : 10px 0px 10px 0px;"></ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-6 form-group">
+            <div class="col-sm-offset-2 col-sm-2 text-right">
+                @if (Model.Selected.ShiftID != 0)
+                {
+                    <input name="ShiftID" type="hidden" value="@Model.Selected.ShiftID" />
+                    <input class="btn btn-default" type="submit" value="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Edit, T5V3Web.Content.Persian.Shift))" />
+
+                }
+                else
+                {
+                    <input name="ShiftID" type="hidden" value="-1" />
+                    <input class="btn btn-default" type="submit" value="@(string.Format ("{0} {1}", T5V3Web.Content.Persian.Add2 , T5V3Web.Content.Persian.Shift))" />
+                }
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-offset-1 col-sm-10 text-center">
+                @if (Model.ValidationMessage != null)
+                {
+                    <div class="@((T5V3Web.Models.ValidationMessageType)Model.ValidationMessageType == T5V3Web.Models.ValidationMessageType.Error ? "alert alert-danger fade in" : "alert alert-success fade in")">
+                        @Model.ValidationMessage
+                        <a  rel="noopener noreferrer" href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+</form>
+
+
+<div class="horizontal-line"></div>
+
+<table class="table table-hover table-bordered table-striped table-responsive">
+    <thead>
+        <tr class="warning">
+            <td>@T5V3Web.Content.Persian.SelectDeleteEdit</td>
+            <td>@T5V3Web.Content.Persian.ShiftName</td>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (T5V3.Model.Shift c in Model.ItemsList)
+        {
+            <tr>
+                <td>
+                    <input data-toggle="tooltip" type="checkbox" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Select, c.ShiftName))" name="ids" value="@c.ShiftID" />
+                    <a  rel="noopener noreferrer" onclick="confirmDelete(@c.ShiftID)" href="javascript:void(0)">
+                        <span data-toggle="tooltip" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Delete, c.ShiftName))" class="glyphicon glyphicon-remove"></span>
+                    </a>
+                    <a  rel="noopener noreferrer" data-toggle="tooltip" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Edit, c.ShiftName))" href="/Shift?pageNumber=@Model.PageNumber&shiftID=@c.ShiftID">
+                        <span class="glyphicon glyphicon-edit"></span>
+                    </a>
+                </td>
+                <td>
+                    <label>@c.ShiftName</label>
+                </td>
+
+            </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr class="danger">
+            <td>
+                <form role="form" method="get" action="/Shift">
+                    <input type="hidden" name="pageNumber" value="@Model.PageNumber" />
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-sm btn-default" data-toggle="tooltip" title="@T5V3Web.Content.Persian.Add">
+                            <span class="glyphicon glyphicon-plus"></span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-default" data-toggle="tooltip" title="@T5V3Web.Content.Persian.DeleteSelectedItems" onclick="deleteAll()">
+                            <span class="glyphicon glyphicon-remove"></span>
+                        </button>
+                    </div>
+                </form>
+            </td>
+            <td>
+                @if (Model.HasPrePage)
+                {
+                    <a  rel="noopener noreferrer" data-toggle="tooltip" title="@T5V3Web.Content.Persian.Previous" href="/Shift?pageNumber=@(Model.PageNumber-1)"><span class="glyphicon glyphicon-forward"></span></a>
+                }
+                else
+                {
+                    <span class="glyphicon glyphicon-forward"></span>
+                }
+
+                <label>@(string.Format("{3} {0} {1} {2}", Model.PageNumber.ToString(), T5V3Web.Content.Persian.From, Model.TotalPageNumbers.ToString(), T5V3Web.Content.Persian.Page))</label>
+
+                @if (Model.HasNextPage)
+                {
+                    <a  rel="noopener noreferrer" data-toggle="tooltip" title="@T5V3Web.Content.Persian.Next" href="/Shift?pageNumber=@(Model.PageNumber+1)"><span class="glyphicon glyphicon-backward"></span></a>
+                }
+                else
+                {
+                    <span class="glyphicon glyphicon-backward"></span>
+                }
+            </td>
+        </tr>
+    </tfoot>
+</table>
+
+
+@section scripts{
+    <script>
+        $(document).ready(function () {
+            createSchdulesTable();
+        });
+
+        function createSchdulesTable() {
+            $('#schedules li').remove()
+            var period = $('#txtPeriod').val();
+            var unit = $('#cmbUnit').val();
+            $.get("/shift/GetScheduleHTML?shiftID=@Model.Selected.ShiftID&period=" + period + "&unit=" + unit, function (data) {
+                $('#schedules').append(data);
+            });
+        }
+
+        function deleteSchedule(dayIndex) {
+            $('#btnMenu' + dayIndex).html('@T5V3Web.Content.Persian.woShift' + '<span class=\"caret\"></span>');
+            $('#btnMenu' + dayIndex).css('background', '#ffffff');
+            $('#schval' + dayIndex).val('-1');
+        }
+
+        function addSchedule(dayIndex, schName, schColor, schID) {
+            $('#btnMenu' + dayIndex).html(schName + '<span class=\"caret\"></span>');
+            $('#btnMenu' + dayIndex).css('background', schColor);
+            $('#schval' + dayIndex).val(schID);
+        }
+
+    </script>
+
+    @{
+        ViewDataDictionary temp = new ViewDataDictionary();
+        temp.Add(new KeyValuePair<string, object>("DeleteUrl", "/Shift/Delete"));
+        temp.Add(new KeyValuePair<string, object>("DeleteAllUrl", "/Shift/DeleteAll"));
+        @Html.Partial("_ConfirmDeleteScripts", temp);
+    }
+
+}

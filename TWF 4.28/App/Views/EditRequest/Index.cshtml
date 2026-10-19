@@ -1,0 +1,45 @@
+﻿@model IEnumerable<MyTime3.Models.Request>
+
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.EditRequest;
+}
+
+<div class="text-right card-header">
+    <h3>@MyTime3.Content.PersianString.EditRequest</h3>
+</div>
+
+<div class="card">
+    <table class="table table-bordered table-hover table-responsive table-striped">
+        <thead>
+            <tr>
+                <td>@MyTime3.Content.PersianString.BadgeNumber</td>
+                <td>@MyTime3.Content.PersianString.Name</td>
+                <td>@MyTime3.Content.PersianString.WorkflowType</td>
+                <td>@MyTime3.Content.PersianString.Name</td>
+                <td>@MyTime3.Content.PersianString.From</td>
+                <td>@MyTime3.Content.PersianString.To</td>
+                <td>@MyTime3.Content.PersianString.Descriptions</td>
+                <td></td>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (MyTime3.Models.Request req in Model)
+            {
+                <tr>
+                    <td>@req.BadgeNumber</td>
+                    <td>@req.Name</td>
+                    <td>@req.WorkflowName</td>
+                    <td>@req.TypeName</td>
+                    <td>@req.From</td>
+                    <td>@req.To</td>
+                    <td>@req.Descriptions</td>
+                    <td >
+                        @Html.ActionLink(MyTime3.Content.PersianString.Edit, "EditByID", "EditRequest", new { @requestID = req.RequestID }, new { style = "color:green" })
+                        @Html.ActionLink(MyTime3.Content.PersianString.Delete, "Delete", "EditRequest", new { @requestID = req.RequestID }, new { style = "color:red" })
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

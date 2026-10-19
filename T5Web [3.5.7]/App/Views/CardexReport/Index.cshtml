@@ -1,0 +1,80 @@
+﻿@model T5V3Web.Models.CardexReportModel
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.CardexReport;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.Reports;
+    ViewBag.PageTag = "CardexReport";
+}
+
+<h3>@T5V3Web.Content.Persian.CardexReport</h3>
+<div class="horizontal-line"></div>
+
+<form method="post" class="form-horizontal" role="form" action="/CardexReport/Show">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <label>@T5V3Web.Content.Persian.SelectPersonnel ...</label>
+        </div>
+        <div class="panel-body">
+            @Html.Partial("_SelectUser", T5V3Web.Controllers.UserSelectionController.CreateModel(Model.BadgeNumbers))
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-sm-2 text-center">
+            <label class="control-label">@T5V3Web.Content.Persian.Year</label>
+        </div>
+        <div class="col-sm-10">
+            <input name="year" type="text" class="number-input form-control" value="@Model.Year" />
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-2 text-center">
+            <label class="control-label">@T5V3Web.Content.Persian.LeaveType</label>
+        </div>
+        <div class="col-sm-10">
+            @Html.DropDownList("leaveTypeID", (List<SelectListItem>)ViewBag.LeaveTypes, new { @class = "form-control" })
+        </div>
+    </div>
+
+    <input class="btn btn-default mt-20 mb-20" value="@T5V3Web.Content.Persian.Show" type="submit" />
+    <div class="form-group">
+        <div class="col-sm-10 col-sm-offset-1 center-align">
+            @if (Model.ValidationMessage != null)
+            {
+                <div class="@((T5V3Web.Models.ValidationMessageType)Model.ValidationMessageType == T5V3Web.Models.ValidationMessageType.Error ? "alert alert-danger fade in" : "alert alert-success fade in")">
+                    @Model.ValidationMessage
+                    <a rel="noopener noreferrer" href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                </div>
+            }
+        </div>
+    </div>
+</form>
+
+<div class="horizontal-line mt-20"></div>
+
+<div class="mt-10 mb-20">
+    <button type="button" class="report-pre-page" onclick="prevPage()">@T5V3Web.Content.Persian.PreviousPage</button>
+    <button type="button" class="report-next-page" onclick="nextPage()">@T5V3Web.Content.Persian.NextPage</button>
+</div>
+
+<input id="reportParams" type="hidden" value="@Model.ForQueryString()" />
+<input id="reportPage" type="hidden" value="1" />
+<iframe id="ifReport" class="block-display w-100p" style="height:1000px" src="/CardexReport/CXReport?@(Model.ForQueryString())"></iframe>
+<div class="horizontal-line"></div>
+
+
+
+<script>
+    function nextPage() {
+        var pageNumber = document.getElementById("reportPage").value;
+        pageNumber++;
+        document.getElementById("ifReport").src = "/CardexReport/CXReport?" + document.getElementById("reportParams").value + "&page=" + pageNumber;
+        document.getElementById("reportPage").value = pageNumber;
+    }
+
+    function prevPage() {
+        var pageNumber = document.getElementById("reportPage").value;
+        pageNumber--;
+        document.getElementById("ifReport").src = "/CardexReport/CXReport?" + document.getElementById("reportParams").value + "&page=" + pageNumber;
+        document.getElementById("reportPage").value = pageNumber;
+    }
+</script>

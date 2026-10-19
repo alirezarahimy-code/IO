@@ -1,0 +1,40 @@
+﻿@model MyTime3.Models.RemainLeave
+
+<style>
+
+</style>
+
+<table class="form">
+    <tr class="row">
+        <td class="text-left">@MyTime3.Content.PersianString.BadgeNumber</td>
+        <td id="tdBadgeNumber" style="padding-right:30px" class="text-right">@Model.BadgeNumber</td>
+    </tr>
+    <tr class="row">
+        <td class="text-left">@MyTime3.Content.PersianString.Name</td>
+        <td style="padding-right:30px" id="tdName" class="text-right">@Model.Name</td>
+    </tr>
+    <tr class="row">
+        <td class="text-left">@MyTime3.Content.PersianString.LeaveType</td>
+        <td id="tdLeaveTypeName" style="padding-right:30px" class="text-right">@Model.LeaveTypeName</td>
+    </tr>
+    <tr class="row">
+        <td class="text-left">@MyTime3.Content.PersianString.DailyTaken</td>
+        <td id="tdDailyTaken" style="padding-right:30px" class="text-right">@Model.DailyTaken</td>
+    </tr>
+    <tr class="row">
+        <td class="text-left">@MyTime3.Content.PersianString.HourlyTaken</td>
+        <td id="tdHourlyTaken" style="padding-right:30px" class="text-right">@Model.HourlyTaken</td>
+    </tr>
+    <tr class="row">
+        <td class="text-left">@MyTime3.Content.PersianString.Taken</td>
+        <td id="tdTotalTaken" style="padding-right:30px" class="text-right">@Model.TotalTaken.ToString("0.00")</td>
+    </tr>
+    <tr class="row">
+        <td class="text-left">@MyTime3.Content.PersianString.Requested</td>
+        <td id="tdRequested" style="padding-right:30px" class="text-right">@Model.Requested.ToString("0.00")</td>
+    </tr>
+    <tr class="row">
+        <td class="text-left">@MyTime3.Content.PersianString.Remain</td>
+        <td style="padding-right:30px" id="tdRemain" class="text-right">@Model.Remain.ToString("0.00")</td>
+    </tr>
+</table>

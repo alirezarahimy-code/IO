@@ -1,0 +1,231 @@
+﻿@model T5V3Web.Models.ExcelPreviewModel
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.ImportExcel;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.BaseData;
+    ViewBag.PageTag = "ImportFromExcel";
+}
+
+<h3>@T5V3Web.Content.Persian.ImportExcel</h3>
+
+<div class="horizontal-line"></div>
+
+<form role="form" class="form-horizontal" method="post" action="/ImportFromExcel/PreviewExcel" enctype="multipart/form-data">
+
+    <div class="form-group">
+        <div class="col-sm-2">
+            <label class="control-label">@T5V3Web.Content.Persian.FilePath</label>
+        </div>
+        <div class="col-sm-10">
+            <input class="form-control" name="filePath" type="file" />
+        </div>
+    </div>
+    <div class="form-group">
+        <input class="btn btn-default" value="@T5V3Web.Content.Persian.Show" type="submit" />
+    </div>
+
+    <div style="display:table;width:100%">
+        <div class="col-sm-6">
+            <table class="table table-bordered table-hover table-responsive table-striped">
+                <thead>
+                    <tr class="warning">
+                        <td>@T5V3Web.Content.Persian.Select</td>
+                        <td>@T5V3Web.Content.Persian.ColumnNumber</td>
+                    </tr>
+                </thead>
+                <tbody class="right-align">
+                    <tr>
+                        <td>
+                            <input name="selectedColumns" value="1" type="checkbox" />
+                            <label class="control-label">@T5V3Web.Content.Persian.BadgeNumber</label>
+                        </td>
+                        <td>
+                            <div class="col-sm-8">
+                                <input name="badgeNumberColumn" type="text" placeholder="@(string.Format ("{0} {1}" , T5V3Web.Content.Persian.ColumnNumber, T5V3Web.Content.Persian.BadgeNumber))" class="form-control number-input" />
+                            </div>
+                            <button type="button" data-toggle="tooltip" class="btn btn-default glyphicon glyphicon-resize-full" onclick="setColumn('badgeNumberColumn')" title="@T5V3Web.Content.Persian.SelectColumns"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input name="selectedColumns" value="2" type="checkbox" />
+                            <label class="control-label">@T5V3Web.Content.Persian.FirstName</label>
+                        </td>
+                        <td>
+                            <div class="col-sm-8">
+                                <input name="firstNameColumn" type="text" placeholder="@(string.Format ("{0} {1}" , T5V3Web.Content.Persian.ColumnNumber, T5V3Web.Content.Persian.FirstName))" class="form-control number-input" />
+                            </div>
+                            <button type="button" data-toggle="tooltip" class="btn btn-default glyphicon glyphicon-resize-full" onclick="setColumn('firstNameColumn')" title="@T5V3Web.Content.Persian.SelectColumns"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input name="selectedColumns" value="3" type="checkbox" />
+                            <label class="control-label">@T5V3Web.Content.Persian.LastName</label>
+                        </td>
+                        <td>
+                            <div class="col-sm-8">
+                                <input name="lastNameColumn" placeholder="@(string.Format ("{0} {1}" , T5V3Web.Content.Persian.ColumnNumber, T5V3Web.Content.Persian.LastName))" type="text" class="form-control number-input" />
+                            </div>
+                            <button type="button" data-toggle="tooltip" class="btn btn-default glyphicon glyphicon-resize-full" onclick="setColumn('lastNameColumn')" title="@T5V3Web.Content.Persian.SelectColumns"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input name="selectedColumns" value="4" type="checkbox" />
+                            <label class="control-label">@T5V3Web.Content.Persian.DeviceName</label>
+                        </td>
+                        <td>
+                            <div class="col-sm-8">
+                                <input name="deviceNameColumn" placeholder="@(string.Format ("{0} {1}" , T5V3Web.Content.Persian.ColumnNumber, T5V3Web.Content.Persian.DeviceName))" type="text" class="form-control number-input" />
+                            </div>
+                            <button type="button" data-toggle="tooltip" class="btn btn-default glyphicon glyphicon-resize-full" onclick="setColumn('deviceNameColumn')" title="@T5V3Web.Content.Persian.SelectColumns"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input name="selectedColumns" value="5" type="checkbox" />
+                            <label class="control-label">@T5V3Web.Content.Persian.Email</label>
+                        </td>
+                        <td>
+                            <div class="col-sm-8">
+                                <input name="emailColumn" placeholder="@(string.Format ("{0} {1}" , T5V3Web.Content.Persian.ColumnNumber, T5V3Web.Content.Persian.Email))" type="text" class="form-control number-input" />
+                            </div>
+                            <button type="button" data-toggle="tooltip" class="btn btn-default glyphicon glyphicon-resize-full" onclick="setColumn('emailColumn')" title="@T5V3Web.Content.Persian.SelectColumns"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input name="selectedColumns" value="6" type="checkbox" />
+                            <label class="control-label">@T5V3Web.Content.Persian.Tel</label>
+                        </td>
+                        <td>
+                            <div class="col-sm-8">
+                                <input name="telColumn" placeholder="@(string.Format ("{0} {1}" , T5V3Web.Content.Persian.ColumnNumber, T5V3Web.Content.Persian.Tel))" type="text" class="form-control number-input" />
+                            </div>
+                            <button type="button" data-toggle="tooltip" class="btn btn-default glyphicon glyphicon-resize-full" onclick="setColumn('telColumn')" title="@T5V3Web.Content.Persian.SelectColumns"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input name="selectedColumns" value="7" type="checkbox" />
+                            <label class="control-label">@T5V3Web.Content.Persian.Address</label>
+                        </td>
+                        <td>
+                            <div class="col-sm-8">
+                                <input name="addressColumn" placeholder="@(string.Format ("{0} {1}" , T5V3Web.Content.Persian.ColumnNumber, T5V3Web.Content.Persian.Address))" type="text" class="form-control number-input" />
+                            </div>
+                            <button type="button" data-toggle="tooltip" class="btn btn-default glyphicon glyphicon-resize-full" onclick="setColumn('addressColumn')" title="@T5V3Web.Content.Persian.SelectColumns"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input name="selectedColumns" value="8" type="checkbox" />
+                            <label class="control-label">@T5V3Web.Content.Persian.Number</label>
+                        </td>
+                        <td>
+                            <div class="col-sm-8">
+                                <input name="numberColumn" placeholder="@(string.Format ("{0} {1}" , T5V3Web.Content.Persian.ColumnNumber, T5V3Web.Content.Persian.Number))" type="text" class="form-control number-input" />
+                            </div>
+                            <button type="button" data-toggle="tooltip" class="btn btn-default glyphicon glyphicon-resize-full" onclick="setColumn('numberColumn')" title="@T5V3Web.Content.Persian.SelectColumns"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input name="selectedColumns" value="9" type="checkbox" />
+                            <label class="control-label">@T5V3Web.Content.Persian.Gender</label>
+                        </td>
+                        <td>
+                            <div class="col-sm-8">
+                                <input name="genderColumn" placeholder="@(string.Format ("{0} {1}" , T5V3Web.Content.Persian.ColumnNumber, T5V3Web.Content.Persian.Gender))" type="text" class="form-control number-input" />
+                            </div>
+                            <button type="button" data-toggle="tooltip" class="btn btn-default glyphicon glyphicon-resize-full" onclick="setColumn('genderColumn')" title="@T5V3Web.Content.Persian.SelectColumns"></button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
+        <div class="col-sm-6">
+            @if (Model != null)
+            {
+                <div style="max-height:400px;overflow:auto">
+                    <table class="table table-bordered table-hover table-responsive table-striped">
+                        <thead>
+                            <tr>
+                                @for (int c = 0; c < Model.ExcelData.GetLength(0); c++)
+                                {
+                                    <td onclick="column_clicked(@(c+1))" style="cursor:pointer">@(c + 1)</td>
+                                }
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int r = 0; r < Model.ExcelData.GetLength(1); r++)
+                            {
+                                <tr onclick="row_clicked(@(r+1))">
+                                    @for (int c = 0; c < Model.ExcelData.GetLength(0); c++)
+                                    {
+                                        <td>@Model.ExcelData[c, r]</td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+        </div>
+    </div>
+
+
+    <div class="form-group top-buffer right-align">
+        <div class="col-sm-2 left-align">
+            <label class="control-label">@T5V3Web.Content.Persian.FromRow</label>
+        </div>
+        <div class="col-sm-4">
+            <input name="fromRow" placeholder="@T5V3Web.Content.Persian.FromRow" class="form-control text-right number-input" type="text" />
+        </div>
+        <button type="button" data-toggle="tooltip" class="btn btn-default glyphicon glyphicon-resize-full" onclick="setRow('fromRow')" title="@T5V3Web.Content.Persian.SelectRow"></button>
+
+    </div>
+    <div class="form-group right-align">
+        <div class="col-sm-2 left-align">
+            <label class="control-label">@T5V3Web.Content.Persian.ToRow</label>
+        </div>
+        <div class="col-sm-4">
+            <input name="toRow" placeholder="@T5V3Web.Content.Persian.ToRow" class="form-control text-right number-input" type="text" />
+        </div>
+        <button type="button" data-toggle="tooltip" class="btn btn-default glyphicon glyphicon-resize-full" onclick="setRow('toRow')" title="@T5V3Web.Content.Persian.SelectRow"></button>
+    </div>
+
+
+    <input class="btn btn-default" type="submit" name="operation" value="@T5V3Web.Content.Persian.ShowPreview" />
+
+</form>
+
+
+
+@section scripts{
+    <script>
+        selectedColName = "";
+        selectedRowName = "";
+
+        function setColumn(columnName) {
+            selectedColName = columnName;
+        }
+
+        function setRow(rowName) {
+            selectedRowName = rowName;
+        }
+
+        function column_clicked(columnNumber) {
+            $("input[name=\'" + selectedColName + "\']").val(columnNumber);
+            selectedColName = "";
+        }
+
+        function row_clicked(rowNumber) {
+            $("input[name=\'" + selectedRowName + "\']").val(rowNumber);
+            selectedRowName = "";
+        }
+
+    </script>
+}

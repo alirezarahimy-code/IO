@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ArrayOfToolbarItemModel xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+  <ToolbarItemModel>
+    <ID>1</ID>
+    <Title>صفحه اصلی</Title>
+    <URL>/Home/Index</URL>
+    <Icon>fa-home</Icon>
+  </ToolbarItemModel>
+
+  <ToolbarItemModel>
+    <ID>2</ID>
+    <Title>مدارک تحصیلی</Title>
+    <URL>/Certificate/Index</URL>
+    <Icon>fa-vcard</Icon>
+    <ValidRoles type="array">
+      <string>5-1</string>
+      <string>5-2</string>
+    </ValidRoles>
+  </ToolbarItemModel>
+
+  <ToolbarItemModel>
+    <ID>3</ID>
+    <Title>اطلاعات پرسنلی</Title>
+    <URL>/UserInfo/Index</URL>
+    <Icon>fa-user</Icon>
+    <ValidRoles type="array">
+      <string>15-1</string>
+      <string>15-2</string>
+    </ValidRoles>
+  </ToolbarItemModel>
+
+  <ToolbarItemModel>
+    <ID>4</ID>
+    <Title>تعریف قسمت ها</Title>
+    <URL>/Department/Index</URL>
+    <Icon>fa-bank</Icon>
+    <ValidRoles type="array">
+      <string>13-1</string>
+      <string>13-2</string>
+    </ValidRoles>
+  </ToolbarItemModel>
+
+  <ToolbarItemModel>
+    <ID>5</ID>
+    <Title>تعریف سمت ها</Title>
+    <URL>/Title/Index</URL>
+    <Icon>fa-id-badge</Icon>
+    <ValidRoles type="array">
+      <string>6-1</string>
+      <string>6-2</string>
+    </ValidRoles>
+  </ToolbarItemModel>
+
+  <ToolbarItemModel>
+    <ID>6</ID>
+    <Title>انواع خروج</Title>
+    <URL>/LeaveType/Index</URL>
+    <Icon>fa-briefcase</Icon>
+    <ValidRoles type="array">
+      <string>8-1</string>
+      <string>8-2</string>
+    </ValidRoles>
+  </ToolbarItemModel>
+
+  <ToolbarItemModel>
+    <ID>7</ID>
+    <Title>جدول زمانی</Title>
+    <URL>/Schedule/Index</URL>
+    <Icon>fa-clock-o</Icon>
+    <ValidRoles type="array">
+      <string>16-1</string>
+      <string>16-2</string>
+    </ValidRoles>
+  </ToolbarItemModel>
+
+  <ToolbarItemModel>
+    <ID>8</ID>
+    <Title>درج تردد</Title>
+    <URL>/InsertRecord/Index</URL>
+    <Icon>fa-pencil</Icon>
+    <ValidRoles type="array">
+      <string>19-1</string>
+      <string>19-2</string>
+    </ValidRoles>
+  </ToolbarItemModel>
+
+  <ToolbarItemModel>
+    <ID>9</ID>
+    <Title>درج مرخصی و ماموریت روزانه</Title>
+    <URL>/InsertDailyLeave/Index</URL>
+    <Icon>fa-plane</Icon>
+    <ValidRoles type="array">
+      <string>20-1</string>
+      <string>20-2</string>
+    </ValidRoles>
+  </ToolbarItemModel>
+  
+</ArrayOfToolbarItemModel>

@@ -1,0 +1,149 @@
+﻿@model T5V3Web.Models.DataEntryModel<Personnel.Model.DashboardModel>
+
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.HomePageGroups;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.Home;
+}
+
+
+<h3>@T5V3Web.Content.Persian.HomePageGroups</h3>
+
+<div class="horizontal-line"></div>
+
+
+<div>
+    <form class="form-horizontal" role="form" method="post" action="/Dashboard/Edit">
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.GroupName</label>
+            </div>
+            <div class="col-sm-10">
+                <input placeholder="@T5V3Web.Content.Persian.GroupName" class="form-control" type="text" name="GroupName" value="@(Model.Selected!=null ? Model.Selected.GroupName : "")" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.OrderIndex</label>
+            </div>
+            <div class="col-sm-10">
+                <input placeholder="@T5V3Web.Content.Persian.OrderIndex" class="form-control" type="text" name="OrderIndex" value="@(Model.Selected!=null ? Model.Selected.OrderIndex : 1)" />
+            </div>
+        </div>
+
+
+        <div class="form-group">
+            @if (Model.Selected != null)
+            {
+                <input name="ID" type="hidden" value="@Model.Selected.ID" />
+                <div class="col-sm-offset-2 col-sm-10 text-right">
+                    <input class="btn btn-default" type="submit" value="@(string.Format ("{0} {1}", T5V3Web.Content.Persian.Edit , T5V3Web.Content.Persian.Group))" />
+                </div>
+            }
+            else
+            {
+                <input name="ID" type="hidden" value="-1" />
+                <div class="col-sm-offset-2 col-sm-10 text-right">
+                    <button class="btn btn-default" type="submit">
+                        <span>@(string.Format("{0} {1}", T5V3Web.Content.Persian.Add2, T5V3Web.Content.Persian.Group))</span>
+                    </button>
+                    @*<input class="btn btn-default" type="submit" value="@(string.Format ("{0} {1}", T5V3Web.Content.Persian.Add2 , T5V3Web.Content.Persian.Certificate))" />*@
+                </div>
+            }
+        </div>
+
+
+        <div class="form-group">
+            <div class="col-sm-offset-1 col-sm-10 text-center">
+                @if (Model.ValidationMessage != null)
+                {
+                    <div class="@((T5V3Web.Models.ValidationMessageType)Model.ValidationMessageType == T5V3Web.Models.ValidationMessageType.Error ? "alert alert-danger fade in" : "alert alert-success fade in")">
+                        @Model.ValidationMessage
+                        <arel="noopener noreferrer" href="#" class="close" data-dismiss="alert" aria-label="close">&times;</arel="noopener>
+                    </div>
+                }
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<div class="horizontal-line"></div>
+
+<table class="table table-hover table-bordered table-striped table-responsive">
+    <thead>
+        <tr class="warning">
+            <td>@T5V3Web.Content.Persian.SelectDeleteEdit</td>
+            <td>@T5V3Web.Content.Persian.GroupName</td>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            foreach (Personnel.Model.DashboardModel c in Model.ItemsList)
+            {
+                <tr>
+                    <td>
+                        <input data-toggle="tooltip" type="checkbox" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Select, c.GroupName))" name="ids" value="@c.ID" />
+                        <a  rel="noopener noreferrer" onclick="confirmDelete(@c.ID)" href="javascript:void(0)">
+                            <span data-toggle="tooltip" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Delete, c.GroupName))" class="glyphicon glyphicon-remove"></span>
+                        </a>
+                        <a rel="noopener noreferrer" data-toggle="tooltip" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Edit, c.GroupName))" href="/Dashboard?pageNumber=@Model.PageNumber&id=@c.ID">
+                            <span class="glyphicon glyphicon-edit"></span>
+                        </a>
+                    </td>
+                    <td>
+                        <label class="vertical-middle">@c.GroupName</label>
+                    </td>
+
+                </tr>
+            }
+        }
+    </tbody>
+    <tfoot>
+        <tr class="danger">
+            <td>
+                <form role="form" method="get" action="/Dashboard?pageNumber=@Model.PageNumber">
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-sm btn-default" data-toggle="tooltip" title="@T5V3Web.Content.Persian.Add">
+                            <span class="glyphicon glyphicon-plus"></span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-default" data-toggle="tooltip" title="@T5V3Web.Content.Persian.DeleteSelectedItems" onclick="deleteAll()">
+                            <span class="glyphicon glyphicon-remove"></span>
+                        </button>
+                    </div>
+                </form>
+            </td>
+            <td>
+                @if (Model.HasPrePage)
+                {
+                    <a rel="noopener noreferrer" data-toggle="tooltip" title="@T5V3Web.Content.Persian.Previous" href="/Dashboard?pageNumber=@(Model.PageNumber-1)"><span class="glyphicon glyphicon-forward"></span></a>
+                }
+                else
+                {
+                    <span class="glyphicon glyphicon-forward"></span>
+                }
+
+                <label>@(string.Format("{3} {0} {1} {2}", Model.PageNumber.ToString(), T5V3Web.Content.Persian.From, Model.TotalPageNumbers.ToString(), T5V3Web.Content.Persian.Page))</label>
+
+                @if (Model.HasNextPage)
+                {
+                    <a rel="noopener noreferrer" data-toggle="tooltip" title="@T5V3Web.Content.Persian.Next" href="/Dashboard?pageNumber=@(Model.PageNumber+1)"><span class="glyphicon glyphicon-backward"></span></a>
+                }
+                else
+                {
+                    <span class="glyphicon glyphicon-backward"></span>
+                }
+            </td>
+        </tr>
+    </tfoot>
+</table>
+
+@section scripts
+{
+    @{
+        ViewDataDictionary temp = new ViewDataDictionary();
+        temp.Add(new KeyValuePair<string, object>("DeleteUrl", "/Dashboard/Delete"));
+        temp.Add(new KeyValuePair<string, object>("DeleteAllUrl", "/Dashboard/DeleteAll"));
+        @Html.Partial("_ConfirmDeleteScripts", temp);
+    }
+}

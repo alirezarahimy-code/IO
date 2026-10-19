@@ -1,0 +1,270 @@
+﻿@model T5V3Web.Models.DataEntryModel<T5V3.Model.Manager>
+
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.Manager;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.Accounts;
+    ViewBag.PageTag = "Manager";
+}
+
+
+<h3>@T5V3Web.Content.Persian.Manager</h3>
+
+<div class="horizontal-line"></div>
+
+
+<form id="frmEdit" role="form" class="form-horizontal" method="post" action="/Manager/Edit">
+    @if (Model.Selected != null)
+    {
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.BadgeNumber</label>
+            </div>
+            <div class="col-sm-2 text-right">
+                <label class="control-label">@(Model.Selected != null ? Model.Selected.BadgeNumber.ToString() : "")</label>
+            </div>
+            <div class="col-sm-4 text-right">
+                <button type="button" onclick="showProgramAccess()" class="btn col-sm-12 btn-default">@T5V3Web.Content.Persian.SelectProgramAccess</button>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.Name</label>
+            </div>
+            <div class="col-sm-2 text-right">
+                <label class="control-label">@(Model.Selected != null ? Model.Selected.Name.ToString() : "")</label>
+            </div>
+            <div class="col-sm-4 text-right">
+                <button onclick="showUsers()" class="btn btn-default col-sm-12" type="button">@T5V3Web.Content.Persian.SelectPersonnel</button>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2">
+            </div>
+            <div class="col-sm-2 text-right">
+                <input type="checkbox" name="isMainManager" value="true" @(Model.Selected != null ? Model.Selected.IsMainManager ? "checked=\"checked\"" : "" : "") />
+                <label class="control-label">@T5V3Web.Content.Persian.MainManager</label>
+            </div>
+            <div class="col-sm-4 text-right">
+                <button onclick="showDevices()" class="btn btn-default col-sm-12" type="button">@T5V3Web.Content.Persian.SelectDevices</button>
+            </div>
+
+        </div>
+
+        <div id="ucSelectManagerPersonnel" class="collapsed-visibility">
+            <div class="panel panel-warning">
+                <div class="panel-heading">
+                    <label>@T5V3Web.Content.Persian.SelectPersonnel</label>
+                </div>
+                <div class="panel-body">
+                    @Html.Partial("_SelectUser", T5V3Web.Controllers.UserSelectionController.CreateModel(Model.Selected.AllowUsers))
+                </div>
+            </div>
+        </div>
+
+
+        <div id="ucSelectDevice" class="collapsed-visibility">
+            <div class="panel panel-warning">
+                <div class="panel-heading">
+                    <label>@T5V3Web.Content.Persian.SelectDevices</label>
+                </div>
+                <div class="panel-body">
+                    @Html.Partial("_DeviceSelection", new T5V3Web.Models.DeviceSelectionModel("selectedDevices", Model.Selected.AllowDevices))
+                </div>
+            </div>
+        </div>
+
+
+        <div id="liPermissions" class="collapsed-visibility">
+            <table class="table table-bordered table-hover table-responsive table-striped">
+                <tr class="warning">
+                    <td></td>
+                    <td>@T5V3Web.Content.Persian.Allow</td>
+                    <td>@T5V3Web.Content.Persian.Deny</td>
+                    <td>@T5V3Web.Content.Persian.ReadOnly</td>
+                </tr>
+                @foreach (T5V3.Model.ProgramAccess acc in Enum.GetValues(typeof(T5V3.Model.ProgramAccess)))
+                {
+                    if (acc != T5V3.Model.ProgramAccess.MainManager)
+                    {
+                        <tr>
+                            <td>@T5V3.UI.MiscUI.GetProgramAccessName(acc)</td>
+                            @if (Model.Selected.ProgramAccess.Where(p => p.AccessType == acc).Count() > 0)
+                            {
+                                T5V3.Model.AccessLevel level = Model.Selected.ProgramAccess.Where(p => p.AccessType == acc).FirstOrDefault().AccessLevel;
+                                <td>
+                                    <input name="@acc.ToString()" value="Allow" class="inline-block-display w-100 ma-0" type="radio" @(level == T5V3.Model.AccessLevel.Allow ? "checked=\"checked\"" : "") />
+                                </td>
+                                <td>
+                                    <input name="@acc.ToString()" value="Deny" class="inline-block-display w-100 ma-0" type="radio" @(level == T5V3.Model.AccessLevel.Deny ? "checked=\"checked\"" : "") />
+                                </td>
+                                <td>
+                                    <input name="@acc.ToString()" value="ReadOnly" class="inline-block-display w-100 ma-0" type="radio" @(level == T5V3.Model.AccessLevel.ReadOnly ? "checked=\"checked\"" : "") />
+                                </td>
+                            }
+                            else
+                            {
+                                <td>
+                                    <input name="@acc.ToString()" value="Allow" class="inline-block-display w-100 ma-0" type="radio" />
+                                </td>
+                                <td>
+                                    <input name="@acc.ToString()" value="Deny" class="inline-block-display w-100 ma-0" type="radio" checked="checked" />
+                                </td>
+                                <td>
+                                    <input name="@acc.ToString()" value="ReadOnly" class="inline-block-display w-100 ma-0" type="radio" />
+                                </td>
+                            }
+                        </tr>
+                    }
+                }
+            </table>
+        </div>
+
+    }
+
+
+    @if (Model.Selected != null)
+    {
+        <div class="form-group">
+            <div class="col-sm-offset-2 text-right col-sm-2">
+                <input name="badgeNumber" type="hidden" value="@Model.Selected.BadgeNumber" />
+                <button onclick="edit()" class="btn btn-default" role="button">@T5V3Web.Content.Persian.Edit</button> 
+            </div>
+        </div>
+
+    }
+    else
+    {
+        <input name="badgeNumber" type="hidden" value="-1" />
+    }
+
+    <div class="form-group">
+        <div class="col-sm-offset-1 col-sm-10 text-center">
+            @if (Model.ValidationMessage != null)
+            {
+                <div class="@((T5V3Web.Models.ValidationMessageType)Model.ValidationMessageType == T5V3Web.Models.ValidationMessageType.Error ? "alert alert-danger fade in" : "alert alert-success fade in")">
+                    @Model.ValidationMessage
+                    <a rel="noopener noreferrer" href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                </div>
+            }
+        </div>
+    </div>
+
+</form>
+
+
+<div class="horizontal-line"></div>
+
+<table class="table table-hover table-bordered table-striped table-responsive">
+    <thead>
+        <tr class="warning">
+            <td>@T5V3Web.Content.Persian.SelectDeleteEdit</td>
+            <td>@T5V3Web.Content.Persian.Manager</td>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (T5V3.Model.Manager c in Model.ItemsList)
+        {
+            <tr>
+                <td>
+                    <input data-toggle="tooltip" type="checkbox" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Select, c.Name))" name="ids" value="@c.BadgeNumber" />
+                    <a rel="noopener noreferrer" onclick="confirmDelete(@c.BadgeNumber)" href="javascript:void(0)">
+                        <span data-toggle="tooltip" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Delete, c.Name))" class="glyphicon glyphicon-remove"></span>
+                    </a>
+                    <a rel="noopener noreferrer" data-toggle="tooltip" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Edit, c.Name))" href="/Manager?pageNumber=@Model.PageNumber&badgeNumber=@c.BadgeNumber">
+                        <span class="glyphicon glyphicon-edit"></span>
+                    </a>
+                </td>
+                <td>
+                    <label>@c.Name</label>
+                </td>
+
+            </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr class="danger">
+            <td>
+                <form role="form" method="get" action="/Manager">
+                    <input type="hidden" name="pageNumber" value="@Model.PageNumber" />
+                    <div class="btn-group">
+                        @*<button type="submit" class="btn btn-sm btn-default" data-toggle="tooltip" title="@T5V3Web.Content.Persian.Add">
+                                <span class="glyphicon glyphicon-plus"></span>
+                            </button>*@
+                        <button type="button" class="btn btn-sm btn-default" data-toggle="tooltip" title="@T5V3Web.Content.Persian.DeleteSelectedItems" onclick="deleteAll()">
+                            <span class="glyphicon glyphicon-remove"></span>
+                        </button>
+                    </div>
+                </form>
+            </td>
+            <td>
+                @if (Model.HasPrePage)
+                {
+                    <a rel="noopener noreferrer" data-toggle="tooltip" title="@T5V3Web.Content.Persian.Previous" href="/Manager?pageNumber=@(Model.PageNumber-1)"><span class="glyphicon glyphicon-forward"></span></a>
+                }
+                else
+                {
+                    <span class="glyphicon glyphicon-forward"></span>
+                }
+
+                <label>@(string.Format("{3} {0} {1} {2}", Model.PageNumber.ToString(), T5V3Web.Content.Persian.From, Model.TotalPageNumbers.ToString(), T5V3Web.Content.Persian.Page))</label>
+
+                @if (Model.HasNextPage)
+                {
+                    <a rel="noopener noreferrer" data-toggle="tooltip" title="@T5V3Web.Content.Persian.Next" href="/Manager?pageNumber=@(Model.PageNumber+1)"><span class="glyphicon glyphicon-backward"></span></a>
+                }
+                else
+                {
+                    <span class="glyphicon glyphicon-backward"></span>
+                }
+            </td>
+        </tr>
+    </tfoot>
+</table>
+
+
+
+
+@section scripts
+{
+    <script>
+        function showProgramAccess() {
+            document.getElementById("ucSelectManagerPersonnel").className = "collapsed-visibility"
+            document.getElementById("ucSelectDevice").className = "collapsed-visibility"
+            if (document.getElementById("liPermissions").className == "collapsed-visibility")
+                document.getElementById("liPermissions").className = "visible-visibility";
+            else
+                document.getElementById("liPermissions").className = "collapsed-visibility";
+        }
+        function showUsers() {
+            document.getElementById("liPermissions").className = "collapsed-visibility"
+            document.getElementById("ucSelectDevice").className = "collapsed-visibility"
+            if (document.getElementById("ucSelectManagerPersonnel").className == "collapsed-visibility")
+                document.getElementById("ucSelectManagerPersonnel").className = "visible-visibility";
+            else
+                document.getElementById("ucSelectManagerPersonnel").className = "collapsed-visibility";
+        }
+        function showDevices() {
+            document.getElementById("liPermissions").className = "collapsed-visibility"
+            document.getElementById("ucSelectManagerPersonnel").className = "collapsed-visibility"
+
+            if (document.getElementById("ucSelectDevice").className == "collapsed-visibility")
+                document.getElementById("ucSelectDevice").className = "visible-visibility";
+            else
+                document.getElementById("ucSelectDevice").className = "collapsed-visibility";
+        }
+
+        function edit()
+        {
+            AddDeviceCheckboxes('frmEdit');
+            $('#frmEdit').submit();
+        }
+
+    </script>
+
+    @{
+        ViewDataDictionary temp = new ViewDataDictionary();
+        temp.Add(new KeyValuePair<string, object>("DeleteUrl", "/Manager/Delete"));
+        temp.Add(new KeyValuePair<string, object>("DeleteAllUrl", "/Manager/DeleteAll"));
+        @Html.Partial("_ConfirmDeleteScripts", temp);
+    }
+}

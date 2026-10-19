@@ -1,0 +1,297 @@
+﻿@model T5V3Web.Models.GridReportDataModel
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.GridReport;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.AttendanceControl;
+    ViewBag.PageTag = "GridReport";
+}
+
+<h3>@T5V3Web.Content.Persian.GridReport</h3>
+<div class="horizontal-line"></div>
+
+
+<form class="mb-20" method="post" action="/GridReport/Show">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <label>@T5V3Web.Content.Persian.SelectPersonnel ...</label>
+        </div>
+        <div class="panel-body">
+            @Html.Partial("_SelectUser", T5V3Web.Controllers.UserSelectionController.CreateModel(Model.BadgeNumbers))
+        </div>
+    </div>
+
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <label>@T5V3Web.Content.Persian.SelectTimeInterval ...</label>
+        </div>
+        <div class="panel-body">
+            @Html.Partial("_SelectDateInterval", Model.Interval)
+        </div>
+    </div>
+
+    <input class="btn btn-success" value="@T5V3Web.Content.Persian.ShowReport" type="submit" />
+</form>
+
+
+<div class="block-display">
+    <div id="tabs" style="font-family:Tahoma">
+        <ul id="temp">
+            <li class="float-right"><a rel="noopener noreferrer" href="#tabs-1">@T5V3Web.Content.Persian.RecordsReport</a></li>
+            <li class="float-right"><a rel="noopener noreferrer" href="#tabs-2">@T5V3Web.Content.Persian.Shift</a></li>
+            <li class="float-right"><a rel="noopener noreferrer" href="#tabs-3">@T5V3Web.Content.Persian.LeavesReport</a></li>
+            <li class="float-right"><a rel="noopener noreferrer" href="#tabs-4">@T5V3Web.Content.Persian.IsSum</a></li>
+        </ul>
+        <div class="auto-scroll" id="tabs-1">
+            <table class="table table-bordered table-responsive">
+                <thead>
+                    <tr style="background-color:#ffd800">
+                        <td>@T5V3Web.Content.Persian.BadgeNumber</td>
+                        <td>@T5V3Web.Content.Persian.Name</td>
+                        <td>@T5V3Web.Content.Persian.Date</td>
+                        <td>@T5V3Web.Content.Persian.DayOfWeek</td>
+                        <td>@T5V3Web.Content.Persian.Time</td>
+                        <td>@T5V3Web.Content.Persian.Type</td>
+                        <td>@T5V3Web.Content.Persian.Operation</td>
+                        <td>@T5V3Web.Content.Persian.MachineNumber</td>
+                        <td>@T5V3Web.Content.Persian.Valid</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                            int i = 0;
+                            foreach (T5V3Web.Models.RecordsTabData record in Model.RecordsData)
+                            {
+                                i++;
+                        <tr style="background-color:#@(record.BackColor.R.ToString("X2") + record.BackColor.G.ToString("X2") + record.BackColor.B.ToString("X2"))">
+                            <td>
+                                @record.BadgeNumber
+                            </td>
+                            <td>
+                                @record.Name
+                            </td>
+                            <td>
+                                @record.HijriDate
+                            </td>
+                            <td>
+                                @record.DayOfWeek
+                            </td>
+                            <td>
+                                @record.RecordTime
+                            </td>
+                            <td>
+                                @record.RecordType
+                            </td>
+                            <td>
+                                @record.Operation
+                            </td>
+                            <td>
+                                @record.MachineNumber
+                            </td>
+                            <td>
+                                <input type="checkbox" @(record.IsValid ? "checked=checked" : "") />
+                            </td>
+                        </tr>
+                            }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="auto-scroll" id="tabs-2" style="max-height:600px">
+            <table class="no-wrap table table-bordered table-responsive">
+                <thead>
+                    <tr style="background-color:#ffd800">
+                        <td>@T5V3Web.Content.Persian.BadgeNumber</td>
+                        <td>@T5V3Web.Content.Persian.Name</td>
+                        <td>@T5V3Web.Content.Persian.Date</td>
+                        <td>@T5V3Web.Content.Persian.DayOfWeek</td>
+                        <td>@T5V3Web.Content.Persian.ScheduleName</td>
+                        <td>@T5V3Web.Content.Persian.FromTime</td>
+                        <td>@T5V3Web.Content.Persian.ToTime</td>
+                        <td>@T5V3Web.Content.Persian.In</td>
+                        <td>@T5V3Web.Content.Persian.Out</td>
+                        <td>@T5V3Web.Content.Persian.Late</td>
+                        <td>@T5V3Web.Content.Persian.Early</td>
+                        <td>@T5V3Web.Content.Persian.LessWork</td>
+                        <td>@T5V3Web.Content.Persian.woIn</td>
+                        <td>@T5V3Web.Content.Persian.woOut</td>
+                        <td>@T5V3Web.Content.Persian.OTBefore</td>
+                        <td>@T5V3Web.Content.Persian.OTAfter</td>
+                        <td>@T5V3Web.Content.Persian.OverTime</td>
+                        <td>@T5V3Web.Content.Persian.WorkTime</td>
+                        <td>@T5V3Web.Content.Persian.Present</td>
+                        <td>@T5V3Web.Content.Persian.LaunchTime</td>
+                        <td>@T5V3Web.Content.Persian.Absent</td>
+                        <td>@T5V3Web.Content.Persian.State</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (T5V3Web.Models.ShiftTabData shift in Model.ShiftData)
+                        {
+                        <tr style="background-color:#@(shift.IsAbsent ? "FF1111" : (shift.HijriDate == T5V3Web.Content.Persian.IsSum ? "FF8844" : "FFFFFF"))">
+                            <td>
+                                @shift.BadgeNumber
+                            </td>
+                            <td>
+                                @shift.Name
+                            </td>
+                            <td style="background-color:#@(shift.HijriDate == T5V3Web.Content.Persian.IsSum ? "FF8844" : "FFFF00")">
+                                @shift.HijriDate
+                            </td>
+                            <td style="background-color:#@(shift.HijriDate == T5V3Web.Content.Persian.IsSum ? "FF8844" : "FFFF00")">
+                                @shift.DayOfWeek
+                            </td>
+                            <td style="background-color:#@(shift.HijriDate == T5V3Web.Content.Persian.IsSum ? "FF8844" : "FFFF00")">
+                                @shift.ScheduleName
+                            </td>
+                            <td style="background-color:#@(shift.HijriDate == T5V3Web.Content.Persian.IsSum ? "FF8844" : "FFFF00")">
+                                @shift.ScheduleFromTime
+                            </td>
+                            <td style="background-color:#@(shift.HijriDate == T5V3Web.Content.Persian.IsSum ? "FF8844" : "FFFF00")">
+                                @shift.ScheduleToTime
+                            </td>
+                            <td>
+                                @shift.InTime
+                            </td>
+                            <td>
+                                @shift.OutTime
+                            </td>
+                            <td style="background-color:#@(shift.Late != "00:00" ? "FF600A"  : "" )">
+                                @shift.Late
+                            </td>
+                            <td style="background-color:#@(shift.Early!= "00:00" ? "30FF30"  : "" )">
+                                @shift.Early
+                            </td>
+                            <td>
+                                @shift.LessWork
+                            </td>
+                            <td style="background-color:#@(shift.WOIn ? "FF8080"  : "" )">
+                                <input readonly="readonly" type="checkbox" @(shift.WOIn ? "checked=checked" : "") />
+                            </td>
+                            <td style="background-color:#@(shift.WOOut? "FF8080"  : "" )">
+                                <input readonly="readonly" type="checkbox" @(shift.WOOut ? "checked=checked" : "") />
+                            </td>
+                            <td>
+                                @shift.OTAfter
+                            </td>
+                            <td>
+                                @shift.OTBefore
+                            </td>
+                            <td>
+                                @shift.TotalOT
+                            </td>
+                            <td>
+                                @shift.WorkTime
+                            </td>
+                            <td>
+                                @shift.PresentTime
+                            </td>
+                            <td>
+                                @shift.RestTime
+                            </td>
+                            <td>
+                                <input readonly="readonly" type="checkbox" @(shift.IsAbsent ? "checked=checked" : "") />
+                            </td>
+                            <td>
+                                @shift.Status
+                            </td>
+                        </tr>
+                        }
+                </tbody>
+            </table>
+        </div>
+
+        <div id="tabs-3" class="auto-scroll">
+            <table class="no-wrap table table-bordered table-responsive">
+                <tr style="background-color:#ffd800">
+                    <td>@T5V3Web.Content.Persian.BadgeNumber</td>
+                    <td>@T5V3Web.Content.Persian.Name</td>
+                    <td>@T5V3Web.Content.Persian.Date</td>
+                    <td>@T5V3Web.Content.Persian.FromTime</td>
+                    <td>@T5V3Web.Content.Persian.ToTime</td>
+                    <td>@T5V3Web.Content.Persian.State</td>
+                    <td>@T5V3Web.Content.Persian.RealLen</td>
+                    <td>@T5V3Web.Content.Persian.ValidLen</td>
+                </tr>
+                @foreach (T5V3Web.Models.LeavesTabData l in Model.LeavesData)
+                    {
+                    <tr style="background-color:#@(l.BackColor.R.ToString("X2") + l.BackColor.G.ToString("X2") + l.BackColor.B.ToString("X2"))">
+                        <td>@l.BadgeNumber</td>
+                        <td>@l.Name</td>
+                        <td>@l.HijriDate</td>
+                        <td>@l.FromTime</td>
+                        <td>@l.ToTime</td>
+                        <td>@l.Status</td>
+                        <td>@l.Len</td>
+                        <td>@l.ValidLen</td>
+                    </tr>
+                    }
+            </table>
+        </div>
+
+        <div id="tabs-4" class="auto-scroll">
+            <table class="no-wrap table table-bordered table-responsive">
+                <tr style="background-color:#ffd800">
+                    <td>@T5V3Web.Content.Persian.BadgeNumber</td>
+                    <td>@T5V3Web.Content.Persian.Name</td>
+                    <td>@T5V3Web.Content.Persian.TotalDays</td>
+                    <td>@T5V3Web.Content.Persian.WorkDays</td>
+                    <td>@T5V3Web.Content.Persian.Absent</td>
+                    <td>@T5V3Web.Content.Persian.WorkDays</td>
+                    <td>@T5V3Web.Content.Persian.Present</td>
+                    <td>@T5V3Web.Content.Persian.WorkTime</td>
+                    <td>@T5V3Web.Content.Persian.Late</td>
+                    <td>@T5V3Web.Content.Persian.Early</td>
+                    <td>@T5V3Web.Content.Persian.LessWork</td>
+                    <td>@T5V3Web.Content.Persian.TotalLessWork</td>
+                    <td>@T5V3Web.Content.Persian.OTBefore</td>
+                    <td>@T5V3Web.Content.Persian.OTAfter</td>
+                    <td>@T5V3Web.Content.Persian.FreeOT</td>
+                    <td>@T5V3Web.Content.Persian.OverTimes</td>
+                    <td>@T5V3Web.Content.Persian.HourlyDuty</td>
+                    <td>@T5V3Web.Content.Persian.HourlyLeave</td>
+                    <td>@T5V3Web.Content.Persian.DailyDuty</td>
+                    <td>@T5V3Web.Content.Persian.DailyLeave</td>
+                </tr>
+                @{
+                        int row = 0;
+                        foreach (T5V3Web.Models.CalcsTabData l in Model.CalcsData)
+                        {
+                            row++;
+                    <tr style="background-color:#@(row % 2==0 ? "EEEEEE" : "AAAAAA")">
+                        <td>@l.BadgeNumber</td>
+                        <td>@l.Name</td>
+                        <td>@l.TotalDays</td>
+                        <td>@l.WorkDays</td>
+                        <td>@l.AbsentDays</td>
+                        <td>@l.WorkDay</td>
+                        <td>@l.PresentDays</td>
+                        <td>@l.WorkTime</td>
+                        <td>@l.Late</td>
+                        <td>@l.Early</td>
+                        <td>@l.LessWork</td>
+                        <td>@l.TotalLessWork</td>
+                        <td>@l.OTBefore</td>
+                        <td>@l.OTAfter</td>
+                        <td>@l.FreeOT</td>
+                        <td>@l.TotalOT</td>
+                        <td>@l.DutyHourly</td>
+                        <td>@l.LeaveHourly</td>
+                        <td>@l.DutyDaily</td>
+                        <td>@l.LeaveDaily</td>
+                    </tr>
+                        }
+                }
+            </table>
+        </div>
+    </div>
+</div>
+
+
+@section scripts
+{
+    <script>
+        $("#tabs").tabs();
+        //$("#tabs ul#temp").removeClass('ui-helper-clearfix', 0, 1, '');
+        //$("#tabs ul#temp").css('height', '40px');
+    </script>
+}

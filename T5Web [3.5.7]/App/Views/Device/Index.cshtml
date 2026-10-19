@@ -1,0 +1,250 @@
+﻿@model T5V3Web.Models.DataEntryModel<Personnel.Model.Device>
+
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.Devices;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.Devices;
+    ViewBag.PageTag = "Device";
+}
+
+
+<h3>@T5V3Web.Content.Persian.Devices</h3>
+
+<div class="horizontal-line"></div>
+
+
+<div class="normal-bottom-sapce right-align">
+    <form role="form" class="form-horizontal" method="post" action="/Device/Edit">
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.Gate</label>
+            </div>
+            <div class="col-sm-10">
+                @Html.DropDownList("GateID", (List<SelectListItem>)ViewBag.Gates, new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.MachineName</label>
+            </div>
+            <div class="col-sm-10">
+                <input class="form-control" type="text" name="MachineName" value="@(Model.Selected!=null ? Model.Selected.MachineName : "")" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.MachineNumber</label>
+            </div>
+            <div class="col-sm-10">
+                <input class="form-control number-input" type="text" name="MachineNumber" value="@(Model.Selected != null ? Model.Selected.MachineNumber.ToString() : "1")" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.ConnectionType</label>
+            </div>
+            <div class="col-sm-10">
+                <select class="form-control" name="ConnectionType">
+                    @if (Model.Selected != null)
+                    {
+                        <option @(Model.Selected.ConnectionType == Personnel.Model.ConnectionType.TCPIP ? "selected=\"selected\"" : "")>@T5V3Web.Content.Persian.Network</option>
+                        <option @(Model.Selected.ConnectionType == Personnel.Model.ConnectionType.USB ? "selected=\"selected\"" : "")>@T5V3Web.Content.Persian.USB</option>
+                        <option @(Model.Selected.ConnectionType == Personnel.Model.ConnectionType.SerialPort ? "selected=\"selected\"" : "")>@T5V3Web.Content.Persian.SerialPort</option>
+                    }
+                    else
+                    {
+                        <option selected="selected">@T5V3Web.Content.Persian.Network</option>
+                        <option>@T5V3Web.Content.Persian.USB</option>
+                        <option>@T5V3Web.Content.Persian.SerialPort</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.IP</label>
+            </div>
+            <div class="col-sm-10">
+                <input class="form-control" type="text" name="IP" value="@(Model.Selected != null ? Model.Selected.IP : "192.168.1.201")" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.Port</label>
+            </div>
+            <div class="col-sm-10">
+                <input class="form-control number-input" type="text" name="Port" value="@(Model.Selected != null ? Model.Selected.Port.ToString() : "4370")" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.SerialNumber</label>
+            </div>
+            <div class="col-sm-10">
+                <input class="form-control" type="text" name="SerialNumber" value="@(Model.Selected != null ? Model.Selected.SerialNumber.ToString() : "0")" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.SerialPort</label>
+            </div>
+            <div class="col-sm-10">
+                <input class="form-control number-input" type="text" name="SerialPort" value="@(Model.Selected != null ? (Model.Selected.SerialPort +1).ToString() : "1")" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.BaudRate</label>
+            </div>
+            <div class="col-sm-10">
+                <input class="form-control number-input" type="text" name="BaudRate" value="@(Model.Selected != null ? Model.Selected.BaudRate.ToString() : "115200")" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.CommKey</label>
+            </div>
+            <div class="col-sm-10">
+                <input class="form-control number-input" type="text" name="CommPassword" value="@(Model.Selected != null ? Model.Selected.CommPassword.ToString() : "0")" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.ActivationCode</label>
+            </div>
+            <div class="col-sm-10">
+                <input class="form-control number-input" type="text" name="Code" value="@(Model.Selected != null ? Model.Selected.Code : "0")" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.RS485Number</label>
+            </div>
+            <div class="col-sm-10">
+                <input class="form-control number-input" type="text" name="RS485Number" value="@(Model.Selected != null ? Model.Selected.RS485Number : 1)" />
+            </div>
+        </div>
+
+
+        <div class="form-group">
+            @if (Model.Selected != null)
+            {
+                <div class="col-sm-offset-2 col-sm-2 right-align">
+                    <input name="isNew" type="hidden" value="1" />
+                    <input class="btn btn-default" type="submit" value="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Edit, T5V3Web.Content.Persian.Device))" />
+                </div>
+            }
+            else
+            {
+                <div class="col-sm-offset-2 col-sm-2 right-align">
+                    <input name="isNew" type="hidden" value="-1" />
+                    <input class="btn btn-default" type="submit" value="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Add2, T5V3Web.Content.Persian.Device))" />
+                </div>
+            }
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-10 col-sm-offset-1 center-align">
+                @if (Model.ValidationMessage != null)
+                {
+                    <div class="@((T5V3Web.Models.ValidationMessageType)Model.ValidationMessageType == T5V3Web.Models.ValidationMessageType.Error ? "alert alert-danger fade in" : "alert alert-success fade in")">
+                        @Model.ValidationMessage
+                        <a rel="noopener noreferrer" href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </form>
+</div>
+
+
+<div class="horizontal-line"></div>
+
+<table class="table table-hover table-bordered table-striped table-responsive">
+    <thead>
+        <tr class="warning">
+            <td>@T5V3Web.Content.Persian.SelectDeleteEdit</td>
+            <td>@T5V3Web.Content.Persian.MachineNumber</td>
+            <td>@T5V3Web.Content.Persian.MachineName</td>
+            <td>@T5V3Web.Content.Persian.ConnectionType</td>
+            <td>@T5V3Web.Content.Persian.IP</td>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (Personnel.Model.Device c in Model.ItemsList)
+        {
+            <tr>
+                <td>
+                    <input data-toggle="tooltip" type="checkbox" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Select, c.MachineName))" name="ids" value="@c.MachineNumber" />
+                    <a  rel="noopener noreferrer" onclick="confirmDelete(@c.MachineNumber)" href="javascript:void(0)">
+                        <span data-toggle="tooltip" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Delete, c.MachineName))" class="glyphicon glyphicon-remove"></span>
+                    </a>
+                    <a rel="noopener noreferrer" data-toggle="tooltip" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Edit, c.MachineName))" href="/Device?pageNumber=@Model.PageNumber&deviceID=@c.MachineNumber">
+                        <span class="glyphicon glyphicon-edit"></span>
+                    </a>
+                </td>
+                <td>
+                    <label>@c.MachineNumber</label>
+                </td>
+                <td>
+                    <label>@c.MachineName</label>
+                </td>
+                <td>
+                    <label>@c.ConnectionType</label>
+                </td>
+                <td>
+                    <label>@c.IP</label>
+                </td>
+
+            </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr class="danger">
+            <td>
+                <form role="form" method="get" action="/Device">
+                    <input type="hidden" name="pageNumber" value="@Model.PageNumber" />
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-sm btn-default" data-toggle="tooltip" title="@T5V3Web.Content.Persian.Add">
+                            <span class="glyphicon glyphicon-plus"></span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-default" data-toggle="tooltip" title="@T5V3Web.Content.Persian.DeleteSelectedItems" onclick="deleteAll()">
+                            <span class="glyphicon glyphicon-remove"></span>
+                        </button>
+                    </div>
+                </form>
+            </td>
+            <td colspan="4">
+                @if (Model.HasPrePage)
+                {
+                    <a rel="noopener noreferrer" data-toggle="tooltip" title="@T5V3Web.Content.Persian.Previous" href="/Device?pageNumber=@(Model.PageNumber-1)"><span class="glyphicon glyphicon-forward"></span></a>
+                }
+                else
+                {
+                    <span class="glyphicon glyphicon-forward"></span>
+                }
+
+                <label>@(string.Format("{3} {0} {1} {2}", Model.PageNumber.ToString(), T5V3Web.Content.Persian.From, Model.TotalPageNumbers.ToString(), T5V3Web.Content.Persian.Page))</label>
+
+                @if (Model.HasNextPage)
+                {
+                    <a rel="noopener noreferrer" data-toggle="tooltip" title="@T5V3Web.Content.Persian.Next" href="/Device?pageNumber=@(Model.PageNumber+1)"><span class="glyphicon glyphicon-backward"></span></a>
+                }
+                else
+                {
+                    <span class="glyphicon glyphicon-backward"></span>
+                }
+            </td>
+        </tr>
+    </tfoot>
+</table>
+
+
+@section scripts
+{
+    @{
+        ViewDataDictionary temp = new ViewDataDictionary();
+        temp.Add(new KeyValuePair<string, object>("DeleteUrl", "/Device/Delete"));
+        temp.Add(new KeyValuePair<string, object>("DeleteAllUrl", "/Device/DeleteAll"));
+        @Html.Partial("_ConfirmDeleteScripts", temp);
+    }
+}

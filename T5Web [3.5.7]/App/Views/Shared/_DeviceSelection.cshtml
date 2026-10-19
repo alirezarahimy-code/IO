@@ -1,0 +1,62 @@
+﻿@model T5V3Web.Models.DeviceSelectionModel
+
+<div id="treeSelectDevices" class="text-right">
+    @*@Html.Raw(T5V3Web.Controllers.DeviceController.GetTreeHTML(null, Model.CheckBoxNames, Model.SelectedDevives, "checkGate(this)", null))*@
+</div>
+
+<script>
+    var devs = [];
+    var showDevs = null;
+    @if (Model.SelectedDevives !=null)
+    {
+    foreach (int devid in Model.SelectedDevives)
+    {
+        <text>
+            devs.push(@devid);
+        </text>
+    }
+    }
+    @if (Model.ShownDevices != null)
+    {
+    <text>
+        showDevs = [];
+    </text>
+        foreach (int devid in Model.ShownDevices)
+        {
+        <text>
+            showDevs.push(@devid);
+        </text>
+        }
+    }
+
+    jQuery.ajaxSettings.traditional = true
+    $.get("/Device/GetAllDevicesTree", { selectedDevices: devs   @(Model.ShownDevices != null ? " , shownDevices: showDevs" : "" )}, (function (gdata) {
+        $('#treeSelectDevices').treeview({
+            data: gdata,
+            levels: 50,
+            showCheckbox: true
+        });
+    }));
+
+    function checkGate(checkbox) {
+        if (checkbox.checked == true) {
+            var items = checkbox.parentNode.getElementsByTagName("input");
+            for (var i = 0; i < items.length; i++)
+                items[i].checked = true;
+        }
+    }
+
+    function AddDeviceCheckboxes(formID) {
+        var checked = $('#treeSelectDevices').treeview('getChecked', -1);
+        for (var i = 0; i < checked.length; i++) {
+            $('<input>').attr({
+                type: 'hidden',
+                name: '@Model.CheckBoxNames',
+                value: checked[i].tags
+            }).appendTo('#' + formID);
+        }
+        $('#' + formID).submit();
+    }
+
+
+</script>

@@ -1,0 +1,142 @@
+﻿@model T5V3Web.Models.SelectDeputyModel
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.SelectValidDeputies;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.BaseData;
+    ViewBag.PageTag = "Deputy";
+}
+
+<div class="page-header">
+    <h3>@T5V3Web.Content.Persian.SelectValidDeputies</h3>
+</div>
+
+
+<div class="col-md-6">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4>@T5V3Web.Content.Persian.SelectTitle</h4>
+        </div>
+        <div class="panel-body">
+            <input type="text" placeholder="@T5V3Web.Content.Persian.Search" onkeyup="search(this)" />
+        </div>
+    </div>
+    <div class="auto-scroll" style="max-height:500px">
+        <div class="right-align" id="tree">
+        </div>
+    </div>
+</div>
+
+
+<div id="div2" class="col-md-6 collapsed-visibility">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4>@T5V3Web.Content.Persian.ValidDeputyFor <span></span></h4>
+        </div>
+        <div class="panel-body">
+            <input type="text" placeholder="@T5V3Web.Content.Persian.Search" onkeyup="searchDeputy(this)" />
+        </div>
+    </div>
+
+    <div class="auto-scroll" style="max-height:500px">
+        <div class="right-align" id="treeDeputy">
+        </div>
+    </div>
+
+    <form id="frmEdit" method="post" action="~/Deputy/Edit">
+        <input id="titleID" type="hidden" name="titleID" value="@Model.SelectedTitleID" />
+    </form>
+    <button class="mt-10 btn btn-success" onclick="saveChanges()">@T5V3Web.Content.Persian.SaveChanges</button>
+    <button class="mt-10 btn btn-default" onclick="cancel()">@T5V3Web.Content.Persian.Cancel</button>
+</div>
+
+@section modals
+{
+    <div id="myModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 id="msg-title" class="modal-title">@T5V3Web.Content.Persian.SelectValidDeputies</h4>
+                </div>
+                <div class="modal-body">
+                    <p id="msg-body">@T5V3Web.Content.Persian.SuccessOperation</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">@T5V3Web.Content.Persian.OK</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+}
+
+
+@section scripts
+{
+    <script>
+        loadList("");
+
+        function search(textbox) {
+            $("body").data("squery", textbox.value);
+            loadList(textbox.value);
+        }
+
+        function searchDeputy(textbox) {
+            $("body").data("squerydep", textbox.value);
+            var data = { tags: $('#titleID').val(), text: $('#div2 h4 span').html() };
+            reload(data, textbox.value);
+        }
+
+        function loadList(search) {
+            $.get("/title/GetTree?searchQuery=" + search, "", (function (gdata) {
+                $('#tree').treeview({
+                    data: gdata,
+                    levels: 50,
+                    enableLinks: false,
+                    onNodeSelected: function (event, data) {
+                        $('#titleID').val(data.tags);
+                        reload(data, "");
+                    }
+                });
+            }));
+        }
+
+        function cancel() {
+            var data = { tags: $('#titleID').val(), text: $('#div2 h4 span').html() };
+            reload(data, "");
+        }
+
+        function reload(data, query) {
+            $('#div2').addClass('collapsed-visibility');
+            $('#div2 h4 span').html(data.text);
+            $.get("/Deputy/GetTree?selectedID=" + data.tags + "&searchQuery=" + query, "", (function (gdata) {
+                $('#div2').removeClass('collapsed-visibility');
+                $('#treeDeputy').treeview({
+                    data: gdata,
+                    levels: 50,
+                    showCheckbox: true
+                });
+            }));
+        }
+
+        function saveChanges() {
+            jQuery.ajaxSettings.traditional = true;
+
+            var checked = $('#treeDeputy').treeview('getChecked', -1);
+            var checkedIDs = [];
+            for (var i = 0; i < checked.length; i++) {
+                checkedIDs.push(checked[i].tags);
+            }
+
+            $.post('/Deputy/Edit',
+                {
+                    titleID: $('#titleID').val(),
+                    titleIDs: checkedIDs
+                },
+                function () {
+                    var data = { tags: $('#titleID').val(), text: $('#div2 h4 span').html() };
+                    reload(data, "");
+                    $("#myModal").modal();
+                });
+        }
+    </script>
+}

@@ -1,0 +1,717 @@
+﻿@{
+    ViewBag.Title = T5V3Web.Content.Persian.DeviceProperties;
+}
+
+<div class="page-header">
+    <h3>@T5V3Web.Content.Persian.DeviceProperties @ViewBag.DeviceName</h3>
+</div>
+
+<style>
+    td button {
+        width: 100%;
+    }
+
+    td {
+        width: 50%;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+</style>
+
+<div>
+
+    <div id="tabs">
+        <ul>
+            <li><a rel="noopener noreferrer" href="#tabs-1">@T5V3Web.Content.Persian.DeviceInformation</a></li>
+            <li><a rel="noopener noreferrer" href="#tabs-2">@T5V3Web.Content.Persian.BasicOperations</a></li>
+            <li><a rel="noopener noreferrer" href="#tabs-3">@T5V3Web.Content.Persian.Biometrics</a></li>
+            <li><a rel="noopener noreferrer" href="#tabs-4">@T5V3Web.Content.Persian.AdvancedOperations</a></li>
+        </ul>
+        <div id="tabs-1">
+            <button class="btn btn-default" onclick="getCapacity(@ViewBag.DeviceNumber)">@T5V3Web.Content.Persian.Read</button>
+            <table class="table table-striped table-bordered" style="max-width:500px;margin:20px auto;">
+                <tbody>
+                    <tr>
+                        <td class="text-left">
+                            <label>@T5V3Web.Content.Persian.Model</label>
+                        </td>
+                        <td class="text-right">
+                            <label id="lblModel"></label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-left">
+                            <label class="text-left">@T5V3Web.Content.Persian.SerialNumber</label>
+                        </td>
+                        <td class="text-right">
+                            <label id="lblSerial"></label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-left">
+                            <label class="text-left">@T5V3Web.Content.Persian.MAC</label>
+                        </td>
+                        <td class="text-right">
+                            <label id="lblMAC"></label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-left">
+                            <label>@T5V3Web.Content.Persian.Vendor</label>
+                        </td>
+                        <td class="text-right">
+                            <label id="lblVendor"></label>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <table class="table table-striped table-bordered" style="max-width:500px;margin:20px auto;">
+                <tbody>
+                    <tr>
+                        <td class="text-left">
+                            <label>@T5V3Web.Content.Persian.RecordsCount</label>
+                        </td>
+                        <td class="text-right">
+                            <label id="lblRecordsCount"></label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-left">
+                            <label class="text-left">@T5V3Web.Content.Persian.UsersCount</label>
+                        </td>
+                        <td class="text-right">
+                            <label id="lblUsersCount"></label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-left">
+                            <label class="text-left">@T5V3Web.Content.Persian.AdminsCount</label>
+                        </td>
+                        <td class="text-right">
+                            <label id="lblAdminsCount"></label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-left">
+                            <label>@T5V3Web.Content.Persian.FingerCount</label>
+                        </td>
+                        <td class="text-right">
+                            <label id="lblFingersCount"></label>
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <td class="text-left">
+                            <label>@T5V3Web.Content.Persian.FaceCount</label>
+                        </td>
+                        <td class="text-right">
+                            <label id="lblFaceCount"></label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-left">
+                            <label>@T5V3Web.Content.Persian.RecordCapacity</label>
+                        </td>
+                        <td class="text-right">
+                            <label id="lblRecordsCapacity"></label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-left">
+                            <label>@T5V3Web.Content.Persian.UserCapacity</label>
+                        </td>
+                        <td class="text-right">
+                            <label id="lblUserCapacity"></label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-left">
+                            <label>@T5V3Web.Content.Persian.FingerCapacity</label>
+                        </td>
+                        <td class="text-right">
+                            <label id="lblFingerCapacity"></label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-left">
+                            <label>@T5V3Web.Content.Persian.FaceCapacity</label>
+                        </td>
+                        <td class="text-right">
+                            <label id="lblFaceCapacity"></label>
+                        </td>
+                    </tr>
+
+                </tbody>
+            </table>
+
+        </div>
+        <div id="tabs-2">
+            <button class="btn btn-default" onclick="restart(@ViewBag.DeviceNumber)">@T5V3Web.Content.Persian.Restart</button>
+            <button class="btn btn-default" onclick="deleteAllData(@ViewBag.DeviceNumber)">@T5V3Web.Content.Persian.DeleteAllData</button>
+            <button class="btn btn-default" onclick="deleteAdmins(@ViewBag.DeviceNumber)">@T5V3Web.Content.Persian.DeleteAdmins</button>
+            <button class="btn btn-default" onclick="deleteAllRecords(@ViewBag.DeviceNumber)">@T5V3Web.Content.Persian.DeleteAllRecords</button>
+            <button class="btn btn-default" onclick="timeSync(@ViewBag.DeviceNumber)">@T5V3Web.Content.Persian.TimeSyncWithSystem</button>
+
+            <div class="panel panel-default top-buffer">
+                <div class="panel-body">
+                    <input id="dtSyncDate" name="dtSyncDate" type="text" value="@T5V3.Misc.DateConverter.ToHijriDate(DateTime.Now)" class="datepicker-farsi" style="width:100%" />
+                    @*<input id="dtSyncDate" name="dtSyncDate" type="text" value="@T5V3.Misc.DateConverter.ToHijriDate(DateTime.Now)" />*@
+                    @*<a rel="noopener noreferrer" id="selectFrom" href="javascript:" onclick="displayDatePicker('dtSyncDate', this)">@T5V3Web.Content.Persian.Select</a>*@
+                    <input class="timespan-input" id="tSyncDate" name="tSyncDate" type="text" value="@(DateTime.Now.ToString("HH:mm"))" />
+                    <button class="btn btn-default" onclick="syncTimeData(@ViewBag.DeviceNumber)">@T5V3Web.Content.Persian.SetTime</button>
+                </div>
+            </div>
+
+            <div class="panel panel-default top-buffer">
+                <div class="panel-body">
+                    <input id="dDLSTFrom" name="dDLSTFrom" type="text" value="@T5V3.Misc.DateConverter.ToHijriDate(DateTime.Now)" class="datepicker-farsi" style="width:100%" />
+                    @*<input id="dDLSTFrom" name="dDLSTFrom" type="text" value="@T5V3.Misc.DateConverter.ToHijriDate(DateTime.Now)" />*@
+                    @*<a rel="noopener noreferrer" id="selectFrom" href="javascript:" onclick="displayDatePicker('dDLSTFrom', this)">@T5V3Web.Content.Persian.Select</a>*@
+                    <input class="timespan-input" id="tDLSTFrom" name="tDLSTFrom" type="text" value="@(DateTime.Now.ToString("HH:mm"))" />
+                    <br />
+                    <input name="dDLSTTo" id="dDLSTTo" type="text" value="@T5V3.Misc.DateConverter.ToHijriDate(DateTime.Now)" class="datepicker-farsi" style="width:100%" />
+                    @*<input name="dDLSTTo" id="dDLSTTo" type="text" value="@T5V3.Misc.DateConverter.ToHijriDate(DateTime.Now)" />*@
+                    @*<a rel="noopener noreferrer" id="selectFrom" href="javascript:" onclick="displayDatePicker('dDLSTTo', this)">@T5V3Web.Content.Persian.Select</a>*@
+                    <input class="timespan-input" id="tDLSTTo" name="tDLSTTo" type="text" value="@(DateTime.Now.ToString("HH:mm"))" />
+                    <br />
+                    <button class="btn btn-default" onclick="setDLST(@ViewBag.DeviceNumber)">@T5V3Web.Content.Persian.DLST</button>
+                </div>
+            </div>
+
+            <div class="panel panel-default top-buffer">
+                <div class="panel-body">
+                    <input id="dRemoveTimeRecordsFrom" name="dRemoveTimeRecordsFrom" type="text" value="@T5V3.Misc.DateConverter.ToHijriDate(DateTime.Now)" class="datepicker-farsi" style="width:100%" />
+                    @*<input id="dRemoveTimeRecordsFrom" name="dRemoveTimeRecordsFrom" type="text" value="@T5V3.Misc.DateConverter.ToHijriDate(DateTime.Now)"/>*@
+                    @*<a rel="noopener noreferrer" id="selectFrom" href="javascript:" onclick="displayDatePicker('dRemoveTimeRecordsFrom', this)">@T5V3Web.Content.Persian.Select</a>*@
+                    <input class="timespan-input" id="tDeleteTimeRecordsFrom" name="tDeleteTimeRecordsFrom" type="text" value="@(DateTime.Now.ToString("HH:mm"))" />
+                    <br />
+                    <input name="dRemoveTimeRecordsTo" id="dRemoveTimeRecordsTo" type="text" value="@T5V3.Misc.DateConverter.ToHijriDate(DateTime.Now)" class="datepicker-farsi" style="width:100%" />
+                    @*<input name="dRemoveTimeRecordsTo" id="dRemoveTimeRecordsTo" type="text" value="@T5V3.Misc.DateConverter.ToHijriDate(DateTime.Now)" />
+                        <a rel="noopener noreferrer" id="selectFrom" href="javascript:" onclick="displayDatePicker('dRemoveTimeRecordsTo', this)">@T5V3Web.Content.Persian.Select</a>*@
+                    <input class="timespan-input" id="tDeleteTimeRecordsTo" name="tDeleteTimeRecordsTo" type="text" value="@(DateTime.Now.ToString("HH:mm"))" />
+                    <br />
+                    <button class="btn btn-default" onclick="removeTimeRecords(@ViewBag.DeviceNumber)">@T5V3Web.Content.Persian.DeleteRecords</button>
+                </div>
+            </div>
+
+            <div class="panel panel-default top-buffer">
+                <div class="panel-body">
+                    <input id="dTimeRecordsFrom" name="dTimeRecordsFrom" type="text" value="@T5V3.Misc.DateConverter.ToHijriDate(DateTime.Now)" class="datepicker-farsi" style="width:100%" />
+                    @*<input id="dTimeRecordsFrom" name="dTimeRecordsFrom" type="text" value="@T5V3.Misc.DateConverter.ToHijriDate(DateTime.Now)" />
+                        <a rel="noopener noreferrer" id="selectFrom" href="javascript:" onclick="displayDatePicker('dTimeRecordsFrom', this)">@T5V3Web.Content.Persian.Select</a>*@
+                    <input class="timespan-input" id="tTimeRecordsFrom" name="tTimeRecordsFrom" type="text" value="@(DateTime.Now.ToString("HH:mm"))" />
+                    <br />
+                    <input name="dTimeRecordsTo" id="dTimeRecordsTo" type="text" value="@T5V3.Misc.DateConverter.ToHijriDate(DateTime.Now)" class="datepicker-farsi" style="width:100%" />
+                    @*<input name="dTimeRecordsTo" id="dTimeRecordsTo" type="text" value="@T5V3.Misc.DateConverter.ToHijriDate(DateTime.Now)" />
+                        <a rel="noopener noreferrer" id="selectFrom" href="javascript:" onclick="displayDatePicker('dTimeRecordsTo', this)">@T5V3Web.Content.Persian.Select</a>*@
+                    <input class="timespan-input" id="tTimeRecordsTo" name="tTimeRecordsTo" type="text" value="@(DateTime.Now.ToString("HH:mm"))" />
+                    <br />
+                    <button class="btn btn-default" onclick="getTimeRecords(@ViewBag.DeviceNumber)">@T5V3Web.Content.Persian.DownloadTimeRecords</button>
+                </div>
+            </div>
+        </div>
+        <div id="tabs-3">
+            <button class="btn btn-default" onclick="getAdvanced(@ViewBag.DeviceNumber)">@T5V3Web.Content.Persian.Read</button>
+            <table class="table table-striped table-bordered" style="max-width:500px;margin:20px auto;">
+                <tbody>
+                    <tr>
+                        <td class="text-left">
+                            <button onclick="set1_1(@ViewBag.DeviceNumber)">@T5V3Web.Content.Persian.Threshold1_1</button>
+                        </td>
+                        <td class="text-right">
+                            <input type="text" id="txt1_1" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-left">
+                            <button onclick="set1_N(@ViewBag.DeviceNumber)">@T5V3Web.Content.Persian.Threshold1_N</button>
+                        </td>
+                        <td class="text-right">
+                            <input type="text" id="txt1_N" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-left">
+                            <button onclick="setRepeatTime(@ViewBag.DeviceNumber)">@T5V3Web.Content.Persian.RepeatTime</button>
+                        </td>
+                        <td class="text-right">
+                            <input type="text" id="txtRepeatTime" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-left">
+                            <button onclick="setSleepTime(@ViewBag.DeviceNumber)">@T5V3Web.Content.Persian.SleepTime</button>
+                        </td>
+                        <td class="text-right">
+                            <input type="text" id="txtSleepTime" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-left">
+                            <button onclick="setCardReg(@ViewBag.DeviceNumber)">@T5V3Web.Content.Persian.CardMustRegister</button>
+                        </td>
+                        <td class="text-right">
+                            <input type="checkbox" id="chkCard" />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="tabs-4">
+            <button class="btn btn-default" onclick="getAdvanced2(@ViewBag.DeviceNumber)">@T5V3Web.Content.Persian.Read</button>
+            <table class="table table-striped table-bordered" style="max-width:500px;margin:20px auto;">
+                <tbody>
+                    <tr>
+                        <td class="text-left">
+                            <button onclick="setIP(@ViewBag.DeviceNumber)">@T5V3Web.Content.Persian.IP</button>
+                        </td>
+                        <td class="text-right">
+                            <input type="text" id="txtIP" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-left">
+                            <button onclick="setAlgorithm(@ViewBag.DeviceNumber)">@T5V3Web.Content.Persian.Algorithm</button>
+                        </td>
+                        <td class="text-right">
+                            <input type="text" id="txtAlgor" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-left">
+                            <button onclick="setSector(@ViewBag.DeviceNumber)">@T5V3Web.Content.Persian.Sector</button>
+                        </td>
+                        <td class="text-right">
+                            <input type="text" id="txtSector" />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div>
+                <button class="btn btn-default" onclick="remoteEnroll(@ViewBag.DeviceNumber)">@T5V3Web.Content.Persian.RemoteEnroll</button>
+                <input id="txtRmtBadge" type="text" placeholder="@T5V3Web.Content.Persian.BadgeNumber" />
+                <input id="txtRmtInx" type="text" placeholder="@T5V3Web.Content.Persian.FingerIndex" />
+            </div>
+
+            <table class="table table-striped table-bordered" style="max-width:500px;margin:20px auto;">
+                <tbody>
+                    <tr>
+                        <td class="text-left">
+                            <label>@T5V3Web.Content.Persian.KeyIndex</label>
+                        </td>
+                        <td class="text-right">
+                            <input type="number" id="txtKeyIndex" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-left">
+                            <label>@T5V3Web.Content.Persian.KeyOperation</label>
+                        </td>
+                        <td class="text-right">
+                            <input type="number" id="txtKeyOperation" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-left">
+                            <label>@T5V3Web.Content.Persian.KeyCode</label>
+                        </td>
+                        <td class="text-right">
+                            <input type="number" id="txtKeyCode" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-left">
+                            <label>@T5V3Web.Content.Persian.KeyName</label>
+                        </td>
+                        <td class="text-right">
+                            <input type="text" id="txtKeyName" />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <button class="btn btn-default" onclick="readKey(@ViewBag.DeviceNumber)">@T5V3Web.Content.Persian.Read</button>
+            <button class="btn btn-default" onclick="changeKey(@ViewBag.DeviceNumber)">@T5V3Web.Content.Persian.ChangeKey</button>
+
+        </div>
+    </div>
+
+</div>
+
+@Html.Partial("_OKDialog")
+
+@section scripts
+{
+    <script src="~/Scripts/index.js"></script>
+    <script>
+
+        settings = {
+            format: "yyyy/mm/dd",
+            dateSeparator: "/",
+            autoClose: true,
+            labelLanguage: 'farsi'
+        }
+        renderToday();
+    </script>
+    <script>
+        $("#tabs").tabs();
+
+        function getTimeRecords(device) {
+            var data = { id: device, fromDate: $('#dTimeRecordsFrom').val(), fromTime: $('#tTimeRecordsFrom').val(), ToDate: $('#dTimeRecordsTo').val(), toTime: $('#tTimeRecordsTo').val() };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(data),
+                type: "POST",
+                url: "/DeviceOperations/GetTimeRecords",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                }
+            });
+        }
+        function changeKey(device) {
+            var data = { selectedDevice: device, index: $('#txtKeyIndex').val(), operation: $('#txtKeyOperation').val(), code: $('#txtKeyCode').val(), name: $('#txtKeyName').val() };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(data),
+                type: "POST",
+                url: "/DeviceOperations/ChangeKey",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                }
+            });
+        }
+        function readKey(device) {
+            var data = { selectedDevice: device, key: $('#txtKeyIndex').val() };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(data),
+                type: "POST",
+                url: "/DeviceOperations/ReadKey",
+                success: function (data) {
+                    $("#txtKeyOperation").val(data.State);
+                    $("#txtKeyCode").val(data.Code);
+                    $("#txtKeyName").val(data.Name);
+                }
+            });
+        }
+        function remoteEnroll(device) {
+            var data = { selectedDevice: device, badgeNumber: $('#txtRmtBadge').val(), fingerIndex: $('#txtRmtInx').val() };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(data),
+                type: "POST",
+                url: "/DeviceOperations/RemoteEnroll",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                }
+            });
+        }
+        function setSector(device) {
+            var data = { selectedDevice: device, newVal: $('#txtSector').val() };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(data),
+                type: "POST",
+                url: "/DeviceOperations/setSector",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                }
+            });
+        }
+        function setAlgorithm(device) {
+            var data = { selectedDevice: device, newVal: $('#txtAlgor').val() };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(data),
+                type: "POST",
+                url: "/DeviceOperations/setAlgorithm",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                }
+            });
+        }
+        function setIP(device) {
+            var data = { selectedDevice: device, newVal: $('#txtIP').val() };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(data),
+                type: "POST",
+                url: "/DeviceOperations/SetIP",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                }
+            });
+        }
+        function getAdvanced2(device) {
+            var toEdit = { selectedDevice: device };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/DeviceOperations/GetAdvanced2",
+                success: function (data) {
+                    $("#txtIP").val(data.IP);
+                    $("#txtAlgor").val(data.Algorithm);
+                    $("#txtSector").val(data.Sector);
+                }
+            });
+        }
+        function setCardReg(device) {
+            var data = { selectedDevice: device, newVal: $('#chkCard').prop('checked') };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(data),
+                type: "POST",
+                url: "/DeviceOperations/SetCardReg",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                }
+            });
+        }
+        function setSleepTime(device) {
+            var data = { selectedDevice: device, newVal: $('#txtSleepTime').val() };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(data),
+                type: "POST",
+                url: "/DeviceOperations/SetSleepTime",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                }
+            });
+        }
+        function setRepeatTime(device) {
+            var data = { selectedDevice: device, newVal: $('#txtRepeatTime').val() };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(data),
+                type: "POST",
+                url: "/DeviceOperations/SetRepeatTime",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                }
+            });
+        }
+        function set1_N(device) {
+            var data = { selectedDevice: device, newVal: $('#txt1_N').val() };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(data),
+                type: "POST",
+                url: "/DeviceOperations/Set1_N",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                }
+            });
+        }
+        function set1_1(device) {
+            var data = { selectedDevice: device, newVal: $('#txt1_1').val() };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(data),
+                type: "POST",
+                url: "/DeviceOperations/Set1_1",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                }
+            });
+        }
+        function getAdvanced(device) {
+            var toEdit = { selectedDevice: device };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/DeviceOperations/GetAdvanced",
+                success: function (data) {
+                    $("#txt1_1").val(data.OneToOne);
+                    $("#txt1_N").val(data.OneToN);
+                    $("#txtRepeatTime").val(data.RepeatTime);
+                    $("#txtSleepTime").val(data.SleepTime);
+                    $("#chkCard").prop('checked', data.RegCard);
+                }
+            });
+        }
+        function removeTimeRecords(device) {
+            var data = { selectedDevice: device, fromDate: $('#dRemoveTimeRecordsFrom').val(), fromTime: $('#tDeleteTimeRecordsFrom').val(), ToDate: $('#dRemoveTimeRecordsTo').val(), toTime: $('#tDeleteTimeRecordsTo').val() };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(data),
+                type: "POST",
+                url: "/DeviceOperations/RemoveTimeRecords",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                }
+            });
+        }
+        function setDLST(device) {
+            var data = { selectedDevice: device, fromDate: $('#dDLSTFrom').val(), fromTime: $('#tDLSTFrom').val(), ToDate: $('#dDLSTTo').val(), toTime: $('#tDLSTTo').val() };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(data),
+                type: "POST",
+                url: "/DeviceOperations/SetDLST",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                }
+            });
+        }
+        function syncTimeData(device) {
+            var data = { selectedDevice: device, date: $('#dtSyncDate').val(), time: $('#tSyncDate').val() };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(data),
+                type: "POST",
+                url: "/DeviceOperations/SyncTimeData",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                }
+            });
+        }
+        function deleteAllData(device) {
+            var data = { selectedDevice: device };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(data),
+                type: "POST",
+                url: "/DeviceOperations/DeleteAllData",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                }
+            });
+        }
+        function deleteAllRecords(device) {
+            var data = { selectedDevice: device };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(data),
+                type: "POST",
+                url: "/DeviceOperations/DeleteAllRecords",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                }
+            });
+        }
+        function deleteAdmins(device) {
+            var data = { selectedDevice: device };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(data),
+                type: "POST",
+                url: "/DeviceOperations/DeleteAdmins",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                }
+            });
+        }
+        function timeSync(device) {
+            var data = { selectedDevice: device };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(data),
+                type: "POST",
+                url: "/DeviceOperations/TimeSync",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                }
+            });
+        }
+        function restart(device) {
+            var data = { selectedDevice: device };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(data),
+                type: "POST",
+                url: "/DeviceOperations/Restart",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                }
+            });
+        }
+        function getCapacity(device) {
+            var toEdit = { selectedDevice: device };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/DeviceOperations/GetCapacity",
+                success: function (data) {
+                    $("#lblModel").html(data.ProductCode);
+                    $("#lblSerial").html(data.SerialNumber);
+                    $("#lblMAC").html(data.MAC);
+                    $("#lblVendor").html(data.Vendor);
+                    $("#lblRecordsCount").html(data.RecordsCount);
+                    $("#lblUsersCount").html(data.UserCount);
+                    $("#lblAdminsCount").html(data.AdminCount);
+                    $("#lblFingersCount").html(data.FingerCount);
+                    $("#lblFaceCount").html(data.FaceCount);
+                    $("#lblRecordsCapacity").html(data.RecordsCapacity);
+                    $("#lblUserCapacity").html(data.UserCapacity);
+                    $("#lblFingerCapacity").html(data.FingerCapacity);
+                    $("#lblFaceCapacity").html(data.FaceCapacity);
+                }
+            });
+        }
+    </script>
+}

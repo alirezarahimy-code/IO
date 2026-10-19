@@ -1,0 +1,108 @@
+﻿@{
+    ViewBag.Title = T5V3Web.Content.Persian.PersonnelStatus;
+}
+
+
+<div class="page-header">
+    <h3>@T5V3Web.Content.Persian.PersonnelStatus</h3>
+</div>
+
+<form action="/PersonnelStatus/ToExcel" method="post">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <label>@T5V3Web.Content.Persian.SelectPersonnel ...</label>
+        </div>
+        <div id="panelPersonnel" class="panel-body">
+            @Html.Partial("_SelectUser", T5V3Web.Controllers.UserSelectionController.CreateModel(new List<long>()))
+        </div>
+    </div>
+
+    <label class="ml-10"><input name="chkPresent" id="chkPresent" type="checkbox" value="true" checked="checked">@T5V3Web.Content.Persian.Present</label>
+    <label class="ml-10"><input name="chkAbsent" id="chkAbsent" type="checkbox" value="true" checked="checked">@T5V3Web.Content.Persian.Absent</label>
+    <label class="ml-10"><input name="chkDailyLeave" id="chkDailyLeave" type="checkbox" value="true" checked="checked">@T5V3Web.Content.Persian.DailyLeave</label>
+    <label class="ml-10"><input name="chkDailyDuty" id="chkDailyDuty" type="checkbox" value="true" checked="checked">@T5V3Web.Content.Persian.DailyDuty</label>
+    <label class="ml-10"><input name="chkHourlyLeave" id="chkHourlyLeave" type="checkbox" value="true" checked="checked">@T5V3Web.Content.Persian.HourlyLeave</label>
+    <label class="ml-10"><input name="chkHourlyDuty" id="chkHourlyDuty" type="checkbox" value="true" checked="checked">@T5V3Web.Content.Persian.HourlyDuty</label>
+    <label class="ml-10"><input name="chkExit" id="chkExit" type="checkbox" value="true" checked="checked">@T5V3Web.Content.Persian.Exit</label>
+    <label class="ml-10"><input name="chkFreeOT" id="chkFreeOT" type="checkbox" value="true" checked="checked">@T5V3Web.Content.Persian.FreeOT</label>
+    <label class="ml-10"><input name="chkwoShift" id="chkwoShift" type="checkbox" value="true" checked="checked">@T5V3Web.Content.Persian.woShift</label>
+
+    <br />
+    <div class="top-buffer">
+        <input id="dDate" name="dDate" type="text"class="datepicker-farsi" value="@T5V3.Misc.DateConverter.ToHijriDate(DateTime.Now)" />
+        @*<input id="dDate" name="dDate" type="text" value="@T5V3.Misc.DateConverter.ToHijriDate(DateTime.Now)" />
+        <a rel="noopener noreferrer" id="selectFrom" href="javascript:" onclick="displayDatePicker('dDate', this)">@T5V3Web.Content.Persian.Select</a>*@
+        <input class="timespan-input mr-10" id="tTime" name="tTime" type="text" value="@(DateTime.Now.ToString("HH:mm"))" />
+        <button type="button" class="btn btn-success" onclick="calc()">@T5V3Web.Content.Persian.ShowReport</button>
+        <button type="submit" class="btn btn-default">@T5V3Web.Content.Persian.Excel</button>
+    </div>
+
+
+    <div class="top-buffer">
+        <table class="table table-bordered table-hover table-responsive table-striped">
+            <thead>
+                <tr>
+                    <td>@T5V3Web.Content.Persian.BadgeNumber</td>
+                    <td>@T5V3Web.Content.Persian.Name</td>
+                    <td>@T5V3Web.Content.Persian.Date</td>
+                    <td>@T5V3Web.Content.Persian.DayOfWeek</td>
+                    <td>@T5V3Web.Content.Persian.Time</td>
+                    <td>@T5V3Web.Content.Persian.State</td>
+                </tr>
+            </thead>
+            <tbody id="tblBody"></tbody>
+        </table>
+    </div>
+</form>
+
+@section scripts{
+    <script src="~/Scripts/index.js"></script>
+    <script>
+    settings = {
+        format: "yyyy/mm/dd",
+        dateSeparator: "/",
+        autoClose: true,
+        labelLanguage: 'farsi'
+        }
+        renderToday();
+</script>
+    <script>
+        function calc() {
+            run_waitMe('win8');
+
+            var selected = [];
+            $('#panelPersonnel input:checked').each(function () {
+                selected.push($(this).val());
+            });
+
+            var toEdit = {
+                chkWOShift: $('#chkwoShift').is(":checked"), chkHourlyLeave: $('#chkHourlyLeave').is(":checked"), chkDailyLeave: $('#chkDailyLeave').is(":checked"),
+                chkInLess: $('#chkExit').is(":checked"), chkInFreeOT: $('#chkFreeOT').is(":checked"), chkHourlyDuty: $('#chkHourlyDuty').is(":checked"), chkDailyDuty: $('#chkDailyDuty').is(":checked"),
+                chkPresent: $('#chkPresent').is(":checked"), chkAbsent: $('#chkAbsent').is(":checked"), dateStr: $('#dDate').val(), timeStr: $('#tTime').val(), badgeNumbers: selected
+            };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/PersonnelStatus/Calc",
+                success: function (data) {
+
+                    $('#tblBody').children().remove("tr");
+                    for (var i = 0; i < data.length; i++) {
+                        var tr = $('<tr>');
+                        tr.append("<td><label>" + data[i].BadgeNumber + "</label></td>");
+                        tr.append("<td><label>" + data[i].Name + "</label></td>");
+                        tr.append("<td><label>" + data[i].Date + "</label></td>");
+                        tr.append("<td><label>" + data[i].DayOfWeek + "</label></td>");
+                        tr.append("<td><label>" + data[i].Time + "</label></td>");
+                        tr.append("<td><label>" + data[i].State + "</label></td>");
+                        $('#tblBody').append(tr);
+                    }
+                    $('body').waitMe('hide');
+                }
+            });
+
+        }
+    </script>
+}

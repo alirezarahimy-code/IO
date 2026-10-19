@@ -1,0 +1,20 @@
+﻿@model List<string>
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.ImportExcel;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.BaseData;
+    ViewBag.PageTag = "ImportFromExcel";
+}
+
+<h3>@T5V3Web.Content.Persian.ImportExcel</h3>
+
+<div class="horizontal-line"></div>
+
+
+<ul class="block-display right-align">
+    @foreach (string log in Model)
+    {
+        <li>@log</li>
+    }
+</ul>
+
+<a rel="noopener noreferrer" class="btn btn-default" href="/DeptsChart">@T5V3Web.Content.Persian.DepartmentsChart</a>

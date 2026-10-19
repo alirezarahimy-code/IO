@@ -1,0 +1,380 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewBag.Title - سامانه حضور و غیاب بعد پنجم</title>
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3" />
+    <script src="~/Scripts/jquery-3.6.1.js"></script>
+    @*<script src="~/Scripts/jquery-2.1.4.js"></script>*@
+    <script src="~/Scripts/jquery-ui-1.11.4.js"></script>
+
+    <link href="~/Content/themes/base/all.css" rel="stylesheet" />
+    <script src="~/Scripts/jquery.maskedinput.js"></script>
+    <script src="~/Scripts/menu3Script.js"></script>
+
+    <script src="~/Scripts/bootstrap.js"></script>
+    <link href="~/Content/bootstrap.css" rel="stylesheet" />
+    @RenderSection("TopStyle", false)
+    @*<link href="~/Content/bootstrap-theme.css" rel="stylesheet" />*@
+
+    <script src="~/Scripts/bootstrap-treeview.js"></script>
+    <link href="~/Content/bootstrap-treeview.css" rel="stylesheet" />
+    <link href="~/Content/Main.css" rel="stylesheet" />
+    <link href="~/Content/calendar.css" rel="stylesheet" />
+    <link href="~/Content/style.css" rel="stylesheet" />
+    <link href="~/Content/waitMe.css" rel="stylesheet" />
+    <script src="~/Scripts/waitMe.js"></script>
+    <link href="~/Content/font-awesome.css" rel="stylesheet" />
+    <link href="~/Content/themes/bootstrap-select.min.css" rel="stylesheet" />
+    <script src="~/Content/themes/bootstrap-select.min.js"></script>
+
+
+
+</head>
+<body style="height:100%;margin:0px;padding:0px;font-size:@(T5V3Web.Misc.GlobalHelper.GetUserFontSize(new  HttpContextWrapper( HttpContext.Current)))px">
+    @Html.Partial("_ToolbarSettings", T5V3Web.Controllers.HomeController.GetToolbars(this.Context))
+    @RenderSection("modals", required: false)
+
+    <div class="page-body">
+        <div style="min-height:100%">
+
+            <div class="page-content">
+
+                @if (T5V3Web.Authorization.LoginManager.GetBadgeNumber(this.Context) != "")
+                {
+                    <div style="padding-bottom:150px;z-index:3" id="tool" class="right-menu @((T5V3Web.Controllers.HomeController.SideMenu(this.Context)) ? "" : "right-300") ">
+
+                        <div style="background-color:rgb(50,120,250);width:100%;padding:0.5em;color:white">
+                            <img style="margin-left:4px; width:70%;display:inline-block" src="/home/MyBanner?Index=1" />
+                            <label>
+                                @T5V3Web.Content.Persian.T5Web
+                            </label>
+                        </div>
+
+                        <div style="margin:1em;display:-ms-flexbox; display:flex; padding-left:30px">
+                            <button onclick="test()" style="border:none;" class="btn btn-default">
+                                <span style="font-size:1.3em;" class="fa fa-arrow-right"></span>
+                            </button>
+                        </div>
+
+                        <div style="overflow: auto;height:90%">
+                            <div class="tool text-right" style="padding:0px;height:90%">
+                                @Html.Partial("_Menu")
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <div id="con" @( ((T5V3Web.Authorization.LoginManager.GetBadgeNumber(this.Context) != "") && (T5V3Web.Controllers.HomeController.SideMenu(this.Context))) ? "class=right300" : "") style="transform: translate3d(0px, 0px, 0px); transition: 1s; ">
+                    @if (T5V3Web.Authorization.LoginManager.GetBadgeNumber(this.Context) != "")
+                    {
+
+                        <nav class="navbar">
+                            <button onclick="test()" class="btn btn-default btn-circle">
+                                <span class="fa fa-bars"></span>
+                            </button>
+
+                            <img style="margin-left:4px;display:inline-block;height:2.5em " src="/home/MyBanner?Index=4" />
+
+
+                            @*</h4>*@
+                            <div style="-ms-flex:1; flex-shrink:1;flex-grow:1">
+                                <h4 style="margin:10px;">
+                                    @T5V3Web.Misc.GlobalHelper.GetLoggedInUserName(this.Context)
+                                </h4>
+                            </div>
+                            <div class="profile dropdown dropdown-menu-left">
+                                <label>@Html.Partial("_CurrentTime")</label>
+                                <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">
+                                    <i class="fa fa-user fa-2x"></i>
+                                    @*<span class="caret"></span>*@
+                                </button>
+
+                                <ul class="dropdown-menu ">
+                                    <li class=""><a rel="noopener noreferrer" style="margin:auto;color:black"> @T5V3Web.Misc.GlobalHelper.GetLoggedInUserName(this.Context)</a></li>
+                                    <li class="divider"></li>
+                                    @*<li><a href="/Login/ChangePassword">@T5V3Web.Content.Persian.Password</a></li>*@
+                                    <li><a rel="noopener noreferrer" href="/Account/Logout">@T5V3Web.Content.Persian.Logout</a></li>
+                                    @if (T5V3Web.Authorization.LoginManager.GetRole(new HttpContextWrapper(HttpContext.Current)) == "admin")
+                                    {
+                                        <li class="divider"></li>
+                                    }
+                                </ul>
+                            </div>
+                        </nav>
+                    }
+
+                    <div style="overflow:auto; background-color:transparent; padding-top:1em;padding-left: 5%; padding-right: 5%; padding-bottom:10px; " class="">
+                        @if (T5V3Web.Authorization.LoginManager.GetBadgeNumber(this.Context) != "")
+                        {
+                            @Html.Partial("_Toolbar")
+                        }
+                        <div id="renderbodydiv" style="position: relative;  @( ((T5V3Web.Authorization.LoginManager.GetBadgeNumber(this.Context) != "") && (T5V3Web.Controllers.HomeController.ToolbarShow(this.Context))) ? "top:-6em;" : "top:0em;") transition: 0.5s;">
+                            @RenderBody()
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+
+            <footer style="position:absolute;left:0px;bottom:0px;height:80px; background-color:#e8e8e8;width:100%">
+                <div style="padding:0.5em" class="float-center">
+                    <p>کلیه حقوق این مجموعه طبق قوانین نرم افزاری متعلق به شرکت سامانه های بٌعد پنجم می باشد</p>
+                    <p>&copy; 2017 - <a rel="noopener noreferrer" target="_blank" href="http://www.5thDSystems.com">www.5thDSystems.com</a> </p>
+                </div>
+            </footer>
+        </div>
+    </div>
+    <div id="dummy" style="color:white"></div>
+
+    <script>
+        $(".sub-menu").parent().toggle();
+        $(".timespan-input").mask('99:59');
+
+        function dropdownChanged(valueID, textID, text, value) {
+            $("#" + valueID).val(value);
+            $("#" + textID).val(text);
+        }
+
+        function expandMenu(item, subMenu) {
+            $(item).find("i.drop").toggleClass("fa-caret-down");
+            $(item).find("i.drop").toggleClass("fa-caret-right");
+            $(subMenu).slideToggle(500);
+        }
+
+        function getCookie(cname) {
+            var name = cname + "=";
+            var decodedCookie = decodeURIComponent(document.cookie);
+            var ca = decodedCookie.split(';');
+            for (var i = 0; i < ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0) == ' ') {
+                    c = c.substring(1);
+                }
+                if (c.indexOf(name) == 0) {
+                    return c.substring(name.length, c.length);
+                }
+            }
+            return "";
+        }
+
+        function lockRequests() {
+            $("#lockRequestsModal").modal();
+        }
+
+        function setCookie(cname, cvalue, exdays) {
+            var d = new Date();
+            d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+            var expires = "expires=" + d.toUTCString();
+            document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+        }
+
+        function test() {
+            try {
+                if (getCookie("sidemenu") == "")
+                    setCookie("sidemenu", "true", 120);
+
+                if (getCookie("sidemenu") == "false")
+                    setCookie("sidemenu", "true", 120);
+                else
+                    setCookie("sidemenu", "false", 120);
+            }
+            catch (err) {
+                setCookie("sidemenu", "false", 120);
+            }
+
+            $("#tool").toggleClass("right-300");
+            $("#con").toggleClass("right300");
+        }
+
+        function shtb() {
+            try {
+                if (getCookie("toolb") == "")
+                    setCookie("toolb", "true", 120);
+
+                if (getCookie("toolb") == "false")
+                    setCookie("toolb", "true", 120);
+                else
+                    setCookie("toolb", "false", 120);
+            }
+            catch (err) {
+                setCookie("toolb", "false", 120);
+            }
+
+            $("#toolbarShowHide").toggleClass("fa-chevron-circle-up");
+            $("#toolbarShowHide").toggleClass("fa-chevron-circle-down");
+
+            $("#toolbarmaindiv").toggleClass("hideToolbar");
+
+            if ($("#toolbarmaindiv .toolItem a:first").css("color") == $("#dummy").css("color")) {
+                $("#renderbodydiv").css("top", "-6em");
+                $("#toolbarmaindiv .toolItem a").css("color", "#03a9f4");
+            }
+            else {
+                $("#renderbodydiv").css("top", "0em");
+                $("#toolbarmaindiv .toolItem a").css("color", "#fff");
+            }
+
+        }
+
+        function run_waitMe(effect) {
+            $('body').waitMe({
+                effect: effect,
+                text: ' ',
+                bg: 'rgba(255,255,255,0.7)',
+                color: '#000',
+                sizeW: '',
+                sizeH: '',
+                source: '',
+                onClose: function () { }
+            });
+        }
+
+        function tbstt() {
+            $("#toolbarselectModal").modal();
+        }
+
+        //function dropdownMenuLayout() {
+        //    $(".menuLayout").slideToggle();
+        //}
+
+    </script>
+    <script src="~/Scripts/myTreeView.js"></script>
+    <script src="~/Scripts/JsFarsiCalendar.js"></script>
+
+    @RenderSection("scripts", required: false)
+    @RenderSection("EndScript", false)
+    @*<div style="position:relative;min-height:100%">
+        <header>
+            <section style="display:table; width:100%; background: url(/Images/bg.jpg); background-size: 100% 100%">
+                <div class="col-sm-2 col-sm-offset-4">
+                    <img src="~/Images/Logo1.png" style="height:85px" />
+                </div>
+                <div class="col-sm-4 mt-20">
+                    <div style="color:white">
+                        <div>
+                            @Html.Partial("_DateTime")
+                        </div>
+                        <div>
+                            @Html.Partial("_UserName")
+                        </div>
+                        <div>
+                            @Html.Partial("_ChangeFontSize")
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+            <section id="mainmenu" class="text-right">
+                @Html.Partial("_MainToolbar")
+            </section>
+        </header>
+
+        @RenderSection("modals", required: false)
+
+        <div style="width:100%;padding-bottom:100px;overflow:hidden;height:auto">
+            <div id="body">
+
+                @*<div id="adv" class="col-sm-3">
+                    <div id="rightmenu">
+                        <ul id="rightmenucontent">
+                            @Html.Raw(string.Format("<li><img src='/Images/Logo.png' width='100px'/><label>{0}</label></li>", ""))
+                        </ul>
+                    </div>
+                    <button id="btnToggle" onclick="toggleRightMenu(1)" class="btn btn-default glyphicon glyphicon-transfer"></button>
+                </div>*@
+
+    @*<div id="doc" class="col-sm-12">
+        @*<div style="padding:10px; border:1px solid gray;border-radius:4px;overflow:hidden">*@
+    @*@RenderBody()*@
+    @* </div>*@
+    @*</div>
+
+                </div>
+            </div>
+
+            <footer style="position:absolute;left:0px;bottom:0px;height:80px; background-color:#e8e8e8;width:100%">
+                <div class="float-center">
+                    <p class="copyrightp">کلیه حقوق این مجموعه طبق قوانین نرم افزاری متعلق به شرکت سامانه های بٌعد پنجم می باشد</p>
+                    <p class="copyrighte">&copy; 2016 - <a target="_blank" href="http://www.5thDSystems.com">www.5thDSystems.com</a> </p>
+                </div>
+            </footer>
+        </div>
+
+        @RenderSection("scripts", required: false)*@
+    
+</body>
+</html>
+
+@*<script src="~/Scripts/myTreeView.js"></script>*@
+@*<script src="~/Scripts/JsFarsiCalendar.js"></script>
+    <script>
+        $(document).ready(function () {
+            $(".number-input").keydown(function (e) {
+                if ($.inArray(e.keyCode, [46, 8, 9, 27, 13, 110, 190]) !== -1 ||
+                    (e.keyCode == 65 && (e.ctrlKey === true || e.metaKey === true)) ||
+                    (e.keyCode >= 35 && e.keyCode <= 40)) {
+                    return;
+                }
+                if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                    e.preventDefault();
+                }
+            });
+        });
+
+        function dropdownChanged(valueID, textID, text, value) {
+            $("#" + valueID).val(value);
+            $("#" + textID).val(text);
+        }
+
+        $(document).ready(function () {
+            $('[data-toggle="tooltip"]').tooltip();
+            $(".timespan-input").mask('99:59');
+
+            jQuery.ajaxSettings.traditional = true;
+            @*var x = '@(((T5V3Web.Models.MainMenuItem)ViewBag.MainMenuItem).ToString())';
+            loadMenu(x);*@
+@*});*@
+
+@*function run_waitMe(effect) {
+            $('body').waitMe({
+                effect: effect,
+                text: ' ',
+                bg: 'rgba(255,255,255,0.7)',
+                color: '#000',
+                sizeW: '',
+                sizeH: '',
+                source: '',
+                onClose: function () { }
+            });
+        }
+
+        function toggleRightMenu(mode) {
+            if (mode == 1) {
+                $("#rightmenu").removeClass("visible-visibility");
+                $("#rightmenu").addClass("collapsed-visibility");
+
+                $("#adv").toggleClass("col-sm-1 col-sm-3", 500, "easeOutSine", function () {
+                    $("#doc").toggleClass("col-sm-11 col-sm-9", 500, "easeOutSine");
+                }
+                );
+
+                $("#btnToggle").attr("onclick", "toggleRightMenu(2)");
+            }
+            else if (mode == 2) {
+                $("#doc").toggleClass("col-sm-11 col-sm-9", 500, "easeOutSine", function () {
+                    $("#adv").toggleClass("col-sm-1 col-sm-3", 500, "easeOutSine", function () {
+                        $("#rightmenu").removeClass("collapsed-visibility");
+                        $("#rightmenu").addClass("visible-visibility");
+                    });
+                }
+                );
+
+                $("#btnToggle").attr("onclick", "toggleRightMenu(1)");
+            }
+
+        }
+
+    </script>*@

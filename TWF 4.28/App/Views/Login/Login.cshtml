@@ -1,0 +1,109 @@
+﻿@model MyTime3.Models.LoginModel
+@using CaptchaMvc.HtmlHelpers
+
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.Login;
+}
+
+<div style="max-width:400px; margin :auto;">
+    <div class="card-header text-right">
+        <h3>@Html.Raw(MyTime3.Content.PersianString.Login)</h3>
+    </div>
+    <div style="max-width:400px;" class="card">
+
+        <form action="/Login/Login" class="form-horizontal LoginForm" method="post">
+            @*<div class="form-group">
+                    <div class="col-sm-2 text-left">
+                        @Html.Label(MyTime3.Content.PersianString.UserName, new { @class = "control-label" })
+                    </div>
+                    <div class="col-sm-3 text-right">
+                        @Html.TextBoxFor(m => m.UserName, new { @class = "form-control" })
+                    </div>
+                </div>*@
+
+            <div class="material-input text-right">
+                <div class="col-sm-offset-1 col-lg-8 col-sm-8">
+                    <div class="group">
+                        <input name="UserName" id="UserName" type="text" required @(Model != null ? "value=" + Model.UserName : "")>
+                        <span class="highlight"></span>
+                        <span class="bar"></span>
+                        <label>@MyTime3.Content.PersianString.UserName</label>
+                    </div>
+                </div>
+                <div class="col-sm-offset-1 col-lg-4 col-sm-4" style="margin-right: 0px">
+                    <label for="UserName" generated="true" class="error " style="font-size: 12px; margin-top: 69px; "></label>
+                </div>
+            </div>
+
+            <div class="material-input text-right">
+                <div class="col-sm-offset-1 col-lg-8 col-sm-8">
+                    <div class="group">
+                        <input name="Password" id="Password" type="password" required>
+                        <span class="highlight"></span>
+                        <span class="bar"></span>
+                        <label>@MyTime3.Content.PersianString.Password</label>
+                    </div>
+                </div>
+                <div class="col-sm-offset-1 col-lg-4 col-sm-4" style="margin-right: 0px">
+                    <label for="Password" generated="true" class="error" style="font-size: 12px; margin-top: 69px"></label>
+                </div>
+            </div>
+
+
+            @*<div class="form-group">
+                    <div class="col-sm-2 text-left">
+                        @Html.Label(MyTime3.Content.PersianString.Password, new { @class = "control-label" })
+                    </div>
+                    <div class="col-sm-3 text-right">
+                        @Html.PasswordFor(m => m.Password, new { @class = "form-control" })
+                    </div>
+                </div>*@
+
+            @if ((ViewBag.Captcha != null) && (ViewBag.Captcha))
+            {
+                <div class="text-right col-sm-offset-2">
+                    @Html.Captcha(MyTime3.Content.PersianString.NewImage, MyTime3.Content.PersianString.TextInImage, 5, "Is required field.", true)
+                </div>
+            }
+
+            <div class="form-group top-buffer">
+                <input type="submit" class="btn btn-lg btn-shadow btn-primary" value="@MyTime3.Content.PersianString.OK" />
+            </div>
+
+            @if (ViewBag.Message != null)
+            {
+                <div class="text-center panel-danger panel">
+                    <div class="panel-heading">
+                        <label>@ViewBag.Message</label>
+                    </div>
+                </div>
+            }
+        </form>
+
+    </div>
+
+</div>
+
+<script src="~/Scripts/jquery-3.6.1.js"></script>
+<script src="~/Scripts/jquery.validate.js"></script>
+<script src="~/Scripts/additional-methods.js"></script>
+<script>
+    $(document).ready(function () {
+        $(".LoginForm").validate({
+            rules: {
+                UserName: {
+                    required: true,
+                    alphanumeric: true
+                },
+                Password: {
+                    required: true,
+                    alphanumeric: true,
+                }
+            },
+            submitHandler: function (form) {
+                $('.LoginForm').submit();
+                return true;
+            }
+        });
+    });
+</script>

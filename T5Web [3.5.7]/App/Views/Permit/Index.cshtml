@@ -1,0 +1,212 @@
+﻿@{
+    ViewBag.Title = @T5V3Web.Content.Persian.AddValidLeave;
+}
+
+
+<div class="page-header">
+    <h4>@T5V3Web.Content.Persian.AddValidLeave</h4>
+</div>
+
+@{
+    T5V3Web.Models.GridModel grd = new T5V3Web.Models.GridModel();
+    grd.DeleteAllAPIPath = "/Permit/DeleteAll";
+    grd.DeleteAPIPath = "/Permit/Delete/";
+    grd.GetListAPIPath = "/Permit/GetList";
+    grd.IDPropertyName = "ID";
+    grd.DisplayPropertyName = "Name";
+    grd.Columns.Add(new T5V3Web.Models.GridModel.Column(T5V3Web.Content.Persian.Name, "Name"));
+    @Html.Partial("_Grid", grd);
+}
+
+<div id="edit-panel" class="panel panel-default collapsed-visibility">
+    <div class="panel-heading">
+        <label id="title-panel-label">@T5V3Web.Content.Persian.Edit</label>
+    </div>
+    <div class="panel-body">
+        <div class="form-horizontal">
+
+            <input type="hidden" id="id" />
+
+            <div class="form-group">
+                <div class="col-sm-6">
+                    @Html.Partial("_SelectOneUser", null, new ViewDataDictionary())
+                </div>
+                <div class="col-sm-6">
+                    <div class="form-group">
+                        <div class="col-sm-3 text-center">
+                            <label class="control-label">@T5V3Web.Content.Persian.FromDate</label>
+                        </div>
+                        <div class="col-sm-9">
+                            <div class="col-sm-8">
+                                <input id="txtFromDate" class="datepicker-farsi" style="width:100%" name="txtFromDate" type="text" value="" />
+                                @*<input id="txtFromDate" class="form-control align-left" name="txtFromDate" type="text" value="" />*@
+                            </div>
+                            <div class="col-sm-4 text-right">
+                                @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('txtFromDate', this)">@T5V3Web.Content.Persian.Select</a>*@
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-3 text-center">
+                            <label class="control-label">@T5V3Web.Content.Persian.ToDate</label>
+                        </div>
+                        <div class="col-sm-9">
+                            <div class="col-sm-8">
+                                <input id="txtToDate" class="datepicker-farsi" style="width:100%" name="txtFromDate" type="text" value="" />
+                                @*<input id="txtToDate" class="form-control align-left" name="txtToDate" type="text" value="" />*@
+                            </div>
+                            <div class="col-sm-4 text-right">
+                                @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('txtToDate', this)">@T5V3Web.Content.Persian.Select</a>*@
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-3 text-center">
+                            <label class="control-label">@T5V3Web.Content.Persian.ValidLen</label>
+                        </div>
+                        <div class="col-sm-9">
+                            <div class="col-sm-8">
+                                <input id="txtValidLen" name="txtValidLen" placeholder="@T5V3Web.Content.Persian.ValidLen" type="text" class="form-control timespan-input" value="00:00" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-3 text-center">
+                            <label class="control-label">@T5V3Web.Content.Persian.Descriptions</label>
+                        </div>
+                        <div class="col-sm-9">
+                            <div class="col-sm-8">
+                                <input id="txtDescriptions" placeholder="@T5V3Web.Content.Persian.Descriptions" type="text" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10 text-right">
+                    <button id="btnEdit" onclick="submitData()" type="button" class="btn btn-success"></button>
+                    <button type="button" onclick="invisiblePanel()" class="btn btn-default">@T5V3Web.Content.Persian.Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section modals
+{
+    <div id="myModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 id="msg-title" class="modal-title"></h4>
+                </div>
+                <div class="modal-body">
+                    <p id="msg-body"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">@T5V3Web.Content.Persian.OK</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+}
+
+@section scripts
+{
+    <script src="~/Scripts/index.js"></script>
+    <script>
+
+        settings = {
+            format: "yyyy/mm/dd",
+            dateSeparator: "/",
+            autoClose: true,
+            labelLanguage: 'farsi'
+        }
+        renderToday();
+    </script>
+    <script>
+        loadlist(1, "");
+
+        function invisiblePanel() {
+            $("#edit-panel").attr("class", "collapsed-visibility panel panel-default");
+        }
+
+        function addnew() {
+            $("#edit-panel").attr("class", "visisble-visibility panel panel-default");
+            $('html, body').animate({
+                scrollTop: $("#edit-panel").offset().top
+            }, 500);
+            $("#title-panel-label").html("@T5V3Web.Content.Persian.Add2");
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Add");
+
+            $("#txtFromDate").val("");
+            $("#txtToDate").val("");
+            $("#txtValidLen").val("");
+            $("#txtDescriptions").val("");
+            $("#id").val(-1);
+        }
+
+        function submitData() {
+            var toEdit = {
+                ID: $("#id").val(),
+                BadgeNumber: $("#users").val(),
+                FromDateHijri: $("#txtFromDate").val(),
+                ToDateHijri: $("#txtToDate").val(),
+                ValidStr: $("#txtValidLen").val(),
+                Descriptions: $("#txtDescriptions").val(),
+                CertificateName: $("#txtCertificateName").val()
+            };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/Permit/Edit",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                    if (toEdit.ID == -1) {
+                        loadlist(-1);
+                    }
+                    else {
+                        loadlist($("body").data("page"), $("body").data("squery"));
+                    }
+                }
+            });
+            invisiblePanel();
+        }
+
+        function loadItem(id) {
+            $("#edit-panel").attr("class", "visisble-visibility panel panel-default");
+            $('html, body').animate({
+                scrollTop: $("#edit-panel").offset().top
+            }, 500);
+            $("#title-panel-label").html("@T5V3Web.Content.Persian.Edit");
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Edit");
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                type: "GET",
+                url: "/Permit/GetByID/" + id,
+                success: function (data) {
+                    $("#users").html("<option value=\"" + data.BadgeNumber + "\">" + data.Name + "</option>");
+                    $("#lblBadge").html(data.BadgeNumber);
+                    $("#txtFromDate").val(data.FromDateHijri);
+                    $("#txtToDate").val(data.ToDateHijri);
+                    $("#txtValidLen").val(data.ValidStr);
+                    $("#txtDescriptions").val(data.Descriptions);
+                    $("#id").val(data.ID);
+                }
+            });
+        }
+
+    </script>
+}

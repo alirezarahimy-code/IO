@@ -1,0 +1,108 @@
+﻿@model T5V3Web.Models.DateIntervalPickerModel
+<div>
+    <div class="form-horizontal">
+        @if (!Model.OnlyMonthly)
+        {
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-2 text-right">
+                    <input name="isMonthly@(Model.ID)" onclick="changeDateMode@(Model.ID)(this)" type="checkbox" @(Model.IsMonthly ? "checked=\"checked\"" : "") value="true" />
+                    <label>@T5V3Web.Content.Persian.Monthly</label>
+                </div>
+            </div>
+        }
+        <div class="form-group">
+            <div class="col-sm-2">
+                <label class="control-label">@T5V3Web.Content.Persian.Year</label>
+            </div>
+            <div class="col-sm-10">
+                <input @(Model.IsMonthly ? "" : "disabled") class="year-input form-control" name="year@(Model.ID)" type="text" value="@Model.Year" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-2">
+                <label class="control-label">@T5V3Web.Content.Persian.Month</label>
+            </div>
+            <div class="col-sm-10">
+                <select @(Model.IsMonthly ? "" : "disabled") class="form-control" name="month@(Model.ID)">
+                    @{
+                        int m = Model.Month;
+                        <option @(m == 1 ? "selected = \"selected\"" : "") value="1">@T5V3Web.Content.Persian.Farvardin</option>
+                        <option @(m == 2 ? "selected = \"selected\"" : "") value="2">@T5V3Web.Content.Persian.Ordibehesht</option>
+                        <option @(m == 3 ? "selected = \"selected\"" : "") value="3">@T5V3Web.Content.Persian.Khordad</option>
+                        <option @(m == 4 ? "selected = \"selected\"" : "") value="4">@T5V3Web.Content.Persian.Tir</option>
+                        <option @(m == 5 ? "selected = \"selected\"" : "") value="5">@T5V3Web.Content.Persian.Mordad</option>
+                        <option @(m == 6 ? "selected = \"selected\"" : "") value="6">@T5V3Web.Content.Persian.Sharivar</option>
+                        <option @(m == 7 ? "selected = \"selected\"" : "") value="7">@T5V3Web.Content.Persian.Mehr</option>
+                        <option @(m == 8 ? "selected = \"selected\"" : "") value="8">@T5V3Web.Content.Persian.Aban</option>
+                        <option @(m == 9 ? "selected = \"selected\"" : "") value="9">@T5V3Web.Content.Persian.Azar</option>
+                        <option @(m == 10 ? "selected = \"selected\"" : "") value="10">@T5V3Web.Content.Persian.Dey</option>
+                        <option @(m == 11 ? "selected = \"selected\"" : "") value="11">@T5V3Web.Content.Persian.Bahman</option>
+                        <option @(m == 12 ? "selected = \"selected\"" : "") value="12">@T5V3Web.Content.Persian.Esfand</option>
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+    @if (!Model.OnlyMonthly)
+    {
+        <div class="form-horizontal">
+            <div class="form-group">
+                <div class="col-sm-2">
+                    <label class="control-label">@T5V3Web.Content.Persian.FromDate</label>
+                </div>
+                <div class="col-sm-8">
+                    <input class="datepicker-farsi" style="width:100%" @(Model.IsMonthly ? "disabled" : "") name="FromDateHijri@(Model.ID)" type="text" value="@Model.FromDate" />
+                    @*<input class="form-control" @(Model.IsMonthly ? "disabled" : "") name="FromDateHijri@(Model.ID)" type="text" value="@Model.FromDate" />*@
+                </div>
+                <div class="col-sm-2 text-right">
+                    @*<a  rel="noopener noreferrer" id="selectFrom@(Model.ID)" href="javascript:" onclick="displayDatePicker('FromDateHijri@(Model.ID)', this)">@T5V3Web.Content.Persian.Select</a>*@
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-2">
+                    <label class="control-label">@T5V3Web.Content.Persian.ToDate</label>
+                </div>
+                <div class="col-sm-8">
+                    <input class="datepicker-farsi" style="width:100%" @(Model.IsMonthly ? "disabled" : "") name="ToDateHijri@(Model.ID)" type="text" value="@Model.ToDate" />
+                    @*<input class="form-control" @(Model.IsMonthly ? "disabled" : "") name="ToDateHijri@(Model.ID)" type="text" value="@Model.ToDate"/>*@
+                </div>
+                <div class="col-sm-2 text-right">
+                    @*<a rel="noopener noreferrer" id="selectTo@(Model.ID)" href="javascript:" onclick="displayDatePicker('ToDateHijri@(Model.ID)', this)">@T5V3Web.Content.Persian.Select</a>*@
+                </div>
+            </div>
+        </div>
+    }
+</div>
+<script src="~/Scripts/index.js"></script>
+<script>
+settings = {
+    format: "yyyy/mm/dd",
+    dateSeparator: "/",
+    autoClose: true,
+    labelLanguage: 'farsi'
+}
+    renderToday();
+    $(function () {
+        $(".year-input").mask('9999');
+    })
+
+    function changeDateMode@(Model.ID)(checkbox) {
+        if (checkbox.checked == true) {
+            $("[name='FromDateHijri@(Model.ID)']").prop('disabled', true);
+            $("[name='ToDateHijri@(Model.ID)']").prop('disabled', true);
+
+            $("[name='month@(Model.ID)']").prop('disabled', false);
+            $("[name='year@(Model.ID)']").prop('disabled', false);
+
+        }
+        else {
+            $("[name='FromDateHijri@(Model.ID)']").prop('disabled', false);
+            $("[name='ToDateHijri@(Model.ID)']").prop('disabled', false);
+
+            $("[name='month@(Model.ID)']").prop('disabled', true);
+            $("[name='year@(Model.ID)']").prop('disabled', true);
+        }
+    }
+</script>

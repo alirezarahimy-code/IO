@@ -1,0 +1,67 @@
+﻿@model List<T5V3.ExcelDataReader.ExcelPersonnel>
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.ImportExcel;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.BaseData;
+    ViewBag.PageTag = "ImportFromExcel";
+}
+
+<h3>@T5V3Web.Content.Persian.ImportExcel</h3>
+
+<div class="horizontal-line"></div>
+
+<h2 class="right-align">@T5V3Web.Content.Persian.List</h2>
+
+
+<form action="/ImportFromExcel/Import" method="post">
+    <div class="auto-scroll" style="max-height:460px;margin-bottom:20px">
+        <table class="table table-bordered table-hover table-responsive table-striped auto-scroll">
+            <thead>
+                <tr class="warning">
+                    <td>@T5V3Web.Content.Persian.Importable</td>
+                    <td>@T5V3Web.Content.Persian.State</td>
+                    <td>@T5V3Web.Content.Persian.BadgeNumber</td>
+                    <td>@T5V3Web.Content.Persian.FirstName</td>
+                    <td>@T5V3Web.Content.Persian.LastName</td>
+                    <td>@T5V3Web.Content.Persian.DeviceName</td>
+                    <td>@T5V3Web.Content.Persian.Email</td>
+                    <td>@T5V3Web.Content.Persian.Tel</td>
+                    <td>@T5V3Web.Content.Persian.Address</td>
+                    <td>@T5V3Web.Content.Persian.Number</td>
+                    <td>@T5V3Web.Content.Persian.Gender</td>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (T5V3.ExcelDataReader.ExcelPersonnel per in Model)
+                {
+                    <tr>
+                        <td>
+                            @if (per.Importable)
+                            {
+                                <input name="items" type="hidden" value="@T5V3Web.Controllers.ImportFromExcelController.GetTextForHTML(per)" />
+                            }
+
+                            <label>
+                                @(per.Importable ? T5V3Web.Content.Persian.OK : T5V3Web.Content.Persian.Error)
+                            </label>
+                        </td>
+                        <td>@per.StatusStr</td>
+                        <td>@per.BadgeNumber</td>
+                        <td>@(per.FirstName != null ? per.FirstName : "-")</td>
+                        <td>@(per.LastName != null ? per.LastName : "-")</td>
+                        <td>@(per.DeviceName != null ? per.DeviceName : "-")</td>
+                        <td>@(per.Email != null ? per.Email : "-")</td>
+                        <td>@(per.Tel != null ? per.Tel : "-")</td>
+                        <td>@(per.Address != null ? per.Address : "-")</td>
+                        <td>@(per.Number != null ? per.Number : "-")</td>
+                        <td>@(per.Gender ? T5V3Web.Content.Persian.Female : T5V3Web.Content.Persian.Male)</td>
+                    </tr>
+                }
+
+            </tbody>
+        </table>
+    </div>
+    <div class="form-group">
+        <a rel="noopener noreferrer" class="btn btn-default" href="/ImportFromExcel">@T5V3Web.Content.Persian.ReturnToReferrerURL</a>
+        <input value="@T5V3Web.Content.Persian.Import" type="submit" class="btn btn-success" />
+    </div>
+</form>

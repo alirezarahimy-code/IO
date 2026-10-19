@@ -1,0 +1,362 @@
+﻿@model T5V3Web.Models.SelectUserControlModel
+
+<div class="row">
+    <div class="col-sm-12">
+        <div id="deptsTree" style="direction:ltr" class="col-sm-4 h-200 text-right auto-scroll">
+            <div id="treeDepts" style="direction:rtl">
+            </div>
+            @*@Html.Raw(T5V3Web.Controllers.DepartmentController.GetTreeHTML(null, " ", new List<int>(), "addDeptUsers({0},this)"))*@
+        </div>
+        <div id="shiftTree" style="direction:ltr" class="col-sm-4 text-right ">
+            <div class="material-input text-right">
+                <div class="group" style="width:100%">
+                    <div class="material-dropdown">
+                        <div class="dropdown">
+                            <input id="cmbShift" name="shiftID" type="hidden" value="@Model.ShiftId">
+                            <input id="txtShiftName" autocomplete="off" type="text" required="" data-toggle="dropdown" aria-expanded="false">
+                            <span class="highlight"></span>
+                            <span class="bar"></span>
+                            <label>نام شیفت</label>
+                            <ul class="dropdown-menu">
+                                @foreach (var t in T5V3Web.Misc.DBManagers.GetT5DB().ShiftDA.GetAll())
+                                {
+                                    <li onclick="dropdownChanged('cmbShift', 'txtShiftName', '@t.ShiftName', @t.ShiftID); shiftChanged(@t.ShiftID);">
+                                        <a  rel="noopener noreferrer" style="cursor:pointer">@t.ShiftName</a>
+                                    </li>
+
+                                }
+                            </ul>
+                        </div>
+                        <span class="caret"></span>
+                    </div>
+                </div>
+            </div>
+            @*<div class="material-dropdown">
+                <div class="dropdown">
+                    <input id="cmbShift" name="shiftID" type="hidden">
+                    <input id="txtShiftName" type="text" required="" data-toggle="dropdown" aria-expanded="false">
+                    <span class="highlight"></span>
+                    <span class="bar"></span>
+                    <label>نام شیفت</label>
+                    <ul class="dropdown-menu">
+                        @foreach (var t in T5V3Web.Misc.DBManagers.GetT5DB().ShiftDA.GetAll())
+                        {
+                            <li onclick="dropdownChanged('cmbShift', 'txtShiftName', '@t.ShiftName', @t.ShiftID)">
+                                <a style="cursor:pointer">@t.ShiftName</a>
+                            </li>
+
+                        }
+                    </ul>
+                </div>
+                <span class="caret"></span>
+            </div>*@
+            @*@{
+
+                List<KeyValuePair<string, string>> shiftNames = new List<KeyValuePair<string, string>>();
+                T5V3.DB.T5V3DBManager db = T5V3Web.Misc.DBManagers.GetT5DB();
+            }
+            @foreach (T5V3.Model.Shift s in db.ShiftDA.GetAll())
+            {
+                shiftNames.Add(new KeyValuePair<string, string>(s.ShiftID.ToString(), s.ShiftName));
+                //if (Model.isEdit && (s.ShiftID == Model.ShiftID))
+                {
+                }
+                //else
+                {
+                }
+            }
+            @Html.Partial("_MaterialDropdown", new T5V3Web.Models.MaterialDropdownParameters()
+            {
+                Header = T5V3Web.Content.Persian.ShiftName,
+                InputID = "cmbShift",
+                InputName = "shiftID",
+                ChangeMethod = "dropdownChanged",
+                TextboxID = "txtShiftName",
+                Values = shiftNames
+            }
+                )*@
+
+        </div>
+
+        <input type="hidden" id="ShiftId" name="ShiftId" value="@(Model.ShiftId != null ? Model.ShiftId : 0)" />
+
+        <div class="col-sm-4 h-200 border-gray auto-scroll" style="direction:ltr">
+            <table class="table table-striped table-hover table-responsive" style="direction:rtl">
+                <tbody id="ulUsers">
+                    @Html.Raw(T5V3Web.Controllers.UserSelectionController.GetUsers(Model.SelectedBadgeNumbers))
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-10">
+    <div class="col-sm-12">
+        <div class="col-sm-4 form-inline">
+            <label class="control-label">جستجوی شعب</label>
+            <input id="searchtree2" onkeyup="searchtree()" class="form-control" type="text" />
+
+        </div>
+        <div class="col-sm-4 form-inline">
+            <label class="control-label">@T5V3Web.Content.Persian.Expression</label>
+            <input id="txtSearch" onkeyup="search()" class="form-control" type="text" />
+            <button class="btn btn-default" type="button" onclick="search()">@T5V3Web.Content.Persian.Search</button>
+        </div>
+        <div class="col-sm-4 text-right">
+            <button class="btn btn-default" type="button" onclick="selectAll()">@T5V3Web.Content.Persian.All</button>
+            <button class="btn btn-default" type="button" onclick="reverseSelection()">@T5V3Web.Content.Persian.Reverse</button>
+
+            <div class="float-left">
+                <a  rel="noopener noreferrer" id="lnkAdvancedSearch" onclick="showHideAdPanel()" href="javascript:">@T5V3Web.Content.Persian.AdvancedSearch</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-10">
+    <div id="advancedPanel" class="col-sm-12 center-align collapsed-visibility">
+        @{
+            int i = 0;
+            foreach (T5V3Web.Models.SelectUserControlFilterModel filter in Model.Filters)
+            {
+                i++;
+                <text>
+                    <div class="@((i/2)%2!=0?"back-gray":"back-dark-gray") w-45p pad-5 inline-block-display">
+                        <input class="inline-display" id="iChecked" type="checkbox" />
+                        <input id="iType" type="hidden" value="@filter.FilterType" />
+                        <input id="iID" type="hidden" value="@filter.FilterID" />
+                        <label class="inline-block-display right-align w-125">@filter.FilterName</label>
+                        @if (filter.FilterType == T5V3Web.Models.SelectUserControlFilterType.CheckboxVal)
+                        {
+                            <input id="iVal" class="inline-block-display w-125 margin-zero padding-zero" type="checkbox" value="true" />
+                        }
+                        else if (filter.FilterType == T5V3Web.Models.SelectUserControlFilterType.StringVal)
+                        {
+                            <input id="iVal" class="inline-block-display w-125 margin-zero padding-zero" type="text" />
+                        }
+                        else
+                        {
+                            <select id="iVal" class="inline-block-display w-125 margin-zero padding-zero">
+                                @foreach (KeyValuePair<string, string> val in filter.FilterItems)
+                                {
+                                    <option value="@val.Key">@val.Value</option>
+                                }
+                            </select>
+                        }
+                    </div>
+
+                </text>
+            }
+            if (i % 2 != 0)
+            {
+                i++;
+                <div class="@((i/2)%2!=0?"back-gray":"back-dark-gray") w-45p pad-5 h-25 inline-block-display">
+                    ---
+                </div>
+            }
+        }
+
+        <div class="block-display mt-10">
+            <button class="btn btn-default" type="button" onclick="applyFilters()">@T5V3Web.Content.Persian.ApplyFilter</button>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var TreeManager = {
+        checkChildNodes: function (cssSelector, node) {
+            var children = node.nodes;
+            if (children) {
+                for (var i = 0; i < children.length; i++) {
+                    var childNode = children[i];
+                    var nodeId = childNode['nodeId'];
+                    $(cssSelector).treeview('checkNode', nodeId);
+                }
+            }
+        },
+        uncheckChildNodes: function (cssSelector, node) {
+            var children = node.nodes;
+            if (children) {
+                for (var i = 0; i < children.length; i++) {
+                    var childNode = children[i];
+                    var nodeId = childNode['nodeId'];
+                    $(cssSelector).treeview('uncheckNode', nodeId);
+                }
+            }
+        },
+        uncheckParentNode: function (cssSelector, node) {
+            var parent = $(cssSelector).treeview('getParent', node);
+            var nodeId = parent['nodeId'];
+            if (nodeId !== undefined) {
+                $(cssSelector).treeview('uncheckNode', [nodeId, { silent: true }]);
+                TreeManager.uncheckParentNode(cssSelector, parent);
+            }
+        }
+    };
+
+    $.get("/UserSelection/GetTree", "", (function (gdata) {
+        $('#treeDepts').treeview({
+            data: gdata,
+            levels: 50,
+            showCheckbox: true,
+            onNodeUnchecked: function (event, data) {
+                TreeManager.uncheckChildNodes("#treeDepts", data);
+
+                addDeptUsers(data.tags, false);
+            },
+            onNodeChecked: function (event, data) {
+                addDeptUsers(data.tags, true);
+
+                //var node = $("#treeDepts").treeview('getSelected')[0];
+                TreeManager.checkChildNodes("#treeDepts", data);
+
+            }
+        });
+    }));
+
+    function searchtree() {//treeDepts
+        $('#treeDepts').treeview('search', [$('#searchtree2').val(), { ignoreCase: true,exactMatch: false,revealResult:true }]);
+    }
+    function applyFilters() {
+        removeUnselectedUsers(-1);
+
+        var filters = [];
+        var divs = $("#advancedPanel div");
+        for (var i = 0 ; i < divs.length - 1; i++) {
+            var div = divs[i];
+            if ($(div).children("#iChecked")[0].checked) {
+                var newFilter = {
+                    FilterType: ($(div).children("#iType").val()),
+                    FilterID: ($(div).children("#iID").val()),
+                    Val: ($(div).children("#iVal").val())
+                };
+
+                filters.push(newFilter);
+            }
+        }
+
+        var deptIDs = [];
+        var checked = $('#treeDepts').treeview('getChecked', -1);
+        for (var i = 0; i < checked.length; i++) {
+            deptIDs.push(checked[i].tags);
+        }
+
+        var ShiftId = $('#cmbShift').val();
+
+
+        var postdata = { "filters": filters, 'deptIDs': deptIDs , "Shift" : ShiftId};
+
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            type: "POST",
+            url: "/UserSelection/FilterUsersByShift",
+            data: JSON.stringify(postdata),
+            success: function (data) {
+                for (var i = 0; i < data.length; i++) {
+                    addUserToList(data[i]);
+                }
+            }
+        });
+    }
+
+    function reverseSelection() {
+        var usersCount = $("#ulUsers input[type=checkbox]").length;
+        for (var i = usersCount - 1 ; i >= 0; i--) {
+            var temp = $("#ulUsers  input[type=checkbox]")[i];
+            temp.checked = !(temp.checked);
+        }
+        userChanged();
+    }
+
+    function selectAll() {
+        var usersCount = $("#ulUsers input[type=checkbox]").length;
+        for (var i = usersCount - 1 ; i >= 0; i--) {
+            var temp = $("#ulUsers  input[type=checkbox]")[i];
+            temp.checked = true;
+        }
+        userChanged();
+    }
+
+    function search() {
+        removeUnselectedUsers(-1);
+        $.get("/UserSelection/SearchUsers?exp=" + $("#txtSearch").val(), function (data, status) {
+            if (status == "success") {
+                for (var i = 0; i < data.length; i++) {
+                    addUserToList(data[i]);
+                }
+            }
+        });
+    }
+
+    function addDeptUsers(deptID, checkbox) {
+        if (checkbox == true) {
+
+            var ShiftId = $('#cmbShift').val();
+            $.get("/UserSelection/GetUsersByShift?deptID=" + deptID + "&shiftId=" + ShiftId, function (data, status) {
+                if (status == "success") {
+
+                    for (var i = 0; i < data.length; i++) {
+                        addUserToList(data[i]);
+                    }
+
+                }
+            });
+        }
+        else {
+            removeUnselectedUsers(deptID);
+        }
+    }
+
+    function addUserToList(userData) {
+        if ($('#ulUsers').children("#" + createLIID(userData.DeptID, userData.BadgeNumber)).length == 0)
+            $('#ulUsers').append("<tr id=\"" + createLIID(userData.DeptID, userData.BadgeNumber) + "\">" +
+                //"<td><input onchange='userChanged()' name=\"selectedBadgeNumbers\" value=\"" + userData.BadgeNumber + "\" type=\"checkbox\"/></td>" +
+
+                "<td><div class=\"mat-check\"><div class=\"exp\"><div class=\"checkbox\"><div><input type=\"checkbox\" name=\"selectedBadgeNumbers\" onchange='userChanged()' id=\"chk_" + userData.BadgeNumber + "\" value=\"" + userData.BadgeNumber + "\"/>" +
+                "<label for=\"chk_" + userData.BadgeNumber + "\"><span></span></label></div></div></div></div></td>" +
+
+                "<td><label>" +
+                userData.BadgeNumber + "</label></td><td><label>" + userData.Name + "</label></td><td><label>" + userData.DeptName + "</label></td></tr>");
+    }
+
+    function removeUnselectedUsers(deptID) {
+        var usersCount = $("#ulUsers tr").length;
+        for (var i = usersCount - 1 ; i >= 0; i--) {
+            var temp = $("#ulUsers tr")[i];
+            var deptIDSelected = getDeptIDfromLIID(temp.id);
+            if (($("#ulUsers input[type=checkbox]")[i].checked) == false)
+                if ((deptIDSelected == deptID) || (deptID == -1)) {
+
+                    $("#ulUsers").children().remove("#" + temp.id);
+                }
+        }
+    }
+
+    function createLIID(deptID, badgeNumber) {
+        return "liUser_" + deptID + "_" + badgeNumber;
+    }
+
+    function getDeptIDfromLIID(liID) {
+        var spls = liID.split("_");
+        if (spls.length == 3)
+            return spls[1];
+        else
+            return "0";
+    }
+
+    function shiftChanged(shitfId) {
+        $('#ShiftId').val(shitfId);
+    }
+
+    function showHideAdPanel() {
+        if ($("#advancedPanel").attr("class") == "center-align visible-visibility") {
+            $("#advancedPanel").attr("class", "center-align collapsed-visibility");
+            $("#lnkAdvancedSearch").text("@T5V3Web.Content.Persian.AdvancedSearch");
+        }
+        else {
+            $("#advancedPanel").attr("class", "center-align visible-visibility");
+            $("#lnkAdvancedSearch").text("@T5V3Web.Content.Persian.SimpleSearch");
+        }
+    }
+</script>

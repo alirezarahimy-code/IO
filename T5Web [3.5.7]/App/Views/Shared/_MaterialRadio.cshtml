@@ -1,0 +1,5 @@
+﻿@model MaterialRadioModel
+<label for="rad@(Model.ID)" class="input-control radio">
+    <input id="rad@(Model.ID)" type="radio" name="@Model.InputName" value="@Model.InputValue">
+    <span class="input-control__indicator"></span>@Model.Title
+</label>

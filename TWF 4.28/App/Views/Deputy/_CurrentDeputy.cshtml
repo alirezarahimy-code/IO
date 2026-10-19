@@ -1,0 +1,10 @@
+﻿@model MyTime3.Models.Deputy
+@if (Model.IsAnyDeputy)
+{
+    @Html.Label(String.Format("{0}:{1}  ", MyTime3.Content.PersianString.CurrentDeputy, (Model.CurrentDeputy != null) ? Model.CurrentDeputy.ToString() : ""))
+    @Html.ActionLink(string.Format("({0})", MyTime3.Content.PersianString.DeleteDeputy), "Delete", "Deputy", new { returnToHome = (bool)ViewData["deputyReturnToHome"] }, null)
+}
+else if ((ViewData["shownodeputy"] != null) && ((bool)ViewData["shownodeputy"]))
+{
+    @Html.Label(MyTime3.Content.PersianString.YouCurrentlyDoNotHaveDeputy)
+}

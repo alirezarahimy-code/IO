@@ -1,0 +1,187 @@
+﻿@model List<int>
+<div id="toolbarselectModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+
+
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <div class="card-header">
+                    <h3 class="modal-title">@MyTime3.Content.PersianString.ToolbarItems</h3>
+                </div>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="/Home/SetToolbar">
+
+                    @{
+                        bool temp = (MyTime3.Controllers.HomeController.CanDownloadNoti5(Context));
+                    }
+                    <div class="mat-check">
+                        <div class="exp">
+                            <div class="checkbox">
+                                <input type="checkbox" name="ToolbarItems" id="chktb1" @(Model.Contains(1) ? "checked=checked" : "") value="1" />
+                                <label for="chktb1">
+                                    <span></span>@MyTime3.Content.PersianString.HomePage
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mat-check">
+                        <div class="exp">
+                            <div class="checkbox">
+                                <input type="checkbox" name="ToolbarItems" id="chktb2" @(Model.Contains(2) ? "checked=checked" : "") value="2" />
+                                <label for="chktb2">
+                                    <span></span>@MyTime3.Content.PersianString.NewRequest
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (temp)
+                    {
+                        if ((bool)MyTime3.Controllers.SettingsController.LoadValue("RequestForUsers", typeof(bool), true))
+                        {
+                            <div class="mat-check">
+                                <div class="exp">
+                                    <div class="checkbox">
+                                        <input type="checkbox" name="ToolbarItems" id="chktb3" @(Model.Contains(3) ? "checked=checked" : "") value="3" />
+                                        <label for="chktb3">
+                                            <span></span>@MyTime3.Content.PersianString.RequestFromUser
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+
+                    <div class="mat-check">
+                        <div class="exp">
+                            <div class="checkbox">
+                                <input type="checkbox" name="ToolbarItems" id="chktb4" @(Model.Contains(4) ? "checked=checked" : "") value="4" />
+                                <label for="chktb4">
+                                    <span></span>@MyTime3.Content.PersianString.EditRequest
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mat-check">
+                        <div class="exp">
+                            <div class="checkbox">
+                                <input type="checkbox" name="ToolbarItems" id="chktb5" @(Model.Contains(5) ? "checked=checked" : "") value="5" />
+                                <label for="chktb5">
+                                    <span></span>@MyTime3.Content.PersianString.AcceptRequest
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mat-check">
+                        <div class="exp">
+                            <div class="checkbox">
+                                <input type="checkbox" name="ToolbarItems" id="chktb6" @(Model.Contains(6) ? "checked=checked" : "") value="6" />
+                                <label for="chktb6">
+                                    <span></span>@MyTime3.Content.PersianString.RequestsStatus
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mat-check">
+                        <div class="exp">
+                            <div class="checkbox">
+                                <input type="checkbox" name="ToolbarItems" id="chktb7" @(Model.Contains(7) ? "checked=checked" : "") value="7" />
+                                <label for="chktb7">
+                                    <span></span>@MyTime3.Content.PersianString.Deputy
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    @if ((bool)MyTime3.Controllers.SettingsController.LoadValue("ViewConstOT", typeof(bool), true))
+                    {
+                        <div class="mat-check">
+                            <div class="exp">
+                                <div class="checkbox">
+                                    <input type="checkbox" name="ToolbarItems" id="chktb8" @(Model.Contains(8) ? "checked=checked" : "") value="8" />
+                                    <label for="chktb8">
+                                        <span></span>@MyTime3.Content.PersianString.ConstOT
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    @if ((bool)MyTime3.Controllers.SettingsController.LoadValue("ViewRewPen", typeof(bool), true))
+                    {
+                        <div class="mat-check">
+                            <div class="exp">
+                                <div class="checkbox">
+                                    <input type="checkbox" name="ToolbarItems" id="chktb9" @(Model.Contains(9) ? "checked=checked" : "") value="9" />
+                                    <label for="chktb9">
+                                        <span></span>@MyTime3.Content.PersianString.InsertRewardAndPenalty
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (temp)
+                    {
+                        <div class="mat-check">
+                            <div class="exp">
+                                <div class="checkbox">
+                                    <input type="checkbox" name="ToolbarItems" id="chktb10" @(Model.Contains(10) ? "checked=checked" : "") value="10" />
+                                    <label for="chktb10">
+                                        <span></span>@MyTime3.Content.PersianString.SelectValidArea
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                      
+                    }
+
+                    <div class="mat-check">
+                        <div class="exp">
+                            <div class="checkbox">
+                                <input type="checkbox" name="ToolbarItems" id="chktb12" @(Model.Contains(12) ? "checked=checked" : "") value="12" />
+                                <label for="chktb12">
+                                    <span></span>@MyTime3.Content.PersianString.ViewReports
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mat-check">
+                        <div class="exp">
+                            <div class="checkbox">
+                                <input type="checkbox" name="ToolbarItems" id="chktb13" @(Model.Contains(13) ? "checked=checked" : "") value="13" />
+                                <label for="chktb13">
+                                    <span></span>@MyTime3.Content.PersianString.RemainLeave
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (temp)
+                    {
+                        <div class="mat-check">
+                            <div class="exp">
+                                <div class="checkbox">
+                                    <input type="checkbox" name="ToolbarItems" id="chktb14" @(Model.Contains(14) ? "checked=checked" : "") value="14" />
+                                    <label for="chktb14">
+                                        <span></span>@MyTime3.Content.PersianString.PersonnelStatusReport
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                    }
+
+                    <div style="margin:auto" class="text-center">
+                        <button style="padding: 0.5em 3em 0.5em 3em" type="submit" class="btn btn-primary btn-shadow">@MyTime3.Content.PersianString.OK</button>
+                        <button style="padding: 0.5em 3em 0.5em 3em; " type="button" class="btn btn-default" data-dismiss="modal">@MyTime3.Content.PersianString.Cancel</button>
+                    </div>
+
+                </form>
+
+
+            </div>
+
+        </div>
+    </div>
+</div>

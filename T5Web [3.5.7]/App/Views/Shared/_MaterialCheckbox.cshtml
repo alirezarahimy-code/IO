@@ -1,0 +1,17 @@
+﻿@model MaterialCheckboxModel
+<div class="mat-check">
+    <div class="exp">
+        <div class="checkbox">
+            <div>
+                <input type="checkbox" name="@Model.Name" id="chk_@(Model.ID)" @(Model.IsChecked ? "checked=checked" : "") value="@Model.CheckValue" />
+                <label for="chk_@(Model.ID)">
+                    <span></span>@Model.Label
+                </label>
+                @if (Model.UnCheckValue != null)
+                {
+                    <input type="hidden" name="@Model.Name" value="@Model.UnCheckValue" />
+                }
+            </div>
+        </div>
+    </div>
+</div>

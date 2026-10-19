@@ -1,0 +1,149 @@
+﻿@model T5V3Web.Models.TreeDataEntryModel<Personnel.Model.Gate>
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.Gates;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.Devices;
+    ViewBag.PageTag = "Gate";
+}
+
+
+<h3>@T5V3Web.Content.Persian.Gates</h3>
+<div class="horizontal-line"></div>
+
+<div>
+    <form role="form" class="form-horizontal" method="post" action="/Gate/Edit">
+        @if (Model.Selected.GateID <= 0)
+        {
+            <div class="form-group">
+                <label class="control-label col-sm-2 left-align">: @T5V3Web.Content.Persian.UpperDeptName</label>
+                <label class="control-label col-sm-2">@Model.ParentName</label>
+            </div>
+        }
+
+        <div class="form-group">
+            <input name="UpperGateID" type="hidden" value="@Model.Selected.UpperGateID" />
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.GateName</label>
+            </div>
+            <div class="col-sm-10">
+                <input class="form-control" name="GateName" type="text" value="@Model.Selected.GateName" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            @if (Model.Selected.GateID > 0)
+            {
+                <input name="GateID" type="hidden" value="@Model.Selected.GateID" />
+                <div class="col-sm-offset-2 col-sm-2 right-align">
+                    <input class="btn btn-default" type="submit" value="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Edit, T5V3Web.Content.Persian.Gate))" />
+                </div>
+            }
+            else
+            {
+                <input name="GateID" type="hidden" value="-1" />
+                <div class="col-sm-offset-2 col-sm-2 right-align">
+                    <input class="btn btn-default" type="submit" value="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Add2, T5V3Web.Content.Persian.Gate))" />
+                </div>
+            }
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-10 col-sm-offset-1 center-align">
+                @if (Model.ValidationMessage != null)
+                {
+                    <div class="@((T5V3Web.Models.ValidationMessageType)Model.ValidationMessageType == T5V3Web.Models.ValidationMessageType.Error ? "alert alert-danger fade in" : "alert alert-success fade in")">
+                        @Model.ValidationMessage
+                        <a rel="noopener noreferrer" href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </form>
+
+</div>
+
+<div class="horizontal-line"></div>
+
+<div class="panel panel-warning">
+    <div class="panel-heading">
+        <label>@T5V3Web.Content.Persian.Gates</label>
+    </div>
+    <div class="panel-body">
+        <div class="auto-scroll block-display" style="max-height:460px">
+            <div class="right-align" id="tree">
+            </div>
+        </div>
+
+        @if (Model.Selected != null)
+        {
+            <input type="hidden" id="selectedgateid" name="selectedgateid" value="@Model.Selected.GateID" />
+        }
+        else
+        {
+            <input type="hidden" id="selectedgateid" name="selectedgateid" value="-1" />
+        }
+
+        <div class="panel panel-danger">
+            <div class="panel-heading">
+                <div class="btn-group">
+                    <button type="button" data-toggle="tooltip" onclick="addnewtitle()" class="btn btn-default glyphicon glyphicon-plus" title="@(string.Format ("{0} {1}" ,T5V3Web.Content.Persian.Add2 ,T5V3Web.Content.Persian.Gate))"></button>
+                    <button type="button" data-toggle="tooltip" onclick="deleteselectedtitle()" class="btn btn-default glyphicon glyphicon-remove" title="@T5V3Web.Content.Persian.DeleteSelectedItems"></button>
+                </div>
+            </div>
+            <div class="panel-body">
+                <label>@T5V3Web.Content.Persian.SelectedTitle :</label>
+                @if (Model.Selected != null)
+                {
+                    <label id="selectedgatename">@Model.Selected.GateName</label>
+                }
+                else
+                {
+                    <label id="selectedgatename"></label>
+                }
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
+@section scripts{
+    <script>
+        $.get("/Gate/GetTree?linkPattern=/Gate/Index?gateID={0}&selectedID=" + "@Model.Selected.GateID", "", (function (gdata) {
+            $('#tree').treeview({
+                data: gdata,
+                levels: 50,
+                enableLinks: true,
+                onNodeSelected: function (event, data) {
+                    $("#selectedgateid").val(data.tags);
+                    $("#selectedgatename").html(data.text);
+                }
+            });
+        }));
+
+        function addnewtitle() {
+            window.location.href = "/Gate/Index?gateID=-1&upperGateID=" + $("#selectedgateid").val();
+        }
+
+        function deleteselectedtitle() {
+            confirmDelete($("#selectedgateid").val());
+        }
+
+        function showtoolbar(id) {
+            hidetoolbars();
+            document.getElementById('tool' + id).style.visibility = 'visible';
+        }
+
+        function hidetoolbars() {
+            var a = document.getElementsByClassName('toolbar');
+            for (var i = 0; i < a.length ; i++)
+                a[i].style.visibility = 'hidden';
+        }
+    </script>
+    @{
+        ViewDataDictionary temp = new ViewDataDictionary();
+        temp.Add(new KeyValuePair<string, object>("DeleteUrl", "/Gate/Delete"));
+        @Html.Partial("_ConfirmDeleteScripts", temp);
+    }
+}
+

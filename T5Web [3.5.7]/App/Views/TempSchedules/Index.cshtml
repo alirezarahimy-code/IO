@@ -1,0 +1,216 @@
+﻿@model T5V3Web.Models.TempSchedulesModel
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.TempSchedules;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.AttendanceData;
+    ViewBag.PageTag = "TempSchedules";
+}
+
+<h3>@T5V3Web.Content.Persian.TempSchedules</h3>
+
+<div class="horizontal-line">
+</div>
+
+
+<form method="post" action="/TempSchedules/Show">
+    <div class="border-gray mb-20">
+        @Html.Partial("_SelectUser", T5V3Web.Controllers.UserSelectionController.CreateModel(Model.BadgeNumbers))
+    </div>
+
+    <label>انتخاب بازه زمانی ...</label>
+    <div class="border-gray pad-5 border-gray">
+        @Html.Partial("_SelectDateInterval", Model.Interval)
+    </div>
+
+    <input class="btn btn-success mb-20 mt-10" type="submit" value="@T5V3Web.Content.Persian.ShowTempSchedules" />
+</form>
+
+
+<div id="tabs" style="font-family:Tahoma">
+    <ul id="temp">
+        <li class="float-right"><a  rel="noopener noreferrer" href="#tabs-1">@T5V3Web.Content.Persian.TempSchedulesGroup</a></li>
+        <li class="float-right"><a  rel="noopener noreferrer" href="#tabs-2">@T5V3Web.Content.Persian.TempScheduleWithRecords</a></li>
+    </ul>
+    <div class="auto-scroll" id="tabs-1">
+        <table id="temp1" class="table table-bordered table-hover table-responsive table-striped">
+            <thead>
+                <tr class="warning">
+                    <td>@T5V3Web.Content.Persian.Date</td>
+                    <td>@T5V3Web.Content.Persian.DayOfWeek</td>
+                    <td>@T5V3Web.Content.Persian.Schedule</td>
+                    <td></td>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int i = 0;
+                    foreach (T5V3Web.Models.TempScheduleDay day in Model.TempSchedules)
+                    {
+                        i++;
+                        <tr>
+                            <td>@day.HijriDate</td>
+                            <td>@day.DayOfWeek</td>
+                            <td id="symbol_@i">@day.ScheduleSymbol</td>
+                            <td>
+                                <div class="dropdown">
+                                    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">
+                                        @T5V3Web.Content.Persian.Edit
+                                        <span class="caret"></span>
+                                    </button>
+                                    @*<button type="button" class="dropdown-toggle"  data-toggle="dropdown" onclick="showSchedules(@i)">
+                                        
+                                    </button>*@
+                                    <ul id="list_@i" class="dropdown-menu">
+                                        @foreach (T5V3.Model.Schedule s in ViewBag.Schedules)
+                                        {
+                                            <li>
+                                                <a  rel="noopener noreferrer" href="javascript:" onclick="addSch(@s.ID,'@day.HijriDate',@i)">
+                                                    @s.Name
+                                                </a>
+                                            </li>
+                                        }
+                                        <li class="divider"></li>
+                                        <li>
+                                            <a  rel="noopener noreferrer" href="javascript:" onclick="addSch(-1,'@day.HijriDate',@i)">
+                                                @T5V3Web.Content.Persian.Delete
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="auto-scroll" id="tabs-2">
+        <table id="temp2" class="table table-bordered table-hover table-responsive table-striped">
+            <thead>
+                <tr class="warning">
+                    <td>@T5V3Web.Content.Persian.BadgeNumber</td>
+                    <td>@T5V3Web.Content.Persian.Name</td>
+                    <td>@T5V3Web.Content.Persian.Date</td>
+                    <td>@T5V3Web.Content.Persian.Record 1</td>
+                    <td>@T5V3Web.Content.Persian.Record 2</td>
+                    <td>@T5V3Web.Content.Persian.Record 3</td>
+                    <td>@T5V3Web.Content.Persian.Record 4</td>
+                    <td>@T5V3Web.Content.Persian.Record 5</td>
+                    <td>@T5V3Web.Content.Persian.Record 6</td>
+                    <td>@T5V3Web.Content.Persian.Schedule</td>
+                    <td></td>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int j = 0;
+                    foreach (T5V3Web.Models.RecordTempSch day in Model.TempSchedulesRcords)
+                    {
+                        j++;
+                        <tr>
+                            <td>@day.BadgeNumber</td>
+                            <td>@day.Name</td>
+                            <td>@day.HijriDate</td>
+                            <td>@(day.Records.Count > 0 ? day.Records[0] : "")</td>
+                            <td>@(day.Records.Count > 1 ? day.Records[1] : "")</td>
+                            <td>@(day.Records.Count > 2 ? day.Records[2] : "")</td>
+                            <td>@(day.Records.Count > 3 ? day.Records[3] : "")</td>
+                            <td>@(day.Records.Count > 4 ? day.Records[4] : "")</td>
+                            <td>@(day.Records.Count > 5 ? day.Records[5] : "")</td>
+                            <td id="symbol2_@j" style="background-color:@(day.IsTemp ? "red" : "")">@day.ScheduleSymbol</td>
+                            <td>
+                                <div class="dropdown">
+                                    <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">
+                                        @T5V3Web.Content.Persian.Edit
+                                        <span class="caret"></span>
+                                    </button>
+                                    <ul id="list2_@j" class="dropdown-menu">
+                                        @foreach (T5V3.Model.Schedule s in ViewBag.Schedules)
+                                        {
+                                            <li>
+                                                <a  rel="noopener noreferrer" href="javascript:" onclick="addSch2(@s.ID,'@day.HijriDate',@j,@day.BadgeNumber)">
+                                                    @s.Name
+                                                </a>
+                                            </li>
+                                        }
+                                        <li class="divider"></li>
+                                        <li>
+                                            <a  rel="noopener noreferrer" href="javascript:" onclick="addSch2(-1,'@day.HijriDate',@j,@day.BadgeNumber)">
+                                                @T5V3Web.Content.Persian.Delete
+                                            </a>
+                                        </li>
+                                    </ul>
+
+                                </div>
+                                @*<a href="javascript:" onclick="showSchedules2(@j)">
+                                    @T5V3Web.Content.Persian.Edit
+                                </a>*@
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+@section scripts
+    {
+    <script>
+        $("#tabs").tabs();
+        $("#tabs ul#temp").removeClass('ui-helper-clearfix', 0, 1, '');
+        $("#tabs ul#temp").css('height', '40px');
+    </script>
+
+    <script>
+        function showSchedules(index) {
+            //$("#temp1 ul").attr('class', 'collapsed-visibility');
+            //$("#list_" + index).attr('class', 'visible-visibility');
+        }
+
+        function showSchedules2(index) {
+            //$("#temp2 ul").attr('class', 'collapsed-visibility');
+            //$("#list2_" + index).attr('class', 'visible-visibility');
+        }
+
+        function addSch(id, day, index) {
+            var selectedlist = [];
+            $('input[name="selectedBadgeNumbers"]:checked').each(function () {
+                selectedlist.push($(this).val());
+            });
+
+            //alert(selectedlist.length);
+                //selectedlist[i] = temp[i].value;
+            if (selectedlist.length > 0) {
+
+                $.ajax({
+                    url: "/TempSchedules/EditSch",
+                    contentType: "application/json; charset=utf-8",
+                    
+                    method: "POST",
+                    data: JSON.stringify({ schID: id, day: day, selectedBadgeNumbers: selectedlist }),
+                    success: function (data) {
+                        $("#symbol_" + index).html(data);
+                    }
+                })
+                    
+            }
+            //$("#temp1 ul").attr('class', 'collapsed-visibility');
+        }
+
+        function addSch2(id, day, index, badge) {
+            $.ajax({
+                url: "/TempSchedules/EditSch",
+                method: "POST",
+                data: { schID: id, day: day, selectedBadgeNumbers: badge },
+            })
+            .done(function (res) {
+                $("#symbol2_" + index).html(res);
+                $("#symbol2_" + index).css("background-color", "red");
+            }
+            );
+
+            //$("#temp2 ul").attr('class', 'collapsed-visibility');
+        }
+    </script>
+}

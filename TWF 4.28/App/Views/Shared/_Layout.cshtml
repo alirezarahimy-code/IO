@@ -1,0 +1,295 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewBag.Title - سامانه حضور و غیاب بعد پنجم</title>
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+    @*<meta name="viewport" content="width=device-width, initial-scale=10" />*@
+    @{
+        var nomenu = false;
+        if (ViewBag.NoMenu != null)
+        {
+            nomenu = (bool)ViewBag.NoMenu;
+        }
+    }
+
+    <script src="~/Scripts/jquery-3.6.1.js"></script>
+    <link href="~/Content/jquery-ui.css" rel="stylesheet" />
+    <script src="~/Scripts/bootstrap.js"></script>
+    <link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+    <link href="~/Content/Main.css" rel="stylesheet" />
+    <link href="~/Content/font-awesome.css" rel="stylesheet" />
+    <link href="~/Content/style.css" rel="stylesheet" />
+    @RenderSection("TopStyle", false)
+    @Styles.Render("~/Content/Calendar.css")
+
+    @Scripts.Render("~/Scripts/JsFarsiCalendar.js")
+
+    <script src="~/Scripts/jquery.ptTimeSelect.js"></script>
+    <link href="~/Content/jquery.ptTimeSelect.css" rel="stylesheet" />
+    <script src="~/Scripts/jquery.maskedinput.js"></script>
+
+
+</head>
+
+<body>
+    @Html.Partial("_ToolbarSettings", MyTime3.Controllers.HomeController.GetToolbars(Context))
+    @RenderSection("modals", required: false)
+
+    <div id="lockRequestsModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <div class="card-header">
+                        <h3 class="modal-title">@MyTime3.Content.PersianString.LockRequests</h3>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="/Home/SetRequestsLock">
+                        <label>@MyTime3.Content.PersianString.RequestsLockInfo</label>
+
+                        <div class="material-input date-input text-right">
+                            <div class="col-sm-8 col-sm-offset-1">
+                                <div class="group">
+                                    @*<input value="@(T5V3.Misc.DateConverter.ToHijriDate(DateTime.FromOADate(MyTime3.Controllers.HomeController.RequestLockValuee())))" name="newval" type="text">*@
+                                    <input value="@(T5V3.Misc.DateConverter.ToHijriDate(DateTime.FromOADate(MyTime3.Controllers.HomeController.RequestLockValuee())))" name="newval" class="datepicker-farsi" type="text">
+                                    <span class="highlight"></span>
+                                    <span class="bar"></span>
+                                    <label>@MyTime3.Content.PersianString.Date</label>
+                                </div>
+                            </div>
+                            <div id="divintervalfrom111"></div>
+                            @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('newval', this, null, null, 'divintervalfrom111', 'datepicker1')">@MyTime3.Content.PersianString.SelectDate</a>*@
+                        </div>
+
+                        <br />
+                        <br />
+
+                        <div style="margin:auto" class="text-center">
+                            <button style="padding: 0.5em 3em 0.5em 3em" type="submit" class="btn btn-primary btn-shadow">@MyTime3.Content.PersianString.OK</button>
+                            <button style="padding: 0.5em 3em 0.5em 3em; " type="button" class="btn btn-default" data-dismiss="modal">@MyTime3.Content.PersianString.Cancel</button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="page-body">
+        <div style="min-height:100%">
+
+            <div class="page-content">
+
+                @if (MyTime3.Authorization.LoginManager.GetBadgeNumber(Context) != "" & !nomenu)
+                {
+                    <div style="padding-bottom:150px;z-index:3" id="tool" class="right-menu @((MyTime3.Controllers.HomeController.SideMenu(Context)) ? "" : "right-300") ">
+
+                        <div style="background-color:rgb(50,120,250);width:100%;padding:0.5em;color:white">
+                            <img style="margin-left:4px; width:70%;display:inline-block" src="/home/MyBanner?Index=1" />
+                            @*<img style="margin-left:4px; width:70%;display:inline-block" src="/home/MyBanner?Index=1" />*@
+                            <label>
+                                @MyTime3.Content.PersianString.SoftwareName
+                            </label>
+                        </div>
+
+                        <div style="margin:1em;display:-ms-flexbox; display:flex; padding-left:30px">
+                            <button onclick="test()" style="border:none;" class="btn btn-default">
+                                <span style="font-size:1.3em;" class="fa fa-arrow-right"></span>
+                            </button>
+                            @*<label style="flex-grow:1" class="large-font">@MyTime3.Content.PersianString.bode5</label>*@
+                        </div>
+
+                        <div style="overflow: auto;height:90%">
+                            <div class="tool text-right" style="padding:0px;height:90%">
+                                @Html.Partial("_Menu")
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <div id="con" @(((MyTime3.Authorization.LoginManager.GetBadgeNumber(Context) != "") && (MyTime3.Controllers.HomeController.SideMenu(Context))) && !nomenu ? "class=right300" : "") style="transform: translate3d(0px, 0px, 0px); transition: 1s; ">
+                    @if (MyTime3.Authorization.LoginManager.GetBadgeNumber(Context) != "" & !nomenu)
+                    {
+
+                        <nav class="navbar">
+                            <button onclick="test()" class="btn btn-default btn-circle">
+                                <span class="fa fa-bars"></span>
+                            </button>
+                            @*<h4 style="margin:10px;">*@
+                            <img style="margin-left:4px;display:inline-block;height:2.5em " src="/home/MyBanner?Index=4" />
+
+
+                            @*</h4>*@
+
+                            <div style="-ms-flex:1; flex-shrink:1;flex-grow:1">
+                                <h4 style="margin:10px;">
+                                    @MyTime3.GlobalHelper.GetLoggedInUserName(Context)
+                                </h4>
+                            </div>
+                            <div class="profile dropdown dropdown-menu-left">
+                                <label>@Html.Partial("_CurrentTime")</label>
+                                <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">
+                                    <i class="fa fa-user fa-2x"></i>
+                                    @*<span class="caret"></span>*@
+                                </button>
+
+                                <ul class="dropdown-menu">
+                                    <li class="text-center">@MyTime3.GlobalHelper.GetLoggedInUserName(Context)</li>
+                                    <li class="divider"></li>
+                                    <li><a rel="noopener noreferrer" href="/Login/ChangePassword">@MyTime3.Content.PersianString.ChangePassword</a></li>
+                                    <li><a rel="noopener noreferrer" href="/Login/Logout">@MyTime3.Content.PersianString.Logout</a></li>
+                                    @if (MyTime3.Authorization.LoginManager.GetRole(new HttpContextWrapper(HttpContext.Current)) == "admin" & !nomenu)
+                                    {
+                                        <li class="divider"></li>
+                                        <li><a rel="noopener noreferrer" href="/settings">@MyTime3.Content.PersianString.Settings</a></li>
+                                        <li><a rel="noopener noreferrer" href="javascript:lockRequests()">@MyTime3.Content.PersianString.LockRequests</a></li>
+                                        @*<li><a rel="noopener noreferrer" href="/Request/lockRequests">@MyTime3.Content.PersianString.LockRequests</a></li>*@
+                                    }
+                                </ul>
+                            </div>
+                        </nav>
+                    }
+
+                    <div style="overflow:auto; background-color:transparent; padding-top:1em;padding-left: 5%; padding-right: 5%; padding-bottom:10px; " class="">
+                        @if (MyTime3.Authorization.LoginManager.GetBadgeNumber(Context) != "" & !nomenu)
+                        {
+                            @Html.Partial("_Toolbar")
+                        }
+                        <div id="renderbodydiv" style="position: relative; @(((MyTime3.Authorization.LoginManager.GetBadgeNumber(Context) != "") && (MyTime3.Controllers.HomeController.ToolbarShow(Context))) ? "top:-6em;" : "top:0em;") transition: 0.5s;">
+                            @RenderBody()
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+
+            <footer style="position:absolute;left:0px;bottom:0px;height:80px; background-color:#e8e8e8;width:100%">
+                <div style="padding:0.5em" class="float-center">
+                    <p>کلیه حقوق این مجموعه طبق قوانین نرم افزاری متعلق به شرکت سامانه های بٌعد پنجم می باشد</p>
+                    <p>&copy; 2017 - <a rel="noopener noreferrer" target="_blank" href="http://www.5thDSystems.com">www.5thDSystems.com</a> </p>
+                </div>
+            </footer>
+        </div>
+    </div>
+    <div id="dummy" style="color:white"></div>
+
+    <script>
+        $(".material-dropdown input[type=text]").on("keydown", function () { return false; });
+        $(".material-dropdown input[type=text]").prop("autocomplete", "off");
+
+        $(".sub-menu").parent().toggle();
+        $(".timespan-input").mask('99:59');
+
+        function dropdownChanged(valueID, textID, text, value) {
+            $("#" + valueID).val(value);
+            $("#" + textID).val(text);
+        }
+
+        function expandMenu(item, subMenu) {
+            $(item).find("i.drop").toggleClass("fa-caret-down");
+            $(item).find("i.drop").toggleClass("fa-caret-right");
+            $(subMenu).slideToggle(500);
+        }
+
+        function getCookie(cname) {
+            var name = cname + "=";
+            var decodedCookie = decodeURIComponent(document.cookie);
+            var ca = decodedCookie.split(';');
+            for (var i = 0; i < ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0) == ' ') {
+                    c = c.substring(1);
+                }
+                if (c.indexOf(name) == 0) {
+                    return c.substring(name.length, c.length);
+                }
+            }
+            return "";
+        }
+
+        function lockRequests() {
+            $("#lockRequestsModal").modal();
+        }
+
+        function setCookie(cname, cvalue, exdays) {
+            var d = new Date();
+            d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+            var expires = "expires=" + d.toUTCString();
+            document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+        }
+
+        function test() {
+            try {
+                if (getCookie("sidemenu") == "")
+                    setCookie("sidemenu", "true", 120);
+
+                if (getCookie("sidemenu") == "false")
+                    setCookie("sidemenu", "true", 120);
+                else
+                    setCookie("sidemenu", "false", 120);
+            }
+            catch (err) {
+                setCookie("sidemenu", "false", 120);
+            }
+
+            $("#tool").toggleClass("right-300");
+            $("#con").toggleClass("right300");
+        }
+
+        function shtb() {
+            try {
+                if (getCookie("toolb") == "")
+                    setCookie("toolb", "true", 120);
+
+                if (getCookie("toolb") == "false")
+                    setCookie("toolb", "true", 120);
+                else
+                    setCookie("toolb", "false", 120);
+            }
+            catch (err) {
+                setCookie("toolb", "false", 120);
+            }
+
+            $("#toolbarShowHide").toggleClass("fa-chevron-circle-up");
+            $("#toolbarShowHide").toggleClass("fa-chevron-circle-down");
+
+            $("#toolbarmaindiv").toggleClass("hideToolbar");
+
+            if ($("#toolbarmaindiv .toolItem a:first").css("color") == $("#dummy").css("color")) {
+                $("#renderbodydiv").css("top", "-6em");
+                $("#toolbarmaindiv .toolItem a").css("color", "#03a9f4");
+            }
+            else {
+                $("#renderbodydiv").css("top", "0em");
+                $("#toolbarmaindiv .toolItem a").css("color", "#fff");
+            }
+
+        }
+
+        function tbstt() {
+            $("#toolbarselectModal").modal();
+        }
+        settings = {
+            format: "yyyy/mm/dd",
+            dateSeparator: "/",
+            autoClose: true,
+            labelLanguage: 'farsi'
+        }
+        renderToday();
+        //function dropdownMenuLayout() {
+        //    $(".menuLayout").slideToggle();
+        //}
+        //$("#ForDateHijriTest").pDatepicker({ initialValue: false, format: "YYYY/MM/DD", persianDigit: false, calendar: { persian: { leapYearMode: 'astronomical' } } });
+
+    </script>
+    @RenderSection("scripts", required: false)
+    @RenderSection("EndScript", false)
+    <script src="~/Scripts/index.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,61 @@
+﻿@{
+    ViewBag.Title = Persian.ChangeLicense;
+}
+
+<div class="text-right card-header">
+    <h3>@Persian.ChangeLicense</h3>
+</div>
+<div class="card">
+    <form id="frmCode">
+        <div class="text-right" style="padding:1em">
+
+            <div>
+                @Html.Partial("_MaterialRadio", new MaterialRadioModel() { ID = 1, InputName = "ChangeType", InputValue = "1", Title = Persian.Activation })
+            </div>
+            <div>
+                @Html.Partial("_MaterialRadio", new MaterialRadioModel() { ID = 2, InputName = "ChangeType", InputValue = "2", Title = Persian.PersonnelLimit })
+            </div>
+            <div>
+                @Html.Partial("_MaterialRadio", new MaterialRadioModel() { ID = 3, InputName = "ChangeType", InputValue = "3", Title = Persian.StationLimit })
+            </div>
+            <div>
+                @Html.Partial("_MaterialRadio", new MaterialRadioModel() { ID = 4, InputName = "ChangeType", InputValue = "4", Title = Persian.DeviceLimit })
+            </div>
+            <div>
+                @Html.Partial("_MaterialRadio", new MaterialRadioModel() { ID = 5, InputName = "ChangeType", InputValue = "5", Title = Persian.DemoLimit })
+            </div>
+            <div>
+                @Html.Partial("_MaterialRadio", new MaterialRadioModel() { ID = 6, InputName = "ChangeType", InputValue = "6", Title = Persian.TimeAppLimit })
+            </div>
+            <div>
+                @Html.Partial("_MaterialTextbox", new MaterialTextboxModel() { InputName = "Code", InputValue = "", Label = Persian.Code })
+            </div>
+            <br />
+            <div class="text-center">
+                <div style="margin:auto;">
+                    <button type="button" onclick="checkCode()" class="btn btn-shadow btn-primary">@Persian.OK</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section scripts
+{
+    <script>
+        function checkCode() {
+            run_waitMe('win8');
+
+            $.ajax({
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                data: $("#frmCode").serialize(),
+                type: "POST",
+                url: "/ChangeLock/Check",
+                success: function (data) {
+                    $('body').waitMe('hide');
+                    alert(data);
+                }
+            });
+        }
+    </script>
+}

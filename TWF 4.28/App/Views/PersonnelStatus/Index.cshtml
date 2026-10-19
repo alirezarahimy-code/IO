@@ -1,0 +1,154 @@
+﻿@model MyTime3.Models.PerosnnelStatusModel
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.PersonnelStatusReport;
+}
+@section TopStyle{
+    <link href="~/Content/style.css" rel="stylesheet" />
+}
+@section EndScript{
+    <script src="~/Scripts/index.js"></script>
+    <script>
+
+        settings = {
+            format: "yyyy/mm/dd",
+            dateSeparator: "/",
+            autoClose: true,
+            labelLanguage: 'farsi'
+        }
+        renderToday();
+    </script>
+}
+<style>
+    table.dpTable {
+        border-collapse: initial;
+        border-spacing: initial;
+    }
+</style>
+
+
+<div class="text-right card-header">
+    <h3>@Html.Raw(MyTime3.Content.PersianString.PersonnelStatusReport)</h3>
+</div>
+
+<div class="card">
+
+    @using (@Html.BeginForm("Index", "PersonnelStatus", FormMethod.Get, new { @class = "form-horizontal" }))
+    {
+
+        <div class="material-input date-input text-right">
+            <div class="col-sm-4 col-sm-offset-1">
+                <div class="group">
+                    <input value="@(T5V3.Misc.DateConverter.ToHijriDate(Model.ForDate))" required class="datepicker-farsi" name="hjDate" type="text">
+                    @*<input name="hjDate" type="text" value="@(T5V3.Misc.DateConverter.ToHijriDate(Model.ForDate))" required>*@
+                    <span class="highlight"></span>
+                    <span class="bar"></span>
+                    <label>@MyTime3.Content.PersianString.Date</label>
+                </div>
+            </div>
+            <div id="datediv"></div>
+            @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('hjDate', this, null, null, 'datediv')">@MyTime3.Content.PersianString.SelectDate</a>*@
+        </div>
+
+
+        @*<div class="form-group">
+                <div class="col-sm-2 text-left">
+                    @Html.Label(MyTime3.Content.PersianString.Date, new { @class = "formLabel" })
+                </div>
+                <div class="text-right">
+                    <input type="text" name="hjDate" value="@(T5V3.Misc.DateConverter.ToHijriDate(Model.ForDate))" />
+                    <a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('hjDate', this)">@MyTime3.Content.PersianString.SelectDate</a>
+                </div>
+            </div>*@
+
+        <div style="margin-top:30px" class="text-right">
+            <div class="col-sm-offset-1">
+                <label for="rad1" class="input-control radio">
+                    <input id="rad1" type="radio" @(Model.RType == 1 ? "checked=checked" : "") name="rType" value="1">
+                    <span class="input-control__indicator"></span>@MyTime3.Content.PersianString.All
+                </label>
+            </div>
+            <div class="col-sm-offset-1">
+                <label for="rad2" class="input-control radio">
+                    <input id="rad2" type="radio" @(Model.RType == 2 ? "checked=checked" : "") name="rType" value="2">
+                    <span class="input-control__indicator"></span>@MyTime3.Content.PersianString.AbsentWORecord
+                </label>
+            </div>
+            <div class="col-sm-offset-1">
+                <label for="rad3" class="input-control radio">
+                    <input id="rad3" type="radio" @(Model.RType == 3 ? "checked=checked" : "") name="rType" value="3">
+                    <span class="input-control__indicator"></span>@MyTime3.Content.PersianString.PresentOddRecord
+                </label>
+            </div>
+            <div class="col-sm-offset-1">
+                <label for="rad4" class="input-control radio">
+                    <input id="rad4" type="radio" @(Model.RType == 4 ? "checked=checked" : "") name="rType" value="4">
+                    <span class="input-control__indicator"></span>@MyTime3.Content.PersianString.ExitEvenRecords
+                </label>
+            </div>
+        </div>
+
+        @*<div class="form-group">
+                <div class="col-sm-offset-2 text-right">
+                    <div class="radio">
+                        <label><input type="radio" @(Model.RType == 1 ? "checked=checked" : "") name="rType" value="1">@MyTime3.Content.PersianString.All</label>
+                    </div>
+                    <div class="radio">
+                        <label><input type="radio" @(Model.RType == 2 ? "checked=checked" : "") name="rType" value="2">@MyTime3.Content.PersianString.WORecord</label>
+                    </div>
+                    <div class="radio">
+                        <label><input type="radio" @(Model.RType == 3 ? "checked=checked" : "") name="rType" value="3">@MyTime3.Content.PersianString.OddRecords</label>
+                    </div>
+                    <div class="radio">
+                        <label><input type="radio" @(Model.RType == 4 ? "checked=checked" : "") name="rType" value="4">@MyTime3.Content.PersianString.EvenRecords</label>
+                    </div>
+                </div>
+            </div>*@
+
+        <div class="material-input text-right">
+            <div class="col-sm-offset-1 col-sm-2">
+                <div class="group">
+                    <button style="width:100%" class="btn btn-primary btn-shadow" type="submit">@MyTime3.Content.PersianString.OK</button>
+                </div>
+            </div>
+        </div>
+
+        <table class="top-buffer table table-hover table-responsive table-bordered table-striped">
+            <thead>
+                <tr style="background-color:#dcdcdc">
+                    <td>
+                        @MyTime3.Content.PersianString.BadgeNumber
+                    </td>
+                    <td>
+                        @MyTime3.Content.PersianString.Name
+                    </td>
+                    <td>
+                        @MyTime3.Content.PersianString.Status
+                    </td>
+                    <td colspan="24">
+                        ترددها...
+                    </td>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model.Rows)
+                {
+                    <tr>
+                        <td>@r.BadgeNumber</td>
+                        <td>@r.Name</td>
+                        <td>@r.State</td>
+
+                        <td>
+                            @foreach (var d in r.Records)
+                            {
+                                <label data-toggle="tooltip" title="دستگاه :  @d.Name">@d.CheckTime.ToString("HH:mm") &nbsp;</label>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+<script>
+    $('[data-toggle="tooltip"]').tooltip();
+</script>

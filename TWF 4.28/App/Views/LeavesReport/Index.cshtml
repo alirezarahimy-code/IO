@@ -1,0 +1,55 @@
+﻿@model IEnumerable<MyTime3.Controllers.LeavesReportController.LV>
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.ShowLeaves;
+}
+
+<style>
+    table.dpTable {
+        border-collapse: initial;
+        border-spacing: initial;
+    }
+</style>
+
+<div class="page-header">
+    <h3>@Html.Raw(MyTime3.Content.PersianString.ShowLeaves)</h3>
+</div>
+
+
+<table class="table table-hover table-responsive table-bordered table-striped">
+    <thead>
+        <tr style="background-color:#dcdcdc">
+            <td>
+                @MyTime3.Content.PersianString.BadgeNumber
+            </td>
+            <td>
+                @MyTime3.Content.PersianString.Name
+            </td>
+            <td>
+                @MyTime3.Content.PersianString.Status
+            </td>
+            <td>
+                @MyTime3.Content.PersianString.Time
+            </td>
+            <td>
+                @MyTime3.Content.PersianString.Descriptions
+            </td>
+            
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var r in Model)
+        {
+            <tr>
+                <td>@r.BadgeNumber</td>
+                <td>@r.Name</td>
+                <td>@r.Type</td>
+                <td>@r.FromTo</td>
+                <td>@r.Descriptions</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script>
+    $('[data-toggle="tooltip"]').tooltip();
+</script>

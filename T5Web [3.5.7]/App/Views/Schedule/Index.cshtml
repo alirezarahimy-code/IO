@@ -1,0 +1,429 @@
+﻿@{
+    ViewBag.Title = T5V3Web.Content.Persian.Schedule;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.AttendanceData;
+    ViewBag.PageTag = "Schedule";
+}
+
+<div class="page-header">
+    <h3>@T5V3Web.Content.Persian.Schedule</h3>
+</div>
+
+@{
+    T5V3Web.Models.GridModel grd = new T5V3Web.Models.GridModel();
+    grd.DeleteAllAPIPath = "/Schedule/DeleteAll";
+    grd.DeleteAPIPath = "/Schedule/Delete/";
+    grd.GetListAPIPath = "/Schedule/GetList";
+    grd.IDPropertyName = "ID";
+    grd.DisplayPropertyName = "Name";
+    grd.Columns.Add(new T5V3Web.Models.GridModel.Column(T5V3Web.Content.Persian.ScheduleName, "Name"));
+    @Html.Partial("_Grid", grd);
+}
+
+
+<div id="edit-panel" class="panel panel-default collapsed-visibility">
+    <div class="panel-heading">
+        <label id="title-panel-label">@T5V3Web.Content.Persian.Edit</label>
+    </div>
+    <div class="panel-body">
+        <form class="form-horizontal" role="form" method="post" action="/Schedule/Edit">
+
+            <input type="hidden" id="ID" />
+
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <div class="col-sm-3 text-center">
+                        <label class="control-label">@T5V3Web.Content.Persian.ScheduleName <font style="color:red">*</font></label>
+                    </div>
+                    <div class="col-sm-9">
+                        <input id="txtName" class="form-control" name="Name" placeholder="@T5V3Web.Content.Persian.ScheduleName" type="text" value="" />
+                    </div>
+                </div>
+
+                <div class="form-group mt-30">
+                    <div class="col-sm-3">
+                        <label class="control-label">@T5V3Web.Content.Persian.FromTime</label>
+                    </div>
+                    <div class="col-sm-9">
+                        <input id="txtFromTime" class="timespan-input form-control" name="FromTime" type="text" value="" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-3">
+                        <label class="control-label">@T5V3Web.Content.Persian.ToTime</label>
+                    </div>
+                    <div class="col-sm-9">
+                        <input id="txtToTime" class="timespan-input form-control" name="ToTime" type="text" value="" />
+                    </div>
+                </div>
+
+                <div class="form-group mt-30">
+                    <div class="col-sm-3">
+                        <label class="control-label">@T5V3Web.Content.Persian.InFrom</label>
+                    </div>
+                    <div class="col-sm-9">
+                        <input id="txtStartFrom" class="timespan-input form-control" name="StartFrom" type="text" value="" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-3">
+                        <label class="control-label">@T5V3Web.Content.Persian.InTo</label>
+                    </div>
+                    <div class="col-sm-9">
+                        <input id="txtEndFrom" class="timespan-input form-control" name="EndFrom" type="text" value="" />
+                    </div>
+                </div>
+
+                <div class="form-group mt-30">
+                    <div class="col-sm-3">
+                        <label class="control-label">@T5V3Web.Content.Persian.OutFrom</label>
+                    </div>
+                    <div class="col-sm-9">
+                        <input id="txtStartTo" class="timespan-input form-control" name="StartTo" type="text" value="" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-3">
+                        <label class="control-label">@T5V3Web.Content.Persian.OutTo</label>
+                    </div>
+                    <div class="col-sm-9">
+                        <input id="txtEndTo" class="timespan-input form-control" name="EndTo" type="text" value="" />
+                    </div>
+                </div>
+
+                <div class="form-group mt-30">
+                    <div class="col-sm-3">
+                        <label class="control-label">@T5V3Web.Content.Persian.RamzFrom</label>
+                    </div>
+                    <div class="col-sm-9">
+                        <input id="txtRamzFromTime" class="timespan-input form-control" name="RamzFromTime" type="text" value="" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-3">
+                        <label class="control-label">@T5V3Web.Content.Persian.RamzTo</label>
+                    </div>
+                    <div class="col-sm-9">
+                        <input id="txtRamzToTime" class="timespan-input form-control" name="RamzToTime" type="text" value="" />
+                    </div>
+                </div>
+
+                <div class="form-group mt-30">
+                    <div class="col-sm-3">
+                        <label class="control-label">@T5V3Web.Content.Persian.Rule</label>
+                    </div>
+                    <div class="col-sm-9">
+                        @Html.DropDownList("RuleID", (List<SelectListItem>)ViewBag.Rules, new { @ID = "cmbRule", @class = "form-control" })
+                    </div>
+                </div>
+
+                <div class="form-group mt-30">
+                    <div class="col-sm-3">
+                        <label class="control-label">@T5V3Web.Content.Persian.Calendar</label>
+                    </div>
+                    <div class="col-sm-9">
+                        @Html.DropDownList("CalendarID", (List<SelectListItem>)ViewBag.Calendars, new { @ID = "cmbCalendar", @class = "form-control" })
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    <div class="col-sm-offset-3 text-right">
+                        <input onclick="restTime_click" id="chkRestTime" type="checkbox" />
+                        @T5V3Web.Content.Persian.LaunchTime
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div id="restTimes">
+
+                    </div>
+                    <button type="button" class="btn btn-default" onclick="addRestTime()">@T5V3Web.Content.Persian.AddRestTime</button>
+                </div>
+            </div>
+
+            <div class="col-sm-6">
+                <div class="form-group">
+                    <div class="col-sm-3">
+                        <label class="control-label">@T5V3Web.Content.Persian.IntervalAfter</label>
+                    </div>
+                    <div class="col-sm-9">
+                        <input id="txtSuspendTime" class="timespan-input form-control" name="SuspendTime" type="text" value="" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-3">
+                        <label class="control-label">@T5V3Web.Content.Persian.IntervalBefore</label>
+                    </div>
+                    <div class="col-sm-9">
+                        <input id="txtIntervalB" class="timespan-input form-control" name="IntervalB" type="text" value="" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-offset-3 text-right">
+                        <input id="chkBeforeI" type="checkbox" />
+                        @T5V3Web.Content.Persian.BeforeI
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-offset-3 text-right">
+                        <input id="chkAfterI" type="checkbox" />
+                        @T5V3Web.Content.Persian.AfterI
+                    </div>
+                </div>
+
+
+
+                <div class="form-group mt-30">
+                    <div class="col-sm-3">
+                        <label class="control-label">@T5V3Web.Content.Persian.Late</label>
+                    </div>
+                    <div class="col-sm-9">
+                        <input id="txtLate" class="timespan-input form-control" name="Late" type="text" value="" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-3">
+                        <label class="control-label">@T5V3Web.Content.Persian.Early</label>
+                    </div>
+                    <div class="col-sm-9">
+                        <input id="txtEarly" class="timespan-input form-control" name="Early" type="text" value="" />
+                    </div>
+                </div>
+
+                <div class="form-group mt-30">
+                    <div class="col-sm-3">
+                        <label class="control-label">@T5V3Web.Content.Persian.WorkDays</label>
+                    </div>
+                    <div class="col-sm-9">
+                        <input id="txtWorkDays" class="form-control number-input" placeholder="@T5V3Web.Content.Persian.WorkDays" name="WorkDays" type="text" value="" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-3">
+                        <label class="control-label">@T5V3Web.Content.Persian.WorkMins</label>
+                    </div>
+                    <div class="col-sm-9">
+                        <input id="txtWorkMins" class="form-control number-input" placeholder="@T5V3Web.Content.Persian.WorkMins" name="WorkMins" type="text" value="" />
+                    </div>
+                </div>
+
+                <div class="form-group mt-30">
+                    <div class="col-sm-3">
+                        <label class="control-label">@T5V3Web.Content.Persian.Symbol <font style="color:red">*</font></label>
+                    </div>
+                    <div class="col-sm-9">
+                        <input id="txtSymbol" class="form-control" placeholder="@T5V3Web.Content.Persian.Symbol" name="Symbol" type="text" value="" />
+                    </div>
+                </div>
+
+                <div class="form-group mt-30">
+                    <div class="col-sm-3">
+                        <label class="control-label">@T5V3Web.Content.Persian.Color</label>
+                    </div>
+                    <div class="col-sm-9">
+                        <input id="txtColor" class="form-control" name="Color" type="color" value="" />
+                    </div>
+                </div>
+            </div>
+
+
+
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10 text-right">
+                    <button id="btnEdit" onclick="submitData()" type="button" class="btn btn-success"></button>
+                    <button type="button" onclick="invisiblePanel()" class="btn btn-default">@T5V3Web.Content.Persian.Cancel</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@section modals
+{
+    <div id="myModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 id="msg-title" class="modal-title"></h4>
+                </div>
+                <div class="modal-body">
+                    <p id="msg-body"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">@T5V3Web.Content.Persian.OK</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+}
+
+
+@section scripts{
+    <script>
+        loadlist(1, "");
+
+        function addRestTime() {
+
+            var frStr = "<div class=\"col-sm-3\"><label class=\"control-label\">@T5V3Web.Content.Persian.From</label></div><div class=\"col-sm-9\"><input name=\"frRest\" class=\"timespan-input form-control\" type=\"text\" /></div>"
+            var toStr = "<div class=\"col-sm-3\"><label class=\"control-label\">@T5V3Web.Content.Persian.To</label></div><div class=\"col-sm-9\"><input name=\"toRest\" class=\"timespan-input form-control\" type=\"text\" /></div>"
+            $("#restTimes").append("<div class=\"form-group mt-30\">" + frStr + toStr + "<button type=\"button\" onclick=\"removeRestTime(this)\">@T5V3Web.Content.Persian.DeleteInterval</button></div>");
+
+            $("#restTimes .timespan-input").mask('99:59');
+
+        }
+
+        function removeRestTime(btn) {
+            $(btn).parent().remove();
+        }
+
+        function invisiblePanel() {
+            $("#edit-panel").attr("class", "collapsed-visibility panel panel-default");
+        }
+
+        function addnew() {
+            $("#edit-panel").attr("class", "visisble-visibility panel panel-default");
+            $('html, body').animate({
+                scrollTop: $("#edit-panel").offset().top
+            }, 500);
+            $("#title-panel-label").html("@T5V3Web.Content.Persian.Add2");
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Add");
+
+
+            $("#ID").val(-1);
+            $("#restTimes").html("");
+            $("#txtName").val("");
+            $("#txtFromTime").val("08:00");
+            $("#txtToTime").val("16:00");
+            $("#txtStartFrom").val("07:00");
+            $("#txtEndFrom").val("11:00");
+            $("#txtStartTo").val("15:00");
+            $("#txtEndTo").val("19:00");
+            $("#txtRamzFromTime").val("08:00");
+            $("#txtRamzToTime").val("14:00");
+            $("#txtSuspendTime").val("00:00");
+            $("#txtIntervalB").val("00:00");
+            $("#txtLate").val("00:15");
+            $("#txtEarly").val("00:15");
+            $("#txtWorkDays").val("1");
+            $("#txtWorkMins").val("480");
+            $("#txtSymbol").val("");
+            $("#txtColor").val("#00FF00");
+
+            $("#chkBeforeI").prop("checked", "checked");
+            $("#chkAfterI").prop("checked", "checked");
+        }
+
+        function submitData() {
+            var restDivs = $("#restTimes div.form-group");
+            var outerArray = [];
+            for (var i = 0; i < restDivs.length; i++) {
+                var innerArray = [];
+                innerArray.push($(restDivs[i]).find("input[name='frRest']").val());
+                innerArray.push($(restDivs[i]).find("input[name='toRest']").val());
+                outerArray.push(innerArray);
+            }
+
+            var toEdit = {
+                RestTimes: outerArray,
+                RestTime: $("#chkRestTime").is(":checked"),
+                ID: $("#ID").val(),
+                Name: $("#txtName").val(),
+                FromTime: $("#txtFromTime").val(),
+                ToTime: $("#txtToTime").val(),
+                StartFrom: $("#txtStartFrom").val(),
+                EndFrom: $("#txtEndFrom").val(),
+                StartTo: $("#txtStartTo").val(),
+                EndTo: $("#txtEndTo").val(),
+                RamzFromTime: $("#txtRamzFromTime").val(),
+                RamzToTime: $("#txtRamzToTime").val(),
+                SuspendTime: $("#txtSuspendTime").val(),
+                IntervalB: $("#txtIntervalB").val(),
+                BeforeI: $("#chkBeforeI").is(":checked"),
+                AfterI: $("#chkAfterI").is(":checked"),
+                RuleID: $("#cmbRule").val(),
+                CalendarID: $("#cmbCalendar").val(),
+                Late: $("#txtLate").val(),
+                Early: $("#txtEarly").val(),
+                WorkDays: $("#txtWorkDays").val(),
+                WorkMins: $("#txtWorkMins").val(),
+                Symbol: $("#txtSymbol").val(),
+                Color: $("#txtColor").val(),
+            };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/Schedule/Edit",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                    if (toEdit.CertificateID == -1) {
+                        loadlist(-1);
+                    }
+                    else {
+                        loadlist($("body").data("page"), $("body").data("squery"));
+                    }
+                }
+            });
+            invisiblePanel();
+        }
+
+        function loadItem(id) {
+            $("#edit-panel").attr("class", "visisble-visibility panel panel-default");
+            $('html, body').animate({
+                scrollTop: $("#edit-panel").offset().top
+            }, 500);
+            $("#title-panel-label").html("@T5V3Web.Content.Persian.Edit");
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Edit");
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                type: "GET",
+                url: "/Schedule/GetByID/" + id,
+                success: function (data) {
+                    $("#ID").val(data.ID);
+                    $("#txtName").val(data.Name);
+                    $("#txtFromTime").val(data.FromTimeToStr);
+                    $("#txtToTime").val(data.ToTimeToStr);
+                    $("#txtStartFrom").val(data.StartFromToStr);
+                    $("#txtEndFrom").val(data.EndFromToStr);
+                    $("#txtStartTo").val(data.StartToToStr);
+                    $("#txtEndTo").val(data.EndToToStr);
+                    $("#txtRamzFromTime").val(data.RamzFromTimeToStr);
+                    $("#txtRamzToTime").val(data.RamzToTimeToStr);
+                    $("#txtSuspendTime").val(data.SuspendTimeToStr);
+                    $("#txtIntervalB").val(data.IntervalBToStr);
+                    $("#txtLate").val(data.LateToStr);
+                    $("#txtEarly").val(data.EarlyToStr);
+                    $("#txtWorkDays").val(data.WorkDays);
+                    $("#txtWorkMins").val(data.WorkMins);
+                    $("#cmbCalendar").val(data.CalendarID);
+                    $("#cmbRule").val(data.RuleID);
+                    $("#txtSymbol").val(data.Symbol);
+                    $("#txtColor").val(data.HTMLColor);
+
+                    $("#chkBeforeI").prop("checked", data.BeforeI);
+                    $("#chkAfterI").prop("checked", data.AfterI);
+
+
+                    $("#restTimes").html("");
+                    for (var i = 0; i < data.RestTimesStr.length; i++) {
+                        var frStr = "<div class=\"col-sm-3\"><label class=\"control-label\">@T5V3Web.Content.Persian.From</label></div><div class=\"col-sm-9\"><input name=\"frRest\" value=\"" + data.RestTimesStr[i][0] + "\" class=\"timespan-input form-control\" type=\"text\" /></div>"
+                        var toStr = "<div class=\"col-sm-3\"><label class=\"control-label\">@T5V3Web.Content.Persian.To</label></div><div class=\"col-sm-9\"><input name=\"toRest\" value=\"" + data.RestTimesStr[i][1] + "\"class=\"timespan-input form-control\" type=\"text\" /></div>"
+                        $("#restTimes").append("<div class=\"form-group mt-30\">" + frStr + toStr + "<button type=\"button\" onclick=\"removeRestTime(this)\">@T5V3Web.Content.Persian.DeleteInterval</button></div>");
+                    }
+                    $("#restTimes .timespan-input").mask('99:59');
+                }
+            });
+        }
+
+    </script>
+}

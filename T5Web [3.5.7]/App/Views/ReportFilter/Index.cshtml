@@ -1,0 +1,187 @@
+﻿@model int
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.ReportFilter;
+}
+
+<div class="page-header">
+    <h3>@T5V3Web.Content.Persian.ReportFilter (@ViewBag.ReportName )</h3>
+</div>
+
+@{
+    T5V3Web.Models.GridModel grd = new T5V3Web.Models.GridModel();
+    grd.WithParentID = true;
+    grd.ParentID = Model;
+    grd.DeleteAllAPIPath = "/ReportFilter/DeleteAll";
+    grd.DeleteAPIPath = "/ReportFilter/Delete/";
+    grd.GetListAPIPath = "/ReportFilter/GetList";
+    grd.IDPropertyName = "FilterID";
+    grd.DisplayPropertyName = "ParameterName";
+    grd.Columns.Add(new T5V3Web.Models.GridModel.Column(T5V3Web.Content.Persian.ParameterName, "ParameterName"));
+    @Html.Partial("_Grid", grd);
+}
+
+<div id="edit-panel" class="panel panel-default collapsed-visibility">
+    <div class="panel-heading">
+        <label id="title-panel-label">@T5V3Web.Content.Persian.Edit</label>
+    </div>
+    <div class="panel-body">
+        <div class="form-horizontal">
+
+            <input type="hidden" id="reportFilterID" />
+
+            <div class="form-group">
+                <div class="col-sm-2 text-left">
+                    <label class="control-label">@T5V3Web.Content.Persian.ParameterName <font style="color:red">*</font></label>
+                </div>
+                <div class="col-sm-10">
+                    <select id="cmbReportData" class="form-control">
+                        @foreach (KeyValuePair<int, string> rd in (List<KeyValuePair<int, string>>)ViewBag.Datas)
+                        {
+                            <option value="@rd.Key">@rd.Value</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-2 text-left">
+                    <label class="control-label">@T5V3Web.Content.Persian.Operation <font style="color:red">*</font></label>
+                </div>
+                <div class="col-sm-10">
+                    <select id="cmbOperation" class="form-control">
+                        <option value="0">@(T5V3.Model.ReportFilterOperator.Less)</option>
+                        <option value="1">@(T5V3.Model.ReportFilterOperator.More)</option>
+                        <option value="2">@(T5V3.Model.ReportFilterOperator.Equal)</option>
+                        <option value="3">@(T5V3.Model.ReportFilterOperator.LessEq)</option>
+                        <option value="4">@(T5V3.Model.ReportFilterOperator.MoreEq)</option>
+                        <option value="5">@(T5V3.Model.ReportFilterOperator.NotEq)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-2 text-left">
+                    <label class="control-label">@T5V3Web.Content.Persian.Value <font style="color:red">*</font></label>
+                </div>
+                <div class="col-sm-10">
+                    <input id="txtValue" value="" type="text" class="form-control" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 text-right">
+                    <input id="chkOnly" type="checkbox" value="true" />
+                    <label class="control-label">@T5V3Web.Content.Persian.PassIfTrue</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10 text-right">
+                    <button id="btnEdit" onclick="submitData()" type="button" class="btn btn-success"></button>
+                    <button type="button" onclick="invisiblePanel()" class="btn btn-default">@T5V3Web.Content.Persian.Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="myModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 id="msg-title" class="modal-title"></h4>
+            </div>
+            <div class="modal-body">
+                <p id="msg-body"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">@T5V3Web.Content.Persian.OK</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+
+
+@section scripts
+{
+    <script>
+        loadlistid(@(Model), 1, "");
+
+        function invisiblePanel() {
+            $("#edit-panel").attr("class", "collapsed-visibility panel panel-default");
+        }
+
+        function addnew() {
+            $("#edit-panel").attr("class", "visisble-visibility panel panel-default");
+            $('html, body').animate({
+                scrollTop: $("#edit-panel").offset().top
+            }, 500);
+            $("#title-panel-label").html("@T5V3Web.Content.Persian.Add2");
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Add");
+
+            //$("#cmbReportData").val(0);
+            $("#cmbOperation").val(0);
+            $("#txtValue").val("");
+            $("#reportFilterID").val(-1);
+            $("#chkOnly").removeAttr("checked");
+        }
+
+        function submitData() {
+            var toEdit = {
+                FilterID: $("#reportFilterID").val(),
+                ReportID: @Model,
+                ReportDataID: $("#cmbReportData").val(),
+                Value: $("#txtValue").val(),
+                Operator: $("#cmbOperation").val(),
+                PassIfTrue : $('#chkOnly').is(':checked')
+            };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/ReportFilter/Edit",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                    if (toEdit.ReportDataID == -1) {
+                        loadlistid(@(Model), -1, "");
+                    }
+                    else {
+                        loadlistid(@(Model),$("body").data("page"), $("body").data("squery"));
+                    }
+                }
+            });
+            invisiblePanel();
+        }
+
+        function loadItem(id) {
+            $("#edit-panel").attr("class", "visisble-visibility panel panel-default");
+            $('html, body').animate({
+                scrollTop: $("#edit-panel").offset().top
+            }, 500);
+            $("#title-panel-label").html("@T5V3Web.Content.Persian.Edit");
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Edit");
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                type: "GET",
+                url: "/ReportFilter/GetByID/" + id,
+                success: function (data) {
+                    $("#cmbReportData").val(data.ReportDataID);
+                    $("#cmbOperation").val(data.Operator);
+                    $("#txtValue").val(data.Value);
+                    $("#reportFilterID").val(data.FilterID);
+                    $('#chkOnly').prop("checked", data.PassIfTrue);
+                }
+            });
+        }
+
+    </script>
+}

@@ -1,0 +1,65 @@
+﻿Installing assembly 'C:\RP\Link5\Link5\Link5\bin\Debug\Link5.Service.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\RP\Link5\Link5\Link5\bin\Debug\Link5.Service.InstallLog
+   assemblypath = C:\RP\Link5\Link5\Link5\bin\Debug\Link5.Service.exe
+Installing service Link5 Service...
+Service Link5 Service has been successfully installed.
+Creating EventLog source Link5 Service in log Application...
+Committing assembly 'C:\RP\Link5\Link5\Link5\bin\Debug\Link5.Service.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\RP\Link5\Link5\Link5\bin\Debug\Link5.Service.InstallLog
+   assemblypath = C:\RP\Link5\Link5\Link5\bin\Debug\Link5.Service.exe
+Installing assembly 'C:\Projects\Link5\Link5\Link5\bin\Debug\Link5.Service.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\Projects\Link5\Link5\Link5\bin\Debug\Link5.Service.InstallLog
+   assemblypath = C:\Projects\Link5\Link5\Link5\bin\Debug\Link5.Service.exe
+Installing service Link5 Service...
+Service Link5 Service has been successfully installed.
+Creating EventLog source Link5 Service in log Application...
+Committing assembly 'C:\Projects\Link5\Link5\Link5\bin\Debug\Link5.Service.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\Projects\Link5\Link5\Link5\bin\Debug\Link5.Service.InstallLog
+   assemblypath = C:\Projects\Link5\Link5\Link5\bin\Debug\Link5.Service.exe
+Installing assembly 'C:\Project\Link5\Link5\Link5\bin\Debug\Link5.Service.exe'.
+Affected parameters are:
+   logtoconsole = 
+   assemblypath = C:\Project\Link5\Link5\Link5\bin\Debug\Link5.Service.exe
+   logfile = C:\Project\Link5\Link5\Link5\bin\Debug\Link5.Service.InstallLog
+Installing service Link5 Service...
+Service Link5 Service has been successfully installed.
+Creating EventLog source Link5 Service in log Application...
+Committing assembly 'C:\Project\Link5\Link5\Link5\bin\Debug\Link5.Service.exe'.
+Affected parameters are:
+   logtoconsole = 
+   assemblypath = C:\Project\Link5\Link5\Link5\bin\Debug\Link5.Service.exe
+   logfile = C:\Project\Link5\Link5\Link5\bin\Debug\Link5.Service.InstallLog
+Installing assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\Link5.Service.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\Link5.Service.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\Link5.Service.exe
+Installing service Link5 Service...
+Service Link5 Service has been successfully installed.
+Creating EventLog source Link5 Service in log Application...
+Committing assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\Link5.Service.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\Link5.Service.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\Link5.Service.exe
+Installing assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\Link5.Service.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\Link5.Service.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\Link5.Service.exe
+Installing service Link5 Service...
+Service Link5 Service has been successfully installed.
+Creating EventLog source Link5 Service in log Application...
+Committing assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\Link5.Service.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\Link5.Service.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\Link5.Service.exe

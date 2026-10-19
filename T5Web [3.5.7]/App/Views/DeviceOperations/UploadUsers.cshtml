@@ -1,0 +1,139 @@
+﻿@model T5V3Web.Models.DeviceOperationsModel
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.UploadUsers;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.Devices;
+    ViewBag.PageTag = "DeviceOperations";
+}
+
+<h3>@T5V3Web.Content.Persian.UploadUsers</h3>
+<div class="horizontal-line"></div>
+
+<form id="mainForm" method="post" action="/DeviceOperations/UploadUsers">
+    <div style="display:table" class="w-100p">
+
+        <div class="col-lg-8">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <label>@T5V3Web.Content.Persian.SelectPersonnel ...</label>
+                </div>
+                <div class="panel-body">
+                    @Html.Partial("_SelectUser", T5V3Web.Controllers.UserSelectionController.CreateModel(new List<long>()))
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <label>@T5V3Web.Content.Persian.SelectDevices ...</label>
+                </div>
+                <div class="panel-body">
+                    @Html.Partial("_DeviceSelection", new T5V3Web.Models.DeviceSelectionModel("selectedDevices", new List<int>(), Model.DeviceStates.Select(d => d.MachineNumber).ToList()))
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="horizontal-line mt-20"></div>
+    <div class="right-align" style="margin-top:20px;clear:both;">
+        <ul style="list-style:none">
+            <li>
+                <input name="userinfo" type="checkbox" value="true" checked="checked" />
+                <label>@T5V3Web.Content.Persian.UserInfo</label>
+            </li>
+            <li>
+                <input name="finger" type="checkbox" value="true" checked="checked" />
+                <label>@T5V3Web.Content.Persian.FingerTemplate</label>
+            </li>
+            <li>
+                <input name="face" type="checkbox" value="true" />
+                <label>@T5V3Web.Content.Persian.Face</label>
+            </li>
+            <li>
+                <input name="photo" type="checkbox" value="true" />
+                <label>@T5V3Web.Content.Persian.Photo</label>
+            </li>
+            <li>
+                <input name="noUpload" type="checkbox" value="true" />
+                <label>@T5V3Web.Content.Persian.NoUploadDevices</label>
+            </li>
+            <li>
+                <br />
+            </li>
+            <li>
+                <input class="btn btn-success" type="button" onclick="submitForm()" value="@T5V3Web.Content.Persian.Upload" />
+            </li>
+        </ul>
+    </div>
+</form>
+
+@if (@Model.HasError)
+{
+    <div class="col-sm-10 col-sm-offset-1 center-align">
+        @if (Model.ErrorMessage != null)
+        {
+            <div class="alert alert-danger fade in">
+                @Html.Raw(Model.ErrorMessage)
+                <a rel="noopener noreferrer" href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+            </div>
+        }
+    </div>
+}
+
+<div>
+    <ol class="right-align">
+        @if (Model.Logs != null)
+        {
+            foreach (string log in Model.Logs)
+            {
+                <li>@log</li>
+            }
+        }
+    </ol>
+</div>
+
+
+@section scripts{
+    <script>
+        function submitForm() {
+            AddDeviceCheckboxes('mainForm');
+
+            run_waitMe('win8');
+
+            var selected = [];
+            $('input[name=selectedDevices]:checked').each(function () {
+                selected.push($(this).val());
+            });
+
+            var allRead = [];
+            $('input[name=selectedBadgeNumbers]').each(function () {
+                allRead.push($(this).val());
+            });
+            
+            var postData = {
+                selectedDevices: selected,
+                selectedBadgeNumbers: allRead,
+                finger: $("input[name='finger']").is(":checked"),
+                face: $("input[name='face']").is(":checked"),
+                userinfo: $("input[name='userinfo']").is(":checked"),
+                photo: $("input[name='photo']").is(":checked"),
+                noUpload: $("input[name='noUpload']").is(":checked")
+
+            };
+
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(postData),
+                type: "POST",
+                url: "/DeviceOperations/UploadUsers",
+                success: function (data) {
+                    $('body').waitMe('hide');
+                    alert(data);
+                }
+            });
+
+            //$('#mainForm').submit();
+        }
+    </script>
+}

@@ -1,0 +1,125 @@
+﻿@model T5V3Web.Models.InsertRecordModel
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.InsertRecord;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.AttendanceData;
+    ViewBag.PageTag = "InsertRecord";
+}
+@*@section TopStyle{
+    <link href="~/Content/style.css" rel="stylesheet" />
+}*@
+@*@section EndScript{
+    <script src="~/Scripts/index.js"></script>
+    <script>
+
+        settings = {
+            format: "yyyy/mm/dd",
+            dateSeparator: "/",
+            autoClose: true,
+            labelLanguage: 'farsi'
+        }
+    </script>
+}*@
+
+<h3>@T5V3Web.Content.Persian.InsertRecord</h3>
+<div class="horizontal-line"></div>
+
+<form role="form" class="form-horizontal" method="post" action="/InsertRecord/Insert">
+    <input type="hidden" name="isFreeze" value="@(Model.IsFreezeUsers.ToString())" />
+    <input type="hidden" name="referrerURL" value="@(Model.ReferrerURL)" />
+    @if (Model.IsFreezeUsers)
+    {
+        foreach (long badge in Model.SelectedBadgeNumbers)
+        {
+            <input type="hidden" name="selectedBadgeNumbers" value="@badge.ToString()" />
+        }
+    }
+
+    <div id="usersSelect" class="border-gray">
+        @Html.Partial("_SelectUser", T5V3Web.Controllers.UserSelectionController.CreateModel(Model.SelectedBadgeNumbers))
+    </div>
+
+    <br />
+    <div class="block-display mt-20 mb-20">
+        <div class="form-group">
+            <div class="col-sm-2">
+                <label class="control-label">@T5V3Web.Content.Persian.Date</label>
+            </div>
+            <div class="col-sm-8">
+                @*<input class="form-control" name="dateHijri" type="text" value="@Model.HijriDate" />*@
+                <input class="datepicker-farsi" style="width:100%" name="dateHijri" type="text" value="@Model.HijriDate" />
+            </div>
+            <div class="col-sm-2 text-right">
+                @*<a rel="noopener noreferrer" id="selectFrom" href="javascript:" onclick="displayDatePicker('dateHijri', this)">@T5V3Web.Content.Persian.Select</a>*@
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2">
+                <label class="control-label">@T5V3Web.Content.Persian.Time</label>
+            </div>
+            <div class="col-sm-8">
+                <input class="timespan-input form-control" name="timeOfDay" type="text" value="@Model.TimeOfDay" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2">
+                <label class="control-label">@T5V3Web.Content.Persian.CheckType</label>
+            </div>
+            <div class="col-sm-8">
+                <select class="form-control" name="checkType">
+                    <option selected="selected" value="0">@T5V3Web.Content.Persian.In</option>
+                    <option value="1">@T5V3Web.Content.Persian.Out</option>
+                    @foreach (T5V3.Model.LeaveType lt in Model.LeaveTypes)
+                    {
+                        <option value="@lt.StateKey">@lt.LeaveName</option>
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <input class="btn btn-success mt-20 mb-20" value="@T5V3Web.Content.Persian.InsertRecord" type="submit" />
+
+    <div class="form-group">
+        <div class="col-sm-offset-1 col-sm-10 text-center">
+            @if (Model.ValidationMessage != null)
+            {
+                <div class="@((T5V3Web.Models.ValidationMessageType)Model.ValidationMessageType == T5V3Web.Models.ValidationMessageType.Error ? "alert alert-danger fade in" : "alert alert-success fade in")">
+                    @Model.ValidationMessage
+                    <a rel="noopener noreferrer" href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                </div>
+            }
+        </div>
+    </div>
+
+</form>
+
+<div class="block-display mb-20 mt-20">
+    @if ((Model.ReferrerURL != null) && (Model.ReferrerURL != string.Empty))
+    {
+        <a rel="noopener noreferrer" href="@Model.ReferrerURL">@T5V3Web.Content.Persian.ReturnToReferrerURL</a>
+    }
+</div>
+
+<div class="horizontal-line"></div>
+@section scripts{
+    <script src="~/Scripts/index.js"></script>
+    <script>
+
+    settings = {
+        format: "yyyy/mm/dd",
+        dateSeparator: "/",
+        autoClose: true,
+        labelLanguage: 'farsi'
+        }
+        renderToday();
+</script>
+    <script>
+        {
+            $(".timespan-input").mask('99:59');
+            @if (Model.IsFreezeUsers)
+            {
+                <text>$("#usersSelect input,button").prop("disabled", true);</text>
+            }
+        }
+    </script>
+}

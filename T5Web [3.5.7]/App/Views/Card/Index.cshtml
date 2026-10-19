@@ -1,0 +1,199 @@
+﻿@{
+    ViewBag.Title = T5V3Web.Content.Persian.PishCard;
+}
+
+<div class="card-header text-right">
+    <h3>
+        @T5V3Web.Content.Persian.PishCard
+    </h3>
+</div>
+
+<div class="card">
+    @{
+        T5V3Web.Models.GridModel grd = new T5V3Web.Models.GridModel();
+        grd.DeleteAllAPIPath = "/Card/DeleteAll";
+        grd.DeleteAPIPath = "/Card/Delete/";
+        grd.GetListAPIPath = "/Card/GetList";
+        grd.IDPropertyName = "CardBadgeNumber";
+        grd.DisplayPropertyName = "CardBadgeNumber";
+        grd.Columns.Add(new T5V3Web.Models.GridModel.Column(T5V3Web.Content.Persian.CardBadgeNumber, "CardBadgeNumber"));
+        @Html.Partial("_Grid", grd);
+    }
+
+
+    <div id="edit-panel" class="panel panel-default collapsed-visibility">
+        <div class="panel-heading">
+            <label id="title-panel-label">@T5V3Web.Content.Persian.Edit</label>
+        </div>
+        <div class="panel-body">
+            <div class="form-horizontal">
+
+                <div class="form-group">
+                    <div class="col-sm-2 text-center">
+                        <label class="control-label">@T5V3Web.Content.Persian.CardBadgeNumber</label>
+                    </div>
+                    <div class="col-sm-10">
+                        <input id="txtCardNo" placeholder="@T5V3Web.Content.Persian.CardBadgeNumber" class="form-control number-input" type="text" name="txtCardNo" value="" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-2 text-center">
+                        <label class="control-label">@T5V3Web.Content.Persian.ValidSecs</label>
+                    </div>
+                    <div class="col-sm-10">
+                        <input id="txtValidSecs" placeholder="@T5V3Web.Content.Persian.ValidSecs" class="form-control number-input" type="number" name="txtValidSecs" value="" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-2 text-center">
+                        <label class="control-label">@T5V3Web.Content.Persian.CardState</label>
+                    </div>
+                    <div class="col-sm-10">
+                        <select id="cmbCardState" class="form-control">
+                            @foreach (T5V3.Model.LeaveType lt in (List<T5V3.Model.LeaveType>)ViewBag.Leaves)
+                            {
+                                <option value="@lt.LeaveTypeID">@lt.LeaveName</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-2 text-center">
+                        <label class="control-label">@T5V3Web.Content.Persian.Device</label>
+                    </div>
+                    <div class="col-sm-10">
+                        <select id="cmbDevice" class="form-control">
+                            @foreach (Personnel.Model.Device lt in (List<Personnel.Model.Device>)ViewBag.Devices)
+                            {
+                                <option value="@lt.MachineNumber">@lt.MachineName</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-2 text-center">
+
+                    </div>
+                    <div class="col-sm-10 right-align">
+                        <input id="chkOnlyOne" type="checkbox" value="true" />
+                        <label>@T5V3Web.Content.Persian.OnlyFirstRecord</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-offset-2 col-sm-10 text-right">
+                        <button id="btnEdit" onclick="submitData()" type="button" class="btn btn-success"></button>
+                        <button type="button" onclick="invisiblePanel()" class="btn btn-default">@T5V3Web.Content.Persian.Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section modals
+{
+
+    <div id="myModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 id="msg-title" class="modal-title"></h4>
+                </div>
+                <div class="modal-body">
+                    <p id="msg-body"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">@T5V3Web.Content.Persian.OK</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+}
+
+
+
+
+@section scripts
+{
+    <script>
+        loadlist(1, "");
+
+        function invisiblePanel() {
+            $("#edit-panel").attr("class", "collapsed-visibility panel panel-default");
+        }
+
+        function addnew() {
+            $("#edit-panel").attr("class", "visisble-visibility panel panel-default");
+            $('html, body').animate({
+                scrollTop: $("#edit-panel").offset().top
+            }, 500);
+            $("#title-panel-label").html("@T5V3Web.Content.Persian.Add2");
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Add");
+
+            $("#txtCardNo").val("");
+            $("#txtValidSecs").val("");
+            $("#cmbCardState").val(1);
+            $("#cmbDevice").val(1);
+            $("#chkOnlyOne").prop("checked", false);
+        }
+
+        function submitData() {
+            var toEdit = {
+                CardBadgeNumber: $("#txtCardNo").val(),
+                ValidSecs: $("#txtValidSecs").val(),
+                LeaveTypeID: $("#cmbCardState").val(),
+                MachineNumber: $("#cmbDevice").val(),
+                OnlyFirst: $("#chkOnlyOne").is(":checked")
+            };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/Card/Edit",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                    if (toEdit.CertificateID == -1) {
+                        loadlist(-1);
+                    }
+                    else {
+                        loadlist($("body").data("page"), $("body").data("squery"));
+                    }
+                }
+            });
+            invisiblePanel();
+        }
+
+        function loadItem(id) {
+            $("#edit-panel").attr("class", "visisble-visibility panel panel-default");
+            $('html, body').animate({
+                scrollTop: $("#edit-panel").offset().top
+            }, 500);
+            $("#title-panel-label").html("@T5V3Web.Content.Persian.Edit");
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Edit");
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                type: "GET",
+                url: "/Card/GetByID/" + id,
+                success: function (data) {
+                    $("#txtCardNo").val(data.CardBadgeNumber);
+                    $("#txtValidSecs").val(data.ValidSecs);
+                    $("#cmbCardState").val(data.LeaveTypeID);
+                    $("#cmbDevice").val(data.MachineNumber);
+                    $("#chkOnlyOne").prop("checked", data.OnlyFirst);
+                }
+            });
+        }
+
+    </script>
+}

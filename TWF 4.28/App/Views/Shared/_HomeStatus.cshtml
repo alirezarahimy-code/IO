@@ -1,0 +1,259 @@
+﻿@model List<MyTime3.Models.ADayReport>
+<div>
+    <div style="margin-top:30px" class="text-right card-header">
+        <h3>
+            @MyTime3.Content.PersianString.SimpleReport
+        </h3>
+    </div>
+
+
+    <div class="card">
+        <table style="font-size:1em;font-weight:normal" class="table table-hover table-bordered table-responsive table-striped">
+            <thead>
+                <tr>
+                    <td>
+                        @MyTime3.Content.PersianString.Date
+                    </td>
+                    <td>
+                        @MyTime3.Content.PersianString.DayOfWeek
+                    </td>
+                    <td>
+                        @MyTime3.Content.PersianString.In
+                    </td>
+                    <td>
+                        @MyTime3.Content.PersianString.Out
+                    </td>
+                    <td>
+                        @MyTime3.Content.PersianString.Late
+                    </td>
+                    <td>
+                        @MyTime3.Content.PersianString.Early
+                    </td>
+                    <td>
+                        @MyTime3.Content.PersianString.AbsentHour
+                    </td>
+                    <td>
+                        @MyTime3.Content.PersianString.Status
+                    </td>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (MyTime3.Models.ADayReport rpt in Model)
+                {
+                   
+                    <tr>
+                        <td>
+                            @rpt.HijriDate
+                        </td>
+                        <td>
+                            @rpt.DayOfWeekName
+                        </td>
+                        <td>
+                            @if (rpt.WoIn)
+                            {
+                                if (rpt.IsWOInRequested)
+                                {
+                                    
+                                    <label>@MyTime3.Content.PersianString.Requested</label>
+                                }
+                                else
+                                {
+                                    if ((bool)MyTime3.Controllers.SettingsController.LoadValue("RequestRecord", typeof(bool), true))
+                                    {
+
+                                        <a rel="noopener noreferrer" href="javascript:showRequest(4,0,'','','@(rpt.HijriDate)','','','@(rpt.SchInTime)','@MyTime3.Content.PersianString.InsertRecord')">@MyTime3.Content.PersianString.WOIn</a>
+                                        @*<a href="/Request/New?IsNew=True&@(ViewBag.FromUser != null ? string.Format("FromUser={0}&" ,ViewBag.FromUser) : "")RequestType=4&ForDateHijri=@(rpt.HijriDate)&ForTime=@(rpt.SchInTime)">@MyTime3.Content.PersianString.WOIn</a>*@
+                                    }
+                                    else
+                                    {
+                                        <label>@MyTime3.Content.PersianString.WOIn</label>
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                <label>@rpt.MainInTime</label>
+                            }
+                        </td>
+                        <td>
+                            @if (rpt.WoOut)
+                            {
+                                if (rpt.IsWOOutRequested)
+                                {
+                                    <label>@MyTime3.Content.PersianString.Requested</label>
+                                }
+                                else
+                                {
+                                    if ((bool)MyTime3.Controllers.SettingsController.LoadValue("RequestRecord", typeof(bool), true))
+                                    {
+                                        <a rel="noopener noreferrer" href="javascript:showRequest(4,0,'','','@(rpt.HijriDate)','','','@(rpt.SchOutTime)','@MyTime3.Content.PersianString.InsertRecord')">@MyTime3.Content.PersianString.WOOut</a>
+                                        @*<a href="/Request/New?IsNew=True&@(ViewBag.FromUser != null ? string.Format("FromUser={0}&" ,ViewBag.FromUser) : "")RequestType=4&ForDateHijri=@(rpt.HijriDate)&ForTime=@(rpt.SchOutTime)">@MyTime3.Content.PersianString.WOOut</a>*@
+                                    }
+                                    else
+                                    {
+                                        <label>@MyTime3.Content.PersianString.WOOut</label>
+                                    }
+
+                                }
+                            }
+                            else
+                            {
+                                <label class="gridLabel">@rpt.MainOutTime</label>
+                            }
+                        </td>
+                        <td>
+                            @if (rpt.HaveLate)
+                            {
+                                <text>
+                                    @Html.Raw("<font " + (rpt.IsLateRequested ? "" : "color=\"red\"") + ">" + rpt.Late + "</font>")
+                                    @Html.Raw(" (")
+                                    @if (rpt.IsLateRequested)
+                                    {
+                                        <label>@rpt.LateRequestedDescriptions</label>
+                                    }
+                                    else
+                                    {
+                                        if ((bool)MyTime3.Controllers.SettingsController.LoadValue("ValidLateEarly", typeof(bool), true))
+                                        {
+                                            <a rel="noopener noreferrer" style="color:green" href="javascript:showRequest(5,0,'','','@(rpt.HijriDate)','','','@(rpt.SchOutTime)','@MyTime3.Content.PersianString.RequestLate')">@MyTime3.Content.PersianString.Validate</a>
+                                            @*<a style="color:green" href="/Request/New?IsNew=True&@(ViewBag.FromUser != null ? string.Format("FromUser={0}&" ,ViewBag.FromUser) : "")RequestType=5&ForDateHijri=@(rpt.HijriDate)">@MyTime3.Content.PersianString.Validate</a>*@
+                                            @Html.Raw("&nbsp;|&nbsp;")
+                                        }
+                                        if ((bool)MyTime3.Controllers.SettingsController.LoadValue("ViewHourlyLeave", typeof(bool), true))
+                                        {
+                                            <a rel="noopener noreferrer" style="color:rgb(11,61,198)" href="javascript:showRequest(1,0,'','','@(rpt.HijriDate)','@(rpt.SchInTime)','@(rpt.MainInTime)','','@MyTime3.Content.PersianString.HourlyLeave')">@MyTime3.Content.PersianString.Leave</a>
+                                            @*<a style="color:rgb(11,61,198)" href="/Request/New?IsNew=True&@(ViewBag.FromUser != null ? string.Format("FromUser={0}&" ,ViewBag.FromUser) : "")RequestType=1&ForDateHijri=@(rpt.HijriDate)&FromTime=@(rpt.SchInTime)&ToTime=@(rpt.MainInTime)">@MyTime3.Content.PersianString.Leave</a>*@
+                                        }
+                                        if ((bool)MyTime3.Controllers.SettingsController.LoadValue("ViewHourlyDuty", typeof(bool), true))
+                                        {
+                                            @Html.Raw("&nbsp;|&nbsp;")
+                                            <a rel="noopener noreferrer" style="color:rgb(128,0,255)" href="javascript:showRequest(3,0,'','','@(rpt.HijriDate)','@(rpt.SchInTime)','@(rpt.MainInTime)','','@MyTime3.Content.PersianString.HourlyDuty')">@MyTime3.Content.PersianString.Duty</a>
+                                            @*<a style="color:rgb(128,0,255)" href="/Request/New?IsNew=True&@(ViewBag.FromUser != null ? string.Format("FromUser={0}&" ,ViewBag.FromUser) : "")RequestType=3&ForDateHijri=@(rpt.HijriDate)&FromTime=@(rpt.SchInTime)&ToTime=@(rpt.MainInTime)">@MyTime3.Content.PersianString.Duty</a>*@
+                                        }
+
+                                    }
+                                    @Html.Raw(")")
+                                </text>
+                            }
+                            else
+                            {
+                                <label class="gridLabel">-</label>
+                            }
+                        </td>
+                        <td>
+                            @if (rpt.HaveEarly)
+                            {
+                                <text>
+                                    @Html.Raw("<font " + (rpt.IsEarlyRequested ? "" : "color=\"red\"") + ">" + rpt.Early + "</font>")
+                                    @Html.Raw(" (")
+                                    @if (rpt.IsEarlyRequested)
+                                    {
+                                        <label>@rpt.EarlyRequestedDescriptions</label>
+                                    }
+                                    else
+                                    {
+                                        if ((bool)MyTime3.Controllers.SettingsController.LoadValue("ValidLateEarly", typeof(bool), true))
+                                        {
+                                            <a rel="noopener noreferrer" style="color:green" href="javascript:showRequest(6,0,'','','@(rpt.HijriDate)','','','@(rpt.SchOutTime)','@MyTime3.Content.PersianString.RequestEarly')">@MyTime3.Content.PersianString.Validate</a>
+                                            @*<a style="color:green" href="/Request/New?IsNew=True&@(ViewBag.FromUser != null ? string.Format("FromUser={0}&" ,ViewBag.FromUser) : "")RequestType=6&ForDateHijri=@(rpt.HijriDate)">@MyTime3.Content.PersianString.Validate</a>*@
+                                            @Html.Raw("&nbsp;|&nbsp;");
+                                        }
+                                        if ((bool)MyTime3.Controllers.SettingsController.LoadValue("ViewHourlyLeave", typeof(bool), true))
+                                        {
+                                            <a rel="noopener noreferrer" style="color:rgb(11,61,198)" href="javascript:showRequest(1,0,'','','@(rpt.MainOutTimeDate)','@(rpt.MainOutTime)','@(rpt.SchOutTime)','','@MyTime3.Content.PersianString.HourlyLeave')">@MyTime3.Content.PersianString.Leave</a>
+                                            @*<a style="color: rgb(11,61,198)" href="/Request/New?IsNew=True&@(ViewBag.FromUser != null ? string.Format("FromUser={0}&" ,ViewBag.FromUser) : "")RequestType=1&ForDateHijri=@(rpt.HijriDate)&FromTime=@(rpt.MainOutTime)&ToTime=@(rpt.SchOutTime)">@MyTime3.Content.PersianString.Leave</a>*@
+                                        }
+                                        if ((bool)MyTime3.Controllers.SettingsController.LoadValue("ViewHourlyDuty", typeof(bool), true))
+                                        {
+                                            @Html.Raw("&nbsp;|&nbsp;")
+                                            @*<a style="color:rgb(128,0,255)" href="/Request/New?IsNew=True&@(ViewBag.FromUser != null ? string.Format("FromUser={0}&" ,ViewBag.FromUser) : "")RequestType=3&ForDateHijri=@(rpt.HijriDate)&FromTime=@(rpt.MainOutTime)&ToTime=@(rpt.SchOutTime)">@MyTime3.Content.PersianString.Duty</a>*@
+                                            <a rel="noopener noreferrer" style="color:rgb(128,0,255)" href="javascript:showRequest(3,0,'','','@(rpt.MainOutTimeDate)','@(rpt.MainOutTime)','@(rpt.SchOutTime)','','@MyTime3.Content.PersianString.HourlyDuty')">@MyTime3.Content.PersianString.Duty</a>
+
+                                        }
+                                    }
+                                    @Html.Raw(")")
+                                </text>
+                            }
+                            else
+                            {
+                                <label class="gridLabel">-</label>
+                            }
+                        </td>
+                        <td>
+                            @foreach (MyTime3.Models.InShiftExit isx in rpt.InShiftExits)
+                            {
+                                <text>
+                                    @Html.Raw(string.Format("<font {2}>{0}-{1}</font>", isx.FromTime, isx.ToTime, (isx.IsRequested ? "" : "color=\"red\"")))
+                                    @Html.Raw(" (")
+                                    @if (isx.IsRequested)
+                                    {
+                                        @Html.Raw(isx.RequestedDescriptions)
+                                    }
+                                    else
+                                    {
+                                        if ((bool)MyTime3.Controllers.SettingsController.LoadValue("ViewHourlyLeave", typeof(bool), true))
+                                        {
+                                            <a rel="noopener noreferrer" style="color:rgb(11,61,198)" href="javascript:showRequest(1,0,'','','@(rpt.HijriDate)','@(isx.FromTime)','@(isx.ToTime)','','@MyTime3.Content.PersianString.HourlyLeave')">@MyTime3.Content.PersianString.Leave</a>
+                                            @*<a href="/Request/New?IsNew=True&@(ViewBag.FromUser != null ? string.Format("FromUser={0}&" ,ViewBag.FromUser) : "")RequestType=1&ForDateHijri=@(rpt.HijriDate)&FromTime=@(isx.FromTime)&ToTime=@(isx.ToTime)">@MyTime3.Content.PersianString.Leave</a>*@
+
+                                        }
+                                        if ((bool)MyTime3.Controllers.SettingsController.LoadValue("ViewHourlyDuty", typeof(bool), true))
+                                        {
+                                            @Html.Raw("|")
+                                            <a rel="noopener noreferrer" style="color:rgb(128,0,255)" href="javascript:showRequest(3,0,'','','@(rpt.HijriDate)','@(isx.FromTime)','@(isx.ToTime)','','@MyTime3.Content.PersianString.HourlyDuty')">@MyTime3.Content.PersianString.Duty</a>
+                                            @*<a href="/Request/New?IsNew=True&@(ViewBag.FromUser != null ? string.Format("FromUser={0}&" ,ViewBag.FromUser) : "")RequestType=3&ForDateHijri=@(rpt.HijriDate)&FromTime=@(isx.FromTime)&ToTime=@(isx.ToTime)">@MyTime3.Content.PersianString.Duty</a>*@
+
+                                        }
+                                    }
+                                    @Html.Raw(")")
+                                    <br />
+                                </text>
+                            }
+                        </td>
+                        <td>
+                            @if (rpt.IsAbsent)
+                            {
+                                <text>
+                                    @Html.Raw("<font " + (rpt.IsAbsentRequested ? "" : "color=\"red\"") + ">" + MyTime3.Content.PersianString.Absent + "</font>")
+                                    @Html.Raw(" (")
+                                    @if (rpt.IsAbsentRequested)
+                                    {
+                                        @Html.Raw(rpt.AbsentRequestedDescriptions)
+                                    }
+                                    else
+                                    {
+                                        if ((bool)MyTime3.Controllers.SettingsController.LoadValue("ViewDailyLeave", typeof(bool), true))
+                                        {
+                                            <a rel="noopener noreferrer" style="color:rgb(11,61,198)" href="javascript:showRequest(0,1,'@(rpt.HijriDate)','@(rpt.HijriDate)','','','','','@MyTime3.Content.PersianString.DailyLeave')">@MyTime3.Content.PersianString.Leave</a>
+                                            @*<a style="color: rgb(11,61,198)" href="/Request/New?IsNew=True&@(ViewBag.FromUser != null ? string.Format("FromUser={0}&" ,ViewBag.FromUser) : "")RequestType=0&FromDateHijri=@(rpt.HijriDate)&ToDateHijri=@(rpt.HijriDate)">@MyTime3.Content.PersianString.Leave</a>*@
+                                        }
+                                        if ((bool)MyTime3.Controllers.SettingsController.LoadValue("ViewDailyDuty", typeof(bool), true))
+                                        {
+                                            @Html.Raw(" |")
+                                            <a rel="noopener noreferrer" style="color:rgb(128,0,255)" href="javascript:showRequest(2,1,'@(rpt.HijriDate)','@(rpt.HijriDate)','','','','','@MyTime3.Content.PersianString.DailyDuty')">@MyTime3.Content.PersianString.Duty</a>
+                                            @*<a style="color:rgb(128,0,255)" href="/Request/New?IsNew=True&@(ViewBag.FromUser != null ? string.Format("FromUser={0}&" ,ViewBag.FromUser) : "")RequestType=2&FromDateHijri=@(rpt.HijriDate)&ToDateHijri=@(rpt.HijriDate)">@MyTime3.Content.PersianString.Duty</a>*@
+                                        }
+                                    }
+                                    @Html.Raw(")")
+                                </text>
+                            }
+                            else if (rpt.IsHoliday)
+                            {
+                                <label class="gridLabel">@MyTime3.Content.PersianString.Holiday</label>
+                            }
+                            else if (rpt.WOShift)
+                            {
+                                <label class="gridLabel">@MyTime3.Content.PersianString.WOShift</label>
+                            }
+                            else if (rpt.IsDailyLeave)
+                            {
+                                <label class="gridLabel">@((rpt.IsDailyLeave) ? rpt.DailyLeaveName : "-")</label>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+</div>

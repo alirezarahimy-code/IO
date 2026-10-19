@@ -1,0 +1,1253 @@
+﻿@model T5V3Web.Models.DataEntryModel<Personnel.Model.UserInfo>
+    @{
+        ViewBag.Title = T5V3Web.Content.Persian.Personnel;
+        ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.BaseData;
+        ViewBag.PageTag = "UserInfo";
+    }
+
+
+
+    <div class="card-header text-right">
+        <h3>@T5V3Web.Content.Persian.Personnel</h3>
+    </div>
+
+    <div class="card">
+        <div class="row mb-20">
+            <div class="col-sm-4">
+                <div class="panel panel-default text-right">
+                    <div class="panel-heading">
+                        <label>@T5V3Web.Content.Persian.Department : </label>
+                        <label id="lblDept">@Model.Selected.DeptName</label>
+                        <a rel="noopener noreferrer" id="linkToAddNew" href="javascript:addNewUser(@Model.Selected.DeptID)">(@T5V3Web.Content.Persian.AddNewPersonnel)</a>
+                    </div>
+                    <div class="panel-body">
+                        <div class="auto-scroll h-200">
+                            <div id="tree">
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-body">
+                        <input type="text" id="SectionFilterStr" class="form-control col-md-8" value="" />
+                        <button id="SectionFilter" type="button" class="form-control col-md-4">فیلتر قسمت ها</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-8">
+                <div class="panel panel-default text-right">
+                    <div class="panel-heading">
+                        <div>
+                            <input id="txtSearchPersonnel" onkeyup="searchPersonnel()" placeholder="@T5V3Web.Content.Persian.SearchPersonnel" type="text" name="q" />
+                            <button onclick="searchPersonnel()" class="btn btn-default">@T5V3Web.Content.Persian.Search</button>
+                        </div>
+                    </div>
+
+                    <div class="panel-body ">
+                        <div style="max-height:300px" class="h-200 auto-scroll">
+                            <table class="table table-striped table-responsive table-hover table-bordered">
+                                <thead>
+                                    <tr class="warning">
+                                        <td>@T5V3Web.Content.Persian.SelectDeleteEdit</td>
+                                        <td>@T5V3Web.Content.Persian.BadgeNumber</td>
+                                        <td>@T5V3Web.Content.Persian.FirstName</td>
+                                        <td>@T5V3Web.Content.Persian.Department</td>
+                                    </tr>
+                                </thead>
+                                <tbody id="tblBody">
+                                    @{
+                                        foreach (Personnel.Model.UserInfo c in Model.ItemsList)
+                                        {
+                                            <tr>
+                                                <td class="text-center">
+                                                    <input type="checkbox" onclick="checkStateChanges()" value="@c.BadgeNumber" />
+                                                    <a rel="noopener noreferrer" onclick="confirmDelete(@c.BadgeNumber)" data-toggle="tooltip" class="vertical-middle" href="javascript:void(0)" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Delete, c.ToString()))">
+                                                        <span class="glyphicon glyphicon-remove"></span>
+                                                    </a>
+                                                    <a rel="noopener noreferrer" data-toggle="tooltip" class="vertical-middle" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Edit, c.ToString()))" href="javascript:editUser(@c.BadgeNumber)">
+                                                        @*href="/UserInfo?deptId=@c.DeptID&badgeNumber=@c.BadgeNumber">*@
+                                                        <span class="glyphicon glyphicon-edit"></span>
+                                                    </a>
+                                                </td>
+                                                <td>
+                                                    <label class="vertical-middle">@c.BadgeNumber</label>
+                                                </td>
+                                                <td>
+                                                    <label class="vertical-middle">@c.ToString()</label>
+                                                </td>
+                                                <td>
+                                                    <label class="vertical-middle">@c.DeptName</label>
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="panel panel-danger clear-fix">
+            <div class="panel-heading">
+                <button id="btnEndWork" onclick="endWork()" disabled class="btn btn-default btn-sm" title="@T5V3Web.Content.Persian.EndWork">
+                    <span class="glyphicon glyphicon-log-out"></span>
+                </button>
+                <button id="btnTransfer" onclick="transfer()" disabled class="btn btn-default btn-sm" title="@T5V3Web.Content.Persian.Transfer">
+                    <span class="glyphicon glyphicon-transfer"></span>
+                </button>
+            </div>
+        </div>
+
+
+    </div>
+
+
+    @section modals
+{
+        <div id="userinfoModal" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 id="msg-title-transfer" class="modal-title">@T5V3Web.Content.Persian.Edit</h4>
+                    </div>
+                    <form method="post" id="frmDetails" class="form-horizontal" role="form" autocomplete="off" action="/UserInfo/Edit" enctype="multipart/form-data">
+                        <input type="hidden" name="isAdd" value="false" />
+                        <div class="modal-body text-right">
+
+                            <div id="detailsSection">
+                                @*class="@(((Model.Selected.BadgeNumber > 0)||  (ViewBag.IsNew)) ? "" : "collapsed-visibility")">*@
+                                <div class="row pad-5">
+                                    <div id="tabs" style="font-family:Tahoma">
+                                        <ul id="temp">
+                                            <li><a rel="noopener noreferrer" href="#tabs-1">@T5V3Web.Content.Persian.BaseDate</a></li>
+                                            <li><a rel="noopener noreferrer" href="#tabs-2">@T5V3Web.Content.Persian.Details</a></li>
+                                            <li><a rel="noopener noreferrer" href="#tabs-3">@T5V3Web.Content.Persian.Access</a></li>
+                                            <li><a rel="noopener noreferrer" href="#tabs-4">@T5V3Web.Content.Persian.Device</a></li>
+                                            <li><a rel="noopener noreferrer" href="#tabs-5">@T5V3Web.Content.Persian.Titles</a></li>
+                                        </ul>
+                                        <div id="tabs-1">
+                                            <div style="display:table">
+
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <div class="text-center col-sm-3">
+                                                            <label class="control-label">@T5V3Web.Content.Persian.BadgeNumber</label>
+                                                        </div>
+                                                        <div class="col-sm-9">
+                                                            @*@if (@Model.Selected.BadgeNumber > 0)
+                                                                {
+                                                                    <input disabled="disabled" id="txtBadge" class="form-control" type="text" value="@Model.Selected.BadgeNumber.ToString()" />
+                                                                    <input type="hidden" name="badgeNumber" value="@Model.Selected.BadgeNumber.ToString()" />
+                                                                }
+                                                                else
+                                                                {*@
+                                                            <input class="form-control" id="txtBadge" placeholder="@T5V3Web.Content.Persian.BadgeNumber" name="badgeNumber" type="text" value="@Model.Selected.BadgeNumber.ToString()" />
+                                                            @*}*@
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-sm-3 text-center">
+                                                            <label class="control-label">@T5V3Web.Content.Persian.Number</label>
+                                                        </div>
+                                                        <div class="col-sm-9">
+                                                            <input class="form-control" placeholder="@T5V3Web.Content.Persian.Number" name="employeeNumber" type="text" value="@Model.Selected.EmployeeNumber" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-sm-3 text-center">
+                                                            <label class="control-label">@T5V3Web.Content.Persian.FirstName</label>
+                                                        </div>
+                                                        <div class="col-sm-9">
+                                                            <input class="form-control" placeholder="@T5V3Web.Content.Persian.FirstName" name="firstName" type="text" value="@Model.Selected.FirstName" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-sm-3 text-center">
+                                                            <label class="control-label">@T5V3Web.Content.Persian.LastName</label>
+                                                        </div>
+                                                        <div class="col-sm-9">
+                                                            <input class="form-control" placeholder="@T5V3Web.Content.Persian.LastName" name="lastName" type="text" value="@Model.Selected.LastName" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-sm-3 text-center">
+                                                            <label class="control-label">@T5V3Web.Content.Persian.FatherName</label>
+                                                        </div>
+                                                        <div class="col-sm-9">
+                                                            <input class="form-control" placeholder="@T5V3Web.Content.Persian.FatherName" name="fatherName" type="text" value="@Model.Selected.FatherName" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-sm-3 text-center">
+                                                            <label class="control-label">@T5V3Web.Content.Persian.NationalNo</label>
+                                                        </div>
+                                                        <div class="col-sm-9">
+                                                            <input class="form-control" placeholder="@T5V3Web.Content.Persian.NationalNo" name="nationalNumber" type="text" value="@Model.Selected.NationalNumber" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-sm-3 text-center">
+                                                            <label class="control-label">@T5V3Web.Content.Persian.Tel</label>
+                                                        </div>
+                                                        <div class="col-sm-9">
+                                                            <input class="form-control" placeholder="@T5V3Web.Content.Persian.Tel" name="tel" type="text" value="@Model.Selected.Tel" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-sm-3 text-center">
+                                                            <label class="control-label">@T5V3Web.Content.Persian.Email</label>
+                                                        </div>
+                                                        <div class="col-sm-9">
+                                                            <input class="form-control" placeholder="@T5V3Web.Content.Persian.Email" name="email" type="text" value="@Model.Selected.Email" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-sm-3 text-center">
+                                                            <label class="control-label">@T5V3Web.Content.Persian.Address</label>
+                                                        </div>
+                                                        <div class="col-sm-9">
+                                                            <input class="form-control" placeholder="@T5V3Web.Content.Persian.Address" name="address" type="text" value="@Model.Selected.Address" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label class="input-label-w75"></label>
+                                                        <input class="input-w300" @(Model.Selected.IsFemale ? "checked=checked" : "") name="gender" type="radio" value="true" />
+                                                        <label>@T5V3Web.Content.Persian.Female</label>
+                                                        &nbsp;
+                                                        <input class="input-w300" @(Model.Selected.IsFemale ? "" : "checked=checked") name="gender" type="radio" value="false" />
+                                                        <label>@T5V3Web.Content.Persian.Male</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        @{
+                                                            var base64 = Model.Selected.Photo != null ? Convert.ToBase64String(Model.Selected.Photo) : "";
+                                                            var imgSrc = String.Format("data:image/gif;base64,{0}", base64);
+                                                        }
+                                                        <div class="row center-align">
+                                                            <img class="block-display" style="margin:auto" id="blah" src="@imgSrc" height="125" width="100" alt="your image" />
+                                                        </div>
+                                                        <div class="row">
+                                                            <input style="margin:auto" class="block-display" type='file' name="photo" onchange="readURL(this);" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-sm-3 text-center">
+                                                            <label class="control-label">@T5V3Web.Content.Persian.BirthDay</label>
+                                                        </div>
+                                                        <div class="col-sm-7">
+                                                            @*<input class="form-control" name="birthday" type="text" value="@T5V3.Misc.DateConverter.ToHijriDate(Model.Selected.Birthday)" />*@
+                                                            <input class="datepicker-farsi" style="width:130%" name="birthday" type="text" value="@T5V3.Misc.DateConverter.ToHijriDate(Model.Selected.Birthday)" />
+                                                        </div>
+                                                        <div class="col-sm-2 text-right">
+                                                            @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('birthday', this)">@T5V3Web.Content.Persian.Select</a>*@
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-sm-3 text-center">
+                                                            <label class="control-label">@T5V3Web.Content.Persian.EmpDate</label>
+                                                        </div>
+                                                        <div class="col-sm-7">
+                                                            @*<input class="form-control" name="hiredDay" type="text" value="@T5V3.Misc.DateConverter.ToHijriDate(Model.Selected.HiredDay)" />*@
+                                                            <input class="datepicker-farsi" style="width:130%" name="hiredDay" type="text" value="@T5V3.Misc.DateConverter.ToHijriDate(Model.Selected.HiredDay)" />
+                                                        </div>
+                                                        <div class="col-sm-2 text-right">
+                                                            @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('hiredDay', this)">@T5V3Web.Content.Persian.Select</a>*@
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-sm-3 text-center">
+                                                            <label class="control-label">@T5V3Web.Content.Persian.EndWork</label>
+                                                            @*<input type="hidden" value="false" name="endWork" />*@
+                                                            <input type="checkbox" onclick="disableFiredDate(this)" name="endWork" value="" @(Model.Selected.DeptID == -1 ? "checked=checked" : "")>
+                                                        </div>
+                                                        <div class="col-sm-7">
+                                                            <input id="txtFiredDate" class="datepicker-farsi" style="width:130%" name="firedDay" disabled="" type="text" value="@(Model.Selected.FiredDay.HasValue ?  T5V3.Misc.DateConverter.ToHijriDate(Model.Selected.FiredDay.Value) : "")" />
+                                                            @*<input id="txtFiredDate" class="form-control" name="firedDay" disabled="" type="text" value="@(Model.Selected.FiredDay.HasValue ?  T5V3.Misc.DateConverter.ToHijriDate(Model.Selected.FiredDay.Value) : "")" />*@
+                                                        </div>
+                                                        <div class="col-sm-2 text-right">
+                                                            @*<a rel="noopener noreferrer" id="datePickerFiredDate" href="javascript:" onclick="displayDatePicker('firedDay', this)">@T5V3Web.Content.Persian.Select</a>*@
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-sm-3 text-center">
+                                                            <label class="control-label">@T5V3Web.Content.Persian.Certificate</label>
+                                                        </div>
+                                                        <div class="col-sm-9">
+                                                            <select class="form-control" name="certificateID">
+                                                                @foreach (Personnel.Model.Certificate c in ViewBag.Certificates)
+                                                                {
+                                                                    <option value="@c.CertificateID" @(c.CertificateID == Model.Selected.CertificateID ? "selected=selected" : "")>@c.CertificateName</option>
+                                                                }
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-sm-3 text-center">
+                                                            <label class="control-label">@T5V3Web.Content.Persian.EmpType</label>
+                                                        </div>
+                                                        <div class="col-sm-9">
+                                                            <select class="form-control" name="empTypeID">
+                                                                @foreach (Personnel.Model.EmpType c in ViewBag.EmpTypes)
+                                                                {
+                                                                    <option value="@c.EmpTypeID" @(c.EmpTypeID == Model.Selected.EmpTypeID ? "selected=selected" : "")>@c.EmpTypeName</option>
+                                                                }
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-sm-3 text-center">
+                                                            <label class="control-label">@T5V3Web.Content.Persian.Janbaz</label>
+                                                        </div>
+                                                        <div class="col-sm-9">
+                                                            <select class="form-control" name="janbazCode">
+                                                                @{
+                                                                    string[] temp = new string[] { T5V3Web.Content.Persian.NON, T5V3Web.Content.Persian.Less25, T5V3Web.Content.Persian.J25_30, T5V3Web.Content.Persian.J35_40, T5V3Web.Content.Persian.J45_50, T5V3Web.Content.Persian.J55_60, T5V3Web.Content.Persian.J65_70, T5V3Web.Content.Persian.JMore70 };
+                                                                    for (int j = 0; j < temp.Length; j++)
+                                                                    {
+                                                                        <option value="@j" @(j == Model.Selected.JanbazCode ? "selected=selected" : "")>@temp[j]</option>
+                                                                    }
+                                                                }
+                                                            </select>
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                        <div id="tabs-2" style="display:table" class="right-align">
+                                            @foreach (Personnel.Model.Property pr in (List<Personnel.Model.Property>)ViewBag.Properties)
+                                            {
+                                                Personnel.Model.UserInfoProperty tempProp = ((List<Personnel.Model.UserInfoProperty>)ViewBag.UserInfoProperties).Where(p => p.PropertyID == pr.PropertyID).FirstOrDefault();
+
+                                                if ((pr.PropertyType == Personnel.Model.PropertyType.StringValue) || (pr.PropertyType == Personnel.Model.PropertyType.DateTimeValue))
+                                                {
+                                                    string valStr = "";
+                                                    if (tempProp != null)
+                                                    {
+                                                        valStr = tempProp.StringValue;
+                                                    }
+                                                    <div class="form-group">
+                                                        <div class="col-sm-2 text-center">
+                                                            <label>@pr.PropertyName</label>
+                                                        </div>
+                                                        <div class="col-sm-10">
+                                                            <input class="form-control" value="@valStr" onkeyup="document.getElementById('@("addProp" + pr.PropertyID.ToString())').value=@(pr.PropertyID)+';' + this.value;" name="@("addProp" + pr.PropertyID.ToString () )" type="text" />
+                                                            <input type="hidden" name="addTexts" value="@(pr.PropertyID.ToString() + ";" + valStr)" id="@("addProp" + pr.PropertyID.ToString())" />
+                                                        </div>
+                                                    </div>
+                                                }
+                                                if (pr.PropertyType == Personnel.Model.PropertyType.BooleanValue)
+                                                {
+                                                    bool boolVal = false;
+                                                    if (tempProp != null)
+                                                    {
+                                                        boolVal = bool.Parse(tempProp.StringValue);
+                                                    }
+                                                    <div class="form-group">
+                                                        <input name="addBools" value="@pr.PropertyID" type="checkbox" @(boolVal ? "checked=checked" : "") />
+                                                        <label>@pr.PropertyName</label>
+                                                    </div>
+                                                }
+                                                if (pr.PropertyType == Personnel.Model.PropertyType.DropDownValue)
+                                                {
+                                                    int drpVal = 1;
+                                                    if ((tempProp != null) && (tempProp.DropDownValue.HasValue))
+                                                    {
+                                                        drpVal = tempProp.DropDownValue.Value;
+                                                    }
+                                                    <div class="form-group">
+                                                        <div class="col-sm-2 text-center">
+                                                            <label class="control-label">@pr.PropertyName</label>
+                                                        </div>
+                                                        <div class="col-sm-10">
+                                                            <select class="form-control" name="addSelects">
+                                                                @foreach (KeyValuePair<int, string> s in (List<KeyValuePair<int, string>>)ViewData["prp" + pr.PropertyID.ToString()])
+                                                                {
+                                                                    <option @(drpVal == s.Key ? "selected=selected" : "") value="@(pr.PropertyID.ToString() + ";" +  s.Key.ToString())">
+                                                                        @s.Value
+                                                                    </option>
+                                                                }
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            }
+                                        </div>
+                                        <div id="tabs-3">
+                                            <div style="display:table">
+                                                <div class="col-sm-6 right-align">
+                                                    <div class="form-group">
+                                                        <div class="col-sm-4 text-center">
+                                                            @*<input name="validFrom" value="false" type="hidden" />*@
+                                                            <input name="validFrom" value="true" onclick="disablevalidFrom(this)" type="checkbox" @(Model.Selected.ValidFrom.HasValue ? "checked=checked" : "") />
+                                                            <label>@T5V3Web.Content.Persian.StartAccess</label>
+                                                        </div>
+                                                        <div class="col-sm-5">
+                                                            <input name="validFromDate" class="form-control left-align" type="text" value="@(Model.Selected.ValidFrom.HasValue ? T5V3.Misc.DateConverter.ToHijriDate(Model.Selected.ValidFrom.Value)  :"")" />
+                                                        </div>
+                                                        <div class="col-sm-3">
+                                                            <input name="validFromTime" class="form-control timespan-input" type="text" value="@(Model.Selected.ValidFrom.HasValue ? (Model.Selected.ValidFrom.Value.ToString("HH:mm"))  :"")" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-sm-4 text-center">
+                                                            @*<input name="validTo" value="false" type="hidden" />*@
+                                                            <input name="validTo" value="true" type="checkbox" onclick="disablevalidTo(this)" @(Model.Selected.ValidTo.HasValue ? "checked=checked" : "") />
+                                                            <label>@T5V3Web.Content.Persian.EndAccess</label>
+                                                        </div>
+                                                        <div class="col-sm-5">
+                                                            <input name="validToDate" class="form-control left-align" type="text" value="@(Model.Selected.ValidTo.HasValue ? T5V3.Misc.DateConverter.ToHijriDate(Model.Selected.ValidTo.Value) : "")" />
+                                                        </div>
+                                                        <div class="col-sm-3">
+                                                            <input name="validToTime" class="form-control timespan-input" type="text" value="@(Model.Selected.ValidTo.HasValue ? (Model.Selected.ValidTo.Value.ToString("HH:mm"))  :"")" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-sm-4 text-center">
+                                                            <label class="control-label">@T5V3Web.Content.Persian.UserName</label>
+                                                        </div>
+                                                        <div class="col-sm-8">
+                                                            <input name="userNameEdt" placeholder="@T5V3Web.Content.Persian.UserName" autocomplete="off" class="form-control" type="text" value="" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-sm-4 text-center">
+                                                            <label class="control-label">@T5V3Web.Content.Persian.Password</label>
+                                                        </div>
+                                                        <div class="col-sm-8">
+                                                            <input name="passwordEdt" placeholder="@T5V3Web.Content.Persian.Password" autocomplete="off" class="form-control" type="password" value="" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-sm-8 col-sm-offset-4">
+                                                            <input name="webUser" value="true" type="checkbox" @(Model.Selected.WebUser ? "checked=checked" : "") />
+                                                            <label>@T5V3Web.Content.Persian.WebUser</label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-sm-8 col-sm-offset-4">
+                                                            <input name="programUser" value="true" type="checkbox" @(Model.Selected.ProgramUser ? "checked=checked" : "") />
+                                                            <label>@T5V3Web.Content.Persian.ApplicationUser</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-sm-6">
+                                                    <label>@T5V3Web.Content.Persian.UploadDevices ...</label>
+                                                    <div id="treeUploadDevices">
+                                                    </div>
+                                                    @*<div class="border-gray auto-scroll w-300 h-200 ">
+                                                            @Html.Partial("_DeviceSelection", new T5V3Web.Models.DeviceSelectionModel("uploadDevices", (List<int>)ViewBag.UploadDevices))
+                                                        </div>*@
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                        <div id="tabs-4">
+                                            <div style="display:table">
+
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <div class="col-sm-4 text-center">
+                                                            <label class="control-label">@T5V3Web.Content.Persian.DeviceName</label>
+                                                        </div>
+                                                        <div class="col-sm-8">
+                                                            <input name="deviceName" class="form-control" placeholder="@T5V3Web.Content.Persian.DeviceName" type="text" value="@Model.Selected.DeviceName" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-sm-4 text-center">
+                                                            <label class="control-label">@T5V3Web.Content.Persian.DevicePassword</label>
+                                                        </div>
+                                                        <div class="col-sm-8">
+                                                            <input name="devicePassword" class="form-control" placeholder="@T5V3Web.Content.Persian.DevicePassword" type="text" value="@Model.Selected.DevicePassword" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-sm-4 text-center">
+                                                            <label class="control-label">@T5V3Web.Content.Persian.DevicePrivilage</label>
+                                                        </div>
+                                                        <div class="col-sm-8">
+                                                            <select name="devicePrivilage" class="form-control">
+                                                                <option @(Model.Selected.DevicePrivilage == 0 ? "selected=selected" : "") value="0">@T5V3Web.Content.Persian.User</option>
+                                                                <option @(Model.Selected.DevicePrivilage != 0 ? "selected=selected" : "") value="1">@T5V3Web.Content.Persian.Manager</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-sm-4 text-center">
+                                                            <label class="w-125 inline-block-display">@T5V3Web.Content.Persian.CardNumber</label>
+                                                        </div>
+                                                        <div class="col-sm-8">
+                                                            <input name="deviceCardNumber" class="form-control" placeholder="@T5V3Web.Content.Persian.CardNumber" type="text" value="@Model.Selected.DeviceCardNumber" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <div class="col-sm-4 text-center">
+                                                            <label class="control-label">@T5V3Web.Content.Persian.GroupNumber</label>
+                                                        </div>
+                                                        <div class="col-sm-8">
+                                                            <input name="deviceGroupNumber" class="form-control" placeholder="@T5V3Web.Content.Persian.GroupNumber" type="text" value="@Model.Selected.DeviceGroupNumber" />
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <input name="deviceEnable" value="false" type="hidden" />
+                                                        <input name="deviceEnable" value="true" type="checkbox" @(Model.Selected.DeviceEnable ? "checked=checked" : "") />
+                                                        <label>@T5V3Web.Content.Persian.Enable</label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-sm-6">
+                                                    <label>@T5V3Web.Content.Persian.ValidDevices ...</label>
+                                                    <div id="treeValidDevices">
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                        <div id="tabs-5">
+                                            <div style="display:table" class="col-sm-12">
+
+                                                <input id="badgeToAdd" type="hidden" value="@Model.Selected.BadgeNumber" />
+                                                <div class="form-group">
+                                                    <div class="col-sm-2 text-center">
+                                                        <label class="control-label">@T5V3Web.Content.Persian.Title</label>
+                                                    </div>
+                                                    <div class="col-sm-6">
+                                                        <select id="titleToAdd" class="form-control" data-live-search="true">
+                                                            @foreach (Personnel.Model.TitleChart tc in ViewBag.Titles)
+                                                            {
+                                                                <option value="@tc.TitleID">@tc.TitleName</option>
+                                                            }
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <div class="col-sm-2 text-center">
+                                                        <label class="control-label">@T5V3Web.Content.Persian.FromDate</label>
+                                                    </div>
+                                                    <div class="col-sm-5">
+                                                        <input id="titleFromDate" class="datepicker-farsi" style="width:122%" name="titleFrom" type="text" />
+                                                        @*<input id="titleFromDate" class="form-control" name="titleFrom" type="text" />*@
+                                                    </div>
+                                                    <div class="col-sm-1 text-right">
+                                                        @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('titleFrom', this)">@T5V3Web.Content.Persian.Select</a>*@
+                                                    </div>
+
+                                                </div>
+                                                <div class="form-group">
+                                                    <div class="col-sm-2 text-center">
+                                                        <input id="titleTo" value="" type="checkbox" onclick="disabletitleTo(this)" />
+                                                        <label class="control-label">@T5V3Web.Content.Persian.ToDate</label>
+                                                    </div>
+                                                    <div class="col-sm-5">
+                                                        <input id="titleToDate" name="titleTo" type="text" class="datepicker-farsi" style="width:122%" />
+                                                        @*<input id="titleToDate" name="titleTo" type="text" class="form-control"/>*@
+                                                    </div>
+                                                    <div class="col-sm-1 text-right">
+                                                        @*<a rel="noopener noreferrer" id="titleToDateDatePicker" href="javascript:" onclick="displayDatePicker('titleTo', this)">@T5V3Web.Content.Persian.Select</a>*@
+                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <div class="col-sm-2 col-sm-offset-2 text-right">
+                                                        <button class="btn btn-default" onclick="addTitle()" type="button">@T5V3Web.Content.Persian.Add</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <table class="table table-hover table-bordered table-responsive table-striped">
+                                                <thead>
+                                                    <tr class="warning">
+                                                        <td>@T5V3Web.Content.Persian.Delete</td>
+                                                        <td>@T5V3Web.Content.Persian.TitleName</td>
+                                                        <td>@T5V3Web.Content.Persian.FromDate</td>
+                                                        <td>@T5V3Web.Content.Persian.ToDate</td>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="titlesdiv">
+                                                    @foreach (Personnel.Model.UserInfoTitle ut in ViewBag.SelectedTitles)
+                                                    {
+                                                        <tr>
+                                                            <td>
+                                                                <a rel="noopener noreferrer" data-toggle="tooltip" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Delete, ut.TitleName))" href="javascript:void(0)" onclick="deleteRow(this)"><img class="vertical-middle" src="/Images/remove-icon24.png" /></a>
+                                                                <input name="ownedTitles" type="hidden" value="@T5V3Web.Controllers.UserInfoController.UserTitleForHTML(ut)" />
+                                                            </td>
+                                                            <td>
+                                                                <label>@ut.TitleName</label>
+                                                            </td>
+                                                            <td>
+                                                                <label>@ut.FromDateHijri</label>
+                                                            </td>
+                                                            <td>
+                                                                <label>@ut.ToDateHijri</label>
+                                                            </td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+
+
+                                        </div>
+
+                                    </div>
+
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+
+                            @*<div class="form-group">
+                                    <div class="col-sm-12 center-align">
+                                        @if (Model.ValidationMessage != null)
+                                        {
+                                            <div class="@((T5V3Web.Models.ValidationMessageType)Model.ValidationMessageType == T5V3Web.Models.ValidationMessageType.Error ? "alert alert-danger fade in" : "alert alert-success fade in")">
+                                                @Model.ValidationMessage
+                                                <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>*@
+
+                            <input name="deptID" type="hidden" value="" />
+                            <input name="badge" type="hidden" value="" />
+
+                            @*@if (Model.Selected.BadgeNumber != 0)
+                                {
+                                    <input name="isAdd" type="hidden" value="false" />
+                                    if (Model.Selected.DeptID > 0)
+                                    {
+                                        <input class="btn btn-success" type="submit" value="@T5V3Web.Content.Persian.Edit" />
+                                    }
+                                }
+                                else
+                                {
+                                    <input name="isAdd" type="hidden" value="true" />
+                                    if (Model.Selected.DeptID > 0)
+                                    {
+                                        <input class="btn btn-primary btn-shadow" type="button"  onclick="addUser()" value="@T5V3Web.Content.Persian.OK" />
+                                    }
+                                }*@
+
+                            <input class="btn btn-primary btn-shadow" type="button" onclick="addUser()" value="@T5V3Web.Content.Persian.OK" />
+                            <button type="button" data-dismiss="modal" class="btn btn-default">@T5V3Web.Content.Persian.Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div id="myModal" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 id="msg-title" class="modal-title"></h4>disableFiredDate(this)
+                    </div>
+                    <div class="modal-body">
+                        <p id="msg-body"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">@T5V3Web.Content.Persian.OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="deptModal" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 id="msg-title-transfer" class="modal-title">@T5V3Web.Content.Persian.Transfer</h4>
+                    </div>
+                    <div class="modal-body text-right">
+                        <div class="auto-scroll h-200">
+                            <div id="transferTree">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div class="col-sm-12">
+                            <label>@T5V3Web.Content.Persian.Department : </label>
+                            <label id="lblTransferDept"></label>
+                        </div>
+                        <div class="text-center">
+                            <button type="button" onclick="acceptTransfer()" class="btn btn-success" data-dismiss="modal">@T5V3Web.Content.Persian.OK</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    }
+
+    @section scripts
+    {
+        <script src="~/Scripts/index.js"></script>
+        <script>
+            settings = {
+                format: "yyyy/mm/dd",
+                dateSeparator: "/",
+                autoClose: true,
+                labelLanguage: 'farsi'
+            }
+            renderToday();
+        </script>
+        @{
+            ViewDataDictionary temp2 = new ViewDataDictionary();
+            temp2.Add(new KeyValuePair<string, object>("DeleteUrl", "/UserInfo/Delete"));
+            temp2.Add(new KeyValuePair<string, object>("DeleteAllUrl", "/UserInfo/DeleteAll"));
+            @Html.Partial("_ConfirmDeleteScripts", temp2);
+
+        }
+
+        <script>
+
+        $('#SectionFilter').click(function ()
+        {
+            var val = $('#SectionFilterStr').val();
+            $.get("/UserInfo/GetDeptsTreeFiltered?deptID=" + "@Model.Selected.DeptID" + "&searchStr=" + val, "", (function (gdata) {
+                $('#tree').empty();
+                $('#tree').treeview({
+                    data: gdata,
+                    levels: 50,
+                    enableLinks: false,
+                    onNodeSelected: function (event, data) {
+                        $("#lblDept").html(data.text);
+                        $("#linkToAddNew").attr("href", "/UserInfo?deptID=" + data.tags);
+
+                        loadDeptPersonnel(data.tags);
+                    }
+                });
+            }));
+            $.get("/UserInfo/GetUploadDevicesTree?badgeNumber=" + "@Model.Selected.BadgeNumber", "", (function (gdata) {
+                $('#treeUploadDevices').treeview({
+                    data: gdata,
+                    levels: 50,
+                    showCheckbox: true
+                });
+            }));
+            $.get("/UserInfo/GetValidDevicesTree?badgeNumber=" + "@Model.Selected.BadgeNumber", "", (function (gdata) {
+                $('#treeValidDevices').treeview({
+                    data: gdata,
+                    levels: 50,
+                    showCheckbox: true
+                });
+            }));
+
+            });
+
+        $("#titleToAdd").selectpicker();
+        $.get("/UserInfo/GetDeptsTree?deptID=" + "@Model.Selected.DeptID", "", (function (gdata) {
+            $('#tree').treeview({
+                data: gdata,
+                levels: 50,
+                enableLinks: false,
+                onNodeSelected: function (event, data) {
+                    $("#lblDept").html(data.text);
+                    $("#linkToAddNew").attr("href", "/UserInfo?deptID=" + data.tags);
+
+                    loadDeptPersonnel(data.tags);
+                }
+            });
+        }));
+        $.get("/UserInfo/GetUploadDevicesTree?badgeNumber=" + "@Model.Selected.BadgeNumber", "", (function (gdata) {
+            $('#treeUploadDevices').treeview({
+                data: gdata,
+                levels: 50,
+                showCheckbox: true
+            });
+        }));
+        $.get("/UserInfo/GetValidDevicesTree?badgeNumber=" + "@Model.Selected.BadgeNumber", "", (function (gdata) {
+            $('#treeValidDevices').treeview({
+                data: gdata,
+                levels: 50,
+                showCheckbox: true
+            });
+        }));
+
+        function addNewUser(deptID) {
+
+            $("#msg-title-transfer").html("@(Persian.AddNewPersonnel)");
+            $("input[name=deptID]").val(deptID);
+            $("#txtBadge").val("");
+            $("input#badgeToAdd").val("-1");
+            $("input[name=employeeNumber]").val("");
+            $("input[name=firstName]").val("");
+            $("input[name=lastName]").val("");
+            $("input[name=fatherName]").val("");
+            $("input[name=nationalNumber]").val("");
+            $("input[name=tel]").val("");
+            $("input[name=email]").val("");
+            $("input[name=address]").val("");
+            $("input[name=gender],[value=true]").prop("checked", false);
+            $("input[name=gender],[value=false]").prop("checked", true);
+            $("input[name=birthday]").val("");
+            $("input[name=hiredDay]").val("");
+            $("input[name=firedDay]").val("");
+            //$("#titleTo").prop("checked", true);
+            $("#datePickerFiredDate").addClass("collapsed-visibility");
+            $("input[name=userNameEdit]").val("");
+            $("input[name=passwordEdit]").val("");
+            $('input[name="userNameEdt"]').val('');
+            $('input[name="passwordEdt"]').val('');
+
+            $("input[name=deviceName]").val("");
+            $("input[name=devicePassword]").val("");
+            $("select[name=devicePrivilage]").val("0");
+            $("input[name=deviceCardNumber]").val("");
+            $("input[name=deviceGroupNumber]").val("1");
+            $("input[name=deviceEnable],[value=true]").prop("checked", true);
+            $("input[name = titleTo]").attr("disabled", "disabled");
+            $("#titleToDateDatePicker").addClass("collapsed-visibility");
+            $("input[name = titleTo]").val("");
+            $("input[name=webUser]").prop("checked", true);
+            $("input[name=programUser]").prop("checked", false);
+
+            $("input[name=isAdd]").val("true");
+            $("#titlesdiv").html("");
+
+            $("#userinfoModal").modal();
+        }
+
+
+        function addUser() {
+            run_waitMe('win8');
+
+            $.ajax({
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                data: $("#frmDetails").serialize(),
+                type: "POST",
+                url: "/UserInfo/Edit",
+                success: function(data) {
+                    $('body').waitMe('hide');
+                    alert(data.message);
+                    window.location.href = "/UserInfo/index";
+                    loadDeptPersonnel($("input[name=deptID]").val());
+                }
+        });
+        }
+
+        function editUser(badgeNumber) {
+            var postData = { badgeNumber: badgeNumber };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(postData),
+                type: "POST",
+                url: "/UserInfo/GetPersonnelByID",
+                success: function (data) {
+                    console.log(data);
+                    $("input[name = titleTo]").attr("disabled", "disabled");
+                    $("#titleToDateDatePicker").addClass("collapsed-visibility");
+
+                    $("input[name=isAdd]").val("false");
+
+                    $("#txtBadge").val(data.info.BadgeNumber);
+
+                    $("input[name=badge]").val(data.info.BadgeNumber);
+                    $("input#badgeToAdd").val(data.info.BadgeNumber);
+                    $("input[name=deptID]").val(data.info.DeptID);
+
+                    $("input[name=employeeNumber]").val(data.info.EmployeeNumber);
+                    $("input[name=firstName]").val(data.info.FirstName);
+                    $("input[name=lastName]").val(data.info.LastName);
+                    $("input[name=fatherName]").val(data.info.FatherName);
+                    $("input[name=nationalNumber]").val(data.info.NationalNumber);
+                    $("input[name=tel]").val(data.info.Tel);
+                    $("input[name=email]").val(data.info.Email);
+                    $("input[name=address]").val(data.info.Address);
+                    if (data.info.IsFemale) {
+                        $("input[name=gender],[value=true]").prop("checked", true);
+                        $("input[name=gender],[value=false]").prop("checked", false);
+                    }
+                    else {
+                        $("input[name=gender],[value=true]").prop("checked", false);
+                        $("input[name=gender],[value=false]").prop("checked", true);
+                    }
+
+                    $('input[name="userNameEdt"]').val(data.info.UserName);
+                    $('input[name="passwordEdt"]').val(data.info.Password);
+
+
+                    $("input[name=validFrom]").prop("checked", data.info.ValidFromHasValue);
+                    $("input[name=validTo]").prop("checked", data.info.ValidToHasValue);
+                    $("input[name=validFromDate]").val(data.info.ValidFromHijriDateOnly);
+                    $("input[name=validToDate]").val(data.info.ValidToHijriDateOnly);
+                    $("input[name=validFromTime]").val(data.info.ValidFromTimeOnly);
+                    $("input[name=validToTime]").val(data.info.ValidToTimeOnly);
+
+                    $("input[name=deviceName]").val(data.info.DeviceName);
+
+                    $("input[name=webUser]").prop("checked", data.info.WebUser);
+                    $("input[name=programUser]").prop("checked", data.info.ProgramUser);
+                    $("input[name=birthday]").val(data.info.HijriBirthDay);
+                    $("input[name=hiredDay]").val(data.info.HijriHireDay);
+                    if (data.info.FiredDay != null) {
+                        $("input[name=endWork]").prop("checked", true);
+                        $("#txtFiredDate").removeAttr("disabled");
+                        $("#datePickerFiredDate").removeClass("collapsed-visibility");
+                        $("input[name=firedDay]").val(data.info.HijriFiredDay);
+                    }
+                    else {
+                        $("input[name=endWork]").prop("checked",false);
+                        $("#txtFiredDate").attr("disabled", "disabled");
+                        $("#datePickerFiredDate").addClass("collapsed-visibility");
+                        $("input[name=firedDay]").val("");
+                    }
+                    if (data.info.ValidFrom != null) {
+                        $("input[name=validFrom]").prop("checked", true);
+                        $("input[name = validFromDate]").removeAttr("disabled");
+                        $("input[name = validFromTime]").removeAttr("disabled");
+                        $("input[name = validFromDate]").val(data.info.ValidFromHijriDateOnly);
+                        $("input[name = validFromTime]").val(data.info.ValidFromTimeOnly);
+                    }
+                    else {
+                        $("input[name = validFromDate]").attr("disabled", "disabled");
+                        $("input[name = validFromDate]").val("");
+                        $("input[name = validFromTime]").attr("disabled", "disabled");
+                        $("input[name = validFromTime]").val("");
+
+                    }
+                    if (data.info.ValidTo != null) {
+                        $("input[name=validTo]").prop("checked", true);
+                        $("input[name = validToDate]").removeAttr("disabled");
+                        $("input[name = validToTime]").removeAttr("disabled");
+                        $("input[name = validToDate]").val(data.info.ValidToHijriDateOnly);
+                        $("input[name = validToTime]").val(data.info.ValidToTimeOnly);
+                    }
+                    else {
+                        $("input[name = validToDate]").attr("disabled", "disabled");
+                        $("input[name = validToDate]").val("");
+                        $("input[name = validToTime]").attr("disabled", "disabled");
+                        $("input[name = validToTime]").val("");
+
+                    }
+
+                    $("select[name=certificateID]").val(data.info.CertificateID);
+                    $("select[name=empTypeID]").val(data.info.EmpTypeID);
+                    $("select[name=janbazCode]").val(data.info.JanbazCode);
+
+
+                    $("#titlesdiv").html("");
+                    for (var i = 0; i < data.titles.length; i++) {
+                        insertTitleToGrid(data.titles[i].TitleID, data.titles[i].BadgeNumber, data.titles[i].FromDateHijri, data.titles[i].ToDateHijri, (data.titles[i].ToDate != null), data.titles[i].TitleName);
+                    }
+
+
+
+                    $("#msg-title-transfer").html("@(Persian.EditPersonnel)");
+
+                    $("#userinfoModal").modal();
+
+                }
+            });
+        }
+
+        function hideDetailsSection() {
+            $("#detailsSection").addClass("collapsed-visibility");
+        }
+
+        function searchPersonnel() {
+            var postData = { query: $("#txtSearchPersonnel").val() };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(postData),
+                type: "POST",
+                url: "/UserInfo/SearchPersonnel",
+                success: function (data) {
+                    addPersonnelToTable(data);
+                }
+            });
+        }
+
+        function loadDeptPersonnel(deptID) {
+            var postData = { deptID: deptID };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(postData),
+                type: "POST",
+                url: "/UserInfo/GetPersonnel",
+                success: function (data) {
+                    addPersonnelToTable(data);
+                    checkStateChanges();
+                }
+            });
+        }
+
+
+        function acceptTransfer() {
+            var ids = [];
+            var checkedList = $("#tblBody input[type=\"checkbox\"]:checked");
+            for (var i = 0; i < checkedList.length ; i++)
+                ids.push(checkedList[i].value);
+
+            var toNode;
+            toNode = $('#transferTree').treeview(true).getSelected();
+            var deptID = toNode[0].tags;
+
+            var postData = {
+                BadgeNumbers: ids,
+                deptID: deptID
+            };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(postData),
+                type: "POST",
+                url: "/UserInfo/Tranfer",
+                success: function (data) {
+
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+
+                    var nodeId;
+                    nodeId = $('#tree').treeview(true).getSelected();
+                    loadDeptPersonnel(nodeId[0].tags)
+                }
+            });
+        }
+
+        function transfer() {
+            $("#lblTransferDept").html("");
+            $("#deptModal").modal();
+
+            $.get("/UserInfo/GetDeptsTree?deptID=" + "@Model.Selected.DeptID", "", (function (gdata) {
+                $('#transferTree').treeview({
+                    data: gdata,
+                    levels: 50,
+                    enableLinks: false,
+                    onNodeSelected: function (event, data) {
+                        $("#lblTransferDept").html(data.text);
+                    }
+                });
+            }));
+        }
+
+        function endWork() {
+            var ids = [];
+            var checkedList = $("#tblBody input[type=\"checkbox\"]:checked");
+            for (var i = 0; i < checkedList.length ; i++)
+                ids.push(checkedList[i].value);
+
+            var postData = { BadgeNumbers: ids };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(postData),
+                type: "POST",
+                url: "/UserInfo/EndWork",
+                success: function (data) {
+
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+
+                    var nodeId;
+                    nodeId = $('#tree').treeview(true).getSelected();
+                    loadDeptPersonnel(nodeId[0].tags);
+                }
+            });
+
+
+        }
+
+        function addPersonnelToTable(data) {
+
+            $("#tblBody").html("");
+            for (var i = 0; i < data.length; i++) {
+                var trElement = $("<tr><td class=\"text-center\"><input onclick=\"checkStateChanges()\" class=\"ml-5\" type=\"checkbox\" name=\"ids\" data-toggle=\"tooltip\" title=\"\" value=\"" + data[i].BadgeNumber
+                    + "\"><a  rel='noopener noreferrer' onclick=\"confirmDelete(" + data[i].BadgeNumber + ")\" data-toggle=\"tooltip\" href=\"javascript:void(0)\" title=\""
+                    + data[i].Name + "\"><span class=\"glyphicon glyphicon-remove\"></span></a><a  rel='noopener noreferrer' data-toggle=\"tooltip\"  title=\"" + data[i].Name
+                    + "\" href=\"javascript:editUser(" + data[i].BadgeNumber + ")\"><span class=\"glyphicon glyphicon-edit\"></span></a></td><td><label>"
+                    + data[i].BadgeNumber + "</label></td><td><label>" + data[i].Name + "</label></td><td><label>" + data[i].DeptName + "</label></td></tr>");
+                trElement.appendTo($("#tblBody"));
+            }
+        }
+
+        function checkStateChanges() {
+            var count = $("#tblBody input[type=\"checkbox\"]:checked").length;
+            if (count > 0) {
+                $('#btnEndWork').removeAttr("disabled");
+                $('#btnTransfer').removeAttr("disabled");
+            }
+            else {
+                $('#btnEndWork').attr("disabled", "disabled");
+                $('#btnTransfer').attr("disabled", "disabled");
+            }
+        }
+
+        function getSelectedText(elementId) {
+            var elt = document.getElementById(elementId);
+
+            if (elt.selectedIndex == -1)
+                return null;
+
+            return elt.options[elt.selectedIndex].text;
+        }
+
+        function addTitle() {
+            var tID = document.getElementById('titleToAdd').value;
+            var badge = document.getElementById('badgeToAdd').value;
+            var frDate = document.getElementById('titleFromDate').value;
+            var tDate = document.getElementById('titleToDate').value;
+            var titleTo = document.getElementById('titleTo').checked;
+
+            insertTitleToGrid(tID, badge, frDate, tDate, titleTo, getSelectedText('titleToAdd'))
+        }
+
+        function insertTitleToGrid(tID, badge, frDate, tDate, titleTo, tName) {
+            if (frDate.trim() == "") {
+                $("#msg-title").html("@(T5V3Web.Content.Persian.Title)");
+                $("#msg-body").html("@(T5V3Web.Content.Persian.InputStaredItems)");
+                $("#myModal").modal();
+                return;
+            }
+
+            var hidVal = badge + ';' + tID + ';' + frDate + ';';
+            if (titleTo == true)
+                hidVal += tDate;
+            else
+                hidVal += '-';
+
+
+            var div = document.createElement('tr');
+            var td0 = document.createElement('td');
+
+            var delLink = document.createElement('a');
+            delLink.href = 'javascript:';
+            delLink.setAttribute('onclick', 'deleteRow(this)');
+            delLink.innerHTML = '<img class="vertical-middle" src="/Images/remove-icon24.png" />';
+            td0.appendChild(delLink);
+
+            var td1 = document.createElement('td');
+            var td2 = document.createElement('td');
+            var td3 = document.createElement('td');
+
+            var l1 = document.createElement('label');
+            l1.innerHTML = tName;
+            l1.className = 'inline-block-display w-240';
+            td1.appendChild(l1);
+
+            var l2 = document.createElement('label');
+            l2.innerHTML = frDate;
+            td2.appendChild(l2);
+
+            var l3 = document.createElement('label');
+            if (titleTo == true)
+                l3.innerHTML += tDate;
+            else
+                l3.innerHTML += '-';
+            td3.appendChild(l3);
+
+            var hi = document.createElement('input');
+            hi.value = hidVal;
+            hi.type = 'hidden';
+            hi.name = 'ownedTitles';
+            td0.appendChild(hi);
+
+            div.appendChild(td0);
+            div.appendChild(td1);
+            div.appendChild(td2);
+            div.appendChild(td3);
+
+            document.getElementById('titlesdiv').appendChild(div);
+        }
+
+        function deleteRow(ele) {
+            document.getElementById('titlesdiv').removeChild(ele.parentNode.parentNode);
+        }
+
+        function readURL(evt) {
+            var tgt = evt;//.target;// || window.event.srcElement;
+            var files = tgt.files;
+
+            if (FileReader && files && files.length) {
+                var fr = new FileReader();
+                fr.onload = function () {
+                    document.getElementById('blah').src = fr.result;
+                }
+                fr.readAsDataURL(files[0]);
+            }
+        }
+
+        function disableFiredDate(checkbox) {
+            if ($(checkbox).is(":checked")) {
+                $("#txtFiredDate").removeAttr("disabled");
+                $("#datePickerFiredDate").removeClass("collapsed-visibility");
+                $("#endWork").val(true);
+            }
+            else {
+                $("#txtFiredDate").attr("disabled", "disabled");
+                $("#datePickerFiredDate").addClass("collapsed-visibility");
+                $("input[name=firedDay]").val("");
+                $("#endWork").val(false);
+            }
+        }
+        function disabletitleTo(checkbox) {
+            if ($(checkbox).is(":checked")) {
+                $("input[name = titleTo]").removeAttr("disabled");
+                $("#titleToDateDatePicker").removeClass("collapsed-visibility");
+                $("#titleTo").val(true);
+            }
+            else {
+
+                $("input[name = titleTo]").attr("disabled", "disabled");
+                $("#titleToDateDatePicker").addClass("collapsed-visibility");
+                $("input[name = titleTo]").val("");
+                $("#titleTo").val(false);
+
+            }
+        }
+        function disablevalidFrom(checkbox) {
+            if ($(checkbox).is(":checked")) {
+                $("input[name = validFromDate]").removeAttr("disabled");
+                $("input[name = validFromTime]").removeAttr("disabled");
+
+            }
+            else {
+
+                $("input[name = validFromDate]").attr("disabled", "disabled");
+                $("input[name = validFromDate]").val("");
+                $("input[name = validFromTime]").attr("disabled", "disabled");
+                $("input[name = validFromTime]").val("");
+
+
+            }
+        }
+        function disablevalidTo(checkbox) {
+            if ($(checkbox).is(":checked")) {
+                $("input[name = validToDate]").removeAttr("disabled");
+                $("input[name = validToTime]").removeAttr("disabled");
+
+            }
+            else {
+
+                $("input[name = validToDate]").attr("disabled", "disabled");
+                $("input[name = validToDate]").val("");
+                $("input[name = validToTime]").attr("disabled", "disabled");
+                $("input[name = validToTime]").val("");
+
+
+            }
+        }
+        $(function () {
+            $(".timespan-input").mask('99:59');
+            $("#tabs").tabs();
+            $("#tabs ul#temp").removeClass('ui-helper-clearfix', 0, 1, '');
+            $("#tabs ul#temp").css('height', '40px');
+
+        });
+        </script>
+    }

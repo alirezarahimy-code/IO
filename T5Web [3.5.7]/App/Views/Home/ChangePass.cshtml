@@ -1,0 +1,120 @@
+﻿@{
+    ViewBag.Title = "تغییر رمز";
+    var m = Request.Params["Message"].AsInt();
+
+    var mes = string.Empty;
+
+    switch (m)
+    {
+        case 1:
+            mes = "به منظور مسایل امنیتی، شما موظف به جایگزینی رمز عبور جدید هستید.";
+            break;
+    }
+}
+
+<div style="max-width:500px;margin:auto">
+    <div class="text-right card-header">
+        <h3>@T5V3Web.Content.Persian.Login</h3>
+    </div>
+
+
+    <div class="card" style="padding:2em">
+        <div class="row">
+            <div class="col-sm-4">
+                <img src="~/Images/login.png" width="100" height="100" />
+            </div>
+
+            <div class="col-sm-8">
+                <form role="form" class="form-horizontal changePasswordForceForm" action="/Home/ChangePass" method="post">
+                    <div class="material-input text-right">
+                        <div class="col-sm-offset-1 col-lg-8 col-sm-8">
+                            <div class="group">
+                                <input name="OldPassword" id="OldPassword" type="password" required>
+                                <span class="highlight"></span>
+                                <span class="bar"></span>
+                                <label>کلمه عبور قبلی</label>
+                            </div>
+                        </div>
+                        <div class="col-sm-offset-1 col-lg-4 col-sm-4" style="margin-right: 0px">
+                            <label for="OldPassword" generated="true" class="error " style="font-size: 12px; margin-top: 69px; "></label>
+                        </div>
+                    </div>
+
+                    <div class="material-input text-right">
+                        <div class="col-sm-offset-1 col-lg-8 col-sm-8">
+                            <div class="group">
+                                <input name="NewPassword" id="NewPassword" type="Password" required>
+                                <span class="highlight"></span>
+                                <span class="bar"></span>
+                                <label>کلمه عبور جدید</label>
+                            </div>
+                        </div>
+                        <div class="col-sm-offset-1 col-lg-4 col-sm-4" style="margin-right: 0px">
+                            <label for="NewPassword" generated="true" class="error " style="font-size: 12px; margin-top: 69px; "></label>
+                        </div>
+                    </div>
+                    <div class="material-input text-right">
+                        <div class="col-sm-offset-1 col-lg-8 col-sm-8">
+                            <div class="group">
+                                <input name="ConfirmPassword" id="ConfirmPassword" type="password" required>
+                                <span class="highlight"></span>
+                                <span class="bar"></span>
+                                <label>تایید کلمه عبور</label>
+                            </div>
+                        </div>
+                        <div class="col-sm-offset-1 col-lg-4 col-sm-4" style="margin-right: 0px">
+                            <label for="ConfirmPassword" generated="true" class="error " style="font-size: 12px; margin-top: 69px; "></label>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="form-group">
+                        <input class="btn btn-shadow btn-primary" type="submit" id="" value="تایید" />
+                    </div>
+
+                    @if (ViewBag.Message != null)
+                    {
+                        <div>
+                            <div class="text-center panel-danger panel">
+                                <div class="panel-heading">
+                                    <label>@ViewBag.Message</label>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    <div class="text-center text-danger">
+                        <label>@mes</label>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="~/Scripts/jquery-3.6.1.js"></script>
+<script src="~/Scripts/jquery.validate.js"></script>
+<script src="~/Scripts/additional-methods.js"></script>
+<script>
+    $(document).ready(function () {
+        $(".changePasswordForceForm").validate({
+            rules: {
+                OldPassword: {
+                    required: true,
+                    alphanumeric: true
+                },
+                NewPassword: {
+                    required: true,
+                    alphanumeric: true,
+                    minlength: 5
+                },
+                ConfirmPassword: {
+                    required: true,
+                    alphanumeric: true,
+                    minlength: 5
+                }
+            },
+            submitHandler: function (form) {
+                $('.changePasswordForceForm').submit();
+                return true;
+            }
+        });
+    });
+</script>

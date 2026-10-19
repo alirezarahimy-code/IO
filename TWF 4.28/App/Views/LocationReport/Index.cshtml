@@ -1,0 +1,164 @@
+﻿@model MyTime3.Models.LocationReportModel
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.LocationReport;
+}
+@section TopStyle{
+    <link href="~/Content/style.css" rel="stylesheet" />
+}
+@section EndScript{
+    <script src="~/Scripts/index.js"></script>
+    <script>
+
+        settings = {
+            format: "yyyy/mm/dd",
+            dateSeparator: "/",
+            autoClose: true,
+            labelLanguage: 'farsi'
+        }
+        renderToday();
+    </script>
+}
+<div class="page-header">
+    <h3>@Html.Raw(MyTime3.Content.PersianString.LocationReport)</h3>
+</div>
+
+<div style="padding-right:30px">
+    @using (@Html.BeginForm("Report", "LocationReport", FormMethod.Post, new { @class = "text-right form-horizontal" }))
+    {
+        <div class="form-group">
+            <div class="col-sm-2 text-left">
+                @Html.Label(MyTime3.Content.PersianString.Type, new { @class = "control-label" })
+            </div>
+            <div class="col-sm-3">
+                @Html.DropDownListFor(m => m.ReportID, (List<SelectListItem>)ViewBag.Positions, new { @class = "form-control" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-9 col-sm-offset-2">
+                @Html.Partial("~/Views/Shared/_SelectMultiUser.cshtml")
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-2 text-left">
+                @Html.Label(MyTime3.Content.PersianString.FromDate, new { @class = "formLabel" })
+            </div>
+            <div>
+                @*@Html.TextBoxFor(m => m.FromDateHijri, new { @class = "formInput" })*@
+                @Html.TextBoxFor(m => m.FromDateHijri, new { @class = "formInput datepicker-farsi" })
+                @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('FromDateHijri', this)">@MyTime3.Content.PersianString.SelectDate</a>*@
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-2 text-left">
+                @Html.Label(MyTime3.Content.PersianString.ToDate, new { @class = "formLabel" })
+            </div>
+            <div>
+                @*@Html.TextBoxFor(m => m.ToDateHijri, new { @class = "formInput" })*@
+                @Html.TextBoxFor(m => m.ToDateHijri, new { @class = "formInput datepicker-farsi" })
+                @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('ToDateHijri', this)">@MyTime3.Content.PersianString.SelectDate</a>*@
+            </div>
+        </div>
+
+        <div class="form-group">
+        </div>
+
+        <div class="form-group top-buffer">
+            <div class="col-sm-offset-2">
+                <input type="submit" name="action" class="btn btn-default" value="@MyTime3.Content.PersianString.ShowReport" />
+            </div>
+        </div>
+
+        if (Model.ErrorMessage != null)
+        {
+            <div class="form-group" style="padding-left:30px">
+                <div class="row text-center panel-danger panel">
+                    <div class="panel-heading">
+                        <label>@Model.ErrorMessage</label>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+@if (Model.data != null)
+{
+    <table class="table table-bordered table-hover table-responsive table-striped">
+        <thead>
+            <tr>
+                <td style="width:100px"></td>
+                <td>@MyTime3.Content.PersianString.BadgeNumber</td>
+                <td>@MyTime3.Content.PersianString.Name</td>
+                <td>@MyTime3.Content.PersianString.Type</td>
+                <td>@MyTime3.Content.PersianString.Time</td>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (T5V3.Model.UserPosition up in Model.data)
+            {
+                <tr>
+                    <td style="width:100px;font-size:large"><a rel="noopener noreferrer" id="op_@up.ID" href="javascript:open(@up.ID)" class="glyphicon glyphicon-plus-sign"></a></td>
+                    <td>@up.BadgeNumber</td>
+                    <td>@up.UserName</td>
+                    <td>@up.PositionName</td>
+                    <td>@T5V3.Misc.DateConverter.ToHijriDateWithTime(up.CreateTime)</td>
+                </tr>
+                <tr id="det_@up.ID" class="collapsed-visibility">
+                    <td></td>
+                    <td colspan="4">
+                        <table class="table table-bordered table-hover table-responsive table-striped">
+                            <tbody>
+                                @foreach (T5V3.Model.UserPositionStep step in up.Steps)
+                                {
+                                    <tr>
+                                        <td>@step.StepName</td>
+                                        <td>@T5V3.Misc.DateConverter.ToHijriDateWithTime(step.CreateDate)</td>
+                                        <td>@step.Descriptions</td>
+                                        <td>
+                                            @if (step.Longitude.HasValue && step.Latitude.HasValue)
+                                            {
+                                                if ((step.Longitude.Value != 0) && (step.Latitude.Value != 0))
+                                                {
+                                                    <a rel="noopener noreferrer" target="_blank" href="http://maps.google.com/maps?q=@step.Latitude.Value,@step.Longitude.Value">@MyTime3.Content.PersianString.ShowOnMap</a>
+                                                }
+                                            }
+                                        </td>
+                                        <td>
+                                            @if ((step.ImageData != null) && (step.ImageData.Length > 1))
+                                            {
+                                                <a rel="noopener noreferrer" target="_blank" href="/LocationReport/ShowPhoto?id=@step.PositionID&index=@step.StepIndex">@MyTime3.Content.PersianString.ShowAttachmentPhoto</a>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+@section scripts
+{
+    <script>
+        function open(id) {
+            $("#det_" + id).removeClass("collapsed-visibility");
+            $("#op_" + id).attr("href", "javascript:close(" + id + ")");
+            $("#op_" + id).removeClass("glyphicon-plus-sign");
+            $("#op_" + id).addClass("glyphicon-minus-sign");
+        }
+
+        function close(id) {
+            $("#det_" + id).addClass("collapsed-visibility");
+            $("#op_" + id).attr("href", "javascript:open(" + id + ")");
+            $("#op_" + id).removeClass("glyphicon-minus-sign");
+            $("#op_" + id).addClass("glyphicon-plus-sign");
+        }
+    </script>
+}

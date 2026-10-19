@@ -1,0 +1,303 @@
+﻿@model T5V3Web.Models.GridModel
+
+<table class="table table-hover table-bordered table-striped table-responsive">
+    <thead>
+        <tr class="w">
+            <td>@T5V3Web.Content.Persian.SelectDeleteEdit</td>
+            @foreach (T5V3Web.Models.GridModel.Column col in Model.Columns)
+            {
+                <td>
+                    @col.DisplayName
+                </td>
+            }
+        </tr>
+        <tr>
+            <td class="info"></td>
+            @foreach (T5V3Web.Models.GridModel.Column col in Model.Columns)
+            {
+                <td class="info">
+                    <input style="color:black" placeholder="@T5V3Web.Content.Persian.Search" type="text" onkeyup="search(this)" />
+                </td>
+            }
+        </tr>
+    </thead>
+    <tbody id="data-body"></tbody>
+    <tfoot>
+        <tr class="d">
+            <td>
+                <div class="btn-group">
+                    <button type="button" onclick="addnew()" class="btn btn-sm btn-default" data-toggle="tooltip" title="@T5V3Web.Content.Persian.Add">
+                        <span class="glyphicon glyphicon-plus"></span>
+                    </button>
+                    <button id="btnDeleteAll" type="button" class="btn btn-sm btn-default disabled" data-toggle="tooltip" title="@T5V3Web.Content.Persian.DeleteSelectedItems">
+                        <span class="glyphicon glyphicon-remove"></span>
+                    </button>
+                </div>
+            </td>
+            <td>
+                <div id="paging-td"></div>
+            </td>
+        </tr>
+    </tfoot>
+</table>
+
+<div class="collapsed-visibility">
+    <div id="dialog-confirm-delete" title="@T5V3Web.Content.Persian.Delete">
+        <p id="dlg-msg">@T5V3Web.Content.Persian.AreyouSure</p>
+    </div>
+</div>
+
+
+<script>
+    function search(textbox) {
+        $("body").data("squery", textbox.value);
+        @if (Model.WithParentID)
+        {
+            <Text>
+        loadlistid(@(Model.ParentID) , 1, textbox.value);
+        </Text>
+        }
+        else
+        {
+            <Text>
+        loadlist(1, textbox.value);
+        </Text>
+        }
+    }
+
+    function deleteAll() {
+        $("#dialog-confirm-delete").dialog({
+            resizable: false,
+            height: 160,
+            modal: true,
+            position: { my: "center", at: "center", of: window },
+            buttons: {
+                "@T5V3Web.Content.Persian.OK": function () {
+                    $(this).dialog("close");
+
+                    var ids = []
+                    $("input:checkbox[name='ids']:checked").each(function () { ids.push(($(this).val())) })
+
+                    $.ajax({
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        type: "POST",
+                        data: JSON.stringify({ "ids": ids }),
+                        url: "@Model.DeleteAllAPIPath",
+                        success: function (data) {
+                            @if (Model.WithParentID)
+                             {
+                                 <Text>
+                            loadlistid(@(Model.ParentID), $("body").data("page"), $("body").data("squery"));
+                            </Text>
+                             }
+                             else
+                             {
+                                 <Text>
+                            loadlist($("body").data("page"), $("body").data("squery"));
+                            </Text>
+                             }
+
+                        }
+                    });
+                },
+                "@T5V3Web.Content.Persian.Cancel": function () {
+                    $(this).dialog("close");
+                }
+            }
+        });
+    }
+
+    function confirmDelete(id) {
+        $("#dialog-confirm-delete").dialog({
+            resizable: false,
+            height: 160,
+            modal: true,
+            position: { my: "center", at: "center", of: window },
+            buttons: {
+                "@T5V3Web.Content.Persian.OK": function () {
+                    $(this).dialog("close");
+
+                    $.ajax({
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        type: "POST",
+                        url: "@Model.DeleteAPIPath" + id,
+                        success: function (data) {
+                            $("#msg-title").html("@T5V3Web.Content.Persian.Delete");
+                            $("#msg-body").html(data.Message);
+                            $("#myModal").modal();
+                            @if (Model.WithParentID)
+                            {
+                                <Text>
+                            loadlistid(@(Model.ParentID), $("body").data("page"), $("body").data("squery"));
+                            </Text>
+                            }
+                            else
+                            {
+                                <Text>
+                            loadlist($("body").data("page"), $("body").data("squery"));
+                            </Text>
+                            }
+
+
+                        }
+                    });
+                },
+                "@T5V3Web.Content.Persian.Cancel": function () {
+                    $(this).dialog("close");
+                }
+            }
+        });
+    }
+
+    function loadlist(page, query) {
+        if (query == null)
+            query = "";
+
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            data: JSON.stringify({ 'pageNumber': page, 'searchQuery': query }),
+            type: "POST",
+            url: "@Model.GetListAPIPath",
+            success: function (data) {
+                createList(data.ItemsList);
+                setPaging(data, query);
+            }
+        });
+    }
+
+    function loadlistid(id, page, query) {
+        if (query == null)
+            query = "";
+
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            data: JSON.stringify({ 'id': id, 'pageNumber': page, 'searchQuery': query }),
+            type: "POST",
+            url: "@Model.GetListAPIPath",
+            success: function (data) {
+                createList(data.ItemsList);
+                setPaging(data, query);
+            }
+        });
+    }
+
+    function setpage()
+    {
+        loadlistid( @Model.ParentID , $("#txtpagenumber").val() ,'' );
+    }
+
+    function setPaging(data, query) {
+        $("#paging-td").html("");
+        if (data.HasPrePage == true) {
+            @if (Model.WithParentID)
+              {
+                  <Text>
+            $("#paging-td").append($("<a rel='noopener noreferrer' href=\"javascript:void(0)\"><span onclick=\"loadlistid( @(Model.ParentID)," + (data.PageNumber - 1) + ",'" + query + "')\" class=\"glyphicon glyphicon-forward\"></span></a>"));
+            </Text>
+              }
+              else
+              {
+                  <Text>
+            $("#paging-td").append($("<a rel='noopener noreferrer' href=\"javascript:void(0)\"><span onclick=\"loadlist(" + (data.PageNumber - 1) + ",'" + query + "')\" class=\"glyphicon glyphicon-forward\"></span></a>"));
+            </Text>
+              }
+
+        }
+        else {
+            $("#paging-td").append($("<span class=\"glyphicon glyphicon-forward\"></span>"));
+        }
+
+        $("#paging-td").append($("<label class=\"margin-lr-15\">" + "@T5V3Web.Content.Persian.Page " + "<input id='txtpagenumber' type='text' onkeyup='setpage()' value='"+data.PageNumber +"'>" + " @T5V3Web.Content.Persian.From" + data.TotalPageNumbers + "</label>"));
+        $("body").data("page", data.PageNumber);
+
+        if (data.HasNextPage == true) {
+            @if (Model.WithParentID)
+                        {
+                            <Text>
+            $("#paging-td").append($("<a rel='noopener noreferrer' href=\"javascript:void(0)\"><span onclick=\"loadlistid(@Model.ParentID," + (data.PageNumber + 1) + ",'" + query + "')\" class=\"glyphicon glyphicon-backward\"></span></a>"));
+            </Text>
+                        }
+                        else
+                        {
+                            <Text>
+            $("#paging-td").append($("<a rel='noopener noreferrer' href=\"javascript:void(0)\"><span onclick=\"loadlist(" + (data.PageNumber + 1) + ",'" + query + "')\" class=\"glyphicon glyphicon-backward\"></span></a>"));
+            </Text>
+                        }
+
+
+        }
+        else {
+            $("#paging-td").append($("<span class=\"glyphicon glyphicon-backward\"></span>"));
+        }
+    }
+
+    function createList(itemsList) {
+        $('#data-body').html("");
+        for (var i = 0 ; i < itemsList.length; i++) {
+
+            var name = itemsList[i]["@Model.DisplayPropertyName"];
+            var id = itemsList[i]["@Model.IDPropertyName"];
+
+            var td1 = $("<td>");
+            var td2 = $("<td><label>" + name + "</label></td>");
+            td1.append(addSelectCheckBox(id, name));
+            td1.append(addLink("btn btn-sm", "confirmDelete(" + id + ")", "javascript:void(0)", "@T5V3Web.Content.Persian.Delete" + " " + name, "glyphicon-remove"));
+            td1.append(addLink("btn btn-sm", "loadItem(" + id + ")", "javascript:void(0)", "@T5V3Web.Content.Persian.Edit" + " " + name, "glyphicon-edit"));
+            var tr = $("<tr>");
+            tr.append(td1);
+            tr.append(td2);
+
+            tr.appendTo($('#data-body'));
+        }
+        checkStateChanges();
+    }
+
+    function addSelectCheckBox(value, text) {
+        //var chk = $("<input class=\"ml-5\" data-toggle=\"tooltip\" type=\"checkbox\" name=\"ids\">");
+
+
+        var chk = $("<div style='display:inline' class=\"ml-5 mat-check\"><div style='display:inline' class=\"checkbox\"><input type=\"checkbox\" name=\"ids\" id=\"chk_"+value +"\" /><label for=\"chk_"+value+"\"><span></span></label></div></div>");
+
+
+        chk.attr("title", "@T5V3Web.Content.Persian.Select" + " " + text);
+        chk.val(value);
+        chk.attr("onclick", "checkStateChanges()");
+        chk.tooltip();
+        return chk;
+    }
+
+    function addLink(clsName, clickEvent, refLnk, titleStr, iconName) {
+        var ico = $("<span>");
+        ico.attr("class", "glyphicon " + iconName);
+
+        var lnk = $("<a rel='noopener noreferrer' data-toggle=\"tooltip\">");
+        lnk.attr("title", titleStr);
+        lnk.attr("class", clsName);
+        lnk.attr("href", refLnk);
+        lnk.attr("onclick", clickEvent);
+        lnk.tooltip();
+
+        lnk.append(ico);
+        return lnk;
+    }
+
+    function checkStateChanges() {
+        var count = $("table input[type=\"checkbox\"]:checked").length;
+        if (count > 0) {
+            $('#btnDeleteAll').removeClass("disabled");
+            document.getElementById("btnDeleteAll").onclick = deleteAll;
+        }
+        else {
+            $('#btnDeleteAll').addClass("disabled");
+            document.getElementById("btnDeleteAll").onclick = "";
+        }
+        if (count > 1)
+            $('#data-body a').addClass("disabled");
+        else
+            $('#data-body a').removeClass("disabled");
+    }
+</script>

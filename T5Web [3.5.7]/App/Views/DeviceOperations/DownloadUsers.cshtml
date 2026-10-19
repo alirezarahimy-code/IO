@@ -1,0 +1,283 @@
+﻿@model T5V3Web.Models.DeviceOperationsModel
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.DownloadUsersFromDevice;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.Devices;
+    ViewBag.PageTag = "DeviceOperations";
+}
+
+<h3>@T5V3Web.Content.Persian.DownloadUsersFromDevice</h3>
+<div class="horizontal-line"></div>
+
+
+<form id="mainForm" action="/DeviceOperations/ShowUsers" method="post">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <label>@T5V3Web.Content.Persian.SelectDevices ...</label>
+        </div>
+        <div class="panel-body">
+            @Html.Partial("_DeviceSelection", new T5V3Web.Models.DeviceSelectionModel("selectedDevices", Model.SelectedDevices, Model.DeviceStates.Select(d => d.MachineNumber).ToList()))
+        </div>
+    </div>
+
+    @if (@Model.HasError)
+    {
+        <div class="alert alert-danger fade in">
+            @Html.Raw(Model.ErrorMessage)
+            <a rel="noopener noreferrer" href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+        </div>
+    }
+    <input class="btn btn-success mb-20" value="@T5V3Web.Content.Persian.ShowUsers" type="button" onclick="submitForm()" />
+</form>
+
+
+<div class="horizontal-line"></div>
+
+<div class=@(Model.DownloadedUsers == null ? "collapsed-visibility" : "right-align")>
+    <form method="post" action="/DeviceOperations/ModifyUsers">
+
+        <div class="col-lg-8">
+            <div class="panel panel-warning">
+                <div class="panel-heading">
+                    @T5V3Web.Content.Persian.DevicePersonnel ...
+                </div>
+                <div class="panel-body">
+                    <div style="max-height:400px" class="auto-scroll mb-20">
+                        <table id="deviceUsers" class="table table-bordered table-hover table-responsive table-striped">
+                            @if (Model.DownloadedUsers != null)
+                            {
+                                <thead>
+                                    <tr class="warning">
+                                        <td>+</td>
+                                        <td>@T5V3Web.Content.Persian.BadgeNumber</td>
+                                        <td>@T5V3Web.Content.Persian.Name</td>
+                                        <td>@T5V3Web.Content.Persian.CardNumber</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (Personnel.Model.UserInfo u in Model.DownloadedUsers)
+                                    {
+                                        <tr class="device-user-row visible-visibility">
+                                            <td>
+                                                <input type="hidden" name="currentUsers" value="@(string.Format("{0}//{1}//{2}//{3}//{4}//{5}//{6}//{7}",u.BadgeNumber.ToString (),u.DeviceName,u.DeviceCardNumber,u.DeviceMachineNumber,u.DevicePassword,u.DevicePrivilage.ToString() ,u.DeviceEnable.ToString (),u.DeviceGroupNumber.ToString ()))" />
+                                                <input type="checkbox" name="selectedUsers" value="@(string.Format ("{0};{1}", u.BadgeNumber ,u.DeviceMachineNumber))" />
+                                            </td>
+                                            <td><label>@u.BadgeNumber</label> </td>
+                                            <td><label>@u.DeviceName</label></td>
+                                            <td><label>@u.DeviceCardNumber</label></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            }
+                        </table>
+                    </div>
+                    <div class="block-display left-align mb-10">
+                        <button type="button" onclick="reverseAllDeviceUsers()" class="btn btn-default inline-display">@T5V3Web.Content.Persian.Reverse</button>
+                        <button type="button" onclick="selectAllDeviceUsers()" class="btn-default btn inline-display">@T5V3Web.Content.Persian.All</button>
+                    </div>
+                    <div class="block-display form-inline">
+                        <label class="inline-display control-label">@T5V3Web.Content.Persian.Search</label>
+                        <input id="txtSearch" onkeyup="searchDviceUsers(this)" class="inline-display form-control" type="text" />
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-lg-4">
+
+            <div>
+                <div class="panel panel-success">
+                    <div class="panel-heading">
+                        <label>@T5V3Web.Content.Persian.Download</label>
+                    </div>
+                    <div class="panel-body">
+                        <ul style="list-style:none;padding-right:0px">
+                            <li>
+                                <input checked="checked" type="checkbox" name="finger" value="true" />
+                                <label>@T5V3Web.Content.Persian.FingerTemplate</label>
+                            </li>
+                            <li>
+                                <input type="checkbox" name="face" value="true" />
+                                <label>@T5V3Web.Content.Persian.Face</label>
+                            </li>
+                            <li class="center-align mt-20">
+                                @*<button type="button" onclick="downloadUsers()">yrdy</button>*@
+                                <input class="btn btn-success" onclick="downloadUsers()"  name="operation" type="button" value="@T5V3Web.Content.Persian.Download" />
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="panel panel-danger">
+                    <div class="panel-heading">
+                        <label>@T5V3Web.Content.Persian.Download</label>
+                    </div>
+                    <div class="panel-body">
+                        <ul style="list-style:none;padding-right:0px">
+                            <li>
+                                <input checked="checked" type="checkbox" name="deleteAll" value="true" />
+                                <label>@T5V3Web.Content.Persian.DeleteAll</label>
+                            </li>
+                            <li>
+                                <input type="checkbox" name="deleteFingersOnly" value="true" />
+                                <label>@T5V3Web.Content.Persian.FingerOnly</label>
+                            </li>
+                            <li class="center-align mt-20">
+                                <input class="btn btn-danger" name="operation" onclick="deleteUsers()"  type="button" value="@T5V3Web.Content.Persian.Delete" />
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:table-row">
+                <ul>
+                    @if (Model.Logs != null)
+                    {
+                        foreach (string log in Model.Logs)
+                        {
+                            <li>@log</li>
+                        }
+                    }
+                </ul>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+
+@section scripts
+{
+    <script>
+        function downloadUsers() {
+            run_waitMe('win8');
+
+            var selected = [];
+            $('input[name=selectedUsers]:checked').each(function () {
+                selected.push($(this).val());
+            });
+
+            var allRead = [];
+            $('input[name=currentUsers]').each(function () {
+                allRead.push($(this).val());
+            });
+
+            var postData = {
+                selectedUsers: selected,
+                currentUsers: allRead,
+                operation: "@T5V3Web.Content.Persian.Download",
+                finger: $("input[name='finger']").is(":checked"),
+                face: $("input[name='face']").is(":checked")
+                
+            };
+
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(postData),
+                type: "POST",
+                url: "/DeviceOperations/ModifyUsers",
+                success: function (data) {
+                    $('body').waitMe('hide');
+                    alert(data);
+                }
+            });
+
+            
+        }
+
+        function deleteUsers() {
+            run_waitMe('win8');
+
+            var selected = [];
+            $('input[name=selectedUsers]:checked').each(function () {
+                selected.push($(this).val());
+            });
+
+            var allRead = [];
+            $('input[name=currentUsers]').each(function () {
+                allRead.push($(this).val());
+            });
+
+            var postData = {
+                selectedUsers: selected,
+                currentUsers: allRead,
+                operation: "@T5V3Web.Content.Persian.Delete",
+                deleteFingersOnly: $("input[name='deleteFingersOnly']").is(":checked"),
+                deleteAll: $("input[name='deleteAll']").is(":checked")
+            };
+
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(postData),
+                type: "POST",
+                url: "/DeviceOperations/ModifyUsers",
+                success: function (data) {
+                    $('body').waitMe('hide');
+                    alert(data);
+                }
+            });
+
+            
+        }
+
+
+        function submitForm() {
+            AddDeviceCheckboxes('mainForm');
+            $('#mainForm').submit();
+        }
+
+        function searchDviceUsers(txt) {
+            var searchStr = txt.value;
+
+            var items = document.getElementsByClassName("device-user-row");
+            for (var i = 0; i < items.length; i++) {
+                var show = false;
+
+                var items2 = items[i].getElementsByTagName("input");
+                for (var j = 0; j < items2.length; j++) {
+                    if (items2[j].checked == true)
+                        show = true;
+                }
+
+                var items2 = items[i].getElementsByTagName("label");
+                for (var j = 0; j < items2.length; j++) {
+                    if (items2[j].innerHTML.indexOf(searchStr, 0) >= 0)
+                        show = true;
+                }
+                if (show) {
+                    items[i].className = "visible-visibility device-user-row";
+                    //items[i].style.display = "table";
+                }
+                else {
+                    items[i].className = "collapsed-visibility device-user-row";
+                    //items[i].style.display = "none";
+                }
+            }
+
+        }
+
+
+        function selectAllDeviceUsers() {
+            var items = $('#deviceUsers .visible-visibility input');
+            for (var i = 0; i < items.length; i++)
+                items[i].checked = true;
+        }
+
+        function reverseAllDeviceUsers() {
+            var items = $('#deviceUsers .visible-visibility input');
+            for (var i = 0; i < items.length; i++)
+                items[i].checked = !(items[i].checked);
+        }
+
+        function checkGate(checkbox) {
+            if (checkbox.checked == true) {
+                var items = checkbox.parentNode.getElementsByTagName("input");
+                for (var i = 0; i < items.length; i++)
+                    items[i].checked = true;
+            }
+        }
+    </script>
+}

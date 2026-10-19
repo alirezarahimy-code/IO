@@ -1,0 +1,267 @@
+﻿@{
+    ViewBag.Title = T5V3Web.Content.Persian.UserAddInfo;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.BaseData;
+    ViewBag.PageTag = "UserAddProperty";
+}
+
+<div class="page-header">
+    <h3>@T5V3Web.Content.Persian.UserAddInfo</h3>
+</div>
+
+@{
+    T5V3Web.Models.GridModel grd = new T5V3Web.Models.GridModel();
+    grd.DeleteAllAPIPath = "/UserAddProperty/DeleteAll";
+    grd.DeleteAPIPath = "/UserAddProperty/Delete/";
+    grd.GetListAPIPath = "/UserAddProperty/GetList";
+    grd.IDPropertyName = "PropertyID";
+    grd.DisplayPropertyName = "PropertyName";
+    grd.Columns.Add(new T5V3Web.Models.GridModel.Column(T5V3Web.Content.Persian.PropertyName, "PropertyName"));
+    @Html.Partial("_Grid", grd);
+}
+
+<div id="edit-panel" class="panel panel-default collapsed-visibility">
+    <div class="panel-heading">
+        <label id="title-panel-label">@T5V3Web.Content.Persian.Edit</label>
+    </div>
+    <div class="panel-body">
+        <div class="form-horizontal">
+            <div class="form-group">
+                <input type="hidden" value="-1" id="propertyID" />
+
+                <div class="col-sm-2">
+                    <label class="control-label">@T5V3Web.Content.Persian.PropertyName</label>
+                </div>
+                <div class="col-sm-10">
+                    <input class="form-control" placeholder="@T5V3Web.Content.Persian.PropertyName" id="txtPropertyName" name="txtPropertyName" type="text" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-2">
+                    <label class="control-label">@T5V3Web.Content.Persian.DataType</label>
+                </div>
+                <div class="col-sm-10">
+                    <select id="cmbPropertyType" name="cmbPropertyType" class="form-control" onchange="checkItemType()">
+                        <option value="@((int)Personnel.Model.PropertyType.StringValue)">@T5V3Web.Content.Persian.String</option>
+                        <option value="@((int)Personnel.Model.PropertyType.DropDownValue)">@T5V3Web.Content.Persian.Dropdown</option>
+                        <option value="@((int)Personnel.Model.PropertyType.DateTimeValue)">@T5V3Web.Content.Persian.Date</option>
+                        <option value="@((int)Personnel.Model.PropertyType.BooleanValue)">@T5V3Web.Content.Persian.Boolean</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group" id="array2">
+                <div class="col-sm-2 col-sm-offset-2">
+                    <label class="control-label">@T5V3Web.Content.Persian.Value</label>
+                </div>
+            </div>
+            <div class="form-group" id="array3">
+                <div id="divArray" class="col-sm-12">
+                    @*@if (Model.Selected.DropdownValues != null)
+                        {
+                            foreach (string s in Model.Selected.DropdownValues)
+                            {
+                                <div class="col-sm-10 col-sm-offset-2">
+                                    <div class="col-sm-4">
+                                        <input type="text" class="form-control" value="@s" name="DropdownValues" />
+                                    </div>
+                                    <div class="col-sm-4 text-right">
+                                        <a style="cursor:pointer; color:blue" onclick="removeElement(this)">@T5V3Web.Content.Persian.Delete</a>
+                                    </div>
+                                </div>
+                            }
+                        }*@
+                </div>
+                <div class="col-sm-offset-2 col-sm-2">
+                    <a  rel="noopener noreferrer" href="#" id="btnAddArray" onclick="addNewTextBox()">@T5V3Web.Content.Persian.Add</a>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-10 col-sm-offset-2 text-right">
+                    <input type="checkbox" name="chkIsSearchFilter" id="chkIsSearchFilter" value="true" />
+                    <input name="IsSearchFilter" type="hidden" value="false" />
+                    <label>@T5V3Web.Content.Persian.SearchFilter</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10 text-right">
+                    <button id="btnEdit" onclick="submitData()" type="button" class="btn btn-success"></button>
+                    <button type="button" onclick="invisiblePanel()" class="btn btn-default">@T5V3Web.Content.Persian.Cancel</button>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+
+@section modals
+{
+    <div id="myModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 id="msg-title" class="modal-title"></h4>
+                </div>
+                <div class="modal-body">
+                    <p id="msg-body"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">@T5V3Web.Content.Persian.OK</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+}
+
+
+@section scripts
+{
+    <script>
+        loadlist(1, "");
+
+        function invisiblePanel() {
+            $("#edit-panel").attr("class", "collapsed-visibility panel panel-default");
+        }
+
+        function addnew() {
+            $("#edit-panel").attr("class", "visisble-visibility panel panel-default");
+            $('html, body').animate({
+                scrollTop: $("#edit-panel").offset().top
+            }, 500);
+            $("#title-panel-label").html("@T5V3Web.Content.Persian.Add2");
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Add");
+
+            $("#txtPropertyName").val("");
+            $("#cmbPropertyType").val(0);
+            $("#divArray").html("");
+            $("#chkIsSearchFilter").attr("checked", false);
+            $("#propertyID").val(-1);
+        }
+
+        function submitData() {
+            var DropdownVals = [];
+            $('#divArray input[name=DropdownValues]').each(function () {
+                DropdownVals.push($(this).val());
+            });
+
+            var toEdit = {
+                PropertyID: $("#propertyID").val(),
+                PropertyName: $("#txtPropertyName").val(),
+                IsSearchFilter: $('#chkIsSearchFilter').is(':checked'),
+                PropertyType: $("#cmbPropertyType").val(),
+                DropdownValues: DropdownVals
+            };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/UserAddProperty/Edit",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                    if (toEdit.CertificateID == -1) {
+                        loadlist(-1);
+                    }
+                    else {
+                        loadlist($("body").data("page"), $("body").data("squery"));
+                    }
+                }
+            });
+            invisiblePanel();
+        }
+
+        function loadItem(id) {
+            $("#edit-panel").attr("class", "visisble-visibility panel panel-default");
+            $('html, body').animate({
+                scrollTop: $("#edit-panel").offset().top
+            }, 500);
+            $("#title-panel-label").html("@T5V3Web.Content.Persian.Edit");
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Edit");
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                type: "GET",
+                url: "/UserAddProperty/GetByID/" + id,
+                success: function (data) {
+
+                    var div = $("#divArray");
+                    div.html("");
+                    for (var i = 0; i < data.DropdownValues.length; i++) {
+                        div.append("<div class=\"col-sm-10 col-sm-offset-2\"><div class=\"col-sm-4\"><input type=\"text\" class=\"form-control\" value=\"" + data.DropdownValues[i] + "\" name=\"DropdownValues\"/></div><div class=\"col-sm-4 text-right\"><a  rel='noopener noreferrer' style=\"cursor:pointer; color:blue\" onclick=\"removeElement(this)\">@T5V3Web.Content.Persian.Delete</a></div></div>");
+                    }
+
+
+                    $("#txtPropertyName").val(data.PropertyName);
+                    $("#cmbPropertyType").val(data.PropertyType);
+                    $('#chkIsSearchFilter').prop("checked", data.IsSearchFilter);
+                    $("#propertyID").val(data.PropertyID);
+                }
+            });
+        }
+
+
+        function addNewTextBox() {
+            var divElement = document.createElement("div");
+            divElement.className = "col-sm-10 col-sm-offset-2";
+
+            var divInput = document.createElement("div");
+            divInput.className = "col-sm-4";
+
+            var textElement = document.createElement("input");
+            textElement.type = "text";
+            textElement.name = "DropdownValues";
+            textElement.className = "form-control";
+
+            var divDeleteLink = document.createElement("div");
+            divDeleteLink.className = "col-sm-4 text-right";
+
+            var deleteLink = document.createElement("a");
+            deleteLink.onclick = function () { removeElement(this); };
+            deleteLink.style.cursor = "pointer";
+            deleteLink.style.color = "blue";
+            deleteLink.innerHTML = "@T5V3Web.Content.Persian.Delete";
+
+            divInput.appendChild(textElement);
+            divDeleteLink.appendChild(deleteLink);
+
+            divElement.appendChild(divInput);
+            divElement.appendChild(divDeleteLink);
+
+
+            var element = document.getElementById("divArray");
+            element.insertBefore(divElement, document.getElementById("lblAddArray"));
+        }
+
+        function removeElement(a) {
+            document.getElementById("divArray").removeChild(a.parentNode.parentNode);
+        }
+
+        function checkItemType() {
+            var element2 = document.getElementById("array2");
+            var element3 = document.getElementById("array3");
+
+
+            if (document.getElementById("cmbPropertyType").value == 1) {
+                element2.style.visibility = "visible";
+                element3.style.visibility = "visible";
+                element2.style.display = "inline";
+                element3.style.display = "inline";
+            }
+            else {
+                element2.style.visibility = "hidden";
+                element3.style.visibility = "hidden";
+                element2.style.display = "none";
+                element3.style.display = "none";
+            }
+        }
+
+    </script>
+}

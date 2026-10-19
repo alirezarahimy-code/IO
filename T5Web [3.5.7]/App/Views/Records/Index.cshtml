@@ -1,0 +1,132 @@
+﻿@model T5V3Web.Models.RecordsReportModel
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.RecordsReport;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.AttendanceControl;
+    ViewBag.PageTag = "Records";
+}
+
+<h3>@T5V3Web.Content.Persian.RecordsReport</h3>
+<div class="horizontal-line"></div>
+
+<form id="mainForm" role="form" class="form-horizontal" method="post" action="/Records/Show">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <label>@T5V3Web.Content.Persian.SelectPersonnel ...</label>
+        </div>
+        <div class="panel-body">
+            @Html.Partial("_SelectUser", T5V3Web.Controllers.UserSelectionController.CreateModel(Model.BadgeNumbers))
+        </div>
+    </div>
+
+    <div>
+
+        <div class="panel panel-default col-lg-5">
+            <div class="panel-heading">
+                <label>@T5V3Web.Content.Persian.SelectDevices ...</label>
+            </div>
+            <div class="panel-body">
+                @Html.Partial("_DeviceSelection", new T5V3Web.Models.DeviceSelectionModel("devices", Model.Devices))
+            </div>
+        </div>
+
+
+        <div class="col-lg-1"></div>
+
+        <div class="panel panel-default col-lg-6">
+            <div class="panel-heading">
+                <label>@T5V3Web.Content.Persian.SelectTimeInterval ...</label>
+            </div>
+            <div class="panel-body">
+                @Html.Partial("_SelectDateInterval", Model.Interval)
+            </div>
+        </div>
+
+    </div>
+
+    <div class="form-group">
+        <input class="btn btn-success mt-20 mb-20" value="@T5V3Web.Content.Persian.Show" type="button" onclick="submitForm()" />
+    </div>
+
+    <div class="form-group">
+        <div class="col-sm-offset-1 col-sm-10 text-center">
+            @if (Model.ValidationMessage != null)
+            {
+                <div class="@((T5V3Web.Models.ValidationMessageType)Model.ValidationMessageType == T5V3Web.Models.ValidationMessageType.Error ? "alert alert-danger fade in" : "alert alert-success fade in")">
+                    @Model.ValidationMessage
+                    <a rel="noopener noreferrer" href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                </div>
+            }
+        </div>
+    </div>
+</form>
+
+<div class="horizontal-line"></div>
+
+
+@if (Model.Records != null)
+{
+    <table class="table table-bordered table-hover table-responsive table-striped">
+        <thead>
+            <tr>
+                <td>@T5V3Web.Content.Persian.BadgeNumber</td>
+                <td>@T5V3Web.Content.Persian.Name</td>
+                <td>@T5V3Web.Content.Persian.MachineNumber</td>
+                <td>@T5V3Web.Content.Persian.Date</td>
+                <td>@T5V3Web.Content.Persian.Time</td>
+                <td>@T5V3Web.Content.Persian.OriginalCheckType</td>
+                <td>@T5V3Web.Content.Persian.RecordSource</td>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (T5V3.Model.Record r in Model.Records)
+            {
+                <tr>
+                    <td>
+                        <label>@r.BadgeNumber</label>
+                    </td>
+                    <td>
+                        <label>@r.Name</label>
+                    </td>
+                    <td>
+                        <label>@r.MachineNumber</label>
+                    </td>
+                    <td>
+                        <label>@r.HijriDate</label>
+                    </td>
+                    <td>
+                        <label>@r.TimeString</label>
+                    </td>
+                    <td>
+                        <label>@r.OriginalSCheckType</label>
+                    </td>
+                    <td>
+                        @{
+                string s = T5V3Web.Content.Persian.Offline;
+
+                if (r.SourceType == T5V3.Model.RecordSource.Flash)
+                { s = T5V3Web.Content.Persian.Flash; }
+                if (r.SourceType == T5V3.Model.RecordSource.Manual)
+                { s = T5V3Web.Content.Persian.Manual; }
+                if (r.SourceType == T5V3.Model.RecordSource.Online)
+                { s = T5V3Web.Content.Persian.Online; }
+                if (r.SourceType == T5V3.Model.RecordSource.Push)
+                { s = T5V3Web.Content.Persian.Push; }
+
+                <label>@s</label>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+@section scripts{
+    <script>
+        function submitForm() {
+            AddDeviceCheckboxes('mainForm');
+            $('#mainForm').submit();
+        }
+    </script>
+}

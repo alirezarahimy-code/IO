@@ -1,0 +1,194 @@
+﻿@model T5V3Web.Models.LoginModel
+
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.Login;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.Home;
+    ViewBag.PageTag = "";
+    var captcha = System.Web.Configuration.WebConfigurationManager.AppSettings["Captcha"].AsBool();
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CodePen - Javascript Captcha As Image</title>
+
+</head>
+<body onload="createCaptcha()">
+    <div style="max-width:500px;margin:auto">
+        <div class="text-right card-header">
+            <h3>@T5V3Web.Content.Persian.Login</h3>
+        </div>
+
+
+        <div class="card" style="padding:2em">
+            <div class="row">
+                <div class="col-sm-4">
+                    <img src="~/Images/login.png" width="100" height="100" />
+                </div>
+
+                <div class="col-sm-8">
+                    <form role="form" class="form-horizontal LoginForm" action="/Account/Login" method="post" id="loginformId">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="ReturnURL" value="@ViewBag.ReturnUrl" />
+
+                        <div class="material-input text-right">
+                            <div class="col-sm-offset-1 col-lg-8 col-sm-8">
+                                <div class="group">
+                                    <input name="userName" id="userName" type="text" required @(Model != null ? "value=" + Model.UserName : "")>
+                                    <span class="highlight"></span>
+                                    <span class="bar"></span>
+                                    <label>@T5V3Web.Content.Persian.UserName</label>
+                                </div>
+                            </div>
+                            <div class="col-sm-offset-1 col-lg-4 col-sm-4" style="margin-right: 0px">
+                                <label for="userName" generated="true" class="error " style="font-size: 12px; margin-top: 69px; "></label>
+                            </div>
+                        </div>
+
+                        <div class="material-input text-right">
+                            <div class="col-sm-offset-1 col-lg-4 col-sm-4">
+                                <div class="group">
+                                    <input name="Password" id="Password" type="password" required>
+                                    <span class="highlight"></span>
+                                    <span class="bar"></span>
+                                    <label>@T5V3Web.Content.Persian.Password</label>
+                                </div>
+                            </div>
+                            <div class="col-sm-offset-1 col-lg-4 col-sm-4" style="margin-right: 0px">
+                                <label for="Password" generated="true" class="error" style="font-size: 12px; margin-top: 69px"></label>
+                            </div>
+                        </div>
+                        @if (captcha)
+                        {
+                            <div>
+                                <br /><br />
+                                <div id="captcha">
+                                </div>
+                                <div class="material-input text-right">
+                                    <div class="col-sm-offset-1 col-sm-7">
+                                        <div class="group">
+                                            <input id="cpatchaTextBox" type="text" required>
+                                            <span class="highlight"></span>
+                                            <span class="bar"></span>
+                                            <label>عبارت امنیتی</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-offset-1 col-sm-4">
+                                        <div class="form-group top-buffer" style="text-align: center; margin-top: 46px;">
+                                            <button type="button" class="btn btn-sm btn-shadow btn-success" id="submitCaptcha" onclick="validateCaptcha()" style="float: right;">تایید عبارت امنیتی </button>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                            </div>
+                            <br />
+                            <div class="form-group">
+                                <input class="btn btn-shadow btn-primary hidden" type="button" id="loginSubmit" value="@T5V3Web.Content.Persian.Login" onclick="Ersal()" />
+                            </div>
+                        }
+                        else
+                        {
+                            <br />
+                            <div class="form-group">
+                                <input class="btn btn-shadow btn-primary" type="button" id="loginSubmit" value="@T5V3Web.Content.Persian.Login" onclick="Ersal()" />
+                            </div>
+                        }
+
+                    </form>
+                </div>
+            </div>
+
+            <div class="text-center">
+                @if (Model != null)
+                {
+                    <div class="@((T5V3Web.Models.ValidationMessageType)Model.ValidationMessageType == T5V3Web.Models.ValidationMessageType.Error ? "alert alert-danger fade in" : "alert alert-success fade in")">
+                        @Model.ValidationMessage
+                        <a rel="noopener noreferrer" href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                    </div>
+                }
+            </div>
+
+
+        </div>
+    </div>
+    <script src="~/Scripts/jquery-3.6.1.js"></script>
+    <script src="~/Scripts/CaptchaScript.js"></script>
+    <script src="~/Scripts/jquery.validate.js"></script>
+    <script src="~/Scripts/additional-methods.js"></script>
+    <script>
+        $(document).ready(function () {
+            $(".LoginForm").validate({
+                rules: {
+                    userName: {
+                        required: true,
+                        alphanumeric: true
+                    },
+                    Password: {
+                        required: true,
+                        alphanumeric: true
+                    }
+                },
+                submitHandler: function (form) {
+                    $('.LoginForm').submit();
+                    return true;
+                }
+            });
+        });
+        var code;
+        function createCaptcha() {
+            //clear the contents of captcha div first
+            document.getElementById('captcha').innerHTML = "";
+            var charsArray =
+                "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ@@!#$%^&*";
+            var lengthOtp = 6;
+            var captcha = [];
+            for (var i = 0; i < lengthOtp; i++) {
+                //below code will not allow Repetition of Characters
+                var index = Math.floor(Math.random() * charsArray.length + 1); //get the next character from the array
+                if (captcha.indexOf(charsArray[index]) == -1)
+                    captcha.push(charsArray[index]);
+                else i--;
+            }
+            var canv = document.createElement("canvas");
+            canv.id = "captcha";
+            canv.width = 100;
+            canv.height = 50;
+            var ctx = canv.getContext("2d");
+            ctx.font = "25px Georgia";
+            ctx.strokeText(captcha.join(""), 0, 30);
+            //storing captcha so that can validate you can save it somewhere else according to your specific requirements
+            code = captcha.join("");
+            document.getElementById("captcha").appendChild(canv); // adds the canvas to the body element
+        }
+        function validateCaptcha() {
+            event.preventDefault();
+            //debugger
+            if (document.getElementById("cpatchaTextBox").value == code) {
+                $("#loginSubmit").removeClass('hidden');
+                $("#submitCaptcha").prop("disabled", true);
+            } else {
+                alert("کد امنیتی را اشتباه وارد کرده اید!");
+                createCaptcha();
+            }
+        }
+
+        function Ersal() {
+            if ('@captcha'=="True") {
+                if (document.getElementById("cpatchaTextBox").value == code) {
+                    document.getElementById("loginformId").submit();
+                } else {
+                    alert("کد امنیتی را اشتباه وارد کرده اید!");
+                    createCaptcha();
+                }
+            } else {
+                document.getElementById("loginformId").submit();
+            }
+
+        }
+    </script>
+</body>
+</html>
+
+

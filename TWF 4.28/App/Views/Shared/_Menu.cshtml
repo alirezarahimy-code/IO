@@ -1,0 +1,87 @@
+﻿
+@{
+    bool temp = (MyTime3.Controllers.HomeController.CanDownloadNoti5(Context));
+    bool isAdmin = (MyTime3.Controllers.HomeController.IsAdmin(Context));
+}
+
+
+<a rel="noopener noreferrer" href="/Home/Index"><i class="fa fa-home"></i>@MyTime3.Content.PersianString.HomePage</a>
+<a rel="noopener noreferrer" href="/Home/About"><i class="fa fa-info"></i>@MyTime3.Content.PersianString.About</a>
+
+<div>
+    <a rel="noopener noreferrer" href="javascript:" onclick="expandMenu(this,'#operation')">
+        <div class="expandable">
+            <i class="fa fa-gears"></i>
+            @MyTime3.Content.PersianString.Operations
+            <div class="fill-flex"></div>
+            <i class="drop fa fa-caret-down"></i>
+        </div>
+    </a>
+
+    <div id="operation">
+        <div class="sub-menu">
+            <a rel="noopener noreferrer" href="/Request/New"><i class="fa fa-chevron-left"></i>@MyTime3.Content.PersianString.NewRequest</a>
+
+            @if (temp)
+            {
+                if ((bool)MyTime3.Controllers.SettingsController.LoadValue("RequestForUsers", typeof(bool), true))
+                {
+                    <a rel="noopener noreferrer" href="/Request/FromUser"><i class="fa fa-chevron-left"></i>@MyTime3.Content.PersianString.RequestFromUser</a>
+                }
+            }
+
+            @if (isAdmin)
+            {
+                <a rel="noopener noreferrer" href="/ShowUsersRequest/Index"><i class="fa fa-chevron-left"></i>مشاهده وضعیت کاربران</a>
+            }
+            <a rel="noopener noreferrer" rel="noopener noreferrer" href="/EditRequest/Index"><i class="fa fa-chevron-left"></i>@MyTime3.Content.PersianString.EditRequest</a>
+            <a rel="noopener noreferrer" href="/AcceptRequest/Index"><i class="fa fa-chevron-left"></i>@MyTime3.Content.PersianString.AcceptRequest</a>
+            <a rel="noopener noreferrer" href="/ShowRequest/Index"><i class="fa fa-chevron-left"></i>@MyTime3.Content.PersianString.RequestsStatus</a>
+            <a rel="noopener noreferrer" href="/Deputy/Index"><i class="fa fa-chevron-left"></i>@MyTime3.Content.PersianString.Deputy</a>
+            <a rel="noopener noreferrer" href="/Undo/Index"><i class="fa fa-chevron-left"></i>@MyTime3.Content.PersianString.Undo</a>
+
+            @if ((bool)MyTime3.Controllers.SettingsController.LoadValue("ViewConstOT", typeof(bool), true))
+            {
+                <a rel="noopener noreferrer" href="/ConstOT/Index"><i class="fa fa-chevron-left"></i>@MyTime3.Content.PersianString.ConstOT</a>
+            }
+            @if ((bool)MyTime3.Controllers.SettingsController.LoadValue("ViewRewPen", typeof(bool), true))
+            {
+                <a rel="noopener noreferrer" href="/Reward/Add"><i class="fa fa-chevron-left"></i>@MyTime3.Content.PersianString.InsertRewardAndPenalty</a>
+            }
+            @if (temp)
+            {
+                temp = true;
+                <a rel="noopener noreferrer" href="/SelectArea/Index"><i class="fa fa-chevron-left"></i>@MyTime3.Content.PersianString.SelectValidArea</a>
+                <a rel="noopener noreferrer" href="/Home/GetNoti5"><i class="fa fa-chevron-left"></i>@MyTime3.Content.PersianString.DownloadNoti5</a>
+
+            }
+
+        </div>
+    </div>
+</div>
+
+<div>
+    <a rel="noopener noreferrer" href="javascript:" onclick="expandMenu(this,'#reportsmenu')">
+        <div class="expandable">
+            <i class="fa fa-line-chart"></i>
+            @MyTime3.Content.PersianString.Reports
+            <div class="fill-flex"></div>
+            <i class="drop fa fa-caret-down"></i>
+        </div>
+    </a>
+    <div id="reportsmenu">
+        <div class="sub-menu">
+            <a rel="noopener noreferrer" href="/Report/Index"><i class="fa fa-chevron-left"></i>@MyTime3.Content.PersianString.ViewReports</a>
+            <a rel="noopener noreferrer" href="/RemainLeave/Index"><i class="fa fa-chevron-left"></i>@MyTime3.Content.PersianString.RemainLeave</a>
+            @if (temp)
+            {
+                <a rel="noopener noreferrer" href="/PersonnelStatus/Index"><i class="fa fa-chevron-left"></i>@MyTime3.Content.PersianString.PersonnelStatusReport</a>
+            }
+            @if (MyTime3.Controllers.LeavesReportController.isObs(Context))
+            {
+                <a rel="noopener noreferrer" href="/LeavesReport/Index"><i class="fa fa-chevron-left"></i>پرسنل مجاز برای خروج</a>
+            }
+
+        </div>
+    </div>
+</div>

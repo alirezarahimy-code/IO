@@ -1,0 +1,191 @@
+﻿Installing assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Installing service PushServicev2...
+Service PushServicev2 has been successfully installed.
+Creating EventLog source PushServicev2 in log Application...
+Committing assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Installing assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Installing service PushServicev2...
+Service PushServicev2 has been successfully installed.
+Creating EventLog source PushServicev2 in log Application...
+Committing assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Installing assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Installing service PushServicev2...
+Service PushServicev2 has been successfully installed.
+Creating EventLog source PushServicev2 in log Application...
+Committing assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Uninstalling assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Removing EventLog source PushServicev2.
+Service PushServicev2 is being removed from the system...
+An exception occurred during the uninstallation of the System.ServiceProcess.ServiceInstaller installer.
+System.ComponentModel.Win32Exception: The specified service does not exist as an installed service
+An exception occurred while uninstalling. This exception will be ignored and the uninstall will continue. However, the application might not be fully uninstalled after the uninstall is complete.
+Installing assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Installing service PushServicev2...
+Service PushServicev2 has been successfully installed.
+Creating EventLog source PushServicev2 in log Application...
+Committing assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Uninstalling assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Removing EventLog source PushServicev2.
+Service PushServicev2 is being removed from the system...
+Service PushServicev2 was successfully removed from the system.
+Attempt to stop service PushServicev2.
+Installing assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Installing service PushServicev2...
+Service PushServicev2 has been successfully installed.
+Creating EventLog source PushServicev2 in log Application...
+Committing assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Uninstalling assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Removing EventLog source PushServicev2.
+Service PushServicev2 is being removed from the system...
+Service PushServicev2 was successfully removed from the system.
+Installing assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Installing service PushServicev2...
+Service PushServicev2 has been successfully installed.
+Creating EventLog source PushServicev2 in log Application...
+Committing assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Uninstalling assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Removing EventLog source PushServicev2.
+Service PushServicev2 is being removed from the system...
+An exception occurred during the uninstallation of the System.ServiceProcess.ServiceInstaller installer.
+System.ComponentModel.Win32Exception: The specified service does not exist as an installed service
+An exception occurred while uninstalling. This exception will be ignored and the uninstall will continue. However, the application might not be fully uninstalled after the uninstall is complete.
+Installing assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Installing service PushServicev2...
+Service PushServicev2 has been successfully installed.
+Creating EventLog source PushServicev2 in log Application...
+Committing assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Uninstalling assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Removing EventLog source PushServicev2.
+Service PushServicev2 is being removed from the system...
+Service PushServicev2 was successfully removed from the system.
+Installing assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Installing service PushServicev2...
+Service PushServicev2 has been successfully installed.
+Creating EventLog source PushServicev2 in log Application...
+Committing assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Uninstalling assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Removing EventLog source PushServicev2.
+Service PushServicev2 is being removed from the system...
+Service PushServicev2 was successfully removed from the system.
+Installing assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Installing service PushServicev2...
+Service PushServicev2 has been successfully installed.
+Creating EventLog source PushServicev2 in log Application...
+Committing assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Uninstalling assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Removing EventLog source PushServicev2.
+Service PushServicev2 is being removed from the system...
+Service PushServicev2 was successfully removed from the system.
+Installing assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe
+Installing service PushServicev2...
+Service PushServicev2 has been successfully installed.
+Creating EventLog source PushServicev2 in log Application...
+Committing assembly 'F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.InstallLog
+   assemblypath = F:\Projects\Default Projects\Link5\Link5\Link5\bin\Debug\PushServicev2.exe

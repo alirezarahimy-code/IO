@@ -1,0 +1,83 @@
+﻿@model IEnumerable<MyTime3.Models.SumConstOT>
+
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.ConstOT;
+}
+
+<div class="card-header text-right">
+    <h3>@Html.Raw(MyTime3.Content.PersianString.ConstOT)</h3>
+</div>
+
+<div class="card">
+
+    @if (Model.Count() > 0)
+    {
+        <div class="formTitle" style="padding:1em">
+            @Html.Label(MyTime3.Content.PersianString.SumOTConstForCurrentMonth)
+        </div>
+
+        <form id="changeMonthForm" method="get" action="/ConstOT/Index">
+            <div style="margin-top:30px;">
+                <div style="width:100%; display:flex;display:-ms-flexbox;align-items:center">
+                    <div class="switch" style="transform:scale(0.75)">
+                        <input onchange="reloadcotform()" @(ViewBag.Pre ? "checked=checked" : "") id="toggle1" class="toggle" name="pre" value="true" type="checkbox">
+                        <label for="toggle1"></label>
+                        <span class="switch-label"></span>
+                    </div>
+                    <label>@MyTime3.Content.PersianString.PreMonth</label>
+                </div>
+            </div>
+        </form>
+        <script>
+            function reloadcotform() {
+                $("#changeMonthForm").submit();
+            }
+        </script>
+
+
+        using (Html.BeginForm("EditAll", "ConstOT", FormMethod.Post))
+        {
+
+            <input type="hidden" name="pre" value="@(((bool)ViewBag.Pre).ToString())" />
+            <table class="table table-hover table-responsive table-striped">
+                <thead>
+                    <tr>
+                        <td>@MyTime3.Content.PersianString.BadgeNumber</td>
+                        <td>@MyTime3.Content.PersianString.Name</td>
+                        <td>@MyTime3.Content.PersianString.Sum</td>
+                        <td>@MyTime3.Content.PersianString.EditValue</td>
+                        <td></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (MyTime3.Models.SumConstOT req in Model)
+                    {
+                        <tr>
+                            <td>
+                                <label>@req.BadgeNumber</label>
+                            </td>
+                            <td>
+                                <label>@req.Name</label>
+                            </td>
+                            <td>
+                                <label>@MyTime3.Controllers.Misc.TimeSpanToString(req.SumValue)</label>
+                            </td>
+                            <td>
+                                <input type="hidden" name="badgeNumbers" value="@req.BadgeNumber" />
+                                <input type="text" name="edittedValues" value="@MyTime3.Controllers.Misc.TimeSpanToString(req.FirstDayValue)" />
+                            </td>
+                            <td>
+                                @Html.ActionLink(MyTime3.Content.PersianString.EditDetails, "Edit", "ConstOT", new { @badgeNumber = req.BadgeNumber, pre = ViewBag.Pre }, "")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="text-center">
+                <input style="font-family:Tahoma;margin-top:5px" class="btn btn-primary btn-shadow" type="submit" value="@MyTime3.Content.PersianString.SaveChanges" />
+            </div>
+        }
+
+    }
+</div>

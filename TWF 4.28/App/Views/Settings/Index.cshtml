@@ -1,0 +1,413 @@
+﻿@model MyTime3.Models.SettingsModel
+@Styles.Render("~/Content/EditRequest.css")
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.Settings;
+}
+<style>
+    tbody tr:nth-child(odd) {
+        background-color: #EEEEEE;
+        width: 100%;
+    }
+
+    td {
+        padding: 1em;
+    }
+</style>
+
+<div style="max-width:500px;margin:auto">
+    <div class="card-header text-right">
+        <h3>@MyTime3.Content.PersianString.Settings</h3>
+    </div>
+    <div class="card">
+
+        <div class="form" style="padding:15px">
+            <form action="/Settings/Change" method="post">
+                <table class="table-bordered text-right">
+                    <tbody>
+                        <tr>
+                            <td colspan="2">
+                                <div class="mat-check">
+                                    <div class="exp">
+                                        <div class="checkbox">
+                                            <div>
+                                                <input type="checkbox" name="AllowValidLate" id="chk1" @(Model.AllowValidLate ? "checked=checked" : "") value="true" />
+                                                <label for="chk1">
+                                                    <span></span>@MyTime3.Content.PersianString.ViewValidLateEarly
+                                                </label>
+                                                <input type="hidden" name="AllowValidLate" value="false" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label>ساعت کاری روزانه</label>
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(m => m.HoursOfDays)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+
+                                <div class="mat-check">
+                                    <div class="exp">
+                                        <div class="checkbox">
+                                            <div>
+                                                <input type="checkbox" name="ViewOverTimeRequest" id="chk2" @(Model.ViewOverTimeRequest ? "checked=checked" : "") value="true" />
+                                                <label for="chk2">
+                                                    <span></span>@MyTime3.Content.PersianString.ViewOverTimeRequest
+                                                </label>
+                                                <input type="hidden" name="ViewOverTimeRequest" value="false" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+
+                                <div class="mat-check">
+                                    <div class="exp">
+                                        <div class="checkbox">
+                                            <div>
+                                                <input type="checkbox" name="ViewRewardRequest" id="chk3" @(Model.ViewRewardRequest ? "checked=checked" : "") value="true" />
+                                                <label for="chk3">
+                                                    <span></span>@MyTime3.Content.PersianString.ViewReward
+                                                </label>
+                                                <input type="hidden" name="ViewRewardRequest" value="false" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+
+                                <div class="mat-check">
+                                    <div class="exp">
+                                        <div class="checkbox">
+                                            <div>
+                                                <input type="checkbox" name="ViewConstOT" id="chk4" @(Model.ViewConstOT ? "checked=checked" : "") value="true" />
+                                                <label for="chk4">
+                                                    <span></span>@MyTime3.Content.PersianString.ViewInsertConstOT
+                                                </label>
+                                                <input type="hidden" name="ViewConstOT" value="false" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+
+                                <div class="mat-check">
+                                    <div class="exp">
+                                        <div class="checkbox">
+                                            <div>
+                                                <input type="checkbox" name="RequestRecord" id="chk5" @(Model.RequestRecord ? "checked=checked" : "") value="true" />
+                                                <label for="chk5">
+                                                    <span></span>@MyTime3.Content.PersianString.RequestRecord
+                                                </label>
+                                                <input type="hidden" name="RequestRecord" value="false" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <div class="mat-check">
+                                    <div class="exp">
+                                        <div class="checkbox">
+                                            <div>
+                                                <input type="checkbox" name="AllowValidLate" id="chkH" @(Model.AllowValidHourlyFree ? "checked=checked" : "") value="true" />
+                                                <label for="chkH">
+                                                    <span></span>@MyTime3.Content.PersianString.ValidHourlyFree
+                                                </label>
+                                                <input type="hidden" name="AllowValidLate" value="false" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label>@MyTime3.Content.PersianString.RequestRecordsDailyLimit</label>
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(m => m.RequestRecordsDailyLimit)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label>@MyTime3.Content.PersianString.RequestRecordsMonthlyLimit</label>
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(m => m.RequestRecordsMonthlyLimit)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+
+                                <div class="mat-check">
+                                    <div class="exp">
+                                        <div class="checkbox">
+                                            <div>
+                                                <input type="checkbox" name="ViewDailyDuty" id="chk6" @(Model.ViewDailyDuty ? "checked=checked" : "") value="true" />
+                                                <label for="chk6">
+                                                    <span></span>@MyTime3.Content.PersianString.ViewDailyDuty
+                                                </label>
+                                                <input type="hidden" name="ViewDailyDuty" value="false" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+
+                                <div class="mat-check">
+                                    <div class="exp">
+                                        <div class="checkbox">
+                                            <div>
+                                                <input type="checkbox" name="ViewHourlyDuty" id="chk7" @(Model.ViewHourlyDuty ? "checked=checked" : "") value="true" />
+                                                <label for="chk7">
+                                                    <span></span>@MyTime3.Content.PersianString.ViewHourlyDuty
+                                                </label>
+                                                <input type="hidden" name="ViewHourlyDuty" value="false" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+
+                                <div class="mat-check">
+                                    <div class="exp">
+                                        <div class="checkbox">
+                                            <div>
+                                                <input type="checkbox" name="ViewDailyLeave" id="chk8" @(Model.ViewDailyLeave ? "checked=checked" : "") value="true" />
+                                                <label for="chk8">
+                                                    <span></span>@MyTime3.Content.PersianString.ViewDailyLeave
+                                                </label>
+                                                <input type="hidden" name="ViewDailyLeave" value="false" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+
+                                <div class="mat-check">
+                                    <div class="exp">
+                                        <div class="checkbox">
+                                            <div>
+                                                <input type="checkbox" name="ViewHourlyLeave" id="chk9" @(Model.ViewHourlyLeave ? "checked=checked" : "") value="true" />
+                                                <label for="chk9">
+                                                    <span></span>@MyTime3.Content.PersianString.ViewHourlyLeave
+                                                </label>
+                                                <input type="hidden" name="ViewHourlyLeave" value="false" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label>@MyTime3.Content.PersianString.LastDayForRequest</label>
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(m => m.LastDayForRequest)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <label>@MyTime3.Content.PersianString.MaxRequestAgeDays</label>
+                            </td>
+                            <td>
+                                @Html.TextBoxFor(m => m.MaxRequestAgeDays)
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+
+                                <div class="mat-check">
+                                    <div class="exp">
+                                        <div class="checkbox">
+                                            <div>
+                                                <input type="checkbox" name="RequestForUser" id="chk10" @(Model.RequestForUser ? "checked=checked" : "") value="true" />
+                                                <label for="chk10">
+                                                    <span></span>@MyTime3.Content.PersianString.RequestFromUser
+                                                </label>
+                                                <input type="hidden" name="RequestForUser" value="false" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+
+                                <div class="mat-check">
+                                    <div class="exp">
+                                        <div class="checkbox">
+                                            <div>
+                                                <input type="checkbox" name="ExportReport" id="chk10" @(Model.ExportReport ? "checked=checked" : "") value="true" />
+                                                <label for="chk10">
+                                                    <span></span>خروجی گزارشات
+                                                </label>
+                                                <input type="hidden" name="ExportReport" value="false" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </td>
+                        </tr>
+                        <tr>
+
+                            <td colspan="2">
+
+                                <div class="mat-check">
+                                    <div class="exp">
+                                        <div class="checkbox">
+                                            <div>
+                                                <input type="checkbox" name="ChangePassRestriction" id="chk11" @(Model.ChangePassRestriction ? "checked=checked" : "") value="true" />
+                                                <label for="chk11">
+                                                    <span></span>لزوم تغییر رمز عبور
+                                                </label>
+                                                <input type="hidden" name="ChangePassRestriction" value="false" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </td>
+                        </tr>
+
+                        <tr class="changePassProp" @(Model.ChangePassRestriction ? "" : "hidden")>
+                            <td>
+
+                                <div class="mat-check">
+                                    <div class="exp">
+                                        <div class="checkbox">
+                                            <div>
+                                                <input type="checkbox" name="ChangePassMonthly" id="chk12" @(Model.ChangePassMonthly ? "checked=checked" : "") value="true" />
+                                                <label for="chk12">
+                                                    <span></span>لزوم تغییر رمز ماهانه
+                                                </label>
+                                                <input type="hidden" name="ChangePassMonthly" value="false" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="exp">
+
+                                    <div>
+                                        <label for="ChangePassLimit">
+                                            <span></span>تغییر رمز در
+                                        </label>
+                                        <select id="ChangePassLimit" name="ChangePassLimit" @(Model.ChangePassMonthly ? "" : "disabled")>
+                                            <option @(Model.ChangePassLimit.Equals(3) ? "selected" : "" ) value="3">3</option>
+                                            <option @(Model.ChangePassLimit.Equals(6) ? "selected" : "" ) value="6">6</option>
+                                            <option @(Model.ChangePassLimit.Equals(9) ? "selected" : "" ) value="9">9</option>
+                                            <option @(Model.ChangePassLimit.Equals(12) ? "selected" : "" ) value="12">12</option>
+                                        </select>
+                                        <label for="ChangePassLimit">
+                                            <span></span> ماه
+                                        </label>
+                                        <input type="hidden" name="ChangePassLimit" value="false" />
+                                    </div>
+                                </div>
+                            </td>
+
+                        </tr>
+                        <tr class="changePassProp" @(Model.ChangePassRestriction ? "" : "hidden")>
+                            <td colspan="2">
+
+                                <div class="mat-check">
+                                    <div class="exp">
+                                        <div class="checkbox">
+                                            <div>
+                                                <input type="checkbox" name="ChangePassForce" id="chk13" @(Model.ChangePassForce ? "checked=checked" : "") value="true" />
+                                                <label for="chk13">
+                                                    <span></span>اجبار تغییر رمز پیش از فعالیت
+                                                </label>
+                                                <input type="hidden" name="ChangePassForce" value="false" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </td>
+                        </tr>
+                    </tbody>
+
+                </table>
+                <br />
+                <p>
+                    <label style="color:red">@Model.OverAllMessage</label>
+                </p>
+                <input type="submit" class="btn btn-primary btn-shadow" value="@MyTime3.Content.PersianString.SaveChanges" />
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    $('#chk11').change(function () {
+        if (this.checked) {
+            $('.changePassProp').show();
+        } else {
+            $('.changePassProp').hide();
+        }
+    });
+    $('#chk12').change(function () {
+        if (this.checked) {
+            $('#ChangePassLimit').removeAttr("disabled");
+        } else {
+            $('#ChangePassLimit').attr("disabled", "disabled");
+        }
+    });
+
+</script>   

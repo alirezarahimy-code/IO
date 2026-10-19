@@ -1,0 +1,50 @@
+﻿@model T5V3Web.Models.DateIntervalPickerModel
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.Log;
+}
+
+<h2>@T5V3Web.Content.Persian.Log</h2>
+
+
+<form>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <label>@T5V3Web.Content.Persian.SelectTimeInterval ...</label>
+        </div>
+        <div class="panel-body">
+            @Html.Partial("_SelectDateInterval", Model)
+
+            <input type="submit" class="btn btn-primary btn-shadow" value="@T5V3Web.Content.Persian.Show" />
+        </div>
+    </div>
+    
+</form>
+
+<table class="table table-hover table-responsive table-striped">
+    <thead>
+        <tr>
+            <th>@T5V3Web.Content.Persian.BadgeNumber</th>
+            <th>@T5V3Web.Content.Persian.ComputerName</th>
+            <th>@T5V3Web.Content.Persian.Date</th>
+            <th>@T5V3Web.Content.Persian.Time</th>
+            <th>@T5V3Web.Content.Persian.Type</th>
+            <th>@T5V3Web.Content.Persian.Operation</th>
+            <th>@T5V3Web.Content.Persian.Descriptions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var log in ViewBag.Logs)
+        {
+            <tr>
+                <td>@log.BadgeNumber</td>
+                <td>@log.ComputerName</td>
+                <td>@log.HijriDate</td>
+                <td>@log.TimeStr</td>
+                <td>@log.EventTypeStr</td>
+                <td>@log.OperationTypeStr</td>
+                <td>@log.Descriptions</td>
+            </tr>
+        }
+    </tbody>
+
+</table>

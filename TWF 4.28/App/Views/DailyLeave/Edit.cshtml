@@ -1,0 +1,71 @@
+﻿@model MyTime3.Models.DailyExitRequest
+@Styles.Render("~/Content/Request.css")
+@Styles.Render("~/Content/Calendar.css")
+@Scripts.Render("~/Scripts/JsFarsiCalendar.js")
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.EditDailyLeave;
+}
+@section TopStyle{
+    <link href="~/Content/style.css" rel="stylesheet" />
+}
+@section EndScript{
+    <script src="~/Scripts/index.js"></script>
+    <script>
+
+        settings = {
+            format: "yyyy/mm/dd",
+            dateSeparator: "/",
+            autoClose: true,
+            labelLanguage: 'farsi'
+        }
+        renderToday();
+    </script>
+}
+<h3 class="pageHeader">@Html.Raw(MyTime3.Content.PersianString.EditDailyLeave)</h3>
+
+@using (@Html.BeginForm("Edit", "DailyLeave", FormMethod.Post, new { @class = "form" }))
+{
+    <ul class="form">
+        <li>
+            @Html.HiddenFor(m => m.RequestID)
+        </li>
+        <li>
+            @Html.Label(MyTime3.Content.PersianString.LeaveType, new { @class = "formLabel" })
+            @Html.DropDownListFor(m => m.LeaveID, (List<SelectListItem>)ViewBag.DailyLeaveTypes, new { @class = "formInput" })
+        </li>
+        <li>
+            @Html.Label(MyTime3.Content.PersianString.From, new { @class = "formLabel" })
+            @*@Html.TextBoxFor(m => m.ForDateHijri, new { @class = "formInput" })*@
+            @Html.TextBoxFor(m => m.ForDateHijri, new { @class = "formInput datepicker-farsi" })
+            @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('ForDateHijri', this)">@MyTime3.Content.PersianString.SelectDate</a>*@
+        </li>
+        <li>
+            @Html.Label(MyTime3.Content.PersianString.To, new { @class = "formLabel" })
+            @*@Html.TextBoxFor(m => m.ToDateHijri, new { @class = "formInput" })*@
+            @Html.TextBoxFor(m => m.ToDateHijri, new { @class = "formInput datepicker-farsi" })
+            @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('ToDateHijri', this)">@MyTime3.Content.PersianString.SelectDate</a>*@
+        </li>
+        <li>
+            @Html.Label(MyTime3.Content.PersianString.Descriptions, new { @class = "formLabel" })
+            @Html.DropDownListFor(m => m.LeaveDescriptionID, (List<SelectListItem>)ViewBag.LeaveDescriptions, new { @class = "formInput" })
+        </li>
+        <li>
+            @Html.Label(MyTime3.Content.PersianString.Descriptions, new { @class = "formLabel" })
+            @Html.TextBoxFor(m => m.Descriptions, new { @class = "formInput" })
+        </li>
+
+        <li>
+            <input type="submit" class="formSubmit" value="@MyTime3.Content.PersianString.OK" />
+        </li>
+
+        <li>
+            <label class="messageLabel">@ViewBag.Message</label>
+        </li>
+
+        <li class="leftAlign">
+            @Html.ActionLink(@MyTime3.Content.PersianString.ReturnToEditRequest, "Index", "EditRequest")
+        </li>
+    </ul>
+}
+
+

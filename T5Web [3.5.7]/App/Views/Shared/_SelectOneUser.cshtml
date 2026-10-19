@@ -1,0 +1,83 @@
+﻿@model Personnel.Model.UserInfo
+
+
+<div class="auto-scroll text-right h-200 mb-20" style="direction:ltr">
+    <div id="treeUserDepts" style="direction:rtl">
+        @*@Html.Raw(T5V3Web.Controllers.DepartmentController.GetTreeHTML(null, "chkDept", new List<int>(), "addDeptUsers({0},this)"))*@
+    </div>
+</div>
+
+<select name="selectedBadgeNumber" class="form-control" onchange="showBadgeNumber()" onkeyup="showBadgeNumber()" id="users">
+    @if (Model != null)
+    {
+        <option value="@Model.BadgeNumber">@Model.ToString()</option>
+    }
+</select>
+<div class="mb-20">
+    <label>@T5V3Web.Content.Persian.BadgeNumber:</label>
+    @if (Model != null)
+    {
+        <label id="lblBadge">@Model.BadgeNumber.ToString()</label>
+    }
+    else
+    {
+        <label id="lblBadge"></label>
+    }
+</div>
+<div class="mb-10">
+    <input class="form-control" placeholder="@T5V3Web.Content.Persian.Search" id="txtSearch" onkeyup="searchUsr()" type="text" />
+    <button class="btn btn-default" type="button" onclick="searchUsr()">@T5V3Web.Content.Persian.Search</button>
+</div>
+
+
+<script>
+    $.get("/UserSelection/GetTree", "", (function (gdata) {
+        $('#treeUserDepts').treeview({
+            data: gdata,
+            levels: 50,
+            showCheckbox: false,
+            onNodeSelected: function (event, data) {
+                addDeptUsers(data.tags, true);
+            }
+        });
+    }));
+
+    function searchUsr() {
+        $('#users').text('');
+        $.get("/UserSelection/SearchUsers?exp=" + $("#txtSearch").val(), function (data, status) {
+            if (status == "success") {
+                for (var i = 0; i < data.length; i++) {
+                    addUserToList(data[i]);
+                }
+                showBadgeNumber();
+            }
+        });
+    }
+
+    function showBadgeNumber() {
+        $('#lblBadge').text($('#users :selected').val());
+    }
+
+    function addDeptUsers(deptID, checkbox) {
+        if (checkbox == true) {
+            //$("input[name='chkDept']").removeAttr("checked");
+            //checkbox.checked = "checked";
+            $('#users').text('');
+
+            $.get("/UserSelection/GetUsers?deptID=" + deptID, function (data, status) {
+                if (status == "success") {
+                    for (var i = 0; i < data.length; i++) {
+                        addUserToList(data[i]);
+                    }
+                    showBadgeNumber();
+                }
+            });
+        }
+
+    }
+
+    function addUserToList(userData) {
+        $('#users').append('<option value="' + userData.BadgeNumber + '">' + userData.Name + '</option>')
+    }
+
+</script>

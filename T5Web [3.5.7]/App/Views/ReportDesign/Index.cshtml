@@ -1,0 +1,379 @@
+﻿@{
+    ViewBag.Title = T5V3Web.Content.Persian.ReportDesign;
+}
+
+<div class="page-header">
+    <h3>@T5V3Web.Content.Persian.ReportDesigner</h3>
+</div>
+
+@{
+    T5V3Web.Models.GridModel grd = new T5V3Web.Models.GridModel();
+    grd.DeleteAllAPIPath = "/ReportDesign/DeleteAll";
+    grd.DeleteAPIPath = "/ReportDesign/Delete/";
+    grd.GetListAPIPath = "/ReportDesign/GetList";
+    grd.IDPropertyName = "ReportID";
+    grd.DisplayPropertyName = "ReportName";
+    grd.Columns.Add(new T5V3Web.Models.GridModel.Column(T5V3Web.Content.Persian.ReportName, "ReportName"));
+    @Html.Partial("_Grid", grd);
+}
+
+<div id="edit-panel" class="panel panel-default collapsed-visibility">
+    <div class="panel-heading">
+        <label id="title-panel-label">@T5V3Web.Content.Persian.Edit</label>
+    </div>
+    <div class="panel-body">
+        <div class="form-horizontal">
+            <input type="hidden" id="reportID" />
+            <div class="form-group">
+                <div class="col-sm-2 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.ReportName <font style="color:red">*</font></label>
+                </div>
+                <div class="col-sm-10">
+                    <input id="txtReportName" placeholder="@T5V3Web.Content.Persian.ReportName" class="form-control" type="text" name="ReportName" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-2 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.Height <font style="color:red">*</font></label>
+                </div>
+                <div class="col-sm-10">
+                    <input id="txtHeight" placeholder="@T5V3Web.Content.Persian.Height" class="form-control" type="text" name="Height" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-2 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.Width <font style="color:red">*</font></label>
+                </div>
+                <div class="col-sm-10">
+                    <input id="txtWidth" placeholder="@T5V3Web.Content.Persian.Width" class="form-control" type="text" name="Width" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10 text-right">
+                    <input type="hidden" value="false" name="IsSumReport" />
+                    <input type="checkbox" name="IsSumReport" value="true" id="chkSumReport" />
+                    <label>@T5V3Web.Content.Persian.IsSumReport</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10 text-right">
+                    <input type="hidden" value="false" name="SumRow" />
+                    <input type="checkbox" name="SumRow" value="true" id="chkSumRow" />
+                    <label>@T5V3Web.Content.Persian.SumRow</label>
+                </div>
+            </div>
+
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10 text-right">
+                    <input type="hidden" value="false" name="Header" />
+                    <input type="checkbox" name="Header" value="true" id="chkHeader" />
+                    <label>@T5V3Web.Content.Persian.Header</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-2 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.HeaderHeight</label>
+                </div>
+                <div class="col-sm-10">
+                    <input placeholder="@T5V3Web.Content.Persian.Width" class="form-control" type="text" name="HeaderHeight" id="txtHeaderHeight" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10 text-right">
+                    <input type="hidden" value="false" name="Footer" />
+                    <input type="checkbox" name="Footer" value="true" id="chkFooter" />
+                    <label>@T5V3Web.Content.Persian.Footer</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-2 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.FooterHeight</label>
+                </div>
+                <div class="col-sm-10">
+                    <input placeholder="@T5V3Web.Content.Persian.FooterHeight" class="form-control" type="text" name="FooterHeight" id="txtFooterHeight" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-2 text-center">
+                    <label class="control-label">رنگ سطرهای زوج</label>
+                </div>
+                <div class="col-sm-10">
+                    <input class="form-control" type="color" name="RowColor" id="txtRowColor" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10 text-right">
+                    <input type="hidden" value="false" name="PageBreakWithBadgeNumber" />
+                    <input type="checkbox" name="PageBreakWithBadgeNumber" value="true" id="chkPageBreak" />
+                    <label>تفکیک صفحه</label>
+                    <select name="PageBreakColumn" id="cmbPageBreak"></select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10 text-right">
+                    <input type="hidden" value="false" name="SortColumnID" />
+                    <input type="checkbox" name="SortColumnID" value="true" id="chkSortColumnID" />
+                    <label>ستون مرتب سازی</label>
+                    <select name="SortColumnID" id="cmbSortColumnID"></select>
+                </div>
+            </div>
+
+            <div id="divLinks" class="form-group">
+
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10 text-right">
+                    <button id="btnEdit" onclick="submitData()" type="button" class="btn btn-success"></button>
+                    <button type="button" onclick="invisiblePanel()" class="btn btn-default">@T5V3Web.Content.Persian.Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section modals
+{
+    <div id="myModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 id="msg-title" class="modal-title"></h4>
+                </div>
+                <div class="modal-body">
+                    <p id="msg-body"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">@T5V3Web.Content.Persian.OK</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <div id="titlesModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 id="msg-title-transfer" class="modal-title">@T5V3Web.Content.Persian.Access</h4>
+                </div>
+                <div class="modal-body text-right">
+                    <div class="auto-scroll h-200">
+                        <div id="titlesTree">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="text-right">
+                        <input type="hidden" id="treeCount" />
+                        <button type="button" onclick="checkAll()" class="btn btn-default">@T5V3Web.Content.Persian.All</button>
+                        <button type="button" onclick="reverse()" class="btn btn-default">@T5V3Web.Content.Persian.Reverse</button>
+                    </div>
+                    <br />
+                    <div class="text-center">
+
+                        <button type="button" onclick="acceptTitles()" class="btn btn-success" data-dismiss="modal">@T5V3Web.Content.Persian.OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section scripts
+{
+    <script>
+        loadlist(1, "");
+
+        function acceptTitles() {
+            tts = [];
+            for (var i = 0; i < $("#treeCount").val() ; i++) {
+                try {
+                    var node = $('#titlesTree').treeview('getNode', i);
+                    if (node.state.checked == true)
+                        tts.push(node.tags);
+                } catch (err)
+                { }
+            }
+
+            var toEdit = {
+                reportID: $("#reportID").val(),
+                titles: tts
+            };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/ReportDesign/EditAccess",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                }
+            });
+
+
+        }
+
+        function checkAll() {
+            $('#titlesTree').treeview('checkAll', { silent: true });
+        }
+
+        function reverse() {
+            for (var i = 0; i < $("#treeCount").val() ; i++)
+                $('#titlesTree').treeview('toggleNodeChecked', i, { silent: true });
+        }
+
+        function loadTitles(reportID) {
+            $.get("/ReportDesign/GetTitlesTree?reportID=" + reportID, "", (function (gdata) {
+                $("#treeCount").val(gdata.Count);
+                $('#titlesTree').treeview({
+                    data: gdata.res,
+                    levels: 50,
+                    showCheckbox: true,
+                    enableLinks: false,
+                    onNodeSelected: function (event, data) {
+
+                    }
+                });
+
+                $("#titlesModal").modal();
+
+            }));
+        }
+
+        function invisiblePanel() {
+            $("#edit-panel").attr("class", "collapsed-visibility panel panel-default");
+        }
+
+        function addnew() {
+            $("#edit-panel").attr("class", "visisble-visibility panel panel-default");
+            $('html, body').animate({
+                scrollTop: $("#edit-panel").offset().top
+            }, 500);
+            $("#title-panel-label").html("@T5V3Web.Content.Persian.Add2");
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Add");
+            $('#divLinks').children().remove('a');
+
+            $("#txtReportName").val("");
+            $("#txtRowColor").val("#FFFFFF");
+            $("#txtHeight").val("");
+            $("#txtWidth").val("");
+            $("#txtHeaderHeight").val("");
+            $("#txtFooterHeight").val("");
+            $("#chkSumReport").prop("checked", false);
+            $("#chkSumRow").prop("checked", false);
+            $("#chkHeader").prop("checked", false);
+            $("#chkFooter").prop("checked", false);
+            $("#chkPageBreak").prop("checked", false);
+            $("#chkSortColumnID").prop("checked", false);
+            $("#reportID").val(-1);
+        }
+
+        function submitData() {
+            var toEdit = {
+                ReportID: $("#reportID").val(), ReportName: $("#txtReportName").val(), Height: $("#txtHeight").val(), RowColor: $("#txtRowColor").val(),
+                Width: $("#txtWidth").val(), IsSumReport: $("#chkSumReport").is(":checked"), SumRow: $("#chkSumRow").is(":checked"),
+                Header: $("#chkHeader").is(":checked"), Footer: $("#chkFooter").is(":checked"), HeaderHeight: $("#txtHeaderHeight").val(),
+                FooterHeight: $("#txtFooterHeight").val(), PageBreakWithBadgeNumber: $("#chkPageBreak").is(":checked"), PageBreakColumnNumber: $("#cmbPageBreak").val(), SortColumnID:  ($("#chkSortColumnID").is(":checked") ?  $("#cmbSortColumnID").val() : null)
+            };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/ReportDesign/Edit",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                    if (toEdit.ReportID == -1) {
+                        loadlist(-1);
+                    }
+                    else {
+                        loadlist($("body").data("page"), $("body").data("squery"));
+                    }
+                }
+            });
+            invisiblePanel();
+        }
+
+        function loadItem(id) {
+            $("#edit-panel").attr("class", "visisble-visibility panel panel-default");
+            $('html, body').animate({
+                scrollTop: $("#edit-panel").offset().top
+            }, 500);
+            $("#title-panel-label").html("@T5V3Web.Content.Persian.Edit");
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Edit");
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                type: "GET",
+                url: "/ReportDesign/GetByID/" + id,
+                success: function (data) {
+                    $('#divLinks').children().remove('a');
+                    $('#divLinks').append("<a rel='noopener noreferrer' class=\"btn btn-default\" href=\"/ReportDatas/Index/" + data.ReportID + "\">@(T5V3Web.Content.Persian.ReportData)</a>");
+                    $('#divLinks').append("<a rel='noopener noreferrer' class=\"btn btn-default\" href=\"/ReportFilter/Index/" + data.ReportID + "\">@(T5V3Web.Content.Persian.ReportFilter)</a>");
+                    $('#divLinks').append("<a rel='noopener noreferrer' class=\"btn btn-default\" href=\"/ReportTextbox/Index/" + data.ReportID + "\">@(T5V3Web.Content.Persian.ReportTextboxes)</a>");
+                    $('#divLinks').append("<a rel='noopener noreferrer' class=\"btn btn-default\" href=\"/ReportTablix/Index/" + data.ReportID + "\">@(T5V3Web.Content.Persian.Tablixes)</a>");
+                    $('#divLinks').append("<a rel='noopener noreferrer' class=\"btn btn-default\" href=\"javascript:loadTitles(" + data.ReportID + ")\">@(T5V3Web.Content.Persian.ReportAccess)</a>");
+
+
+                    $("#txtReportName").val(data.ReportName);
+                    $("#txtHeight").val(data.Height);
+                    $("#txtWidth").val(data.Width);
+                    $("#txtRowColor").val(data.ToHTMLColor);
+                    $("#txtHeaderHeight").val(data.HeaderHeight);
+                    $("#txtFooterHeight").val(data.FooterHeight);
+                    $("#chkSumReport").prop("checked", data.IsSumReport);
+                    $("#chkSumRow").prop("checked", data.SumRow);
+                    $("#chkHeader").prop("checked", data.Header);
+
+                    $("#chkFooter").prop("checked", data.Footer);
+                    $("#chkSortColumnID").prop("checked", data.SortColumnID);
+                    $("#chkPageBreak").prop("checked", data.PageBreakWithBadgeNumber);
+                    $("#reportID").val(data.ReportID);
+
+                    $('#cmbPageBreak').children().remove("option");
+                    for (var i = 0; i < data.ReportDatas.length; i++) {
+                        if (data.PageBreakColumnNumber == data.ReportDatas[i].ReportDataID) {
+                            $('#cmbPageBreak').append("<option selected=\"selected\" value=\"" + data.ReportDatas[i].ReportDataID + "\">" + data.ReportDatas[i].ReportDataID + "</option>");
+                        }
+                        else {
+                            $('#cmbPageBreak').append("<option value=\"" + data.ReportDatas[i].ReportDataID + "\">" + data.ReportDatas[i].ReportDataID + "</option>");
+                        }
+                    }
+
+                    $('#cmbSortColumnID').children().remove("option");
+                    for (var i = 0; i < data.ReportDatas.length; i++) {
+                        if (data.SortColumnID == data.ReportDatas[i].ReportDataID) {
+                            $('#cmbSortColumnID').append("<option selected=\"selected\" value=\"" + data.ReportDatas[i].ReportDataID + "\">" + data.ReportDatas[i].ReportDataID + "</option>");
+                        }
+                        else {
+                            $('#cmbSortColumnID').append("<option value=\"" + data.ReportDatas[i].ReportDataID + "\">" + data.ReportDatas[i].ReportDataID + "</option>");
+                        }
+                    }
+
+                }
+            });
+        }
+
+    </script>
+}
+
+

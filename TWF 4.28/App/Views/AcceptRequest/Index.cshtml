@@ -1,0 +1,12 @@
+﻿@model IEnumerable<MyTime3.Models.Request>
+@*@Styles.Render("~/Content/EditRequest.css")*@
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.AcceptRequest;
+    ViewBag.FullScreen = true;
+}
+
+@*@Styles.Render("~/Content/MainPage.css")*@
+
+
+    @Html.Partial("~/Views/AcceptRequest/_RequestsList.cshtml", Model)
+

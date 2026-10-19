@@ -1,0 +1,246 @@
+﻿@model long
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.RequestFromUser;
+    var P = ((List<MyTime3.Models.PersonnelModel>)ViewBag.Personnel).Where(p => p.BadgeNumber == Model).FirstOrDefault();
+}
+
+
+
+<div style="min-height:500px">
+    <div class="card-header text-right">
+        <h3>@Html.Raw(MyTime3.Content.PersianString.RequestFromUser)</h3>
+    </div>
+
+    <div class="card">
+
+        <div style="padding-right:30px">
+            @using (@Html.BeginForm("FromUser", "Request", FormMethod.Get, new { @class = "text-right form-horizontal" }))
+            {
+
+                @*<div class="material-input text-right">
+                        <div class="col-sm-6 col-sm-offset-1">
+                            <div class="group">
+                                <h4> انتخاب پرسنل</h4>
+                                <select style="text-align: right" class="form-control selectpicker" data-live-search="true">
+                                    <option> </option>
+                                    @foreach (MyTime3.Models.PersonnelModel personnel in ViewBag.Personnel)
+                                    {
+                                        <option onclick="dropdownChanged('badgeID', 'selectedPersonnelName', '@personnel.FirstName @personnel.LastName', @personnel.BadgeNumber)"><a style="cursor: pointer">@personnel.FirstName @personnel.LastName</a></option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>*@
+
+
+
+                <div class="material-input text-right">
+                    <div class="col-sm-6 col-sm-offset-1">
+                        <div class="group">
+                            <h4> انتخاب پرسنل</h4>
+                            <select name="badge" id="badgeID" class="form-control js-select2">
+                                @foreach (MyTime3.Models.PersonnelModel personnel in ViewBag.Personnel)
+                                {
+                                    <option @(Model == personnel.BadgeNumber ? "selected=selected" : "") value="@personnel.BadgeNumber">
+                                        @personnel.FirstName @personnel.LastName
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                </div>
+
+                <div class="form-group top-buffer">
+                    <div class="col-sm-offset-2">
+                        <input type="submit" name="action" class="btn btn-primary btn-shadow" value="@MyTime3.Content.PersianString.ShowReport" />
+                    </div>
+                </div>
+
+            }
+        </div>
+
+        @if (ViewBag.Rep != null)
+        {
+            ViewBag.FromUser = Model;
+            <div id="dailyDataDiv">
+                @Html.Partial("~/Views/Shared/_HomeStatus.cshtml", (List<MyTime3.Models.ADayReport>)ViewBag.Rep, ViewData)
+            </div>
+
+        }
+    </div>
+</div>
+
+<script src="~/Scripts/bootstrap.js"></script>
+<script src="~/Scripts/bootstrap.min.js"></script>
+<script src="~/Scripts/bootstrap-select.min.js"></script>
+<script src="~/Scripts/select2.min.js"></script>
+<script src="~/Scripts/ru.js"></script>
+<script src="~/Scripts/Select2script.js"></script>
+<link href="~/Content/select2.min.css" rel="stylesheet" />
+<link href="~/Content/bootstrap.css" rel="stylesheet" />
+<link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/bootstrap-select.min.css" rel="stylesheet" />
+
+@section modals
+{
+    <div id="reqModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <div class="card-header">
+                        <h3 class="modal-title">@MyTime3.Content.PersianString.Request</h3>
+                    </div>
+                </div>
+                <div class="modal-body">
+
+                    @Html.Partial("_RequestForm", new MyTime3.Models.GeneralRequest())
+
+                </div>
+                <div class="modal-footer text-center">
+                    <div style="margin:auto" class="text-center">
+                        <button style="padding: 0.5em 3em 0.5em 3em" type="button" onclick="sendRequest()" class="btn btn-primary btn-shadow">@MyTime3.Content.PersianString.OK</button>
+                        <button style="padding: 0.5em 3em 0.5em 3em; " type="button" class="btn btn-default" data-dismiss="modal">@MyTime3.Content.PersianString.Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="remainModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+
+            <div class="modal-content">
+                <div class="card-header modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h3 class="modal-title">@MyTime3.Content.PersianString.RemainLeave</h3>
+                </div>
+                <div class="modal-body">
+
+                    @Html.Partial("_RemainLeave", new MyTime3.Models.RemainLeave())
+
+                </div>
+                <div class="modal-footer" style="text-align:center">
+                    <button style="margin:auto" type="button" class="btn btn-lg btn-primary btn-shadow" data-dismiss="modal">@MyTime3.Content.PersianString.OK</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+}
+
+@section scripts{
+
+    <script>
+        function showRequest(RequestType, LeaveTypeID, FromDateHijri, ToDateHijri, ForDateHijri, FromTime, ToTime, ForTime, ReqName) {
+            $('#requestTypeID').val(RequestType);
+            $('#LeaveTypeID').val(LeaveTypeID);
+            $("input[name='Descriptions']").val('');
+            if (ForDateHijri != "") {
+                if (ToDateHijri == "") {
+                    $("input[name='ToDateHijri']").val(ForDateHijri);
+                } else {
+                    $("input[name='ToDateHijri']").val(ToDateHijri);
+                }
+                if (FromDateHijri == "") {
+                    $("input[name='FromDateHijri']").val(ForDateHijri);
+                } else {
+                    $("input[name='FromDateHijri']").val(FromDateHijri);
+                }
+                $("input[name='ForDateHijri']").val(ForDateHijri);
+            } else {
+                if (FromDateHijri != "") {
+                    $("input[name='ForDateHijri']").val(FromDateHijri);
+                }
+                $("input[name='FromDateHijri']").val(FromDateHijri);
+                $("input[name='ToDateHijri']").val(ToDateHijri);
+            }
+            $("input[name='FromTime']").val(FromTime);
+            $("input[name='ToTime']").val(ToTime);
+            $("input[name='ForTime']").val(ForTime);
+
+            showValidTypes(RequestType, 0, ReqName);
+
+            $("#reqModal").modal();
+
+        }
+
+        function sendRequest() {
+            var postData = {
+                IsNew: true,
+                RequestType: $('#requestTypeID').val(),
+                LeaveTypeID: $('#LeaveTypeID').val(),
+                LeaveDescriptionsID: $('#validDescriptions').val(),
+                Descriptions: $("input[name='Descriptions']").val(),
+                FromDateHijri: $("input[name='FromDateHijri']").val(),
+                ToDateHijri: $("input[name='ToDateHijri']").val(),
+                ForDateHijri: $("input[name='ForDateHijri']").val(),
+                FromTime: $("input[name='FromTime']").val(),
+                ToTime: $("input[name='ToTime']").val(),
+                ForTime: $("input[name='ForTime']").val(),
+                OvertimeValue: $("input[name='OvertimeValue']").val(),
+                FromUser: $("#badgeID").val(),
+            };
+
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(postData),
+                type: "POST",
+                url: "/Request/GeneralRequestWeb",
+                success: function (data) {
+                    alert(data.Message);
+
+                    $("#reqModal").modal('hide');
+                    refreshData();
+                }
+            });
+
+
+        }
+
+        function refreshData() {
+            $.ajax({
+                type: "GET",
+                url: "/Home/GetTableData?b=" + $("#badgeID").val(),
+                success: function (data) {
+                    $("#dailyDataDiv").html(data);
+                }
+            });
+        }
+
+        function showRemain(badgeNumber, leaveID) {
+            var postData = { badgeNumber: badgeNumber, leaveID: leaveID };
+
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(postData),
+                type: "POST",
+                url: "/RemainLeave/RemainLeaveJ",
+                success: function (data) {
+                    $("#remainModal #tdRemain").html(Number((data.Remain).toFixed(2)));
+                    $("#remainModal #tdName").html(data.Name);
+                    $("#remainModal #tdBadgeNumber").html(data.BadgeNumber);
+                    $("#remainModal #tdLeaveTypeName").html(data.LeaveTypeName);
+                    $("#remainModal #tdDailyTaken").html(data.DailyTaken);
+                    $("#remainModal #tdHourlyTaken").html(data.HourlyTakenStr);
+                    $("#remainModal #tdTotalTaken").html(Number((data.TotalTaken).toFixed(2)));
+                    $("#remainModal #tdRequested").html(Number((data.Requested).toFixed(2)));
+
+                    $("#remainModal").modal();
+
+                }
+            });
+
+
+        }
+
+    </script>
+}

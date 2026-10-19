@@ -1,0 +1,159 @@
+﻿@model T5V3Web.Models.DeptsChartModel
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.DepartmentsChart;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.BaseData;
+    ViewBag.PageTag = "DeptsChart";
+}
+
+<h3>@T5V3Web.Content.Persian.DepartmentsChart</h3>
+<div class="horizontal-line"></div>
+
+<div class="col-sm-4 text-right auto-scroll" style="max-height:500px">
+    <div id="tree">
+    </div>
+</div>
+
+<div class="col-sm-8">
+
+    <div class="row">
+        <label>@T5V3Web.Content.Persian.GroupName : </label>
+        <label id="lblDeptName">@Model.DeptName</label>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="row text-center">
+                <label>@T5V3Web.Content.Persian.InDeptPersonnel</label>
+            </div>
+            <form role="form" class="form-horizontal" action="/DeptsChart/Fire" method="post">
+                <input id="deptID" type="hidden" name="deptID" value="@Model.DeptID" />
+                <div class="block-display border-gray h-320 auto-scroll w-100p text-right">
+                    <ul id="employ" style="list-style:none;padding:0px;">
+                        @foreach (Personnel.Model.UserInfo p in Model.DeptsPersonnel)
+                        {
+                            <li class="visible-visibility"><input type="checkbox" value="@p.BadgeNumber" name="badgeNumbers">@p.BadgeAndName</li>
+                        }
+                    </ul>
+                </div>
+                <div class="row form-group">
+                    <div class="col-sm-4 text-left">
+                        <label class="control-label">@T5V3Web.Content.Persian.Search : </label>
+                    </div>
+                    <div class="col-sm-8">
+                        <input class="form-control" type="text" onkeyup="searchf(this,'#employ')">
+                    </div>
+                    <button class="btn btn-default" type="button" onclick="selall('#employ')">@T5V3Web.Content.Persian.All</button>
+                    <button class="btn btn-default" type="button" onclick="rev('#employ')">@T5V3Web.Content.Persian.Reverse</button>
+                </div>
+                <div class="row form-group">
+                    <input class="btn btn-danger" type="submit" value="@T5V3Web.Content.Persian.Exit" />
+                </div>
+                <div class="block-display right-align">
+                    <label>@T5V3Web.Content.Persian.Count : @Model.DeptsPersonnel.Count.ToString()</label>
+                </div>
+            </form>
+        </div>
+
+        <div class="col-sm-6">
+            <div class="row text-center">
+                <label>@T5V3Web.Content.Persian.OutDeptPersonnel</label>
+            </div>
+            <form role="form" class="form-horizontal" action="/DeptsChart/Employ" method="post">
+                <input id="deptID2" type="hidden" name="deptID" value="@Model.DeptID" />
+                <div class="block-display border-gray auto-scroll h-320 w-100p text-right">
+                    <ul id="free" style="list-style:none;padding:0px;">
+                        @foreach (Personnel.Model.UserInfo p in Model.FreePersonnel)
+                        {
+                            <li class="visible-visibility"><input type="checkbox" value="@p.BadgeNumber" name="badgeNumbers">@p.BadgeAndName</li>
+                        }
+                    </ul>
+                </div>
+                <div class="row form-group">
+                    <div class="col-sm-4 text-left">
+                        <label class="control-label">@T5V3Web.Content.Persian.Search : </label>
+                    </div>
+                    <div class="col-sm-8">
+                        <input class="form-control" type="text" onkeyup="searchf(this,'#free')">
+                    </div>
+                    <button class="btn btn-default" type="button" onclick="selall('#free')">@T5V3Web.Content.Persian.All</button>
+                    <button class="btn btn-default" type="button" onclick="rev('#free')">@T5V3Web.Content.Persian.Reverse</button>
+                </div>
+                <div class="row form-group">
+                    <input class="btn btn-success" type="submit" value="@T5V3Web.Content.Persian.In" />
+                </div>
+                <div class="block-display right-align">
+                    <label>@T5V3Web.Content.Persian.Count : @Model.FreePersonnel.Count.ToString()</label>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+</div>
+
+
+@section scripts
+{
+    <script>
+        $.get("/DeptsChart/GetDeptsTree?deptID=" + "@Model.DeptID", "", (function (gdata) {
+            $('#tree').treeview({
+                data: gdata,
+                levels: 50,
+                enableLinks: false,
+                onNodeSelected: function (event, data) {
+                    $("#lblDeptName").html(data.text);
+                    var deptID = data.tags;
+
+                    $("#deptID").val(deptID);
+                    $("#deptID2").val(deptID);
+
+                    var postData = { deptID: deptID };
+                    $.ajax({
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        data: JSON.stringify(postData),
+                        type: "POST",
+                        url: "/UserInfo/GetPersonnel",
+                        success: function (data) {
+                            $("#employ").html("");
+                            for (var i = 0; i < data.length; i++) {
+                                var child = $("<li class=\"visible-visibility\"><input type=\"checkbox\" value=\"" + data[i].BadgeNumber + "\" name=\"badgeNumbers\">" + data[i].BadgeNumber + "-" + data[i].Name + "</li>");
+                                child.appendTo($("#employ"));
+                            }
+                        }
+                    });
+                }
+            });
+
+            $('#tree').treeview('collapseAll', { silent: true });
+        }));
+
+        function searchf(textbox, id) {
+            var s = textbox.value;
+            var elements = $(id + ' li');
+            for (var i = 0; i < elements.length; i++) {
+                if ((elements[i].textContent.indexOf(s, 0) >= 0) || (s == ""))
+                    elements[i].className = "visible-visibility";
+                else
+                    elements[i].className = "collapsed-visibility";
+            }
+        }
+
+        function selall(id) {
+            var eles = $(id + ' li.visible-visibility input[type=checkbox]');
+            for (var i = 0; i < eles.length; i++) {
+                eles[i].checked = true;
+            }
+        }
+
+        function rev(id) {
+            var eles = $(id + ' li.visible-visibility input[type=checkbox]');
+            for (var i = 0; i < eles.length; i++) {
+                if (eles[i].checked == true)
+                    eles[i].checked = false;
+                else
+                    eles[i].checked = true;
+            }
+        }
+    </script>
+}

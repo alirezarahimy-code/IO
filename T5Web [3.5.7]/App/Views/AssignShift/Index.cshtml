@@ -1,0 +1,128 @@
+﻿@using T5V3Web.Controllers
+@model T5V3Web.Models.AssignShiftModel
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.UserShifts;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.AttendanceData;
+    ViewBag.PageTag = "AssignShift";
+}
+
+<div class="card-header text-right">
+    <h3>@T5V3Web.Content.Persian.UserShifts</h3>
+</div>
+
+<form method="post" action="/AssignShift">
+    @Html.Partial("_SelectUser", T5V3Web.Controllers.UserSelectionController.CreateModel(Model.SelectedBadgeNumbers != null ? Model.SelectedBadgeNumbers : new List<long>()))
+
+    <input type="submit" class="btn btn-success" style="margin:20px 0px 30px 0px" value="@T5V3Web.Content.Persian.ShowUsersShifts" />
+
+</form>
+
+<div class="horizontal-line"></div>
+<div class="row mb-20">
+    <label>@T5V3Web.Content.Persian.Shifts ...</label>
+    <table class="table table-bordered table-hover table-responsive table-striped">
+        <thead>
+            <tr>
+                <td>
+                    <label>@T5V3Web.Content.Persian.BadgeNumber</label>
+                </td>
+                <td>
+                    <label>@T5V3Web.Content.Persian.ShiftName</label>
+                </td>
+                <td>
+                    <label>@T5V3Web.Content.Persian.FromDate</label>
+                </td>
+                <td>
+                    <label>@T5V3Web.Content.Persian.ToDate</label>
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.AssignedShifts != null)
+            {
+                foreach (T5V3.Model.UserShift us in Model.AssignedShifts)
+                {
+                    <tr>
+                        <td>
+                            <label class="inline-block-display w-100">@us.BadgeNumber.ToString()</label>
+                        </td>
+                        <td>
+                            <label class="inline-block-display w-100">@us.ShiftName</label>
+                        </td>
+                        <td>
+                            <label class="inline-block-display w-100">@us.FromDateHijri</label>
+                        </td>
+                        <td>
+                            <label class="inline-block-display w-100">@us.ToDateHijri</label>
+                        </td>
+                        <td>
+                            <a rel="noopener noreferrer" class="glyphicon glyphicon-edit" data-toggle="tooltip" title="@T5V3Web.Content.Persian.Edit" href="/AssignShift/Edit?badgeNumber=@us.BadgeNumber&toDateHijri=@us.ToDateHijri&fromDateHijri=@us.FromDateHijri&shiftID=@us.ShiftID"></a>
+                            <a rel="noopener noreferrer" class="glyphicon glyphicon-remove" data-toggle="tooltip" title="@T5V3Web.Content.Persian.Delete" href="/AssignShift/Delete?badgeNumber=@us.BadgeNumber&toDateHijri=@us.ToDateHijri&fromDateHijri=@us.FromDateHijri&shiftID=@us.ShiftID"></a>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+
+    <form id="addForm" method="post" action="/AssignShift/Add"></form>
+    <button class="btn btn-default" onclick="addShift()"><span class="glyphicon glyphicon-plus"></span> @T5V3Web.Content.Persian.AssignNewShift</button>
+</div>
+
+<div class="horizontal-line"></div>
+<div>
+    <label>@T5V3Web.Content.Persian.AutoSchedules ...</label>
+    <form role="form" class="form-horizontal" id="addAuto" method="post" action="/AssignShift/AutoSch">
+        @foreach (T5V3.Model.Schedule s in ViewBag.Schedules)
+        {
+            <div class="form-group">
+                <div class="col-sm-2 text-right">
+                    @if (Model.AutoSchedules != null)
+                    {
+                        @Html.Partial("_MaterialCheckbox", new MaterialCheckboxModel() { CheckValue = s.ID.ToString(), Name = "autoSchs", ID = s.ID, IsChecked = Model.AutoSchedules.Contains(s.ID), Label = s.Name })
+                    }
+                    else
+                    {
+                        @*<input name="autoSchs" type="checkbox" value="@s.ID" />*@
+                    }
+                    @*<label>@s.Name</label>*@
+                </div>
+            </div>
+        }
+
+    </form>
+    <button class="btn btn-default" type="button" onclick="autoSch()">@T5V3Web.Content.Persian.SaveChanges</button>
+</div>
+
+@section scripts
+{
+    <script>
+        function autoSch() {
+            var selectedlist = $('input[name="selectedBadgeNumbers"]:checked');
+            if (selectedlist.length > 0) {
+                for (var i = 0; i < selectedlist.length ; i++) {
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'selectedBadgeNumbers',
+                        value: selectedlist[i].value
+                    }).appendTo('#addAuto');
+                }
+                $('#addAuto').submit();
+            }
+        }
+
+        function addShift() {
+            var selectedlist = $('input[name="selectedBadgeNumbers"]:checked');
+            if (selectedlist.length > 0) {
+                for (var i = 0; i < selectedlist.length ; i++) {
+                    $('<input>').attr({
+                        type: 'hidden',
+                        name: 'selectedBadgeNumbers',
+                        value: selectedlist[i].value
+                    }).appendTo('#addForm');
+                }
+                $('#addForm').submit();
+            }
+        }
+    </script>
+}

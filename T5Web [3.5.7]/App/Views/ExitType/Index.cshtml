@@ -1,0 +1,124 @@
+﻿@model T5V3Web.Models.DataEntryModel<T5V3.Model.LeaveDescription>
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.LeaveDescriptions;
+}
+
+
+<h3>@T5V3Web.Content.Persian.LeaveDescriptions</h3>
+
+
+<div class="border-radius normal-bottom-sapce">
+    <form method="post" action="/ExitType/Edit">
+        <ul style="list-style:none">
+            @if (Model.Selected != null)
+            {
+                <li>
+                    <label class="input-label-w150">@T5V3Web.Content.Persian.LeaveType</label>
+                    <select class="input-w150" name="ForLeaveType">
+                        <option value="@T5V3.Model.LeaveTypeEnum.Duty" @(Model.Selected.ForLeaveType == T5V3.Model.LeaveTypeEnum.Duty ? "selected=selected" : "")>@T5V3Web.Content.Persian.Duty</option>
+                        <option value="@T5V3.Model.LeaveTypeEnum.Leave" @(Model.Selected.ForLeaveType == T5V3.Model.LeaveTypeEnum.Leave ? "selected=selected" : "")>@T5V3Web.Content.Persian.Leave</option>
+                    </select>
+                </li>
+                <li>
+                    <label class="input-label-w150">@T5V3Web.Content.Persian.Descriptions</label>
+                    <input class="input-w150" name="Description" type="text" value="@Model.Selected.Description" />
+                </li>
+
+                <li>
+                    <input name="ID" type="hidden" value="@Model.Selected.ID" />
+                    <br />
+                    <label class="input-label-w150"></label>
+                    <input type="submit" value="@T5V3Web.Content.Persian.Edit" />
+                </li>
+            }
+            else
+            {
+                <li>
+                    <label class="input-label-w150">@T5V3Web.Content.Persian.LeaveType</label>
+                    <select class="input-w150" name="ForLeaveType">
+                        <option value="@T5V3.Model.LeaveTypeEnum.Duty">@T5V3Web.Content.Persian.Duty</option>
+                        <option value="@T5V3.Model.LeaveTypeEnum.Leave">@T5V3Web.Content.Persian.Leave</option>
+                    </select>
+                </li>
+                <li>
+                    <label class="input-label-w150">@T5V3Web.Content.Persian.Descriptions</label>
+                    <input class="input-w150" name="Description" type="text" value="" />
+                </li>
+
+                <li>
+                    <input name="ID" type="hidden" value="-1" />
+                    <br />
+                    <label class="input-label-w150"></label>
+                    <input type="submit" value="@T5V3Web.Content.Persian.Add" />
+                </li>
+            }
+        </ul>
+
+    </form>
+</div>
+
+
+
+<div class="gridTable">
+    @{
+        int i = 0;
+        foreach (T5V3.Model.LeaveDescription c in Model.ItemsList)
+        {
+            i++;
+            <div class="@(i%2==0?"evenRow":"oddRow")">
+                <div class="grid-cell">
+                    <input class="vertical-middle" type="checkbox" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Select, c.Description))" name="ids" value="@c.ID" />
+                    <img class="vertical-middle" style="cursor: pointer" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Delete, c.Description))" src="/Images/remove-icon.png" onclick="confirmDelete(@c.ID)" />
+                    <a rel="noopener noreferrer" class="vertical-middle" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Edit, c.Description))" href="/ExitType?pageNumber=@Model.PageNumber&exitTypeID=@c.ID">
+                        <img class="vertical-middle" src="/Images/save-icon.png">
+                    </a>
+                </div>
+                <div class="grid-cell">
+                    <label class="vertical-middle">@c.Description</label>
+                </div>
+                <div class="grid-cell">
+                    <label class="vertical-middle">@(c.ForLeaveType == T5V3.Model.LeaveTypeEnum.Leave ? T5V3Web.Content.Persian.Leave : T5V3Web.Content.Persian.Duty)</label>
+                </div>
+            </div>
+        }
+
+        <div class="last-row">
+            <div class="grid-cell">
+                <a rel="noopener noreferrer" title="@T5V3Web.Content.Persian.Add" href="/ExitType?pageNumber=@Model.PageNumber"><img class="vertical-middle" src="/Images/add-icon24.png"></a>
+                <img class="vertical-middle" style="cursor: pointer" title="@T5V3Web.Content.Persian.DeleteSelectedItems" src="/Images/remove-icon24.png" onclick="deleteAll()" />
+            </div>
+            @if (Model.HasPrePage)
+            {
+                <a rel="noopener noreferrer" title="@T5V3Web.Content.Persian.Previous" href="/ExitType?pageNumber=@(Model.PageNumber-1)"><img class="vertical-middle" src="/Images/pre24.png"></a>
+            }
+            else
+            {
+                <img class="vertical-middle" src="/Images/pre-grayscale24.png">
+            }
+
+            <label class="vertical-middle">@(string.Format("{3} {0} {1} {2}", Model.PageNumber.ToString(), T5V3Web.Content.Persian.From, Model.TotalPageNumbers.ToString(), T5V3Web.Content.Persian.Page))</label>
+
+            @if (Model.HasNextPage)
+            {
+                <a rel="noopener noreferrer" title="@T5V3Web.Content.Persian.Next" href="/ExitType?pageNumber=@(Model.PageNumber+1)"><img class="vertical-middle" src="/Images/nex24.png"></a>
+            }
+            else
+            {
+                <img class="vertical-middle" src="/Images/nex-grayscale24.png">
+            }
+        </div>
+    }
+</div>
+
+@section modals
+{
+    <div id="dialog-confirm" title="@T5V3Web.Content.Persian.AreyouSure">
+    </div>
+}
+
+@{
+    ViewDataDictionary temp = new ViewDataDictionary();
+    temp.Add(new KeyValuePair<string, object>("DeleteUrl", "/ExitType/Delete"));
+    temp.Add(new KeyValuePair<string, object>("DeleteAllUrl", "/ExitType/DeleteAll"));
+    @Html.Partial("_ConfirmDeleteScripts", temp);
+}

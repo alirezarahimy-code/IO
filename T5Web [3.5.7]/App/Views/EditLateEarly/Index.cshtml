@@ -1,0 +1,78 @@
+﻿@{
+    ViewBag.Title = T5V3Web.Content.Persian.EditLateEarly;
+}
+
+<div class="page-header">
+    <h3>@T5V3Web.Content.Persian.EditLateEarly</h3>
+</div>
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <label>@T5V3Web.Content.Persian.SelectPersonnel ...</label>
+    </div>
+    <div id="perdiv" class="panel-body">
+        @Html.Partial("_SelectUser", T5V3Web.Controllers.UserSelectionController.CreateModel(new List<long>()))
+    </div>
+</div>
+
+<div class="form-horizontal">
+    <div class="form-group">
+        <div class="right-align">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.Date</label>
+            </div>
+            <div class="col-sm-4">
+                <input class="datepicker-farsi" name="forDate" id="forDate" type="text" value="@T5V3.Misc.DateConverter.ToHijriDate(DateTime.Now)" style="width:100%" />
+                @*<input class="form-control" name="forDate" id="forDate" type="text" value="@T5V3.Misc.DateConverter.ToHijriDate(DateTime.Now)" />*@
+            </div>
+            <div class="col-sm-2 text-right">
+                @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('forDate', this)">@T5V3Web.Content.Persian.Select</a>*@
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="form-group">
+        <button onclick="submitData(1)" class="btn btn-default">@T5V3Web.Content.Persian.EditLate</button>
+        <button onclick="submitData(2)" class="btn btn-default">@T5V3Web.Content.Persian.EditEarly</button>
+    </div>
+</div>
+
+@section modals
+{
+    @Html.Partial("_OKDialog")
+}
+
+@section scripts
+{
+    <script src="~/Scripts/index.js"></script>
+    <script>
+
+        settings = {
+            format: "yyyy/mm/dd",
+            dateSeparator: "/",
+            autoClose: true,
+            labelLanguage: 'farsi'
+        }
+        renderToday();
+        function submitData(type) {
+            var selected = [];
+            $('#perdiv input:checked').each(function () {
+                selected.push($(this).val());
+            });
+
+            var toEdit = { editType: type, forDate: $('#forDate').val(), badgeNumbers: selected };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/EditLateEarly/Edit",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                }
+            });
+        }
+    </script>
+}

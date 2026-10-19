@@ -1,0 +1,85 @@
+﻿@model MyTime3.Models.HourlyExitRequest
+@Styles.Render("~/Content/Request.css")
+@Styles.Render("~/Content/Calendar.css")
+@Scripts.Render("~/Scripts/JsFarsiCalendar.js")
+@Scripts.Render("~/Scripts/jquery-1.7.1.min.js")
+@Styles.Render("~/Content/themes/base/jquery-ui.css")
+@Scripts.Render("~/Scripts/jquery.ptTimeSelect.js")
+@Styles.Render("~/Content/jquery.ptTimeSelect.css")
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.EditHourlyLeave;
+}
+@section TopStyle{
+    <link href="~/Content/style.css" rel="stylesheet" />
+}
+@section EndScript{
+    <script src="~/Scripts/index.js"></script>
+    <script>
+
+        settings = {
+            format: "yyyy/mm/dd",
+            dateSeparator: "/",
+            autoClose: true,
+            labelLanguage: 'farsi'
+        }
+        renderToday();
+    </script>
+}
+<h3 class="pageHeader">@MyTime3.Content.PersianString.EditHourlyLeave</h3>
+
+@using (@Html.BeginForm("Edit", "HourlyLeave", FormMethod.Post, new { @class = "form" }))
+{
+    <ul class="form">
+        <li>
+            @Html.HiddenFor(m => m.RequestID)
+        </li>
+        <li>
+            @Html.Label(MyTime3.Content.PersianString.LeaveType, new { @class = "formLabel" })
+            @Html.DropDownListFor(m => m.LeaveID, (List<SelectListItem>)ViewBag.HourlyLeaveTypes, new { @class = "formInput" })
+        </li>
+        <li>
+            @Html.Label(MyTime3.Content.PersianString.Date, new { @class = "formLabel" })
+            @*@Html.TextBoxFor(m => m.ForDateHijri, new { @class = "formInput" })*@
+            @Html.TextBoxFor(m => m.ForDateHijri, new { @class = "formInput datepicker-farsi" })
+            @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('ForDateHijri', this)">@MyTime3.Content.PersianString.SelectDate</a>*@
+        </li>
+        <li>
+            @Html.Label(MyTime3.Content.PersianString.FromTime, new { @class = "formLabel" })
+            @Html.TextBoxFor(m => m.FromTimeStr, new { @class = "timeInput" })
+        </li>
+        <li>
+            @Html.Label(MyTime3.Content.PersianString.ToTime, new { @class = "formLabel" })
+            @Html.TextBoxFor(m => m.ToTimeStr, new { @class = "timeInput" })
+        </li>
+        <li>
+            @Html.Label(MyTime3.Content.PersianString.Descriptions, new { @class = "formLabel" })
+            @Html.DropDownListFor(m => m.LeaveDescriptionID, (List<SelectListItem>)ViewBag.DutyDescriptions, new { @class = "formInput" })
+        </li>
+        <li>
+            @Html.Label(MyTime3.Content.PersianString.Descriptions, new { @class = "formLabel" })
+            @Html.TextBoxFor(m => m.Descriptions, new { @class = "formInput" })
+        </li>
+
+        <li>
+            <input type="submit" class="formSubmit" value="@MyTime3.Content.PersianString.OK" />
+        </li>
+
+        <li>
+            <label class="messageLabel">@ViewBag.Message</label>
+        </li>
+
+        <li class="leftAlign">
+            @Html.ActionLink(@MyTime3.Content.PersianString.ReturnToEditRequest, "Index", "EditRequest")
+        </li>
+    </ul>
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('.timeInput').ptTimeSelect({
+            popupImage: '@MyTime3.Content.PersianString.SelectTime',
+            hoursLabel: '@MyTime3.Content.PersianString.Hour',
+            minutesLabel: '@MyTime3.Content.PersianString.Minute',
+            setButtonLabel: '@MyTime3.Content.PersianString.OK'
+        });
+    });
+</script>

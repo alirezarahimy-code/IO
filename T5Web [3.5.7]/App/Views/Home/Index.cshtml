@@ -1,0 +1,81 @@
+﻿@using T5V3Web.Models
+@using T5V3Web.Controllers
+@model T5V3Web.Models.HomePageModel
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.HomePage;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.Home;
+}
+
+@foreach (Personnel.Model.DashboardModel group in Model.Groups.OrderBy(g => g.OrderIndex))
+{
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <label>@group.GroupName</label>
+        </div>
+        <div class="panel-body">
+            @foreach (T5V3Web.Models.DashboardItem item in Model.Items.Where(i => i.GroupID == group.ID))
+            {
+                <div class="float-right center-align ma-15">
+                    <a rel="noopener noreferrer" href="@item.Link" onmouseover="changeColor(this,1)" onmouseout="changeColor(this,2)">
+                        <img src="@item.Image" class="img-thumbnail" width="128" height="128" />
+                        <p>@item.Title</p>
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+}
+<div class="card-header text-right">
+    <h3>
+        مشخصات کاربر
+    </h3>
+</div>
+<div class=" card">
+    <table class="table table-hover table-bordered table-responsive table-striped">
+        <thead>
+        <tr>
+            <td>
+                نام
+            </td>
+            <td>
+                نام خانوادگی
+            </td>
+            <td>
+                سمت
+            </td>
+            <td>
+                سمت بالا دست
+            </td>
+        </tr>
+        </thead>
+        <tbody>
+
+        <tr>
+            <td>@UserInfoClass.user.FirstName</td>
+            <td>@UserInfoClass.user.LastName</td>
+            <td>@UserInfoClass.user.TitleChartName</td>
+            @if (UserInfoClass.user.UpperTitleChartName != null)
+            {
+                <td>@UserInfoClass.user.UpperTitleChartName</td>
+            }
+            else
+            {
+                <td>-</td>
+            }
+        </tr>
+
+        </tbody>
+    </table>
+
+
+</div>
+<script>
+    function changeColor(link, mode) {
+        if (mode == 1) {
+            $(link).find("img").attr("src", $(link).find("img").attr("src").replace(".png", "2.png"));
+        }
+        else if (mode == 2) {
+            $(link).find("img").attr("src", $(link).find("img").attr("src").replace("2.png", ".png"));
+        }
+    }
+</script>

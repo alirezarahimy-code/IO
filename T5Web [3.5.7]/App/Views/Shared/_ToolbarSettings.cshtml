@@ -1,0 +1,54 @@
+﻿@model List<int>
+<div id="toolbarselectModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+
+
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <div class="card-header">
+                    <h3 class="modal-title">@T5V3Web.Content.Persian.Items</h3>
+                </div>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="/Home/SetToolbar">
+
+
+                    @{
+                        System.Xml.Serialization.XmlSerializer x = new System.Xml.Serialization.XmlSerializer(typeof(List<T5V3Web.Models.ToolbarItemModel>));
+                        List<T5V3Web.Models.ToolbarItemModel> items = (List<T5V3Web.Models.ToolbarItemModel>)x.Deserialize(new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(T5V3Web.Properties.Resources.ToolbarItems)));
+
+                        string roles = T5V3Web.Authorization.LoginManager.GetRole(this.Context);
+                        var rolesArray = roles.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+                        foreach (var item in items)
+                        {
+                            if ((item.ValidRoles == null) || (item.ValidRoles.Count == 0) || (rolesArray.Contains("0-1")) || (rolesArray.Any(a => item.ValidRoles.Contains(a))))
+                            {
+                                <div class="mat-check">
+                                    <div class="exp">
+                                        <div class="checkbox">
+                                            <input type="checkbox" name="ToolbarItems" id="chktb_@item.ID" @(Model.Contains(item.ID) ? "checked=checked" : "") value="@item.ID" />
+                                            <label for="chktb_@item.ID">
+                                                <span></span>@item.Title
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    }
+
+                    <div style="margin:auto" class="text-center">
+                        <button style="padding: 0.5em 3em 0.5em 3em" type="submit" class="btn btn-primary btn-shadow">@T5V3Web.Content.Persian.OK</button>
+                        <button style="padding: 0.5em 3em 0.5em 3em; " type="button" class="btn btn-default" data-dismiss="modal">@T5V3Web.Content.Persian.Cancel</button>
+                    </div>
+
+                </form>
+
+
+            </div>
+
+        </div>
+    </div>
+</div>

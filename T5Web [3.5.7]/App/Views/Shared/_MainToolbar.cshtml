@@ -1,0 +1,48 @@
+﻿<nav class="navbar">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <button type="button" class="glyphicon glyphicon-menu-hamburger border-gray navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+            </button>
+            <a  rel="noopener noreferrer" class="navbar-brand" href="/">@T5V3Web.Content.Persian.HomePage</a>
+        </div>
+        <div class="collapse navbar-collapse" id="myNavbar">
+            <ul class="nav navbar-nav">
+                @Html.Raw(T5V3Web.Controllers.HomeController.GetMenu(new HttpContextWrapper(HttpContext.Current)))
+            </ul>
+        </div>
+    </div>
+</nav>
+
+@*<ul>
+    <li id="Home" class=@(Model == T5V3Web.Models.MainMenuItem.Home ? "active" : "")><a onclick="loadMenu('Home')" href='/'><span>@T5V3Web.Content.Persian.HomePage</span></a></li>
+    <li id="BaseData" class=@(Model == T5V3Web.Models.MainMenuItem.BaseData ? "active" : "")><a onclick="loadMenu('BaseData')" href='#'><span>@T5V3Web.Content.Persian.BaseDate</span></a></li>
+    <li id="AttendanceData" class=@(Model == T5V3Web.Models.MainMenuItem.AttendanceData ? "active" : "")><a onclick="loadMenu('AttendanceData')" href='#'><span>@T5V3Web.Content.Persian.AttendanceData</span></a></li>
+    <li id="AttendanceControl" class=@(Model == T5V3Web.Models.MainMenuItem.AttendanceControl ? "active" : "")><a onclick="loadMenu('AttendanceControl')" href='#'><span>@T5V3Web.Content.Persian.AttendanceControl</span></a></li>
+    <li id="Devices" class=@(Model == T5V3Web.Models.MainMenuItem.Devices ? "active" : "")><a onclick="loadMenu('Devices')" href='#'><span>@T5V3Web.Content.Persian.Devices</span></a></li>
+    <li id="Reports" class=@(Model == T5V3Web.Models.MainMenuItem.Reports ? "active" : "")><a onclick="loadMenu('Reports')" href='#'><span>@T5V3Web.Content.Persian.Reports</span></a></li>
+    <li id="Accounts" class=@(Model == T5V3Web.Models.MainMenuItem.Accounts ? "active" : "")><a onclick="loadMenu('Accounts')" href='#'><span>@T5V3Web.Content.Persian.Management</span></a></li>
+</ul>
+
+<script type="text/javascript">
+    function loadMenu(MainMenuItem) {
+        var selected = document.getElementsByClassName('active')[0];
+        selected.className = '';
+        document.getElementById(MainMenuItem).className = 'active';
+
+        var xmlhttp;
+        if (window.XMLHttpRequest) {// code for IE7+, Firefox, Chrome, Opera, Safari
+            xmlhttp = new XMLHttpRequest();
+        }
+        else {// code for IE6, IE5
+            xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+        }
+        xmlhttp.onreadystatechange = function () {
+            if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                document.getElementById("rightmenucontent").innerHTML = xmlhttp.responseText;
+            }
+        }
+        var tag = '@((string)ViewBag.PageTag)';
+        xmlhttp.open("GET", "/Home/GetSubMenu?MainMenuItem=" + MainMenuItem + "&pageTag=" + tag, true);
+        xmlhttp.send();
+    }
+</script>*@

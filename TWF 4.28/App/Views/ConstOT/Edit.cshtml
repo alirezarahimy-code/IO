@@ -1,0 +1,98 @@
+﻿@model IEnumerable<MyTime3.Models.OTConstDaily>
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.EditConstOT;
+}
+
+<div class="card-header text-right">
+    <h3>@Html.Raw(MyTime3.Content.PersianString.EditConstOT)</h3>
+</div>
+
+<div class="card">
+
+
+    @if (Model.Count() > 0)
+    {
+       
+        <div style="padding:1em">
+            <h4>@string.Format("{0} {1}", MyTime3.Content.PersianString.EditConstOT, MyTime3.GlobalHelper.GetUserInfo(Model.First().BadgeNumber).ToString())</h4>
+        </div>
+        <div class="formTitle">
+            <label class="messageLabel" style="color: darkred">@ViewBag.ExMessage</label>
+        </div>
+
+         <form id="changeMonthForm" method="get" action="/ConstOT/Edit">
+            <input type="hidden" value="@(Model.First().BadgeNumber)" name="badgeNumber" />
+            <div style="margin-top:30px;">
+                <div style="width:100%; display:flex;display:-ms-flexbox;align-items:center">
+                    <div class="switch" style="transform:scale(0.75)">
+                        <input onchange="reloadcotform()" @(ViewBag.Pre ? "checked=checked" : "")   id="toggle1" class="toggle" name="pre" value="true" type="checkbox">
+                        <label for="toggle1"></label>
+                        <span class="switch-label"></span>
+                    </div>
+                    <label>@MyTime3.Content.PersianString.PreMonth</label>
+                </div>
+            </div>
+        </form>
+        <script>
+            function reloadcotform()
+            {
+                $("#changeMonthForm").submit();
+            }
+
+        </script>
+        
+        <table class="table table-bordered table-hover table-responsive table-striped">
+            <thead>
+                <tr>
+                    <td>
+                        @MyTime3.Content.PersianString.Date
+                    </td>
+                    <td>
+                        @MyTime3.Content.PersianString.DayOfWeek
+                    </td>
+                    <td>
+                        @MyTime3.Content.PersianString.Value
+                    </td>
+                    <td>
+                        @MyTime3.Content.PersianString.NewValue
+                    </td>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (MyTime3.Models.OTConstDaily req in Model)
+                {
+                    <tr>
+
+
+                        <td>
+                            <label>@req.ForDate</label>
+                        </td>
+                        <td>
+                            <label>@req.DayOfWeek</label>
+                        </td>
+                        <td>
+                            @if (req.ValueDaily != TimeSpan.FromTicks(0))
+                            {
+                                <label><font color="red">@MyTime3.Controllers.Misc.TimeSpanToString(req.ValueDaily)</font></label>
+                            }
+                        </td>
+                        <td>
+                            @using (@Html.BeginForm("Edit", "ConstOT", FormMethod.Post, new { @class = "inlineform" }))
+                            {
+                                <input type="hidden" name="badgeNumber" value=@req.BadgeNumber />
+                                <input type="hidden" name="forDate" value=@req.ForDate />
+                                <input type="text" class="formInput" name="newValue" value="@MyTime3.Controllers.Misc.TimeSpanToString(req.ValueDaily)" />
+                                <input type="submit" class="btn btn-default btn-sm" value="@MyTime3.Content.PersianString.OK" />
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div style="margin:20px;padding:5px">
+            <a rel="noopener noreferrer" style="float:left" href="~/ConstOT/Index">@MyTime3.Content.PersianString.ReturnToConstOT</a>
+        </div>
+    }
+
+</div>

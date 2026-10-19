@@ -1,0 +1,598 @@
+﻿@model T5V3Web.Models.InsertDailyLeaveModel
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.InsertDailyExit;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.AttendanceData;
+    ViewBag.PageTag = "InsertDailyLeave";
+}
+
+
+<div class="text-right card-header">
+    <h3>@T5V3Web.Content.Persian.InsertDailyExit</h3>
+</div>
+
+<div class="card">
+    <form method="post" action="/InsertDailyLeave/Reload">
+        <input type="hidden" name="isFreeze" value="@(Model.IsFreezeUsers.ToString())" />
+        <input type="hidden" name="referrerURL" value="@(Model.ReferrerURL)" />
+        @if (Model.IsFreezeUsers)
+        {
+            foreach (long badge in Model.SelectedBadgeNumbers)
+            {
+                <input type="hidden" name="selectedBadgeNumbers" value="@badge.ToString()" />
+            }
+        }
+
+        <div id="usersSelect" style="padding:1em">
+            @Html.Partial("_SelectUser", T5V3Web.Controllers.UserSelectionController.CreateModel(Model.SelectedBadgeNumbers))
+        </div>
+
+        <input class="btn btn-default mb-20 mt-20" type="submit" name="loadType" value="@T5V3Web.Content.Persian.Show" />
+
+        <div id="tabs">
+            <ul>
+                <li class="float-right"><a rel="noopener noreferrer" href="#tabs-1">@T5V3Web.Content.Persian.DailyLeaves</a></li>
+                <li class="float-right"><a rel="noopener noreferrer" href="#tabs-2">@T5V3Web.Content.Persian.LeavesAdded</a></li>
+            </ul>
+            <div id="tabs-1">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                            <label class="control-label">@T5V3Web.Content.Persian.LeaveType</label>
+                        </div>
+                        <div class="col-sm-8 text-right">
+                            <input onchange="showLeaveTypes('Leave')" name="leaveType" checked="checked" type="radio" />
+                            <label>@T5V3Web.Content.Persian.Leave</label>
+                            <input onchange="showLeaveTypes('Duty')" name="leaveType" type="radio" />
+                            <label>@T5V3Web.Content.Persian.Duty</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                            <label class="control-label">@T5V3Web.Content.Persian.Type</label>
+                        </div>
+                        <div class="col-sm-8">
+                            <select id="cmbLeaveTypesAll" class="collapsed-visibility form-control">
+                                @foreach (T5V3.Model.LeaveType lt in Model.AllLeaveTypes)
+                                {
+                                    if (!lt.IsHourly)
+                                    {
+                                        <option class="@lt.LeaveType1.ToString()" value="@lt.LeaveTypeID">@lt.LeaveName</option>
+                                    }
+                                }
+                            </select>
+                            <select id="cmbLeaveTypes" name="leaveTypeID" class="form-control">
+                                @foreach (T5V3.Model.LeaveType lt in Model.AllLeaveTypes)
+                                {
+                                    if ((!lt.IsHourly) && (lt.LeaveType1 == T5V3.Model.LeaveTypeEnum.Leave))
+                                    {
+                                        <option class="@lt.LeaveType1.ToString()" value="@lt.LeaveTypeID">@lt.LeaveName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                            <label class="control-label">@T5V3Web.Content.Persian.FromDate</label>
+                        </div>
+                        <div class="col-sm-8">
+                            <input class="datepicker-farsi" style="width:100%" placeholder="@T5V3Web.Content.Persian.FromDate" name="fromDateHijri" type="text" value="" />
+                            @*<input class="form-control" placeholder="@T5V3Web.Content.Persian.FromDate" name="fromDateHijri" type="text" value="" />*@
+                        </div>
+                        <div class="col-sm-2 text-right">
+                            @*<a rel="noopener noreferrer" id="selectFrom" href="javascript:" onclick="displayDatePicker('fromDateHijri', this)">@T5V3Web.Content.Persian.Select</a>*@
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                            <label class="control-label">@T5V3Web.Content.Persian.ToDate</label>
+                        </div>
+                        <div class="col-sm-8">
+                            @*<input class="form-control" placeholder="@T5V3Web.Content.Persian.ToDate" name="toDateHijri" type="text" value="" />*@
+                            <input class="datepicker-farsi" style="width:100%" placeholder="@T5V3Web.Content.Persian.ToDate" name="toDateHijri" type="text" value="" />
+                        </div>
+                        <div class="col-sm-2 text-right">
+                            @*<a rel="noopener noreferrer" id="selectFrom" href="javascript:" onclick="displayDatePicker('toDateHijri',this)">@T5V3Web.Content.Persian.Select</a>*@
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                            <label class="control-label">@T5V3Web.Content.Persian.Descriptions</label>
+                        </div>
+                        <div class="col-sm-8">
+                            <input class="form-control" name="descriptions" placeholder="@T5V3Web.Content.Persian.Descriptions" type="text" value="" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                            <label class="control-label">@T5V3Web.Content.Persian.DocumentNumber</label>
+                        </div>
+                        <div class="col-sm-8">
+                            <input class="form-control" name="docNumber" placeholder="@T5V3Web.Content.Persian.DocumentNumber" type="text" value="" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                            <label class="control-label">@T5V3Web.Content.Persian.LeaveDescription</label>
+                        </div>
+                        <div class="col-sm-8">
+                            <select id="cmbLeaveDescriptionsAll" class="collapsed-visibility form-control">
+                                @foreach (T5V3.Model.LeaveDescription lt in Model.AllLeaveDescriptions)
+                                {
+                                    <option class="@lt.ForLeaveType.ToString()" value="@lt.ID">@lt.Description</option>
+                                }
+                            </select>
+                            <select id="cmbLeaveDescriptions" name="leaveDescriptionsID" class="form-control">
+                                @foreach (T5V3.Model.LeaveDescription lt in Model.AllLeaveDescriptions)
+                                {
+                                    if (lt.ForLeaveType == T5V3.Model.LeaveTypeEnum.Leave)
+                                    {
+                                        <option class="@lt.ForLeaveType.ToString()" value="@lt.ID">@lt.Description</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-8 col-sm-offset-2">
+                            <input class="btn btn-default" name="loadType" onclick="insertLeave()" value="@T5V3Web.Content.Persian.Insert @T5V3Web.Content.Persian.Leave" type="button" />
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <table class="table table-bordered table-hover table-responsive table-striped">
+                    <thead>
+                        <tr class="warning">
+                            <td>@T5V3Web.Content.Persian.SelectDelete</td>
+                            <td>@T5V3Web.Content.Persian.BadgeNumber</td>
+                            <td>@T5V3Web.Content.Persian.LeaveName</td>
+                            <td>@T5V3Web.Content.Persian.Date</td>
+                            <td>@T5V3Web.Content.Persian.Descriptions</td>
+                        </tr>
+                    </thead>
+                    <tbody id="dailyLeaves-body">
+                        @{
+                            int i = 0;
+                            foreach (T5V3.Model.DailyLeave c in Model.DailyLeaves)
+                            {
+                                i++;
+                                <tr>
+                                    <td>
+                                        <input data-toggle="tooltip" type="checkbox" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Select, c.LeaveDateHijri))" name="ids" value="@c.BadgeNumber" />
+                                        <a rel="noopener noreferrer" href="javascript:void(0)" onclick="confirmDelete('@(string.Format("{0};{1};{2}", c.BadgeNumber.ToString(), c.LeaveDateHijri,c.LeaveTypeID.ToString ()))')">
+                                            <span title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Delete, c.LeaveDateHijri))" data-toggle="tooltip" class="glyphicon glyphicon-remove"></span>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <label>@c.BadgeNumber</label>
+                                    </td>
+                                    <td>
+                                        <label>@c.DailyLeaveType.LeaveName</label>
+                                    </td>
+                                    <td>
+                                        <label>@c.LeaveDateHijri</label>
+                                    </td>
+                                    <td>
+                                        <label>@c.Descriptions</label>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                    @*<tfoot class="last-row">
+                            <tr>
+                                <td>
+                                    <img class="vertical-middle" style="cursor: pointer" title="@T5V3Web.Content.Persian.DeleteSelectedItems" src="/Images/remove-icon24.png" onclick="deleteAll()" />
+                                </td>
+                            </tr>
+                        </tfoot>*@
+
+                </table>
+            </div>
+
+            <div id="tabs-2">
+                <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                            <label class="control-label">@T5V3Web.Content.Persian.LeaveType</label>
+                        </div>
+                        <div class="col-sm-8 text-right">
+                            <input onchange="showLeaveTypes2('Leave')" name="leaveType2" checked="checked" type="radio" />
+                            <label>@T5V3Web.Content.Persian.Leave</label>
+                            <input onchange="showLeaveTypes2('Duty')" name="leaveType2" type="radio" />
+                            <label>@T5V3Web.Content.Persian.Duty</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                            <label class="control-label">@T5V3Web.Content.Persian.Type</label>
+                        </div>
+                        <div class="col-sm-8">
+                            <select id="cmbLeaveTypesAll2" class="collapsed-visibility form-control">
+                                @foreach (T5V3.Model.LeaveType lt in Model.AllLeaveTypes)
+                                {
+                                    if (!lt.IsHourly)
+                                    {
+                                        <option class="@lt.LeaveType1.ToString()" value="@lt.LeaveTypeID">@lt.LeaveName</option>
+                                    }
+                                }
+                            </select>
+                            <select id="cmbLeaveTypes2" name="leaveTypeID" class="form-control">
+                                @foreach (T5V3.Model.LeaveType lt in Model.AllLeaveTypes)
+                                {
+                                    if ((!lt.IsHourly) && (lt.LeaveType1 == T5V3.Model.LeaveTypeEnum.Leave))
+                                    {
+                                        <option class="@lt.LeaveType1.ToString()" value="@lt.LeaveTypeID">@lt.LeaveName</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                            <label class="control-label">@T5V3Web.Content.Persian.Date</label>
+                        </div>
+                        <div class="col-sm-8">
+                            <input class="datepicker-farsi" style="width:100%" placeholder="@T5V3Web.Content.Persian.Date" name="inDateHijri" type="text" value="" />
+                            @*<input class="form-control" placeholder="@T5V3Web.Content.Persian.Date" name="inDateHijri" type="text" value="" />*@
+                        </div>
+                        <div class="col-sm-2 text-right">
+                            @*<a rel="noopener noreferrer" id="selectFrom" href="javascript:" onclick="displayDatePicker('inDateHijri', this)">@T5V3Web.Content.Persian.Select</a>*@
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                            <label class="control-label">@T5V3Web.Content.Persian.Value</label>
+                        </div>
+                        <div class="col-sm-8">
+                            <input class="form-control" placeholder="@T5V3Web.Content.Persian.Value" name="valueToAdd" type="text" value="" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                            <label class="control-label">@T5V3Web.Content.Persian.Descriptions</label>
+                        </div>
+                        <div class="col-sm-8">
+                            <input class="form-control" name="descriptions2" placeholder="@T5V3Web.Content.Persian.Descriptions" type="text" value="" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                        </div>
+                        <div class="col-sm-8 right-align">
+                            <input name="resell" placeholder="@T5V3Web.Content.Persian.DocumentNumber" type="checkbox" value="" />
+                            <label>@T5V3Web.Content.Persian.Resell</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-2">
+                            <label class="control-label">@T5V3Web.Content.Persian.DocumentNumber</label>
+                        </div>
+                        <div class="col-sm-8">
+                            <input class="form-control" name="docNumberAdd" placeholder="@T5V3Web.Content.Persian.DocumentNumber" type="text" value="" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-sm-8 col-sm-offset-2">
+                            <input class="btn btn-default" name="loadType" onclick="insertLeaveAdded()" value="@T5V3Web.Content.Persian.Insert @T5V3Web.Content.Persian.LeavesAdded" type="button" />
+                        </div>
+                    </div>
+
+                </div>
+
+
+                <table class="table table-bordered table-hover table-responsive table-striped">
+                    <thead>
+                        <tr class="warning">
+                            <td>@T5V3Web.Content.Persian.SelectDelete</td>
+                            <td>@T5V3Web.Content.Persian.BadgeNumber</td>
+                            <td>@T5V3Web.Content.Persian.LeaveName</td>
+                            <td>@T5V3Web.Content.Persian.Date</td>
+                            <td>@T5V3Web.Content.Persian.Value</td>
+                            <td>@T5V3Web.Content.Persian.Descriptions</td>
+                        </tr>
+                    </thead>
+                    <tbody id="leavesAdded-body">
+                        @{
+                            foreach (T5V3.Model.LeavesAdded c in Model.LeavesAdded)
+                            {
+                                <tr>
+                                    <td>
+                                        <input data-toggle="tooltip" type="checkbox" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Select, c.AddedDateHijri))" name="ids" value="@c.BadgeNumber" />
+                                        <a rel="noopener noreferrer" href="javascript:void(0)" onclick="confirmDelete2('@c.ID.ToString()')">
+                                            <span title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Delete, c.AddedDateHijri))" data-toggle="tooltip" class="glyphicon glyphicon-remove"></span>
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <label>@c.BadgeNumber</label>
+                                    </td>
+                                    <td>
+                                        <label>@c.LeaveTypeName</label>
+                                    </td>
+                                    <td>
+                                        <label>@c.AddedDateHijri</label>
+                                    </td>
+                                    <td>
+                                        <label>@c.ValueAdded</label>
+                                    </td>
+                                    <td>
+                                        <label>@c.Descriptions</label>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                    @*<tfoot class="last-row">
+                            <tr>
+                                <td>
+                                    <img class="vertical-middle" style="cursor: pointer" title="@T5V3Web.Content.Persian.DeleteSelectedItems" src="/Images/remove-icon24.png" onclick="deleteAll()" />
+                                </td>
+                            </tr>
+                        </tfoot>*@
+
+                </table>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+@section modals
+{
+    <div id="myModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 id="msg-title" class="modal-title"></h4>
+                </div>
+                <div class="modal-body">
+                    <p id="msg-body"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">@T5V3Web.Content.Persian.OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section scripts{
+    <link href="~/Scripts/jquery-confirm.css" rel="stylesheet" type="text/css" />
+    <script src="~/Scripts/jquery-confirm.js"></script>
+    <script src="~/Scripts/index.js"></script>
+    <script>
+
+    settings = {
+        format: "yyyy/mm/dd",
+        dateSeparator: "/",
+        autoClose: true,
+        labelLanguage: 'farsi'
+        }
+        renderToday();
+</script>
+    <script>
+
+
+        function insertLeaveAdded() {
+            var badges = [];
+            var cheks = $("input[name='selectedBadgeNumbers']:checked:enabled", '#usersSelect');
+            for (var i = 0; i < cheks.length; i++)
+                badges.push($(cheks[i]).val());
+
+            var toInsert = {
+                badgeNumbers: badges, inDateHijri: $('input[name=\'inDateHijri\']').val(), value: $('input[name=\'valueToAdd\']').val(),
+                descriptions: $('input[name=\'descriptions2\']').val(), leaveTypeID: $('select[name=leaveTypeID]').val(),
+                docNumber: $('input[name=\'docNumberAdd\']').val(), isResell: $('input[name=\'resell\']').is(":checked")
+            };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toInsert),
+                type: "POST",
+                url: "/InsertDailyLeave/InsertLeaveAdded",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+
+                    loadDailyLeaves(badges);
+                    loadLeavesAdded(badges);
+                }
+            });
+        }
+
+        function insertLeave() {
+            var badges = [];
+            var cheks = $("input[name='selectedBadgeNumbers']:checked:enabled", '#usersSelect');
+            for (var i = 0; i < cheks.length; i++)
+                badges.push($(cheks[i]).val());
+
+            var toInsert = {
+                badgeNumbers: badges, fromDateHijri: $('input[name=\'fromDateHijri\']').val(), toDateHijri: $('input[name=\'toDateHijri\']').val(),
+                descriptions: $('input[name=\'descriptions\']').val(), docNumber: $('input[name=\'docNumber\']').val(),
+                leaveTypeID: $('select[name=leaveTypeID]').val(), descriptionsID: $('select[name=leaveDescriptionsID]').val()
+            };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toInsert),
+                type: "POST",
+                url: "/InsertDailyLeave/InsertDailyLeave",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+
+                    loadDailyLeaves(badges);
+                    loadLeavesAdded(badges);
+                }
+            });
+        }
+
+        function confirmDelete(tag) {
+
+            $.confirm({
+                title: 'تایید حذف',
+                content: 'از حذف مطمین هستید؟',
+                theme: 'dark',
+                type: 'green',
+                buttons: {
+                    ok: {
+                        text: "بله",
+                        btnClass: 'btn-danger',
+                        keys: ['enter'],
+                        action: function () {
+                            var badges = [];
+                            var cheks = $("input[name='selectedBadgeNumbers']:checked:enabled", '#usersSelect');
+                            for (var i = 0; i < cheks.length; i++)
+                                badges.push($(cheks[i]).val());
+
+                            var spls = String(tag).split(';', 3);
+                            var toEdit = { badgeNumber: spls[0], hijriDate: spls[1], leaveType: spls[2] };
+                            $.ajax({
+                                contentType: "application/json; charset=utf-8",
+                                dataType: "json",
+                                data: JSON.stringify(toEdit),
+                                type: "POST",
+                                url: "/InsertDailyLeave/Delete",
+                                success: function (data) {
+                                    $("#msg-title").html(data.Title);
+                                    $("#msg-body").html(data.Message);
+                                    $("#myModal").modal();
+
+                                    loadDailyLeaves(badges);
+                                    loadLeavesAdded(badges);
+                                }
+                            });
+                        }
+                    },
+                    Cancel: {
+                        text: "خیر",
+                        btnClass: 'btn-danger'
+                    }
+                }
+            });
+            
+        }
+
+        function confirmDelete2(tag) {
+
+            $.confirm({
+                title: 'تایید حذف',
+                content: 'از حذف مطمین هستید؟',
+                theme: 'dark',
+                type: 'green',
+                buttons: {
+                    ok: {
+                        text: "ثبت پاسخ",
+                        btnClass: 'btn-danger',
+                        keys: ['enter'],
+                        action: function() {
+
+                            var badges = [];
+                            var cheks = $("input[name='selectedBadgeNumbers']:checked:enabled", '#usersSelect');
+                            for (var i = 0; i < cheks.length; i++)
+                                badges.push($(cheks[i]).val());
+
+                            var toEdit = { id: tag };
+                            $.ajax({
+                                contentType: "application/json; charset=utf-8",
+                                dataType: "json",
+                                data: JSON.stringify(toEdit),
+                                type: "POST",
+                                url: "/InsertDailyLeave/DeleteAdded",
+                                success: function (data) {
+                                    $("#msg-title").html(data.Title);
+                                    $("#msg-body").html(data.Message);
+                                    $("#myModal").modal();
+
+                                    loadDailyLeaves(badges);
+                                    loadLeavesAdded(badges);
+                                }
+                            });
+                        }
+                    },
+                    Cancel: {
+                        text: "خیر",
+                        btnClass: 'btn-danger'
+                    }
+                }
+            });
+
+
+
+        }
+
+
+        function loadDailyLeaves(badges) {
+            $('#dailyLeaves-body').children().remove();
+            var toEdit = { badgeNumbers: badges };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/InsertDailyLeave/GetDailyLeaves",
+                success: function (data) {
+                    for (var i = 0 ; i < data.length; i++) {
+                        var tr = $('<tr>');
+                        tr.append("<td><input data-toggle='tooltip' type='checkbox' title='@(T5V3Web.Content.Persian.Select) " + data[i].LeaveDateHijri + "' name='ids' value='" + data[i].BadgeNumber + "' /><a rel='noopener noreferrer' href='javascript:void(0)' onclick=\"confirmDelete('" + data[i].BadgeNumber + ";" + data[i].LeaveDateHijri + ";" + data[i].LeaveTypeID + "')\"><span title='@(T5V3Web.Content.Persian.Delete)" + data[i].LeaveDateHijri + "' data-toggle='tooltip' class='glyphicon glyphicon-remove'></span></a></td>");
+                        tr.append("<td><label>" + data[i].BadgeNumber + "</label></td>");
+                        tr.append("<td><label>" + data[i].DailyLeaveType.LeaveName + "</label></td>");
+                        tr.append("<td><label>" + data[i].LeaveDateHijri + "</label></td>");
+                        tr.append("<td><label>" + data[i].Descriptions + "</label></td>");
+                        $('#dailyLeaves-body').append(tr);
+                    }
+                }
+            });
+        }
+
+        function loadLeavesAdded(badges) {
+            $('#leavesAdded-body').children().remove();
+            var toEdit = { badgeNumbers: badges };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/InsertDailyLeave/GetLeavesAdded",
+                success: function (data) {
+                    for (var i = 0 ; i < data.length; i++) {
+                        var tr = $('<tr>');
+                        tr.append("<td><input data-toggle='tooltip' type='checkbox' title='@(T5V3Web.Content.Persian.Select) " + data[i].AddedDateHijri + "' name='ids' value='" + data[i].BadgeNumber + "' /><a rel='noopener noreferrer' href='javascript:void(0)' onclick=\"confirmDelete2('" + data[i].ID + "')\"><span title='@(T5V3Web.Content.Persian.Delete)" + data[i].AddedDateHijri + "' data-toggle='tooltip' class='glyphicon glyphicon-remove'></span></a></td>");
+                        tr.append("<td><label>" + data[i].BadgeNumber + "</label></td>");
+                        tr.append("<td><label>" + data[i].LeaveTypeName + "</label></td>");
+                        tr.append("<td><label>" + data[i].AddedDateHijri + "</label></td>");
+                        tr.append("<td><label>" + data[i].ValueAdded + "</label></td>");
+                        tr.append("<td><label>" + data[i].Descriptions + "</label></td>");
+                        $('#leavesAdded-body').append(tr);
+                    }
+                }
+            });
+        }
+
+
+        function showLeaveTypes(leaveType) {
+            $('#cmbLeaveTypes').children().remove();
+            $('#cmbLeaveTypesAll .' + leaveType).clone(true).appendTo('#cmbLeaveTypes');
+            $('#cmbLeaveDescriptions').children().remove();
+            $('#cmbLeaveDescriptionsAll .' + leaveType).clone(true).appendTo('#cmbLeaveDescriptions');
+        }
+
+        function showLeaveTypes2(leaveType) {
+            $('#cmbLeaveTypes2').children().remove();
+            $('#cmbLeaveTypesAll2 .' + leaveType).clone(true).appendTo('#cmbLeaveTypes2');
+            //$('#cmbLeaveDescriptions').children().remove();
+            //$('#cmbLeaveDescriptionsAll .' + leaveType).clone(true).appendTo('#cmbLeaveDescriptions');
+        }
+    </script>
+    <script>
+        $("#tabs").tabs();
+    </script>
+}

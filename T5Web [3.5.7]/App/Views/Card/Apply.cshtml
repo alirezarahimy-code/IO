@@ -1,0 +1,35 @@
+﻿@model T5V3Web.Models.ReportsModel
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.ApplyPishCard;
+}
+
+<div class="card-header text-right">
+    <h3>
+        @T5V3Web.Content.Persian.ApplyPishCard
+    </h3>
+</div>
+
+<form method="post" action="/Card/ApplyInterval">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <label>@T5V3Web.Content.Persian.SelectTimeInterval ...</label>
+        </div>
+        <div class="panel-body">
+            @Html.Partial("_SelectDateInterval", Model.Interval)
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-success">@T5V3Web.Content.Persian.ApplyPishCard</button>
+
+    <div class="form-group top-buffer">
+        <div class="col-sm-10 col-sm-offset-1 center-align">
+            @if (Model.ValidationMessage != null)
+            {
+                <div class="@((T5V3Web.Models.ValidationMessageType)Model.ValidationMessageType == T5V3Web.Models.ValidationMessageType.Error ? "alert alert-danger fade in" : "alert alert-success fade in")">
+                    @Model.ValidationMessage
+                    <a rel="noopener noreferrer" href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                </div>
+            }
+        </div>
+    </div>
+</form>

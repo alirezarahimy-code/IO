@@ -1,0 +1,90 @@
+﻿@using MyTime3.Controllers
+@using MyTime3.Models
+@model long
+@{
+    ViewBag.Title = "مشاهده وضعیت کاربران";
+    var P = ((List<MyTime3.Models.PersonnelModel>)ViewBag.Personnel).Where(p => p.BadgeNumber == Model).FirstOrDefault();
+
+}
+
+
+<div style="min-height:500px">
+    <div class="card-header text-right">
+        <h3>@Html.Raw("مشاهده وضعیت کاربران")</h3>
+    </div>
+
+    <div class="card">
+
+        <div style="padding-right:30px">
+            @using (@Html.BeginForm("Index", "ShowUsersRequest", FormMethod.Get, new { @class = "text-right form-horizontal" }))
+            {
+                <div class="material-input text-right">
+                    <div class="col-sm-6 col-sm-offset-1">
+                        <div class="group">
+                            <h4> انتخاب پرسنل</h4>
+                            <select name="badge" id="badgeID" class="form-control js-select2">
+                                @foreach (MyTime3.Models.PersonnelModel personnel in ViewBag.Personnel)
+                                {
+                                    <option @(Model == personnel.BadgeNumber ? "selected=selected" : "") value="@personnel.BadgeNumber">
+                                        @personnel.FirstName @personnel.LastName
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                </div>
+
+                <div class="form-group top-buffer">
+                    <div class="col-sm-offset-2">
+                        <input type="button" name="" onclick="showStatus()" class="btn btn-primary btn-shadow" value="نمایش" />
+                    </div>
+                </div>
+
+            }
+        </div>
+
+    </div>
+    <div id="ShowDataDiv">
+
+    </div>
+</div>
+<script src="~/Scripts/bootstrap.js"></script>
+<script src="~/Scripts/bootstrap.min.js"></script>
+<script src="~/Scripts/bootstrap-select.min.js"></script>
+<script src="~/Scripts/select2.min.js"></script>
+<script src="~/Scripts/ru.js"></script>
+<script src="~/Scripts/Select2script.js"></script>
+<link href="~/Content/select2.min.css" rel="stylesheet" />
+<link href="~/Content/bootstrap.css" rel="stylesheet" />
+<link href="~/Content/bootstrap.min.css" rel="stylesheet" />
+<link href="~/Content/bootstrap-select.min.css" rel="stylesheet" />
+
+@section scripts
+{
+    <script>
+        function showStatus() {
+
+            var data = new FormData();
+            data.append("badg", $("#badgeID :selected").val());
+            data.append("action", "ShowusersStatus");
+            $.ajax({
+                url: "/ShowUsersRequest/GetForUser",
+                type: "POST",
+                processData: false,
+                contentType: false,
+                data: data,
+                beforeSend: function () { },
+                success: function (response) {
+                    $("#ShowDataDiv").empty().append(response);
+                },
+                error: function (er) {
+
+                }
+            });
+        }
+    </script>
+}
+

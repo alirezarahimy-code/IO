@@ -1,0 +1,82 @@
+﻿<a  rel="noopener noreferrer" href="/Home/Index"><i class="fa fa-home"></i>@T5V3Web.Content.Persian.HomePage</a>
+<a  rel="noopener noreferrer" href="/Home/About"><i class="fa fa-info"></i>@T5V3Web.Content.Persian.AboutUs</a>
+
+@Html.Raw(T5V3Web.Controllers.HomeController.GetMenu(this.Context))
+
+
+
+
+
+@*@model T5V3Web.Models.MenusAccessModel
+<div id='cssmenu'>
+    <ul>
+        <li>
+            <a href="~/Home/Index"><span>@T5V3Web.Content.Persian.Holiday</span></a>
+        </li>
+        <li class='has-sub'>
+            <a href="#"><span>@T5V3Web.Content.Persian.BaseDate</span></a>
+            <ul>
+                @if (Model.Certificate)
+                {
+                    <li><a href='~/Certificate/Index'><span>@T5V3Web.Content.Persian.Certificates</span></a></li>
+                }
+                @if (Model.Titles)
+                {
+                    <li><a href='~/Title/Index'><span>@T5V3Web.Content.Persian.TitleChart</span></a></li>
+                }
+                @if (Model.DeputySettings)
+                {
+                    <li><a href='~/Deputy/Index'><span>@T5V3Web.Content.Persian.SelectValidDeputies</span></a></li>
+                }
+                @if (Model.EmpTypes)
+                {
+                    <li><a href='~/EmpType/Index'><span>@T5V3Web.Content.Persian.EmpTypes</span></a></li>
+                }
+                @if (Model.LeaveType)
+                {
+                    <li><a href='~/LeaveType/Index'><span>@T5V3Web.Content.Persian.LeaveTypes</span></a></li>
+                }
+                @if (Model.LeaveDescriptions)
+                {
+                    <li><a href='~/ExitType/Index'><span>@T5V3Web.Content.Persian.LeaveDescriptions</span></a></li>
+                }
+                @if (Model.Calendar)
+                {
+                    <li><a href='~/Calendar/Index'><span>@T5V3Web.Content.Persian.Calendar</span></a></li>
+                }
+                @if (Model.Ramezan)
+                {
+                    <li><a href='~/Ramezan/Index'><span>@T5V3Web.Content.Persian.Ramezan</span></a></li>
+                }
+                @if (Model.Rules)
+                {
+                    <li><a href='~/Rule/Index'><span>@T5V3Web.Content.Persian.Rules</span></a></li>
+                }
+                @if (Model.Department)
+                {
+                    <li><a href='~/Department/Index'><span>@T5V3Web.Content.Persian.Departments</span></a></li>
+                }
+                @if (Model.UserAddProperty)
+                {
+                    <li><a href='~/UserAddProperty/Index'><span>@T5V3Web.Content.Persian.UserAddInfo</span></a></li>
+                }
+            </ul>
+        </li>
+        <li class='has-sub'>
+            <a href='#'><span>Products</span></a>
+            <ul>
+                <li><a href='#'><span>Product 1</span></a></li>
+                <li><a href='#'><span>Product 2</span></a></li>
+                <li class='last'><a href='#'><span>Product 3</span></a></li>
+            </ul>
+        </li>
+        <li class='has-sub'>
+            <a href='#'><span>About</span></a>
+            <ul>
+                <li><a href='#'><span>Company</span></a></li>
+                <li class='last'><a href='#'><span>Contact</span></a></li>
+            </ul>
+        </li>
+        <li class='last'><a href='#'><span>Contact</span></a></li>
+    </ul>
+</div>*@

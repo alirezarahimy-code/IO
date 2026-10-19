@@ -1,0 +1,89 @@
+﻿Uninstalling assembly 'C:\RProjects\Link5\Link5\bin\Debug\Link5WatchDog.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\RProjects\Link5\Link5\bin\Debug\Link5WatchDog.InstallLog
+   assemblypath = C:\RProjects\Link5\Link5\bin\Debug\Link5WatchDog.exe
+Removing EventLog source Link5 WatchDog.
+Service Link5 WatchDog is being removed from the system...
+Service Link5 WatchDog was successfully removed from the system.
+Installing assembly 'C:\RProjects\Link5\Link5\bin\Debug\Link5WatchDog.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\RProjects\Link5\Link5\bin\Debug\Link5WatchDog.InstallLog
+   assemblypath = C:\RProjects\Link5\Link5\bin\Debug\Link5WatchDog.exe
+Installing service Link5 WatchDog...
+Service Link5 WatchDog has been successfully installed.
+Creating EventLog source Link5 WatchDog in log Application...
+Committing assembly 'C:\RProjects\Link5\Link5\bin\Debug\Link5WatchDog.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\RProjects\Link5\Link5\bin\Debug\Link5WatchDog.InstallLog
+   assemblypath = C:\RProjects\Link5\Link5\bin\Debug\Link5WatchDog.exe
+Uninstalling assembly 'C:\RProjects\Link5\Link5\Link5\bin\Debug\Link5WatchDog.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\RProjects\Link5\Link5\Link5\bin\Debug\Link5WatchDog.InstallLog
+   assemblypath = C:\RProjects\Link5\Link5\Link5\bin\Debug\Link5WatchDog.exe
+Removing EventLog source Link5 WatchDog.
+Service Link5 WatchDog is being removed from the system...
+An exception occurred during the uninstallation of the System.ServiceProcess.ServiceInstaller installer.
+System.ComponentModel.Win32Exception: The specified service does not exist as an installed service
+An exception occurred while uninstalling. This exception will be ignored and the uninstall will continue. However, the application might not be fully uninstalled after the uninstall is complete.
+Installing assembly 'C:\RProjects\Link5\Link5\Link5\bin\Debug\Link5WatchDog.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\RProjects\Link5\Link5\Link5\bin\Debug\Link5WatchDog.InstallLog
+   assemblypath = C:\RProjects\Link5\Link5\Link5\bin\Debug\Link5WatchDog.exe
+Installing service Link5 WatchDog...
+Service Link5 WatchDog has been successfully installed.
+Creating EventLog source Link5 WatchDog in log Application...
+Committing assembly 'C:\RProjects\Link5\Link5\Link5\bin\Debug\Link5WatchDog.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\RProjects\Link5\Link5\Link5\bin\Debug\Link5WatchDog.InstallLog
+   assemblypath = C:\RProjects\Link5\Link5\Link5\bin\Debug\Link5WatchDog.exe
+Uninstalling assembly 'C:\RP\Link5\Link5\Link5\bin\Debug\Link5WatchDog.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\RP\Link5\Link5\Link5\bin\Debug\Link5WatchDog.InstallLog
+   assemblypath = C:\RP\Link5\Link5\Link5\bin\Debug\Link5WatchDog.exe
+Removing EventLog source Link5 WatchDog.
+Service Link5 WatchDog is being removed from the system...
+An exception occurred during the uninstallation of the System.ServiceProcess.ServiceInstaller installer.
+System.ComponentModel.Win32Exception: The specified service does not exist as an installed service
+An exception occurred while uninstalling. This exception will be ignored and the uninstall will continue. However, the application might not be fully uninstalled after the uninstall is complete.
+Installing assembly 'C:\RP\Link5\Link5\Link5\bin\Debug\Link5WatchDog.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\RP\Link5\Link5\Link5\bin\Debug\Link5WatchDog.InstallLog
+   assemblypath = C:\RP\Link5\Link5\Link5\bin\Debug\Link5WatchDog.exe
+Installing service Link5 WatchDog...
+Service Link5 WatchDog has been successfully installed.
+Creating EventLog source Link5 WatchDog in log Application...
+Committing assembly 'C:\RP\Link5\Link5\Link5\bin\Debug\Link5WatchDog.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\RP\Link5\Link5\Link5\bin\Debug\Link5WatchDog.InstallLog
+   assemblypath = C:\RP\Link5\Link5\Link5\bin\Debug\Link5WatchDog.exe
+Uninstalling assembly 'C:\RP\Link5\Link5\Link5\bin\Debug\Link5WatchDog.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\RP\Link5\Link5\Link5\bin\Debug\Link5WatchDog.InstallLog
+   assemblypath = C:\RP\Link5\Link5\Link5\bin\Debug\Link5WatchDog.exe
+Removing EventLog source Link5 WatchDog.
+Service Link5 WatchDog is being removed from the system...
+Service Link5 WatchDog was successfully removed from the system.
+Attempt to stop service Link5 WatchDog.
+Installing assembly 'C:\RP\Link5\Link5\Link5\bin\Debug\Link5WatchDog.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\RP\Link5\Link5\Link5\bin\Debug\Link5WatchDog.InstallLog
+   assemblypath = C:\RP\Link5\Link5\Link5\bin\Debug\Link5WatchDog.exe
+Installing service Link5 WatchDog...
+Service Link5 WatchDog has been successfully installed.
+Creating EventLog source Link5 WatchDog in log Application...
+Committing assembly 'C:\RP\Link5\Link5\Link5\bin\Debug\Link5WatchDog.exe'.
+Affected parameters are:
+   logtoconsole = 
+   logfile = C:\RP\Link5\Link5\Link5\bin\Debug\Link5WatchDog.InstallLog
+   assemblypath = C:\RP\Link5\Link5\Link5\bin\Debug\Link5WatchDog.exe

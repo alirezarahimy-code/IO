@@ -1,0 +1,222 @@
+﻿@model MyTime3.Models.ReportModel
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.ViewReport;
+}
+@section TopStyle{
+    <link href="~/Content/style.css" rel="stylesheet" />
+}
+@section EndScript{
+    <script src="~/Scripts/index.js"></script>
+    <script>
+
+        settings = {
+            format: "yyyy/mm/dd",
+            dateSeparator: "/",
+            autoClose: true,
+            labelLanguage: 'farsi'
+        }
+        renderToday();
+    </script>
+}
+<script src="~/Scripts/spin.js"></script>
+
+<div class="text-right card-header">
+    <h3>@Html.Raw(MyTime3.Content.PersianString.ViewReport)</h3>
+</div>
+
+<div class="card">
+    <div style="padding-right:30px">
+        @using (@Html.BeginForm("Report", "Report", FormMethod.Post, new { @id = "reportForm", @class = "text-right form-horizontal", target = "reportIframe" }))
+        {
+
+            <div class="material-input text-right">
+                <div class="col-sm-3 col-sm-offset-1">
+                    <div class="group">
+                        <div class="material-dropdown" id="dropdownRewardReportName">
+                            <div class="dropdown">
+                                <input type="hidden" name="ReportID" id="ReportID">
+                                <input data-toggle="dropdown" id="reportName" type="text" required>
+
+                                <span class="highlight"></span>
+                                <span class="bar"></span>
+                                <label>@MyTime3.Content.PersianString.ReportName</label>
+
+                                <ul class="dropdown-menu" id="menuRewardReportName">
+                                    @foreach (var r in (List<SelectListItem>)ViewBag.Reports)
+                                    {
+                                        <li onclick="dropdownChanged('ReportID','reportName','@r.Text', @r.Value)"><a rel="noopener noreferrer" style="cursor:pointer">@r.Text</a></li>
+                                    }
+                                </ul>
+
+                            </div>
+
+                            <span class="caret"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @*<div class="form-group">
+                    <div class="col-sm-2 text-left">
+                        @Html.Label(MyTime3.Content.PersianString.ReportName, new { @class = "control-label" })
+                    </div>
+                    <div class="col-sm-3">
+                        @Html.DropDownListFor(m => m.ReportID, (List<SelectListItem>)ViewBag.Reports, new { @class = "form-control" })
+                    </div>
+                </div>*@
+
+
+            <div class="">
+                <div style="margin-top:30px" class="group text-right">
+                    <div class="col-sm-9 col-sm-offset-1">
+                        @Html.Partial("~/Views/Shared/_SelectMultiUser.cshtml")
+                    </div>
+                </div>
+            </div>
+            @*<div class="form-group">
+                    <div class="col-sm-2 text-left">
+                        @Html.Label(MyTime3.Content.PersianString.FromDate, new { @class = "formLabel" })
+                    </div>
+                    <div>
+                        @Html.TextBoxFor(m => m.FromDateHijri, new { @class = "formInput" })
+                        <a href="javascript:" onclick="displayDatePicker('FromDateHijri', this)">@MyTime3.Content.PersianString.SelectDate</a>
+                    </div>
+                </div>*@
+
+
+            <div class="material-input date-input text-right">
+                <div class="col-sm-3 col-sm-offset-1">
+                    <div class="group">
+                        @*<input name="FromDateHijri" type="text" required>*@
+                        <input name="FromDateHijri" required class="datepicker-farsi" type="text">
+                        <span class="highlight"></span>
+                        <span class="bar"></span>
+                        <label>@MyTime3.Content.PersianString.FromDate</label>
+                    </div>
+                </div>
+                <div id="fromdatediv"></div>
+                @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('FromDateHijri', this,null,null,'fromdatediv')">@MyTime3.Content.PersianString.SelectDate</a>*@
+            </div>
+
+
+            <div class="material-input date-input text-right">
+                <div class="col-sm-3 col-sm-offset-1">
+                    <div class="group">
+                        @*<input name="ToDateHijri" type="text" required>*@
+                        <input name="ToDateHijri" required class="datepicker-farsi" type="text">
+                        <span class="highlight"></span>
+                        <span class="bar"></span>
+                        <label>@MyTime3.Content.PersianString.ToDate</label>
+                    </div>
+                </div>
+                <div id="todatediv"></div>
+
+                @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('ToDateHijri', this, null, null, 'todatediv')">@MyTime3.Content.PersianString.SelectDate</a>*@
+            </div>
+
+
+
+            @*<div class="form-group">
+                    <div class="col-sm-2 text-left">
+                        @Html.Label(MyTime3.Content.PersianString.ToDate, new { @class = "formLabel" })
+                    </div>
+                    <div>
+                        @Html.TextBoxFor(m => m.ToDateHijri, new { @class = "formInput" })
+                        <a href="javascript:" onclick="displayDatePicker('ToDateHijri', this)">@MyTime3.Content.PersianString.SelectDate</a>
+                    </div>
+                </div>*@
+
+            if ((bool)MyTime3.Controllers.SettingsController.LoadValue("ReportExport", typeof(bool), true))
+            {
+                <div style="display: flex; display: -ms-flexbox; align-items: flex-end; -ms-flex-align: end;">
+                    <div class="col-sm-3 col-sm-offset-1">
+                        <div class="material-input text-right">
+                            <div class="group">
+                                <div class="material-dropdown">
+                                    <div class="dropdown">
+                                        <input type="hidden" name="exportType" id="exportType" value="EXCEL">
+                                        <input data-toggle="dropdown" id="exportTypeName" type="text" value="EXCEL">
+
+                                        <span class="highlight"></span>
+                                        <span class="bar"></span>
+                                        <label>@MyTime3.Content.PersianString.FileType</label>
+
+                                        <ul class="dropdown-menu">
+                                            <li onclick="dropdownChanged('exportType','exportTypeName','EXCEL', 'EXCEL')"><a rel="noopener noreferrer" style="cursor:pointer">EXCEL</a></li>
+                                            <li onclick="dropdownChanged('exportType', 'exportTypeName', 'PDF', 'PDF')"><a rel="noopener noreferrer" style="cursor:pointer">PDF</a></li>
+                                            <li onclick="dropdownChanged('exportType', 'exportTypeName', 'WORD', 'WORD')"><a rel="noopener noreferrer" style="cursor:pointer">WORD</a></li>
+                                        </ul>
+
+                                    </div>
+
+                                    <span class="caret"></span>
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+                    <input type="submit" name="action" class="btn btn-default" value="@MyTime3.Content.PersianString.DownloadExportFile" />
+                </div>
+            }
+            @*<div class="form-group">
+                    <div class="col-sm-2 text-left">
+                        <label class="formLabel">@MyTime3.Content.PersianString.FileType</label>
+                    </div>
+                    <div>
+
+                        <select name="exportType" class="formInput"><option>EXCEL</option><option>PDF</option><option>WORD</option></select>
+                        <input type="submit" name="action" class="btn btn-default" value="@MyTime3.Content.PersianString.DownloadExportFile" />
+                    </div>
+                </div>*@
+
+            <div class="form-group">
+            </div>
+
+
+            <div class="material-input text-right">
+                <div class="col-sm-offset-1 col-sm-4">
+                    <div class="group">
+                        <button onclick="showreport()" style="width:100%" class="btn btn-primary btn-shadow" name="action" type="submit">@MyTime3.Content.PersianString.ShowReport</button>
+                    </div>
+                </div>
+            </div>
+
+            @*<div class="form-group top-buffer">
+                    <div class="col-sm-offset-2">
+                        <input type="submit" name="action" class="btn btn-default" value="@MyTime3.Content.PersianString.ShowReport" />
+                    </div>
+                </div>*@
+
+            if (Model.ErrorMessage != null)
+            {
+                <div class="text-center panel-danger panel">
+                    <div class="panel-heading">
+                        <label>@Model.ErrorMessage</label>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+
+    @*<pre class="loading-indicator">fsdfsdf</pre>*@
+    <iframe onload="content_finished_loading(this)" style="width:100%;margin-top:3em;min-height:1000px" name="reportIframe"></iframe>
+
+    <script>
+
+        //var indicator = document.querySelector('.loading-indicator');
+        var content_start_loading = function () {
+            indicator.style.display = 'block';
+        };
+
+        var content_finished_loading = function (iframe) {
+            indicator.style.display = 'none';
+            // inject the start loading handler when content finished loading
+            alert(iframe.contentWindow.getElementById('btnpre').value);
+            iframe.contentWindow.onunload = content_start_loading;
+        };
+    </script>
+
+
+</div>

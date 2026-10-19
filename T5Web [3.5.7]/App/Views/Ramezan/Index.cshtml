@@ -1,0 +1,387 @@
+﻿@{
+    ViewBag.Title = T5V3Web.Content.Persian.Ramezan;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.BaseData;
+    ViewBag.PageTag = "Ramezan";
+}
+
+<div class="page-header">
+    <h3>@T5V3Web.Content.Persian.Ramezan</h3>
+</div>
+
+@{
+    T5V3Web.Models.GridModel grd = new T5V3Web.Models.GridModel();
+    grd.DeleteAllAPIPath = "/Ramezan/DeleteAll";
+    grd.DeleteAPIPath = "/Ramezan/Delete/";
+    grd.GetListAPIPath = "/Ramezan/GetList";
+    grd.IDPropertyName = "ID";
+    grd.DisplayPropertyName = "Year";
+    grd.Columns.Add(new T5V3Web.Models.GridModel.Column(T5V3Web.Content.Persian.Year, "Year"));
+    @Html.Partial("_Grid", grd);
+}
+
+<div id="edit-panel" class="panel panel-default collapsed-visibility">
+    <div class="panel-heading">
+        <label id="title-panel-label">@T5V3Web.Content.Persian.Edit</label>
+    </div>
+    <div class="panel-body">
+        <form class="form-horizontal" role="form" method="post" action="/Ramezan/Edit">
+
+            <input type="hidden" id="ramezanID" />
+
+            <div class="form-group">
+                <div class="col-sm-2 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.Year</label>
+                </div>
+                <div class="col-sm-10">
+                    <div class="col-sm-10">
+                        <input id="txtYear" class="form-control number-input align-left" name="Year" type="text" value="" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-2">
+                    <label class="control-label">@T5V3Web.Content.Persian.FromDate</label>
+                </div>
+                <div class="col-sm-10">
+                    <div class="col-sm-10">
+                        <input id="txtFromDateHijri" class="datepicker-farsi" name="FromDateHijri" style="width:100%" type="text" value="" />
+                        @*<input id="txtFromDateHijri" class="form-control align-left" name="FromDateHijri" type="text" value="" />*@
+                    </div>
+                    <div class="col-sm-2 text-right">
+                        @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('FromDateHijri', this)">@T5V3Web.Content.Persian.Select</a>*@
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-2">
+                    <label class="control-label">@T5V3Web.Content.Persian.ToDate</label>
+                </div>
+                <div class="col-sm-10">
+                    <div class="col-sm-10">
+                        <input id="txtToDateHijri"  class="datepicker-farsi" style="width:100%" name="ToDateHijri" type="text" value="" />
+                        @*<input id="txtToDateHijri" class="form-control align-left" name="ToDateHijri" type="text" value=""/>*@
+                    </div>
+                    <div class="col-sm-2 text-right">
+                        @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('ToDateHijri', this)">@T5V3Web.Content.Persian.Select</a>*@
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-10 col-sm-offset-2 text-right">
+                    <div class="col-sm-10">
+                        <input type="checkbox" name="Late192123" value="true" id="chkLate19" />
+                        <input name="Late192123" type="hidden" value="false" />
+                        <label>@T5V3Web.Content.Persian.Late1921</label>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2">
+                    <label class="control-label">@T5V3Web.Content.Persian.Late1921Value</label>
+                </div>
+                <div class="col-sm-10">
+                    <div class="col-sm-10">
+                        <input id="txtLate192123Value" name="Late192123Value" type="text" class="form-control timespan-input" value="" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10 text-right">
+                    <button id="btnEdit" onclick="submitData()" type="button" class="btn btn-success"></button>
+                    <button type="button" onclick="invisiblePanel()" class="btn btn-default">@T5V3Web.Content.Persian.Cancel</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@section modals
+{
+    <div id="myModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 id="msg-title" class="modal-title"></h4>
+                </div>
+                <div class="modal-body">
+                    <p id="msg-body"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">@T5V3Web.Content.Persian.OK</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+}
+
+
+
+@section scripts
+{
+    <script src="~/Scripts/index.js"></script>
+    <script>
+    settings = {
+        format: "yyyy/mm/dd",
+        dateSeparator: "/",
+        autoClose: true,
+        labelLanguage: 'farsi'
+        }
+        renderToday();
+</script>
+    <script>
+        loadlist(1, "");
+
+        function invisiblePanel() {
+            $("#edit-panel").attr("class", "collapsed-visibility panel panel-default");
+        }
+
+        function addnew() {
+            $("#edit-panel").attr("class", "visisble-visibility panel panel-default");
+            $('html, body').animate({
+                scrollTop: $("#edit-panel").offset().top
+            }, 500);
+            $("#title-panel-label").html("@T5V3Web.Content.Persian.Add2");
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Add");
+
+            $("#txtFromDateHijri").val("");
+            $("#txtToDateHijri").val("");
+            $("#txtLate192123Value").val("");
+            $("#txtYear").val("");
+            $("#ramezanID").val(-1);
+        }
+
+        function submitData() {
+            var toEdit = {
+                ID: $("#ramezanID").val(),
+                Late192123: $('#chkLate19').is(':checked'),
+                Late192123Value: $("#txtLate192123Value").val(),
+                Year: $("#txtYear").val(),
+                FromDateHijri: $("#txtFromDateHijri").val(),
+                ToDateHijri: $("#txtToDateHijri").val()
+            };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/Ramezan/Edit",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                    if (toEdit.EmpTypeID == -1) {
+                        loadlist(-1);
+                    }
+                    else {
+                        loadlist($("body").data("page"), $("body").data("squery"));
+                    }
+                }
+            });
+            invisiblePanel();
+        }
+
+        function loadItem(id) {
+            $("#edit-panel").attr("class", "visisble-visibility panel panel-default");
+            $('html, body').animate({
+                scrollTop: $("#edit-panel").offset().top
+            }, 500);
+            $("#title-panel-label").html("@T5V3Web.Content.Persian.Edit");
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Edit");
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                type: "GET",
+                url: "/Ramezan/GetByID/" + id,
+                success: function (data) {
+                    $("#txtFromDateHijri").val(data.FromDateHijri);
+                    $("#txtToDateHijri").val(data.ToDateHijri);
+                    $("#txtYear").val(data.Year);
+                    $("#ramezanID").val(data.ID);
+                    $('#chkLate19').prop("checked", data.Late192123);
+                    $("#txtLate192123Value").val(Late192123Value);
+                }
+            });
+        }
+
+    </script>
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@*
+    @{
+        ViewBag.Title = T5V3Web.Content.Persian.Ramezan;
+        ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.BaseData;
+        ViewBag.PageTag = "Ramezan";
+    }
+
+
+    <h3>@T5V3Web.Content.Persian.Ramezan</h3>
+    <div class="horizontal-line"></div>
+
+
+    <form class="form-horizontal" role="form" method="post" action="/Ramezan/Edit">
+
+
+        <div class="form-group">
+            @if (Model.Selected.ID != 0)
+            {
+                <input name="ID" type="hidden" value="@Model.Selected.ID" />
+                <div class="col-sm-10 col-sm-offset-2 text-right">
+                    <div class="col-sm-10">
+                        <input class="btn btn-default" type="submit" value="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Edit, T5V3Web.Content.Persian.Ramezan))" />
+                    </div>
+                </div>
+            }
+            else
+            {
+                <input name="ID" type="hidden" value="-1" />
+                <div class="col-sm-10 col-sm-offset-2 text-right">
+                    <div class="col-sm-10">
+                        <input class="btn btn-default" type="submit" value="@(string.Format ("{0} {1}", T5V3Web.Content.Persian.Add2 , T5V3Web.Content.Persian.Ramezan))" />
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-offset-1 col-sm-10 text-center">
+                @if (Model.ValidationMessage != null)
+                {
+                    <div class="@((T5V3Web.Models.ValidationMessageType)Model.ValidationMessageType == T5V3Web.Models.ValidationMessageType.Error ? "alert alert-danger fade in" : "alert alert-success fade in")">
+                        @Model.ValidationMessage
+                        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                    </div>
+                }
+            </div>
+        </div>
+
+    </form>
+
+
+    <div class="horizontal-line"></div>
+
+    <table class="table table-hover table-bordered table-striped table-responsive">
+        <thead>
+            <tr class="warning">
+                <td>@T5V3Web.Content.Persian.SelectDeleteEdit</td>
+                <td>@T5V3Web.Content.Persian.Year</td>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (T5V3.Model.Ramz c in Model.ItemsList)
+            {
+                <tr>
+                    <td>
+                        <input data-toggle="tooltip" type="checkbox" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Select, c.Year))" name="ids" value="@c.ID" />
+                        <a onclick="confirmDelete(@c.ID)" href="javascript:void(0)">
+                            <span data-toggle="tooltip" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Delete, c.Year))" class="glyphicon glyphicon-remove"></span>
+                        </a>
+                        <a data-toggle="tooltip" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Edit, c.Year))" href="/Ramezan?pageNumber=@Model.PageNumber&certificateID=@c.ID">
+                            <span class="glyphicon glyphicon-edit"></span>
+                        </a>
+                    </td>
+                    <td>
+                        <label>@c.Year</label>
+                    </td>
+
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr class="danger">
+                <td>
+                    <form role="form" method="get" action="/Ramezan">
+                        <input type="hidden" name="pageNumber" value="@Model.PageNumber" />
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-sm btn-default" data-toggle="tooltip" title="@T5V3Web.Content.Persian.Add">
+                                <span class="glyphicon glyphicon-plus"></span>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-default" data-toggle="tooltip" title="@T5V3Web.Content.Persian.DeleteSelectedItems" onclick="deleteAll()">
+                                <span class="glyphicon glyphicon-remove"></span>
+                            </button>
+                        </div>
+                    </form>
+                </td>
+                <td>
+                    @if (Model.HasPrePage)
+                    {
+                        <a data-toggle="tooltip" title="@T5V3Web.Content.Persian.Previous" href="/Ramezan?pageNumber=@(Model.PageNumber-1)"><span class="glyphicon glyphicon-forward"></span></a>
+                    }
+                    else
+                    {
+                        <span class="glyphicon glyphicon-forward"></span>
+                    }
+
+                    <label>@(string.Format("{3} {0} {1} {2}", Model.PageNumber.ToString(), T5V3Web.Content.Persian.From, Model.TotalPageNumbers.ToString(), T5V3Web.Content.Persian.Page))</label>
+
+                    @if (Model.HasNextPage)
+                    {
+                        <a data-toggle="tooltip" title="@T5V3Web.Content.Persian.Next" href="/Ramezan?pageNumber=@(Model.PageNumber+1)"><span class="glyphicon glyphicon-backward"></span></a>
+                    }
+                    else
+                    {
+                        <span class="glyphicon glyphicon-backward"></span>
+                    }
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+
+
+    @section scripts
+    {
+        @{
+            ViewDataDictionary temp = new ViewDataDictionary();
+            temp.Add(new KeyValuePair<string, object>("DeleteUrl", "/Ramezan/Delete"));
+            temp.Add(new KeyValuePair<string, object>("DeleteAllUrl", "/Ramezan/DeleteAll"));
+            @Html.Partial("_ConfirmDeleteScripts", temp);
+        }
+
+        <script>
+            $(function () {
+                $(".timespan-input").mask('99:59');
+            })
+        </script>
+    }
+*@

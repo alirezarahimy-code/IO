@@ -1,0 +1,293 @@
+﻿@using MyTime3.Controllers
+@using MyTime3.Models
+@model MyTime3.Models.HomeModel
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.HomePage;
+    ViewBag.FullScreen = true;
+    ViewData["fromHome"] = true;
+    ViewData["deputyReturnToHome"] = true;
+    var init = new MyTime3.Controllers.HomeController();
+    init.MakeCount();
+
+
+}
+
+
+@if (Model.Deputy.IsAnyDeputy)
+{
+    <div class="form float-center">
+        @Html.Partial("~/Views/Deputy/_CurrentDeputy.cshtml", Model.Deputy, ViewData)
+    </div>
+}
+
+<div class="card-header text-right">
+    <h3>
+        مشخصات کاربر
+    </h3>
+</div>
+<div class=" card">
+    <table class="table table-hover table-bordered table-responsive table-striped">
+        <thead>
+            <tr>
+                <td>
+                    نام
+                </td>
+                <td>
+                    نام خانوادگی
+                </td>
+                <td>
+                    سمت
+                </td>
+                <td>
+                    سمت بالا دست
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+
+            <tr>
+                <td>@TitleChartClass.user.FirstName</td>
+                <td>@TitleChartClass.user.LastName</td>
+                <td>@TitleChartClass.user.TitleChartName</td>
+                @if (@TitleChartClass.user.UpperTitleChartName != null)
+                {
+                    <td>@TitleChartClass.user.UpperTitleChartName</td>
+                }
+                else
+                {
+                    <td>-</td>
+                }
+            </tr>
+
+        </tbody>
+    </table>
+
+
+</div>
+
+
+
+<div class="card-header text-right">
+    <h3>
+        گزارش وضعیت درخواست ها
+    </h3>
+</div>
+<style>
+    table thead td {
+        vertical-align: middle !important;
+    }
+</style>
+
+<div class=" card">
+
+
+    <table class="table table-hover table-bordered table-responsive table-striped">
+        <thead>
+            <tr>
+
+                <td>
+                    تمام درخواست ها
+                </td>
+                <td>
+                    در انتظار پردازش
+                </td>
+                <td>
+                    پردازش شده
+                </td>
+                <td>
+                    لغو شده
+                </td>
+            </tr>
+        </thead>
+        <tbody>
+
+            <tr>
+                <td>@init.AllRequestCount</td>
+                <td>@init.PendingRequestCount</td>
+                <td>@init.AcceptRequestCount</td>
+                <td>@init.SuspendRequestCount</td>
+            </tr>
+
+        </tbody>
+    </table>
+
+
+</div>
+
+
+
+
+
+@Html.Partial("~/Views/AcceptRequest/_RequestsList.cshtml", Model.Requests, ViewData)
+<div id="dailyDataDiv">
+    @Html.Partial("~/Views/Shared/_HomeStatus.cshtml", Model.Reports, ViewData)
+</div>
+
+@section modals
+{
+    <div id="reqModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <div class="card-header">
+                        <h3 class="modal-title">@MyTime3.Content.PersianString.Request</h3>
+                    </div>
+                </div>
+                <div class="modal-body">
+
+                    @Html.Partial("_RequestForm", new MyTime3.Models.GeneralRequest())
+
+                </div>
+                <div class="modal-footer text-center">
+                    <div style="margin:auto" class="text-center">
+                        <button style="padding: 0.5em 3em 0.5em 3em" type="button" onclick="sendRequest()" class="disBut btn btn-primary btn-shadow">@MyTime3.Content.PersianString.OK</button>
+                        <button style="padding: 0.5em 3em 0.5em 3em; " type="button" class="disBut btn btn-default" data-dismiss="modal">@MyTime3.Content.PersianString.Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="remainModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+
+            <div class="modal-content">
+                <div class="card-header modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h3 class="modal-title">@MyTime3.Content.PersianString.RemainLeave</h3>
+                </div>
+                <div class="modal-body">
+
+                    @Html.Partial("_RemainLeave", new MyTime3.Models.RemainLeave())
+
+                </div>
+                <div class="modal-footer" style="text-align:center">
+                    <button style="margin:auto" type="button" class="btn btn-lg btn-primary btn-shadow" data-dismiss="modal">@MyTime3.Content.PersianString.OK</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+}
+
+@section scripts{
+    <script>
+
+        function showRequest(RequestType, LeaveTypeID, FromDateHijri, ToDateHijri, ForDateHijri, FromTime, ToTime, ForTime, ReqName) {
+            $('#requestTypeID').val(RequestType);
+            $('#LeaveTypeID').val(LeaveTypeID);
+            $("input[name='Descriptions']").val('');
+            if (ForDateHijri != "") {
+                if (ToDateHijri == "") {
+                    $("input[name='ToDateHijri']").val(ForDateHijri);
+                } else {
+                    $("input[name='ToDateHijri']").val(ToDateHijri);
+                }
+                if (FromDateHijri == "") {
+                    $("input[name='FromDateHijri']").val(ForDateHijri);
+                } else {
+                    $("input[name='FromDateHijri']").val(FromDateHijri);
+                }
+                $("input[name='ForDateHijri']").val(ForDateHijri);
+            } else {
+                if (FromDateHijri != "") {
+                    $("input[name='ForDateHijri']").val(FromDateHijri);
+                }
+                $("input[name='FromDateHijri']").val(FromDateHijri);
+                $("input[name='ToDateHijri']").val(ToDateHijri);
+            }
+
+            $("input[name='FromTime']").val(FromTime);
+            $("input[name='ToTime']").val(ToTime);
+            $("input[name='ForTime']").val(ForTime);
+
+            showValidTypes(RequestType, 0, ReqName);
+
+            $("#reqModal").modal();
+
+        }
+
+        function sendRequest() {
+            var postData = {
+                IsNew: true,
+                RequestType: $('#requestTypeID').val(),
+                LeaveTypeID: $('#LeaveTypeID').val(),
+                LeaveDescriptionsID: $('#validDescriptions').val(),
+                Descriptions: $("input[name='Descriptions']").val(),
+                FromDateHijri: $("input[name='FromDateHijri']").val(),
+                ToDateHijri: $("input[name='ToDateHijri']").val(),
+                ForDateHijri: $("input[name='ForDateHijri']").val(),
+                FromTime: $("input[name='FromTime']").val(),
+                ToTime: $("input[name='ToTime']").val(),
+                ForTime: $("input[name='ForTime']").val(),
+                OvertimeValue: $("input[name='OvertimeValue']").val(),
+            };
+
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(postData),
+                type: "POST",
+                beforeSend: () => {
+                    $('.disBut').attr('disabled', 'disabled');
+                },
+                complete: () => {
+                    $('.disBut').removeAttr('disabled');
+                },
+                url: "/Request/GeneralRequestWeb",
+                success: function (data) {
+                    alert(data.Message);
+
+                    $("#reqModal").modal('hide');
+                    refreshData();
+                }
+            });
+
+
+        }
+
+        function refreshData() {
+            $.ajax({
+                type: "GET",
+                url: "/Home/GetTableData",
+                success: function (data) {
+                    $("#dailyDataDiv").html(data);
+                }
+            });
+
+        }
+
+        function showRemain(badgeNumber, leaveID) {
+            var postData = { badgeNumber: badgeNumber, leaveID: leaveID };
+
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(postData),
+                type: "POST",
+                url: "/RemainLeave/RemainLeaveJ",
+                success: function (data) {
+                    $("#remainModal #tdRemain").html(Number((data.Remain).toFixed(2)));
+                    $("#remainModal #tdName").html(data.Name);
+                    $("#remainModal #tdBadgeNumber").html(data.BadgeNumber);
+                    $("#remainModal #tdLeaveTypeName").html(data.LeaveTypeName);
+                    $("#remainModal #tdDailyTaken").html(data.DailyTaken);
+                    $("#remainModal #tdHourlyTaken").html(data.HourlyTakenStr);
+                    $("#remainModal #tdTotalTaken").html(Number((data.TotalTaken).toFixed(2)));
+                    $("#remainModal #tdRequested").html(Number((data.Requested).toFixed(2)));
+
+                    $("#remainModal").modal();
+
+                }
+            });
+
+
+        }
+
+    </script>
+
+}

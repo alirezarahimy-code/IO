@@ -1,0 +1,164 @@
+﻿@{
+    ViewBag.Title = MyTime3.Content.PersianString.Undo;
+}
+
+@model IEnumerable<MyTime3.Models.Request>
+
+<div class="card-header text-right">
+    <h3>
+        @MyTime3.Content.PersianString.Undo
+    </h3>
+</div>
+
+@*<style>
+        table thead td {
+            vertical-align: middle !important;
+        }
+    </style>*@
+<div class=" card">
+
+    <table id="datatable" class="table table-hover table-bordered table-responsive table-striped">
+        <thead>
+            <tr>
+                <th>
+                    @MyTime3.Content.PersianString.BadgeNumber
+                </th>
+                <th>
+                    @MyTime3.Content.PersianString.Name
+                </th>
+                <th>
+                    @MyTime3.Content.PersianString.WorkflowType
+                </th>
+                <th>
+                    @MyTime3.Content.PersianString.RequestTime
+                </th>
+                <th>
+                    @MyTime3.Content.PersianString.Type
+                </th>
+                <th>
+                    @MyTime3.Content.PersianString.From
+                </th>
+                <th>
+                    @MyTime3.Content.PersianString.To
+                </th>
+                <th>
+                    @MyTime3.Content.PersianString.Deputy
+                </th>
+                <th>
+                    @MyTime3.Content.PersianString.Status
+                </th>
+                <th>
+                    @MyTime3.Content.PersianString.Descriptions
+                </th>
+                <th>
+                    ابزار
+                </th>
+
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (long badge in Model.Select(m => m.BadgeNumber).Distinct())
+            {
+
+                foreach (MyTime3.Models.Request req in Model.Where(b => b.BadgeNumber == badge))
+                {
+                    <tr>
+                        <td>
+                            <label>@req.BadgeNumber</label>
+                        </td>
+                        <td>
+                            <label>@req.Name</label>
+                        </td>
+                        <td>
+                            <label>@req.WorkflowName</label>
+                        </td>
+                        <td class="ltr">
+                            <label>@req.RequestTime</label>
+                        </td>
+                        <td>
+                            <label>@req.TypeName</label>
+                        </td>
+                        <td class="ltr">
+                            <label>@req.From</label>
+                        </td>
+                        <td class="ltr">
+                            <label>@req.To</label>
+                        </td>
+                        <td>
+                            <label>@(req.ForDeputy ? @req.DeputyTitleName : "-")</label>
+                        </td>
+                        <td>
+                            <label>@(req.IsCanceled ? MyTime3.Content.PersianString.Cancel : MyTime3.Content.PersianString.Accept)</label>
+                        </td>
+                        <td>
+                            <label>@req.Descriptions</label>
+                            @if ((req.Latitude != 0) && (req.Longitude != 0))
+                            {
+                                <br />
+                                <a rel="noopener noreferrer" target="_blank" href="http://maps.google.com/maps?q=@req.Latitude,@req.Longitude">@MyTime3.Content.PersianString.ShowOnMap</a>
+                            }
+                            @if (req.ImageData.Length > 1)
+                            {
+                                <br />
+                                <a rel="noopener noreferrer" target="_blank" href="/Request/ShowPhoto/@req.RequestID">@MyTime3.Content.PersianString.ShowAttachmentPhoto</a>
+                            }
+                        </td>
+
+                        @if (req.RequestT5.WorkflowType == T5V3.Model.WorkflowOperations.AllowOverTimes)
+                        {
+                            <td>
+                                <input type="hidden" name="allOverIDs" value="@req.RequestID" />
+                                <input type="hidden" name="overValues" id="@("over"+req.RequestID.ToString())" style="height:15px" value="@req.To" />
+                                @*<a style="cursor:pointer;text-decoration:underline" onclick="sendEditOverTime(@req.RequestID)">@MyTime3.Content.PersianString.Accept</a>*@
+                                @Html.ActionLink(MyTime3.Content.PersianString.Undo, "Undo", "Undo", new { @requestID = req.RequestID }, new { style = "color:red;" })
+                            </td>
+                        }
+                        else
+                        {
+                            <td>
+                                @Html.ActionLink(MyTime3.Content.PersianString.Undo, "Undo", "Undo", new { @requestID = req.RequestID }, new { style = "color:red;" })
+                            </td>
+                        }
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+
+</div>
+
+@section scripts
+{
+    <link href="~/Scripts/datatables.net-bs4/css/dataTables.bootstrap4.min.css" rel="stylesheet" type="text/css" />
+    <script src="~/Scripts/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="~/Scripts/datatables.net-bs4/js/dataTables.bootstrap4.min.js"></script>
+
+
+
+
+    <script>
+
+        $(document).ready(function () {
+            $.extend($.fn.dataTable.defaults,
+                {
+                    autoWidth: true,
+                    language: {
+                        search: '<span>جستجو :</span> _INPUT_',
+                        searchPlaceholder: 'بنویسید ...',
+                        lengthMenu: '<span>نمایش :</span> _MENU_',
+                        oPaginate: { 'sNext': 'بعدی', 'sPrevious': 'قبلی', 'sLast': 'آخرین', 'sFirst': 'اولین' }
+                    }
+                });
+
+        });
+
+        $(document).ready(function () {
+            $("#datatable").DataTable({
+                "order": [[3, "asc"]]
+            });
+        });
+
+        function sendEditOverTime(requestid) {
+        }
+    </script>
+}

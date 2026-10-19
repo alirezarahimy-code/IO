@@ -1,0 +1,732 @@
+﻿@{
+    ViewBag.Title = T5V3Web.Content.Persian.LeaveTypes;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.BaseData;
+    ViewBag.PageTag = "LeaveType";
+}
+
+<div class="page-header">
+    <h3>@T5V3Web.Content.Persian.LeaveTypes</h3>
+</div>
+@{
+    T5V3Web.Models.GridModel grd = new T5V3Web.Models.GridModel();
+    grd.DeleteAllAPIPath = "/LeaveType/DeleteAll";
+    grd.DeleteAPIPath = "/LeaveType/Delete/";
+    grd.GetListAPIPath = "/LeaveType/GetList";
+    grd.IDPropertyName = "LeaveTypeID";
+    grd.DisplayPropertyName = "LeaveName";
+    grd.Columns.Add(new T5V3Web.Models.GridModel.Column(T5V3Web.Content.Persian.LeaveName, "LeaveName"));
+    //grd.Columns.Add(new T5V3Web.Models.GridModel.Column(T5V3Web.Content.Persian.LeaveOrDuty, "LeaveType1"));
+    //grd.Columns.Add(new T5V3Web.Models.GridModel.Column(T5V3Web.Content.Persian.Hourly, "IsHourly"));
+    @Html.Partial("_Grid", grd);
+}
+
+<div id="edit-panel" class="panel panel-default collapsed-visibility">
+    <div class="panel-heading">
+        <label id="title-panel-label">@T5V3Web.Content.Persian.Edit</label>
+    </div>
+    <div class="panel-body">
+        <div class="form-horizontal">
+
+            <input type="hidden" id="leaveTypeID" />
+
+            <div class="form-group">
+                <div class="col-sm-2 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.LeaveName <font style="color: red">*</font></label>
+                </div>
+                <div class="col-sm-10">
+                    <input id="txtLeaveName" class="form-control" placeholder="@T5V3Web.Content.Persian.LeaveName" name="LeaveName" type="text" value="" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.Symbol <font style="color: red">*</font></label>
+                </div>
+                <div class="col-sm-10">
+                    <input id="txtSymbol" class="form-control" placeholder="@T5V3Web.Content.Persian.Symbol" name="Symbol" type="text" value="" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.LeaveType</label>
+                </div>
+                <div class="col-sm-10">
+                    <select id="cmbLeaveType1" name="LeaveType1" class="form-control">
+                        <option selected="selected" value="@((int) T5V3.Model.LeaveTypeEnum.Duty)">@T5V3Web.Content.Persian.Duty</option>
+                        <option value="@((int) T5V3.Model.LeaveTypeEnum.Leave)">@T5V3Web.Content.Persian.Leave</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group text-right">
+                <div class="col-sm-10 col-sm-offset-2">
+                    <input id="chkHourly" checked="checked" name="IsHourly" type="radio" value="true" onchange="disableHourlyItems(this)" />
+                    <label class="control-label">@T5V3Web.Content.Persian.Hourly</label>
+                    <input id="chkDaily" name="IsHourly" type="radio" value="false" onchange="disableDailyItems(this)" />
+                    <label class="control-label">@T5V3Web.Content.Persian.Daily</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.Color</label>
+                </div>
+                <div class="col-sm-10">
+                    <input id="txtColor" class="form-control" name="Color" type="color" value="" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.StateKey</label>
+                </div>
+                <div class="col-sm-10">
+                    <input id="txtStateKey" name="StateKey" class="form-control number-input" placeholder="@T5V3Web.Content.Persian.StateKey" type="text" value="4" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.MaxHourlyInDay</label>
+                </div>
+                <div class="col-sm-10">
+                    <input id="txtMaxHourlyInDay" name="MaxHourlyInDay" placeholder="@T5V3Web.Content.Persian.MaxHourlyInDay" type="text" class="form-control timespan-input" value="05:00" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.MaxHourlyInMonth</label>
+                </div>
+                <div class="col-sm-10">
+                    <input id="txtMaxHoursInAMonth" name="MaxHoursInAMonth" placeholder="@T5V3Web.Content.Persian.MaxHourlyInMonth" type="text" class="form-control" value="16:00" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.MaxDailyInYear</label>
+                </div>
+                <div class="col-sm-10">
+                    <input id="txtMaxDailyInYear" name="MaxDailyInYear number-input" placeholder="@T5V3Web.Content.Persian.MaxDailyInYear" type="number" class="form-control" step="1" value="30" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.MaxDailyInMonth</label>
+                </div>
+                <div class="col-sm-10">
+                    <input id="txtMaxDailyInMonth" name="MaxDailyInMonth number-input" placeholder="@T5V3Web.Content.Persian.MaxDailyInMonth" type="number" class="form-control" step="0.1" value="20" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.EachXHoursADat</label>
+                </div>
+                <div class="col-sm-10">
+                    <input id="txtEachXHoursADay" name="EachXHoursADay" placeholder="@T5V3Web.Content.Persian.EachXHoursADat" type="text" class="form-control timespan-input" value="08:00" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.GetInType</label>
+                </div>
+                <div class="col-sm-10">
+                    <select id="cmbGetInType" class="form-control" name="GetInType">
+                        <option selected="selected" value="@((int) T5V3.Model.LeaveGetInType.MonthFirst)">@T5V3Web.Content.Persian.MonthFirst</option>
+                        <option value="@((int) T5V3.Model.LeaveGetInType.MonthLast)">@T5V3Web.Content.Persian.MonthLast</option>
+                        <option value="@((int) T5V3.Model.LeaveGetInType.YearFirst)">@T5V3Web.Content.Persian.YearFirst</option>
+                        <option value="@((int) T5V3.Model.LeaveGetInType.YearLast)">@T5V3Web.Content.Persian.YearLast</option>
+                        <option value="@((int) T5V3.Model.LeaveGetInType.Custom)">@T5V3Web.Content.Persian.Custom</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.Parameter</label>
+                </div>
+                <div class="col-sm-10">
+                    @Html.DropDownList("ParameterID", (List<SelectListItem>)ViewBag.UserParameters, new { @class = "form-control", @id = "cmbParameterID" })
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.ForNextYear</label>
+                </div>
+                <div class="col-sm-10">
+                    <input id="txtForNextYear" class="form-control number-input" placeholder="@T5V3Web.Content.Persian.ForNextYear" name="ForNextYear" type="number" step="0.1" value="9" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 text-center">
+                    <label class="control-label"></label>
+                </div>
+                <div class="col-sm-10 text-right">
+                    <input id="chkForNextYearSum" type="checkbox" name="ForNextYearSum" value="true" />
+                    <label>@T5V3Web.Content.Persian.NextYearSum</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.MaxMinus</label>
+                </div>
+                <div class="col-sm-10">
+                    <input id="txtMaxMinus" name="MaxMinus" class="form-control number-input" placeholder="@T5V3Web.Content.Persian.MaxMinus" type="number" step="0.1" value="0" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-10 col-sm-offset-2 text-right">
+                    <input id="chkPayment" type="checkbox" name="Payment" value="true" />
+                    <label>@T5V3Web.Content.Persian.WOPayment</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-2 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.DecreaseFrom</label>
+                </div>
+                <div class="col-sm-10">
+                    @Html.DropDownList("DecreaseFromLeaveID", (List<SelectListItem>)ViewBag.LeaveTypes, new { @class = "form-control", @id = "cmbDecreaseFromLeaveID" })
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-10 col-sm-offset-2 text-right">
+                    <input id="chkGetInHolidays" type="checkbox" name="GetInHolidays" value="true" />
+                    <label>@T5V3Web.Content.Persian.GetInHolidays</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-10 col-sm-offset-2 text-right">
+                    <input id="chkAutoInHolidays" type="checkbox" name="AutoInHolidays" value="true" />
+                    <label>@T5V3Web.Content.Persian.AutoInHolidays</label>
+                </div>
+            </div>
+
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10 text-right">
+                    <button id="btnEdit" onclick="submitData()" type="button" class="btn btn-success"></button>
+                    <button type="button" onclick="invisiblePanel()" class="btn btn-default">@T5V3Web.Content.Persian.Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section modals
+{
+    <div id="myModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 id="msg-title" class="modal-title"></h4>
+                </div>
+                <div class="modal-body">
+                    <p id="msg-body"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">@T5V3Web.Content.Persian.OK</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+}
+@section scripts
+{
+    <script>
+        loadlist(1, "");
+
+        function invisiblePanel() {
+            $("#edit-panel").attr("class", "collapsed-visibility panel panel-default");
+        }
+
+        function disableHourlyItems(checkbox) {
+            if (checkbox.checked) {
+                $("#txtStateKey").removeAttr("disabled");
+                $("#txtMaxHourlyInDay").removeAttr("disabled");
+                $("#txtMaxHoursInAMonth").removeAttr("disabled");
+
+                $("#txtMaxDailyInYear").attr("disabled", "");
+                $("#txtMaxDailyInMonth").attr("disabled", "");
+            }
+            else {
+                $("#txtStateKey").attr("disabled", "");
+                $("#txtMaxHourlyInDay").attr("disabled", "");
+                $("#txtMaxHoursInAMonth").attr("disabled", "");
+
+                $("#txtMaxDailyInYear").removeAttr("disabled");
+                $("#txtMaxDailyInMonth").removeAttr("disabled");
+            }
+        }
+
+        function disableDailyItems(checkbox) {
+            if (checkbox.checked) {
+                $("#txtStateKey").attr("disabled", "");
+                $("#txtMaxHourlyInDay").attr("disabled", "");
+                $("#txtMaxHoursInAMonth").attr("disabled", "");
+
+                $("#txtMaxDailyInYear").removeAttr("disabled");
+                $("#txtMaxDailyInMonth").removeAttr("disabled");
+            }
+            else {
+                $("#txtStateKey").removeAttr("disabled");
+                $("#txtMaxHourlyInDay").removeAttr("disabled");
+                $("#txtMaxHoursInAMonth").removeAttr("disabled");
+
+                $("#txtMaxDailyInYear").attr("disabled", "");
+                $("#txtMaxDailyInMonth").attr("disabled", "");
+            }
+        }
+
+        function addnew() {
+            $("#edit-panel").attr("class", "visisble-visibility panel panel-default");
+            $('html, body').animate({
+                scrollTop: $("#edit-panel").offset().top
+            }, 500);
+            $("#title-panel-label").html("@T5V3Web.Content.Persian.Add2");
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Add");
+
+            $("#leaveTypeID").val(-1);
+            $("#txtLeaveName").val("");
+            $("#txtSymbol").val("");
+            $("#cmbLeaveType1").val("Leave");
+            $("#txtColor").val("#000000");
+            $("#txtStateKey").val("4");
+            $("#txtMaxHourlyInDay").val("6:0");
+            $("#txtMaxHoursInAMonth").val("12:0");
+            $("#txtMaxDailyInYear").val("30");
+            $("#txtMaxDailyInMonth").val("2.5");
+            $("#txtEachXHoursADay").val("8:0");
+            $("#cmbGetInType").val("MonthFirst");
+            $("#txtForNextYear").val("9");
+            $("#txtMaxMinus").val("0");
+        }
+
+        function submitData() {
+            //var toEdit = {
+
+            //};
+            $.ajax({
+                data: {
+                    LeaveTypeID: $("#leaveTypeID").val(),
+                    LeaveName: $("#txtLeaveName").val(),
+                    Symbol: $("#txtSymbol").val(),
+                    LeaveType1: $("#cmbLeaveType1").val(),
+                    Color: $("#txtColor").val(),
+                    StateKey: $("#txtStateKey").val(),
+                    MaxHoursInADay: $("#txtMaxHourlyInDay").val(),
+                    MaxHoursInAMonth: $("#txtMaxHoursInAMonth").val(),
+                    MaxDailyInYear: $("#txtMaxDailyInYear").val(),
+                    MaxDailyInMonth: $("#txtMaxDailyInMonth").val(),
+                    EachXHoursADay: $("#txtEachXHoursADay").val(),
+                    GetInType: $("#cmbGetInType").val(),
+                    ForNextYear: $("#txtForNextYear").val(),
+                    IsHourly: $('#chkHourly').is(':checked'),
+                    MaxMinus: $("#txtMaxMinus").val(),
+                    ParameterID: $("#cmbParameterID").val(),
+                    ForNextYearSum: $('#chkForNextYearSum').is(':checked'),
+                    Payment: $('#chkPayment').is(':checked'),
+                    GetInHolidays: $('#chkGetInHolidays').is(':checked'),
+                    AutoInHolidays: $('#chkAutoInHolidays').is(':checked'),
+                    DecreaseFromLeaveID: $("#cmbDecreaseFromLeaveID").val()
+                },
+                type: "POST",
+                url: "/LeaveType/Edit",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                    if (toEdit.LeaveTypeID == -1) {
+                        loadlist(1);
+                    }
+                    else {
+                        loadlist($("body").data("page"), $("body").data("squery"));
+                    }
+                }
+            });
+            invisiblePanel();
+        }
+
+        function loadItem(id) {
+            $("#edit-panel").attr("class", "visisble-visibility panel panel-default");
+            $('html, body').animate({
+                scrollTop: $("#edit-panel").offset().top
+            }, 500);
+            $("#title-panel-label").html("@T5V3Web.Content.Persian.Edit");
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Edit");
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                type: "GET",
+                url: "/LeaveType/GetByID/" + id,
+                success: function (data) {
+                    $("#leaveTypeID").val(data.LeaveTypeID);
+                    $("#txtLeaveName").val(data.LeaveName);
+                    $("#txtSymbol").val(data.Symbol);
+                    $("#cmbLeaveType1").val(data.LeaveType1);
+                    if (data.IsHourly == true)
+                        $('#chkHourly').prop("checked", true);
+                    else
+                        $('#chkDaily').prop("checked", true);
+                    $("#txtColor").val(data.htmlColor);
+                    $("#txtStateKey").val(data.StateKey);
+                    $("#txtMaxHourlyInDay").val(data.htmlMaxHoursInDay);
+                    $("#txtMaxHoursInAMonth").val(data.htmlMaxHoursInAMonth);
+                    $("#txtMaxDailyInYear").val(data.MaxDailyInYear);
+                    $("#txtMaxDailyInMonth").val(data.MaxDailyInMonth);
+                    $("#txtEachXHoursADay").val(data.htmlEachXHoursADay);
+                    $("#cmbGetInType").val(data.GetInType);
+                    $("#txtForNextYear").val(data.ForNextYear);
+                    $("#txtMaxMinus").val(data.MaxMinus);
+                    $("#cmbParameterID").val(data.ParameterID);
+                    $('#chkForNextYearSum').prop("checked", data.ForNextYearSum);
+                    $('#chkPayment').prop("checked", data.Payment);
+                    $('#chkGetInHolidays').prop("checked", data.GetInHolidays);
+                    $('#chkAutoInHolidays').prop("checked", data.AutoInHolidays);
+
+                    if (data.DecreaseFromLeaveID != null) {
+                        $("#cmbDecreaseFromLeaveID").val(data.DecreaseFromLeaveID);
+                    }
+                    else
+                        $("#cmbDecreaseFromLeaveID option").first().prop("selected", "selected");
+
+                }
+            });
+        }
+
+    </script>
+}
+@*@model T5V3Web.Models.DataEntryModel<T5V3.Model.LeaveType>
+    @{
+        ViewBag.Title = T5V3Web.Content.Persian.LeaveTypes;
+        ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.BaseData;
+        ViewBag.PageTag = "LeaveType";
+    }
+
+    <h3>@T5V3Web.Content.Persian.LeaveTypes</h3>
+    <div class="horizontal-line"></div>
+
+    <form class="form-horizontal" role="form" method="post" action="/LeaveType/Edit">
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.LeaveName</label>
+            </div>
+            <div class="col-sm-10">
+                <input class="form-control" placeholder="@T5V3Web.Content.Persian.LeaveName" name="LeaveName" type="text" value="@(Model.Selected !=null ?  Model.Selected.LeaveName :"")" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.Symbol</label>
+            </div>
+            <div class="col-sm-10">
+                <input class="form-control" placeholder="@T5V3Web.Content.Persian.Symbol" name="Symbol" type="text" value="@(Model.Selected !=null ?  Model.Selected.Symbol :"")" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.LeaveType</label>
+            </div>
+            <div class="col-sm-10">
+                <select name="LeaveType1" class="form-control">
+                    @if (Model.Selected != null)
+                    {
+                        <text>
+                            <option @((Model.Selected.LeaveType1 == T5V3.Model.LeaveTypeEnum.Duty) ? "selected=selected" : "") value="@T5V3.Model.LeaveTypeEnum.Duty">@T5V3Web.Content.Persian.Duty</option>
+                            <option @((Model.Selected.LeaveType1 == T5V3.Model.LeaveTypeEnum.Leave) ? "selected=selected" : "") value="@T5V3.Model.LeaveTypeEnum.Leave">@T5V3Web.Content.Persian.Leave</option>
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            <option selected="selected" value="@T5V3.Model.LeaveTypeEnum.Duty">@T5V3Web.Content.Persian.Duty</option>
+                            <option value="@T5V3.Model.LeaveTypeEnum.Leave">@T5V3Web.Content.Persian.Leave</option>
+                        </text>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="form-group text-right">
+            @if (Model.Selected != null)
+            {
+                <text>
+                    <div class="col-sm-10 col-sm-offset-2">
+                        <input @((Model.Selected.IsHourly) ? "checked=checked" : "") name="IsHourly" type="radio" value="true" />
+                        <label class="control-label">@T5V3Web.Content.Persian.Hourly</label>
+                        <input @((!Model.Selected.IsHourly) ? "checked=checked" : "") name="IsHourly" type="radio" value="false" />
+                        <label class="control-label">@T5V3Web.Content.Persian.Daily</label>
+                    </div>
+                </text>
+            }
+            else
+            {
+                <text>
+                    <div class="col-sm-10 col-sm-offset-2">
+                        <input checked="checked" name="IsHourly" type="radio" value="true" />
+                        <label class="control-label">@T5V3Web.Content.Persian.Hourly</label>
+                        <input name="IsHourly" type="radio" value="false" />
+                        <label class="control-label">@T5V3Web.Content.Persian.Daily</label>
+                    </div>
+                </text>
+            }
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.Color</label>
+            </div>
+            <div class="col-sm-10">
+                <input class="form-control" name="Color" type="color" value="#@(Model.Selected !=null ? Model.Selected.Color.ToString("X8").Substring(2) :"AABBCC")" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.StateKey</label>
+            </div>
+            <div class="col-sm-10">
+                <input name="StateKey" class="form-control" placeholder="@T5V3Web.Content.Persian.StateKey" type="text" value="@(Model.Selected !=null ? Model.Selected.StateKey : 4 )" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.MaxHourlyInDay</label>
+            </div>
+            <div class="col-sm-10">
+                <input name="MaxHourlyInDay" placeholder="@T5V3Web.Content.Persian.MaxHourlyInDay" type="text" class="form-control timespan-input" value="@(Model.Selected !=null ? T5V3.Misc.TimeSpanFuncs.TimeSpanToStringWithZeros(Model.Selected.MaxHoursInADay, "hhh\\:mm") : "05:00")" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.MaxHourlyInMonth</label>
+            </div>
+
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.MaxDailyInYear</label>
+            </div>
+            <div class="col-sm-10">
+                <input name="MaxDailyInYear" placeholder="@T5V3Web.Content.Persian.MaxDailyInYear" type="number" class="form-control" step="1" value="@(Model.Selected !=null ? Model.Selected.MaxDailyInYear :30 )" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.MaxDailyInMonth</label>
+            </div>
+            <div class="col-sm-10">
+                <input name="MaxDailyInMonth" placeholder="@T5V3Web.Content.Persian.MaxDailyInMonth" type="number" class="form-control" step="0.1" value="@(Model.Selected !=null ? Model.Selected.MaxDailyInMonth :20 )" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.EachXHoursADat</label>
+            </div>
+            <div class="col-sm-10">
+                <input name="EachXHoursADay" placeholder="@T5V3Web.Content.Persian.EachXHoursADat" type="text" class="form-control timespan-input" value="@(Model.Selected !=null ? T5V3.Misc.TimeSpanFuncs.TimeSpanToStringWithZeros(Model.Selected.EachXHoursADay, "hhh\\:mm") : "08:00")" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.GetInType</label>
+            </div>
+            <div class="col-sm-10">
+                @if (Model.Selected != null)
+                {
+                    <text>
+                        <select class="form-control" name="GetInType">
+                            <option @((Model.Selected.GetInType == T5V3.Model.LeaveGetInType.MonthFirst) ? "selected=selected" : "") value="@T5V3.Model.LeaveGetInType.MonthFirst">@T5V3Web.Content.Persian.MonthFirst</option>
+                            <option @((Model.Selected.GetInType == T5V3.Model.LeaveGetInType.MonthLast) ? "selected=selected" : "") value="@T5V3.Model.LeaveGetInType.MonthLast">@T5V3Web.Content.Persian.MonthLast</option>
+                            <option @((Model.Selected.GetInType == T5V3.Model.LeaveGetInType.YearFirst) ? "selected=selected" : "") value="@T5V3.Model.LeaveGetInType.YearFirst">@T5V3Web.Content.Persian.YearFirst</option>
+                            <option @((Model.Selected.GetInType == T5V3.Model.LeaveGetInType.YearLast) ? "selected=selected" : "") value="@T5V3.Model.LeaveGetInType.YearLast">@T5V3Web.Content.Persian.YearLast</option>
+                            <option @((Model.Selected.GetInType == T5V3.Model.LeaveGetInType.Custom) ? "selected=selected" : "") value="@T5V3.Model.LeaveGetInType.Custom">@T5V3Web.Content.Persian.Custom</option>
+                        </select>
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        <select class="form-control" name="GetInType">
+                            <option selected="selected" value="@T5V3.Model.LeaveGetInType.MonthFirst">@T5V3Web.Content.Persian.MonthFirst</option>
+                            <option value="@T5V3.Model.LeaveGetInType.MonthLast">@T5V3Web.Content.Persian.MonthLast</option>
+                            <option value="@T5V3.Model.LeaveGetInType.YearFirst">@T5V3Web.Content.Persian.YearFirst</option>
+                            <option value="@T5V3.Model.LeaveGetInType.YearLast">@T5V3Web.Content.Persian.YearLast</option>
+                            <option value="@T5V3.Model.LeaveGetInType.Custom">@T5V3Web.Content.Persian.Custom</option>
+                        </select>
+                    </text>
+                }
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.Parameter</label>
+            </div>
+            <div class="col-sm-10">
+                @Html.DropDownList("ParameterID", (List<SelectListItem>)ViewBag.UserParameters, new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.ForNextYear</label>
+            </div>
+            <div class="col-sm-10">
+                <input class="form-control" placeholder="@T5V3Web.Content.Persian.ForNextYear" name="ForNextYear" type="number" step="0.1" value="@(Model.Selected !=null ? Model.Selected.ForNextYear : 9)" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label"></label>
+            </div>
+            <div class="col-sm-10 text-right">
+                <input type="checkbox" name="ForNextYearSum" value="true" @(((Model.Selected != null) && Model.Selected.ForNextYearSum) ? " checked=checked" : "") />
+                <label>@T5V3Web.Content.Persian.NextYearSum</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.MaxMinus</label>
+            </div>
+            <div class="col-sm-10">
+                <input name="MaxMinus" class="form-control" placeholder="@T5V3Web.Content.Persian.MaxMinus" type="number" step="0.1" value="@(Model.Selected !=null ? Model.Selected.MaxMinus :0)" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-10 col-sm-offset-2 text-right">
+                <input type="checkbox" name="Payment" value="true" @(((Model.Selected != null) && Model.Selected.Payment) ? " checked=checked" : "") />
+                <label>@T5V3Web.Content.Persian.WOPayment</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.DecreaseFrom</label>
+            </div>
+            <div class="col-sm-10">
+                @Html.DropDownList("DecreaseFromLeaveID", (List<SelectListItem>)ViewBag.LeaveTypes, new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-10 col-sm-offset-2 text-right">
+                <input type="checkbox" name="GetInHolidays" value="true" @(((Model.Selected != null) && Model.Selected.GetInHolidays) ? " checked=checked" : "") />
+                <label>@T5V3Web.Content.Persian.GetInHolidays</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-10 col-sm-offset-2 text-right">
+                <input type="checkbox" name="AutoInHolidays" value="true" @(((Model.Selected != null) && Model.Selected.AutoInHolidays) ? " checked=checked" : "") />
+                <label>@T5V3Web.Content.Persian.AutoInHolidays</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @if (Model.Selected != null)
+            {
+                <input name="LeaveTypeID" type="hidden" value="@Model.Selected.LeaveTypeID" />
+                <div class="col-sm-offset-2 col-sm-10 text-right">
+                    <input class="btn btn-default" type="submit" value="@(string.Format ("{0} {1}", T5V3Web.Content.Persian.Edit , T5V3Web.Content.Persian.LeaveType))" />
+                </div>
+            }
+            else
+            {
+                <input name="LeaveTypeID" type="hidden" value="-1" />
+                <div class="col-sm-offset-2 col-sm-10 text-right">
+                    <input class="btn btn-default" type="submit" value="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Add2, T5V3Web.Content.Persian.LeaveType))" />
+                </div>
+            }
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-offset-1 col-sm-10 text-center">
+                @if (Model.ValidationMessage != null)
+                {
+                    <div class="@((T5V3Web.Models.ValidationMessageType)Model.ValidationMessageType == T5V3Web.Models.ValidationMessageType.Error ? "alert alert-danger fade in" : "alert alert-success fade in")">
+                        @Model.ValidationMessage
+                        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                    </div>
+                }
+            </div>
+        </div>
+
+    </form>
+
+    <div class="horizontal-line"></div>
+
+    <table class="table table-bordered table-hover table-responsive table-striped">
+        <thead>
+            <tr class="warning">
+                <td>@T5V3Web.Content.Persian.SelectDeleteEdit</td>
+                <td>@T5V3Web.Content.Persian.LeaveName</td>
+                <td>@T5V3Web.Content.Persian.LeaveType</td>
+                <td></td>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (T5V3.Model.LeaveType c in Model.ItemsList)
+            {
+                <tr>
+                    <td>
+                        <input data-toggle="tooltip" type="checkbox" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Select, c.LeaveName))" name="ids" value="@c.LeaveTypeID" />
+                        <a onclick="confirmDelete(@c.LeaveTypeID)" href="javascript:void(0)">
+                            <span data-toggle="tooltip" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Delete, c.LeaveName))" class="glyphicon glyphicon-remove"></span>
+                        </a>
+                        <a data-toggle="tooltip" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Edit, c.LeaveName))" href="/LeaveType?pageNumber=@Model.PageNumber&leaveTypeID=@c.LeaveTypeID">
+                            <span class="glyphicon glyphicon-edit"></span>
+                        </a>
+                    </td>
+                    <td>
+                        <label>@c.LeaveName</label>
+                    </td>
+                    <td>
+                        <label>@(c.LeaveType1 == T5V3.Model.LeaveTypeEnum.Duty ? T5V3Web.Content.Persian.Duty : T5V3Web.Content.Persian.Leave)</label>
+                    </td>
+                    <td>
+                        <label>@(c.IsHourly ? T5V3Web.Content.Persian.Hourly : T5V3Web.Content.Persian.Daily) </label>
+                    </td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr class="danger">
+                <td>
+                    <form role="form" method="get" action="/LeaveType?pageNumber=@Model.PageNumber">
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-sm btn-default" data-toggle="tooltip" title="@T5V3Web.Content.Persian.Add">
+                                <span class="glyphicon glyphicon-plus"></span>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-default" data-toggle="tooltip" title="@T5V3Web.Content.Persian.DeleteSelectedItems" onclick="deleteAll()">
+                                <span class="glyphicon glyphicon-remove"></span>
+                            </button>
+                        </div>
+                    </form>
+                </td>
+                <td colspan="3">
+                    @if (Model.HasPrePage)
+                    {
+                        <a data-toggle="tooltip" title="@T5V3Web.Content.Persian.Previous" href="/LeaveType?pageNumber=@(Model.PageNumber-1)"><span class="glyphicon glyphicon-forward"></span></a>
+                    }
+                    else
+                    {
+                        <span class="glyphicon glyphicon-forward"></span>
+                    }
+
+                    <label>@(string.Format("{3} {0} {1} {2}", Model.PageNumber.ToString(), T5V3Web.Content.Persian.From, Model.TotalPageNumbers.ToString(), T5V3Web.Content.Persian.Page))</label>
+
+                    @if (Model.HasNextPage)
+                    {
+                        <a data-toggle="tooltip" title="@T5V3Web.Content.Persian.Next" href="/LeaveType?pageNumber=@(Model.PageNumber+1)"><span class="glyphicon glyphicon-backward"></span></a>
+                    }
+                    else
+                    {
+                        <span class="glyphicon glyphicon-backward"></span>
+                    }
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+
+
+    @section scripts
+    {
+        <script>
+            $(function () {
+                $(".timespan-input").mask('99:59');
+            })
+        </script>
+
+        @{
+            ViewDataDictionary temp = new ViewDataDictionary();
+            temp.Add(new KeyValuePair<string, object>("DeleteUrl", "/LeaveType/Delete"));
+            temp.Add(new KeyValuePair<string, object>("DeleteAllUrl", "/LeaveType/DeleteAll"));
+            @Html.Partial("_ConfirmDeleteScripts", temp);
+        }
+    }*@

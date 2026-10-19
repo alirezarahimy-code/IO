@@ -1,0 +1,300 @@
+﻿@model T5V3Web.Models.TreeDataEntryModel<Personnel.Model.Department>
+    @{
+        ViewBag.Title = T5V3Web.Content.Persian.Department;
+        ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.BaseData;
+        ViewBag.PageTag = "Department";
+    }
+
+    <div class="page-header">
+        <h3>@T5V3Web.Content.Persian.Department</h3>
+    </div>
+
+    <div class="panel panel-warning">
+        <div class="panel-heading">
+            <label>@T5V3Web.Content.Persian.Department</label>
+        </div>
+        <div class="panel-body">
+            <input type="text" value="" onkeyup="search(this)" placeholder="@T5V3Web.Content.Persian.Search" />
+        </div>
+    </div>
+
+    <div class="auto-scroll" style="max-height:400px;padding-top:20px;margin-bottom:30px;">
+        <div class="right-align" id="tree">
+        </div>
+    </div>
+
+    @if (Model.Selected != null)
+    {
+        <input type="hidden" id="selectedtitleid" name="selectedtitleid" value="@Model.Selected.DepartmentID" />
+    }
+    else
+    {
+        <input type="hidden" id="selectedtitleid" name="selectedtitleid" value="-1" />
+    }
+
+    <div class="panel panel-danger">
+        <div class="panel-heading">
+            <div class="btn-group">
+                <button type="button" data-toggle="tooltip" onclick="selectRoot()" class="btn btn-default glyphicon glyphicon-arrow-up" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Select, T5V3Web.Content.Persian.Root))"></button>
+                <button type="button" data-toggle="tooltip" onclick="addnewtitle()" class="btn btn-default glyphicon glyphicon-plus" title="@(string.Format ("{0} {1}" ,T5V3Web.Content.Persian.Add2 ,T5V3Web.Content.Persian.Department))"></button>
+                <button type="button" data-toggle="tooltip" onclick="deleteselectedtitle()" class="btn btn-default glyphicon glyphicon-remove" title="@T5V3Web.Content.Persian.DeleteSelectedItems"></button>
+            </div>
+        </div>
+        <div class="panel-body">
+            <label>@T5V3Web.Content.Persian.SelectedDepartment :</label>
+            @if (Model.Selected != null)
+            {
+                if (Model.Selected.DepartmentID > 0)
+                {
+                    <label id="selectedtitlename">@Model.Selected.Name</label>
+                }
+                else
+                {
+                    <label id="selectedtitlename">@T5V3Web.Content.Persian.Root</label>
+                }
+            }
+            else
+            {
+                <label id="selectedtitlename">@T5V3Web.Content.Persian.Root</label>
+            }
+        </div>
+    </div>
+
+
+    <div id="edit-panel" class="collapsed-visibility">
+        <form role="form" class="form-horizontal" method="post" action="/Department/Edit">
+            @if (Model.Selected.DepartmentID <= 0)
+            {
+                <div class="form-group">
+                    <label class="control-label col-sm-2 left-align">: @T5V3Web.Content.Persian.UpperDeptName</label>
+                    <label id="ParentName" class="control-label col-sm-2">@Model.ParentName</label>
+                </div>
+            }
+
+            <div class="form-group">
+                <input name="UpperTitleID" type="hidden" value="@Model.Selected.DepartmentID" />
+                <div class="col-sm-2 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.DepartmentName <font style="color:red">*</font></label>
+                </div>
+                <div class="col-sm-10">
+                    <input id="txtDepartmentName" class="form-control" placeholder="@T5V3Web.Content.Persian.DepartmentName" name="txtDepartmentName" type="text" value="@Model.Selected.Name" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <input id="TitleID" name="TitleID" type="hidden" value="@Model.Selected.DepartmentID" />
+
+                <div class="col-sm-offset-2 col-sm-2 right-align">
+                    <button id="btnEdit" class="btn btn-success" onclick="submitData()" type="button" value="@T5V3Web.Content.Persian.Edit"></button>
+                    <input id="btnCancel" class="btn btn-default" type="button" onclick="invisiblePanel()" value="@T5V3Web.Content.Persian.Cancel" />
+                </div>
+
+            </div>
+        </form>
+
+    </div>
+
+
+    @section modals
+{
+        <div id="myModal" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 id="msg-title" class="modal-title"></h4>
+                    </div>
+                    <div class="modal-body">
+                        <p id="msg-body"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">@T5V3Web.Content.Persian.OK</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="collapsed-visibility">
+            <div id="dialog-confirm-delete" title="@T5V3Web.Content.Persian.Delete">
+                <p id="dlg-msg">@T5V3Web.Content.Persian.AreyouSure</p>
+            </div>
+        </div>
+    }
+
+    @section scripts{
+        <script>
+        loadList("");
+
+        function search(textbox) {
+            $("body").data("squery", textbox.value);
+            loadList(textbox.value);
+        }
+
+        function submitData() {
+            var toEdit = {
+                DepartmentID: $("#TitleID").val(),
+                Name: $("#txtDepartmentName").val(),
+                UpperDeptID: $("#selectedtitleid").val(),
+            };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/Department/Edit",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                    if (toEdit.TitleID == -1) {
+                        loadList($("body").data("squery"));
+                    }
+                    else {
+                        loadList($("body").data("squery"));
+                    }
+                }
+            });
+            invisiblePanel();
+        }
+
+        function invisiblePanel() {
+            $("#edit-panel").removeClass("visisble-visibility");
+            $("#edit-panel").addClass("collapsed-visibility");
+        }
+
+        function editNode(id) {
+            $("#edit-panel").removeClass("collapsed-visibility");
+            $("#edit-panel").addClass("visisble-visibility");
+            $('html, body').animate({
+                scrollTop: $("#edit-panel").offset().top
+            }, 500);
+            //$("#title-panel-label").html("@T5V3Web.Content.Persian.Edit");
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Edit");
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                type: "GET",
+                url: "/Department/GetByID/" + id,
+                success: function (data) {
+                    $("#TitleID").val(data.DepartmentID);
+                    $("#txtDepartmentName").val(data.Name);
+                    $("#selectedtitleid").val(data.UpperDeptID);
+                    $("#ParentName").html(data.Upper);
+                    //loadList();
+                }
+            });
+        }
+
+        function confirmDelete(id) {
+            $("#dialog-confirm-delete").dialog({
+                resizable: false,
+                height: 160,
+                modal: true,
+                position: { my: "center", at: "center", of: window },
+                buttons: {
+                    "@T5V3Web.Content.Persian.OK": function () {
+                        $(this).dialog("close");
+
+                        $.ajax({
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            type: "POST",
+                            url: "/Department/Delete/" + id,
+                            success: function (data) {
+                                $("#msg-title").html("@T5V3Web.Content.Persian.Delete");
+                                $("#msg-body").html(data.Message);
+                                $("#myModal").modal();
+                                //loadlist($("body").data("page"), $("body").data("squery"));
+                                loadList($("body").data("squery"));
+                            }
+                        });
+                    },
+                    "@T5V3Web.Content.Persian.Cancel": function () {
+                        $(this).dialog("close");
+                    }
+                }
+            });
+        }
+
+        function loadList(searchQuery) {
+            if (searchQuery == null)
+                searchQuery = "";
+            $.get("/department/GetTree?searchQuery=" + searchQuery, "", (function (gdata) {
+                
+                $('#tree').treeview({
+                    data: gdata,
+                    levels: 50,
+                    editRemoveLink: true,
+                    enableLinks: false,
+                    onNodeSelected: function (event, data) {
+                        $("#selectedtitleid").val(data.tags);
+                        $("#selectedtitlename").html(data.text);
+                    }
+                });
+                $('#tree').treeview('collapseAll', { silent: true });
+
+            }));
+        }
+
+        function addnewtitle() {
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Add2");
+            $("#TitleID").val("-1");
+            $("#txtDepartmentName").val("");
+            $("#ParentName").html($("#selectedtitlename").html());
+
+            $("#edit-panel").removeClass("collapsed-visibility");
+            $("#edit-panel").addClass("visisble-visibility");
+            $('html, body').animate({
+                scrollTop: $("#edit-panel").offset().top
+            }, 500);
+
+
+        }
+
+        function deleteselectedtitle() {
+
+            var titleIDs = [];
+            $('input:checked').each(function () {
+                titleIDs.push($(this).attr('value'));
+            });
+            var postdata = { 'ids': titleIDs };
+
+            $("#dialog-confirm-delete").dialog({
+                resizable: false,
+                height: 160,
+                modal: true,
+                position: { my: "center", at: "center", of: window },
+                buttons: {
+                    "@T5V3Web.Content.Persian.OK": function () {
+                        $(this).dialog("close");
+
+                        $.ajax({
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            type: "POST",
+                            data: JSON.stringify(postdata),
+                            url: "/Department/DeleteAll/",
+                            success: function (data) {
+                                $("#msg-title").html("@T5V3Web.Content.Persian.DeleteSelectedItems");
+                                $("#msg-body").html(data.Message);
+                                $("#myModal").modal();
+                                loadList($("body").data("squery"));
+                            }
+                        });
+                    },
+                    "@T5V3Web.Content.Persian.Cancel": function () {
+                        $(this).dialog("close");
+                    }
+                }
+            });
+        }
+
+        function selectRoot() {
+            $("#selectedtitleid").val(-1);
+            $("#selectedtitlename").html("@T5V3Web.Content.Persian.Root");
+        }
+
+
+        </script>
+    }

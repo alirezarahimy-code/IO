@@ -1,0 +1,190 @@
+﻿@{
+    ViewBag.Title = MyTime3.Content.PersianString.SelectValidArea;
+}
+
+<div class="card">
+    <div class="card-header">
+        <h3>@Html.Raw(MyTime3.Content.PersianString.SelectValidArea)</h3>
+    </div>
+
+    <table class="table table-bordered table-hover table-responsive table-striped">
+        <thead>
+            <tr>
+                <td>@MyTime3.Content.PersianString.BadgeNumber</td>
+                <td>@MyTime3.Content.PersianString.Name</td>
+                <td>@MyTime3.Content.PersianString.Operations</td>
+            </tr>
+        </thead>
+        <tbody id="area-data"></tbody>
+    </table>
+
+    <div id="map" style="background-color:ActiveBorder; width:100%;height:800px"></div>
+    <select id="cmbBadgeNumber">
+        <option selected="selected" value="-1">@MyTime3.Content.PersianString.All</option>
+        @foreach (MyTime3.Models.PersonnelModel p in ViewBag.Personnel)
+        {
+            <option value="@p.BadgeNumber">@(p.FirstName + " " + p.LastName)</option>
+        }
+    </select>
+    <button onclick="saveData()">@MyTime3.Content.PersianString.AddArea</button>
+</div>
+
+<script>
+    var markers = [];
+    var area;
+    var map;
+    getAreas();
+
+    function getAreas() {
+        $("#area-data").text("");
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            type: "POST",
+            url: "/SelectArea/GetAreas",
+            success: function (data) {
+                for (var i = 0; i < data.length; i++) {
+                    var row = $("<tr>" + "<td>" + data[i].UserID + "</td>" + "<td>" + data[i].UserName + "</td>" +
+                        "<td>" + "<a rel='noopener noreferrer' href='javascript:showOnMap(" + data[i].AreaID + ")'>@(MyTime3.Content.PersianString.Edit)</a>&ensp;" +
+                        "<a rel='noopener noreferrer' href='javascript:deleteRule(" + data[i].AreaID + ")'>@(MyTime3.Content.PersianString.Delete)</a>" + "</td>" + "</tr>");
+                    $("#area-data").append(row);
+                }
+            }
+        });
+    }
+
+    function deleteRule(areaID) {
+        var postData = { id: areaID };
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            data: JSON.stringify(postData),
+            type: "POST",
+            url: "/SelectArea/DeleteArea",
+            success: function (data) {
+                alert(data.results);
+                getAreas();
+            }
+        });
+    }
+
+    function showOnMap(areaID) {
+        if (window.area != null)
+            window.area.setMap(null);
+
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            data: JSON.stringify({ id: areaID }),
+            type: "POST",
+            url: "/SelectArea/GetArea",
+            success: function (data) {
+                for (var i = markers.length - 1; i >= 0; i--)
+                    window.markers[i].setMap(null);
+
+                window.markers = [];
+                for (var i = 0; i < data.Points.length; i++) {
+                    var latLng = new google.maps.LatLng(data.Points[i].Latitude, data.Points[i].Longitude);
+                    addPoint(latLng, window.map);
+                }
+
+                map.setCenter(new google.maps.LatLng(data.Center.Latitude, data.Center.Longitude));
+                $("#cmbBadgeNumber").val(data.UserID);
+            }
+        });
+    }
+
+    function addPoint(latLng, map) {
+
+        var marker = new google.maps.Marker({
+            position: latLng,
+            map: map
+        });
+
+        var infowindow = new google.maps.InfoWindow({
+            content: '<button onclick="removePoint(' + latLng.lat() + ',' + latLng.lng() + ')">حذف نقطه</button>'
+        });
+
+        marker.addListener('click', function () {
+            infowindow.open(marker.get('map'), marker);
+        });
+
+        window.markers.push(marker);
+        showArea(map);
+    }
+
+    function showArea(map) {
+        if (window.area != null)
+            window.area.setMap(null);
+
+        var points = [];
+        if (window.markers.length > 2) {
+            for (var i = 0; i < markers.length; i++) {
+                points.push({ lat: window.markers[i].position.lat(), lng: window.markers[i].position.lng() });
+            }
+
+            window.area = new google.maps.Polygon({
+                paths: points,
+                strokeColor: '#FF0000',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: '#FF0000',
+                fillOpacity: 0.35
+            });
+            area.setMap(map);
+        }
+    }
+
+    function removePoint(lat, lng) {
+        for (var i = markers.length - 1; i >= 0; i--) {
+            if ((lat == window.markers[i].position.lat()) && (lng == window.markers[i].position.lng())) {
+                window.markers[i].setMap(null);
+                window.markers.splice(i, 1);
+                showArea(map);
+            }
+        }
+    }
+
+    function initMap() {
+        window.map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 5,
+            center: { lat: 35, lng: 53 },
+            mapTypeId: 'roadmap'
+        });
+
+        map.addListener('click', function (e) {
+            addPoint(e.latLng, map);
+        });
+
+
+    }
+
+    function saveData() {
+        var badges = [];
+        var checks = $("input[name=SelectedBadgeNumbers]:checked");
+        for (var i = 0; i < checks.length; i++)
+            badges.push($(checks[i]).val());
+
+        var pos = [];
+        for (var i = markers.length - 1; i >= 0; i--) {
+            pos.push({ lat: window.markers[i].position.lat(), lng: window.markers[i].position.lng() });
+        }
+
+        var postData = { badgeNumber: $("#cmbBadgeNumber").val(), points: pos };
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            data: JSON.stringify(postData),
+            type: "POST",
+            url: "/SelectArea/InsertNew",
+            success: function (data) {
+                alert(data.results);
+                getAreas();
+            }
+        });
+    }
+
+</script>
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBRnXmGSvydFW-wMgQ8ZLY3ydoiVowvOzY &callback=initMap">
+</script>

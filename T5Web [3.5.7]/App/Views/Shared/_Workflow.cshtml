@@ -1,0 +1,62 @@
+﻿@model T5V3Web.Models.WorkflowControlModel
+<div class="center-align h-460">
+    <div style="height:25%">
+        <ul style="margin-bottom:2px;height:calc(100% - 30px);padding:5px" class="form-items-list block-display text-right auto-scroll border-gray mr-auto ml-auto pad-5">
+            @foreach (T5V3.Model.Workflow wf in Model.Workflows.OrderBy(d => d.OrderIndex))
+            {
+                <li onmouseover="showtoolbar('@((Model.LeaveID > 0 ? (Model.LeaveID + 1000) : Model.ID))_@(wf.AccepterTitleID)')">
+                    @wf.AccepterName
+                    <div class="toolbar inline-block-display" id="tool@((Model.LeaveID > 0 ? (Model.LeaveID + 1000) : Model.ID))_@(wf.AccepterTitleID)" style="visibility:hidden">
+                        (
+                        <a  rel="noopener noreferrer" href="/Workflow/Delete?LeaveTypeID=@wf.LeaveTypeID&TitleID=@wf.TitleID&Operation=@wf.Operation&OrderIndex=@wf.OrderIndex&AccepterTitleID=@wf.AccepterTitleID"><img title="@T5V3Web.Content.Persian.Delete" src="/images/remove-icon.png" /></a>|
+                        <a  rel="noopener noreferrer" href="/Workflow/MoveUp?LeaveTypeID=@wf.LeaveTypeID&TitleID=@wf.TitleID&Operation=@wf.Operation&OrderIndex=@wf.OrderIndex&AccepterTitleID=@wf.AccepterTitleID"><img title="@T5V3Web.Content.Persian.Up" src="/images/up16.png" /></a>|
+                        <a  rel="noopener noreferrer" href="/Workflow/MoveDown?LeaveTypeID=@wf.LeaveTypeID&TitleID=@wf.TitleID&Operation=@wf.Operation&OrderIndex=@wf.OrderIndex&AccepterTitleID=@wf.AccepterTitleID"><img title="@T5V3Web.Content.Persian.Down" src="/images/down16.png" /></a>
+                        )
+                    </div>
+                </li>
+            }
+            @if (Model.Workflows.Count == 0)
+            {
+                <li class="gray">
+                    @T5V3Web.Content.Persian.WithTitlesChart
+                </li>
+            }
+        </ul>
+
+        <button style="height:25px" type="button" onclick="AddAccepter(@(Model.LeaveID > 0 ? (Model.LeaveID + 1000) :  Model.ID))">
+            @T5V3Web.Content.Persian.SelectTitle
+            <img src="/images/add-icon.png" />
+        </button>
+    </div>
+
+    <div id="AddPanel@(Model.LeaveID > 0 ? (Model.LeaveID + 1000) :  Model.ID)" class="hidden-visibility" style="height:75%;">
+        <form action="/Workflow/Add" method="post" style="height:100%">
+            <input type="hidden" name="operation" value="@Model.Operation" />
+            <input type="hidden" name="titleID" value="@Model.TitleID" />
+            <input type="hidden" name="leaveID" value="@Model.LeaveID" />
+            <input id="accepterTitles_@(Model.LeaveID > 0 ? (Model.LeaveID + 1000) : Model.ID)" type="hidden" name="accepterTitles" value="" />
+            <div class="treeView auto-scroll right-align h-200 mr-auto ml-auto border-gray" style="height:calc(100% - 30px);margin-bottom:2px">
+                <div class="right-align" id="tree_@(Model.LeaveID > 0 ? (Model.LeaveID + 1000) :  Model.ID)">
+                </div>
+                @*@Html.Raw(T5V3Web.Controllers.TitleController.GetTreeHTML(null, "accepterTitles", new List<int>()))*@
+            </div>
+            <div style="height:30px">
+                <input class="btn btn-default" type="submit" value="@T5V3Web.Content.Persian.OK" />
+                <button class="btn btn-default" type="button" onclick="CancelAccepter(@Model.ID)">@T5V3Web.Content.Persian.Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    $.get("/Workflow/GetTree", "", (function (gdata) {
+        $('#tree_@(Model.LeaveID > 0 ? (Model.LeaveID + 1000) :  Model.ID)').treeview({
+            data: gdata,
+            levels: 50,
+            enableLinks: false,
+            onNodeSelected: function (event, data) {
+                $("#accepterTitles_@(Model.LeaveID > 0 ? (Model.LeaveID + 1000) :  Model.ID)").val(data.tags);
+            }
+        });
+    }));
+</script>

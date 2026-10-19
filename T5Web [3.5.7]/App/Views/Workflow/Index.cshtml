@@ -1,0 +1,150 @@
+﻿@model IEnumerable<T5V3.Model.Workflow>
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.Workflow;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.Accounts;
+    ViewBag.PageTag = "Workflow";
+}
+
+<h3>@T5V3Web.Content.Persian.Workflow</h3>
+<div class="horizontal-line"></div>
+
+<div class="panel panel-default">
+    <div class="panel-heading">
+        <label>@T5V3Web.Content.Persian.SelectTitleForWorkFlow</label>
+    </div>
+    <div class="panel-body">
+        <div class="auto-scroll block-display" style="max-height:460px">
+            <div class="right-align" id="tree">
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<label class="block-display mb-20">
+    @T5V3Web.Content.Persian.WorkflowFor
+    @ViewBag.TitleName
+    ...
+</label>
+
+<div class="horizontal-line"></div>
+
+<div class="col-lg-4 col-md-6 col-sm-12">
+    <div class="panel panel-warning">
+        <div class="panel-heading">
+            @T5V3Web.Content.Persian.Leave
+        </div>
+        <div class="panel-body">
+            @Html.Partial("_Workflow", T5V3Web.Models.WorkflowControlModel.Create(1, (int)ViewBag.TitleID, Model.Where(wf => wf.Operation == T5V3.Model.WorkflowOperations.Leave).ToList(), T5V3.Model.WorkflowOperations.Leave))
+        </div>
+    </div>
+</div>
+<div class="col-lg-4 col-md-6 col-sm-12">
+    <div class="panel panel-warning">
+        <div class="panel-heading">
+            @T5V3Web.Content.Persian.Duty
+        </div>
+        <div class="panel-body">
+            @Html.Partial("_Workflow", T5V3Web.Models.WorkflowControlModel.Create(2, (int)ViewBag.TitleID, Model.Where(wf => wf.Operation == T5V3.Model.WorkflowOperations.Duty).ToList(), T5V3.Model.WorkflowOperations.Duty))
+        </div>
+    </div>
+</div>
+<div class="col-lg-4 col-md-6 col-sm-12">
+    <div class="panel panel-warning">
+        <div class="panel-heading">
+            @T5V3Web.Content.Persian.LateEarly
+        </div>
+        <div class="panel-body">
+            @Html.Partial("_Workflow", T5V3Web.Models.WorkflowControlModel.Create(3, (int)ViewBag.TitleID, Model.Where(wf => wf.Operation == T5V3.Model.WorkflowOperations.LateEarly).ToList(), T5V3.Model.WorkflowOperations.LateEarly))
+        </div>
+    </div>
+</div>
+<div class="col-lg-4 col-md-6 col-sm-12">
+    <div class="panel panel-warning">
+        <div class="panel-heading">
+            @T5V3Web.Content.Persian.AllowOverTime
+        </div>
+        <div class="panel-body">
+            @Html.Partial("_Workflow", T5V3Web.Models.WorkflowControlModel.Create(4, (int)ViewBag.TitleID, Model.Where(wf => wf.Operation == T5V3.Model.WorkflowOperations.AllowOverTimes).ToList(), T5V3.Model.WorkflowOperations.AllowOverTimes))
+        </div>
+    </div>
+</div>
+<div class="col-lg-4 col-md-6 col-sm-12">
+    <div class="panel panel-warning">
+        <div class="panel-heading">
+            @T5V3Web.Content.Persian.EditOverTime
+        </div>
+        <div class="panel-body">
+            @Html.Partial("_Workflow", T5V3Web.Models.WorkflowControlModel.Create(5, (int)ViewBag.TitleID, Model.Where(wf => wf.Operation == T5V3.Model.WorkflowOperations.EditOverTimes).ToList(), T5V3.Model.WorkflowOperations.EditOverTimes))
+        </div>
+    </div>
+</div>
+<div class="col-lg-4 col-md-6 col-sm-12">
+    <div class="panel panel-warning">
+        <div class="panel-heading">
+            @T5V3Web.Content.Persian.InsertRecord
+        </div>
+        <div class="panel-body">
+            @Html.Partial("_Workflow", T5V3Web.Models.WorkflowControlModel.Create(6, (int)ViewBag.TitleID, Model.Where(wf => wf.Operation == T5V3.Model.WorkflowOperations.InsertRecord).ToList(), T5V3.Model.WorkflowOperations.InsertRecord))
+        </div>
+    </div>
+</div>
+<div class="col-lg-4 col-md-6 col-sm-12">
+    <div class="panel panel-warning">
+        <div class="panel-heading">
+            @T5V3Web.Content.Persian.RewardAndPenalty
+        </div>
+        <div class="panel-body">
+            @Html.Partial("_Workflow", T5V3Web.Models.WorkflowControlModel.Create(7, (int)ViewBag.TitleID, Model.Where(wf => wf.Operation == T5V3.Model.WorkflowOperations.RewardAndPenalty).ToList(), T5V3.Model.WorkflowOperations.RewardAndPenalty))
+        </div>
+    </div>
+</div>
+
+@foreach (T5V3.Model.CustomWF cwf in ViewBag.CustomWorkflows)
+{
+    <div class="col-lg-4 col-md-6 col-sm-12">
+        <div class="panel panel-warning">
+            <div class="panel-heading">
+                @cwf.Label
+            </div>
+            <div class="panel-body">
+                @Html.Partial("_Workflow", T5V3Web.Models.WorkflowControlModel.Create(8, (int)ViewBag.TitleID, Model.Where(wf => wf.Operation == T5V3.Model.WorkflowOperations.CustomWF && wf.LeaveTypeID == cwf.CustomWorkflowID).ToList(), T5V3.Model.WorkflowOperations.CustomWF , cwf.CustomWorkflowID))
+            </div>
+        </div>
+    </div>
+
+}
+
+
+@section scripts{
+    <script type="text/javascript">
+        $.get("/Workflow/GetTree?linkPattern=/Workflow/Index?titleID={0}&selectedID=" + "@ViewBag.TitleID", "", (function (gdata) {
+            $('#tree').treeview({
+                data: gdata,
+                levels: 50,
+                enableLinks: true,
+                onNodeSelected: function (event, data) {
+                    //$("#selectedtitleid").val(data.tags);
+                    //$("#selectedtitlename").html(data.text);
+                }
+            });
+        }));
+
+        function showtoolbar(id) {
+            hidetoolbars();
+            document.getElementById('tool' + id).style.visibility = 'visible';
+        }
+        function hidetoolbars() {
+
+            var a = document.getElementsByClassName('toolbar');
+            for (var i = 0; i < a.length ; i++)
+                a[i].style.visibility = 'hidden';
+        }
+        function AddAccepter(id) {
+            document.getElementById("AddPanel" + id).className = "visible-visibility";
+        }
+        function CancelAccepter(id) {
+            document.getElementById("AddPanel" + id).className = "hidden-visibility";
+        }
+    </script>
+}

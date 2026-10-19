@@ -1,0 +1,48 @@
+﻿@model MyTime3.Models.RemainLeave
+@{
+    ViewBag.Title = @MyTime3.Content.PersianString.RemainLeave;
+}
+
+<style>
+    table tr td:first-child{
+        padding-left:30px;
+    }
+</style>
+<div class="page-header">
+    <h3>@MyTime3.Content.PersianString.RemainLeave</h3>
+</div>
+
+<table class="form">
+    <tr class="row">
+        <td class="text-left">@MyTime3.Content.PersianString.BadgeNumber</td>
+        <td class="text-right">@Model.BadgeNumber</td>
+    </tr>
+    <tr class="row">
+        <td class="text-left">@MyTime3.Content.PersianString.Name</td>
+        <td class="text-right">@Model.Name</td>
+    </tr>
+    <tr class="row">
+        <td class="text-left">@MyTime3.Content.PersianString.LeaveType</td>
+        <td class="text-right">@Model.LeaveTypeName</td>
+    </tr>
+    <tr class="row">
+        <td class="text-left">@MyTime3.Content.PersianString.DailyTaken</td>
+        <td class="text-right">@Model.DailyTaken</td>
+    </tr>
+    <tr class="row">
+        <td class="text-left">@MyTime3.Content.PersianString.HourlyTaken</td>
+        <td class="text-right">@Model.HourlyTaken</td>
+    </tr>
+    <tr class="row">
+        <td class="text-left">@MyTime3.Content.PersianString.Taken</td>
+        <td class="text-right">@Model.TotalTaken.ToString("0.00")</td>
+    </tr>
+    <tr class="row">
+        <td class="text-left">@MyTime3.Content.PersianString.Requested</td>
+        <td class="text-right">@Model.Requested.ToString("0.00")</td>
+    </tr>
+    <tr class="row">
+        <td class="text-left">@MyTime3.Content.PersianString.Remain</td>
+        <td class="text-right">@Model.Remain.ToString("0.00")</td>
+    </tr>
+</table>

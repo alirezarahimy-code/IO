@@ -1,0 +1,427 @@
+﻿@{
+    ViewBag.Title = T5V3Web.Content.Persian.Rules;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.BaseData;
+    ViewBag.PageTag = "Rule";
+}
+
+<div class="page-header">
+    <h3>@T5V3Web.Content.Persian.Rule</h3>
+</div>
+
+
+@{
+    T5V3Web.Models.GridModel grd = new T5V3Web.Models.GridModel();
+    grd.DeleteAllAPIPath = "/Rule/DeleteAll";
+    grd.DeleteAPIPath = "/Rule/Delete/";
+    grd.GetListAPIPath = "/Rule/GetList";
+    grd.IDPropertyName = "RuleID";
+    grd.DisplayPropertyName = "ParamName";
+    grd.Columns.Add(new T5V3Web.Models.GridModel.Column(T5V3Web.Content.Persian.RuleName, "ParamName"));
+    @Html.Partial("_Grid", grd);
+}
+
+<div id="edit-panel" class="panel panel-default collapsed-visibility">
+    <div class="panel-heading">
+        <label id="title-panel-label">@T5V3Web.Content.Persian.Edit</label>
+    </div>
+    <div class="panel-body">
+        <div class="form-horizontal">
+
+            <input type="hidden" id="ruleID" />
+
+
+            <div class="form-group">
+                <div class="col-sm-3 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.RuleName</label>
+                </div>
+                <div class="col-sm-8">
+                    <input class="form-control" placeholder="@T5V3Web.Content.Persian.RuleName" name="txtRuleName" type="text" id="txtRuleName" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-3 text-center">
+                    <input onclick="changeCheckBoxState('chkWOIn')" type="checkbox" name="chkWOIn" value="true" id="chkWOIn" />
+                    <label class="control-label">@T5V3Web.Content.Persian.woIn</label>
+                </div>
+                <div class="col-sm-4">
+                    <select name="cmbWoInMode" id="cmbWoInMode" class="form-control">
+                        <option value="@((int)T5V3.Model.WoInMode.Auto)">@T5V3Web.Content.Persian.Auto</option>
+                        <option value="@((int)T5V3.Model.WoInMode.Late)">@T5V3Web.Content.Persian.Late</option>
+                        <option value="@((int)T5V3.Model.WoInMode.Absent)">@T5V3Web.Content.Persian.Absent</option>
+                    </select>
+                </div>
+                <div class="col-sm-4">
+                    <input name="txtWoInLate" id="txtWoInLate" type="text" class="form-control timespan-input" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-3 text-center">
+                    <input onclick="changeCheckBoxState('chkWoOut')" type="checkbox" name="chkWoOut" id="chkWoOut" value="true" />
+                    <label class="control-label">@T5V3Web.Content.Persian.woOut</label>
+                </div>
+                <div class="col-sm-4">
+                    <select name="cmbWoOutMode" id="cmbWoOutMode" class="form-control">
+                        <option value="@((int)T5V3.Model.WoOutMode.Auto)">@T5V3Web.Content.Persian.Auto</option>
+                        <option value="@((int)T5V3.Model.WoOutMode.Early)">@T5V3Web.Content.Persian.Early</option>
+                        <option value="@((int)T5V3.Model.WoOutMode.Absent)">@T5V3Web.Content.Persian.Absent</option>
+                    </select>
+                </div>
+                <div class="col-sm-4">
+                    <input name="txtWoOutEarly" id="txtWoOutEarly" type="text" class="form-control timespan-input" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-3 text-center">
+                    <input onclick="changeCheckBoxState('chkLateMore')" type="checkbox" name="chkLateMore" id="chkLateMore" value="true" />
+                    <label class="control-label">@T5V3Web.Content.Persian.LateMore</label>
+                </div>
+                <div class="col-sm-4">
+                    <input name="txtLateMoreTime" id="txtLateMoreTime" type="text" class="form-control timespan-input" />
+                </div>
+                <div class="col-sm-4">
+                    @Html.DropDownList("LateMoreLeaveID", (List<SelectListItem>)ViewBag.LeaveTypesLate, new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-3 text-center">
+                    <input onclick="changeCheckBoxState('chkEarlyMore')" type="checkbox" name="chkEarlyMore" id="chkEarlyMore" value="true" />
+                    <label class="control-label">@T5V3Web.Content.Persian.EarlyMore</label>
+                </div>
+                <div class="col-sm-4">
+                    <input name="txtEarlyMoreTime" id="txtEarlyMoreTime" type="text" class="form-control timespan-input" />
+                </div>
+                <div class="col-sm-4">
+                    @Html.DropDownList("EarlyMoreLeaveID", (List<SelectListItem>)ViewBag.LeaveTypesEarly, new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-4 col-sm-offset-3 text-right">
+                    <input type="checkbox" name="chkOverTime" id="chkOverTime" value="true" />
+                    <label class="control-label">@T5V3Web.Content.Persian.OverTime</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-4 col-sm-offset-3 text-right">
+                    <input onclick="changeCheckBoxState('chkOverTimeBefore')" type="checkbox" name="chkOverTimeBefore" id="chkOverTimeBefore" value="true" />
+                    <label class="control-label">@T5V3Web.Content.Persian.OTBefore</label>
+                </div>
+                <div class="col-sm-4">
+                    <input name="txtOverTimeBeforeMax" id="txtOverTimeBeforeMax" type="text" class="form-control timespan-input" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-4 col-sm-offset-3 text-right">
+                    <input onclick="changeCheckBoxState('chkOverTimeAfter')" type="checkbox" name="chkOverTimeAfter" id="chkOverTimeAfter" value="true" />
+                    <label class="control-label">@T5V3Web.Content.Persian.OTAfter</label>
+                </div>
+                <div class="col-sm-4">
+                    <input name="txtOverTimeAfterMax" id="txtOverTimeAfterMax" type="text" class="form-control timespan-input" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-4 col-sm-offset-3 text-right">
+                    <input onclick="changeCheckBoxState('chkFreeOverTime')" type="checkbox" name="chkFreeOverTime" id="chkFreeOverTime" value="true" />
+                    <label class="control-label">@T5V3Web.Content.Persian.FreeOT</label>
+                </div>
+                <div class="col-sm-4">
+                    <input name="txtFreeOverTimeMax" id="txtFreeOverTimeMax" type="text" class="form-control  timespan-input" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-3">
+                    <label class="control-label">@T5V3Web.Content.Persian.Min</label>
+                </div>
+                <div class="col-sm-8">
+                    <input class="form-control timespan-input" name="txtMinOverTimeInterval" id="txtMinOverTimeInterval" type="text" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-3 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.Max</label>
+                </div>
+                <div class="col-sm-8">
+                    <input class="form-control timespan-input" name="txtOverTimeMax" id="txtOverTimeMax" type="text" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-3 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.MaxBalanceDaily</label>
+                </div>
+                <div class="col-sm-8">
+                    <input class="form-control timespan-input" name="txtMaxBalanceDay" id="txtMaxBalanceDay" type="text" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-3 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.Telorancce</label>
+                </div>
+                <div class="col-sm-8">
+                    <input class="form-control timespan-input" name="txtTelorance" id="txtTelorance" type="text" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-3 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.MaxOTConstDaily</label>
+                </div>
+                <div class="col-sm-8">
+                    <input class="form-control timespan-input" name="txtConstOTMaxDaily" id="txtConstOTMaxDaily" type="text" />
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-3 text-center">
+                    <label class="control-label">@T5V3Web.Content.Persian.MaxOTConstMonthly</label>
+                </div>
+                <div class="col-sm-8">
+                    <input class="form-control" name="txtConstOTMaxMonthly" id="txtConstOTMaxMonthly" type="text" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-offset-2 col-sm-10 text-right">
+                    <button id="btnEdit" onclick="submitData()" type="button" class="btn btn-success"></button>
+                    <button type="button" onclick="invisiblePanel()" class="btn btn-default">@T5V3Web.Content.Persian.Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section modals
+{
+    <div id="myModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 id="msg-title" class="modal-title"></h4>
+                </div>
+                <div class="modal-body">
+                    <p id="msg-body"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">@T5V3Web.Content.Persian.OK</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+}
+
+
+
+@section scripts
+{
+    <script>
+        loadlist(1, "");
+
+        function invisiblePanel() {
+            $("#edit-panel").attr("class", "collapsed-visibility panel panel-default");
+        }
+
+        function changeCheckBoxState(checkboxID) {
+            if (checkboxID == 'chkFreeOverTime')
+                if ($('#' + checkboxID).is(':checked')) {
+                    $("#txtFreeOverTimeMax").removeAttr("disabled");
+                }
+                else {
+                    $("#txtFreeOverTimeMax").attr("disabled", "");
+                }
+
+            if (checkboxID == 'chkOverTimeAfter')
+                if ($('#' + checkboxID).is(':checked')) {
+                    $("#txtOverTimeAfterMax").removeAttr("disabled");
+                }
+                else {
+                    $("#txtOverTimeAfterMax").attr("disabled", "");
+                }
+
+            if (checkboxID == 'chkOverTimeBefore')
+                if ($('#' + checkboxID).is(':checked')) {
+                    $("#txtOverTimeBeforeMax").removeAttr("disabled");
+                }
+                else {
+                    $("#txtOverTimeBeforeMax").attr("disabled", "");
+                }
+
+            if (checkboxID == 'chkEarlyMore')
+                if ($('#' + checkboxID).is(':checked')) {
+                    $("#txtEarlyMoreTime").removeAttr("disabled");
+                    $("#EarlyMoreLeaveID").removeAttr("disabled");
+                }
+                else {
+                    $("#txtEarlyMoreTime").attr("disabled", "");
+                    $("#EarlyMoreLeaveID").attr("disabled", "");
+                }
+
+            if (checkboxID == 'chkLateMore')
+                if ($('#' + checkboxID).is(':checked')) {
+                    $("#txtLateMoreTime").removeAttr("disabled");
+                    $("#LateMoreLeaveID").removeAttr("disabled");
+                }
+                else {
+                    $("#txtLateMoreTime").attr("disabled", "");
+                    $("#LateMoreLeaveID").attr("disabled", "");
+                }
+
+            if (checkboxID == 'chkWOIn')
+                if ($('#' + checkboxID).is(':checked')) {
+                    $("#cmbWoInMode").removeAttr("disabled");
+                    $("#txtWoInLate").removeAttr("disabled");
+                }
+                else {
+                    $("#cmbWoInMode").attr("disabled", "");
+                    $("#txtWoInLate").attr("disabled", "");
+                }
+
+            if (checkboxID == 'chkWoOut')
+                if ($('#' + checkboxID).is(':checked')) {
+                    $("#cmbWoOutMode").removeAttr("disabled");
+                    $("#txtWoOutEarly").removeAttr("disabled");
+                }
+                else {
+                    $("#cmbWoOutMode").attr("disabled", "");
+                    $("#txtWoOutEarly").attr("disabled", "");
+                }
+        }
+
+        function addnew() {
+            $("#edit-panel").attr("class", "visisble-visibility panel panel-default");
+            $('html, body').animate({
+                scrollTop: $("#edit-panel").offset().top
+            }, 500);
+            $("#title-panel-label").html("@T5V3Web.Content.Persian.Add2");
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Add");
+
+            $("#txtRuleName").val("");
+            $("#txtWoInLate").val("");
+            $("#txtWoOutEarly").val("");
+            $("#txtLateMoreTime").val("");
+            $("#txtEarlyMoreTime").val("");
+            $("#txtOverTimeBeforeMax").val("");
+            $("#txtOverTimeAfterMax").val("");
+            $("#txtFreeOverTimeMax").val("");
+            $("#txtMinOverTimeInterval").val("");
+            $("#txtOverTimeMax").val("");
+            $("#txtMaxBalanceDay").val("");
+            $("#txtTelorance").val("");
+            $("#txtConstOTMaxDaily").val("");
+            $("#txtConstOTMaxMonthly").val("");
+
+            $("#chkWOIn").attr("checked", false);
+            $("#chkWoOut").attr("checked", false);
+            $("#chkLateMore").attr("checked", false);
+            $("#chkEarlyMore").attr("checked", false);
+            $("#chkOverTime").attr("checked", false);
+            $("#chkOverTimeBefore").attr("checked", false);
+            $("#chkOverTimeAfter").attr("checked", false);
+            $("#chkFreeOverTime").attr("checked", false);
+
+            $("#ruleID").val(-1);
+        }
+
+        function submitData() {
+            var toEdit = {
+                RuleID: $("#ruleID").val(),
+                ParamName: $("#txtRuleName").val(),
+                StrWoInLate: $("#txtWoInLate").val(),
+                StrWoOutEarly: $("#txtWoOutEarly").val(),
+                StrLateMoreTime: $("#txtLateMoreTime").val(),
+                StrEarlyMoreTime: $("#txtEarlyMoreTime").val(),
+                StrOverTimeBeforeMax: $("#txtOverTimeBeforeMax").val(),
+                StrOverTimeAfterMax: $("#txtOverTimeAfterMax").val(),
+                StrFreeOverTimeMax: $("#txtFreeOverTimeMax").val(),
+                StrMinOverTimeInterval: $("#txtMinOverTimeInterval").val(),
+                StrOverTimeMax: $("#txtOverTimeMax").val(),
+                StrMaxBalanceDay: $("#txtMaxBalanceDay").val(),
+                StrWebLeaveTelorance: $("#txtTelorance").val(),
+                StrConstOTMaxDaily: $("#txtConstOTMaxDaily").val(),
+                StrConstOTMaxMonthly: $("#txtConstOTMaxMonthly").val(),
+
+                WoInMode: $("#cmbWoInMode").val(),
+                WoOutMode: $("#cmbWoOutMode").val(),
+                LateMoreLeaveID: $("#LateMoreLeaveID").val(),
+                EarlyMoreLeaveID: $("#EarlyMoreLeaveID").val(),
+
+                WoIn: $('#chkWOIn').is(':checked'),
+                WoOut: $('#chkWoOut').is(':checked'),
+                LateMore: $('#chkLateMore').is(':checked'),
+                EarlyMore: $('#chkEarlyMore').is(':checked'),
+                OverTime: $('#chkOverTime').is(':checked'),
+                OverTimeBefore: $('#chkOverTimeBefore').is(':checked'),
+                OverTimeAfter: $('#chkOverTimeAfter').is(':checked'),
+                FreeOverTime: $('#chkFreeOverTime').is(':checked'),
+
+            };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/Rule/Edit",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                    if (toEdit.CertificateID == -1) {
+                        loadlist(-1);
+                    }
+                    else {
+                        loadlist($("body").data("page"), $("body").data("squery"));
+                    }
+                }
+            });
+            invisiblePanel();
+        }
+
+        function loadItem(id) {
+            $("#edit-panel").attr("class", "visisble-visibility panel panel-default");
+            $('html, body').animate({
+                scrollTop: $("#edit-panel").offset().top
+            }, 500);
+            $("#title-panel-label").html("@T5V3Web.Content.Persian.Edit");
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Edit");
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                type: "GET",
+                url: "/Rule/GetByID/" + id,
+                success: function (data) {
+
+                    $("#txtRuleName").val(data.ParamName);
+                    $("#txtWoInLate").val(data.StrWoInLate);
+                    $("#txtWoOutEarly").val(data.StrWoOutEarly);
+                    $("#txtLateMoreTime").val(data.StrLateMoreTime);
+                    $("#txtEarlyMoreTime").val(data.StrEarlyMoreTime);
+                    $("#txtOverTimeBeforeMax").val(data.StrOverTimeBeforeMax);
+                    $("#txtOverTimeAfterMax").val(data.StrOverTimeAfterMax);
+                    $("#txtFreeOverTimeMax").val(data.StrFreeOverTimeMax);
+                    $("#txtMinOverTimeInterval").val(data.StrMinOverTimeInterval);
+                    $("#txtOverTimeMax").val(data.StrOverTimeMax);
+                    $("#txtMaxBalanceDay").val(data.StrMaxBalanceDay);
+                    $("#txtTelorance").val(data.StrWebLeaveTelorance);
+
+                    $("#txtConstOTMaxDaily").val(data.StrConstOTMaxDaily);
+                    $("#txtConstOTMaxMonthly").val(data.StrConstOTMaxMonthly);
+
+                    $("#cmbWoInMode").val(data.WoInMode),
+                    $("#cmbWoOutMode").val(data.WoOutMode),
+                    $("#LateMoreLeaveID").val(data.LateMoreLeaveID),
+                    $("#EarlyMoreLeaveID").val(data.EarlyMoreLeaveID),
+
+                    $('#chkWOIn').prop("checked", data.WoIn);
+                    $('#chkWoOut').prop("checked", data.WoOut);
+                    $('#chkLateMore').prop("checked", data.LateMore);
+                    $('#chkEarlyMore').prop("checked", data.EarlyMore);
+                    $('#chkOverTime').prop("checked", data.OverTime);
+                    $('#chkOverTimeBefore').prop("checked", data.OverTimeBefore);
+                    $('#chkOverTimeAfter').prop("checked", data.OverTimeAfter);
+                    $('#chkFreeOverTime').prop("checked", data.FreeOverTime);
+
+                    $("#ruleID").val(data.RuleID);
+                }
+            });
+        }
+
+    </script>
+}

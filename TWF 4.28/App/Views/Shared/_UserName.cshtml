@@ -1,0 +1,13 @@
+﻿@if (MyTime3.Authorization.LoginManager.GetBadgeNumber(Context) == "")
+{
+    @Html.ActionLink(string.Format("[{0}]", MyTime3.Content.PersianString.Login), "Login", "Login")
+}
+else
+{
+    @MyTime3.GlobalHelper.GetLoggedInUserName(Context)
+    if (MyTime3.Authorization.LoginManager.GetRole(new HttpContextWrapper(HttpContext.Current)) == "admin")
+    { 
+        <a rel="noopener noreferrer" href="/settings">[@MyTime3.Content.PersianString.Settings]</a>
+    }
+    @Html.ActionLink(string.Format("[{0}]", MyTime3.Content.PersianString.Logout), "Logout", "Login")
+}

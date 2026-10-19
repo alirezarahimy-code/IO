@@ -1,0 +1,436 @@
+﻿@model MyTime3.Models.GeneralRequest
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.NewRequest;
+}
+@section TopStyle{
+    <link href="~/Content/style.css" rel="stylesheet" />
+}
+@section EndScript{
+    <script src="~/Scripts/index.js"></script>
+    <script>
+
+        settings = {
+            format: "yyyy/mm/dd",
+            dateSeparator: "/",
+            autoClose: true,
+            labelLanguage: 'farsi'
+        }
+        renderToday();
+    </script>
+}
+<div style="max-width:500px; width:90%; margin:auto">
+    <div class="text-right page-header card-header">
+        <h3>@MyTime3.Content.PersianString.NewRequest</h3>
+    </div>
+
+    <div class="card">
+        <form method="post" action="/Request/Edit" id="ReqForm" class="form-horizontal">
+            @Html.HiddenFor(m => m.IsNew)
+            @Html.HiddenFor(m => m.RequestID)
+
+
+            @if (((List<MyTime3.Models.PersonnelModel>)ViewBag.Personnel).Count > 0)
+            {
+                if (Model.IsNew)
+                {
+                    if ((bool)MyTime3.Controllers.SettingsController.LoadValue("RequestForUsers", typeof(bool), true))
+                    {
+                        <div class="material-input text-right">
+                            <div class="col-sm-8 col-sm-offset-1">
+                                <div class="group">
+                                    <div class="material-dropdown" id="dropdownFromUserName">
+                                        <div class="dropdown">
+                                            @if (Model.FromUser.HasValue)
+                                            {
+                                                var selected = ((List<MyTime3.Models.PersonnelModel>)ViewBag.Personnel).Where(p => p.BadgeNumber == Model.FromUser.Value).FirstOrDefault();
+                                                <input id="FromUserID" name="FromUser" type="hidden" value=@selected.BadgeNumber>
+                                                <input data-toggle="dropdown" id="FromUserName" value="@selected.FirstName @selected.LastName" type="text">
+                                            }
+                                            else
+                                            {
+                                                var selected = ((List<MyTime3.Models.PersonnelModel>)ViewBag.Personnel).FirstOrDefault();
+                                                <input id="FromUserID" name="FromUser" type="hidden" value=@selected.BadgeNumber>
+                                                <input data-toggle="dropdown" id="FromUserName" value="@selected.FirstName @selected.LastName" type="text">
+                                            }
+
+                                            <span class="highlight"></span>
+                                            <span class="bar"></span>
+                                            <label>@MyTime3.Content.PersianString.FromUser</label>
+
+                                            <ul class="dropdown-menu" id="menuFromUserName">
+                                                @foreach (MyTime3.Models.PersonnelModel personnel in ViewBag.Personnel)
+                                                {
+                                                    <li onclick="dropdownChanged('FromUserID','FromUserName','@personnel.FirstName @personnel.LastName', @personnel.BadgeNumber)"><a rel="noopener noreferrer" href="#">@personnel.FirstName @personnel.LastName</a></li>
+                                                }
+                                            </ul>
+
+                                        </div>
+
+                                        <span class="caret"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            }
+
+            <div class="material-input text-right">
+                <div class="col-sm-8 col-sm-offset-1">
+                    <div class="group">
+                        <div class="material-dropdown" id="DropdownRequestType">
+                            <div class="dropdown">
+                                @if (Model != null)
+                                {
+                                    <input type="hidden" value="@Model.RequestType" name="RequestType" id="requestTypeID">
+                                    <input data-toggle="dropdown" value="@Model.RequestType" id="selectedName" type="text">
+
+                                }
+                                else
+                                {
+                                    <input type="hidden" name="RequestType" id="requestTypeID">
+                                    <input data-toggle="dropdown" id="selectedName" type="text">
+                                }
+
+
+                                <span class="highlight"></span>
+                                <span class="bar"></span>
+                                <label>@MyTime3.Content.PersianString.Request</label>
+
+                                <ul class="dropdown-menu" id="menuRequestType">
+                                    <li onclick="showValidTypes(0, true, '@MyTime3.Content.PersianString.DailyLeave')"><a rel="noopener noreferrer" href="#">@MyTime3.Content.PersianString.DailyLeave</a></li>
+                                    <li onclick="showValidTypes(1, false, '@MyTime3.Content.PersianString.HourlyLeave')"><a rel="noopener noreferrer" href="#">@MyTime3.Content.PersianString.HourlyLeave</a></li>
+                                    <li onclick="showValidTypes(2, true, '@MyTime3.Content.PersianString.DailyDuty')"><a rel="noopener noreferrer" href="#">@MyTime3.Content.PersianString.DailyDuty</a></li>
+                                    <li onclick="showValidTypes(3, false, '@MyTime3.Content.PersianString.HourlyDuty')"><a rel="noopener noreferrer" href="#">@MyTime3.Content.PersianString.HourlyDuty</a></li>
+                                    <li onclick="showValidTypes(4, false, '@MyTime3.Content.PersianString.InsertRecord')"><a rel="noopener noreferrer" href="#">@MyTime3.Content.PersianString.InsertRecord</a></li>
+                                    @if ((bool)MyTime3.Controllers.SettingsController.LoadValue("ValidLateEarly", typeof(bool), true))
+                                    {
+                                        <li onclick="showValidTypes(5, false, '@MyTime3.Content.PersianString.RequestLate')"><a rel="noopener noreferrer" href="#">@MyTime3.Content.PersianString.RequestLate</a></li>
+                                        <li onclick="showValidTypes(6, false, '@MyTime3.Content.PersianString.RequestEarly')"><a rel="noopener noreferrer" href="#">@MyTime3.Content.PersianString.RequestEarly</a></li>
+                                    }
+                                    <li onclick="showValidTypes(7, false, '@MyTime3.Content.PersianString.OverTimeAccess')"><a rel="noopener noreferrer" href="#">@MyTime3.Content.PersianString.OverTimeAccess</a></li>
+                                </ul>
+
+                            </div>
+
+                            <span class="caret"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div id="typeGroup" class="material-input text-right">
+                <div class="col-sm-8 col-sm-offset-1">
+                    <div class="group">
+                        <div class="material-dropdown" id="dropdownLeaveType">
+                            <div class="dropdown">
+
+                                <input type="hidden" name="LeaveTypeID" id="LeaveTypeID">
+                                <input data-toggle="dropdown" id="LeaveTypeName" type="text">
+
+
+                                <span class="highlight"></span>
+                                <span class="bar"></span>
+                                <label>@MyTime3.Content.PersianString.Type</label>
+
+                                <ul id="validTypes" class="dropdown-menu"></ul>
+
+                                <ul id="allTypes" class="collapsed-visibility">
+                                    <li data-id="-1" data-parent="7" onclick="dropdownChanged('LeaveTypeID','LeaveTypeName','@MyTime3.Content.PersianString.OverTimeAfter', -1)"><a rel="noopener noreferrer">@MyTime3.Content.PersianString.OverTimeAfter</a></li>
+                                    <li data-id="-2" data-parent="7" onclick="dropdownChanged('LeaveTypeID','LeaveTypeName','@MyTime3.Content.PersianString.OverTimeBefore', -2)"><a rel="noopener noreferrer">@MyTime3.Content.PersianString.OverTimeBefore</a></li>
+                                    <li data-id="-3" data-parent="7" onclick="dropdownChanged('LeaveTypeID','LeaveTypeName','@MyTime3.Content.PersianString.FreeOverTime', -3)"><a rel="noopener noreferrer">@MyTime3.Content.PersianString.FreeOverTime</a></li>
+
+
+                                    @foreach (T5V3.Model.LeaveType lt in ViewBag.LeaveTypes)
+                                    {
+                                        if (lt.LeaveType1 == T5V3.Model.LeaveTypeEnum.Leave)
+                                        {
+                                            if (lt.IsHourly)
+                                            {
+                                                <li data-id="@lt.LeaveTypeID" data-parent="1" onclick="dropdownChanged('LeaveTypeID','LeaveTypeName','@lt.LeaveName', @lt.LeaveTypeID)"><a rel="noopener noreferrer">@lt.LeaveName</a></li>
+                                            }
+                                            else
+                                            {
+                                                <li data-id="@lt.LeaveTypeID" data-parent="0" onclick="dropdownChanged('LeaveTypeID','LeaveTypeName','@lt.LeaveName', @lt.LeaveTypeID)"><a rel="noopener noreferrer">@lt.LeaveName</a></li>
+                                            }
+                                        }
+                                        else if (lt.LeaveType1 == T5V3.Model.LeaveTypeEnum.Duty)
+                                        {
+                                            if (lt.IsHourly)
+                                            {
+                                                <li data-id="@lt.LeaveTypeID" data-parent="3" onclick="dropdownChanged('LeaveTypeID','LeaveTypeName','@lt.LeaveName', @lt.LeaveTypeID)"><a rel="noopener noreferrer">@lt.LeaveName</a></li>
+                                            }
+                                            else
+                                            {
+                                                <li data-id="@lt.LeaveTypeID" data-parent="2" onclick="dropdownChanged('LeaveTypeID','LeaveTypeName','@lt.LeaveName', @lt.LeaveTypeID)"><a rel="noopener noreferrer">@lt.LeaveName</a></li>
+                                            }
+                                        }
+                                    }
+                                </ul>
+
+
+                            </div>
+
+                            <span class="caret"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <div id="date-interval">
+                <div class="material-input date-input text-right">
+                    <div class="col-sm-8 col-sm-offset-1">
+                        <div class="group">
+                            <input value="@(Model != null ? Model.FromDateHijri : " ")" class="datepicker-farsi" name="FromDateHijri" type="text">
+                            @*<input value="@(Model != null ? Model.FromDateHijri : " ")" name="FromDateHijri" type="text">*@
+                            <span class="highlight"></span>
+                            <span class="bar"></span>
+                            <label>@MyTime3.Content.PersianString.FromDate</label>
+                        </div>
+                    </div>
+                    <div id="divintervalfrom"></div>
+                    @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('FromDateHijri', this,null,null,'divintervalfrom','datepicker1')">@MyTime3.Content.PersianString.SelectDate</a>*@
+                </div>
+
+
+                <div class="material-input date-input text-right">
+                    <div class="col-sm-8 col-sm-offset-1">
+                        <div class="group">
+                            @*<input value="@(Model != null ? Model.ToDateHijri : " ")" name="ToDateHijri" type="text">*@
+                            <input value="@(Model != null ? Model.ToDateHijri : " ")" class="datepicker-farsi" name="ToDateHijri" type="text">
+                            <span class="highlight"></span>
+                            <span class="bar"></span>
+                            <label>@MyTime3.Content.PersianString.ToDate</label>
+                        </div>
+                    </div>
+                    <div id="divintervalto"></div>
+                    @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('ToDateHijri', this,null,null,'divintervalto','datepicker2')">@MyTime3.Content.PersianString.SelectDate</a>*@
+                </div>
+
+            </div>
+
+            <div id="divForDate">
+
+                <div class="material-input date-input text-right">
+                    <div class="col-sm-8 col-sm-offset-1">
+                        <div class="group">
+                            @*<input value="@(Model != null ? Model.ForDateHijri : " ")" name="ForDateHijri" type="text">*@
+                            <input value="@(Model != null ? Model.ForDateHijri : " ")"  class="datepicker-farsi" name="ForDateHijri" type="text">
+                            <span class="highlight"></span>
+                            <span class="bar"></span>
+                            <label>@MyTime3.Content.PersianString.Date</label>
+                        </div>
+                    </div>
+                    <div id="divforDate"></div>
+                    @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('ForDateHijri',this,null,null,'divforDate','datepicker3')">@MyTime3.Content.PersianString.SelectDate</a>*@
+                </div>
+            </div>
+
+            <div id="divForTime" class="">
+                <div class="material-input text-right">
+                    <div class="col-sm-offset-1 col-sm-8">
+                        <div class="group">
+                            <input name="ForTime" class="timespan-input" value="@(Model != null ? Model.ForTime : " ")" type="text">
+                            <span class="highlight"></span>
+                            <span class="bar"></span>
+                            <label>@MyTime3.Content.PersianString.Time</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="divTimeInterval">
+                <div class="material-input text-right">
+                    <div class="col-sm-offset-1 col-sm-8">
+                        <div class="group">
+                            <input name="FromTime" value="@(Model != null ? Model.FromTime : " ")" class="timeInput" type="text">
+                            <span class="highlight"></span>
+                            <span class="bar"></span>
+                            <label>@MyTime3.Content.PersianString.FromTime</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="material-input text-right">
+                    <div class="col-sm-offset-1 col-sm-8">
+                        <div class="group">
+                            <input name="ToTime" value="@(Model != null ? Model.ToTime : " ")" class="timeInput" type="text">
+                            <span class="highlight"></span>
+                            <span class="bar"></span>
+                            <label>@MyTime3.Content.PersianString.ToTime</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="divOT" class="">
+                <div class="material-input text-right">
+                    <div class="col-sm-offset-1 col-sm-8">
+                        <div class="group">
+                            <input name="OvertimeValue" class="timespan-input" value="@(Model != null ? Model.OvertimeValue : "")" type="text">
+                            <span class="highlight"></span>
+                            <span class="bar"></span>
+                            <label>@MyTime3.Content.PersianString.Value</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="descGroup">
+                <div class="material-input text-right">
+                    <div class="col-sm-8 col-sm-offset-1">
+                        <div class="group">
+                            <div class="material-dropdown" id="dropdownLeaveDescriptions">
+
+                                <ul id="allDescriptions" class="collapsed-visibility">
+                                    @foreach (T5V3.Model.LeaveDescription ld in ViewBag.LeaveDescriptions)
+                                    {
+                                        if (ld.ForLeaveType == T5V3.Model.LeaveTypeEnum.Leave)
+                                        {
+                                            <li data-parent="1" onclick="dropdownChanged('validDescriptions','LeaveDescriptionsName','@ld.Description', @ld.ID)"><a rel="noopener noreferrer" href="#">@ld.Description</a></li>
+                                        }
+                                        else
+                                        {
+                                            <li data-parent="0" onclick="dropdownChanged('validDescriptions','LeaveDescriptionsName','@ld.Description', @ld.ID)"><a rel="noopener noreferrer" href="#">@ld.Description</a></li>
+                                        }
+                                    }
+
+                                </ul>
+
+                                <div class="dropdown">
+                                    <input id="validDescriptions" name="LeaveDescriptionsID" type="hidden" value="@(Model!=null  ? Model.LeaveDescriptionsID  : -1)">
+                                    <input data-toggle="dropdown" id="LeaveDescriptionsName" value="" type="text">
+
+                                    <span class="highlight"></span>
+                                    <span class="bar"></span>
+                                    <label>@MyTime3.Content.PersianString.LeaveDescriptions</label>
+
+                                    <ul id="validDescriptionsUL" class="dropdown-menu"></ul>
+
+                                </div>
+
+                                <span class="caret"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div id="divDesc">
+                <div class="material-input text-right">
+                    <div class="col-sm-offset-1 col-sm-8">
+                        <div class="group">
+                            <input name="Descriptions" value="@(Model!=null  ? Model.Descriptions  : "")" type="text">
+                            <span class="highlight"></span>
+                            <span class="bar"></span>
+                            <label>@MyTime3.Content.PersianString.Descriptions</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="material-input text-right">
+                <div class="col-sm-offset-1 col-sm-4">
+                    <div class="group">
+                        <button style="width:100%" class="disBut btn btn-primary btn-shadow" type="submit">@MyTime3.Content.PersianString.OK</button>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model != null && Model.Message != null)
+            {
+                <div class="text-center panel-danger panel">
+                    <div class="panel-heading">
+                        <label>@Model.Message</label>
+                    </div>
+                </div>
+            }
+        </form>
+    </div>
+</div>
+
+@section scripts{
+    <script>
+    showValidTypes(@(Model.RequestType), 0, '@(Model.RequestTypeStr)');
+
+    $(document).ready(function() {
+        $('.timeInput').ptTimeSelect({
+            popupImage: '@MyTime3.Content.PersianString.SelectTime',
+            hoursLabel: '@MyTime3.Content.PersianString.Hour',
+            minutesLabel: '@MyTime3.Content.PersianString.Minute',
+            setButtonLabel: '@MyTime3.Content.PersianString.OK'
+        });
+
+    });
+
+
+
+    $('#ReqForm')[0].addEventListener("submit",() => {
+        $('.disBut').attr('disabled','disabled');
+    });
+
+
+        function showValidTypes(req, daily, name) {
+
+            $("#requestTypeID").val(req);
+            $("#selectedName").val(name);
+            //var req = $("#requestTypeID").val();
+
+            $("#allTypes").append($("#validTypes li"));
+            $("#validTypes").append($("#allTypes [data-parent=" + req + "]"));
+
+            if (req == 0 || req == 1) {
+                $("#allDescriptions").append($("#validDescriptionsUL li"));
+                $("#validDescriptionsUL").append($("#allDescriptions [data-parent=1]"));
+            }
+            else if (req == 2 || req == 3) {
+                $("#allDescriptions").append($("#validDescriptionsUL li"));
+                $("#validDescriptionsUL").append($("#allDescriptions [data-parent=0]"));
+            }
+
+            $("#LeaveTypeID").val($("#validTypes li:first").data("id"));
+            $("#LeaveTypeName").val($("#validTypes:first a").html());
+
+            $("#date-interval").addClass("collapsed-visibility");
+            $("#divForDate").addClass("collapsed-visibility");
+            $("#divForTime").addClass("collapsed-visibility");
+            $("#divTimeInterval").addClass("collapsed-visibility");
+            $("#divOT").addClass("collapsed-visibility");
+            $("#descGroup").addClass("collapsed-visibility");
+
+
+            if ((req==0)||(req==2)) {//($("#requestType [value=" + req + "]:first").data("daily") == 1) {
+                $("#date-interval").removeClass("collapsed-visibility");
+                $("#descGroup").removeClass("collapsed-visibility");
+            }
+
+            if ((req == 1) || (req == 3)) {
+                $("#divForDate").removeClass("collapsed-visibility");
+                $("#descGroup").removeClass("collapsed-visibility");
+                $("#divTimeInterval").removeClass("collapsed-visibility");
+            }
+
+            if (req == 4) {
+                $("#divForDate").removeClass("collapsed-visibility");
+                $("#divForTime").removeClass("collapsed-visibility");
+            }
+
+            if ((req == 5) || (req == 6)) {
+                $("#divForDate").removeClass("collapsed-visibility");
+            }
+
+            if (req == 7) {
+                $("#divOT").removeClass("collapsed-visibility");
+                $("#divForDate").removeClass("collapsed-visibility");
+            }
+
+            if ((req < 4) || (req == 7)) {
+                $("#typeGroup").removeClass("collapsed-visibility");
+            }
+            else
+                $("#typeGroup").addClass("collapsed-visibility");
+        }
+    </script>
+}

@@ -1,0 +1,66 @@
+﻿@model MyTime3.Models.Deputy
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.Deputy;
+    ViewData["shownodeputy"] = true;
+    ViewData["deputyReturnToHome"] = false;
+}
+
+<div class="card-header text-right">
+    <h3>@MyTime3.Content.PersianString.Deputy</h3>
+</div>
+<div class="card">
+
+    <div>
+        <div class="formTitle">
+            @Html.Partial("~/Views/Deputy/_CurrentDeputy.cshtml", Model, ViewData)
+        </div>
+
+        <div class="formTitle">
+            @Html.Label(MyTime3.Content.PersianString.SelectDeputy)
+        </div>
+
+        @using (@Html.BeginForm("Add", "Deputy", FormMethod.Post, new { @class = "form text-right" }))
+        {
+            <div class="">
+                @foreach (Personnel.Model.UserInfo usr in Model.ValidList)
+                {
+                    <div class="col-sm-offset-1">
+
+
+                        <label for="rad@(usr.BadgeNumber)" class="input-control radio">
+
+                            <input id="rad@(usr.BadgeNumber)" type="radio" name="selectedBadgeNumber" value="@usr.BadgeNumber">
+                            <span class="input-control__indicator"></span>@usr.ToString()
+
+                        </label>
+
+                        @*<div class="radio">
+                                <label><input class="medium" type="radio" value="@usr.BadgeNumber" name="selectedBadgeNumber">@usr.ToString()</label>
+                            </div>*@
+                    </div>
+                }
+            </div>
+            <div class="material-input text-right">
+                <div class="col-sm-offset-1 col-sm-2">
+                    <div class="group">
+                        <button style="width:100%" class="btn btn-shadow btn-primary" type="submit">@MyTime3.Content.PersianString.OK</button>
+                    </div>
+                </div>
+            </div>
+
+
+            if (ViewBag.Message != null)
+            {
+                <div class="form-group" style="padding-left:30px">
+                    <div class="row text-center panel-danger panel">
+                        <div class="panel-heading">
+                            <label>@ViewBag.Message</label>
+                        </div>
+                    </div>
+                </div>
+            }
+
+        }
+
+    </div>
+</div>

@@ -1,0 +1,444 @@
+﻿@model T5V3Web.Models.TreeDataEntryModel<Personnel.Model.TitleChart>
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.TitlesChart;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.BaseData;
+    ViewBag.PageTag = "Title";
+}
+
+<div class="page-header">
+    <h3>@T5V3Web.Content.Persian.TitlesChart</h3>
+</div>
+
+<div class="panel panel-warning">
+    <div class="panel-heading">
+        <label>@T5V3Web.Content.Persian.TitlesChart</label>
+    </div>
+    <div class="panel-body">
+        <input type="text" value="" onkeyup="search(this)" placeholder="@T5V3Web.Content.Persian.Search" />
+    </div>
+</div>
+
+<div class="auto-scroll" style="max-height:400px;padding-top:20px;margin-bottom:30px;">
+    <div class="right-align" id="tree">
+    </div>
+</div>
+
+@if (Model.Selected != null)
+{
+    <input type="hidden" id="selectedtitleid" name="selectedtitleid" value="@Model.Selected.TitleID" />
+}
+else
+{
+    <input type="hidden" id="selectedtitleid" name="selectedtitleid" value="-1" />
+}
+
+<div class="panel panel-danger">
+    <div class="panel-heading">
+        <div class="btn-group">
+            <button type="button" data-toggle="tooltip" onclick="selectRoot()" class="btn btn-default glyphicon glyphicon-arrow-up" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Select, T5V3Web.Content.Persian.Root))"></button>
+            <button type="button" data-toggle="tooltip" onclick="addnewtitle()" class="btn btn-default glyphicon glyphicon-plus" title="@(string.Format ("{0} {1}" ,T5V3Web.Content.Persian.Add2 ,T5V3Web.Content.Persian.Title))"></button>
+            <button type="button" data-toggle="tooltip" onclick="deleteselectedtitle()" class="btn btn-default glyphicon glyphicon-remove" title="@T5V3Web.Content.Persian.DeleteSelectedItems"></button>
+        </div>
+    </div>
+    <div class="panel-body">
+        <label>@T5V3Web.Content.Persian.SelectedTitle :</label>
+        @if (Model.Selected != null)
+        {
+            if (Model.Selected.TitleID > 0)
+            {
+                <label id="selectedtitlename">@Model.Selected.TitleName</label>
+            }
+            else
+            {
+                <label id="selectedtitlename">@T5V3Web.Content.Persian.Root</label>
+            }
+        }
+        else
+        {
+            <label id="selectedtitlename">@T5V3Web.Content.Persian.Root</label>
+        }
+    </div>
+</div>
+
+
+<div id="edit-panel" class="collapsed-visibility">
+    <form role="form" class="form-horizontal" method="post" action="/Title/Edit">
+        @if (Model.Selected.TitleID <= 0)
+        {
+            <div class="form-group">
+                <label class="control-label col-sm-2 left-align">: @T5V3Web.Content.Persian.UpperTitleName</label>
+                <label id="ParentName" class="control-label col-sm-2">@Model.ParentName</label>
+            </div>
+        }
+
+        <div class="form-group">
+            <input name="UpperTitleID" type="hidden" value="@Model.Selected.UpperTitleID" />
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.TitleName <font style="color:red">*</font></label>
+            </div>
+            <div class="col-sm-10">
+                <input id="TitleName" class="form-control" placeholder="@T5V3Web.Content.Persian.TitleName" name="TitleName" type="text" value="@Model.Selected.TitleName" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.DisplayName <font style="color:red">*</font></label>
+            </div>
+            <div class="col-sm-10">
+                <input id="DisplayName" class="form-control" placeholder="@T5V3Web.Content.Persian.DisplayName" name="DisplayName" type="text" value="@Model.Selected.DisplayName" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.Address</label>
+            </div>
+            <div class="col-sm-10">
+                <input id="Address" class="form-control" placeholder="@T5V3Web.Content.Persian.Address" name="Address" type="text" value="@Model.Selected.Address" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.Email</label>
+            </div>
+            <div class="col-sm-10">
+                <input id="EmailAddress" class="form-control" placeholder="@T5V3Web.Content.Persian.Email" name="EmailAddress" type="text" value="@Model.Selected.EmailAddress" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-2 text-center">
+                <label class="control-label">@T5V3Web.Content.Persian.Duties</label>
+            </div>
+            <div class="col-sm-10">
+                <input id="Duties" class="form-control" placeholder="@T5V3Web.Content.Persian.Duties" name="Duties" type="text" value="@Model.Selected.Duties" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-4 col-sm-offset-3 text-right">
+                <input type="checkbox" name="chkObserver" id="chkObserver" value="true" />
+                <label class="control-label">نگهبان</label>
+                <button id="btnGuardAccess" class="btn btn-default" type="button">دسترسی نگهبان</button>
+            </div>
+        </div>
+
+
+        <div class="form-group">
+            <input id="TitleID" name="TitleID" type="hidden" value="@Model.Selected.TitleID" />
+
+            <div class="col-sm-offset-2 col-sm-2 right-align">
+                <button id="btnEdit" class="btn btn-success" onclick="submitData()" type="button" value="@T5V3Web.Content.Persian.Edit"></button>
+                <input id="btnCancel" class="btn btn-default" type="button" onclick="invisiblePanel()" value="@T5V3Web.Content.Persian.Cancel" />
+            </div>
+        </div>
+    </form>
+
+</div>
+
+
+
+@section modals
+{
+    <div id="myModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 id="msg-title" class="modal-title"></h4>
+                </div>
+                <div class="modal-body">
+                    <p id="msg-body"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">@T5V3Web.Content.Persian.OK</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="collapsed-visibility">
+        <div id="dialog-confirm-delete" title="@T5V3Web.Content.Persian.Delete">
+            <p id="dlg-msg">@T5V3Web.Content.Persian.AreyouSure</p>
+        </div>
+    </div>
+
+    <div id="departmentsModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 id="msg-title-transfer" class="modal-title">@T5V3Web.Content.Persian.Access</h4>
+                </div>
+                <div class="modal-body text-right">
+                    <div class="auto-scroll h-200">
+                        <div id="deptsTree">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="text-right">
+                        <input type="hidden" id="treeCount" />
+                        <button type="button" onclick="checkAll()" class="btn btn-default">@T5V3Web.Content.Persian.All</button>
+                        <button type="button" onclick="reverse()" class="btn btn-default">@T5V3Web.Content.Persian.Reverse</button>
+                    </div>
+                    <br />
+                    <div class="text-center">
+
+                        <button type="button" onclick="acceptDepts()" class="btn btn-success" data-dismiss="modal">@T5V3Web.Content.Persian.OK</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+}
+
+@section scripts{
+    <script>
+        loadList("");
+
+        function search(textbox) {
+            $("body").data("squery", textbox.value);
+            loadList(textbox.value);
+        }
+
+        function submitData() {
+            var toEdit = {
+                TitleID: $("#TitleID").val(),
+                DisplayName: $("#DisplayName").val(),
+                Duties: $("#Duties").val(),
+                EmailAddress: $("#EmailAddress").val(),
+                Observer: $('#chkObserver').is(':checked'),
+                Certs: $("#Certs").val(),
+                Address: $("#Address").val(),
+                TitleName: $("#TitleName").val(),
+                UpperTitleID: $("#selectedtitleid").val(),
+            };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/Title/Edit",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                    if (toEdit.TitleID == -1) {
+                        loadList($("body").data("squery"));
+                    }
+                    else {
+                        loadList($("body").data("squery"));
+                    }
+                }
+            });
+            invisiblePanel();
+        }
+
+        function invisiblePanel() {
+            $("#edit-panel").removeClass("visisble-visibility");
+            $("#edit-panel").addClass("collapsed-visibility");
+        }
+
+        function editNode(id) {
+            $("#edit-panel").removeClass("collapsed-visibility");
+            $("#edit-panel").addClass("visisble-visibility");
+            $('html, body').animate({
+                scrollTop: $("#edit-panel").offset().top
+            }, 500);
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Edit");
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                type: "GET",
+                url: "/Title/GetByID/" + id,
+                success: function (data) {
+                    $("#TitleID").val(data.TitleID);
+                    $("#DisplayName").val(data.DisplayName);
+                    $('#chkObserver').prop("checked", data.Observer);
+                    $("#Duties").val(data.Duties);
+                    $("#EmailAddress").val(data.EmailAddress);
+                    $("#Certs").val(data.Certs);
+                    $("#Address").val(data.Address);
+                    $("#TitleName").val(data.TitleName);
+                    $("#selectedtitleid").val(data.UpperTitleID);
+                    $("#ParentName").html(data.Upper);
+                    $("#btnGuardAccess").attr("onClick", "loadDepartments(" + data.TitleID + ")");
+                }
+            });
+        }
+
+        function confirmDelete(id) {
+            $("#dialog-confirm-delete").dialog({
+                resizable: false,
+                height: 160,
+                modal: true,
+                position: { my: "center", at: "center", of: window },
+                buttons: {
+                    "@T5V3Web.Content.Persian.OK": function () {
+                        $(this).dialog("close");
+
+                        $.ajax({
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            type: "POST",
+                            url: "/Title/Delete/" + id,
+                            success: function (data) {
+                                $("#msg-title").html("@T5V3Web.Content.Persian.Delete");
+                                $("#msg-body").html(data.Message);
+                                $("#myModal").modal();
+                                //loadlist($("body").data("page"), $("body").data("squery"));
+                                loadList($("body").data("squery"));
+                            }
+                        });
+                    },
+                    "@T5V3Web.Content.Persian.Cancel": function () {
+                        $(this).dialog("close");
+                    }
+                }
+            });
+        }
+
+        function loadList(searchQuery) {
+            if (searchQuery == null)
+                searchQuery = "";
+            $.get("/title/GetTree?searchQuery=" + searchQuery, "", (function (gdata) {
+                $('#tree').treeview({
+                    data: gdata,
+                    levels: 50,
+                    editRemoveLink: true,
+                    enableLinks: false,
+                    onNodeSelected: function (event, data) {
+                        $("#selectedtitleid").val(data.tags);
+                        $("#selectedtitlename").html(data.text);
+                    }
+                });
+            }));
+        }
+
+        function addnewtitle() {
+            $("#btnEdit").html("@T5V3Web.Content.Persian.Add2");
+            $("#TitleID").val("-1");
+            $("#DisplayName").val("");
+            $("#Duties").val("");
+            $("#EmailAddress").val("");
+            $("#Certs").val("");
+            $("#Address").val("");
+            $("#TitleName").val("");
+            //$("#selectedtitleid").val(data.UpperTitleID);
+            $("#ParentName").html($("#selectedtitlename").html());
+
+            $("#edit-panel").removeClass("collapsed-visibility");
+            $("#edit-panel").addClass("visisble-visibility");
+            $('html, body').animate({
+                scrollTop: $("#edit-panel").offset().top
+            }, 500);
+
+
+            //window.location.href = "/Title/Index?titleID=-1&upperTitleID=" + $("#selectedtitleid").val();
+        }
+
+        function deleteselectedtitle() {
+
+            var titleIDs = [];
+            $('input:checked').each(function () {
+                titleIDs.push($(this).attr('value'));
+            });
+            var postdata = { 'ids': titleIDs };
+
+            $("#dialog-confirm-delete").dialog({
+                resizable: false,
+                height: 160,
+                modal: true,
+                position: { my: "center", at: "center", of: window },
+                buttons: {
+                    "@T5V3Web.Content.Persian.OK": function () {
+                        $(this).dialog("close");
+
+                        $.ajax({
+                            contentType: "application/json; charset=utf-8",
+                            dataType: "json",
+                            type: "POST",
+                            data: JSON.stringify(postdata),
+                            url: "/Title/DeleteAll/",
+                            success: function (data) {
+                                $("#msg-title").html("@T5V3Web.Content.Persian.DeleteSelectedItems");
+                                $("#msg-body").html(data.Message);
+                                $("#myModal").modal();
+                                //loadlist($("body").data("page"), $("body").data("squery"));
+                                loadList($("body").data("squery"));
+                            }
+                        });
+                    },
+                    "@T5V3Web.Content.Persian.Cancel": function () {
+                        $(this).dialog("close");
+                    }
+                }
+            });
+        }
+
+        function selectRoot() {
+            $("#selectedtitleid").val(-1);
+            $("#selectedtitlename").html("@T5V3Web.Content.Persian.Root");
+        }
+
+
+        function loadDepartments(titleID) {
+            $.get("/Title/GetDepartmentsTree?titleID=" + titleID, "", (function (gdata) {
+                $("#treeCount").val(gdata.Count);
+                $('#deptsTree').treeview({
+                    data: gdata.res,
+                    levels: 50,
+                    showCheckbox: true,
+                    enableLinks: false,
+                    onNodeSelected: function (event, data) {
+
+                    }
+                });
+
+                $("#departmentsModal").modal();
+
+            }));
+        }
+
+        function checkAll() {
+            $('#deptsTree').treeview('checkAll', { silent: true });
+        }
+
+        function reverse() {
+            for (var i = 0; i < $("#treeCount").val() ; i++)
+                $('#deptsTree').treeview('toggleNodeChecked', i, { silent: true });
+        }
+
+        function acceptDepts() {
+            tts = [];
+            for (var i = 0; i < $("#treeCount").val() ; i++) {
+                try {
+                    var node = $('#deptsTree').treeview('getNode', i);
+                    if (node.state.checked == true)
+                        tts.push(node.tags);
+                } catch (err)
+                { }
+            }
+
+            var toEdit = {
+                titleID: $("#TitleID").val(),
+                depts: tts
+            };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/Title/EditAccess",
+                success: function (data) {
+                    $("#msg-title").html(data.Title);
+                    $("#msg-body").html(data.Message);
+                    $("#myModal").modal();
+                }
+            });
+
+
+        }
+    </script>
+}

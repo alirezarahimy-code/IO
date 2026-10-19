@@ -1,0 +1,129 @@
+﻿@model T5V3Web.Models.DataEntryModel<T5V3.Model.CalendarHoliday>
+@{
+    ViewBag.Title = T5V3Web.Content.Persian.Holiday;
+    ViewBag.MainMenuItem = T5V3Web.Models.MainMenuItem.BaseData;
+    ViewBag.PageTag = "Calendar";
+}
+<link href="~/Content/calendar.css" rel="stylesheet" />
+
+<div class="card-header text-right">
+    <h3>@(string.Format("{0} {1} ", T5V3Web.Content.Persian.HolidayOf, Model.Selected.Descriptions))(<a rel="noopener noreferrer" href="~/Calendar?calendarID=@Model.Selected.CalendarID">@T5V3Web.Content.Persian.Return</a>)</h3>
+</div>
+<div class="card">
+        <form role="form" class="form-horizontal" method="post" action="/Calendar/AddHoliday">
+            @*<div class="col-sm-2 text-left">
+                    <label class="control-label">@T5V3Web.Content.Persian.Date</label>
+                </div>*@
+
+            <div style="margin:1em">
+                 @Html.Partial("_MaterialDateInput", new MaterialDateInputModel() { Label = Persian.Date, Name = "Descriptions", OldValue = "" })
+            </div>
+            @*<div class="col-sm-10">
+                    <div class="col-sm-2">
+                        <input class="form-control" name="Descriptions" type="text" value="" />
+                    </div>
+                    <div class="col-sm-2 text-right">
+                        <a href="javascript:" onclick="displayDatePicker('Descriptions', this)">@T5V3Web.Content.Persian.Select</a>
+                    </div>
+                </div>*@
+
+            <div class="form-group">
+                <input name="CalendarID" type="hidden" value="@Model.Selected.CalendarID" />
+                <div class="col-sm-offset-2 col-sm-10 text-right">
+                    <div class="col-sm-10">
+                        <input class="btn btn-default" type="submit" value="@(string.Format ("{0} {1}", T5V3Web.Content.Persian.Add2 , T5V3Web.Content.Persian.Holiday))" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-offset-1 col-sm-10 text-center">
+                    @if (Model.ValidationMessage != null)
+                {
+                        <div class="@((T5V3Web.Models.ValidationMessageType)Model.ValidationMessageType == T5V3Web.Models.ValidationMessageType.Error ? "alert alert-danger fade in" : "alert alert-success fade in")">
+                            @Model.ValidationMessage
+                            <a rel="noopener noreferrer" href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                        </div>
+                }
+                </div>
+            </div>
+
+        </form>
+
+
+
+
+        <table class="table table-bordered table-hover table-responsive table-striped">
+            <thead>
+                <tr class="warning">
+                    <td>@T5V3Web.Content.Persian.SelectDelete</td>
+                    <td>@T5V3Web.Content.Persian.Holiday</td>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (T5V3.Model.CalendarHoliday c in Model.ItemsList)
+        {
+                    <tr>
+                        <td>
+                            <input data-toggle="tooltip" type="checkbox" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Select,T5V3.Misc.DateConverter.ToHijriDate(c.HolidayDate)))" name="ids" value="@(string.Format("{0};{1}", c.CalendarID, T5V3.Misc.DateConverter.ToHijriDate(c.HolidayDate)))" />
+                            <a rel="noopener noreferrer" data-toggle="tooltip" title="@(string.Format("{0} {1}", T5V3Web.Content.Persian.Delete, T5V3.Misc.DateConverter.ToHijriDate(c.HolidayDate)))" href="/Calendar/DeleteHoliday?CalendarID=@Model.Selected.CalendarID&Date=@(T5V3.Misc.DateConverter.ToHijriDate(c.HolidayDate))">
+                                <span class="glyphicon glyphicon-remove"></span>
+                            </a>
+                        </td>
+
+                        <td>
+                            <label>@T5V3.Misc.DateConverter.ToHijriDate(c.HolidayDate)</label>
+                        </td>
+                    </tr>
+        }
+            </tbody>
+            <tfoot>
+                <tr class="danger">
+                    <td>
+                        <form role="form" method="get" action="/Calendar/Holidays">
+                            <input type="hidden" name="calendarID" value="@Model.Selected.CalendarID" />
+                            <input type="hidden" name="pageNumber" value="@Model.PageNumber" />
+                            <div class="btn-group">
+                                <button data-toggle="tooltip" title="@T5V3Web.Content.Persian.Add" type="submit" class="btn btn-sm btn-default">
+                                    <span class="glyphicon glyphicon-plus"></span>
+                                </button>
+                                <button data-toggle="tooltip" title="@T5V3Web.Content.Persian.DeleteSelectedItems" type="button" class="btn btn-sm btn-default glyphicon glyphicon-remove" onclick="deleteAll()"></button>
+                            </div>
+                        </form>
+                    </td>
+                    <td>
+                        @if (Model.HasPrePage)
+                {
+                            <a rel="noopener noreferrer" data-toggle="tooltip" title="@T5V3Web.Content.Persian.Previous" href="/Calendar/Holidays?calendarID=@Model.Selected.CalendarID&pageNumber=@(Model.PageNumber-1)"><span class="glyphicon glyphicon-forward"></span></a>
+                }
+                else
+                {
+                            <span class="glyphicon glyphicon-forward"></span>
+                }
+
+                        <label>@(string.Format("{3} {0} {1} {2}", Model.PageNumber.ToString(), T5V3Web.Content.Persian.From, Model.TotalPageNumbers.ToString(), T5V3Web.Content.Persian.Page))</label>
+
+                        @if (Model.HasNextPage)
+                {
+                            <a rel="noopener noreferrer" data-toggle="tooltip" title="@T5V3Web.Content.Persian.Next" href="/Calendar/Holidays?calendarID=@Model.Selected.CalendarID&pageNumber=@(Model.PageNumber+1)"><span class="glyphicon glyphicon-backward"></span></a>
+                }
+                else
+                {
+                            <span class="glyphicon glyphicon-backward"></span>
+                }
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+
+</div>
+@section scripts
+{
+    <script src="~/Scripts/JsFarsiCalendar.js"></script>
+
+    @{
+        ViewDataDictionary temp = new ViewDataDictionary();
+        temp.Add(new KeyValuePair<string, object>("DeleteAllUrl", "/Calendar/DeleteAllHolidays"));
+        @Html.Partial("_ConfirmDeleteScripts", temp);
+    }
+}

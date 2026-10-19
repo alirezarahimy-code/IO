@@ -1,0 +1,607 @@
+﻿@model IEnumerable<MyTime3.Models.Request>
+
+@if (Model.Count() > 0)
+{
+    <div class="card-header text-right">
+        <h3>
+            @MyTime3.Content.PersianString.AcceptRequest
+        </h3>
+    </div>
+    <style>
+        table thead td {
+            vertical-align: middle !important;
+        }
+    </style>
+    <div class=" card">
+
+
+
+        @using (Html.BeginForm("AcceptAll", "AcceptRequest", FormMethod.Post, new { @id = "myForm" }))
+        {
+            bool prePageIsHome = false;
+            if ((ViewData["fromHome"] != null) && ((bool)ViewData["fromHome"]))
+            {
+                prePageIsHome = true;
+            }
+
+            <table class="table table-hover table-bordered table-responsive table-striped">
+                <thead>
+                    <tr>
+                        <td>
+                            <div class="dropdown dropdown-menu-left">
+                                <button style="padding:3px 3px 0px 3px" class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                                    @*<i class="fa fa-check-square-o fa-2x"></i>*@
+                                    @MyTime3.Content.PersianString.Select
+                                    <i class="fa fa-caret-down"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li style="cursor:pointer" onclick="checkAllRequests()"><a  rel="noopener noreferrer">@MyTime3.Content.PersianString.All</a></li>
+                                    <li style="cursor:pointer" onclick="reverseAllRequests()"><a rel="noopener noreferrer">@MyTime3.Content.PersianString.Reverse</a></li>
+                                </ul>
+                            </div>
+                        </td>
+                        <td>
+                            @MyTime3.Content.PersianString.BadgeNumber
+                        </td>
+                        <td>
+                            @MyTime3.Content.PersianString.Name
+                            @if (prePageIsHome)
+                            {
+                                <text>
+                                    (
+                                    گروهبندی
+                                    <div class="mat-check" style="display:inline-block;vertical-align:bottom">
+                                        <div class="exp">
+                                            <div class="checkbox">
+                                                <div class="text-center">
+                                                    @if ((bool)ViewBag.GroupByName)
+                                                    {
+                                                        <input type="checkbox" onchange="chgr(this)" checked="checked" id="checg" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <input type="checkbox" onchange="chgr(this)" id="checg" />
+                                                    }
+                                                    <label for="checg">
+                                                        <span></span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    )
+                                </text>
+                                @*<a class="btn" href="/Home/Index/">(گروهبندی)</a>*@
+                            }
+                            else
+                            {
+                                <text>
+                                    (
+                                    گروهبندی
+                                    <div class="mat-check" style="display:inline-block;vertical-align:bottom">
+                                        <div class="exp">
+                                            <div class="checkbox">
+                                                <div class="text-center">
+                                                    @if ((bool)ViewBag.GroupByName)
+                                                    {
+                                                        <input type="checkbox" onchange="chgrreq(this)" checked="checked" id="checg" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <input type="checkbox" onchange="chgrreq(this)" id="checg" />
+                                                    }
+                                                    <label for="checg">
+                                                        <span></span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    )
+                                </text>
+                            }
+                        </td>
+                        <td>
+                            @MyTime3.Content.PersianString.WorkflowType
+                        </td>
+                        <td>
+                            @MyTime3.Content.PersianString.RequestTime
+                            @if (prePageIsHome)
+                            {
+                                if ((ViewBag.SortByDate != null) && (ViewBag.SortByDate == 1))
+                                {
+                                    <a rel="noopener noreferrer" class="btn" href="/Home/Index?Sort=2&g=@(((bool)ViewBag.GroupByName).ToString())"><i class="fa fa-sort-amount-asc"></i></a>
+                                }
+                                else
+                                {
+                                    <a rel="noopener noreferrer" class="btn" href="/Home/Index?Sort=1&g=@(((bool)ViewBag.GroupByName).ToString())"><i class="fa fa-sort-amount-desc"></i></a>
+                                }
+                            }
+                            else
+                            {
+                                if ((ViewBag.SortByDate != null) && (ViewBag.SortByDate == 1))
+                                {
+                                    <a rel="noopener noreferrer" class="btn" href="/AcceptRequest/Index?Sort=2&g=@(((bool)ViewBag.GroupByName).ToString())"><i class="fa fa-sort-amount-asc"></i></a>
+                                }
+                                else
+                                {
+                                    <a rel="noopener noreferrer" class="btn" href="/AcceptRequest/Index?Sort=1&g=@(((bool)ViewBag.GroupByName).ToString())"><i class="fa fa-sort-amount-desc"></i></a>
+                                }
+
+                            }
+                        </td>
+                        <td>
+                            @MyTime3.Content.PersianString.Type
+                        </td>
+                        <td>
+                            @MyTime3.Content.PersianString.From
+                        </td>
+                        <td>
+                            @MyTime3.Content.PersianString.To
+                        </td>
+                        <td>
+                            @MyTime3.Content.PersianString.Deputy
+                        </td>
+                        <td>
+                            @MyTime3.Content.PersianString.Descriptions
+                        </td>
+                        <td>
+                            @if ((bool)ViewBag.GroupByName)
+                            {
+                                <a rel="noopener noreferrer" href="javascript:collapser(-1)">
+                                    <span class="fa-stack ">
+                                        <i class="fa fa-square-o fa-stack-2x"></i>
+                                        <i data-b="-1" class="fa  fa-plus fa-stack-1x"></i>
+                                    </span>
+                                </a>
+                            }
+                        </td>
+
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!((bool)ViewBag.GroupByName))
+                    {
+                        var q = Model.OrderByDescending(d => d.RequestTime).ToList();
+                        if (ViewBag.SortByDate == 1)
+                        {
+                            q = Model.OrderBy(d => d.RequestTime).ToList();
+                        }
+
+                        foreach (MyTime3.Models.Request req in q)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="mat-check">
+                                        <div class="exp">
+                                            <div class="checkbox">
+                                                <div class="text-center">
+                                                    <input type="checkbox" id="check@(req.RequestID)" name="requestsChecked" value="@req.RequestID" />
+                                                    <label for="check@(req.RequestID)">
+                                                        <span></span>@*@string.Format("{0} - {1} {2}", per.BadgeNumber, per.FirstName, per.LastName)*@
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @*<input type="checkbox" name="requestsChecked" id="@req.RequestID" value="@req.RequestID" />*@
+                                </td>
+                                <td>
+                                    <label>@req.BadgeNumber</label>
+                                </td>
+                                <td>
+                                    @Html.ActionLink(req.Name, "Index", "AcceptRequest", new { forBadgeNumberFilter = req.BadgeNumber, fromHome = prePageIsHome }, new { title = MyTime3.Content.PersianString.ShowRequestsFor })
+                                </td>
+                                <td>
+                                    <label>@req.WorkflowName</label>
+                                </td>
+                                <td class="ltr">
+                                    <label>@req.RequestTime</label>
+                                </td>
+                                <td>
+                                    <label>@req.TypeName</label>
+                                </td>
+                                <td class="ltr">
+                                    <label>@req.From</label>
+                                </td>
+                                <td class="ltr">
+                                    <label>@req.To</label>
+                                </td>
+                                <td>
+                                    <label>@(req.ForDeputy ? @req.DeputyTitleName : "-")</label>
+                                </td>
+                                <td>
+                                    <label>@req.Descriptions</label>
+                                    @if ((req.Latitude != 0) && (req.Longitude != 0))
+                                    {
+                                        <br />
+                                        <a rel="noopener noreferrer" target="_blank" href="http://maps.google.com/maps?q=@req.Latitude,@req.Longitude">@MyTime3.Content.PersianString.ShowOnMap</a>
+                                    }
+                                    @if (req.ImageData.Length > 1)
+                                    {
+                                        <br />
+                                        <a rel="noopener noreferrer" target="_blank" href="/Request/ShowPhoto/@req.RequestID">@MyTime3.Content.PersianString.ShowAttachmentPhoto</a>
+                                    }
+                                </td>
+
+                                @if (req.RequestT5.WorkflowType == T5V3.Model.WorkflowOperations.AllowOverTimes)
+                                {
+                                    <td>
+                                        <input type="hidden" name="allOverIDs" value="@req.RequestID" />
+                                        <input type="text" name="overValues" id="@("over" + req.RequestID.ToString())" style="height:15px" value="@req.To" />
+                                        <a rel="noopener noreferrer" style="cursor:pointer;text-decoration:underline" onclick="sendEditOverTime(@req.RequestID)">@MyTime3.Content.PersianString.Accept</a>
+                                        @Html.ActionLink(MyTime3.Content.PersianString.Cancel, "Cancel", "AcceptRequest", new { @requestID = req.RequestID, returnToHome = true }, "")
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td>
+                                        @Html.ActionLink(MyTime3.Content.PersianString.Accept, "Accept", "AcceptRequest", new { @requestID = req.RequestID, returnToHome = true }, new { style = "color:green;" })&nbsp;
+                                        @Html.ActionLink(MyTime3.Content.PersianString.Cancel, "Cancel", "AcceptRequest", new { @requestID = req.RequestID, returnToHome = true }, new { style = "color:red;" })
+                                        @if (req.RequestT5.WorkflowType == T5V3.Model.WorkflowOperations.Leave)
+                                        {
+                                            //@Html.ActionLink(string.Format("({0})", MyTime3.Content.PersianString.RemainLeave), "ForPersonnel", "RemainLeave", new { @badgeNumber = req.BadgeNumber, @leaveTypeID = req.RequestT5.LeaveID }, "")
+                                            if (req.RequestT5.IsDaily)
+                                            {
+                                                //<a href="#" onclick="showRemain(@req.BadgeNumber, @req.RequestT5.LeaveID)">@string.Format("({0})", MyTime3.Content.PersianString.RemainLeave)</a>
+                                                <a rel="noopener noreferrer" href="#" onclick="testt(@req.BadgeNumber, @req.RequestT5.LeaveID)">@string.Format("({0})", MyTime3.Content.PersianString.RemainLeave)</a>
+                                            }
+                                        }
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        foreach (long badge in Model.OrderBy(m => m.Name).Select(m => m.BadgeNumber).Distinct())
+                        {
+                            <tr>
+
+                                <td colspan="90"></td>
+                            </tr>
+                            <tr>
+                                <td style="background-color:#CCC">
+                                    <div class="mat-check">
+                                        <div class="exp">
+                                            <div class="checkbox">
+                                                <div class="text-center">
+                                                    <input onchange="chkuserreq(this,@badge)" type="checkbox" id="b_@badge" />
+                                                    <label for="b_@(badge)">
+                                                        <span></span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="background-color:#CCC" colspan="9">@badge -  @Model.Where(t => t.BadgeNumber == badge).First().Name </td>
+                                <td style="background-color:#CCC">
+                                    <a rel="noopener noreferrer" href="javascript:collapser(@badge)">
+                                        <span class="fa-stack ">
+                                            <i class="fa fa-square-o fa-stack-2x"></i>
+                                            <i data-b="@badge" class="fa  fa-plus fa-stack-1x"></i>
+                                        </span>
+                                    </a>
+                                </td>
+                            </tr>
+                            var q = Model.Where(d => d.BadgeNumber == badge).OrderByDescending(d => d.RequestTime).ToList();
+                            if (ViewBag.SortByDate == 1)
+                            {
+                                q = Model.Where(d => d.BadgeNumber == badge).OrderBy(d => d.RequestTime).ToList();
+                            }
+
+                            foreach (MyTime3.Models.Request req in q)
+                            {
+                                <tr data-b="@badge" style="display:none">
+                                    <td>
+                                        <div class="mat-check">
+                                            <div class="exp">
+                                                <div class="checkbox">
+                                                    <div class="text-center">
+                                                        <input data-b="@req.BadgeNumber" type="checkbox" id="check@(req.RequestID)" name="requestsChecked" value="@req.RequestID" />
+                                                        <label for="check@(req.RequestID)">
+                                                            <span></span>@*@string.Format("{0} - {1} {2}", per.BadgeNumber, per.FirstName, per.LastName)*@
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        @*<input type="checkbox" name="requestsChecked" id="@req.RequestID" value="@req.RequestID" />*@
+                                    </td>
+                                    <td>
+                                        <label>@req.BadgeNumber</label>
+                                    </td>
+                                    <td>
+                                        @Html.ActionLink(req.Name, "Index", "AcceptRequest", new { forBadgeNumberFilter = req.BadgeNumber, fromHome = prePageIsHome }, new { title = MyTime3.Content.PersianString.ShowRequestsFor })
+                                    </td>
+                                    <td>
+                                        <label>@req.WorkflowName</label>
+                                    </td>
+                                    <td class="ltr">
+                                        <label>@req.RequestTime</label>
+                                    </td>
+                                    <td>
+                                        <label>@req.TypeName</label>
+                                    </td>
+                                    <td class="ltr">
+                                        <label>@req.From</label>
+                                    </td>
+                                    <td class="ltr">
+                                        <label>@req.To</label>
+                                    </td>
+                                    <td>
+                                        <label>@(req.ForDeputy ? @req.DeputyTitleName : "-")</label>
+                                    </td>
+                                    <td>
+                                        <label>@req.Descriptions</label>
+                                        @if ((req.Latitude != 0) && (req.Longitude != 0))
+                                        {
+                                            <br />
+                                            <a rel="noopener noreferrer" target="_blank" href="http://maps.google.com/maps?q=@req.Latitude,@req.Longitude">@MyTime3.Content.PersianString.ShowOnMap</a>
+                                        }
+                                        @if (req.ImageData.Length > 1)
+                                        {
+                                            <br />
+                                            <a rel="noopener noreferrer" rel="noopener noreferrer" target="_blank" href="/Request/ShowPhoto/@req.RequestID">@MyTime3.Content.PersianString.ShowAttachmentPhoto</a>
+                                        }
+                                    </td>
+
+                                    @if (req.RequestT5.WorkflowType == T5V3.Model.WorkflowOperations.AllowOverTimes)
+                                    {
+                                        <td>
+                                            <input type="hidden" name="allOverIDs" value="@req.RequestID" />
+                                            <input type="text" name="overValues" id="@("over" + req.RequestID.ToString())" style="height:15px" value="@req.To" />
+                                            <a rel="noopener noreferrer" style="cursor:pointer;text-decoration:underline" onclick="sendEditOverTime(@req.RequestID)">@MyTime3.Content.PersianString.Accept</a>
+                                            @Html.ActionLink(MyTime3.Content.PersianString.Cancel, "Cancel", "AcceptRequest", new { @requestID = req.RequestID, returnToHome = true }, "")
+                                        </td>
+                                    }
+                                    else
+                                    {
+                                        <td>
+                                            @Html.ActionLink(MyTime3.Content.PersianString.Accept, "Accept", "AcceptRequest", new { @requestID = req.RequestID, returnToHome = true }, new { style = "color:green;" })&nbsp;
+                                            @Html.ActionLink(MyTime3.Content.PersianString.Cancel, "Cancel", "AcceptRequest", new { @requestID = req.RequestID, returnToHome = true }, new { style = "color:red;" })
+                                            @if (req.RequestT5.WorkflowType == T5V3.Model.WorkflowOperations.Leave)
+                                            {
+                                                //@Html.ActionLink(string.Format("({0})", MyTime3.Content.PersianString.RemainLeave), "ForPersonnel", "RemainLeave", new { @badgeNumber = req.BadgeNumber, @leaveTypeID = req.RequestT5.LeaveID }, "")
+                                                if (req.RequestT5.IsDaily)
+                                                {
+                                                    //<a href="javascript:showRemain(@req.BadgeNumber, @req.RequestT5.LeaveID)">@string.Format("({0})", MyTime3.Content.PersianString.RemainLeave)</a>
+                                                    <a rel="noopener noreferrer" href="#" onclick="testt(@req.BadgeNumber, @req.RequestT5.LeaveID)">@string.Format("({0})", MyTime3.Content.PersianString.RemainLeave)</a>
+                                                }
+                                            }
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                            <tr style="display:none" data-b="@badge">
+                                <td style="background-color:#eee" colspan="223">
+                                    <input type="button" onclick="accepAllUser(@badge,0)" class="btn btn-success" value="@MyTime3.Content.PersianString.AcceptAllForUSer" />
+                                    <input type="button" onclick="accepAllUser(@badge,1)" class="btn btn-danger" value="@MyTime3.Content.PersianString.CancelAllForUser" />
+                                </td>
+
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+
+
+
+            if ((ViewData["fromHome"] != null) && ((bool)ViewData["fromHome"]))
+            {
+                <input type="hidden" name="returnToHome" value="true" />
+            }
+            if (ViewData["requestBadgeFilter"] != null)
+            {
+                <input type="hidden" name="forBadgeNumberFilter" value="@((long)ViewData["requestBadgeFilter"])" />
+            }
+
+            <div class="text-left" style="height:20px;margin-top:5px;padding-left:10px">
+                <input id="submitAllButton" type="submit" class="btn btn-success" name="action" value="@MyTime3.Content.PersianString.AcceptAll" />
+                <input id="cancelAllButton" type="submit" class="btn btn-danger" name="action" value="@MyTime3.Content.PersianString.CancelAll" />
+            </div>
+        }
+
+        @if (ViewBag.PrePageLink != null)
+        {
+            <div class="align-center" style="display:inline-block;width:100%">
+                <a rel="noopener noreferrer" class="fonttahoma" href="@ViewBag.PrePageLink">@MyTime3.Content.PersianString.ReturnToPrePage</a>
+            </div>
+        }
+    </div>
+    <div id="remainModal2" class="modal fade" data-backdrop="false" role="dialog">
+        <div class="modal-dialog">
+
+            <div class="modal-content">
+                <div class="card-header modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h3 class="modal-title">@MyTime3.Content.PersianString.RemainLeave</h3>
+                </div>
+                <div class="modal-body">
+
+                    @Html.Partial("_RemainLeave", new MyTime3.Models.RemainLeave())
+
+                </div>
+                <div class="modal-footer" style="text-align:center">
+                    <button style="margin:auto" type="button" class="btn btn-lg btn-primary btn-shadow" data-dismiss="modal">@MyTime3.Content.PersianString.OK</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+}
+
+<form id="frmPostData" action="/AcceptRequest/Accept" method="post">
+    <input id="inreqIDp" type="hidden" name="requestID" value="0">
+    <input type="hidden" name="returnToHome" value="true">
+    <input id="inpEV" type="hidden" name="editedValue" value="0">
+
+</form>
+
+
+<script>
+    function chgr(chk) {
+        var g = $(chk).prop("checked");
+        window.location.href = "/Home/Index?g=" + g;
+    }
+
+    function chgrreq(chk) {
+        var g = $(chk).prop("checked");
+        window.location.href = "/AcceptRequest/Index?g=" + g;
+    }
+
+    function accepAllUser(badge, tt) {
+        submitVal = $('#submitAllButton').val();
+        if (tt == 1)
+            submitVal = $('#cancelAllButton').val();
+
+        $('#myForm').append("<input type='hidden' name='action' value='" +
+            submitVal + "' />");
+        $('#myForm').append("<input type='hidden' name='action2' value='"+tt+"' />");
+        var a = document.getElementsByName('requestsChecked');
+        for (var i = 0; i < a.length; i++) {
+            if ($(a[i]).data('b') == badge) { }
+            else {
+                a[i].checked = false;
+            }
+        }
+
+        $('#myForm').submit();
+    }
+
+    function collapser(badge) {
+        var a = document.getElementsByTagName('tr');
+        for (var i = 0; i < a.length; i++) {
+            if (($(a[i]).data('b') == badge) || ((badge == -1) && ($(a[i]).data('b') > 0)))
+                $(a[i]).toggle();
+        }
+
+        var aa = $("i.fa-stack-1x");
+        for (var j = 0; j < aa.length; j++)
+            if (($(aa[j]).data('b') == badge) || ((badge == -1) && ($(aa[j]).data('b') > 0)))
+                $(aa[j]).toggleClass("fa-minus");
+    }
+
+    function sendEditOverTime(requestID) {
+        $('#inreqIDp').val(requestID);
+        $('#inpEV').val($('#over' + requestID).val());
+        $('#frmPostData').submit();
+    }
+
+    function chkuserreq(chkbox, badge) {
+        var a = document.getElementsByName('requestsChecked');
+        for (var i = 0; i < a.length; i++) {
+            if ($(a[i]).data('b') == badge)
+                a[i].checked = chkbox.checked;
+        }
+    }
+
+    function checkAllRequests() {
+        var a = document.getElementsByName('requestsChecked');
+        for (var i = 0; i < a.length; i++) {
+            a[i].checked = true;
+        }
+    }
+    function reverseAllRequests() {
+        var a = document.getElementsByName('requestsChecked');
+        for (var i = 0; i < a.length; i++) {
+            if (a[i].checked == true)
+                a[i].checked = false;
+            else
+                a[i].checked = true;
+        }
+    }
+
+    function testt(badgeNumber, leaveID) {
+        var postData = { badgeNumber: badgeNumber, leaveID: leaveID };
+        $.ajax({
+            url: "/RemainLeave/RemainLeaveJ",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            data: JSON.stringify(postData),
+            beforeSend: function () {
+            },
+            success: function (data) {
+                $("#remainModal2 #tdRemain").html(Number((data.Remain).toFixed(2)));
+                $("#remainModal2 #tdName").html(data.Name);
+                $("#remainModal2 #tdBadgeNumber").html(data.BadgeNumber);
+                $("#remainModal2 #tdLeaveTypeName").html(data.LeaveTypeName);
+                $("#remainModal2 #tdDailyTaken").html(data.DailyTaken);
+                $("#remainModal2 #tdHourlyTaken").html(data.HourlyTakenStr);
+                $("#remainModal2 #tdTotalTaken").html(Number((data.TotalTaken).toFixed(2)));
+                $("#remainModal2 #tdRequested").html(Number((data.Requested).toFixed(2)));
+
+                $("#remainModal2").modal();
+            },
+            error: function (data) {
+                var x = data.responseText.split(',');
+                //console.log(x);
+                var bg = x[3].replace('"BadgeNumber":', '');
+                var name = x[4].replace('"Name":', '');
+                var ltn = x[1].replace('"LeaveTypeName":', '');
+                var dt = x[7].replace('"DailyTaken":', '');
+                var ht = x[22].replace('"HourlyTakenStr":"', '').replace('"}', '');
+                var tt = x[19].replace('"TotalTaken":', '');
+                var req = x[21].replace('"Requested":', '');
+                var rem = x[20].replace('"Remain":', '');
+                $("#remainModal2 #tdRemain").html(Number((rem)));
+                $("#remainModal2 #tdName").html(name.replace('"', '').replace('"', ''));
+                $("#remainModal2 #tdBadgeNumber").html(bg);
+                $("#remainModal2 #tdLeaveTypeName").html(ltn.replace('"', '').replace('"', ''));
+                $("#remainModal2 #tdDailyTaken").html(dt);
+                $("#remainModal2 #tdHourlyTaken").html(ht);
+                $("#remainModal2 #tdTotalTaken").html(Number((tt)));
+                $("#remainModal2 #tdRequested").html(Number((req)));
+
+                $("#remainModal2").modal();
+
+            }
+
+        });
+
+    }
+
+    function showRemain(badgeNumber, leaveID) {
+        var postData = { badgeNumber: badgeNumber, leaveID: leaveID };
+
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            data: JSON.stringify(postData),
+            type: "POST",
+            url: "/RemainLeave/RemainLeaveJ",
+            success: function (data) {
+                $("#remainModal #tdRemain").html(Number((data.Remain).toFixed(2)));
+                $("#remainModal #tdName").html(data.Name);
+                $("#remainModal #tdBadgeNumber").html(data.BadgeNumber);
+                $("#remainModal #tdLeaveTypeName").html(data.LeaveTypeName);
+                $("#remainModal #tdDailyTaken").html(data.DailyTaken);
+                $("#remainModal #tdHourlyTaken").html(data.HourlyTakenStr);
+                $("#remainModal #tdTotalTaken").html(Number((data.TotalTaken).toFixed(2)));
+                $("#remainModal #tdRequested").html(Number((data.Requested).toFixed(2)));
+
+                $("#remainModal").modal();
+
+            },
+            error: function (data) {
+                $("#remainModal #tdRemain").html(Number((data.Remain).toFixed(2)));
+                $("#remainModal #tdName").html(data.Name);
+                $("#remainModal #tdBadgeNumber").html(data.BadgeNumber);
+                $("#remainModal #tdLeaveTypeName").html(data.LeaveTypeName);
+                $("#remainModal #tdDailyTaken").html(data.DailyTaken);
+                $("#remainModal #tdHourlyTaken").html(data.HourlyTakenStr);
+                $("#remainModal #tdTotalTaken").html(Number((data.TotalTaken).toFixed(2)));
+                $("#remainModal #tdRequested").html(Number((data.Requested).toFixed(2)));
+
+                $("#remainModal").modal();
+
+            }
+        });
+
+
+    }
+</script>

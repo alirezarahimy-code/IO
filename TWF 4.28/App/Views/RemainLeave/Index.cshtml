@@ -1,0 +1,212 @@
+﻿@model List<MyTime3.Models.RemainLeave>
+
+@{
+    ViewBag.Title = @MyTime3.Content.PersianString.RemainLeave;
+}
+<div style="max-width:700px;margin:auto">
+    <div class="text-right card-header">
+        <h3>@MyTime3.Content.PersianString.RemainLeave</h3>
+    </div>
+
+    <div class="card" style="padding-top:30px">
+        <div style="padding-right: 30px; padding-left: 30px;">
+            @using (@Html.BeginForm("GetForUser", "RemainLeave", FormMethod.Post, new { @class = "form-horizontal" }))
+            {
+                <div style="display:table;margin-top:30px;width:100%">
+                    <div class="text-right">
+                        <div class="">
+                            @Html.Partial("~/Views/Shared/_SelectMultiUser.cshtml")
+                        </div>
+                    </div>
+                </div>
+
+                <div class="material-input text-right">
+                    <div class="col-sm-8 ">
+                        <div class="group">
+                            <div class="material-dropdown" id="dropdownLeaveTypeID">
+                                <div class="dropdown">
+
+
+                                    @if (Model != null)
+                                    {
+                                        if (Model.Count > 0)
+                                        {
+                                    <input type="hidden" name="LeaveTypeID" id="LeaveTypeID" value="@Model.First().LeaveTypeID">
+                                    <input data-toggle="dropdown" id="leaveName" type="text" value="@Model.First().LeaveTypeName" required>
+                                        }
+                                        else
+                                        {
+                                    <input type="hidden" name="LeaveTypeID" id="LeaveTypeID">
+                                    <input data-toggle="dropdown" id="leaveName" type="text" required>
+                                        }
+                                    }
+                                    else
+                                    {
+                                    <input type="hidden" name="LeaveTypeID" id="LeaveTypeID">
+                                    <input data-toggle="dropdown" id="leaveName" type="text" required>
+                                    }
+
+
+                                    <span class="highlight"></span>
+                                    <span class="bar"></span>
+                                    <label>@MyTime3.Content.PersianString.LeaveType</label>
+
+                                    <ul class="dropdown-menu" id="menuLeaveTypeID">
+                                        @foreach (var r in (List<SelectListItem>)ViewBag.DailyLeaveTypes)
+                                        {
+                                        <li onclick="dropdownChanged('LeaveTypeID','leaveName','@r.Text', @r.Value)"><a rel="noopener noreferrer" style="cursor:pointer">@r.Text</a></li>
+                                        }
+                                    </ul>
+
+                                </div>
+
+                                <span class="caret"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top:30px;">
+                    <div style="width:100%; display:flex;display:-ms-flexbox;align-items:center">
+                        <div class="switch" style="transform:scale(0.75)">
+                            <input id="toggle1" class="toggle" name="year" value="true" type="checkbox">
+                            <label for="toggle1"></label>
+                            <span class="switch-label">@*@MyTime3.Content.PersianString.PreYear*@</span>
+                        </div>
+                        <label>@MyTime3.Content.PersianString.PreYear</label>
+                    </div>
+                </div>
+
+                <div class="material-input text-right">
+                    <div class="col-sm-3">
+                        <div class="group">
+                            <button style="width:100%" class="btn btn-primary btn-shadow" type="button" onclick="loaddata()">@MyTime3.Content.PersianString.OK</button>
+                            @*<button style="width:100%" class="btn btn-primary btn-shadow" type="submit">@MyTime3.Content.PersianString.OK</button>*@
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+
+        <div id="loadeddata">
+
+
+            @foreach (MyTime3.Models.RemainLeave rl in Model)
+            {
+                <text>
+                    <div style="margin:3em" class="text-right blue-border">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td style="padding-left:150px">
+                                        <label>@MyTime3.Content.PersianString.BadgeNumber</label>
+                                    </td>
+                                    <td>
+                                        <label>@rl.BadgeNumber</label>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>
+                                        <label>@MyTime3.Content.PersianString.Name</label>
+                                    </td>
+                                    <td>
+                                        <label>@rl.Name</label>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>
+                                        <label>@MyTime3.Content.PersianString.LeaveType</label>
+                                    </td>
+                                    <td>
+                                        <label>@rl.LeaveTypeName</label>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>
+                                        <label>@MyTime3.Content.PersianString.DailyTaken</label>
+                                    </td>
+                                    <td>
+                                        <label>@rl.DailyTaken</label>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>
+                                        <label>@MyTime3.Content.PersianString.HourlyTaken</label>
+                                    </td>
+                                    <td>
+                                        <label>@rl.HourlyTaken</label>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>
+                                        <label>@MyTime3.Content.PersianString.Taken</label>
+                                    </td>
+                                    <td>
+                                        <label>@rl.TotalTaken.ToString("0.00")</label>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>
+                                        <label>@MyTime3.Content.PersianString.Requested</label>
+                                    </td>
+                                    <td>
+                                        <label>@rl.Requested.ToString("0.00")</label>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td>
+                                        <label>@MyTime3.Content.PersianString.Remain</label>
+                                    </td>
+                                    <td>
+                                        <label>@rl.Remain.ToString("0.00")</label>
+                                    </td>
+                                </tr>
+
+
+                            </tbody>
+                        </table>
+                    </div>
+                </text>
+            }
+
+
+
+
+        </div>
+    </div>
+</div>
+
+<script>
+   
+    function loaddata() {
+        var contact = new Array();
+        $("input[name='SelectedBadgeNumbers']:checked").each(function () {
+            contact.push($(this).val());
+        });
+
+        var postData = {
+            SelectedBadgeNumbers: contact,
+            isSelf: $("input[name='isSelf']:checked").val(),
+            LeaveTypeID: $("input[name='LeaveTypeID']").val(),
+            year: $("input[name='year']").is(':checked')
+        };
+
+        $.ajax({
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(postData),
+            type: "POST",
+            url: "/RemainLeave/GetForUser",
+            success: function (data) {
+                $("#loadeddata").html(data);
+            }
+        });
+    }
+</script>

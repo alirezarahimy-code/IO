@@ -1,0 +1,126 @@
+﻿@{
+    ViewBag.Title = T5V3Web.Content.Persian.RemainedLeaveReport;
+}
+
+
+<div class="page-header">
+    <h3>@T5V3Web.Content.Persian.RemainedLeaveReport</h3>
+</div>
+
+<form class="form-horizontal" action="/RemainedLeavesReport/ToExcel" method="post">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <label>@T5V3Web.Content.Persian.SelectPersonnel ...</label>
+        </div>
+        <div id="panelPersonnel" class="panel-body">
+            @Html.Partial("_SelectUser", T5V3Web.Controllers.UserSelectionController.CreateModel(new List<long>()))
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-sm-4 text-left">
+            <label class="control-label"><input id="chkLimit" type="checkbox">@T5V3Web.Content.Persian.ValueMoreThan</label>
+        </div>
+        <div class="col-sm-6">
+            <input id="nmbLimit" name="nmbLimit" class="form-control" type="number" value="0" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-sm-4 text-left">
+            <label class="control-label">@T5V3Web.Content.Persian.Date</label>
+        </div>
+        <div class="col-sm-4">
+            <input class="datepicker-farsi" style="width:153%" name="dateHijri" id="dateHijri" type="text" value="@(T5V3.Misc.DateConverter.ToHijriDate(DateTime.Now))" />
+            @*<input class="form-control" name="dateHijri" id="dateHijri" type="text" value="@(T5V3.Misc.DateConverter.ToHijriDate(DateTime.Now))" />*@
+        </div>
+        <div class="col-sm-2 text-right">
+            @*<a rel="noopener noreferrer" href="javascript:" onclick="displayDatePicker('dateHijri', this)">@T5V3Web.Content.Persian.Select</a>*@
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-sm-4 text-left">
+            <label class="control-label">@T5V3Web.Content.Persian.LeaveType</label>
+        </div>
+        <div class="col-sm-6">
+            <select id="cmbLeaveType" name="cmbLeaveType" class="form-control">
+                <option value="-1">@T5V3Web.Content.Persian.All</option>
+                @foreach (T5V3.Model.LeaveType lt in ViewBag.LeaveTypes)
+                {
+                    <option value="@lt.LeaveTypeID">@lt.LeaveName</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <div class="top-buffer">
+        <button type="button" class="btn btn-success" onclick="calc()">@T5V3Web.Content.Persian.ShowReport</button>
+        <button type="submit" class="btn btn-default">@T5V3Web.Content.Persian.Excel</button>
+    </div>
+
+
+    <div class="top-buffer">
+        <table class="table table-bordered table-hover table-responsive table-striped">
+            <thead>
+                <tr>
+                    <td>@T5V3Web.Content.Persian.BadgeNumber</td>
+                    <td>@T5V3Web.Content.Persian.Name</td>
+                    <td>@T5V3Web.Content.Persian.LeaveType</td>
+                    <td>@T5V3Web.Content.Persian.LeaveRemain</td>
+                </tr>
+            </thead>
+            <tbody id="tblBody"></tbody>
+        </table>
+    </div>
+</form>
+
+@section scripts{
+    <script src="~/Scripts/index.js"></script>
+    <script>
+    settings = {
+        format: "yyyy/mm/dd",
+        dateSeparator: "/",
+        autoClose: true,
+        labelLanguage: 'farsi'
+        }
+        renderToday();
+</script>
+    <script>
+        function calc() {
+            run_waitMe('win8');
+
+            var selected = [];
+            $('#panelPersonnel input:checked').each(function () {
+                selected.push($(this).val());
+            });
+
+            var toEdit = {
+                forDateHijri: $("#dateHijri").val(), limit: $('#nmbLimit').val(), chkLimit: $('#chkLimit').is(":checked"), leaveTypeID: $('#cmbLeaveType').val(), selectedBadgeNumbers: selected
+            };
+            $.ajax({
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                data: JSON.stringify(toEdit),
+                type: "POST",
+                url: "/RemainedLeavesReport/Calc",
+                success: function (data) {
+
+                    $('#tblBody').children().remove("tr");
+                    for (var i = 0; i < data.length; i++) {
+                        var tr = $('<tr>');
+                        tr.append("<td><label>" + data[i].BadgeNumber + "</label></td>");
+                        tr.append("<td><label>" + data[i].Name + "</label></td>");
+                        tr.append("<td><label>" + data[i].LeaveType + "</label></td>");
+                        tr.append("<td><label>" + data[i].Remain + "</label></td>");
+                        $('#tblBody').append(tr);
+                    }
+                    $('body').waitMe('hide');
+                }
+            });
+
+        }
+    </script>
+}

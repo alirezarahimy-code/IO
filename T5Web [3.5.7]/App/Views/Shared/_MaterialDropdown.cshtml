@@ -1,0 +1,24 @@
+﻿@model T5V3Web.Models.MaterialDropdownParameters
+
+<div id="@Model.DivID" class="material-input text-right">
+    <div class="group" style="width:100%">
+        <div class="material-dropdown">
+            <div class="dropdown">
+                <input id="@Model.InputID" name="@Model.InputName" type="hidden">
+                <input id="@Model.TextboxID" type="text" autocomplete="off" required="" data-toggle="dropdown" aria-expanded="false">
+                <span class="highlight"></span>
+                <span class="bar"></span>
+                <label>@Model.Header</label>
+                <ul class="dropdown-menu">
+                    @foreach (var value in Model.Values)
+                    {
+                        <li onclick="@(Model.ChangeMethod)('@Model.InputID', '@Model.TextboxID', '@value.Value', @value.Key)">
+                            <a  rel="noopener noreferrer" style="cursor:pointer">@value.Value</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+            <span class="caret"></span>
+        </div>
+    </div>
+</div>
