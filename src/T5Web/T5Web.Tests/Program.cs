@@ -486,6 +486,31 @@ namespace T5Web.Tests
                 Assert(Regex.Matches(html, "class=\"is-active\"").Count == 1,
                     name + " must mark exactly one rail item as current.");
             }
+            // Where the view sets a literal ViewBag.Title, the preview's <title> must say the
+            // same thing. The rail label may differ (the console itself calls the device screen
+            // "دستگاه‌ها" in the menu and "دستگاه‌های تردد" on the page), but the page title
+            // must not drift from the view it mirrors.
+            var titled = new Dictionary<string, string>
+            {
+                { "dashboard.html", "Dashboard/Index.cshtml" },
+                { "personnel.html", "Personnel/Index.cshtml" },
+                { "department.html", "Department/Index.cshtml" },
+                { "devices.html", "Device/Index.cshtml" },
+                { "access.html", "Access/Index.cshtml" },
+                { "diagnostics.html", "Diagnostics/Index.cshtml" }
+            };
+            foreach (var pair in titled)
+            {
+                string view = File.ReadAllText(Path.Combine(T5WebRoot, "T5Web.Web", "Views", pair.Value));
+                Match viewTitle = Regex.Match(view, "ViewBag\\.Title = \"([^\"]+)\"");
+                Assert(viewTitle.Success, pair.Value + " no longer sets a literal ViewBag.Title.");
+                string html = File.ReadAllText(Path.Combine(previewRoot, pair.Key));
+                Match pageTitle = Regex.Match(html, "<title>([^<·]+)·");
+                Assert(pageTitle.Success && pageTitle.Groups[1].Value.Trim() == viewTitle.Groups[1].Value.Trim(),
+                    pair.Key + " is titled '" + (pageTitle.Success ? pageTitle.Groups[1].Value.Trim() : "?") +
+                    "' but " + pair.Value + " says '" + viewTitle.Groups[1].Value.Trim() + "'.");
+            }
+
             // The three screens added in waves 2-3 must have a mirror, otherwise the newest
             // work is the part nobody can look at.
             foreach (string required in new[] { "logs.html", "integrity.html", "base-data.html" })
