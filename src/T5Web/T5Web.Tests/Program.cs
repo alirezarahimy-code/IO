@@ -3240,7 +3240,11 @@ namespace T5Web.Tests
                     if (stream.Read(head, 0, 3) < 3) { continue; }
                 }
                 bool bom = head[0] == 0xEF && head[1] == 0xBB && head[2] == 0xBF;
-                if (!bom)
+                // Only files with non-ASCII content need the mark: a view of pure ASCII
+                // compiles the same in any code page, and demanding a BOM for it would be
+                // noise (the same rule tools/text-encoding-gate.py applies).
+                bool nonAscii = File.ReadAllText(view).Any(ch => ch > 127);
+                if (nonAscii && !bom)
                 {
                     noBom.Add(view.Substring(viewsRoot.Length).Replace('\\', '/'));
                 }

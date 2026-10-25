@@ -556,7 +556,7 @@ jobs:
           )
           foreach ($expectation in $expectations) {
             if ($out -notmatch [regex]::Escape($expectation)) {
-              Write-Host "::error::the pool identity fails '$expectation' - the role grants are wrong (db/02, db/04)"
+              Write-Host "::error::the pool identity fails '$expectation' - the role grants are wrong (db/02, db/04). Actual: $out"
               $failed = $true
             }
           }
