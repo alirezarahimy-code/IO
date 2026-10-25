@@ -4,6 +4,7 @@ using System.Web.Http;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
+using MyTime3.Controllers;
 using MyTime3.Lock;
 using TD5;
 
@@ -25,9 +26,10 @@ namespace MyTime3
             GlobalHelper.PersonnelCount = checkLockResult.PersonnelCount;
             GlobalHelper.FulLogoSize = checkLockResult.IsLogoFree;
 
+            // Resolved from <connectionStrings> with <appSettings> fallback (legacy EF format supported).
             Init.Start(
-                ConfigurationManager.AppSettings["PersonnelCnnStr"],
-                ConfigurationManager.AppSettings["T5CnnStr"]);
+                ConnectionStringResolver.PersonnelRequired,
+                ConnectionStringResolver.T5Required);
         }
     }
 }

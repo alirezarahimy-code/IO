@@ -97,6 +97,9 @@ namespace TWF.Infrastructure.Configuration
             if (raw == null)
                 return s;
 
+            // Connection strings may live in <connectionStrings> instead of <appSettings>;
+            // MapFromDictionary keeps working with a flat dictionary, so callers that do have
+            // Web.config configured pass the resolved values through ResolveConnectionStrings.
             s.T5CnnStr = ParseString(raw, "T5CnnStr", string.Empty);
             s.PersonnelCnnStr = ParseString(raw, "PersonnelCnnStr", string.Empty);
             s.LogoPath = ParseString(raw, "LogoPath", string.Empty);

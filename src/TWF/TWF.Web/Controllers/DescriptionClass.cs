@@ -24,12 +24,7 @@ namespace MyTime3.Controllers
 
         private static string ResolveT5SqlConnectionString()
         {
-            string raw = ConfigurationManager.ConnectionStrings["T5CnnStr"]?.ConnectionString;
-            if (string.IsNullOrWhiteSpace(raw))
-            {
-                raw = WebConfigurationManager.AppSettings["T5CnnStr"];
-            }
-            return SqlConnectionStringHelper.ExtractProviderConnectionString(raw ?? string.Empty);
+            return ConnectionStringResolver.T5;
         }
 
         public static string GetDescriptionInDate(long bg, DateTime fromDate)

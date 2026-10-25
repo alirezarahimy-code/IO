@@ -383,17 +383,18 @@ ORDER BY [FromTime] DESC;";
                 return null;
             }
 
+            // Legacy T5 schema (TWF 4.28): [PassCheckProps]([ID], [Badge], [LastChangeDate]) in the T5 database.
+            // A row means "this badge has already changed its password at [LastChangeDate]".
             const string sql = @"
 SELECT TOP 1
     [ID],
-    [BadgeNumber],
-    [LastChangeDate],
-    [ChangedPass]
+    [Badge],
+    [LastChangeDate]
 FROM [PassCheckProps]
-WHERE [BadgeNumber] = @BadgeNumber
-ORDER BY [ID] DESC;";
+WHERE [Badge] = @BadgeNumber
+ORDER BY [LastChangeDate] DESC;";
 
-            using (IDbConnection conn = _connectionFactory(_personnelConnectionString))
+            using (IDbConnection conn = _connectionFactory(_t5ConnectionString))
             {
                 conn.Open();
                 using (IDbCommand cmd = conn.CreateCommand())
@@ -409,9 +410,9 @@ ORDER BY [ID] DESC;";
                         return new PasswordChangeHistoryDto
                         {
                             Id = Convert.ToInt32(reader["ID"]),
-                            BadgeNumber = Convert.ToInt64(reader["BadgeNumber"]),
+                            BadgeNumber = Convert.ToInt64(reader["Badge"]),
                             LastChangeDate = Convert.ToDateTime(reader["LastChangeDate"]),
-                            HasChangedPassword = Convert.ToBoolean(reader["ChangedPass"])
+                            HasChangedPassword = true
                         };
                     }
                 }
@@ -436,21 +437,22 @@ ORDER BY [ID] DESC;";
                 return;
             }
 
+            // Legacy T5 schema (TWF 4.28): keep [Badge]/[LastChangeDate] so an existing
+            // customer database keeps working without a migration.
             const string sql = @"
-IF EXISTS (SELECT 1 FROM [PassCheckProps] WHERE [BadgeNumber] = @BadgeNumber)
+IF EXISTS (SELECT 1 FROM [PassCheckProps] WHERE [Badge] = @BadgeNumber)
 BEGIN
     UPDATE [PassCheckProps]
-    SET [LastChangeDate] = @ChangedAt,
-        [ChangedPass] = 1
-    WHERE [BadgeNumber] = @BadgeNumber;
+    SET [LastChangeDate] = @ChangedAt
+    WHERE [Badge] = @BadgeNumber;
 END
 ELSE
 BEGIN
-    INSERT INTO [PassCheckProps] ([BadgeNumber], [LastChangeDate], [ChangedPass])
-    VALUES (@BadgeNumber, @ChangedAt, 1);
+    INSERT INTO [PassCheckProps] ([Badge], [LastChangeDate])
+    VALUES (@BadgeNumber, @ChangedAt);
 END";
 
-            using (IDbConnection conn = _connectionFactory(_personnelConnectionString))
+            using (IDbConnection conn = _connectionFactory(_t5ConnectionString))
             {
                 conn.Open();
                 using (IDbCommand cmd = conn.CreateCommand())

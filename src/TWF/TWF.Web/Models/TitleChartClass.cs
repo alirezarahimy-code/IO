@@ -41,12 +41,7 @@ namespace MyTime3.Models
         {
             get
             {
-                string raw = ConfigurationManager.ConnectionStrings["Personnel"]?.ConnectionString;
-                if (string.IsNullOrWhiteSpace(raw))
-                {
-                    raw = ConfigurationManager.AppSettings["PersonnelCnnStr"];
-                }
-                return Init.NormalizeAdoNetConnectionString(raw);
+                return Init.NormalizeAdoNetConnectionString(ConnectionStringResolver.Personnel);
             }
             set
             {

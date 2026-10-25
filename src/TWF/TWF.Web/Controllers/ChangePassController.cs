@@ -19,9 +19,11 @@ namespace MyTime3.Controllers
     {
         public class PassCheckProps
         {
-            public long BadgeNumber { get; set; }
+            public int ID { get; set; }
 
-            public DateTime DateChange { get; set; }
+            public long Badge { get; set; }
+
+            public DateTime LastChangeDate { get; set; }
         }
 
         public static bool ChangePassCheck(long badge, out int message)
@@ -72,11 +74,16 @@ namespace MyTime3.Controllers
                 return DateTime.Now <= history.LastChangeDate.AddMonths(limitMonths);
             }
 
-            string connectionString = Init.NormalizeAdoNetConnectionString(ConfigurationManager.AppSettings["PersonnelCnnStr"]);
+            // Password history lives in the T5 database as [PassCheckProps]([Badge], [LastChangeDate]),
+            // exactly as the legacy TWF 4.28 recorded it (see db/README.md).
+            string connectionString = ConnectionStringResolver.T5Required;
             using (IDbConnection cnn = new SqlConnection(connectionString))
             {
-                string sql = $"SELECT * FROM PassCheck WHERE BadgeNumber = @Badge AND DateChange >= DATEADD(month, -{limitMonths}, GETDATE())";
-                List<PassCheckProps> list = cnn.Query<PassCheckProps>(sql, new { Badge = badge }).ToList();
+                const string sql = "SELECT TOP 1 [ID], [Badge], [LastChangeDate] FROM [PassCheckProps] " +
+                                   "WHERE [Badge] = @Badge AND [LastChangeDate] >= @LimitDate";
+                List<PassCheckProps> list = cnn.Query<PassCheckProps>(
+                    sql,
+                    new { Badge = badge, LimitDate = DateTime.Now.AddMonths(-limitMonths) }).ToList();
                 return list.Count > 0;
             }
         }
@@ -89,10 +96,10 @@ namespace MyTime3.Controllers
                 return history != null && history.HasChangedPassword;
             }
 
-            string connectionString = Init.NormalizeAdoNetConnectionString(ConfigurationManager.AppSettings["PersonnelCnnStr"]);
+            string connectionString = ConnectionStringResolver.T5Required;
             using (IDbConnection cnn = new SqlConnection(connectionString))
             {
-                const string sql = "SELECT * FROM PassCheck WHERE BadgeNumber = @Badge";
+                const string sql = "SELECT TOP 1 [ID], [Badge], [LastChangeDate] FROM [PassCheckProps] WHERE [Badge] = @Badge";
                 List<PassCheckProps> list = cnn.Query<PassCheckProps>(sql, new { Badge = badge }).ToList();
                 return list.Count > 0;
             }
@@ -106,10 +113,14 @@ namespace MyTime3.Controllers
                 return;
             }
 
-            string connectionString = Init.NormalizeAdoNetConnectionString(ConfigurationManager.AppSettings["PersonnelCnnStr"]);
+            string connectionString = ConnectionStringResolver.T5Required;
             using (IDbConnection cnn = new SqlConnection(connectionString))
             {
-                const string sql = "INSERT INTO PassCheck (BadgeNumber, DateChange) VALUES (@B1, @D1)";
+                const string sql = @"
+IF EXISTS (SELECT 1 FROM [PassCheckProps] WHERE [Badge] = @B1)
+    UPDATE [PassCheckProps] SET [LastChangeDate] = @D1 WHERE [Badge] = @B1;
+ELSE
+    INSERT INTO [PassCheckProps] ([Badge], [LastChangeDate]) VALUES (@B1, @D1);";
                 cnn.Execute(sql, new
                 {
                     B1 = badge,

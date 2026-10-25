@@ -40,12 +40,12 @@ namespace MyTime3.Controllers
 
         public static T5V3DBManager GetT5DBInstance()
         {
-            return new T5V3DBManager(WebConfigurationManager.AppSettings["T5CnnStr"]);
+            return new T5V3DBManager(ConnectionStringResolver.T5Required);
         }
 
         public static PersonnelSystem GetPersonnelSystem()
         {
-            return new PersonnelSystem(WebConfigurationManager.AppSettings["PersonnelCnnStr"]);
+            return new PersonnelSystem(ConnectionStringResolver.PersonnelRequired);
         }
     }
 }
