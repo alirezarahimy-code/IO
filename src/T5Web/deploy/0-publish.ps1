@@ -164,7 +164,12 @@ if ($leaks.Count -gt 0) {
              ForEach-Object { $_.FullName }) -join ', '))
 }
 
-foreach ($required in @('Web.config', 'bin\T5Web.Admin.dll', 'Views')) {
+# Views\Web.config is not optional: without it a Razor page compiles against
+# System.Web.WebPages.WebPage instead of System.Web.Mvc.WebViewPage, and the first
+# request to any screen answers 500 "CS0103: The name 'model' does not exist"
+# (BUG-38). The same file has to be in the *published* folder, which is what this
+# list checks - a source-tree-only config is the bug, not the fix.
+foreach ($required in @('Web.config', 'bin\T5Web.Admin.dll', 'Views', 'Views\Web.config')) {
     if (-not (Test-Path (Join-Path $OutputPath $required))) {
         throw "the published folder is missing $required."
     }

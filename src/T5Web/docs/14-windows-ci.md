@@ -28,7 +28,7 @@ IIS هم مؤلفهٔ خودِ ویندوز است. «اجازه دادن» ای
 | :-- | :-- | :-- |
 | Static gates | `build-and-test.sh --gates` | ۱۳ گیت، همان‌ها که روی لینوکس هم اجرا می‌شوند (بدون وابستگی به ماشین توسعه) |
 | Build | `msbuild T5Web.sln /p:Configuration=Release` | **اولین کامپایل واقعی C#** — چیزی که تا امروز انجام نشده بود |
-| Suite | `T5Web.Tests.exe` | هر ۳۹ آزمون (`T01`…`T39`) روی .NET Framework 4.7.2 واقعی |
+| Suite | `T5Web.Tests.exe` | هر ۴۰ آزمون (`T01`…`T40`) روی .NET Framework 4.7.2 واقعی |
 | SQL | SQL Server Express **LocalDB** (روی تصویر runner موجود است) | همان موتور T-SQL، بدون نیاز به نصب |
 | Fixture | `tools/synthetic-schema.py` | ۷۱ جدول از مدل اثبات‌شده (۷۵ منهای ۴ جدول کاتالوگ `device`) |
 | Scripts | `db/01` · `db/02` (دو بار) · `verify.sql` · `03-relations.sql` | اسکریپت‌ها واقعاً اجرا می‌شوند، idempotent می‌مانند، `MISSING`/`VIOLATION` ندارند |

@@ -50,7 +50,10 @@
 
 | **BUG-37** | موتور EF در حالت Code First بالا می‌آمد | `PersonnelEngineDirectory.OpenSystem` | `PersonnelSystem` یک `DbContext` از نوع **Database First** است و رشتهٔ اتصال با `metadata=res://*/…csdl…` می‌خواهد. پورتال رشتهٔ ADO خودش را می‌داد، پس EF آن را Code First می‌خواند و هر صفحه‌ای که سازمان را می‌خواند (داشبورد، واحدها، دستگاه‌ها…) با «The context is being used in Code First mode…» می‌افتاد. نسخهٔ دسکتاپ این را نمی‌دید چون `Web.config` قدیمی همان رشتهٔ `metadata=` را داشت. حالا رشتهٔ entity از **نام منابع واقعی اسمبلی** ساخته می‌شود (`res://*/DB.PersonnelMdl.csdl…`) و نبودِ مدل، `EngineAccessException` می‌دهد نه خطای EF | `T39` |
 
-**آمار:** ۳۷ عیب ثبت‌شده · ۳۹ آزمون در `T5Web.Tests` · ۰ عیب باز بدون آزمون.
+| **BUG-38** | `Views/Web.config` وجود نداشت، پس هیچ نمای Razor کامپایل نمی‌شد | `T5Web.Web/Views/` | در MVC روی .NET Framework، همین فایل است که صفحهٔ Razor را از `WebPage` به `WebViewPage` می‌برد؛ بدون آن `@model`، `ViewBag` و `Url` وجود ندارند و **هر صفحه** با `500 · CS0103: The name 'model' does not exist` می‌افتد. کامپایلر این را نمی‌بیند (فایل کانفیگ است) و بازبینی هم ندید. حالا فایل استاندارد MVC 5 در مخزن است، `0-publish.ps1` نبودِ آن را در پوشهٔ منتشرشده رد می‌کند و gate استقرار هم می‌سنجد | `T40` |
+| **BUG-39** | provider EF ثبت نشده بود | `T5Web.Web/Web.config`، `T5Web.Data.csproj` | مدل Database First موتور برای اجرا به provider `System.Data.SqlClient` نیاز دارد؛ نبودنش `MetadataException: No Entity Framework provider found…` می‌دهد — روی **هر** صفحه‌ای که سازمان را می‌خواند. حالا بخش `entityFramework` در `Web.config` است و `EntityFramework.dll`/`EntityFramework.SqlServer.dll` با `Private=true` کنار سایت کپی می‌شوند (ثبت بدون اسمبلی، همان خطا یک قدم بعدتر است) | `T40` |
+
+**آمار:** ۳۹ عیب ثبت‌شده · ۴۰ آزمون در `T5Web.Tests` · ۰ عیب باز بدون آزمون.
 
 ## چگونه یک عیب جدید اضافه می‌شود
 

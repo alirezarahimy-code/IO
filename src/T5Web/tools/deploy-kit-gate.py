@@ -179,6 +179,20 @@ def check_files_exist():
             if table in grants:
                 problems.append("db/04-grant-app-pool-login.sql repeats the privilege list; "
                                 "the role in db/02 owns it")
+    # Views\Web.config is what makes @model / ViewBag / Url exist inside a Razor page.
+    # Without it every screen answers 500 CS0103 on a real IIS (BUG-38); the compiler
+    # never sees it, and neither does a code review.
+    views_config = os.path.join(ROOT, "T5Web.Web", "Views", "Web.config")
+    if not os.path.exists(views_config):
+        problems.append("T5Web.Web/Views/Web.config is missing: no Razor page can inherit "
+                        "WebViewPage, so every screen answers 500 (BUG-38)")
+    else:
+        with open(views_config, encoding="utf-8") as handle:
+            views = handle.read()
+        for needed in ("pageBaseType=\"System.Web.Mvc.WebViewPage\"", "System.Web.Mvc.MvcWebRazorHostFactory"):
+            if needed not in views:
+                problems.append("Views/Web.config does not set %s" % needed)
+
     if not os.path.exists(os.path.join(ROOT, "T5Web.Web", "Web.config")):
         problems.append("T5Web.Web/Web.config is missing")
     else:
@@ -187,6 +201,13 @@ def check_files_exist():
         for key in ("T5CnnStr", "PersonnelCnnStr", "T5WebMode", "T5WebLegacyUrl"):
             if 'key="%s"' % key not in config:
                 problems.append("Web.config has no appSetting %s, but the deploy script patches it" % key)
+        # The engine's Database First context needs EF's SqlClient provider, and EF needs
+        # it *registered*: without the section the first organisation screen answers
+        # MetadataException "No Entity Framework provider found" (BUG-39).
+        for needed in ('invariantName="System.Data.SqlClient"', "EntityFramework.SqlServer"):
+            if needed not in config:
+                problems.append("Web.config does not register the EF provider (%s); the engine's "
+                                "context fails on its first query (BUG-39)" % needed)
     return problems
 
 

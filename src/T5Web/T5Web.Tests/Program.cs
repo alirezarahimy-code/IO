@@ -67,6 +67,7 @@ namespace T5Web.Tests
             RunTest("T37: what only a real IIS can show (x86 engine, 32-bit pool, no duplicate config keys)", TestWebHostSettings);
             RunTest("T38: the grants are valid T-SQL and the job that runs them reads the exit code", TestGrantStatementsExecute);
             RunTest("T39: the engine is Database First, so it gets an entity connection string", TestEngineConnectionString);
+            RunTest("T40: a Razor page can only work with Views/Web.config and a registered EF provider", TestViewHostConfiguration);
 
             Console.WriteLine("----------------------------------------------------------------------");
             Console.WriteLine($"  Summary: {_passed} Passed, {_failed} Failed");
@@ -3129,6 +3130,49 @@ namespace T5Web.Tests
             string directory = File.ReadAllText(Path.Combine(T5WebRoot, "T5Web.Data", "Engine", "PersonnelEngineDirectory.cs"));
             Assert(!directory.Contains("new PersonnelSystem(_connectionString())") && !directory.Contains("new PersonnelSystem(connectionString)"),
                 "the engine must never be handed the raw provider connection string (BUG-37).");
+        }
+
+        /// <summary>
+        /// T40 - the two configuration files that make a view and a query work (BUG-38, BUG-39).
+        ///
+        /// Both defects were invisible until the first real IIS: no compiler reads
+        /// Views\Web.config, and a missing EF provider is registered configuration rather
+        /// than code. The screens answered
+        ///   500 CS0103: The name 'model' does not exist in the current context
+        ///   500 MetadataException: No Entity Framework provider found for ... 'System.Data.SqlClient'
+        /// and nothing in the build or the suite noticed.
+        /// </summary>
+        private static void TestViewHostConfiguration()
+        {
+            string viewsConfig = Path.Combine(T5WebRoot, "T5Web.Web", "Views", "Web.config");
+            Assert(File.Exists(viewsConfig),
+                "T5Web.Web/Views/Web.config is missing: Razor pages then inherit WebPage instead of "
+                + "WebViewPage, and every screen answers 500 CS0103 (BUG-38).");
+            string views = File.ReadAllText(viewsConfig);
+            Assert(views.Contains("pageBaseType=\"System.Web.Mvc.WebViewPage\""),
+                "Views/Web.config must set pageBaseType to System.Web.Mvc.WebViewPage.");
+            Assert(views.Contains("System.Web.Mvc.MvcWebRazorHostFactory"),
+                "Views/Web.config must use the MVC Razor host factory, or @model is not recognised.");
+
+            string publish = File.ReadAllText(Path.Combine(T5WebRoot, "deploy", "0-publish.ps1"));
+            Assert(publish.Contains("Views\\Web.config"),
+                "0-publish.ps1 must refuse to publish a folder without Views\\Web.config: a config that "
+                + "exists only in the source tree is the bug, not the fix (BUG-38).");
+
+            string web = File.ReadAllText(Path.Combine(T5WebRoot, "T5Web.Web", "Web.config"));
+            Assert(web.Contains("invariantName=\"System.Data.SqlClient\""),
+                "Web.config must register EF's SqlClient provider; without it the engine's Database "
+                + "First context answers MetadataException on its first query (BUG-39).");
+            Assert(web.Contains("EntityFramework.SqlServer"),
+                "Web.config must point the provider at EntityFramework.SqlServer.");
+
+            string data = File.ReadAllText(Path.Combine(T5WebRoot, "T5Web.Data", "T5Web.Data.csproj"));
+            foreach (string assembly in new[] { "EntityFramework", "EntityFramework.SqlServer" })
+            {
+                Assert(data.Contains("Include=\"" + assembly + "\""),
+                    "T5Web.Data must deploy " + assembly + ": registering a provider whose assembly is "
+                    + "not next to the site is the same failure one step later (BUG-39).");
+            }
         }
 
         private static void TestNoLockDependency()

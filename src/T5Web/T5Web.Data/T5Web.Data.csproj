@@ -26,6 +26,19 @@
       <HintPath>..\..\..\T5Web [3.5.7]\App\bin\Personnel.dll</HintPath>
       <Private>true</Private>
     </Reference>
+    <!-- EF6 is what the engine's Database First model needs at run time, and its
+         SqlClient provider has to be *deployed* as well as registered in Web.config:
+         "No Entity Framework provider found for the ADO.NET provider with invariant
+         name 'System.Data.SqlClient'" is the error when only the first half is done
+         (BUG-39). The pinned build ships both, so they are copied next to the site. -->
+    <Reference Include="EntityFramework">
+      <HintPath>..\..\..\T5Web [3.5.7]\App\bin\EntityFramework.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer">
+      <HintPath>..\..\..\T5Web [3.5.7]\App\bin\EntityFramework.SqlServer.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
     <Reference Include="T5V3.DB">
       <HintPath>..\..\..\T5Web [3.5.7]\App\bin\T5V3.DB.dll</HintPath>
       <Private>true</Private>
