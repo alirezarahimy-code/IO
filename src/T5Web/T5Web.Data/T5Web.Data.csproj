@@ -8,6 +8,7 @@
     <RootNamespace>T5Web.Data</RootNamespace>
     <AssemblyName>T5Web.Data</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <Platforms>AnyCPU</Platforms>
     <LangVersion>7.3</LangVersion>
   </PropertyGroup>
   <ItemGroup>
@@ -16,6 +17,7 @@
     <Reference Include="System.Data" />
     <Reference Include="Dapper">
       <HintPath>..\..\T5Web [3.5.7]\App\bin\Dapper.dll</HintPath>
+      <Private>true</Private>
     </Reference>
     <!-- Pinned engine build (engine/engine-pin.json). Engine/PersonnelEngineDirectory.cs
          reads organisational master data through these DA types, so the portal never
@@ -35,7 +37,23 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\T5Web.Domain\T5Web.Domain.csproj">
-      <Project>{B1000001-0000-4000-8000-000000000001}</Project>
+      <Project>{B1000001-0000-4000-8000-000000000001}
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+</Project>
       <Name>T5Web.Domain</Name>
     </ProjectReference>
   </ItemGroup>
