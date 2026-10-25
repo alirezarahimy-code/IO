@@ -225,6 +225,18 @@ jobs:
           }
           if ($code -ne 401) {
             Write-Host "::error::anonymous request returned $code, expected 401 (Windows authentication)"
+            # The body of a 500 is the only place the actual exception is written down:
+            # IIS answers with the yellow screen, and job logs are unreadable here.
+            try {
+              $raw = Invoke-WebRequest -Uri $url -UseBasicParsing -ErrorAction SilentlyContinue
+              $text = $raw.Content
+            } catch {
+              $stream = $_.Exception.Response.GetResponseStream()
+              $text = (New-Object System.IO.StreamReader($stream)).ReadToEnd()
+            }
+            $lines = ($text -split "`r?`n" | Where-Object { $_ -match 'Exception|error|Error|description|Description|line [0-9]+' } |
+                      Select-Object -First 8) -join ' | '
+            Write-Host ("::error::body: " + $lines)
             exit 1
           }
           Write-Host '  PASS: anonymous is refused before MVC runs'
