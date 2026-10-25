@@ -1,0 +1,126 @@
+@model T5Web.Web.Controllers.DashboardModel
+@using T5Web.Application.Services
+@{
+    ViewBag.Title = "داشبورد عملیاتی";
+}
+<div class="kpis">
+    <div class="kpi">
+        <div class="kpi__label">پرسنل ثبت‌شده</div>
+        <div class="kpi__value">@Model.Personnel.ToString("N0")</div>
+    </div>
+    <div class="kpi">
+        <div class="kpi__label">واحد سازمانی</div>
+        <div class="kpi__value">@Model.Departments.ToString("N0")</div>
+        <div class="kpi__note">عمق چارت: @Model.DepartmentDepth سطح</div>
+    </div>
+    <div class="kpi">
+        <div class="kpi__label">دستگاه‌ها</div>
+        <div class="kpi__value">@Model.Devices.ToString("N0")</div>
+        <div class="kpi__note">
+            @if (Model.SilentDevices > 0)
+            {
+                <span class="tag tag--warn">@Model.SilentDevices بدون تردد بیش از ۲۴ ساعت</span>
+            }
+            else
+            {
+                <span class="tag tag--ok">همه دستگاه‌ها فعال</span>
+            }
+        </div>
+    </div>
+    <div class="kpi">
+        <div class="kpi__label">مراحل گردش کار</div>
+        <div class="kpi__value">@Model.WorkflowSteps.ToString("N0")</div>
+    </div>
+    <div class="kpi">
+        <div class="kpi__label">سطرهای دسترسی</div>
+        <div class="kpi__value">@Model.PendingPermissions.ToString("N0")</div>
+    </div>
+</div>
+
+<div class="panel">
+    <div class="panel__head">
+        <h2>وضعیت دستگاه‌ها</h2>
+        <a href="@Url.Action("Index", "Device")" class="btn btn--ghost">همه دستگاه‌ها</a>
+    </div>
+    @if (Model.DeviceSamples.Count == 0)
+    {
+        <div class="empty">دستگاهی ثبت نشده است.</div>
+    }
+    else
+    {
+        <table class="grid">
+            <thead>
+                <tr>
+                    <th class="num">شماره</th>
+                    <th>نام دستگاه</th>
+                    <th>درب</th>
+                    <th>اتصال</th>
+                    <th>آخرین تردد</th>
+                    <th>وضعیت</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var device in Model.DeviceSamples)
+            {
+                bool stale = device.IsStale(DateTime.UtcNow);
+                <tr>
+                    <td class="num">@device.MachineNumber</td>
+                    <td>@device.MachineName</td>
+                    <td>@device.GateName</td>
+                    <td class="mono">@device.Endpoint</td>
+                    <td class="num">@(device.LastStamp.HasValue ? PersonnelService.ToJalali(device.LastStamp) : "—")</td>
+                    <td>
+                        @if (stale)
+                        {
+                            <span class="tag tag--warn"><span class="dot dot--warn"></span>بدون تردد</span>
+                        }
+                        else
+                        {
+                            <span class="tag tag--ok"><span class="dot dot--ok"></span>سالم</span>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div>
+
+<div class="panel">
+    <div class="panel__head">
+        <h2>آخرین تغییرات مدیریتی</h2>
+        <a href="@Url.Action("Index", "Audit")" class="btn btn--ghost">رخدادها</a>
+    </div>
+    @if (Model.ChainBroken)
+    {
+        <div class="panel__body">
+            <div class="notice notice--bad">
+                زنجیره هش رخدادها در بازه بازبینی‌شده گسسته است؛ احتمال تغییر یا حذف سطر وجود دارد.
+            </div>
+        </div>
+    }
+    @if (Model.RecentAudit.Count == 0)
+    {
+        <div class="empty">هنوز رخدادی ثبت نشده است.</div>
+    }
+    else
+    {
+        <table class="grid">
+            <thead>
+                <tr><th>زمان</th><th>کاربر</th><th>قابلیت</th><th>عملیات</th><th>هدف</th></tr>
+            </thead>
+            <tbody>
+            @foreach (var entry in Model.RecentAudit)
+            {
+                <tr>
+                    <td class="num nowrap">@PersonnelService.ToJalali(entry.UtcTime)</td>
+                    <td>@entry.Actor</td>
+                    <td>@entry.FeatureFa</td>
+                    <td>@entry.Action</td>
+                    <td class="mono">@entry.Target</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div>

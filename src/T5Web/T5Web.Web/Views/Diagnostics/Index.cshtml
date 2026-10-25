@@ -1,0 +1,54 @@
+@{
+    ViewBag.Title = "پایش سامانه";
+    bool reachable = ViewBag.Reachable != null && (bool)ViewBag.Reachable;
+    var counts = ViewBag.Counts as IReadOnlyDictionary<string, int>;
+}
+<div class="panel">
+    <div class="panel__head">
+        <h2>وضعیت اتصال</h2>
+        @if (reachable)
+        {
+            <span class="tag tag--ok"><span class="dot dot--ok"></span>برقرار</span>
+        }
+        else
+        {
+            <span class="tag tag--bad"><span class="dot dot--bad"></span>برقرار نیست</span>
+        }
+    </div>
+    <div class="panel__body">
+        @if (!reachable)
+        {
+            <div class="notice notice--bad">@ViewBag.Error</div>
+        }
+        <div class="form-grid">
+            <div class="field"><label>نسخه پورتال</label><input type="text" value="@ViewBag.ProductVersion" readonly /></div>
+            <div class="field"><label>سرور</label><input type="text" value="@ViewBag.MachineName" readonly /></div>
+            <div class="field"><label>زمان سرور</label><input type="text" value="@(((DateTime)ViewBag.ServerTime).ToString("yyyy-MM-dd HH:mm"))" readonly /></div>
+        </div>
+    </div>
+</div>
+
+@if (counts != null && counts.Count > 0)
+{
+    <div class="panel">
+        <div class="panel__head"><h2>شمارش سطرها</h2></div>
+        <table class="grid">
+            <thead><tr><th>جدول</th><th class="num">تعداد</th><th>توضیح</th></tr></thead>
+            <tbody>
+            @foreach (var pair in counts)
+            {
+                <tr>
+                    <td class="mono">@pair.Key</td>
+                    <td class="num">@(pair.Value < 0 ? "—" : pair.Value.ToString("N0"))</td>
+                    <td class="muted">
+                        @if (pair.Value < 0)
+                        {
+                            <span class="tag tag--bad">جدول در دسترس نیست</span>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

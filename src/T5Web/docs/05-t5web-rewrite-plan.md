@@ -1,0 +1,133 @@
+# ۰۵ — نقشه بازنویسی پورتال T5Web (۶۴ کنترلر قدیمی → ماژول‌های جدید)
+
+**تاریخ:** ۱۴۰۴/۰۸/۰۳
+**پیش‌نیاز:** `docs/04-t5web-vs-t5v3-orchestration-fit.md` و `docs/03-engine-compatibility-verdict.md` (در پروژه ARIA)
+
+---
+
+## ۱. چرا بازنویسی، و چرا مستقل
+
+`T5V3Web.dll` نسخه ۳.۵.۷ شصت‌وچهار کنترلر دارد، همه در یک اسمبلی بدون سورس، با
+Kendo/jQuery از CDN و بدون هیچ آزمونی. دسترسی‌ها در یک مدل تخت با حدود چهل بولی
+(`MenusAccessModel`) نگه‌داری می‌شوند، یعنی «چه کسی چه کاری می‌تواند بکند» نه قابل
+آزمون است و نه قابل حسابرسی.
+
+این پورتال باید سال‌ها در شبکه بسته سازمان اجرا شود، پس سه چیز لازم دارد که در نسخه
+فعلی نیست:
+
+1. **سورس واقعی** — تغییر یک برچسب نباید به دی‌کامپایل نیاز داشته باشد؛
+2. **آفلاین کامل** — بدون CDN، بدون فونت وب، بدون فراخوانی بیرونی؛
+3. **دسترسی قابل حسابرسی** — هر قابلیت یک شناسه پایدار و هر تغییر یک سطر در دفتر رخداد.
+
+پورتال **مستقل از آریا** است: اسمبلی، جلسه، کوکی، مسیر انتشار و لاگین SQL جدا.
+تنها اشتراک، پایگاه‌داده T5 است (بندهای R1–R8 در `docs/02-shared-database-contract.md`).
+
+---
+
+## ۲. وضعیت پیاده‌سازی — فاز A
+
+| بخش | وضعیت | جایگاه |
+|---|---|---|
+| احراز هویت ویندوز (Negotiate) و تطبیق با `UserInfo.WebUser` | ✅ | `T5Web.Web/Security/AdminAuthorize.cs` |
+| دروازه دسترسی بر پایه قابلیت (پیش‌فرض ممنوع، «ممنوع» همیشه برنده) | ✅ | `T5Web.Application/Services/AccessService.cs` |
+| دفتر رخداد فقط-افزودنی با زنجیره هش SHA-256 | ✅ | `T5Web.Application/Services/AuditService.cs` |
+| پرسنل: جست‌وجو، فیلتر واحد، ویرایش با اعتبارسنجی سمت سرور | ✅ | `Controllers/PersonnelController.cs` |
+| چارت سازمانی با جلوگیری از حلقه | ✅ | `Controllers/DepartmentController.cs` |
+| دستگاه‌ها و درب‌ها (پیکربندی اتصال، IP/پورت اعتبارسنجی‌شده) | ✅ | `Controllers/DeviceController.cs` |
+| ماتریس سطح دسترسی | ✅ | `Controllers/AccessController.cs` |
+| زنجیره گردش کار با اعتبارسنجی کامل | ✅ | `Controllers/WorkflowController.cs` |
+| رخدادها و پایش سامانه | ✅ | `Controllers/AuditController.cs`، `DiagnosticsController.cs` |
+| پایگاه‌داده: دو جدول اختصاصی + لاگین کم‌دسترسی | ✅ | `db/01-t5web-objects.sql`، `db/02-t5web-sql-login.sql` |
+| آزمون‌ها: ۱۲ مورد، بدون هیچ وابستگی خارجی | ✅ | `T5Web.Tests/Program.cs` |
+
+فاز A همان چیزی است که «مدیر روزمره» لازم دارد: چه کسی هستم، چه اجازه‌ای دارم،
+چه کسی در سازمان هست، دستگاه‌ها سالم‌اند یا نه، و چه چیزی تغییر کرده است.
+
+---
+
+## ۳. نقشه ۶۴ کنترلر قدیمی
+
+### فاز A — پایه و عملیات روزمره (پیاده‌سازی شد)
+
+| کنترلر قدیمی | تصمیم |
+|---|---|
+| `HomeController` | جایگزین: `DashboardController` (ریشه پورتال، بدون صفحه معرفی) |
+| `DashboardController` | شمارش‌های عملیاتی + وضعیت دستگاه‌ها + آخرین رخدادها |
+| `UserInfoController` | `PersonnelController` (جست‌وجو/ویرایش). نوشتن فیلدهای حساس (عکس، اثر انگشت، رمز) عمداً حذف شد |
+| `PersonnelStatusController` | در داشبورد ادغام شد (پرسنل پایان‌یافته/فعال) |
+| `DeviceController` | `DeviceController` جدید، فقط فیلدهای قابل پیکربندی انسان |
+| `WorkflowController` | `WorkflowController` جدید با اعتبارسنجی زنجیره |
+| `ViewSystemLogsController` | `AuditController` روی جدول اختصاصی `T5WebAudit` (جدول `SystemLog` موتور دست‌نخورده می‌ماند) |
+
+### فاز B — داده پایه و ساختار سازمانی
+
+| کنترلر قدیمی | تصمیم |
+|---|---|
+| `DepartmentController`، `DeptsChartController` | ✅ ادغام در `DepartmentController` جدید (درخت + جلوگیری از حلقه) |
+| `TitleController` | ماژول «عناوین شغلی» روی `TitlesChartDA` |
+| `CertificateController`، `EmpTypeController` | ماژول «داده پایه» (CRUD ساده، دو جدول کوچک) |
+| `LeaveTypeController`، `LeaveDescriptionController`، `ExitTypeController` | ماژول «انواع مرخصی» روی `LeaveTypeDA`/`LeaveDescriptionDA` |
+| `CalendarController`، `RamezanController` | ماژول «تقویم و تعطیلات» روی `CalendarDA`/`RamezanDA` |
+| `RuleController`، `AssignRuleController` | ماژول «قواعد حضور» روی `RuleDA`/`UserRuleDA`/`DepartmentRuleDA`؛ نیازمند تضادسنجی قاعده‌ها |
+| `UserAddPropertyController` | ماژول «فیلدهای اضافی پرسنل» روی `PropertyDA` |
+| `ParametersController` | ماژول «پارامترهای سامانه» روی `ParameterDA` (فقط مدیر پورتال) |
+| `DeputyController`، `ManagerController` | ماژول «جانشین و مدیر» روی `DeputyDA`/`PersonnelDeputyDA` |
+| `ScheduleController`، `TempSchedulesController`، `ShiftController`، `GroupAssignShiftController` | ماژول «شیفت و برنامه» روی `ScheduleDA`/`ShiftDA`/`TempScheduleDA`/`UserShiftDA` |
+| `CardController`، `TransferRemainedLeaveController` | مانده مرخصی و انتقال سالانه روی `YearRemainDA`/`LeavesAddedDA` |
+| `InsertDailyLeaveController`، `InsertRecordController`، `EditLateEarlyController`، `PermitController`، `TotalControlController` | «اصلاح دستی» با ثبت اجباری در دفتر رخداد (هر نوشتن، یک سطر) |
+| `ChangeLockController`، `USBManagementController` | حذف قفل سخت‌افزاری؛ در پورتال جدید وجود ندارد (Zero-Lock) |
+| `RecordsController`، `UserSelectionController` | در ماژول‌های پرسنل/گزارش ادغام می‌شوند (انتخاب کاربر یک کامپوننت است، نه صفحه) |
+
+### فاز C — گزارش‌ها
+
+گزارش‌های RDLC موجود موتور دوباره استفاده می‌شوند (`T5V3.Report` / `ReportGenerator`).
+پورتال فقط پوسته فیلتر و دکمه خروجی می‌دهد؛ هیچ موتور گزارشی بازنویسی نمی‌شود.
+
+| کنترلر قدیمی | تصمیم |
+|---|---|
+| `DailyReportController`، `ExitReportController`، `LateEarlyReportController`، `OverTimeReportController` | پوسته گزارش با فیلترهای استاندارد |
+| `PersonnelStatusReportController`، `RemainedLeavesReportController`، `RequestsReportController`، `ShowUsersRequestController` | همان الگو، با کنترل دسترسی `ReportView` |
+| `SumReportController`، `GridReportController`، `ShowReportController` | نمایش گزارش‌های از پیش تعریف‌شده (`ReportDA`) |
+| `ReportDatasController`، `ReportFilterController`، `ReportTablixController`، `ReportTablixColumnController`، `ReportTextboxController`، `ReportTitlesController` | **باز نمی‌شود**: ویرایشگر گزارش در فاز E حذف می‌شود |
+| `CardexReportController`، `UserReportController`، `ExportController` | خروجی Excel/PDF با همان موتور، بدون افزونه بیرونی/CDN |
+
+### فاز D — دستگاه و ورود داده
+
+| کنترلر قدیمی | تصمیم |
+|---|---|
+| `DeviceOperationsController` | ارسال دستور به دستگاه (فقط با دسترسی `DeviceSync`، هر دستور ثبت می‌شود) |
+| `GateController` | مدیریت درب‌ها روی `Gate` |
+| `DashboardItemController` | داشبورد قابل تنظیم (اختیاری، پس از نیازسنجی) |
+| `ImportFromExcelController` | ورود گروهی پرسنل با پیش‌نمایش و رد سطرهای نامعتبر |
+| `AccountController` | در پورتال جدید لازم نیست: احراز هویت ویندوز است و صفحه «عدم دسترسی» جایش را گرفت |
+
+### فاز E — حذف و جایگزینی
+
+| کنترلر قدیمی | تصمیم |
+|---|---|
+| `CustomWFController` | **حذف**: موتور `3.9.2` کل API آن را برداشته (`CustomWFDA`، `Model.CustomWF`)؛ استفاده از آن، آریا را به بیلد ناسازگار گره می‌زند |
+| `ReportDesignController` | **حذف**: ویرایشگر گرافیکی RDLC در مرورگر (Kendo) قابل نگهداری نیست؛ به‌جایش قالب‌های ثابت + پارامتر |
+| `iclockController` | **در پورتال بازنویسی نمی‌شود**: نقطه دریافت push دستگاه‌های ZKTeco است و باید در همان سرویس موتور بماند (R11) |
+
+---
+
+## ۴. قواعد پذیرش برای فازهای بعدی
+
+1. **هیچ SQL دست‌ساز برای نوشتن در جداول موتور** — نوشتن از طریق DA موتور انجام می‌شود؛
+   هر SQL خواندنی که ناچار نوشته شد، باید `tools/verify-sql-schema.py` را پاس کند.
+2. **هر عمل نوشتنی یک سطر رخداد** با قابلیت، هدف و جزئیات دارد.
+3. **هر قابلیت جدید** یک عضو `AdminFeature` با مقدار پایدار (بدون شماره‌گذاری مجدد) می‌گیرد.
+4. **هر صفحه** باید بدون شبکه بیرونی کار کند؛ آزمون `T09` آن را تضمین می‌کند.
+5. **هر فرم POST** توکن ضد CSRF دارد؛ آزمون `T10` آن را تضمین می‌کند.
+6. **هیچ آزمونی** به SQL Server نیاز ندارد (تا زمانی که آزمون یکپارچه‌سازی جدا اضافه شود).
+
+---
+
+## ۵. کارهای باقی‌مانده که عمداً انجام نشده‌اند
+
+* **آزمون یکپارچه‌سازی با پایگاه‌داده واقعی** — در این محیط SQL Server وجود ندارد؛
+  باید یک‌بار روی سرور مشتری با `db/verify.sql` اجرا شود.
+* **مهاجرت داده** — پورتال داده جدیدی نمی‌سازد؛ فقط روی داده موجود کار می‌کند.
+* **گزارش‌های RDLC** — تا فاز C دست‌نخورده در T5Web فعلی می‌مانند. یعنی در دوره
+  گذار، دو برنامه همزمان روی یک پایگاه‌داده کار می‌کنند و باید هر دو به یک بیلد موتور
+  مقید شوند (`engine-pin.json`).

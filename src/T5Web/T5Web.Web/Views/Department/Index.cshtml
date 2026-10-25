@@ -1,0 +1,28 @@
+@model IReadOnlyList<T5Web.Domain.Models.DepartmentNode>
+@{
+    ViewBag.Title = "چارت سازمانی";
+    ViewBag.CanEdit = ViewBag.CanEdit != null && (bool)ViewBag.CanEdit;
+}
+<div class="panel">
+    <div class="panel__head">
+        <h2>ساختار واحدها</h2>
+        <span class="muted" style="font-size:12px">
+            عمق @ViewBag.MaxDepth · مجموع اعضا @ViewBag.TotalMembers
+        </span>
+    </div>
+    <div class="panel__body">
+        @if (Model.Count == 0)
+        {
+            <div class="empty">واحد سازمانی تعریف نشده است.</div>
+        }
+        else
+        {
+            <ul class="tree">
+                @foreach (var root in Model)
+                {
+                    @Html.Partial("_Node", root)
+                }
+            </ul>
+        }
+    </div>
+</div>

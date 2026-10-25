@@ -1,0 +1,70 @@
+@model T5Web.Domain.Models.DeviceRow
+@{
+    ViewBag.Title = "تنظیمات دستگاه";
+    var gates = ViewBag.Gates as IReadOnlyList<T5Web.Domain.Models.GateRow>;
+}
+<form method="post" action="@Url.Action("Edit", "Device")">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="MachineNumber" value="@Model.MachineNumber" />
+
+    <div class="panel">
+        <div class="panel__head">
+            <h2>دستگاه @Model.MachineNumber</h2>
+            <span class="tag tag--mute">شماره دستگاه قابل تغییر نیست</span>
+        </div>
+        <div class="panel__body">
+            <div class="form-grid">
+                <div class="field">
+                    <label for="MachineName">نام دستگاه</label>
+                    <input type="text" id="MachineName" name="MachineName" value="@Model.MachineName" maxlength="50" required />
+                </div>
+                <div class="field">
+                    <label for="GateId">درب</label>
+                    <select id="GateId" name="GateId">
+                        @if (gates != null)
+                        {
+                            foreach (var gate in gates)
+                            {
+                                <option value="@gate.GateId" selected="@(gate.GateId == Model.GateId ? "selected" : null)">@gate.GateName</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="ConnectionType">نوع اتصال</label>
+                    <select id="ConnectionType" name="ConnectionType">
+                        <option value="0" selected="@(Model.ConnectionType == 0 ? "selected" : null)">شبکه (TCP/IP)</option>
+                        <option value="1" selected="@(Model.ConnectionType == 1 ? "selected" : null)">USB</option>
+                        <option value="2" selected="@(Model.ConnectionType == 2 ? "selected" : null)">پورت سریال</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="IP">نشانی IP</label>
+                    <input type="text" id="IP" name="IP" value="@Model.Ip" maxlength="50" />
+                </div>
+                <div class="field">
+                    <label for="Port">پورت</label>
+                    <input type="number" id="Port" name="Port" value="@Model.Port" min="1" max="65535" />
+                </div>
+                <div class="field">
+                    <label for="SerialPort">شماره پورت سریال</label>
+                    <input type="number" id="SerialPort" name="SerialPort" value="@Model.SerialPort" min="0" />
+                </div>
+                <div class="field">
+                    <label for="BaudRate">نرخ باد</label>
+                    <input type="number" id="BaudRate" name="BaudRate" value="@Model.BaudRate" min="0" />
+                </div>
+            </div>
+
+            <div class="notice notice--info">
+                تعداد اثر انگشت، وضعیت آفلاین و شمارنده‌های پروتکل توسط سرویس Push نوشته می‌شوند و
+                از این صفحه قابل ویرایش نیستند؛ تغییر دستی آن‌ها همگام‌سازی بعدی را خراب می‌کند.
+            </div>
+        </div>
+    </div>
+
+    <div style="display:flex; gap:10px">
+        <button type="submit" class="btn btn--primary">ثبت تنظیمات</button>
+        <a href="@Url.Action("Index", "Device")" class="btn">بازگشت</a>
+    </div>
+</form>

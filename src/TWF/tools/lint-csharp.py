@@ -214,9 +214,11 @@ def check_engine_calls(path, text, surface, engine_ns_types):
     problems = []
     clean = strip_noise(text)
 
-    # only verify simple names that are unambiguous engine types
+    # Only verify simple names that are unambiguous engine types. A type reference in
+    # C# is never preceded by '.', so "PortalServices.Workflow.Get" is a property and
+    # must not be mistaken for the engine's Workflow type.
     for type_name in engine_ns_types:
-        pattern = re.compile(r"\b" + re.escape(type_name) + r"\s*\.\s*([A-Za-z_][A-Za-z0-9_]*)")
+        pattern = re.compile(r"(?<!\.)\b" + re.escape(type_name) + r"\s*\.\s*([A-Za-z_][A-Za-z0-9_]*)")
         for m in pattern.finditer(clean):
             member = m.group(1)
             if member in ("ToString", "Equals", "GetHashCode", "GetType", "Name", "FullName"):
@@ -272,6 +274,15 @@ def main(argv):
                 for n in names:
                     if n.endswith(".cs"):
                         files.append(os.path.join(root, n))
+        # The independent T5Web admin console shares the same pinned engine and the
+        # same schema, so it gets the same checks.
+        t5web = os.path.join(REPO_ROOT, "src", "T5Web")
+        for root, _dirs, names in os.walk(t5web):
+            if os.sep + "build" in root or os.sep + "obj" in root or os.sep + "bin" in root:
+                continue
+            for n in names:
+                if n.endswith(".cs"):
+                    files.append(os.path.join(root, n))
 
     files = [f for f in files if os.path.exists(f)]
     errors = []

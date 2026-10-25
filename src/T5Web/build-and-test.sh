@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+# ============================================================================
+# T5Web Admin Console — build and verification
+# ----------------------------------------------------------------------------
+# The deployment network is offline, so this script never downloads anything.
+# It runs the same four static gates as the ARIA build (engine pin, schema
+# manifest, SQL conformance, C# lint) and only then compiles.
+#
+#   ./build-and-test.sh            static gates + compile + run tests
+#   ./build-and-test.sh --gates    static gates only (works without a compiler)
+# ============================================================================
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ARIA_TOOLS="$(cd "$SCRIPT_DIR/../TWF/tools" && pwd)"
+PIN_FILE="$SCRIPT_DIR/../TWF/engine/engine-pin.json"
+PIN_SOURCE="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["pinned_from"])' "$PIN_FILE")"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+BIN_DIR="$REPO_ROOT/$PIN_SOURCE"
+BUILD_DIR="$SCRIPT_DIR/build"
+GATES_ONLY="false"
+[ "${1:-}" = "--gates" ] && GATES_ONLY="true"
+
+echo "[1/4] Static gates"
+python3 "$ARIA_TOOLS/verify-engine-pin.py" --check
+python3 "$ARIA_TOOLS/build-schema-manifest.py" --check
+python3 "$ARIA_TOOLS/verify-sql-schema.py"
+python3 "$ARIA_TOOLS/lint-csharp.py"
+
+if [ "$GATES_ONLY" = "true" ]; then
+  echo "OK: static gates passed (compiler step skipped)"
+  exit 0
+fi
+
+CSC="${CSC:-csc}"
+if ! command -v "$CSC" >/dev/null 2>&1; then
+  cat <<'MSG'
+ERROR: no C# compiler found.
+
+On Windows (the target platform) build with MSBuild instead:
+    msbuild T5Web.sln /p:Configuration=Release
+    T5Web.Tests\bin\Release\T5Web.Tests.exe
+
+Or point CSC at a Roslyn/Mono compiler and re-run:
+    CSC=/path/to/csc ./build-and-test.sh
+MSG
+  exit 2
+fi
+
+mkdir -p "$BUILD_DIR"
+echo "[2/4] Compiling libraries"
+COMMON_REF=()
+for dll in System System.Core System.Data System.Configuration System.Web; do
+  COMMON_REF+=("-r:$dll")
+done
+COMMON_REF+=("-r:$BIN_DIR/System.Web.Mvc.dll" "-r:$BIN_DIR/Dapper.dll")
+
+"$CSC" -nologo -target:library -langversion:7.3 -out:"$BUILD_DIR/T5Web.Domain.dll" \
+  "${COMMON_REF[@]}" $(find "$SCRIPT_DIR/T5Web.Domain" -name '*.cs' | sort)
+
+"$CSC" -nologo -target:library -langversion:7.3 -out:"$BUILD_DIR/T5Web.Application.dll" \
+  "${COMMON_REF[@]}" -r:"$BUILD_DIR/T5Web.Domain.dll" \
+  $(find "$SCRIPT_DIR/T5Web.Application" -name '*.cs' | sort)
+
+"$CSC" -nologo -target:library -langversion:7.3 -out:"$BUILD_DIR/T5Web.Data.dll" \
+  "${COMMON_REF[@]}" -r:"$BUILD_DIR/T5Web.Domain.dll" \
+  $(find "$SCRIPT_DIR/T5Web.Data" -name '*.cs' | sort)
+
+echo "[3/4] Compiling the portal"
+"$CSC" -nologo -target:library -langversion:7.3 -out:"$BUILD_DIR/T5Web.Admin.dll" \
+  "${COMMON_REF[@]}" \
+  -r:"$BUILD_DIR/T5Web.Domain.dll" \
+  -r:"$BUILD_DIR/T5Web.Application.dll" \
+  -r:"$BUILD_DIR/T5Web.Data.dll" \
+  $(find "$SCRIPT_DIR/T5Web.Web" -name '*.cs' | sort)
+
+echo "[4/4] Compiling and running the verification suite"
+"$CSC" -nologo -target:exe -langversion:7.3 -out:"$BUILD_DIR/T5Web.Tests.exe" \
+  "${COMMON_REF[@]}" \
+  -r:"$BUILD_DIR/T5Web.Domain.dll" \
+  -r:"$BUILD_DIR/T5Web.Application.dll" \
+  -r:"$BUILD_DIR/T5Web.Data.dll" \
+  $(find "$SCRIPT_DIR/T5Web.Tests" -name '*.cs' | sort)
+
+mono "$BUILD_DIR/T5Web.Tests.exe" || "$BUILD_DIR/T5Web.Tests.exe"

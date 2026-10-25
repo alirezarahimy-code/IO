@@ -1,0 +1,29 @@
+@model T5Web.Domain.Models.DepartmentNode
+@{
+    bool canEdit = ViewBag.CanEdit != null && (bool)ViewBag.CanEdit;
+}
+<li>
+    <div class="tree__row">
+        <span class="tree__name">@Model.DepartmentName</span>
+        <span class="tree__meta">@Model.DepartmentId</span>
+        <span class="tag tag--mute">@Model.MemberCount نفر</span>
+        @if (canEdit)
+        {
+            <form method="post" action="@Url.Action("Move", "Department")" class="move-form">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="departmentId" value="@Model.DepartmentId" />
+                <input type="text" name="newParentId" placeholder="شناسه والد جدید" class="mono move-form__input" />
+                <button type="submit" class="btn btn--ghost">جابه‌جایی</button>
+            </form>
+        }
+    </div>
+    @if (Model.Children.Count > 0)
+    {
+        <ul>
+            @foreach (var child in Model.Children)
+            {
+                @Html.Partial("_Node", child)
+            }
+        </ul>
+    }
+</li>

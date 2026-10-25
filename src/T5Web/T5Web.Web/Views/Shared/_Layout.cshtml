@@ -1,0 +1,76 @@
+@using T5Web.Domain
+@using T5Web.Web.Security
+@{
+    var session = AdminIdentity.Current;
+    var menu = PortalServices.MenuFor(session);
+    string current = (ViewContext.RouteData.Values["controller"] as string) ?? string.Empty;
+    string title = ViewBag.Title as string;
+    if (string.IsNullOrEmpty(title)) { title = "کنسول مدیریت"; }
+    string flash = TempData["Flash"] as string;
+}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@title · T5Web Admin</title>
+    <link rel="stylesheet" href="@Url.Content("~/Content/t5web-admin.css")" />
+</head>
+<body>
+<div class="shell">
+    <nav class="rail">
+        <div class="rail__brand">
+            <b>کنسول مدیریت T5Web</b>
+            <span>ADMIN CONSOLE · v5</span>
+        </div>
+        @foreach (var item in menu)
+        {
+            bool active = string.Equals(item.Controller, current, StringComparison.OrdinalIgnoreCase);
+            <a href="@Url.Action(item.Action, item.Controller)" class="@(active ? "is-active" : "")">@item.Title</a>
+        }
+        <div class="rail__foot">
+            @if (session != null)
+            {
+                <div>@session.DisplayName</div>
+                <div class="mono">@session.BadgeNumber</div>
+                @* Signing out of Windows auth is an IIS concern, not a cookie we can clear. *@
+                <div style="margin-top:6px">ورود با حساب ویندوز</div>
+            }
+        </div>
+    </nav>
+
+    <div class="main">
+        <header class="topbar">
+            <h1>@title</h1>
+            <div class="who">
+                @if (session != null)
+                {
+                    <b>@session.DisplayName</b>
+                    if (!string.IsNullOrEmpty(session.TitleName))
+                    {
+                        <span> · @session.TitleName</span>
+                    }
+                }
+                else
+                {
+                    <span>مهمان</span>
+                }
+            </div>
+        </header>
+
+        <main class="content">
+            @if (!string.IsNullOrEmpty(flash))
+            {
+                <div class="notice notice--info">@flash</div>
+            }
+            @if (ViewBag.Error != null)
+            {
+                <div class="notice notice--bad">@ViewBag.Error</div>
+            }
+            @RenderBody()
+        </main>
+    </div>
+</div>
+<script src="@Url.Content("~/Content/t5web-admin.js")"></script>
+</body>
+</html>

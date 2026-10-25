@@ -1,0 +1,13 @@
+@{
+    ViewBag.Title = "عدم دسترسی";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string reason = (ViewData["Reason"] as string) ?? (ViewBag.Reason as string);
+}
+<div class="gate">
+    <h1>دسترسی به این بخش ممکن نیست</h1>
+    <p>@(string.IsNullOrWhiteSpace(reason) ? "برای این بخش سطح دسترسی لازم را ندارید." : reason)</p>
+    <p class="muted" style="font-size:12.5px">
+        اگر فکر می‌کنید این پیام اشتباه است، با مدیر پورتال تماس بگیرید.
+        سطح دسترسی در جدول <code>T5WebAccess</code> و بر اساس شخص تعریف می‌شود، نه بر اساس گروه ویندوز.
+    </p>
+</div>

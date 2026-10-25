@@ -1,0 +1,58 @@
+@model IReadOnlyList<T5Web.Domain.Models.DeviceRow>
+@using T5Web.Application.Services
+@{
+    ViewBag.Title = "دستگاه‌های تردد";
+    bool canEdit = ViewBag.CanEdit != null && (bool)ViewBag.CanEdit;
+    var gates = ViewBag.Gates as IReadOnlyList<T5Web.Domain.Models.GateRow>;
+}
+<div class="panel">
+    <div class="panel__head">
+        <h2>فهرست دستگاه‌ها (@Model.Count)</h2>
+        @if (gates != null)
+        {
+            <span class="muted" style="font-size:12px">@gates.Count درب تعریف‌شده</span>
+        }
+    </div>
+    @if (Model.Count == 0)
+    {
+        <div class="empty">دستگاهی ثبت نشده است.</div>
+    }
+    else
+    {
+        <table class="grid">
+            <thead>
+                <tr>
+                    <th class="num">شماره</th>
+                    <th>نام</th>
+                    <th>درب</th>
+                    <th>نوع اتصال</th>
+                    <th>نشانی</th>
+                    <th>سریال</th>
+                    <th>آخرین تردد</th>
+                    @if (canEdit)
+                    {
+                        <th></th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var device in Model)
+            {
+                <tr>
+                    <td class="num">@device.MachineNumber</td>
+                    <td>@device.MachineName</td>
+                    <td>@device.GateName</td>
+                    <td>@device.ConnectionTypeFa</td>
+                    <td class="mono">@device.Endpoint</td>
+                    <td class="mono">@device.SerialNo</td>
+                    <td class="num">@(device.LastStamp.HasValue ? PersonnelService.ToJalali(device.LastStamp) : "—")</td>
+                    @if (canEdit)
+                    {
+                        <td><a class="btn btn--ghost" href="@Url.Action("Edit", "Device", new { id = device.MachineNumber })">تنظیمات</a></td>
+                    }
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div>

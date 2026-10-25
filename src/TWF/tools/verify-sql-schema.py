@@ -36,7 +36,17 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 TWF = os.path.abspath(os.path.join(HERE, ".."))
 MANIFEST = os.path.join(TWF, "db", "schema-manifest.json")
 
-SCAN_ROOTS = ["TD5", "TWF.Infrastructure", "TWF.Application", "TWF.Web"]
+# Both products consume the same schema, so both are scanned.
+SCAN_ROOTS = [
+    os.path.join("src", "TWF", "TD5"),
+    os.path.join("src", "TWF", "TWF.Infrastructure"),
+    os.path.join("src", "TWF", "TWF.Application"),
+    os.path.join("src", "TWF", "TWF.Web"),
+    os.path.join("src", "T5Web"),
+]
+
+# Tables the portals create themselves; they are not part of the T5 schema.
+PORTAL_OWNED_TABLES = {"t5webaccess", "t5webaudit"}
 
 SQL_KEYWORDS = {
     "select", "from", "where", "join", "left", "right", "inner", "outer", "cross",
@@ -126,7 +136,7 @@ def check_literal(literal, manifest):
             aliases[alias] = name
 
     for name in tables:
-        if name in manifest or name.lower() in SYSTEM_OBJECTS:
+        if name in manifest or name.lower() in SYSTEM_OBJECTS or name.lower() in PORTAL_OWNED_TABLES:
             continue
         guess = near_miss(name, manifest.keys())
         if guess:
@@ -134,13 +144,18 @@ def check_literal(literal, manifest):
         else:
             warnings.append(f"table '{name}' is not in the manifest")
 
-    known_tables = {t for t in tables if t in manifest}
+    # A query is "single table" only when it *declares* one table; portal-owned tables
+    # count, otherwise their aliases leak onto the engine table next to them.
+    known_tables = {
+        t for t in tables
+        if t in manifest or t.lower() in PORTAL_OWNED_TABLES or t.lower() in SYSTEM_OBJECTS
+    }
 
     for m in QUALIFIED.finditer(literal):
         owner = m.group(1) or m.group(2)
         column = m.group(3)
         table = aliases.get(owner, owner if owner in manifest else None)
-        if not table or table not in manifest:
+        if not table or table not in manifest or table.lower() in PORTAL_OWNED_TABLES:
             continue
         if column not in manifest[table]:
             guess = near_miss(column, manifest[table])
@@ -151,6 +166,8 @@ def check_literal(literal, manifest):
 
     if len(known_tables) == 1:
         table = next(iter(known_tables))
+        if table not in manifest:
+            return errors, warnings
         seen = set()
         for column in BRACKETED.findall(literal):
             if column == table or column.lower() in SQL_KEYWORDS or column in seen:
@@ -208,8 +225,9 @@ def iter_sources(argv):
             if os.path.isfile(path):
                 yield path
         return
+    repo = os.path.abspath(os.path.join(TWF, "..", ".."))
     for root_name in SCAN_ROOTS:
-        root = os.path.join(TWF, root_name)
+        root = os.path.join(repo, root_name) if root_name.startswith("src") else os.path.join(TWF, root_name)
         if not os.path.isdir(root):
             continue
         for dirpath, _dirs, files in os.walk(root):
@@ -227,7 +245,8 @@ def main(argv):
     for path in iter_sources(argv):
         files += 1
         text = open(path, encoding="utf-8", errors="ignore").read()
-        rel = os.path.relpath(path, TWF)
+        repo_root = os.path.abspath(os.path.join(TWF, "..", ".."))
+        rel = os.path.relpath(path, repo_root)
         for literal, line in sql_literals(text):
             literals += 1
             e, w = check_literal(literal, manifest)

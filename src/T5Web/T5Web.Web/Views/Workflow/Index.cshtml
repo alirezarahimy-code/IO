@@ -1,0 +1,126 @@
+@model IReadOnlyList<T5Web.Domain.Models.WorkflowStep>
+@{
+    ViewBag.Title = "گردش کار تأیید";
+    bool canEdit = ViewBag.CanEdit != null && (bool)ViewBag.CanEdit;
+    var titles = ViewBag.Titles as IReadOnlyList<T5Web.Domain.Models.TitleNode>;
+    int titleId = ViewBag.TitleId != null ? (int)ViewBag.TitleId : 0;
+    int workflowType = ViewBag.WorkflowType != null ? (int)ViewBag.WorkflowType : 1;
+}
+<form method="get" action="@Url.Action("Index", "Workflow")" class="toolbar">
+    <div class="field">
+        <label for="titleId">عنوان درخواست‌کننده</label>
+        <select id="titleId" name="titleId">
+            <option value="0">همه عناوین</option>
+            @if (titles != null)
+            {
+                foreach (var title in titles)
+                {
+                    <option value="@title.TitleId" selected="@(title.TitleId == titleId ? "selected" : null)">@title.TitleName</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="field">
+        <label for="workflowType">نوع گردش کار</label>
+        <select id="workflowType" name="workflowType">
+            <option value="1" selected="@(workflowType == 1 ? "selected" : null)">مرخصی روزانه</option>
+            <option value="2" selected="@(workflowType == 2 ? "selected" : null)">مرخصی ساعتی</option>
+            <option value="3" selected="@(workflowType == 3 ? "selected" : null)">اضافه‌کاری</option>
+        </select>
+    </div>
+    <div class="field">
+        <label for="leaveTypeId">نوع مرخصی</label>
+        <input type="number" id="leaveTypeId" name="leaveTypeId" value="@ViewBag.LeaveTypeId" min="0" />
+    </div>
+    <button type="submit" class="btn btn--primary">نمایش</button>
+</form>
+
+<div class="panel">
+    <div class="panel__head">
+        <h2>زنجیره تأیید (@Model.Count مرحله)</h2>
+    </div>
+    @if (Model.Count == 0)
+    {
+        <div class="empty">برای این ترکیب، زنجیره‌ای تعریف نشده است.</div>
+    }
+    else
+    {
+        <table class="grid">
+            <thead>
+                <tr><th class="num">مرحله</th><th>درخواست‌کننده</th><th>تأییدکننده</th></tr>
+            </thead>
+            <tbody>
+            @foreach (var step in Model)
+            {
+                <tr>
+                    <td class="num">@step.OrderIndex</td>
+                    <td>@step.TitleName</td>
+                    <td>@step.AccepterTitleName</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div>
+
+@if (canEdit)
+{
+    <div class="panel">
+        <div class="panel__head"><h2>جایگزینی زنجیره</h2></div>
+        <div class="panel__body">
+            <form method="post" action="@Url.Action("Save", "Workflow")">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="workflowType" value="@workflowType" />
+                <input type="hidden" name="leaveTypeId" value="@ViewBag.LeaveTypeId" />
+                <div class="field">
+                    <label for="saveTitleId">عنوان درخواست‌کننده (اجباری)</label>
+                    <select id="saveTitleId" name="titleId" required>
+                        <option value="0">— انتخاب —</option>
+                        @if (titles != null)
+                        {
+                            foreach (var title in titles)
+                            {
+                                <option value="@title.TitleId">@title.TitleName</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="form-grid">
+                    <div class="field">
+                        <label>مرحله ۱ — تأییدکننده</label>
+                        <select name="accepterTitleId">
+                            <option value="0">—</option>
+                            @if (titles != null)
+                            {
+                                foreach (var title in titles)
+                                {
+                                    <option value="@title.TitleId">@title.TitleName</option>
+                                }
+                            }
+                        </select>
+                        <input type="hidden" name="orderIndex" value="1" />
+                    </div>
+                    <div class="field">
+                        <label>مرحله ۲ — تأییدکننده</label>
+                        <select name="accepterTitleId">
+                            <option value="0">—</option>
+                            @if (titles != null)
+                            {
+                                foreach (var title in titles)
+                                {
+                                    <option value="@title.TitleId">@title.TitleName</option>
+                                }
+                            }
+                        </select>
+                        <input type="hidden" name="orderIndex" value="2" />
+                    </div>
+                </div>
+                <div class="notice notice--info">
+                    شماره مراحل باید پیوسته باشد و تأییدکننده با درخواست‌کننده یکسان نباشد؛
+                    در غیر این صورت ذخیره رد می‌شود.
+                </div>
+                <button type="submit" class="btn btn--primary">ذخیره زنجیره</button>
+            </form>
+        </div>
+    </div>
+}

@@ -1,0 +1,92 @@
+@model T5Web.Web.Controllers.PersonnelIndexModel
+@using T5Web.Application.Services
+@{
+    ViewBag.Title = "پرسنل";
+}
+<form method="get" action="@Url.Action("Index", "Personnel")" class="toolbar">
+    <div class="field">
+        <label for="term">جست‌وجو</label>
+        <input type="text" id="term" name="term" value="@Model.Term" placeholder="نام، شماره پرسنلی یا کد ملی" />
+    </div>
+    <div class="field">
+        <label for="departmentId">واحد سازمانی</label>
+        <select id="departmentId" name="departmentId">
+            <option value="">همه واحدها</option>
+            @foreach (var dept in Model.Departments)
+            {
+                <option value="@dept.DepartmentId" selected="@(Model.DepartmentId == dept.DepartmentId ? "selected" : null)">@dept.DepartmentName</option>
+            }
+        </select>
+    </div>
+    <div class="field">
+        <label for="includeFormer">پرسنل پایان‌یافته</label>
+        <select id="includeFormer" name="includeFormer">
+            <option value="false" selected="@(!Model.IncludeFormer ? "selected" : null)">نمایش داده نشود</option>
+            <option value="true" selected="@(Model.IncludeFormer ? "selected" : null)">نمایش داده شود</option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn--primary">اعمال</button>
+</form>
+
+<div class="panel">
+    <div class="panel__head">
+        <h2>فهرست پرسنل (@Model.Rows.Count سطر)</h2>
+    </div>
+    @if (Model.Rows.Count == 0)
+    {
+        <div class="empty">نتیجه‌ای برای این جست‌وجو پیدا نشد.</div>
+    }
+    else
+    {
+        <table class="grid">
+            <thead>
+                <tr>
+                    <th class="num">شماره</th>
+                    <th>نام و نام خانوادگی</th>
+                    <th>واحد</th>
+                    <th>نوع استخدام</th>
+                    <th class="num">کد ملی</th>
+                    <th>تلفن</th>
+                    <th>استخدام</th>
+                    <th>پرچم‌ها</th>
+                    @if (Model.CanEdit)
+                    {
+                        <th></th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var person in Model.Rows)
+            {
+                <tr>
+                    <td class="num">@person.BadgeNumber</td>
+                    <td>@PersonnelService.NormalizeDisplay(person.FullName)</td>
+                    <td>@person.DeptName</td>
+                    <td>@person.EmpTypeName</td>
+                    <td class="num">@person.NationalNo</td>
+                    <td class="mono">@person.Phone</td>
+                    <td class="num">@PersonnelService.ToJalali(person.HiredDate)</td>
+                    <td class="nowrap">
+                        @if (person.IsFormer)
+                        {
+                            <span class="tag tag--mute">پایان‌یافته</span>
+                        }
+                        @if (person.IsWebUser)
+                        {
+                            <span class="tag tag--ok">کاربر وب</span>
+                        }
+                        @if (person.DeviceEnabled)
+                        {
+                            <span class="tag tag--mute">دستگاه</span>
+                        }
+                    </td>
+                    @if (Model.CanEdit)
+                    {
+                        <td><a class="btn btn--ghost" href="@Url.Action("Edit", "Personnel", new { id = person.BadgeNumber })">ویرایش</a></td>
+                    }
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div>

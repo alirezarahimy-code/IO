@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B1000005-0000-4000-8000-000000000005}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>T5Web.Tests</RootNamespace>
+    <AssemblyName>T5Web.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <LangVersion>7.3</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\T5Web.Domain\T5Web.Domain.csproj">
+      <Project>{B1000001-0000-4000-8000-000000000001}</Project>
+      <Name>T5Web.Domain</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\T5Web.Application\T5Web.Application.csproj">
+      <Project>{B1000002-0000-4000-8000-000000000002}</Project>
+      <Name>T5Web.Application</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\T5Web.Data\T5Web.Data.csproj">
+      <Project>{B1000003-0000-4000-8000-000000000003}</Project>
+      <Name>T5Web.Data</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

@@ -1,0 +1,75 @@
+@model T5Web.Web.Controllers.AccessIndexModel
+@using T5Web.Domain
+@{
+    ViewBag.Title = "سطوح دسترسی";
+    string[] levelNames = { "ممنوع", "فقط مشاهده", "مجاز" };
+}
+<form method="get" action="@Url.Action("Index", "Access")" class="toolbar">
+    <div class="field">
+        <label for="term">جست‌وجوی پرسنل</label>
+        <input type="text" id="term" name="term" value="@Model.Term" placeholder="نام، شماره پرسنلی یا کد ملی" />
+    </div>
+    <button type="submit" class="btn btn--primary">جست‌وجو</button>
+</form>
+
+@if (Model.People.Count == 0)
+{
+    <div class="panel"><div class="empty">پرسنلی برای تعریف دسترسی پیدا نشد.</div></div>
+}
+else
+{
+    <div class="panel">
+        <div class="panel__head">
+            <h2>ماتریس دسترسی · @Model.Selected.FullName (@Model.Selected.BadgeNumber)</h2>
+            <span class="muted" style="font-size:12px">ممنوع پیش‌فرض است و ذخیره نمی‌شود</span>
+        </div>
+        <div class="panel__body" style="overflow-x:auto">
+            @if (!Model.CanEdit)
+            {
+                <div class="notice notice--info">شما فقط اجازه مشاهده این ماتریس را دارید.</div>
+            }
+            <table class="matrix">
+                <thead>
+                    <tr>
+                        <th style="width:240px">قابلیت</th>
+                        <th style="width:180px">سطح</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var feature in Model.Features)
+                {
+                    AccessLevel current;
+                    if (!Model.Levels.TryGetValue(feature, out current)) { current = AccessLevel.Deny; }
+                    var required = AdminFeatures.RequiredLevelFor(feature);
+                    <tr>
+                        <td>@AdminFeatures.TitleOf(feature)</td>
+                        <td>
+                            @if (Model.CanEdit)
+                            {
+                                <form method="post" action="@Url.Action("Set", "Access")" class="inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="badgeNumber" value="@Model.Selected.BadgeNumber" />
+                                    <input type="hidden" name="feature" value="@((int)feature)" />
+                                    <select name="level" data-level="@((int)current)" data-autosubmit="true">
+                                        <option value="0" selected="@(current == AccessLevel.Deny ? "selected" : null)">ممنوع</option>
+                                        <option value="1" selected="@(current == AccessLevel.ReadOnly ? "selected" : null)">فقط مشاهده</option>
+                                        @if (required == AccessLevel.Allow)
+                                        {
+                                            <option value="2" selected="@(current == AccessLevel.Allow ? "selected" : null)">مجاز</option>
+                                        }
+                                    </select>
+                                    <noscript><button type="submit" class="btn">ثبت</button></noscript>
+                                </form>
+                            }
+                            else
+                            {
+                                <span class="tag @(current == AccessLevel.Allow ? "tag--ok" : current == AccessLevel.ReadOnly ? "tag--warn" : "tag--mute")">@levelNames[(int)current]</span>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

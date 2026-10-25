@@ -1,0 +1,55 @@
+@model IReadOnlyList<T5Web.Domain.Models.AuditEntry>
+@using T5Web.Application.Services
+@{
+    ViewBag.Title = "رخدادهای مدیریتی";
+    int broken = ViewBag.BrokenIndex != null ? (int)ViewBag.BrokenIndex : -1;
+}
+<div class="panel">
+    <div class="panel__head">
+        <h2>زنجیره رخدادها</h2>
+        @if (broken < 0)
+        {
+            <span class="tag tag--ok"><span class="dot dot--ok"></span>زنجیره سالم</span>
+        }
+        else
+        {
+            <span class="tag tag--bad"><span class="dot dot--bad"></span>گسست در سطر @broken</span>
+        }
+    </div>
+    @if (Model.Count == 0)
+    {
+        <div class="empty">رخدادی ثبت نشده است.</div>
+    }
+    else
+    {
+        <table class="grid">
+            <thead>
+                <tr>
+                    <th class="num">#</th>
+                    <th>زمان</th>
+                    <th>کاربر</th>
+                    <th>قابلیت</th>
+                    <th>عملیات</th>
+                    <th>هدف</th>
+                    <th>جزئیات</th>
+                    <th>هش</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var entry in Model)
+            {
+                <tr>
+                    <td class="num">@entry.Id</td>
+                    <td class="num nowrap">@PersonnelService.ToJalali(entry.UtcTime)</td>
+                    <td>@entry.Actor</td>
+                    <td>@entry.FeatureFa</td>
+                    <td>@entry.Action</td>
+                    <td class="mono">@entry.Target</td>
+                    <td class="muted">@entry.Detail</td>
+                    <td class="mono muted">@(entry.Hash.Length > 10 ? entry.Hash.Substring(0, 10) : entry.Hash)</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div>
