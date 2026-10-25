@@ -604,7 +604,10 @@ jobs:
             Write-Host "--- $catalog"
             $out -split "`n" | ForEach-Object { Write-Host ("  " + $_) }
             if ($LASTEXITCODE -ne 0) {
-              Write-Host "::error::the pool identity fails a permission check in $catalog - the grants are wrong (db/02, db/04)"
+              # Name the checks that failed: an annotation is the only part of this log
+              # the run page shows, so "the grants are wrong" alone is not an answer.
+              $bad = ($out -split "`n" | Where-Object { $_ -match '^(FAIL|Msg |The login)' } | ForEach-Object { $_.Trim() }) -join ' ; '
+              Write-Host "::error::the pool identity fails a permission check in $catalog - the grants are wrong (db/02, db/04): $bad"
               $failed = $true
             }
           }
