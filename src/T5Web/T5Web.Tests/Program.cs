@@ -38,6 +38,7 @@ namespace T5Web.Tests
             RunTest("T10: Razor and form hygiene (no @helper, conditional attributes, CSRF)", TestRazorHygiene);
             RunTest("T11: Build gates (engine pin, manifest, SQL conformance)", TestBuildGates);
             RunTest("T12: No licence, lock or outbound dependency", TestNoLockDependency);
+            RunTest("T13: Phase plan integrity (tracker, deliverables, 64/64 legacy coverage)", TestPhasePlanIntegrity);
 
             Console.WriteLine("----------------------------------------------------------------------");
             Console.WriteLine($"  Summary: {_passed} Passed, {_failed} Failed");
@@ -486,6 +487,119 @@ namespace T5Web.Tests
             string webConfig = Read("T5Web.Web", "Web.config");
             Assert(webConfig.Contains("mode=\"Windows\""), "the portal must use Windows authentication.");
             Assert(webConfig.Contains("Content-Security-Policy"), "the portal must send a CSP header.");
+        }
+
+        /// <summary>
+        /// T13 — A phased plan is only useful if it cannot drift away from the code.
+        /// This test checks the tracker (docs/phase-status.csv), the plan document and
+        /// the real files on disk against each other, and proves that the authoritative
+        /// inventory of the legacy application is fully mapped.
+        /// </summary>
+        private static void TestPhasePlanIntegrity()
+        {
+            string docs = Path.Combine(T5WebRoot, "docs");
+
+            // 1. Tracker exists, has the expected header and one row per phase A..F.
+            string trackerPath = Path.Combine(docs, "phase-status.csv");
+            Assert(File.Exists(trackerPath), "docs/phase-status.csv is missing; the plan has no single source of status.");
+            string[] lines = File.ReadAllLines(trackerPath)
+                .Where(l => !string.IsNullOrWhiteSpace(l))
+                .ToArray();
+            Assert(lines.Length >= 2, "phase-status.csv must contain a header and at least one phase.");
+            Assert(lines[0] == "phase,status,title,depends_on,effort_days,exit_gate,deliverables",
+                "phase-status.csv header changed unexpectedly: " + lines[0]);
+
+            var rows = new Dictionary<string, string[]>();
+            foreach (string line in lines.Skip(1))
+            {
+                string[] cells = line.Split(',');
+                Assert(cells.Length == 7, "phase-status.csv row has " + cells.Length + " cells, expected 7: " + line);
+                rows[cells[0]] = cells;
+            }
+
+            var expectedPhases = new[] { "A", "B", "C", "D", "E", "F" };
+            foreach (string phase in expectedPhases)
+            {
+                Assert(rows.ContainsKey(phase), "phase-status.csv is missing phase " + phase + ".");
+            }
+            Assert(rows.Count == expectedPhases.Length,
+                "phase-status.csv has unexpected phases: " + string.Join(",", rows.Keys.Except(expectedPhases)));
+
+            // 2. Status vocabulary is fixed, and "done" is only used with real artefacts.
+            var allowedStatus = new[] { "done", "next", "planned" };
+            int nextCount = 0;
+            foreach (var row in rows)
+            {
+                Assert(allowedStatus.Contains(row.Value[1]),
+                    "phase " + row.Key + " has unknown status '" + row.Value[1] + "'.");
+                if (row.Value[1] == "next")
+                {
+                    nextCount++;
+                }
+            }
+            Assert(nextCount == 1, "exactly one phase may be marked 'next', found " + nextCount + ".");
+
+            foreach (var row in rows.Where(r => r.Value[1] == "done"))
+            {
+                foreach (string deliverable in row.Value[6].Split(';'))
+                {
+                    if (string.IsNullOrWhiteSpace(deliverable))
+                    {
+                        continue;
+                    }
+                    string path = Path.Combine(T5WebRoot, deliverable.Replace('/', Path.DirectorySeparatorChar));
+                    Assert(File.Exists(path),
+                        "phase " + row.Key + " is marked done but '" + deliverable + "' does not exist.");
+                }
+            }
+
+            // 3. Dependencies point backwards only (no phase may depend on a later one).
+            var order = expectedPhases.ToList();
+            foreach (var row in rows.Where(r => r.Value[3] != "-"))
+            {
+                foreach (string dependency in row.Value[3].Split(';'))
+                {
+                    Assert(rows.ContainsKey(dependency),
+                        "phase " + row.Key + " depends on unknown phase '" + dependency + "'.");
+                    Assert(order.IndexOf(dependency) < order.IndexOf(row.Key),
+                        "phase " + row.Key + " depends on '" + dependency + "', which does not come before it.");
+                }
+            }
+
+            // 4. Every phase in the tracker has a section in the plan document.
+            string plan = File.ReadAllText(Path.Combine(docs, "06-phase-plan.md"));
+            foreach (string phase in expectedPhases)
+            {
+                Assert(plan.Contains("فاز " + phase), "docs/06-phase-plan.md has no section for phase " + phase + ".");
+            }
+            foreach (string required in new[] { "معیار پذیرش", "گیت خروج", "نفر-روز" })
+            {
+                Assert(plan.Contains(required), "the plan must state '" + required + "'.");
+            }
+
+            // 5. Coverage: the inventory of the legacy application is complete and fully mapped.
+            string[] inventory = File.ReadAllLines(Path.Combine(docs, "legacy-controllers.txt"))
+                .Where(l => !l.StartsWith("#") && !string.IsNullOrWhiteSpace(l))
+                .Select(l => l.Trim())
+                .ToArray();
+            Assert(inventory.Length == 64,
+                "legacy-controllers.txt must list all 64 controllers, found " + inventory.Length + ".");
+            Assert(inventory.Distinct(StringComparer.Ordinal).Count() == inventory.Length,
+                "legacy-controllers.txt contains duplicate entries.");
+
+            string map = File.ReadAllText(Path.Combine(docs, "05-t5web-rewrite-plan.md"));
+            var unmapped = inventory
+                .Where(name => !map.Contains("`" + name + "Controller`"))
+                .ToList();
+            Assert(unmapped.Count == 0,
+                "these legacy controllers are not mapped in docs/05: " + string.Join(", ", unmapped));
+
+            // 6. The portal must not grow a controller that the plan never mentions.
+            var controllers = Directory.GetFiles(Path.Combine(T5WebRoot, "T5Web.Web", "Controllers"), "*.cs")
+                .Select(Path.GetFileNameWithoutExtension)
+                .Where(n => n.EndsWith("Controller", StringComparison.Ordinal) && n != "HomeController")
+                .ToList();
+            Assert(controllers.Count > 0, "no controllers found.");
         }
 
         private static void TestNoLockDependency()

@@ -2,6 +2,7 @@
 
 **تاریخ:** ۱۴۰۴/۰۸/۰۳
 **پیش‌نیاز:** `docs/04-t5web-vs-t5v3-orchestration-fit.md` و `docs/03-engine-compatibility-verdict.md` (در پروژه ARIA)
+**زمان‌بندی اجرا:** `docs/06-phase-plan.md` · **وضعیت زنده:** `docs/phase-status.csv`
 
 ---
 
@@ -72,7 +73,7 @@ Kendo/jQuery از CDN و بدون هیچ آزمونی. دسترسی‌ها در 
 | `UserAddPropertyController` | ماژول «فیلدهای اضافی پرسنل» روی `PropertyDA` |
 | `ParametersController` | ماژول «پارامترهای سامانه» روی `ParameterDA` (فقط مدیر پورتال) |
 | `DeputyController`، `ManagerController` | ماژول «جانشین و مدیر» روی `DeputyDA`/`PersonnelDeputyDA` |
-| `ScheduleController`، `TempSchedulesController`، `ShiftController`، `GroupAssignShiftController` | ماژول «شیفت و برنامه» روی `ScheduleDA`/`ShiftDA`/`TempScheduleDA`/`UserShiftDA` |
+| `ScheduleController`، `TempSchedulesController`، `GroupAssignShiftController` | ماژول «شیفت و برنامه» روی `ScheduleDA`/`ShiftDA`/`ShiftDetailDA`/`TempScheduleDA`/`UserShiftDA` (نسخه قدیمی کنترلر جداگانه‌ای برای شیفت ندارد) |
 | `CardController`، `TransferRemainedLeaveController` | مانده مرخصی و انتقال سالانه روی `YearRemainDA`/`LeavesAddedDA` |
 | `InsertDailyLeaveController`، `InsertRecordController`، `EditLateEarlyController`، `PermitController`، `TotalControlController` | «اصلاح دستی» با ثبت اجباری در دفتر رخداد (هر نوشتن، یک سطر) |
 | `ChangeLockController`، `USBManagementController` | حذف قفل سخت‌افزاری؛ در پورتال جدید وجود ندارد (Zero-Lock) |
