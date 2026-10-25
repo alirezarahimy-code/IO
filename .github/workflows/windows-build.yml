@@ -542,7 +542,11 @@ jobs:
             }
 
             $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
-            $page = Invoke-WebRequest -Uri 'http://localhost:8080/Department' -UseDefaultCredentials -WebSession $session
+            # -AllowUnencryptedAuthentication: PowerShell 7 refuses to send credentials
+            # over plain http without it, and IIS here is http on purpose (no certificate
+            # in a test job). It says so in an error that reads like a site failure.
+            $page = Invoke-WebRequest -Uri 'http://localhost:8080/Department' -UseDefaultCredentials `
+                      -AllowUnencryptedAuthentication -WebSession $session
             Write-Host ("  GET /Department -> {0}, {1} bytes" -f $page.StatusCode, $page.Content.Length)
             $token = [regex]::Match([string]$page.Content, 'name="__RequestVerificationToken"[^>]*value="([^"]+)"')
             if (-not $token.Success) {
@@ -558,7 +562,8 @@ jobs:
                 newParentId                = $to
               }
               return Invoke-WebRequest -Uri 'http://localhost:8080/Department/Move' -Method Post `
-                -Body $body -UseDefaultCredentials -WebSession $session -MaximumRedirection 5
+                -Body $body -UseDefaultCredentials -AllowUnencryptedAuthentication `
+                -WebSession $session -MaximumRedirection 5
             }
 
             $response = Move $parent
