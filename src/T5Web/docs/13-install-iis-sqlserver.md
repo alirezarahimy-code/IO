@@ -224,6 +224,7 @@ ALTER ROLE db_datareader ADD MEMBER [IIS APPPOOL\T5WebAdmin];
 | ۵۰۳ و «رشته اتصال تنظیم نشده» | `T5CnnStr` خالی است | `3` را با `-DataSource` درست اجرا کنید |
 | `Login failed for user 'IIS APPPOOL\…'` | لاگین ویندوزی ساخته نشده | بخش ۶-الف |
 | همه‌چیز ۲۰۰ است ولی صفحه‌ها خالی‌اند | کاربر `WebUser=0` یا بدون `AccessView` | `/Access` و `UserInfo.WebUser` |
+| `cannot protect plain text secrets sent over unencrypted connections` | PowerShell 7 با `http` و Windows Auth | اسکریپت‌های کیت در **Windows PowerShell 5.1** اجرا شوند؛ `4-verify-install.ps1` خودش در ۷ فلگ لازم را اضافه می‌کند |
 | `verify.sql` → `MISSING` | کاتالوگ اشتباه یا نسخهٔ قدیمی موتور | `-T5Database`/`-PersonnelDatabase` را چک کنید؛ `docs/12` §۳-۳ |
 
 ---

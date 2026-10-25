@@ -176,8 +176,21 @@ try {
     Report 'auth-anonymous' ($status -eq 401) ("anonymous request returned {0} (expected 401)" -f $status)
 }
 
+# PowerShell 7 refuses to send Windows credentials over plain http unless it is told to
+# ("cannot protect plain text secrets sent over unencrypted connections"); 5.1 has no
+# such parameter, so it is added only where it exists.
+$credentialRequest = @{
+    Uri                  = $BaseUrl.TrimEnd('/') + '/Dashboard'
+    UseBasicParsing      = $true
+    UseDefaultCredentials = $true
+    ErrorAction          = 'Stop'
+}
+if ($PSVersionTable.PSVersion.Major -ge 6 -and $BaseUrl -match '^http://') {
+    $credentialRequest['AllowUnencryptedAuthentication'] = $true
+}
+
 try {
-    $authenticated = Invoke-WebRequest -Uri ($BaseUrl.TrimEnd('/') + '/Dashboard') -UseBasicParsing -UseDefaultCredentials -ErrorAction Stop
+    $authenticated = Invoke-WebRequest @credentialRequest
     $ok = $authenticated.StatusCode -eq 200 -and $authenticated.Content -notmatch 'دسترسی ندارید'
     Report 'auth-windows' $ok ("authenticated request returned {0}" -f $authenticated.StatusCode)
 

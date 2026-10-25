@@ -263,8 +263,12 @@ jobs:
           $failure = ''
           $response = $null
           try {
+            # -AllowUnencryptedAuthentication: PowerShell 7 refuses to send credentials
+            # over http otherwise. It is localhost inside the runner; the customer's site
+            # is reached over https or with the same flag on purpose.
             $response = Invoke-WebRequest -Uri $url -UseDefaultCredentials -UseBasicParsing `
-                                              -MaximumRedirection 0 -SkipHttpErrorCheck -ErrorAction Stop
+                                              -MaximumRedirection 0 -SkipHttpErrorCheck `
+                                              -AllowUnencryptedAuthentication -ErrorAction Stop
           } catch {
             # No HTTP answer at all: the worker process died, or nothing is listening.
             $failure = $_.Exception.Message
