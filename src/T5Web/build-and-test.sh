@@ -37,6 +37,9 @@ python3 "$SCRIPT_DIR/tools/legacy-coverage.py" --check
 # Data model: every table has a catalog, every key has a proof, every reference a target,
 # and no SQL statement joins two catalogs (T28).
 python3 "$SCRIPT_DIR/tools/engine-relations.py" --check
+# Deployment kit: the Windows install scripts must parse, stay idempotent, keep passwords
+# out of the repository and reference files that exist (docs/13).
+python3 "$SCRIPT_DIR/tools/deploy-kit-gate.py"
 # Migration gate: the fingerprint script must cover every t5/personnel table exactly once,
 # guard a table that an older install lacks, and its comparison logic must be tested (T33).
 python3 "$SCRIPT_DIR/tools/migration-fingerprint.py" --check

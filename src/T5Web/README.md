@@ -28,10 +28,11 @@ T5Web.Application/   قاعده‌های کاری: پرسنل، چارت ساز�
 T5Web.Data/          SchemaMap + مخزن Dapper + مخزن درون‌حافظه‌ای + PersonnelDirectory (کاتالوگ دوم)
 T5Web.Data/Engine/   دایرکتوری موتور: خواندن داده پایه از Personnel.DB.*DA خود موتور
 T5Web.Web/           پورتال MVC: کنترلرها، نماها، استایل آفلاین، Web.config
-T5Web.Tests/         ۳۳ آزمون بدون وابستگی خارجی (بدون NuGet)
+T5Web.Tests/         ۳۴ آزمون بدون وابستگی خارجی (بدون NuGet)
 engine/              model-contract.json — اعضای مدل موتور که پورتال می‌خواند (تولیدشده)
 tools/               قرارداد مدل موتور · نوع ستون‌ها · ممیزی پوشش نسخه قدیمی · مدل پایگاه‌داده (همه بازتولیدشدنی)
 preview/             پیش‌نمایش آفلاین ۱۳ صفحه‌ای با همان CSS/JS پورتال + server.py (لاگ، سلامت داده، داده پایه)
+deploy/              کیت نصب ویندوز: IIS، SQL Server، استقرار سایت، چک‌لیست پذیرش (PowerShell، idempotent)
 db/                  01: جدول‌های اختصاصی پورتال · 02: لاگین کم‌دسترسی · 03: سلامت رابطه‌ها · verify: بررسی نصب
 docs/01-…            اصول حاکم بر بازنویسی (۷ اصل + الزامات عرضی)
 docs/02-…            گزارش فازها (چه ساخته شد، چه عیبی پیدا شد)
@@ -44,6 +45,7 @@ docs/09-…            مدل پایگاه‌داده: کاتالوگ‌ها، �
 docs/10-…            تحلیل شکاف با T5V3 + موج ۱ (تصاویر، سهمیه، لیست مرخصی‌ها)
 docs/11-…            موج ۲ و ۳: ۲۱ ماژول تازه، لاگ‌ها، سلامت داده
 docs/12-…            انتقال داده: چرا اسکیما یکی است، جابه‌جایی سرور، اثر انگشت و گیت‌های پذیرش
+docs/13-…            نصب IIS و SQL Server: چهار اسکریپت، چک‌لیست پذیرش، عیب‌یابی
 docs/legacy-controllers.txt  فهرست مرجع ۶۷ کنترلر قدیمی (استخراج ماشینی از T5V3Web.dll — `tools/legacy-coverage.py`)
 ```
 
@@ -84,7 +86,11 @@ docs/legacy-controllers.txt  فهرست مرجع ۶۷ کنترلر قدیمی (�
 5. `tools/engine-model-contract.py --check` — اعضای مدل موتور که پورتال می‌خواند در بیلد قفل‌شده وجود دارند (`T14`)؛
 6. `tools/engine-column-types.py --check` — نوع هر ستونی که ماژول‌ها می‌نویسند، از DDL یا ORM اثبات شده است (`T16`)؛
 7. `tools/legacy-coverage.py --check` — هر ۳۴۳ کنش عمومی نسخه قدیمی تصمیم ثبت‌شده دارد و هر مقصد در کد وجود دارد (`T27`)؛
-8. `tools/engine-relations.py --check` — هر جدول یک کاتالوگ، هر کلید یک شاهد، هر ارجاع یک مقصد دارد؛ هیچ دستوری دو کاتالوگ را با هم نمی‌آمیزد و هیچ دستورِ `Personnel` روی اتصال موتور اجرا نمی‌شود (`T16`، `T28`).
+8. `tools/engine-relations.py --check` — هر جدول یک کاتالوگ، هر کلید یک شاهد، هر ارجاع یک مقصد دارد؛ هیچ دستوری دو کاتالوگ را با هم نمی‌آمیزد و هیچ دستورِ `Personnel` روی اتصال موتور اجرا نمی‌شود (`T16`، `T28`)؛
+9. `tools/deploy-kit-gate.py` — اسکریپت‌های نصب ویندوز تجزیه می‌شوند، idempotent می‌مانند، پسورد در مخزن ندارند و به فایل‌های موجود ارجاع می‌دهند (`docs/13`)؛
+10. `tools/migration-fingerprint.py --check` — اثر انگشت جابه‌جایی همهٔ ۸۷ جدول دو کاتالوگ را می‌گیرد و منطق مقایسه‌اش آزمون شده است (`docs/12`).
+
+دو گیت اول و دوم به بستهٔ `dnfile` نیاز دارند (`pip install dnfile`) تا متادیتای موتور قفل‌شده خوانده شود؛ بدون آن، `build-schema-manifest.py --check` «STALE» می‌دهد و **نباید** با اجرای سادهٔ همان ابزار بازتولید شود. گیت ۹ هم اگر `tree-sitter-powershell` نصب نباشد، بخش سینتکس را با NOTE رد می‌کند، نه FAIL.
 
 ## پیش‌نمایش آفلاین
 
@@ -106,6 +112,18 @@ python3 preview/server.py       # http://0.0.0.0:8090/preview/
         Authentication: Windows Authentication = Enabled، Anonymous = Disabled
 5) Web.config: کلید T5CnnStr (قالب ساده یا قالب قدیمی EF پذیرفته می‌شود)
 ```
+
+**راه یک‌دستوری (ویندوز):** به‌جای گام‌های بالا، `deploy/` همین چهار کار را idempotent انجام می‌دهد:
+
+```powershell
+cd deploy
+.\1-install-iis.ps1
+.\2-install-sqlserver.ps1 -SetupExe D:\media\SQLEXPR_x64_ENU.exe
+.\3-deploy-portal.ps1 -DataSource 'SRV-SQL01\T5' -Port 8080
+.\4-verify-install.ps1 -BaseUrl http://localhost:8080
+```
+
+راهنمای کامل + عیب‌یابی + چک‌لیست پذیرش: `docs/13-install-iis-sqlserver.md`.
 
 ## سه تصمیم که از نسخه قبلی فاصله می‌گیرد
 

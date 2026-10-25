@@ -61,6 +61,7 @@ namespace T5Web.Tests
             RunTest("T31: wave-1 T5V3 gaps (photos, entitlements, leave descriptions, leaves report)", TestWaveOneGaps);
             RunTest("T32: waves 2-3 (organisation, access, devices, logs, data health) + feature catalogue", TestWavesTwoAndThree);
             RunTest("T33: data migration (no schema drift, fingerprint covers the model, gates documented)", TestDataMigration);
+            RunTest("T34: install kit (IIS + SQL scripts, idempotent, no secrets, documented order)", TestInstallKit);
 
             Console.WriteLine("----------------------------------------------------------------------");
             Console.WriteLine($"  Summary: {_passed} Passed, {_failed} Failed");
@@ -2721,6 +2722,93 @@ namespace T5Web.Tests
             // 5. The README index must list it, or the playbook is unreachable.
             string readme = File.ReadAllText(Path.Combine(T5WebRoot, "README.md"));
             Assert(readme.Contains("docs/12"), "README does not list docs/12-data-migration.md.");
+        }
+
+        /// <summary>
+        /// T34 - the Windows install kit (docs/13).
+        ///
+        /// The kit runs on a customer's server, not here, so the test checks the two
+        /// things that make such a kit safe to hand over: it can be re-run after a
+        /// failure (idempotent), and it never carries a second copy of a password.
+        /// </summary>
+        private static void TestInstallKit()
+        {
+            string deploy = Path.Combine(T5WebRoot, "deploy");
+            Assert(Directory.Exists(deploy), "missing deploy/ (the IIS + SQL Server kit).");
+
+            var scripts = new[]
+            {
+                "1-install-iis.ps1", "2-install-sqlserver.ps1",
+                "3-deploy-portal.ps1", "4-verify-install.ps1"
+            };
+            foreach (string name in scripts)
+            {
+                string path = Path.Combine(deploy, name);
+                Assert(File.Exists(path), "missing deploy/" + name);
+                string text = File.ReadAllText(path);
+                Assert(text.Contains("Set-StrictMode"), name + " must set StrictMode.");
+                Assert(text.Contains("#requires -Version 5.1"), name + " must stay Windows PowerShell 5.1 compatible.");
+                Assert(!text.Contains("??") && !text.Contains("&&"),
+                    name + " uses PowerShell 7-only syntax; Server 2016/2019 operators still have 5.1.");
+                if (name != "4-verify-install.ps1")
+                {
+                    Assert(text.Contains("#requires -RunAsAdministrator"),
+                        name + " changes the machine, so it must require an elevated shell.");
+                }
+                // No literal password may live in the repository; the scripts ask at run time.
+                Assert(!Regex.IsMatch(text, "SAPWD\\s*=\\s*['\"][^'\"]+['\"]"),
+                    name + " contains a literal SA password.");
+                Assert(!Regex.IsMatch(text, "(?i)password\\s*=\\s*['\"][^'\"$]"),
+                    name + " contains a literal password.");
+            }
+
+            // Idempotency: creating a pool/site is always behind a probe.
+            string portal = File.ReadAllText(Path.Combine(deploy, "3-deploy-portal.ps1"));
+            Assert(portal.Contains("Test-Path") && portal.Contains("AppPools"),
+                "the app-pool creation must be guarded, or a second run fails.");
+            Assert(portal.Contains("Get-Website") && portal.Contains("New-Website"),
+                "the site creation must be guarded by Get-Website.");
+            Assert(portal.Contains("Set-AppSetting") && portal.Contains("RemoveChild"),
+                "Web.config patching must replace a duplicate key instead of appending one.");
+            Assert(portal.Contains("IIS AppPool") && portal.Contains("icacls"),
+                "the site folder must be readable by the pool identity, or the app cannot start.");
+            Assert(!portal.ToLowerInvariant().Contains("password="),
+                "the connection string must use Integrated Security only.");
+
+            // The verifier has to assert the two authentication outcomes, not just "it loads".
+            string verify = File.ReadAllText(Path.Combine(deploy, "4-verify-install.ps1"));
+            Assert(verify.Contains("401") && verify.Contains("UseDefaultCredentials"),
+                "the verifier must prove anonymous is refused and Windows is accepted.");
+            Assert(verify.Contains("verify.sql") && verify.Contains("03-relations.sql")
+                   && verify.Contains("migration-fingerprint.py"),
+                "the verifier must run the three database gates from docs/12.");
+            Assert(verify.Contains("Content-Security-Policy"),
+                "the verifier must check the documented security header.");
+
+            // The script that installs SQL Server must refuse to invent the vendor schema.
+            string sql = File.ReadAllText(Path.Combine(deploy, "2-install-sqlserver.ps1"));
+            Assert(sql.Contains("01-t5web-objects.sql") && sql.Contains("02-t5web-sql-login.sql"),
+                "the SQL script must create the portal objects and the least-privilege login.");
+            Assert(sql.Contains("RESTORE DATABASE") && !sql.Contains("CREATE DATABASE ReportT5V3"),
+                "the catalogs are restored, never created from a guessed schema (docs/12).");
+
+            // The gate is wired into the build, and the playbook exists and is indexed.
+            string build = File.ReadAllText(Path.Combine(T5WebRoot, "build-and-test.sh"));
+            Assert(build.Contains("deploy-kit-gate.py"), "the deploy kit must be a build gate.");
+            string doc = Path.Combine(T5WebRoot, "docs", "13-install-iis-sqlserver.md");
+            Assert(File.Exists(doc), "missing docs/13-install-iis-sqlserver.md.");
+            string playbook = File.ReadAllText(doc);
+            int last = -1;
+            foreach (string name in scripts)
+            {
+                int at = playbook.IndexOf(name, StringComparison.Ordinal);
+                Assert(at >= 0, "docs/13 never mentions " + name + ".");
+                Assert(at > last, "docs/13 documents " + name + " out of order.");
+                last = at;
+            }
+            Assert(File.Exists(Path.Combine(deploy, "README.md")), "missing deploy/README.md.");
+            string readme = File.ReadAllText(Path.Combine(T5WebRoot, "README.md"));
+            Assert(readme.Contains("docs/13"), "README does not list the install book.");
         }
 
         private static void TestNoLockDependency()

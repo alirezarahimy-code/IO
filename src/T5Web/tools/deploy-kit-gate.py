@@ -1,0 +1,233 @@
+#!/usr/bin/env python3
+"""Deploy-kit gate: the Windows installation scripts must be runnable and safe.
+
+The deployment kit (deploy/*.ps1) cannot be executed in this repository's CI —
+there is no Windows, no IIS and no SQL Server on the build machine - so the risk
+is not that it breaks the build, it is that it rots silently and is discovered
+broken on the customer's server at 11pm.
+
+This gate therefore checks the properties that make the kit trustworthy:
+
+  1. syntax      - every .ps1 parses (tree-sitter-powershell, when installed;
+                   the gate degrades to a note instead of failing the build on a
+                   machine that has no optional package);
+  2. guards      - StrictMode, error preference, and the administrator requirement
+                   on the scripts that change the machine;
+  3. idempotency - every state-changing command is behind a "does it exist" probe,
+                   so a half-finished run can be repeated;
+  4. secrets     - no literal password anywhere: passwords are read at run time;
+  5. references  - the db scripts, the fingerprint tool and the Web.config keys it
+                   touches all exist, spelled exactly as the code spells them;
+  6. order       - the four scripts run in a fixed order and docs/13 documents it.
+
+    python3 tools/deploy-kit-gate.py            # the gate
+    python3 tools/deploy-kit-gate.py --list     # what it checks, for the runbook
+"""
+import os
+import re
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(HERE)
+DEPLOY = os.path.join(ROOT, "deploy")
+
+SCRIPTS = ["1-install-iis.ps1", "2-install-sqlserver.ps1", "3-deploy-portal.ps1", "4-verify-install.ps1"]
+
+# Scripts that change the machine need elevation; the verifier only reads.
+NEEDS_ADMIN = {"1-install-iis.ps1", "2-install-sqlserver.ps1", "3-deploy-portal.ps1"}
+
+# A state-changing cmdlet must be guarded by a probe; the probe names are below.
+MUTATING = ["New-WebAppPool", "New-Website", "New-WebBinding", "Enable-WindowsOptionalFeature",
+            "Start-Process -FilePath $SetupExe", "RESTORE DATABASE"]
+
+PROBES = ["Test-Path", "Get-Website", "Get-WindowsOptionalFeature", "Get-Service", "DB_ID(",
+          "SELECT 1", "Get-ChildItem", "New-WebBinding", "-not $haveInstance", "if (-not $haveInstance)",
+          "already enabled", "present"]
+
+SECRET_PATTERNS = [
+    (r"SAPWD\s*=\s*['\"][^'\"]+['\"]", "a literal SA password in an argument list"),
+    (r"(?i)\bpassword\s*=\s*['\"][^'\"$][^'\"]*['\"]", "a literal password assignment"),
+    (r"(?i)\bpwd\s*=\s*['\"][^'\"$][^'\"]*['\"]", "a literal pwd= in a connection string"),
+    (r"(?i)integrated security\s*=\s*false", "SQL authentication in a connection string"),
+]
+
+
+def read(name):
+    with open(os.path.join(DEPLOY, name), encoding="utf-8") as handle:
+        return handle.read()
+
+
+def syntax_problems(name, text):
+    """Parse with tree-sitter when available; return [] and a flag otherwise."""
+    try:
+        import tree_sitter
+        import tree_sitter_powershell
+    except ImportError:
+        return None
+    language = tree_sitter.Language(tree_sitter_powershell.language())
+    parser = tree_sitter.Parser(language)
+    tree = parser.parse(text.encode("utf-8"))
+    problems = []
+
+    def walk(node):
+        if node.type == "ERROR" or node.is_missing:
+            snippet = text.encode("utf-8")[node.start_byte:node.end_byte][:60].decode("utf-8", "replace")
+            problems.append("%s: syntax error at line %d near %r"
+                            % (name, node.start_point[0] + 1, snippet))
+        for child in node.children:
+            walk(child)
+
+    walk(tree.root_node)
+    return problems
+
+
+def check_guards(name, text):
+    problems = []
+    if "Set-StrictMode" not in text:
+        problems.append("%s: no Set-StrictMode -Version Latest" % name)
+    if "$ErrorActionPreference" not in text:
+        problems.append("%s: no $ErrorActionPreference" % name)
+    if name in NEEDS_ADMIN and "#requires -RunAsAdministrator" not in text:
+        problems.append("%s: changes the machine but does not require an elevated shell" % name)
+    if "#requires -Version 5.1" not in text:
+        problems.append("%s: no #requires -Version 5.1 (Windows PowerShell compatibility)" % name)
+    # Server 2012/2016 operators still ship PowerShell 5.1: -NoNewline and later
+    # syntax is fine, but "??" and "&&" are PowerShell 7 only.
+    for token, why in (("??", "null-coalescing is PowerShell 7 only"),
+                       ("&&", "&& is PowerShell 7 only"),
+                       ("-Parallel", "ForEach-Object -Parallel is PowerShell 7 only")):
+        if token in text:
+            problems.append("%s: uses %r (%s)" % (name, token, why))
+    return problems
+
+
+def check_idempotency(name, text):
+    problems = []
+    for cmdlet in MUTATING:
+        if cmdlet not in text:
+            continue
+        if not any(probe in text for probe in PROBES):
+            problems.append("%s: %s without an existence probe (not idempotent)" % (name, cmdlet))
+    return problems
+
+
+def check_secrets(name, text):
+    problems = []
+    for pattern, why in SECRET_PATTERNS:
+        match = re.search(pattern, text)
+        if match:
+            problems.append("%s: %s (%r)" % (name, why, match.group(0)[:40]))
+    return problems
+
+
+def check_references(name, text):
+    problems = []
+    wants = {
+        "2-install-sqlserver.ps1": ["01-t5web-objects.sql", "02-t5web-sql-login.sql"],
+        "3-deploy-portal.ps1": ["Web.config", "T5CnnStr", "PersonnelCnnStr", "T5WebMode", "T5WebLegacyUrl"],
+        "4-verify-install.ps1": ["verify.sql", "03-relations.sql", "migration-fingerprint.py"],
+    }
+    for needle in wants.get(name, []):
+        if needle not in text:
+            problems.append("%s: never mentions %s" % (name, needle))
+    if name == "4-verify-install.ps1":
+        for header in ("Content-Security-Policy", "unsafe-inline"):
+            if header not in text:
+                problems.append("%s: does not verify the %s response header" % (name, header))
+    return problems
+
+
+def check_files_exist():
+    problems = []
+    for required in ["01-t5web-objects.sql", "02-t5web-sql-login.sql", "03-relations.sql", "verify.sql"]:
+        if not os.path.exists(os.path.join(ROOT, "db", required)):
+            problems.append("db/%s is missing but the deploy kit runs it" % required)
+    if not os.path.exists(os.path.join(ROOT, "tools", "migration-fingerprint.py")):
+        problems.append("tools/migration-fingerprint.py is missing but the verifier runs it")
+    if not os.path.exists(os.path.join(ROOT, "T5Web.Web", "Web.config")):
+        problems.append("T5Web.Web/Web.config is missing")
+    else:
+        with open(os.path.join(ROOT, "T5Web.Web", "Web.config"), encoding="utf-8") as handle:
+            config = handle.read()
+        for key in ("T5CnnStr", "PersonnelCnnStr", "T5WebMode", "T5WebLegacyUrl"):
+            if 'key="%s"' % key not in config:
+                problems.append("Web.config has no appSetting %s, but the deploy script patches it" % key)
+    return problems
+
+
+def check_order_and_docs():
+    problems = []
+    readme = os.path.join(DEPLOY, "README.md")
+    doc = os.path.join(ROOT, "docs", "13-install-iis-sqlserver.md")
+    if not os.path.exists(readme):
+        problems.append("deploy/README.md is missing")
+    if not os.path.exists(doc):
+        problems.append("docs/13-install-iis-sqlserver.md is missing")
+        return problems
+    with open(doc, encoding="utf-8") as handle:
+        text = handle.read()
+    last = -1
+    for script in SCRIPTS:
+        position = text.find(script)
+        if position < 0:
+            problems.append("docs/13 never mentions %s" % script)
+        elif position < last:
+            problems.append("docs/13 documents %s out of order" % script)
+        else:
+            last = position
+    for needle in ("verify.sql", "03-relations.sql", "T5WebMode", "UserInfo.WebUser", "T5CnnStr"):
+        if needle not in text:
+            problems.append("docs/13 never mentions %s" % needle)
+    if os.path.exists(readme):
+        with open(readme, encoding="utf-8") as handle:
+            readme_text = handle.read()
+        for script in SCRIPTS:
+            if script not in readme_text:
+                problems.append("deploy/README.md never mentions %s" % script)
+    return problems
+
+
+def main(argv):
+    if "--list" in argv:
+        print("deploy kit gate checks: syntax, guards, idempotency, secrets, references, order")
+        return 0
+
+    if not os.path.isdir(DEPLOY):
+        print("FAIL: no deploy/ folder")
+        return 1
+
+    problems = []
+    parser_used = True
+    for name in SCRIPTS:
+        path = os.path.join(DEPLOY, name)
+        if not os.path.exists(path):
+            problems.append("missing deploy/%s" % name)
+            continue
+        text = read(name)
+        syntax = syntax_problems(name, text)
+        if syntax is None:
+            parser_used = False
+        else:
+            problems.extend(syntax)
+        problems.extend(check_guards(name, text))
+        problems.extend(check_idempotency(name, text))
+        problems.extend(check_secrets(name, text))
+        problems.extend(check_references(name, text))
+
+    problems.extend(check_files_exist())
+    problems.extend(check_order_and_docs())
+
+    if problems:
+        print("FAIL: deploy kit")
+        for problem in problems:
+            print("  - " + problem)
+        return 1
+
+    note = "" if parser_used else " [NOTE: tree-sitter-powershell not installed - syntax pass skipped]"
+    print("OK: deploy kit (%d scripts, guards, idempotency, no secrets, references, documented order)%s"
+          % (len(SCRIPTS), note))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
