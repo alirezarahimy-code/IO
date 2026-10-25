@@ -315,8 +315,17 @@ jobs:
           # deploy/4-verify-install.ps1 is the checklist a customer runs after the
           # install, so it has to be executed somewhere. The database half needs the two
           # catalogs, which this job has not got, so only its IIS half must pass here.
-          $output = & .\deploy\4-verify-install.ps1 -BaseUrl http://localhost:8080 2>&1
-          $scriptExit = $LASTEXITCODE
+          $output = @()
+          $scriptExit = 0
+          try {
+            $output = & .\deploy\4-verify-install.ps1 -BaseUrl http://localhost:8080 2>&1
+            $scriptExit = $LASTEXITCODE
+          } catch {
+            # The shell sets $ErrorActionPreference = 'Stop', so the first error the
+            # script writes terminates it before it can report anything. Say which.
+            Write-Host ("::error::4-verify-install.ps1 stopped early: " + $_.Exception.Message)
+            $output = $_.ScriptStackTrace
+          }
           # The script exits with its number of failures, and GitHub's powershell shell
           # forwards $LASTEXITCODE as the step result - which would fail the step for the
           # database checks we deliberately did not set up.
