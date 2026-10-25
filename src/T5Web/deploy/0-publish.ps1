@@ -169,6 +169,27 @@ if ($leaks.Count -gt 0) {
 # request to any screen answers 500 "CS0103: The name 'model' does not exist"
 # (BUG-38). The same file has to be in the *published* folder, which is what this
 # list checks - a source-tree-only config is the bug, not the fix.
+# The site's configuration names these assemblies (Views/Web.config resolves the Razor
+# host factory by version, Web.config registers EF's SqlClient provider), and a server
+# that never had MVC has no GAC copy to fall back on. Each one missing is a different
+# 500 on the first request, so the publish refuses the folder instead.
+$requiredAssemblies = @(
+    'System.Web.Mvc',            # Views/Web.config: the Razor host factory
+    'System.Web.WebPages',       # what a .cshtml file compiles against
+    'System.Web.WebPages.Razor',
+    'System.Web.Razor',
+    'EntityFramework',           # the engine's Database First context
+    'EntityFramework.SqlServer', # the provider Web.config registers by name
+    'Personnel',                 # the pinned engine itself
+    'Dapper'
+)
+foreach ($assembly in $requiredAssemblies) {
+    if (-not (Test-Path (Join-Path $OutputPath ("bin\" + $assembly + ".dll")))) {
+        throw ("the published folder has no bin\{0}.dll. The site's configuration names it " -f $assembly) +
+              " (Views\Web.config or Web.config) and IIS has no GAC copy on a clean server."
+    }
+}
+
 foreach ($required in @('Web.config', 'bin\T5Web.Admin.dll', 'Views', 'Views\Web.config')) {
     if (-not (Test-Path (Join-Path $OutputPath $required))) {
         throw "the published folder is missing $required."
