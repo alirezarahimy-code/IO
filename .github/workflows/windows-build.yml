@@ -555,7 +555,9 @@ jobs:
                      "the page the portal returned says: " + $flat.Substring(0, [Math]::Min(300, $flat.Length)))
             }
 
-            function Move([int]$to) {
+            # Not "Move": that is a built-in alias for Move-Item, and aliases win over
+            # functions, so Move 2 tried to move a file called 2.
+            function Invoke-Move([int]$to) {
               $body = @{
                 __RequestVerificationToken = $token.Groups[1].Value
                 departmentId               = $child
@@ -566,7 +568,7 @@ jobs:
                 -WebSession $session -MaximumRedirection 5
             }
 
-            $response = Move $parent
+            $response = Invoke-Move $parent
             Write-Host ("  POST /Department/Move -> {0}, landed on {1}" -f $response.StatusCode, $response.BaseResponse.ResponseUri)
             $after = Sql "SELECT ISNULL([UpperDeptID], 0) FROM [dbo].[Department] WHERE [DepartmentID] = $child"
             if ($after -ne "$parent") {
@@ -575,7 +577,7 @@ jobs:
             }
             Write-Host "  PASS: department $child now sits under $parent"
 
-            $response = Move 0
+            $response = Invoke-Move 0
             $back = Sql "SELECT ISNULL([UpperDeptID], 0) FROM [dbo].[Department] WHERE [DepartmentID] = $child"
             if ($back -ne '0') { throw "the second move left UpperDeptID=$back instead of 0" }
             Write-Host '  PASS: and back again, so the write is repeatable'
