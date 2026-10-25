@@ -2956,11 +2956,12 @@ namespace T5Web.Tests
             {
                 Assert(typed.ContainsKey(table), "engine/column-types.json has no " + table + ".");
             }
-            if (typed.ContainsKey("UserShift"))
-            {
-                Assert(!typed["UserShift"].ContainsKey("EndDate"),
-                    "UserShift.EndDate does not exist; the real column is ToDate.");
-            }
+            // UserShift really has both: ToDate (proven by the ORM) and EndDate (proven by
+            // the manifest, see EXTRA_COLUMNS). The store reads EndDate.
+            Assert(TypedHasColumn("UserShift", "ToDate"),
+                "UserShift.ToDate is the ORM-proven end of the assignment.");
+            Assert(TypedHasColumn("UserShift", "EndDate"),
+                "UserShift.EndDate is the column the schedule store actually reads.");
         }
 
         /// <summary>True when engine/column-types.json records the column for the table.</summary>
