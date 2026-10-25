@@ -31,6 +31,28 @@ GO
 USE [Personnel];
 GO
 
+/* The two lookups are IDENTITY columns in the engine DDL (engine/column-types.json), so
+   the fixture cannot choose their values: it inserts the rows and then discovers the
+   keys the engine handed out. A hand-picked ID would work on the synthetic schema and
+   fail on the real install with Msg 544 - the fixture has to survive both. */
+IF NOT EXISTS (SELECT 1 FROM dbo.[Department] WHERE [DepartmentName] = N'واحد آزمون')
+BEGIN
+    INSERT INTO dbo.[Department] ([DepartmentName], [Name], [UpperDeptID])
+        VALUES (N'واحد آزمون', N'واحد آزمون', 0);
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM dbo.[EmpType] WHERE [EmpTypeName] = N'رسمی')
+BEGIN
+    INSERT INTO dbo.[EmpType] ([EmpTypeName]) VALUES (N'رسمی');
+END
+GO
+
+DECLARE @DeptID    int = (SELECT TOP 1 [DepartmentID] FROM dbo.[Department]
+                           WHERE [DepartmentName] = N'واحد آزمون' ORDER BY [DepartmentID]);
+DECLARE @EmpTypeID int = (SELECT TOP 1 [EmpTypeID] FROM dbo.[EmpType]
+                           WHERE [EmpTypeName] = N'رسمی' ORDER BY [EmpTypeID]);
+
 IF NOT EXISTS (SELECT 1 FROM dbo.[UserInfo] WHERE [BadgeNumber] = 1001)
 BEGIN
     INSERT INTO dbo.[UserInfo]
@@ -44,7 +66,7 @@ BEGIN
     VALUES
         (1001, N'$(Who)', N'0001', N'آزمون', N'نصب', N'پورتال',
          N'0012345678', N'00000000', N'fixture@example.invalid', N'-', N'CI fixture row',
-         1, 1, 1, '1980-01-01', '2015-01-01',
+         @DeptID, @EmpTypeID, 0, '1980-01-01', '2015-01-01',
          0, 0, 0, 1, 0,
          N'', N'', N'', 0,
          0, 0, 0, 0,
@@ -52,26 +74,12 @@ BEGIN
 END
 ELSE
 BEGIN
-    -- Re-running the fixture must make the row usable again, not silently keep a
-    -- stale user name (the Windows account differs from runner to runner).
+    -- Re-running the fixture must make the row usable again, not silently keep a stale
+    -- user name: the Windows account differs from runner to runner.
     UPDATE dbo.[UserInfo]
-       SET [UserName] = N'$(Who)', [WebUser] = 1, [FiredDate] = NULL
+       SET [UserName] = N'$(Who)', [WebUser] = 1, [FiredDate] = NULL,
+           [DeptID] = @DeptID, [EmpTypeID] = @EmpTypeID
      WHERE [BadgeNumber] = 1001;
-END
-GO
-
-/* A department and an employment type, so the two LEFT JOINs on the personnel
-   screen resolve to real names instead of empty strings. */
-IF NOT EXISTS (SELECT 1 FROM dbo.[Department] WHERE [DepartmentID] = 1)
-BEGIN
-    INSERT INTO dbo.[Department] ([DepartmentID], [DepartmentName], [Name], [UpperDeptID])
-        VALUES (1, N'واحد آزمون', N'واحد آزمون', 0);
-END
-GO
-
-IF NOT EXISTS (SELECT 1 FROM dbo.[EmpType] WHERE [EmpTypeID] = 1)
-BEGIN
-    INSERT INTO dbo.[EmpType] ([EmpTypeID], [EmpTypeName]) VALUES (1, N'رسمی');
 END
 GO
 
