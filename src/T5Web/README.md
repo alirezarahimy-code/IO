@@ -28,7 +28,7 @@ T5Web.Application/   قاعده‌های کاری: پرسنل، چارت ساز�
 T5Web.Data/          SchemaMap + مخزن Dapper + مخزن درون‌حافظه‌ای + PersonnelDirectory (کاتالوگ دوم)
 T5Web.Data/Engine/   دایرکتوری موتور: خواندن داده پایه از Personnel.DB.*DA خود موتور
 T5Web.Web/           پورتال MVC: کنترلرها، نماها، استایل آفلاین، Web.config
-T5Web.Tests/         ۴۰ آزمون بدون وابستگی خارجی (بدون NuGet)
+T5Web.Tests/         ۴۱ آزمون بدون وابستگی خارجی (بدون NuGet)
 engine/              model-contract.json — اعضای مدل موتور که پورتال می‌خواند (تولیدشده)
 tools/               قرارداد مدل · نوع ستون‌ها · مدل پایگاه‌داده · پارس C# · اسکیمای جانشین · smoke SQL (همه بازتولیدشدنی)
 preview/             پیش‌نمایش آفلاین ۱۳ صفحه‌ای با همان CSS/JS پورتال + server.py (لاگ، سلامت داده، داده پایه)
@@ -46,7 +46,7 @@ docs/10-…            تحلیل شکاف با T5V3 + موج ۱ (تصاویر،
 docs/11-…            موج ۲ و ۳: ۲۱ ماژول تازه، لاگ‌ها، سلامت داده
 docs/12-…            انتقال داده: چرا اسکیما یکی است، جابه‌جایی سرور، اثر انگشت و گیت‌های پذیرش
 docs/13-…            نصب IIS و SQL Server: چهار اسکریپت، چک‌لیست پذیرش، عیب‌یابی
-docs/14-…            کامپایل و آزمایش روی ویندوز واقعی: msbuild، ۴۰ آزمون، SQL Server در CI
+docs/14-…            کامپایل و آزمایش روی ویندوز واقعی: msbuild، ۴۱ آزمون، SQL Server در CI
 docs/legacy-controllers.txt  فهرست مرجع ۶۷ کنترلر قدیمی (استخراج ماشینی از T5V3Web.dll — `tools/legacy-coverage.py`)
 ```
 
@@ -99,7 +99,7 @@ docs/legacy-controllers.txt  فهرست مرجع ۶۷ کنترلر قدیمی (�
 
 **کامپایل و اجرای آزمون‌ها روی ویندوز:** محیط توسعه لینوکس است و کامپایلر C#/‏.NET Framework ندارد،
 پس `.github/workflows/windows-build.yml` همان کار را روی یک ویندوز واقعی انجام می‌دهد: `msbuild`،
-اجرای ۴۰ آزمون، و اجرای `db/*.sql` روی SQL Server Express LocalDB. جزئیات: `docs/14-windows-ci.md`.
+اجرای ۴۱ آزمون، و اجرای `db/*.sql` روی SQL Server Express LocalDB. جزئیات: `docs/14-windows-ci.md`.
 
 دو گیت اول و دوم به بستهٔ `dnfile` نیاز دارند (`pip install dnfile`) تا متادیتای موتور قفل‌شده خوانده شود؛ بدون آن، `build-schema-manifest.py --check` «STALE» می‌دهد و **نباید** با اجرای سادهٔ همان ابزار بازتولید شود. گیت ۹ هم اگر `tree-sitter-powershell` نصب نباشد، بخش سینتکس را با NOTE رد می‌کند، نه FAIL.
 

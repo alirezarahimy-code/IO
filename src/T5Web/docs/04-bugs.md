@@ -53,7 +53,10 @@
 | **BUG-38** | `Views/Web.config` وجود نداشت، پس هیچ نمای Razor کامپایل نمی‌شد | `T5Web.Web/Views/` | در MVC روی .NET Framework، همین فایل است که صفحهٔ Razor را از `WebPage` به `WebViewPage` می‌برد؛ بدون آن `@model`، `ViewBag` و `Url` وجود ندارند و **هر صفحه** با `500 · CS0103: The name 'model' does not exist` می‌افتد. کامپایلر این را نمی‌بیند (فایل کانفیگ است) و بازبینی هم ندید. حالا فایل استاندارد MVC 5 در مخزن است، `0-publish.ps1` نبودِ آن را در پوشهٔ منتشرشده رد می‌کند و gate استقرار هم می‌سنجد | `T40` |
 | **BUG-39** | provider EF ثبت نشده بود | `T5Web.Web/Web.config`، `T5Web.Data.csproj` | مدل Database First موتور برای اجرا به provider `System.Data.SqlClient` نیاز دارد؛ نبودنش `MetadataException: No Entity Framework provider found…` می‌دهد — روی **هر** صفحه‌ای که سازمان را می‌خواند. حالا بخش `entityFramework` در `Web.config` است و `EntityFramework.dll`/`EntityFramework.SqlServer.dll` با `Private=true` کنار سایت کپی می‌شوند (ثبت بدون اسمبلی، همان خطا یک قدم بعدتر است) | `T40` |
 
-**آمار:** ۳۹ عیب ثبت‌شده · ۴۰ آزمون در `T5Web.Tests` · ۰ عیب باز بدون آزمون.
+| **BUG-40** | صفحهٔ «قاعده هر پرسنل» ستونی را می‌خواست که وجود ندارد | `ModuleRegistry.cs` (ماژول `userrule`) | فیلد نمایشی `RuleType` در `[UserRule]` نیست؛ موتور ستون `RuleTypeName` را دارد. چون SQL این ماژول‌ها از روی توصیفگر **ساخته** می‌شود، کامپایلر و lint و smoke هیچ‌کدام آن را نمی‌دیدند و صفحه در اولین کلیک با `Invalid column name 'RuleType'` می‌افتاد. حالا `RuleTypeName` است و gate تازهٔ `module-field-gate.py` هر ۲۰۸ فیلد ۵۱ ماژول را با مدل موتور می‌سنجد (و چهار ستون واقعیِ دیگر را هم به مدل اضافه کرد تا اسکیمای جانشین همان چیزی را داشته باشد که سرور واقعی دارد) | `module-field-gate.py` |
+| **BUG-41** | `Views/Import/Index.cshtml` پارس نمی‌شد | همان فایل، `@if` تودرتو داخل بلوک کد Razor | داخل بلوک کد، دستور باید C# خالص باشد؛ `@if` خطای `Parser Error: Unexpected "if"` می‌دهد و کل صفحه ۵۰۰ می‌شود. هیچ‌چیز این فایل را نمی‌خواند تا job سوم آن را باز کرد؛ حالا `T41` همهٔ نمای `.cshtml` را با همان موتور Razor خود MVC **پارس** می‌کند و خطا را در بیلد می‌دهد | `T41` |
+
+**آمار:** ۴۱ عیب ثبت‌شده · ۴۱ آزمون در `T5Web.Tests` · ۰ عیب باز بدون آزمون.
 
 ## چگونه یک عیب جدید اضافه می‌شود
 

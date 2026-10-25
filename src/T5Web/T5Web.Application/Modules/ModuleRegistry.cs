@@ -431,7 +431,10 @@ modules.Add(new ModuleDescriptor
                     Number("RuleID", "قاعده", "orm", required: true),
                     Date("FromDate", "از تاریخ", "orm", required: true),
                     Date("ToDate", "تا تاریخ", "orm"),
-                    Show("RuleType", "نوع قاعده", FieldKind.Number)
+                    // The engine's [UserRule] carries the *name* of the rule type, not an
+                    // id: RuleTypeName. Asking for RuleType is "Invalid column name" the
+                    // moment the screen runs (BUG-40).
+                    Show("RuleTypeName", "نوع قاعده", FieldKind.Text)
                 }
             });
 

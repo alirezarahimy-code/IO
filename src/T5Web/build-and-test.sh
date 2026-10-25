@@ -63,6 +63,10 @@ python3 "$SCRIPT_DIR/tools/sql-grant-gate.py" --self-test
 # Deployment kit: the Windows install scripts must parse, stay idempotent, keep passwords
 # out of the repository and reference files that exist (docs/13).
 python3 "$SCRIPT_DIR/tools/deploy-kit-gate.py"
+# Module fields: every column a generic screen names must exist in the engine model. A
+# field that does not is "Invalid column name" on one screen at the first click; the
+# statement is assembled from the descriptor, so nothing else can see it (BUG-40).
+python3 "$SCRIPT_DIR/tools/module-field-gate.py"
 # Fixture: tools/ci-seed.sql must cover every AdminFeature and every NOT NULL column of
 # [UserInfo], or a screen answers 403 on the runner and the sweep passes without it.
 python3 "$SCRIPT_DIR/tools/ci-fixture-gate.py"

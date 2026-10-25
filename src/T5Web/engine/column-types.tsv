@@ -217,10 +217,12 @@ HourlyLeave	BadgeNumber	bigint	orm
 HourlyLeave	Descriptions	nvarchar	orm
 HourlyLeave	FromTime	datetime	orm
 HourlyLeave	ID	int	orm
+HourlyLeave	LeaveID	int	manifest
 HourlyLeave	LeaveTypeID	int	orm
 HourlyLeave	ToTime	datetime	orm
 LeaveDescription	Description	nvarchar	orm
 LeaveDescription	ID	int	orm
+LeaveDescription	LeaveDescriptions	nvarchar	manifest
 LeaveType	AutoInHolidays	bit	orm
 LeaveType	Color	int	orm
 LeaveType	DecreaseFromLeaveID	int	orm
@@ -280,6 +282,7 @@ Position	PositionID	int	orm
 Position	PositionName	nvarchar	orm
 PositionStep	Descriptions	bit	orm
 PositionStep	Location	bit	orm
+PositionStep	OperationIndex	int	manifest
 PositionStep	OperationName	nvarchar	orm
 PositionStep	OrderIndex	int	orm
 PositionStep	Photo	bit	orm
@@ -455,6 +458,7 @@ SystemLog	UserID	bigint	orm
 TempSchedule	AssignDate	datetime	orm
 TempSchedule	AssignedSchedule	int	orm
 TempSchedule	BadgeNumber	bigint	orm
+TempSchedule	ScheduleID	int	manifest
 Template	BadgeNumber	bigint	ddl
 Template	FingerIndex	int	ddl
 Template	Flags	int	ddl

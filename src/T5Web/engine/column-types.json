@@ -2049,6 +2049,14 @@
           "source": "orm:T5V3.Model.dll",
           "type": "int"
         },
+        "LeaveID": {
+          "evidence": "manifest",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
+          "type": "int"
+        },
         "LeaveTypeID": {
           "clr": "int",
           "evidence": "orm",
@@ -2069,6 +2077,7 @@
         }
       },
       "sources": [
+        "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
         "orm:T5V3.Model.dll"
       ]
     },
@@ -2091,9 +2100,18 @@
           "nullable": false,
           "source": "orm:T5V3.Model.dll",
           "type": "int"
+        },
+        "LeaveDescriptions": {
+          "evidence": "manifest",
+          "identity": false,
+          "length": 250,
+          "nullable": true,
+          "source": "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
+          "type": "nvarchar"
         }
       },
       "sources": [
+        "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
         "orm:T5V3.Model.dll"
       ]
     },
@@ -2672,6 +2690,14 @@
           "source": "orm:T5V3.Model.dll",
           "type": "bit"
         },
+        "OperationIndex": {
+          "evidence": "manifest",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
+          "type": "int"
+        },
         "OperationName": {
           "clr": "string",
           "evidence": "orm",
@@ -2719,6 +2745,7 @@
         }
       },
       "sources": [
+        "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
         "orm:T5V3.Model.dll"
       ]
     },
@@ -4325,9 +4352,18 @@
           "nullable": false,
           "source": "orm:T5V3.Model.dll",
           "type": "bigint"
+        },
+        "ScheduleID": {
+          "evidence": "manifest",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
+          "type": "int"
         }
       },
       "sources": [
+        "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
         "orm:T5V3.Model.dll"
       ]
     },

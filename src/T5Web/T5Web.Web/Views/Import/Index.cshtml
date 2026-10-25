@@ -94,7 +94,10 @@
         </div>
     </div>
 
-    @if (Model.Preview.AcceptedCount > 0 && Model.FileProblems.Count == 0)
+    @* Inside a Razor code block the nested statement is plain C#: writing `@if` here is
+       "Parser Error: Unexpected "if"" and the whole view fails to compile - the file was
+       never parsed until the CI job opened the page (BUG-41). *@
+    if (Model.Preview.AcceptedCount > 0 && Model.FileProblems.Count == 0)
     {
         <form method="post" action="@Url.Action("Commit", "Import")" data-confirm="true">
             @Html.AntiForgeryToken()

@@ -305,6 +305,23 @@ EXTRA_COLUMNS = {
     "UserShift": {
         "EndDate": {"type": "datetime", "nullable": True},
     },
+    # Four columns a generic module writes, present in the vendor schema manifest but
+    # not modelled by the engine's ORM. They were invisible to the synthetic schema, so
+    # the CI install would have failed on those screens with "Invalid column name" while
+    # a real server was fine - the opposite of a useful fixture (tools/module-field-gate.py
+    # now keeps this list and ModuleRegistry.cs in step).
+    "HourlyLeave": {
+        "LeaveID": {"type": "int", "nullable": True},
+    },
+    "LeaveDescription": {
+        "LeaveDescriptions": {"type": "nvarchar", "length": 250, "nullable": True},
+    },
+    "PositionStep": {
+        "OperationIndex": {"type": "int", "nullable": True},
+    },
+    "TempSchedule": {
+        "ScheduleID": {"type": "int", "nullable": True},
+    },
 }
 
 for _table, _columns in EXTRA_COLUMNS.items():

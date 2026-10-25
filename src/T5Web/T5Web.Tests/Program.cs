@@ -68,6 +68,7 @@ namespace T5Web.Tests
             RunTest("T38: the grants are valid T-SQL and the job that runs them reads the exit code", TestGrantStatementsExecute);
             RunTest("T39: the engine is Database First, so it gets an entity connection string", TestEngineConnectionString);
             RunTest("T40: a Razor page can only work with Views/Web.config and a registered EF provider", TestViewHostConfiguration);
+            RunTest("T41: every view parses (IIS is not the first thing that should read them)", TestViewsParse);
 
             Console.WriteLine("----------------------------------------------------------------------");
             Console.WriteLine($"  Summary: {_passed} Passed, {_failed} Failed");
@@ -3206,6 +3207,61 @@ namespace T5Web.Tests
                     "T5Web.Data must deploy " + assembly + ": registering a provider whose assembly is "
                     + "not next to the site is the same failure one step later (BUG-39).");
             }
+        }
+
+        /// <summary>
+        /// T41 - every .cshtml file must parse (BUG-41).
+        ///
+        /// Until the IIS job opened the screens, no view had ever been read by anything:
+        /// the compiler never sees .cshtml, and the smoke test only reads C#. Views/Import
+        /// had a nested `@if` inside a Razor code block - "Parser Error: Unexpected \"if\""
+        /// - so that screen answered 500 and nothing in a green build said so.
+        ///
+        /// This parses each view with the Razor engine MVC itself uses. It is a parser, not
+        /// a compiler: namespaces come from Views/Web.config at run time, so type errors
+        /// still belong to IIS. Syntax errors, which took a CI round to find, do not.
+        /// </summary>
+        private static void TestViewsParse()
+        {
+            string viewsRoot = Path.Combine(T5WebRoot, "T5Web.Web", "Views");
+            string[] views = Directory.GetFiles(viewsRoot, "*.cshtml", SearchOption.AllDirectories);
+            Assert(views.Length > 40, "expected the whole view tree, found " + views.Length + " files.");
+
+            var problems = new List<string>();
+            foreach (string view in views)
+            {
+                string relative = view.Substring(viewsRoot.Length).Replace('\\', '/');
+                var host = new System.Web.Mvc.MvcWebRazorHostFactory()
+                    .CreateHost("~" + relative, view);
+                var engine = new System.Web.Razor.RazorTemplateEngine(host);
+                try
+                {
+                    using (var reader = new StreamReader(view))
+                    {
+                        System.Web.Razor.Generator.GeneratorResults results = engine.GenerateCode(
+                            reader,
+                            className: "Generated" + views.Length,
+                            rootNamespace: "T5Web.Views",
+                            sourceFileName: view);
+                        if (!results.Success)
+                        {
+                            foreach (var error in results.ParserErrors.Take(3))
+                            {
+                                problems.Add(relative + "(" + error.Location.LineIndex + "," +
+                                             error.Location.CharacterIndex + "): " + error.Message);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    problems.Add(relative + ": " + ex.Message);
+                }
+            }
+
+            Assert(problems.Count == 0,
+                "views that Razor cannot parse (IIS answers 500 Parser Error for each): " +
+                string.Join(" | ", problems.Take(6)));
         }
 
         private static void TestNoLockDependency()

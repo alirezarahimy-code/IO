@@ -16,6 +16,24 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <!-- T41 parses every .cshtml with the Razor engine MVC itself uses. Without these
+         three the views are only ever parsed by IIS, at the customer's first click. -->
+    <Reference Include="System.Web.Razor">
+      <HintPath>..\..\..\T5Web [3.5.7]\App\bin\System.Web.Razor.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Razor">
+      <HintPath>..\..\..\T5Web [3.5.7]\App\bin\System.Web.WebPages.Razor.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="System.Web.WebPages">
+      <HintPath>..\..\..\T5Web [3.5.7]\App\bin\System.Web.WebPages.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="System.Web.Mvc">
+      <HintPath>..\..\..\T5Web [3.5.7]\App\bin\System.Web.Mvc.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
     <!-- T39 asks the pinned engine assembly for the names of its EDMX resources: the
          connection string is built from what the assembly has, not from a constant. -->
     <Reference Include="Personnel">
