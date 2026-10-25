@@ -318,7 +318,10 @@ jobs:
           $output = @()
           $scriptExit = 0
           try {
-            $output = & ./src/T5Web/deploy/4-verify-install.ps1 -BaseUrl http://localhost:8080 2>&1
+            # *>&1, not 2>&1: the script reports with Write-Host, which in PowerShell 5
+            # writes to the information stream - assigning the call without it captures
+            # nothing, and the check then fails on an empty string (not on the site).
+            $output = & ./src/T5Web/deploy/4-verify-install.ps1 -BaseUrl http://localhost:8080 *>&1
             $scriptExit = $LASTEXITCODE
           } catch {
             # The shell sets $ErrorActionPreference = 'Stop', so the first error the
@@ -330,7 +333,7 @@ jobs:
           # forwards $LASTEXITCODE as the step result - which would fail the step for the
           # database checks we deliberately did not set up.
           $global:LASTEXITCODE = 0
-          $output | ForEach-Object { Write-Host $_ }
+          $output | ForEach-Object { Write-Host ([string]$_) }
 
           $text = ($output | Out-String)
           Write-Host ("  checklist exit code {0} (database checks need catalogs this job has not got)" -f $scriptExit)
