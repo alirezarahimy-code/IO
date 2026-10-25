@@ -190,7 +190,7 @@
 | کلید قدیمی | تصمیم در بازنویسی |
 | :-- | :-- |
 | `Link5ServiceURL` (`http://127.0.0.1:15222/Device/`) | **جایگزین شد**: صف واقعی `[T5WebDeviceCommand]` به‌جای فراخوانی HTTP (`BUG-26`، `docs/08` بند ۵-الف) |
-| `t5ConnectionString` / `personnelConnectionString` (قالب EF) | همان دو پایگاه (ReportT5V3 و Personnel) با کلیدهای `T5CnnStr` / `PersonnelCnnStr؛` قالب EF هم پذیرفته می‌شود (`MvcApplication`) |
+| `t5ConnectionString` / `personnelConnectionString` (قالب EF) | همان دو پایگاه (ReportT5V3 و Personnel) با کلیدهای `T5CnnStr` / `PersonnelCnnStr`؛ قالب EF هم پذیرفته می‌شود (`MvcApplication`) |
 | `LockIP` / `LockType = Tiny` | **حذف**: Zero-Lock (`T12`) |
 | `Captcha` + `CaptchaScript.js` | **حذف**: فرم ورود رمز وجود ندارد (Negotiate) |
 | `CookiesTime` / `CookiesSecure` | با احراز هویت ویندوز، کوکی نشست ASP.NET همان کار را می‌کند؛ `httpCookies httpOnly` و CSP در `Web.config` جدید |
@@ -214,8 +214,9 @@
 * ۶۴ پوشه نما برای ۶۷ کنترلر: سه کنترلر (`GroupAssignShift`، `UserSelection`، `iclock`)
   پوشه نما نداشتند و در همان‌جا تصمیم‌شان ثبت شد (به‌ترتیب: ادغام در `Schedule`،
   کامپوننت انتخاب‌گر مشترک، خارج از دامنه پورتال).
-* ۲۴ پارشال `Shared` (منوی متریال، انتخاب‌گر کاربر/تاریخ، زنجیره گردش کار، شبکه) در
-  بازنویسی به یک چیدمان مشترک + `_Node` + `data-*` تبدیل شدند؛ هیچ پارشالی بی‌معادل نماند.
+* ۲۴ پارشال `Shared` (منوی متریال، انتخاب‌گر کاربر/تاریخ، زنجیره گردش کار، شبکه) به‌همراه
+  ۵ پارشال دیگر (۴ پارشال حساب کاربری و `_ViewStart`) در بازنویسی به یک چیدمان مشترک +
+  `_Node` + `data-*` تبدیل شدند؛ هیچ پارشالی بی‌معادل نماند.
 * `Misc/ToolbarItems.xml` و اسکریپت‌های Kendo/jQuery/`bootstrap-treeview` با استایل و
   JS دست‌نویس جایگزین شدند (`T09` هرگونه منبع بیرونی را رد می‌کند).
 
