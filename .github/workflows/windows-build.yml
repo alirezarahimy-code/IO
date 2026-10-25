@@ -164,35 +164,49 @@ jobs:
           }
 
       - name: The app pool is the one the runbook describes
-        shell: pwsh
+        shell: powershell
         run: |
           Import-Module WebAdministration
           $pool = Get-Item 'IIS:\AppPools\T5WebAdmin'
-          $checks = @{
-            managedRuntimeVersion = 'v4.0'
-            managedPipelineMode   = 'Integrated'
-            startMode             = 'AlwaysRunning'
-            'processModel.idleTimeout' = '00:00:00'
+
+          # Read each value explicitly: $pool.$name does not resolve dotted paths, and
+          # a wrong assertion here fails a correct installation.
+          $actual = [ordered]@{
+            'managedRuntimeVersion' = [string]$pool.managedRuntimeVersion
+            'managedPipelineMode'   = [string]$pool.managedPipelineMode
+            'startMode'             = [string]$pool.startMode
+            'idleTimeout'           = ([TimeSpan]$pool.processModel.idleTimeout).ToString()
+            'recyclingPeriodic'     = ([TimeSpan]$pool.recycling.periodicRestart.time).ToString()
           }
-          foreach ($key in $checks.Keys) {
-            if ($key -eq 'managedRuntimeVersion' -or $key -eq 'managedPipelineMode' -or $key -eq 'startMode') {
-              $actual = $pool.$key
-            } else {
-              $actual = $pool.processModel.idleTimeout.ToString()
-            }
-            Write-Host "  $key = $actual"
-            if ("$actual" -ne "$($checks[$key])") {
-              Write-Host ("::error::app pool {0} is {1}, expected {2}" -f $key, $actual, $checks[$key])
-              exit 1
-            }
+          $expected = [ordered]@{
+            'managedRuntimeVersion' = 'v4.0'
+            'managedPipelineMode'   = 'Integrated'
+            'startMode'             = 'AlwaysRunning'
+            'idleTimeout'           = '00:00:00'
+            'recyclingPeriodic'     = '00:00:00'
           }
+          $failed = $false
+          foreach ($key in $expected.Keys) {
+            $ok = ($actual[$key] -eq $expected[$key])
+            Write-Host ("  {0,-22} {1,-14} {2}" -f $key, $actual[$key], $(if ($ok) { 'OK' } else { "EXPECTED $($expected[$key])" }))
+            if (-not $ok) { Write-Host ("::error::app pool {0} is '{1}', expected '{2}'" -f $key, $actual[$key], $expected[$key]); $failed = $true }
+          }
+
           $anonymous = (Get-WebConfigurationProperty -Filter '/system.webServer/security/authentication/anonymousAuthentication' `
                           -Name enabled -PSPath 'IIS:\Sites\T5WebAdmin').Value
           $windows = (Get-WebConfigurationProperty -Filter '/system.webServer/security/authentication/windowsAuthentication' `
                         -Name enabled -PSPath 'IIS:\Sites\T5WebAdmin').Value
           Write-Host "  anonymous=$anonymous windows=$windows"
-          if ($anonymous -ne $false) { Write-Host '::error::anonymous authentication is enabled on the site'; exit 1 }
-          if ($windows -ne $true)   { Write-Host '::error::windows authentication is disabled on the site'; exit 1 }
+          if ($anonymous -ne $false) { Write-Host '::error::anonymous authentication is enabled on the site'; $failed = $true }
+          if ($windows -ne $true)   { Write-Host '::error::windows authentication is disabled on the site'; $failed = $true }
+
+          $site = Get-Website -Name 'T5WebAdmin'
+          Write-Host ("  site state {0}, pool {1}, path {2}" -f $site.State, $site.applicationPool, $site.physicalPath)
+          if ($site.applicationPool -ne 'T5WebAdmin') { Write-Host "::error::the site is not using the T5WebAdmin pool"; $failed = $true }
+          if ($site.State -ne 'Started') { Write-Host "::error::the site is $($site.State)"; $failed = $true }
+
+          if ($failed) { exit 1 }
+          Write-Host '  PASS: the installation matches docs/13 section 4'
 
       - name: Anonymous request is refused with 401
         shell: pwsh
