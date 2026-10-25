@@ -46,7 +46,7 @@ SCAN_ROOTS = [
 ]
 
 # Tables the portals create themselves; they are not part of the T5 schema.
-PORTAL_OWNED_TABLES = {"t5webaccess", "t5webaudit"}
+PORTAL_OWNED_TABLES = {"t5webaccess", "t5webaudit", "t5webdevicecommand"}
 
 SQL_KEYWORDS = {
     "select", "from", "where", "join", "left", "right", "inner", "outer", "cross",

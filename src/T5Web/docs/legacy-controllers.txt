@@ -2,9 +2,10 @@
 # Extracted from T5Web [3.5.7]/App/bin/T5V3Web.dll (the build being rewritten).
 # One controller per line, alphabetical. Every entry must appear in
 # docs/05-t5web-rewrite-plan.md; T13 enforces that.
-# 64 controllers
+# 67 controllers, 343 public actions
 Account
 AssignRule
+AssignShift
 Calendar
 Card
 CardexReport
@@ -51,7 +52,9 @@ ReportTablixColumn
 ReportTextbox
 ReportTitles
 RequestsReport
+Rule
 Schedule
+Shift
 ShowReport
 ShowUsersRequest
 SumReport

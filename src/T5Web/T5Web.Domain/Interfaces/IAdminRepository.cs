@@ -63,6 +63,16 @@ namespace T5Web.Domain.Interfaces
 
         OperationResult UpdateDevice(DeviceRow row);
 
+        /// <summary>
+        /// Queues one device command. The call is deliberately narrow: the closed set of
+        /// commands is validated before this point, so the store only persists the intent
+        /// and returns the new ticket id.
+        /// </summary>
+        OperationResult EnqueueDeviceCommand(DeviceCommandTicket ticket);
+
+        /// <summary>The newest tickets, for the device page.</summary>
+        IReadOnlyList<DeviceCommandTicket> GetDeviceCommands(int take);
+
         // ---- access levels ----
         OperationResult SetPermission(long badgeNumber, AdminFeature feature, AccessLevel level);
 

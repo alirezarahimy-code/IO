@@ -9,7 +9,7 @@ namespace T5Web.Application.Services
     /// <summary>
     /// The report catalogue: one entry per legacy report screen that survives the rewrite.
     ///
-    /// Legacy inventory (docs/03) has 331 actions across 64 controllers; 26 of them are
+    /// Legacy inventory (docs/03) has 343 actions across 67 controllers; 26 of them are
     /// report screens. The rewrite keeps the 11 that answer a real operational question
     /// and drops the RDLC designer (ReportDatas / ReportFilter / ReportTablix* /
     /// ReportTextbox / ReportTitles / ReportDesign) - a browser-based graphical report

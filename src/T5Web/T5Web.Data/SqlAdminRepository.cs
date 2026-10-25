@@ -511,6 +511,64 @@ WHERE [MachineNumber] = @MachineNumber;";
             }
         }
 
+        // ------------------------------------------------------- device commands
+
+        public OperationResult EnqueueDeviceCommand(DeviceCommandTicket ticket)
+        {
+            if (ticket == null || ticket.MachineNumber <= 0)
+            {
+                return OperationResult.Fail("دستگاه انتخاب نشده است.");
+            }
+            if (string.IsNullOrWhiteSpace(ticket.Command))
+            {
+                return OperationResult.Fail("دستور انتخاب نشده است.");
+            }
+
+            const string sql = @"
+INSERT INTO [T5WebDeviceCommand]
+    ([MachineNumber], [Command], [RequestedBy], [RequestedUtc], [Status], [Note])
+OUTPUT INSERTED.[ID]
+VALUES
+    (@MachineNumber, @Command, @RequestedBy, @RequestedUtc, 0, @Note);";
+
+            try
+            {
+                using (IDbConnection connection = Open())
+                {
+                    ticket.Id = connection.ExecuteScalar<long>(sql, new
+                    {
+                        ticket.MachineNumber,
+                        Command = ticket.Command.Trim(),
+                        RequestedBy = string.IsNullOrWhiteSpace(ticket.RequestedBy) ? "unknown" : ticket.RequestedBy,
+                        RequestedUtc = ticket.RequestedUtc == default(DateTime) ? DateTime.UtcNow : ticket.RequestedUtc,
+                        Note = ticket.Note ?? string.Empty
+                    });
+                    ticket.Status = 0;
+                    return OperationResult.Ok();
+                }
+            }
+            catch (Exception ex)
+            {
+                return OperationResult.Fail("ثبت دستور دستگاه ناموفق بود: " + ex.Message);
+            }
+        }
+
+        public IReadOnlyList<DeviceCommandTicket> GetDeviceCommands(int take)
+        {
+            const string sql = @"
+SELECT TOP (@Take)
+    c.[ID] AS Id, c.[MachineNumber] AS MachineNumber, c.[Command] AS Command,
+    c.[RequestedBy] AS RequestedBy, c.[RequestedUtc] AS RequestedUtc,
+    c.[Status] AS Status, c.[Note] AS Note
+FROM [T5WebDeviceCommand] c
+ORDER BY c.[ID] DESC;";
+
+            using (IDbConnection connection = Open())
+            {
+                return connection.Query<DeviceCommandTicket>(sql, new { Take = take }).ToList();
+            }
+        }
+
         private static bool IsValidIp(string value)
         {
             if (string.IsNullOrWhiteSpace(value))
@@ -738,6 +796,7 @@ ORDER BY a.[ID] DESC;";
                 new { Name = "Department", Sql = @"SELECT COUNT(1) FROM [Department];" },
                 new { Name = "Device", Sql = @"SELECT COUNT(1) FROM [Device];" },
                 new { Name = "Workflow", Sql = @"SELECT COUNT(1) FROM [Workflow];" },
+                new { Name = "T5WebDeviceCommand", Sql = @"SELECT COUNT(1) FROM [T5WebDeviceCommand];" },
                 new { Name = "T5WebAccess", Sql = @"SELECT COUNT(1) FROM [T5WebAccess];" },
                 new { Name = "T5WebAudit", Sql = @"SELECT COUNT(1) FROM [T5WebAudit];" }
             };

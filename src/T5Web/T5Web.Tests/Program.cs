@@ -40,7 +40,7 @@ namespace T5Web.Tests
             RunTest("T10: Razor and form hygiene (no @helper, conditional attributes, CSRF)", TestRazorHygiene);
             RunTest("T11: Build gates (engine pin, manifest, SQL conformance)", TestBuildGates);
             RunTest("T12: No licence, lock or outbound dependency", TestNoLockDependency);
-            RunTest("T13: Phase plan integrity (tracker, deliverables, 64/64 legacy coverage)", TestPhasePlanIntegrity);
+            RunTest("T13: Phase plan integrity (tracker, deliverables, 67/67 legacy coverage)", TestPhasePlanIntegrity);
             RunTest("T14: Engine directory contract (model members exist, reads delegate, writes stay in SQL)", TestEngineDirectoryContract);
             RunTest("T15: Personnel edit reloads stored fields instead of trusting the form", TestPersonnelEditTrust);
             RunTest("T16: Module registry is proved against schema and column types", TestModuleRegistryProof);
@@ -52,8 +52,9 @@ namespace T5Web.Tests
             RunTest("T22: Schedule rules (contiguous cycle, overlap, retroactive window)", TestScheduleRules);
             RunTest("T23: Report catalogue (access gating, per-report window, offline export)", TestReports);
             RunTest("T24: Import (CSV round trip, rejected rows, update-only scope)", TestPersonnelImport);
-            RunTest("T25: 64/64 legacy coverage audit (no controller left pending)", TestLegacyCoverage);
+            RunTest("T25: 67/67 legacy coverage audit (no controller or action left pending)", TestLegacyCoverage);
             RunTest("T26: Phase 5 delivery (screens, devices, cut-over switch)", TestPhase5Delivery);
+            RunTest("T27: 343/343 action coverage (every action decided, every target real)", TestActionCoverage);
 
             Console.WriteLine("----------------------------------------------------------------------");
             Console.WriteLine($"  Summary: {_passed} Passed, {_failed} Failed");
@@ -1409,7 +1410,7 @@ namespace T5Web.Tests
         }
 
         /// <summary>
-        /// T25 - the 64/64 audit. Every legacy controller must be either delivered
+        /// T25 - the 67/67 audit. Every legacy controller must be either delivered
         /// (with the test that proves it) or explicitly dropped with a reason; nothing
         /// may remain "pending". This is the ARIA TEST-40 equivalent, and it is the only
         /// defence against a plan that quietly shrinks.
@@ -1420,7 +1421,7 @@ namespace T5Web.Tests
                 .Where(l => !l.StartsWith("#") && !string.IsNullOrWhiteSpace(l))
                 .Select(l => l.Trim())
                 .ToArray();
-            Assert(inventory.Length == 64, "the legacy inventory must list 64 controllers, found " + inventory.Length + ".");
+            Assert(inventory.Length == 67, "the legacy inventory must list 67 controllers, found " + inventory.Length + ".");
 
             string[] docLines = File.ReadAllLines(Path.Combine(T5WebRoot, "docs", "03-legacy-decomposition.md"));
             var rows = new Dictionary<string, string[]>();
@@ -1484,7 +1485,7 @@ namespace T5Web.Tests
 
             // And the summary table must add up, so the count cannot drift from the rows.
             int total = rows.Count;
-            Assert(total == 64, "the mapping table must keep exactly 64 controllers, found " + total + ".");
+            Assert(total == 67, "the mapping table must keep exactly 67 controllers, found " + total + ".");
             string summary = string.Join("\n", docLines);
             int declared = Regex.Matches(summary, @"\| \*\*(\d+)\*\* \|")
                 .Cast<Match>()
@@ -1535,11 +1536,34 @@ namespace T5Web.Tests
             var unconfigured = new DeviceRow { MachineNumber = 2, ConnectionType = 0, Ip = "0.0.0.0" };
             Assert(!service.Validate("sync-time", unconfigured, out issued).Succeeded,
                 "a network device without an address must be refused.");
+
+            // BUG-26: the screen claimed the command was queued while nothing was written.
+            // The queue is the transport now, so it must actually accept and return a ticket.
+            InMemoryAdminRepository repository = new InMemoryAdminRepository()
+                .Seed(devices: new[] { device });
+            var ticket = new DeviceCommandTicket
+            {
+                MachineNumber = 1,
+                Command = issued.Code,
+                RequestedBy = "tester (1)",
+                Note = issued.NoteFa
+            };
+            Assert(repository.EnqueueDeviceCommand(ticket).Succeeded, "a valid command must be queued.");
+            Assert(ticket.Id > 0, "queuing a command must return a ticket id.");
+            IReadOnlyList<DeviceCommandTicket> queued = repository.GetDeviceCommands(10);
+            Assert(queued.Count == 1 && queued[0].Command == issued.Code, "the queued command must be readable.");
+            Assert(queued[0].Status == 0 && queued[0].StatusFa == "در صف", "a fresh ticket must be in the queued state.");
+
+            var orphan = new DeviceCommandTicket { MachineNumber = 999, Command = "sync-time" };
+            Assert(!repository.EnqueueDeviceCommand(orphan).Succeeded, "a command for an unknown device must be refused.");
+            var empty = new DeviceCommandTicket { MachineNumber = 1, Command = "  " };
+            Assert(!repository.EnqueueDeviceCommand(empty).Succeeded, "an empty command must not be queued.");
+            Assert(repository.GetDeviceCommands(10).Count == 1, "refused commands must not reach the queue.");
         }
 
         /// <summary>
         /// T26 - every sub-phase C/D/E screen must exist, be gated on a real feature and
-        /// be reachable from the menu. This is what keeps the 64/64 audit honest.
+        /// be reachable from the menu. This is what keeps the 67/67 audit honest.
         /// </summary>
         private static void TestPhase5Screens()
         {
@@ -1779,7 +1803,7 @@ namespace T5Web.Tests
                 .Select(l => l.Trim())
                 .ToArray();
             Assert(inventory.Length == 64,
-                "legacy-controllers.txt must list all 64 controllers, found " + inventory.Length + ".");
+                "legacy-controllers.txt must list all 67 controllers, found " + inventory.Length + ".");
             Assert(inventory.Distinct(StringComparer.Ordinal).Count() == inventory.Length,
                 "legacy-controllers.txt contains duplicate entries.");
 
@@ -1796,6 +1820,119 @@ namespace T5Web.Tests
                 .Where(n => n.EndsWith("Controller", StringComparison.Ordinal) && n != "HomeController")
                 .ToList();
             Assert(controllers.Count > 0, "no controllers found.");
+        }
+
+        /// <summary>
+        /// T27 - the action-level audit. T25 proves every *controller* has a home; this
+        /// proves every *public action* does. It reads docs/legacy-actions.csv (written by
+        /// tools/legacy-coverage.py from the assembly metadata) and holds it to three
+        /// rules: each legacy action appears exactly once with a decision, a `drop` names
+        /// a reason, and a `new`/`module` target actually exists in this solution.
+        ///
+        /// The whole point is that the claim "nothing is left unaccounted for" is checked
+        /// by the build, not by a document that can quietly shrink.
+        /// </summary>
+        private static void TestActionCoverage()
+        {
+            string csvPath = Path.Combine(T5WebRoot, "docs", "legacy-actions.csv");
+            Assert(File.Exists(csvPath), "docs/legacy-actions.csv is missing; run tools/legacy-coverage.py --write.");
+            string[] lines = File.ReadAllLines(csvPath);
+            Assert(lines.Length > 1 && lines[0] == "controller,action,decision,target,note",
+                "legacy-actions.csv must start with its header row.");
+
+            var rows = new List<string[]>();
+            foreach (string line in lines.Skip(1))
+            {
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    continue;
+                }
+                // No field in this file contains a comma or a quote, and the writer keeps
+                // it that way; five columns is therefore an exact check, not a heuristic.
+                string[] cells = line.Split(',');
+                Assert(cells.Length == 5, "malformed row in legacy-actions.csv: " + line);
+                rows.Add(cells);
+            }
+
+            Assert(rows.Count == 343, "every legacy action must have one row; found " + rows.Count + ".");
+
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            foreach (string[] cells in rows)
+            {
+                string key = cells[0] + "." + cells[1];
+                Assert(seen.Add(key), "duplicate decision for " + key + ".");
+                Assert(cells[2] == "new" || cells[2] == "module" || cells[2] == "drop",
+                    key + " has an unknown decision: " + cells[2]);
+            }
+
+            // Every controller in the inventory must appear, and vice versa.
+            string[] inventory = File.ReadAllLines(Path.Combine(T5WebRoot, "docs", "legacy-controllers.txt"))
+                .Where(l => !l.StartsWith("#") && !string.IsNullOrWhiteSpace(l))
+                .Select(l => l.Trim())
+                .ToArray();
+            var decided = new HashSet<string>(rows.Select(r => r[0]), StringComparer.Ordinal);
+            var undeclared = inventory.Where(c => !decided.Contains(c)).ToList();
+            Assert(undeclared.Count == 0, "controllers with no action rows: " + string.Join(", ", undeclared));
+            var unknownController = decided.Where(c => !inventory.Contains(c)).ToList();
+            Assert(unknownController.Count == 0, "action rows for unknown controllers: " + string.Join(", ", unknownController));
+
+            // The code on disk: which public actions does the rewrite actually expose?
+            var ownActions = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+            foreach (string file in Directory.GetFiles(Path.Combine(T5WebRoot, "T5Web.Web", "Controllers"), "*.cs"))
+            {
+                string name = Path.GetFileNameWithoutExtension(file);
+                if (!name.EndsWith("Controller", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+                var actions = new HashSet<string>(StringComparer.Ordinal);
+                // Return-type agnostic: any public method is an action as far as this audit
+                // cares. Constructors have no return type, so they cannot match.
+                foreach (Match m in Regex.Matches(File.ReadAllText(file), @"public\s+[A-Za-z_][A-Za-z0-9_.<>]*\s+([A-Za-z_][A-Za-z0-9_]*)\s*\("))
+                {
+                    actions.Add(m.Groups[1].Value);
+                }
+                ownActions[name.Substring(0, name.Length - "Controller".Length)] = actions;
+            }
+            Assert(ownActions.Count > 0, "no portal controllers found to check targets against.");
+
+            string registry = File.ReadAllText(Path.Combine(T5WebRoot, "T5Web.Application", "Modules", "ModuleRegistry.cs"));
+            var moduleCodes = new HashSet<string>(
+                Regex.Matches(registry, "Code\\s*=\\s*\"([^\"]+)\"")
+                    .Cast<Match>().Select(m => m.Groups[1].Value),
+                StringComparer.Ordinal);
+            Assert(moduleCodes.Count > 0, "no module codes found in ModuleRegistry.");
+
+            foreach (string[] cells in rows)
+            {
+                string key = cells[0] + "." + cells[1];
+                string decision = cells[2];
+                string target = cells[3];
+                string note = cells[4];
+
+                if (decision == "drop")
+                {
+                    // A dropped action without a reason is an unaccounted action.
+                    Assert(note.Trim().Length >= 8, key + " is dropped without a stated reason.");
+                    Assert(target.Length == 0 || target == "-", key + " is dropped but still names a target.");
+                    continue;
+                }
+
+                if (decision == "module")
+                {
+                    Assert(moduleCodes.Contains(target), key + " maps to module '" + target + "', which ModuleRegistry does not define.");
+                    continue;
+                }
+
+                Match t = Regex.Match(target, @"^(?<c>[A-Za-z]+)\.(?<a>[A-Za-z_][A-Za-z0-9_]*)$");
+                Assert(t.Success, key + " has an unreadable target: " + target);
+                string controller = t.Groups["c"].Value;
+                string action = t.Groups["a"].Value;
+                Assert(ownActions.ContainsKey(controller),
+                    key + " maps to " + controller + "Controller, which does not exist.");
+                Assert(ownActions[controller].Contains(action),
+                    key + " maps to " + target + ", but " + controller + "Controller has no public action '" + action + "'.");
+            }
         }
 
         private static void TestNoLockDependency()

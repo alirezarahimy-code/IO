@@ -97,6 +97,38 @@ namespace T5Web.Domain.Models
     /// configures from the web portal are exposed; the protocol counters stay in the
     /// engine's own screens (they are written by the push service, not by a human).
     /// </summary>
+    /// <summary>
+    /// One device command the portal has queued. The portal never talks to hardware
+    /// itself: it writes the intent here (plus an audit row) and the desktop agent that
+    /// owns the device sockets drains it. This replaces the legacy
+    /// <c>appSettings/Link5ServiceURL</c> HTTP call, which the web tier could not test.
+    /// </summary>
+    public sealed class DeviceCommandTicket
+    {
+        public long Id { get; set; }
+        public int MachineNumber { get; set; }
+        public string Command { get; set; } = string.Empty;
+        public string RequestedBy { get; set; } = string.Empty;
+        public DateTime RequestedUtc { get; set; }
+        public int Status { get; set; }
+        public string Note { get; set; } = string.Empty;
+
+        public string StatusFa
+        {
+            get
+            {
+                switch (Status)
+                {
+                    case 0: return "در صف";
+                    case 1: return "برداشته شد";
+                    case 2: return "انجام شد";
+                    case 3: return "ناموفق";
+                    default: return "نامشخص";
+                }
+            }
+        }
+    }
+
     public sealed class DeviceRow
     {
         public int MachineNumber { get; set; }

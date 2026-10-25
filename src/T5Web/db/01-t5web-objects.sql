@@ -9,11 +9,19 @@
    every engine table. It must NOT add columns to engine tables (docs/02, R1):
    the engine upgrades them and a custom column is silently dropped.
 
-   Only two tables are created here, both portal-owned:
+   Only three tables are created here, all portal-owned:
 
-     [T5WebAccess]  the portal's own permission matrix
-                    (feature enum -> Deny / ReadOnly / Allow)
-     [T5WebAudit]   append-only, hash-chained audit trail
+     [T5WebAccess]         the portal's own permission matrix
+                           (feature enum -> Deny / ReadOnly / Allow)
+     [T5WebAudit]          append-only, hash-chained audit trail
+     [T5WebDeviceCommand]  durable queue of device commands the portal issued
+
+   Why a queue and not an HTTP call: the legacy portal posted straight to the Link5
+   service (appSettings Link5ServiceURL = http://127.0.0.1:15222/Device/). A web
+   application that owns a socket to hardware cannot be tested offline and cannot
+   survive a service restart. The portal therefore *records* the command here — one
+   row, one audit entry — and the desktop-side agent (which already owns the device
+   sockets) drains the queue. docs/08-runbook.md section 5-الف describes the contract.
 
    Both are idempotent: running this script twice is a no-op.
    ===================================================================== */
@@ -55,6 +63,28 @@ BEGIN
 
     -- The audit page always reads the newest rows; the hash chain reads the tail.
     CREATE NONCLUSTERED INDEX IX_T5WebAudit_UtcTime ON dbo.T5WebAudit (UtcTime DESC);
+END
+GO
+
+IF OBJECT_ID(N'dbo.T5WebDeviceCommand', N'U') IS NULL
+BEGIN
+    CREATE TABLE dbo.T5WebDeviceCommand
+    (
+        ID            bigint        IDENTITY(1,1) NOT NULL,
+        MachineNumber int           NOT NULL,
+        Command       nvarchar(32)  NOT NULL,
+        RequestedBy   nvarchar(100) NOT NULL,
+        RequestedUtc  datetime2(0)  NOT NULL CONSTRAINT DF_T5WebDeviceCommand_Utc DEFAULT (SYSUTCDATETIME()),
+        Status        tinyint       NOT NULL CONSTRAINT DF_T5WebDeviceCommand_Status DEFAULT (0),
+        Note          nvarchar(400) NULL,
+        CONSTRAINT PK_T5WebDeviceCommand PRIMARY KEY CLUSTERED (ID),
+        -- 0 = queued, 1 = taken by the agent, 2 = done, 3 = failed
+        CONSTRAINT CK_T5WebDeviceCommand_Status CHECK (Status IN (0, 1, 2, 3))
+    );
+
+    -- The agent polls the oldest queued rows; the portal shows the newest ones.
+    CREATE NONCLUSTERED INDEX IX_T5WebDeviceCommand_Status
+        ON dbo.T5WebDeviceCommand (Status, ID);
 END
 GO
 

@@ -31,6 +31,9 @@ python3 "$ARIA_TOOLS/lint-csharp.py"
 python3 "$SCRIPT_DIR/tools/engine-model-contract.py" --check
 # Column types the generic module screens bind to (T16). DDL wins, engine ORM fills gaps.
 python3 "$SCRIPT_DIR/tools/engine-column-types.py" --check
+# Coverage: every public action of the legacy web assembly has a recorded decision and
+# every target really exists in this solution (T25 controller-level, T27 action-level).
+python3 "$SCRIPT_DIR/tools/legacy-coverage.py" --check
 
 if [ "$GATES_ONLY" = "true" ]; then
   echo "OK: static gates passed (compiler step skipped)"

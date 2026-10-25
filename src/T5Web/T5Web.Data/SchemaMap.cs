@@ -122,6 +122,19 @@ namespace T5Web.Data
             public const string ChangedUtc = "[ChangedUtc]";
         }
 
+        /// <summary>Portal-owned queue of device commands (db/01-t5web-objects.sql).</summary>
+        public static class PortalDeviceCommand
+        {
+            public const string Table = "[T5WebDeviceCommand]";
+            public const string Id = "[ID]";
+            public const string MachineNumber = "[MachineNumber]";
+            public const string Command = "[Command]";
+            public const string RequestedBy = "[RequestedBy]";
+            public const string RequestedUtc = "[RequestedUtc]";
+            public const string Status = "[Status]";
+            public const string Note = "[Note]";
+        }
+
         /// <summary>Portal-owned, hash-chained audit table.</summary>
         public static class PortalAudit
         {

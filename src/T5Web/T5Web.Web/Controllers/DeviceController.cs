@@ -20,6 +20,9 @@ namespace T5Web.Web.Controllers
             ViewBag.CanEdit = CurrentSession != null && CurrentSession.CanEdit(AdminFeature.DeviceEdit);
             ViewBag.CanSync = CurrentSession != null && CurrentSession.CanEdit(AdminFeature.DeviceSync);
             ViewBag.Commands = new DeviceCommandService().Available();
+            // The queue is the transport: the portal records the intent, the desktop agent
+            // drains it. Showing it here is what makes the button honest.
+            ViewBag.Queue = PortalServices.Repository.GetDeviceCommands(20);
             return View(devices);
         }
 
@@ -78,12 +81,27 @@ namespace T5Web.Web.Controllers
             }
 
             // The transport to the hardware lives in the desktop service (it holds the
-            // device sockets). The portal records the intent and hands it over; it never
-            // pretends the device already answered.
+            // device sockets). The portal writes a durable queue row and the audit entry;
+            // it never pretends the device already answered (BUG-26).
+            var ticket = new DeviceCommandTicket
+            {
+                MachineNumber = device.MachineNumber,
+                Command = issued.Code,
+                RequestedBy = CurrentSession == null ? "anonymous" : CurrentSession.DisplayName + " (" + CurrentSession.BadgeNumber + ")",
+                RequestedUtc = DateTime.UtcNow,
+                Note = issued.NoteFa
+            };
+            OperationResult queued = PortalServices.Repository.EnqueueDeviceCommand(ticket);
+            if (!queued.Succeeded)
+            {
+                TempData["Flash"] = queued.Message;
+                return RedirectToAction("Index");
+            }
+
             Audit(AdminFeature.DeviceSync, "دستور دستگاه", device.MachineName + " (#" + device.MachineNumber + ")",
-                "command=" + issued.Code + "; note=" + issued.NoteFa);
+                "ticket=" + ticket.Id + "; command=" + issued.Code + "; note=" + issued.NoteFa);
             TempData["Flash"] = "دستور «" + issued.TitleFa + "» برای دستگاه " + device.MachineName +
-                                " ثبت شد و در صف سرویس دستگاه قرار گرفت.";
+                                " در صف ثبت شد (شماره " + ticket.Id + ")؛ سرویس دستگاه آن را برمی‌دارد.";
             return RedirectToAction("Index");
         }
 

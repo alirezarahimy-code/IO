@@ -1,0 +1,344 @@
+controller,action,decision,target,note
+Account,Login,drop,,احراز هویت ویندوز (Negotiate) در IIS؛ صفحه ورود/خروج رمز وجود ندارد
+Account,Logout,drop,,احراز هویت ویندوز (Negotiate) در IIS؛ صفحه ورود/خروج رمز وجود ندارد
+AssignRule,Delete,new,Rules.Index,
+AssignRule,DeleteUserRule,new,Rules.Index,
+AssignRule,Edit,new,Rules.Index,
+AssignRule,EditPersonnelRule,new,Rules.Index,
+AssignRule,GetDeptRules,new,Rules.Index,
+AssignRule,GetUserRules,new,Rules.Index,
+AssignRule,Index,new,Rules.Index,
+AssignShift,Add,new,Schedule.Index,
+AssignShift,AddShift,new,Schedule.Index,
+AssignShift,AutoSch,drop,,زمان‌بندی خودکار، الگوریتم موتور است و بازنویسی نمی‌شود
+AssignShift,Delete,new,Schedule.Index,
+AssignShift,Edit,new,Schedule.Index,
+AssignShift,Index,new,Schedule.Index,
+Calendar,AddHoliday,module,calendar,
+Calendar,Delete,module,calendar,
+Calendar,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+Calendar,DeleteAllHolidays,module,calendar,
+Calendar,DeleteHoliday,module,calendar,
+Calendar,Edit,module,calendar,
+Calendar,GetByID,module,calendar,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+Calendar,GetList,module,calendar,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+Calendar,Holidays,module,calendar,
+Calendar,Index,module,calendar,
+Card,Apply,new,Leave.Index,
+Card,ApplyInterval,new,Leave.Index,
+Card,Delete,new,Leave.Index,
+Card,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+Card,Edit,new,Leave.Index,
+Card,GetByID,new,Leave.Index,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+Card,GetList,new,Leave.Index,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+Card,Index,new,Leave.Index,
+CardexReport,CXReport,new,Reports.Index,
+CardexReport,Index,new,Reports.Index,
+CardexReport,Show,new,Reports.Index,
+Certificate,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+Certificate,DeleteCert,module,certificate,
+Certificate,EditCert,module,certificate,
+Certificate,GetByID,module,certificate,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+Certificate,GetList,module,certificate,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+Certificate,Index,module,certificate,
+ChangeLock,Check,drop,,Zero-Lock: هیچ وابستگی قفل/لایسنس در بازنویسی وجود ندارد
+ChangeLock,Index,drop,,Zero-Lock: هیچ وابستگی قفل/لایسنس در بازنویسی وجود ندارد
+CustomWF,Delete,module,customworkflow,
+CustomWF,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+CustomWF,Edit,module,customworkflow,
+CustomWF,GetByID,module,customworkflow,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+CustomWF,GetList,module,customworkflow,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+CustomWF,Index,module,customworkflow,
+DailyReport,DReport,new,Reports.Index,
+DailyReport,Index,new,Reports.Index,
+DailyReport,Show,new,Reports.Index,
+Dashboard,Delete,module,dashboard,حذف گروه با تأیید و حسابرسی در ماژول انجام می‌شود
+Dashboard,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+Dashboard,Edit,module,dashboard,
+Dashboard,Index,new,Dashboard.Index,
+DashboardItem,Delete,module,dashboard,
+DashboardItem,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+DashboardItem,Edit,module,dashboard,
+DashboardItem,Index,module,dashboard,
+Department,Delete,new,Department.Index,
+Department,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+Department,Edit,new,Department.Index,
+Department,GetByID,new,Department.Index,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+Department,GetTree,new,Department.Index,
+Department,Index,new,Department.Index,
+DeptsChart,Employ,new,Department.Index,ادغام در چارت سازمانی
+DeptsChart,Fire,new,Department.Index,ادغام در چارت سازمانی
+DeptsChart,GetDeptsTree,new,Department.Index,ادغام در چارت سازمانی
+DeptsChart,Index,new,Department.Index,ادغام در چارت سازمانی
+Deputy,Edit,module,deputy,
+Deputy,GetTree,module,deputy,
+Deputy,Index,module,deputy,
+Device,Delete,drop,,حذف رکورد دستگاه، تاریخچه تردد را بی‌مرجع می‌کند؛ غیرفعال‌سازی/ویرایش جایگزین شد
+Device,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+Device,Edit,new,Device.Edit,
+Device,GetAllDevicesTree,new,Device.Index,
+Device,Index,new,Device.Index,
+DeviceOperations,ChangeKey,new,Device.Command,مجموعه‌دستور بسته
+DeviceOperations,Connect,new,Device.Command,مجموعه‌دستور بسته
+DeviceOperations,DeleteAdmins,new,Device.Command,مجموعه‌دستور بسته
+DeviceOperations,DeleteAllData,drop,,پاک‌سازی کامل داده دستگاه بدون تأیید دوگانه؛ در پورتال مجاز نیست
+DeviceOperations,DeleteAllRecords,new,Device.Command,با دلیل و حسابرسی، همان clear-punches
+DeviceOperations,DeviceProperties,new,Device.Edit,
+DeviceOperations,DeviceStates,new,Device.Index,وضعیت دستگاه از پایگاه خوانده می‌شود
+DeviceOperations,Disconnect,new,Device.Command,مجموعه‌دستور بسته
+DeviceOperations,DownloadUsers,new,Device.Command,دستور pull-users
+DeviceOperations,GetAdvanced,new,Device.Command,مجموعه‌دستور بسته
+DeviceOperations,GetAdvanced2,new,Device.Command,مجموعه‌دستور بسته
+DeviceOperations,GetCapacity,new,Device.Command,مجموعه‌دستور بسته
+DeviceOperations,GetRecords,new,Device.Command,دستور pull-punches
+DeviceOperations,GetTimeRecords,new,Device.Command,دستور pull-punches
+DeviceOperations,Index,new,Device.Index,
+DeviceOperations,ModifyUsers,new,Device.Command,مجموعه‌دستور بسته
+DeviceOperations,ReadKey,new,Device.Command,مجموعه‌دستور بسته
+DeviceOperations,RemoteEnroll,new,Device.Command,مجموعه‌دستور بسته
+DeviceOperations,RemoveTimeRecords,new,Device.Command,دستور clear-punches
+DeviceOperations,Restart,new,Device.Command,مجموعه‌دستور بسته
+DeviceOperations,Set1_1,new,Device.Command,مجموعه‌دستور بسته
+DeviceOperations,Set1_N,new,Device.Command,مجموعه‌دستور بسته
+DeviceOperations,SetAlgorithm,new,Device.Command,مجموعه‌دستور بسته
+DeviceOperations,SetCardReg,new,Device.Command,مجموعه‌دستور بسته
+DeviceOperations,SetDLST,new,Device.Command,مجموعه‌دستور بسته
+DeviceOperations,SetIP,new,Device.Command,مجموعه‌دستور بسته
+DeviceOperations,SetRepeatTime,new,Device.Command,مجموعه‌دستور بسته
+DeviceOperations,SetSector,new,Device.Command,مجموعه‌دستور بسته
+DeviceOperations,SetSleepTime,new,Device.Command,مجموعه‌دستور بسته
+DeviceOperations,ShowUsers,new,Device.Command,مجموعه‌دستور بسته
+DeviceOperations,SyncTimeData,new,Device.Command,دستور sync-time
+DeviceOperations,TimeSync,new,Device.Command,دستور sync-time
+DeviceOperations,UploadUsers,new,Device.Command,دستور sync-users
+EditLateEarly,Edit,new,Records.Correct,
+EditLateEarly,Index,new,Records.Correct,
+EmpType,Delete,module,emptype,
+EmpType,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+EmpType,Edit,module,emptype,
+EmpType,GetByID,module,emptype,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+EmpType,GetList,module,emptype,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+EmpType,Index,module,emptype,
+ExitReport,EXReport,new,Reports.Index,
+ExitReport,Index,new,Reports.Index,
+ExitReport,Show,new,Reports.Index,
+ExitType,Delete,drop,,جدول ExitType در اسکیمای موتور نیست؛ LeaveType.DutyOrLeave جایش را گرفت
+ExitType,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+ExitType,Edit,drop,,جدول ExitType در اسکیمای موتور نیست؛ LeaveType.DutyOrLeave جایش را گرفت
+ExitType,Index,drop,,جدول ExitType در اسکیمای موتور نیست؛ LeaveType.DutyOrLeave جایش را گرفت
+Export,GetFile,new,Reports.Export,
+Export,Index,new,Reports.Export,
+Gate,Delete,module,gate,
+Gate,Edit,module,gate,
+Gate,GetTree,module,gate,
+Gate,Index,module,gate,
+GridReport,Index,new,Reports.Index,
+GridReport,Show,new,Reports.Index,
+GroupAssignShift,Add,new,Schedule.Index,تخصیص گروهی حذف شد؛ تخصیص تک‌نفره با کنترل هم‌پوشانی
+GroupAssignShift,AddShiftGroup,new,Schedule.Index,تخصیص گروهی حذف شد؛ تخصیص تک‌نفره با کنترل هم‌پوشانی
+GroupAssignShift,AutoSch,new,Schedule.Index,تخصیص گروهی حذف شد؛ تخصیص تک‌نفره با کنترل هم‌پوشانی
+GroupAssignShift,Delete,new,Schedule.Index,تخصیص گروهی حذف شد؛ تخصیص تک‌نفره با کنترل هم‌پوشانی
+GroupAssignShift,Edit,new,Schedule.Index,تخصیص گروهی حذف شد؛ تخصیص تک‌نفره با کنترل هم‌پوشانی
+GroupAssignShift,Index,new,Schedule.Index,تخصیص گروهی حذف شد؛ تخصیص تک‌نفره با کنترل هم‌پوشانی
+Home,About,drop,,صفحه درباره؛ نسخه و وضعیت در /Diagnostics است
+Home,ChangeFont,drop,,تنظیم ظاهری کاربر؛ طراحی ثابت و یکدست جایگزین شد
+Home,ChangePass,drop,,احراز هویت ویندوز است؛ رمز محلی وجود ندارد
+Home,EditPassword,drop,,احراز هویت ویندوز است؛ رمز محلی وجود ندارد
+Home,GetByID,new,Home.Index,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+Home,GetSubMenu,drop,,منو از AdminFeature و MenuFor ساخته می‌شود
+Home,Index,new,Home.Index,
+Home,MyBanner,drop,,تصویر بنر محلی؛ UI جدید آن را ندارد
+Home,SetToolbar,drop,,تنظیم ظاهری کاربر؛ طراحی ثابت و یکدست جایگزین شد
+ImportFromExcel,Import,new,Import.Index,CSV آفلاین به‌جای Excel Interop
+ImportFromExcel,Index,new,Import.Index,CSV آفلاین به‌جای Excel Interop
+ImportFromExcel,Preview,new,Import.Index,CSV آفلاین به‌جای Excel Interop
+ImportFromExcel,PreviewExcel,new,Import.Index,CSV آفلاین به‌جای Excel Interop
+InsertDailyLeave,Delete,new,Leave.Grants,
+InsertDailyLeave,DeleteAdded,new,Leave.Grants,
+InsertDailyLeave,GetDailyLeaves,new,Leave.Grants,
+InsertDailyLeave,GetLeavesAdded,new,Leave.Grants,
+InsertDailyLeave,Index,new,Leave.Grants,
+InsertDailyLeave,InsertDailyLeave,new,Leave.Grants,
+InsertDailyLeave,InsertLeaveAdded,new,Leave.Grants,
+InsertDailyLeave,Reload,new,Leave.Grants,
+InsertRecord,Index,new,Records.Insert,
+InsertRecord,Insert,new,Records.Insert,
+LateEarlyReport,Index,new,Reports.Index,
+LateEarlyReport,LateEarlyReport,new,Reports.Index,
+LateEarlyReport,Show,new,Reports.Index,
+LeaveDescription,Delete,module,dailyLeaf,متن شرح، بدون شاهد نوع؛ فقط‌خواندنی
+LeaveDescription,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+LeaveDescription,Edit,module,dailyLeaf,متن شرح، بدون شاهد نوع؛ فقط‌خواندنی
+LeaveDescription,GetByID,module,dailyLeaf,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+LeaveDescription,GetList,module,dailyLeaf,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+LeaveDescription,Index,module,dailyLeaf,متن شرح، بدون شاهد نوع؛ فقط‌خواندنی
+LeaveType,Delete,module,leavetype,
+LeaveType,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+LeaveType,Edit,module,leavetype,
+LeaveType,GetByID,module,leavetype,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+LeaveType,GetList,module,leavetype,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+LeaveType,Index,module,leavetype,
+Manager,Delete,module,deputy,
+Manager,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+Manager,Edit,module,deputy,
+Manager,Index,module,deputy,
+OverTimeReport,Index,new,Reports.Index,
+OverTimeReport,OTReport,new,Reports.Index,
+OverTimeReport,Show,new,Reports.Index,
+Parameters,Delete,module,parameter,
+Parameters,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+Parameters,Edit,module,parameter,
+Parameters,Index,module,parameter,
+Permit,Delete,module,hourlyleave,
+Permit,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+Permit,Edit,module,hourlyleave,
+Permit,GetByID,module,hourlyleave,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+Permit,GetList,module,hourlyleave,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+Permit,Index,module,hourlyleave,
+PersonnelStatus,Calc,new,Personnel.Index,
+PersonnelStatus,Index,new,Personnel.Index,
+PersonnelStatus,ToExcel,new,Personnel.Index,
+PersonnelStatusReport,Index,new,Reports.Index,
+PersonnelStatusReport,PSReport,new,Reports.Index,
+PersonnelStatusReport,Show,new,Reports.Index,
+Ramezan,Delete,module,ramezan,
+Ramezan,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+Ramezan,Edit,module,ramezan,
+Ramezan,GetByID,module,ramezan,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+Ramezan,GetList,module,ramezan,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+Ramezan,Index,module,ramezan,
+Records,Index,new,Records.Index,
+Records,Show,new,Records.Index,
+RemainedLeavesReport,Calc,new,Reports.Index,
+RemainedLeavesReport,Index,new,Reports.Index,
+RemainedLeavesReport,ToExcel,new,Reports.Index,
+ReportDatas,Delete,drop,,بدون تصمیم ثبت‌شده
+ReportDatas,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+ReportDatas,Edit,drop,,بدون تصمیم ثبت‌شده
+ReportDatas,GetByID,drop,,خواندن یک رکورد JSON برای فرم قدیمی؛ نماهای جدید سرور-رندر هستند
+ReportDatas,GetList,drop,,خواندن فهرست JSON برای گرید قدیمی؛ صفحه‌بندی سمت سرور جایگزین شد
+ReportDatas,Index,drop,,بدون تصمیم ثبت‌شده
+ReportDesign,Delete,drop,,بدون تصمیم ثبت‌شده
+ReportDesign,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+ReportDesign,Edit,drop,,بدون تصمیم ثبت‌شده
+ReportDesign,EditAccess,drop,,بدون تصمیم ثبت‌شده
+ReportDesign,GetByID,drop,,خواندن یک رکورد JSON برای فرم قدیمی؛ نماهای جدید سرور-رندر هستند
+ReportDesign,GetList,drop,,خواندن فهرست JSON برای گرید قدیمی؛ صفحه‌بندی سمت سرور جایگزین شد
+ReportDesign,GetTitlesTree,drop,,بدون تصمیم ثبت‌شده
+ReportDesign,Index,drop,,بدون تصمیم ثبت‌شده
+ReportFilter,Delete,drop,,بدون تصمیم ثبت‌شده
+ReportFilter,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+ReportFilter,Edit,drop,,بدون تصمیم ثبت‌شده
+ReportFilter,GetByID,drop,,خواندن یک رکورد JSON برای فرم قدیمی؛ نماهای جدید سرور-رندر هستند
+ReportFilter,GetList,drop,,خواندن فهرست JSON برای گرید قدیمی؛ صفحه‌بندی سمت سرور جایگزین شد
+ReportFilter,Index,drop,,بدون تصمیم ثبت‌شده
+ReportTablix,Delete,drop,,بدون تصمیم ثبت‌شده
+ReportTablix,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+ReportTablix,Edit,drop,,بدون تصمیم ثبت‌شده
+ReportTablix,GetByID,drop,,خواندن یک رکورد JSON برای فرم قدیمی؛ نماهای جدید سرور-رندر هستند
+ReportTablix,GetList,drop,,خواندن فهرست JSON برای گرید قدیمی؛ صفحه‌بندی سمت سرور جایگزین شد
+ReportTablix,Index,drop,,بدون تصمیم ثبت‌شده
+ReportTablixColumn,Delete,drop,,بدون تصمیم ثبت‌شده
+ReportTablixColumn,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+ReportTablixColumn,Edit,drop,,بدون تصمیم ثبت‌شده
+ReportTablixColumn,GetByID,drop,,خواندن یک رکورد JSON برای فرم قدیمی؛ نماهای جدید سرور-رندر هستند
+ReportTablixColumn,GetList,drop,,خواندن فهرست JSON برای گرید قدیمی؛ صفحه‌بندی سمت سرور جایگزین شد
+ReportTablixColumn,Index,drop,,بدون تصمیم ثبت‌شده
+ReportTextbox,Delete,drop,,بدون تصمیم ثبت‌شده
+ReportTextbox,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+ReportTextbox,Edit,drop,,بدون تصمیم ثبت‌شده
+ReportTextbox,GetByID,drop,,خواندن یک رکورد JSON برای فرم قدیمی؛ نماهای جدید سرور-رندر هستند
+ReportTextbox,GetList,drop,,خواندن فهرست JSON برای گرید قدیمی؛ صفحه‌بندی سمت سرور جایگزین شد
+ReportTextbox,Index,drop,,بدون تصمیم ثبت‌شده
+ReportTitles,EditAccess,drop,,دسترسی گزارش به‌ازای عنوان (جدول ReportAccess بدون شاهد نوع) با گیت قابلیت ReportView جایگزین شد
+ReportTitles,GetByID,drop,,خواندن یک رکورد JSON برای فرم قدیمی؛ نماهای جدید سرور-رندر هستند
+ReportTitles,GetDepartmentsTree,drop,,دسترسی گزارش به‌ازای عنوان (جدول ReportAccess بدون شاهد نوع) با گیت قابلیت ReportView جایگزین شد
+ReportTitles,GetTree,drop,,دسترسی گزارش به‌ازای عنوان (جدول ReportAccess بدون شاهد نوع) با گیت قابلیت ReportView جایگزین شد
+ReportTitles,Index,drop,,دسترسی گزارش به‌ازای عنوان (جدول ReportAccess بدون شاهد نوع) با گیت قابلیت ReportView جایگزین شد
+ReportTitles,Show,drop,,دسترسی گزارش به‌ازای عنوان (جدول ReportAccess بدون شاهد نوع) با گیت قابلیت ReportView جایگزین شد
+RequestsReport,Index,new,Reports.Index,
+RequestsReport,ReqsReport,new,Reports.Index,
+RequestsReport,Show,new,Reports.Index,
+Rule,Delete,new,Rules.Index,
+Rule,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+Rule,Edit,new,Rules.Index,
+Rule,GetByID,new,Rules.Index,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+Rule,GetList,new,Rules.Index,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+Rule,Index,new,Rules.Index,
+Schedule,Delete,new,Schedule.Index,
+Schedule,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+Schedule,Edit,new,Schedule.Index,
+Schedule,GetByID,new,Schedule.Index,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+Schedule,GetList,new,Schedule.Index,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+Schedule,Index,new,Schedule.Index,
+Shift,Delete,new,Schedule.Index,
+Shift,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+Shift,Edit,new,Schedule.Index,
+Shift,GetScheduleHTML,new,Schedule.Index,جدول شیفت در همان نما ساخته می‌شود
+Shift,Index,new,Schedule.Index,
+ShowReport,DReport,new,Reports.Index,
+ShowReport,Index,new,Reports.Index,
+ShowReport,Show,new,Reports.Index,
+ShowUsersRequest,Index,new,Requests.Index,
+ShowUsersRequest,getStatus,new,Requests.Index,
+SumReport,Index,new,Reports.Index,
+SumReport,Show,new,Reports.Index,
+SumReport,SumReport,new,Reports.Index,
+TempSchedules,EditSch,module,tempschedule,
+TempSchedules,Index,module,tempschedule,
+TempSchedules,Show,module,tempschedule,
+Title,Delete,module,title,
+Title,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+Title,Edit,module,title,
+Title,EditAccess,module,title,
+Title,GetByID,module,title,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+Title,GetDepartmentsTree,module,title,
+Title,GetReportTree,module,title,
+Title,GetTree,module,title,
+Title,Index,module,title,
+TotalControl,ChangeRecordState,new,Records.Correct,
+TotalControl,ChangeRecordValid,new,Records.Correct,
+TotalControl,DeleteRecord,drop,,حذف فیزیکی تردد انجام نمی‌شود؛ اصلاح/نامعتبرکردن با دلیل و حسابرسی جایگزین شد
+TotalControl,Index,new,Records.Index,
+TotalControl,Show,new,Records.Index,
+TransferRemainedLeave,Calc,new,Leave.Transfer,
+TransferRemainedLeave,Index,new,Leave.Transfer,
+TransferRemainedLeave,Transfer,new,Leave.Transfer,
+USBManagement,Index,drop,,Zero-Lock: وابسته به دانگل سخت‌افزاری
+USBManagement,ReadRecords,drop,,خواندن تردد از طریق دانگل USB؛ ترددها از پایگاه‌داده خوانده می‌شوند
+UserAddProperty,Delete,module,property,
+UserAddProperty,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
+UserAddProperty,Edit,module,property,
+UserAddProperty,GetByID,module,property,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+UserAddProperty,GetList,module,property,خواندن JSON برای فرم/گرید قدیمی؛ نمای جدید همان کار را سرور-رندر انجام می‌دهد
+UserAddProperty,Index,module,property,
+UserInfo,Delete,new,Personnel.Index,
+UserInfo,Edit,new,Personnel.Index,
+UserInfo,EndWork,new,Personnel.Index,
+UserInfo,GetDeptsTree,new,Personnel.Index,
+UserInfo,GetDeptsTreeFiltered,new,Personnel.Index,
+UserInfo,GetPersonnel,new,Personnel.Index,
+UserInfo,GetPersonnelByID,new,Personnel.Index,
+UserInfo,GetUploadDevicesTree,new,Personnel.Index,
+UserInfo,GetValidDevicesTree,new,Personnel.Index,
+UserInfo,Index,new,Personnel.Index,
+UserInfo,SearchPersonnel,new,Personnel.Index,
+UserInfo,Tranfer,new,Personnel.Index,
+UserReport,GetReportByID,new,Reports.Index,
+UserReport,Index,new,Reports.Index,
+UserSelection,FilterUsers,new,Personnel.Index,به انتخاب‌گر مشترک تبدیل شد
+UserSelection,FilterUsersByShift,new,Personnel.Index,به انتخاب‌گر مشترک تبدیل شد
+UserSelection,GetSubDepts,new,Personnel.Index,به انتخاب‌گر مشترک تبدیل شد
+UserSelection,GetTree,new,Personnel.Index,به انتخاب‌گر مشترک تبدیل شد
+UserSelection,GetUsers,new,Personnel.Index,به انتخاب‌گر مشترک تبدیل شد
+UserSelection,GetUsersByShift,new,Personnel.Index,به انتخاب‌گر مشترک تبدیل شد
+UserSelection,SearchUsers,new,Personnel.Index,به انتخاب‌گر مشترک تبدیل شد
+ViewSystemLogs,Index,new,Audit.Index,
+Workflow,Add,new,Workflow.Index,
+Workflow,Delete,new,Workflow.Index,
+Workflow,GetTree,new,Workflow.Index,
+Workflow,Index,new,Workflow.Index,
+Workflow,MoveDown,new,Workflow.Index,
+Workflow,MoveUp,new,Workflow.Index,
+iclock,cdata,drop,,ارتباط بومی دستگاه در سرویس دسکتاپ می‌ماند؛ پورتال داده را از پایگاه می‌خواند
+iclock,getrequest,drop,,ارتباط بومی دستگاه در سرویس دسکتاپ می‌ماند؛ پورتال داده را از پایگاه می‌خواند

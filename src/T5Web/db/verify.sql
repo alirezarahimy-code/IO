@@ -28,7 +28,7 @@ FROM (VALUES
 INSERT INTO @results (ObjectName, Kind, Status)
 SELECT v.ObjectName, N'table',
        CASE WHEN OBJECT_ID(N'dbo.' + v.ObjectName, N'U') IS NULL THEN N'MISSING' ELSE N'OK' END
-FROM (VALUES (N'T5WebAccess'), (N'T5WebAudit')) AS v(ObjectName);
+FROM (VALUES (N'T5WebAccess'), (N'T5WebAudit'), (N'T5WebDeviceCommand')) AS v(ObjectName);
 
 /* ---------- columns the data layer depends on ---------- */
 INSERT INTO @results (ObjectName, Kind, Status)
@@ -43,7 +43,9 @@ FROM (VALUES
     (N'Device', N'MachineNumber'), (N'Device', N'IP'), (N'Device', N'Port'), (N'Device', N'LastStamp'),
     (N'Workflow', N'OrderIndex'), (N'Workflow', N'AccepterTitleID'),
     (N'T5WebAccess', N'Feature'), (N'T5WebAccess', N'Level'),
-    (N'T5WebAudit', N'Hash'), (N'T5WebAudit', N'PreviousHash')
+    (N'T5WebAudit', N'Hash'), (N'T5WebAudit', N'PreviousHash'),
+    (N'T5WebDeviceCommand', N'MachineNumber'), (N'T5WebDeviceCommand', N'Command'),
+    (N'T5WebDeviceCommand', N'Status')
 ) AS v(ObjectName, ColumnName);
 
 /* ---------- the portal login ---------- */

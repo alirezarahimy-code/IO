@@ -1,4 +1,4 @@
-# ۰۵ — نقشه بازنویسی پورتال T5Web (۶۴ کنترلر قدیمی → ماژول‌های جدید)
+# ۰۵ — نقشه بازنویسی پورتال T5Web (۶۷ کنترلر / ۳۴۳ کنش قدیمی → ماژول‌های جدید)
 
 **تاریخ:** ۱۴۰۴/۰۸/۰۳
 **پیش‌نیاز:** `docs/04-t5web-vs-t5v3-orchestration-fit.md` و `docs/03-engine-compatibility-verdict.md` (در پروژه ARIA)
@@ -8,7 +8,7 @@
 
 ## ۱. چرا بازنویسی، و چرا مستقل
 
-`T5V3Web.dll` نسخه ۳.۵.۷ شصت‌وچهار کنترلر دارد، همه در یک اسمبلی بدون سورس، با
+`T5V3Web.dll` نسخه ۳.۵.۷ شصت‌وهفت کنترلر و ۳۴۳ کنش عمومی دارد، همه در یک اسمبلی بدون سورس، با
 Kendo/jQuery از CDN و بدون هیچ آزمونی. دسترسی‌ها در یک مدل تخت با حدود چهل بولی
 (`MenusAccessModel`) نگه‌داری می‌شوند، یعنی «چه کسی چه کاری می‌تواند بکند» نه قابل
 آزمون است و نه قابل حسابرسی.
@@ -39,14 +39,14 @@ Kendo/jQuery از CDN و بدون هیچ آزمونی. دسترسی‌ها در 
 | زنجیره گردش کار با اعتبارسنجی کامل | ✅ | `Controllers/WorkflowController.cs` |
 | رخدادها و پایش سامانه | ✅ | `Controllers/AuditController.cs`، `DiagnosticsController.cs` |
 | پایگاه‌داده: دو جدول اختصاصی + لاگین کم‌دسترسی | ✅ | `db/01-t5web-objects.sql`، `db/02-t5web-sql-login.sql` |
-| آزمون‌ها: ۱۲ مورد، بدون هیچ وابستگی خارجی | ✅ | `T5Web.Tests/Program.cs` |
+| آزمون‌ها: ۲۷ مورد، بدون هیچ وابستگی خارجی | ✅ | `T5Web.Tests/Program.cs` |
 
 فاز A همان چیزی است که «مدیر روزمره» لازم دارد: چه کسی هستم، چه اجازه‌ای دارم،
 چه کسی در سازمان هست، دستگاه‌ها سالم‌اند یا نه، و چه چیزی تغییر کرده است.
 
 ---
 
-## ۳. نقشه ۶۴ کنترلر قدیمی
+## ۳. نقشه ۶۷ کنترلر قدیمی
 
 ### فاز A — پایه و عملیات روزمره (پیاده‌سازی شد)
 
@@ -67,16 +67,18 @@ Kendo/jQuery از CDN و بدون هیچ آزمونی. دسترسی‌ها در 
 | `DepartmentController`، `DeptsChartController` | ✅ ادغام در `DepartmentController` جدید (درخت + جلوگیری از حلقه) |
 | `TitleController` | ماژول «عناوین شغلی» روی `TitlesChartDA` |
 | `CertificateController`، `EmpTypeController` | ماژول «داده پایه» (CRUD ساده، دو جدول کوچک) |
-| `LeaveTypeController`، `LeaveDescriptionController`، `ExitTypeController` | ماژول «انواع مرخصی» روی `LeaveTypeDA`/`LeaveDescriptionDA` |
+| `LeaveTypeController`، `LeaveDescriptionController` | ماژول «انواع مرخصی» روی `LeaveTypeDA`/`LeaveDescriptionDA` |
+| `ExitTypeController` | **حذف**: جدولی به نام `ExitType` در اسکیمای موتور نیست؛ پرچم `LeaveType.DutyOrLeave` همان تفکیک را می‌دهد |
 | `CalendarController`، `RamezanController` | ماژول «تقویم و تعطیلات» روی `CalendarDA`/`RamezanDA` |
-| `RuleController`، `AssignRuleController` | ماژول «قواعد حضور» روی `RuleDA`/`UserRuleDA`/`DepartmentRuleDA`؛ نیازمند تضادسنجی قاعده‌ها |
 | `UserAddPropertyController` | ماژول «فیلدهای اضافی پرسنل» روی `PropertyDA` |
 | `ParametersController` | ماژول «پارامترهای سامانه» روی `ParameterDA` (فقط مدیر پورتال) |
 | `DeputyController`، `ManagerController` | ماژول «جانشین و مدیر» روی `DeputyDA`/`PersonnelDeputyDA` |
-| `ScheduleController`، `TempSchedulesController`، `GroupAssignShiftController` | ماژول «شیفت و برنامه» روی `ScheduleDA`/`ShiftDA`/`ShiftDetailDA`/`TempScheduleDA`/`UserShiftDA` (نسخه قدیمی کنترلر جداگانه‌ای برای شیفت ندارد) |
+| `ScheduleController`، `ShiftController`، `TempSchedulesController` | ماژول «شیفت و برنامه» روی `ScheduleDA`/`ShiftDA`/`ShiftDetailDA`/`TempScheduleDA`/`UserShiftDA` + `ScheduleController` جدید (زیرفاز ۵-C) |
+| `AssignShiftController`، `GroupAssignShiftController` | اختصاص شیفت به پرسنل روی `UserShiftDA`؛ اختصاص گروهی با همان اعتبارسنجی بازه/همپوشانی (زیرفاز ۵-C) |
+| `RuleController`، `AssignRuleController` | `RulesController` + ماژول `rule`؛ قاعده‌ها لایه‌ای (پرسنل → دپارتمان → عمومی) و تضاد در همان لایه خطاست |
 | `CardController`، `TransferRemainedLeaveController` | مانده مرخصی و انتقال سالانه روی `YearRemainDA`/`LeavesAddedDA` |
 | `InsertDailyLeaveController`، `InsertRecordController`، `EditLateEarlyController`، `PermitController`، `TotalControlController` | «اصلاح دستی» با ثبت اجباری در دفتر رخداد (هر نوشتن، یک سطر) |
-| `ChangeLockController`، `USBManagementController` | حذف قفل سخت‌افزاری؛ در پورتال جدید وجود ندارد (Zero-Lock) |
+| `ChangeLockController`، `USBManagementController` | حذف قفل سخت‌افزاری؛ در پورتال جدید وجود ندارد (Zero-Lock). خواندن تردد از دانگل USB هم حذف شد: ترددها از پایگاه‌داده می‌آیند |
 | `RecordsController`، `UserSelectionController` | در ماژول‌های پرسنل/گزارش ادغام می‌شوند (انتخاب کاربر یک کامپوننت است، نه صفحه) |
 
 ### فاز C — گزارش‌ها
@@ -89,14 +91,14 @@ Kendo/jQuery از CDN و بدون هیچ آزمونی. دسترسی‌ها در 
 | `DailyReportController`، `ExitReportController`، `LateEarlyReportController`، `OverTimeReportController` | پوسته گزارش با فیلترهای استاندارد |
 | `PersonnelStatusReportController`، `RemainedLeavesReportController`، `RequestsReportController`، `ShowUsersRequestController` | همان الگو، با کنترل دسترسی `ReportView` |
 | `SumReportController`، `GridReportController`، `ShowReportController` | نمایش گزارش‌های از پیش تعریف‌شده (`ReportDA`) |
-| `ReportDatasController`، `ReportFilterController`، `ReportTablixController`، `ReportTablixColumnController`، `ReportTextboxController`، `ReportTitlesController` | **باز نمی‌شود**: ویرایشگر گزارش در فاز E حذف می‌شود |
+| `ReportDatasController`، `ReportFilterController`، `ReportTablixController`، `ReportTablixColumnController`، `ReportTextboxController`، `ReportTitlesController`، `ReportDesignController` | **باز نمی‌شود** (۷ کنترلر / ۴۴ کنش): ویرایشگر گرافیکی گزارش در مرورگر؛ دسترسی به‌ازای گزارش با گیت `ReportView` جایگزین شد |
 | `CardexReportController`، `UserReportController`، `ExportController` | خروجی Excel/PDF با همان موتور، بدون افزونه بیرونی/CDN |
 
 ### فاز D — دستگاه و ورود داده
 
 | کنترلر قدیمی | تصمیم |
 |---|---|
-| `DeviceOperationsController` | ارسال دستور به دستگاه (فقط با دسترسی `DeviceSync`، هر دستور ثبت می‌شود) |
+| `DeviceOperationsController` | ارسال دستور به دستگاه (فقط با دسترسی `DeviceSync`، هر دستور ثبت می‌شود)؛ مجموعه‌دستور بسته: `sync-users`, `sync-time`, `pull-punches`, `pull-users`, `clear-punches`. حذف بدون تأیید دوگانه (`DeleteAllData`) بازنویسی نمی‌شود |
 | `GateController` | مدیریت درب‌ها روی `Gate` |
 | `DashboardItemController` | داشبورد قابل تنظیم (اختیاری، پس از نیازسنجی) |
 | `ImportFromExcelController` | ورود گروهی پرسنل با پیش‌نمایش و رد سطرهای نامعتبر |

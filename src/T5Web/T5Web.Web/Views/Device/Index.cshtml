@@ -6,6 +6,7 @@
     var gates = ViewBag.Gates as IReadOnlyList<T5Web.Domain.Models.GateRow>;
     bool canSync = ViewBag.CanSync != null && (bool)ViewBag.CanSync;
     var commands = ViewBag.Commands as IReadOnlyList<DeviceCommand>;
+    var queue = ViewBag.Queue as IReadOnlyList<T5Web.Domain.Models.DeviceCommandTicket>;
 }
 <div class="panel">
     <div class="panel__head">
@@ -74,3 +75,38 @@
         </table>
     }
 </div>
+
+@if (queue != null && queue.Count > 0)
+{
+    <div class="panel">
+        <div class="panel__head">
+            <h2>صف دستورهای دستگاه</h2>
+            <span class="muted u-sm">آخرین @queue.Count دستور · سرویس دسکتاپ صف را برمی‌دارد</span>
+        </div>
+        <table class="grid">
+            <thead>
+                <tr>
+                    <th class="num">شماره</th>
+                    <th class="num">دستگاه</th>
+                    <th>دستور</th>
+                    <th>وضعیت</th>
+                    <th>ثبت‌کننده</th>
+                    <th>زمان (UTC)</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var ticket in queue)
+            {
+                <tr>
+                    <td class="num mono">@ticket.Id</td>
+                    <td class="num">@ticket.MachineNumber</td>
+                    <td class="mono">@ticket.Command</td>
+                    <td><span class="tag">@ticket.StatusFa</span></td>
+                    <td class="u-sm">@ticket.RequestedBy</td>
+                    <td class="num mono">@ticket.RequestedUtc.ToString("yyyy-MM-dd HH:mm")</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

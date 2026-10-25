@@ -22,6 +22,7 @@ namespace T5Web.Data
         private readonly List<TitleNode> _titles = new List<TitleNode>();
         private readonly List<GateRow> _gates = new List<GateRow>();
         private readonly List<DeviceRow> _devices = new List<DeviceRow>();
+        private readonly List<DeviceCommandTicket> _deviceCommands = new List<DeviceCommandTicket>();
         private readonly List<PermissionRow> _permissions = new List<PermissionRow>();
         private readonly List<WorkflowStep> _workflow = new List<WorkflowStep>();
         private readonly List<AuditEntry> _audit = new List<AuditEntry>();
@@ -227,6 +228,35 @@ namespace T5Web.Data
             return OperationResult.Ok();
         }
 
+        // ------------------------------------------------------- device commands
+
+        public OperationResult EnqueueDeviceCommand(DeviceCommandTicket ticket)
+        {
+            if (ticket == null)
+            {
+                return OperationResult.Fail("دستگاه انتخاب نشده است.");
+            }
+            if (ticket.MachineNumber <= 0 || _devices.All(d => d.MachineNumber != ticket.MachineNumber))
+            {
+                return OperationResult.Fail("دستگاه یافت نشد.");
+            }
+            if (string.IsNullOrWhiteSpace(ticket.Command))
+            {
+                return OperationResult.Fail("دستور انتخاب نشده است.");
+            }
+
+            ticket.Id = _deviceCommands.Count + 1;
+            ticket.RequestedUtc = ticket.RequestedUtc == default(DateTime) ? DateTime.UtcNow : ticket.RequestedUtc;
+            ticket.Status = 0;
+            _deviceCommands.Add(ticket);
+            return OperationResult.Ok();
+        }
+
+        public IReadOnlyList<DeviceCommandTicket> GetDeviceCommands(int take)
+        {
+            return _deviceCommands.OrderByDescending(c => c.Id).Take(take).ToList();
+        }
+
         // ------------------------------------------------------------------ access
 
         public OperationResult SetPermission(long badgeNumber, AdminFeature feature, AccessLevel level)
@@ -319,6 +349,7 @@ namespace T5Web.Data
                 { "Department", _departments.Count },
                 { "Device", _devices.Count },
                 { "Workflow", _workflow.Count },
+                { "T5WebDeviceCommand", _deviceCommands.Count },
                 { "T5WebAccess", _permissions.Count },
                 { "T5WebAudit", _audit.Count }
             };
