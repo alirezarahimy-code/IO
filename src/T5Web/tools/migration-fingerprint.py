@@ -101,17 +101,20 @@ def build_sql(include_portal=False, t5_db=None, personnel_db=None):
     out.append("DECLARE @out TABLE (line nvarchar(400) NOT NULL);")
     out.append("")
     out.append("/* ---------- meta: what the two runs must agree on ---------- */")
+    # Every value is wrapped in ISNULL: a single NULL anywhere in a concatenation makes
+    # the whole line NULL, and the column does not accept NULL - on LocalDB the first
+    # meta line killed the script with "Cannot insert the value NULL into column 'line'".
     out.append("INSERT @out (line) SELECT N'meta|sqlversion|' + "
-               "CONVERT(nvarchar(128), SERVERPROPERTY('ProductVersion')) + N'|' + "
-               "CONVERT(nvarchar(128), SERVERPROPERTY('Edition'));")
+               "ISNULL(CONVERT(nvarchar(128), SERVERPROPERTY('ProductVersion')), N'?') + N'|' + "
+               "ISNULL(CONVERT(nvarchar(128), SERVERPROPERTY('Edition')), N'?');")
     for catalog, db in (("t5", t5_db), ("personnel", personnel_db)):
         out.append(
             "INSERT @out (line) SELECT N'meta|collation|{db}|' + "
-            "CONVERT(nvarchar(128), DATABASEPROPERTYEX(N'{db}', 'Collation'));".format(db=db))
+            "ISNULL(CONVERT(nvarchar(128), DATABASEPROPERTYEX(N'{db}', 'Collation')), N'?');".format(db=db))
         out.append(
             "INSERT @out (line) SELECT N'meta|compat|{db}|' + "
-            "CONVERT(nvarchar(10), (SELECT compatibility_level FROM sys.databases "
-            "WHERE name = N'{db}'));".format(db=db))
+            "ISNULL(CONVERT(nvarchar(10), (SELECT compatibility_level FROM sys.databases "
+            "WHERE name = N'{db}')), N'?');".format(db=db))
     out.append("")
     out.append("/* ---------- row counts: one line per table ---------- */")
     # A customer database installed from an older engine build may legitimately be
@@ -133,7 +136,7 @@ def build_sql(include_portal=False, t5_db=None, personnel_db=None):
     for catalog, db in (("t5", t5_db), ("personnel", personnel_db)):
         out.append(
             "INSERT @out (line)\n"
-            "SELECT N'identity|{catalog}|' + t.name + N'|' + CONVERT(nvarchar(30), IDENT_CURRENT(N'{db}.dbo.' + t.name))\n"
+            "SELECT N'identity|{catalog}|' + t.name + N'|' + ISNULL(CONVERT(nvarchar(30), IDENT_CURRENT(N'{db}.dbo.' + t.name)), N'0')\n"
             "FROM [{db}].sys.tables t\n"
             "WHERE EXISTS (SELECT 1 FROM [{db}].sys.identity_columns ic WHERE ic.object_id = t.object_id)\n"
             "  AND t.is_ms_shipped = 0;".format(catalog=catalog, db=db))
