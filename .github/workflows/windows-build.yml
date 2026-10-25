@@ -112,9 +112,16 @@ jobs:
         shell: pwsh
         run: |
           $out = Join-Path $env:RUNNER_TEMP 'T5WebAdmin'
-          ./src/T5Web/deploy/0-publish.ps1 -OutputPath $out -Build
+          # A throw inside the script is the interesting message; without this the step
+          # only says "exit code 1" and the reason stays in the unreadable job log.
+          try {
+            ./src/T5Web/deploy/0-publish.ps1 -OutputPath $out -Build
+          } catch {
+            Write-Host ("::error::0-publish.ps1: " + $_.Exception.Message)
+            exit 1
+          }
           if ($LASTEXITCODE -ne 0) {
-            Write-Host '::error::0-publish.ps1 failed'
+            Write-Host "::error::0-publish.ps1 failed with $LASTEXITCODE"
             exit 1
           }
           "publish=$out" | Out-File -FilePath $env:GITHUB_ENV -Append
@@ -123,7 +130,12 @@ jobs:
       - name: Install IIS (deploy/1-install-iis.ps1)
         shell: pwsh
         run: |
-          ./src/T5Web/deploy/1-install-iis.ps1 -NoRebootPrompt
+          try {
+            ./src/T5Web/deploy/1-install-iis.ps1 -NoRebootPrompt
+          } catch {
+            Write-Host ("::error::1-install-iis.ps1: " + $_.Exception.Message)
+            exit 1
+          }
           if ($LASTEXITCODE -ne 0) {
             Write-Host "::error::1-install-iis.ps1 failed with $LASTEXITCODE"
             exit 1
@@ -139,8 +151,13 @@ jobs:
       - name: Deploy the site (deploy/3-deploy-portal.ps1)
         shell: pwsh
         run: |
-          ./src/T5Web/deploy/3-deploy-portal.ps1 -SitePath $env:publish -Port 8080 `
-              -DataSource '(localdb)\T5Web' -Mode coexist
+          try {
+            ./src/T5Web/deploy/3-deploy-portal.ps1 -SitePath $env:publish -Port 8080 `
+                -DataSource '(localdb)\T5Web' -Mode coexist
+          } catch {
+            Write-Host ("::error::3-deploy-portal.ps1: " + $_.Exception.Message)
+            exit 1
+          }
           if ($LASTEXITCODE -ne 0) {
             Write-Host "::error::3-deploy-portal.ps1 failed with $LASTEXITCODE"
             exit 1
