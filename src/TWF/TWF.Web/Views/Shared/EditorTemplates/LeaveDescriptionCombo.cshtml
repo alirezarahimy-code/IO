@@ -1,0 +1,33 @@
+@model string
+<select name="Descriptions" class="twf-input" id="comboLeaveD">
+    @if (ViewBag.LeaveDescriptions != null)
+    {
+        foreach (SelectListItem desc in ViewBag.LeaveDescriptions)
+        {
+            <option value="@desc.Text">@desc.Text</option>
+        }
+    }
+    <option value="--" id="OtherLeaveOption">@MyTime3.Content.PersianString.Other</option>
+</select>
+<input type="text" id="textLeaveD" class="twf-input" style="display: none; margin-top: 6px;" />
+
+<script type="text/javascript">
+    (function () {
+        var combo = document.getElementById('comboLeaveD');
+        var text = document.getElementById('textLeaveD');
+        if (!combo || !text) return;
+        combo.addEventListener('change', function () {
+            var selected = combo.options[combo.selectedIndex];
+            if (selected && selected.id === 'OtherLeaveOption') {
+                combo.setAttribute('name', 'NotTarget');
+                text.setAttribute('name', 'Descriptions');
+                text.style.display = 'block';
+                text.focus();
+            } else {
+                text.setAttribute('name', 'NotTarget');
+                text.style.display = 'none';
+                combo.setAttribute('name', 'Descriptions');
+            }
+        });
+    })();
+</script>

@@ -1,0 +1,80 @@
+@model List<MyTime3.Models.RemainLeave>
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.RemainLeave;
+    var dailyLeaveTypes = ViewBag.DailyLeaveTypes as List<SelectListItem> ?? new List<SelectListItem>();
+    var firstLeaveTypeId = Model != null && Model.Count > 0 ? Model.First().LeaveTypeID : 0;
+}
+
+<div class="twf-panel">
+    <div class="twf-panel-header">
+        <h2 class="twf-panel-title">@MyTime3.Content.PersianString.RemainLeave</h2>
+        <span class="twf-badge twf-badge-neutral">محاسبه دقیق تقویم شمسی و سقف مرخصی</span>
+    </div>
+    <div class="twf-panel-body">
+        @using (Html.BeginForm("GetForUser", "RemainLeave", FormMethod.Post, new { id = "twfRemainLeaveForm" }))
+        {
+            <div>
+                @Html.Partial("~/Views/Shared/_SelectMultiUser.cshtml")
+            </div>
+
+            <div class="twf-grid-3" style="margin-top: 16px; align-items: end;">
+                <div class="twf-form-group">
+                    <label class="twf-label" for="LeaveTypeID">@MyTime3.Content.PersianString.LeaveType</label>
+                    <select id="LeaveTypeID" name="LeaveTypeID" class="twf-select">
+                        @foreach (var r in dailyLeaveTypes)
+                        {
+                            <option value="@r.Value" @(r.Value == firstLeaveTypeId.ToString() ? "selected" : "")>@r.Text</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="twf-form-group">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding-bottom: 8px;">
+                        <input id="toggleYear" name="year" value="true" type="checkbox" />
+                        <span>@MyTime3.Content.PersianString.PreYear</span>
+                    </label>
+                </div>
+
+                <div class="twf-form-group">
+                    <button class="twf-btn twf-btn-primary" type="button" onclick="loadRemainLeaveData()">@MyTime3.Content.PersianString.OK</button>
+                </div>
+            </div>
+        }
+
+        <div id="loadeddata" style="margin-top: 24px;">
+            @Html.Partial("~/Views/RemainLeave/AllUsersRemainLeave.cshtml", Model ?? new List<MyTime3.Models.RemainLeave>())
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function loadRemainLeaveData() {
+        var selectedBadges = [];
+        var checks = document.querySelectorAll("input[name='SelectedBadgeNumbers']:checked");
+        for (var i = 0; i < checks.length; i++) {
+            selectedBadges.push(checks[i].value);
+        }
+        var isSelfEl = document.querySelector("input[name='isSelf']:checked");
+        var isSelfVal = isSelfEl ? (isSelfEl.value === 'true' || isSelfEl.value === 'True') : true;
+        var leaveTypeEl = document.getElementById('LeaveTypeID');
+        var yearEl = document.getElementById('toggleYear');
+
+        var postData = {
+            SelectedBadgeNumbers: selectedBadges,
+            isSelf: isSelfVal,
+            LeaveTypeID: leaveTypeEl ? parseInt(leaveTypeEl.value, 10) : 1,
+            year: yearEl ? yearEl.checked : false
+        };
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/RemainLeave/GetForUser', true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 300) {
+                var container = document.getElementById('loadeddata');
+                if (container) container.innerHTML = xhr.responseText;
+            }
+        };
+        xhr.send(JSON.stringify(postData));
+    }
+</script>

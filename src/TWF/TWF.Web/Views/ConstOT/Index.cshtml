@@ -1,0 +1,68 @@
+@model IEnumerable<MyTime3.Models.SumConstOT>
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.ConstOT;
+    bool isPre = ViewBag.Pre != null && (bool)ViewBag.Pre;
+}
+
+<div class="twf-panel">
+    <div class="twf-panel-header">
+        <h2 class="twf-panel-title">@Html.Raw(MyTime3.Content.PersianString.ConstOT)</h2>
+        <form id="changeMonthForm" method="get" action="@Url.Action("Index", "ConstOT")" style="display: flex; align-items: center; gap: 8px; margin: 0;">
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input onchange="document.getElementById('changeMonthForm').submit()" @(isPre ? "checked=checked" : "") id="toggle1" name="pre" value="true" type="checkbox" />
+                <span>@MyTime3.Content.PersianString.PreMonth</span>
+            </label>
+        </form>
+    </div>
+    <div class="twf-panel-body">
+        @if (Model != null && Model.Any())
+        {
+            <div class="twf-alert twf-alert-info">
+                @MyTime3.Content.PersianString.SumOTConstForCurrentMonth
+            </div>
+
+            using (Html.BeginForm("EditAll", "ConstOT", FormMethod.Post))
+            {
+                <input type="hidden" name="pre" value="@isPre.ToString()" />
+                <div class="twf-table-wrap">
+                    <table class="twf-table">
+                        <thead>
+                            <tr>
+                                <th>@MyTime3.Content.PersianString.BadgeNumber</th>
+                                <th>@MyTime3.Content.PersianString.Name</th>
+                                <th>@MyTime3.Content.PersianString.Sum</th>
+                                <th>@MyTime3.Content.PersianString.EditValue</th>
+                                <th>جزئیات روزانه</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (MyTime3.Models.SumConstOT req in Model)
+                            {
+                                <tr>
+                                    <td class="twf-num">@req.BadgeNumber</td>
+                                    <td>@req.Name</td>
+                                    <td class="twf-num">@MyTime3.Controllers.Misc.TimeSpanToString(req.SumValue)</td>
+                                    <td>
+                                        <input type="hidden" name="badgeNumbers" value="@req.BadgeNumber" />
+                                        <input type="text" name="edittedValues" class="twf-input twf-num" style="max-width: 120px;" value="@MyTime3.Controllers.Misc.TimeSpanToString(req.FirstDayValue)" />
+                                    </td>
+                                    <td>
+                                        @Html.ActionLink(MyTime3.Content.PersianString.EditDetails, "Edit", "ConstOT", new { badgeNumber = req.BadgeNumber, pre = isPre }, new { @class = "twf-btn twf-btn-secondary twf-btn-sm" })
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="margin-top: 16px;">
+                    <input class="twf-btn twf-btn-primary" type="submit" value="@MyTime3.Content.PersianString.SaveChanges" />
+                </div>
+            }
+        }
+        else
+        {
+            <div class="twf-alert twf-alert-info">پرسنل زیرمجموعه‌ای جهت ثبت اضافه‌کار ثابت یافت نشد.</div>
+        }
+    </div>
+</div>

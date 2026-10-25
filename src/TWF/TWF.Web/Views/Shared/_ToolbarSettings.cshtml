@@ -1,0 +1,91 @@
+@model List<int>
+@{
+    var selectedItems = Model ?? new List<int>();
+    bool canManage = MyTime3.Controllers.HomeController.CanDownloadNoti5(Context);
+}
+<div id="toolbarselectModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content twf-card">
+            <div class="twf-card-header">
+                <h3 class="twf-card-title">@MyTime3.Content.PersianString.ToolbarItems</h3>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="twf-card-body">
+                <form method="post" action="~/Home/SetToolbar">
+                    <div class="twf-field-row">
+                        <label for="chktb1" class="twf-field-label">@MyTime3.Content.PersianString.HomePage</label>
+                        <input type="checkbox" name="ToolbarItems" id="chktb1" checked="@selectedItems.Contains(1)" value="1" />
+                    </div>
+                    <div class="twf-field-row">
+                        <label for="chktb2" class="twf-field-label">@MyTime3.Content.PersianString.NewRequest</label>
+                        <input type="checkbox" name="ToolbarItems" id="chktb2" checked="@selectedItems.Contains(2)" value="2" />
+                    </div>
+                    @if (canManage && (bool)MyTime3.Controllers.SettingsController.LoadValue("RequestForUsers", typeof(bool), true))
+                    {
+                        <div class="twf-field-row">
+                            <label for="chktb3" class="twf-field-label">@MyTime3.Content.PersianString.RequestFromUser</label>
+                            <input type="checkbox" name="ToolbarItems" id="chktb3" checked="@selectedItems.Contains(3)" value="3" />
+                        </div>
+                    }
+                    <div class="twf-field-row">
+                        <label for="chktb4" class="twf-field-label">@MyTime3.Content.PersianString.EditRequest</label>
+                        <input type="checkbox" name="ToolbarItems" id="chktb4" checked="@selectedItems.Contains(4)" value="4" />
+                    </div>
+                    <div class="twf-field-row">
+                        <label for="chktb5" class="twf-field-label">@MyTime3.Content.PersianString.AcceptRequest</label>
+                        <input type="checkbox" name="ToolbarItems" id="chktb5" checked="@selectedItems.Contains(5)" value="5" />
+                    </div>
+                    <div class="twf-field-row">
+                        <label for="chktb6" class="twf-field-label">@MyTime3.Content.PersianString.RequestsStatus</label>
+                        <input type="checkbox" name="ToolbarItems" id="chktb6" checked="@selectedItems.Contains(6)" value="6" />
+                    </div>
+                    <div class="twf-field-row">
+                        <label for="chktb7" class="twf-field-label">@MyTime3.Content.PersianString.Deputy</label>
+                        <input type="checkbox" name="ToolbarItems" id="chktb7" checked="@selectedItems.Contains(7)" value="7" />
+                    </div>
+                    @if ((bool)MyTime3.Controllers.SettingsController.LoadValue("ViewConstOT", typeof(bool), true))
+                    {
+                        <div class="twf-field-row">
+                            <label for="chktb8" class="twf-field-label">@MyTime3.Content.PersianString.ConstOT</label>
+                            <input type="checkbox" name="ToolbarItems" id="chktb8" checked="@selectedItems.Contains(8)" value="8" />
+                        </div>
+                    }
+                    @if ((bool)MyTime3.Controllers.SettingsController.LoadValue("ViewRewPen", typeof(bool), true))
+                    {
+                        <div class="twf-field-row">
+                            <label for="chktb9" class="twf-field-label">@MyTime3.Content.PersianString.InsertRewardAndPenalty</label>
+                            <input type="checkbox" name="ToolbarItems" id="chktb9" checked="@selectedItems.Contains(9)" value="9" />
+                        </div>
+                    }
+                    @if (canManage)
+                    {
+                        <div class="twf-field-row">
+                            <label for="chktb10" class="twf-field-label">@MyTime3.Content.PersianString.SelectValidArea</label>
+                            <input type="checkbox" name="ToolbarItems" id="chktb10" checked="@selectedItems.Contains(10)" value="10" />
+                        </div>
+                    }
+                    <div class="twf-field-row">
+                        <label for="chktb12" class="twf-field-label">@MyTime3.Content.PersianString.ViewReports</label>
+                        <input type="checkbox" name="ToolbarItems" id="chktb12" checked="@selectedItems.Contains(12)" value="12" />
+                    </div>
+                    <div class="twf-field-row">
+                        <label for="chktb13" class="twf-field-label">@MyTime3.Content.PersianString.RemainLeave</label>
+                        <input type="checkbox" name="ToolbarItems" id="chktb13" checked="@selectedItems.Contains(13)" value="13" />
+                    </div>
+                    @if (canManage)
+                    {
+                        <div class="twf-field-row">
+                            <label for="chktb14" class="twf-field-label">@MyTime3.Content.PersianString.PersonnelStatusReport</label>
+                            <input type="checkbox" name="ToolbarItems" id="chktb14" checked="@selectedItems.Contains(14)" value="14" />
+                        </div>
+                    }
+
+                    <div style="margin-top: 18px; display: flex; justify-content: flex-end; gap: 10px;">
+                        <button type="submit" class="twf-btn twf-btn-primary">@MyTime3.Content.PersianString.OK</button>
+                        <button type="button" class="twf-btn twf-btn-secondary" data-dismiss="modal">@MyTime3.Content.PersianString.Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

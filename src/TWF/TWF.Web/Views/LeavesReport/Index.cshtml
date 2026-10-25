@@ -1,0 +1,40 @@
+@model IEnumerable<MyTime3.Controllers.LeavesReportController.LV>
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.ShowLeaves;
+}
+
+<div class="twf-card">
+    <div class="twf-card-header">
+        <h3 class="twf-card-title">@MyTime3.Content.PersianString.ShowLeaves</h3>
+    </div>
+    <div class="twf-card-body">
+        <div class="twf-table-wrap">
+            <table class="twf-table">
+                <thead>
+                    <tr>
+                        <th>@MyTime3.Content.PersianString.BadgeNumber</th>
+                        <th>@MyTime3.Content.PersianString.Name</th>
+                        <th>@MyTime3.Content.PersianString.Status</th>
+                        <th>@MyTime3.Content.PersianString.Time</th>
+                        <th>@MyTime3.Content.PersianString.Descriptions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null)
+                    {
+                        foreach (var r in Model)
+                        {
+                            <tr>
+                                <td class="twf-num">@r.BadgeNumber</td>
+                                <td>@r.Name</td>
+                                <td><span class="twf-badge">@r.Type</span></td>
+                                <td class="twf-num" dir="ltr">@r.FromTo</td>
+                                <td>@r.Descriptions</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

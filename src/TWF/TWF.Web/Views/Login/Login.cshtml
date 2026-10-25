@@ -1,0 +1,83 @@
+@using MyTime3.Content;
+@using CaptchaMvc.HtmlHelpers;
+@model MyTime3.Models.LoginModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@PersianString.LoginToApplication — @PersianString.AppName</title>
+    <link href="~/Content/twf-industrial-ui.css" rel="stylesheet" />
+</head>
+<body class="twf-auth-page">
+    <div class="twf-auth-card">
+        <div class="twf-auth-header">
+            <div class="twf-auth-brand">
+                <span class="twf-brand-mark">آ</span>
+                <div>
+                    <h1>@PersianString.AppName</h1>
+                    <p>@MyTime3.Content.AriaBranding.Tagline</p>
+                </div>
+            </div>
+            <p style="margin-top:14px;">@PersianString.LoginToApplication</p>
+        </div>
+
+        <div class="twf-auth-body">
+            @if (Model != null && !string.IsNullOrEmpty(Model.Message))
+            {
+                <div class="twf-alert twf-alert-error">
+                    @Model.Message
+                </div>
+            }
+
+            @using (Html.BeginForm("Login", "Login", FormMethod.Post))
+            {
+                <div class="twf-form-group">
+                    <label for="UserName">@PersianString.UserName</label>
+                    <input type="text"
+                           id="UserName"
+                           name="UserName"
+                           value="@(Model != null ? Model.UserName : string.Empty)"
+                           class="twf-input"
+                           placeholder="@PersianString.UserName"
+                           autocomplete="username"
+                           required="required"
+                           autofocus="autofocus" />
+                </div>
+
+                <div class="twf-form-group">
+                    <label for="Password">@PersianString.Password</label>
+                    <input type="password"
+                           id="Password"
+                           name="Password"
+                           class="twf-input"
+                           placeholder="@PersianString.Password"
+                           autocomplete="current-password"
+                           required="required" />
+                </div>
+
+                if (Model != null && Model.Captcha)
+                {
+                    <div class="twf-form-group" style="text-align: center;">
+                        @Html.Captcha(PersianString.RefreshCaptcha, PersianString.EnterCaptcha, 5)
+                    </div>
+                }
+
+                <div style="margin-top: 20px;">
+                    <button type="submit" class="twf-btn twf-btn-primary" style="width: 100%; height: 42px; font-size: 14px;">
+                        @PersianString.Login
+                    </button>
+                </div>
+            }
+        </div>
+
+        <div class="twf-auth-footer">
+            <span>@MyTime3.Content.AriaBranding.ArchitectureBadge</span>
+            <span class="twf-num">@MyTime3.Content.AriaBranding.FullVersion</span>
+        </div>
+    </div>
+</body>
+</html>

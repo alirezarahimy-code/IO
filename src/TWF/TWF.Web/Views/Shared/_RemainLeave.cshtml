@@ -1,0 +1,43 @@
+@model MyTime3.Models.RemainLeave
+
+@if (Model != null)
+{
+    <div class="twf-table-wrap">
+        <table class="twf-table">
+            <tbody>
+                <tr>
+                    <th>@MyTime3.Content.PersianString.BadgeNumber</th>
+                    <td id="tdBadgeNumber" class="twf-num">@Model.BadgeNumber</td>
+                </tr>
+                <tr>
+                    <th>@MyTime3.Content.PersianString.Name</th>
+                    <td id="tdName">@Model.Name</td>
+                </tr>
+                <tr>
+                    <th>@MyTime3.Content.PersianString.LeaveType</th>
+                    <td id="tdLeaveTypeName">@Model.LeaveTypeName</td>
+                </tr>
+                <tr>
+                    <th>@MyTime3.Content.PersianString.DailyTaken</th>
+                    <td id="tdDailyTaken" class="twf-num">@Model.DailyTaken</td>
+                </tr>
+                <tr>
+                    <th>@MyTime3.Content.PersianString.HourlyTaken</th>
+                    <td id="tdHourlyTaken" class="twf-num" dir="ltr">@Model.HourlyTaken</td>
+                </tr>
+                <tr>
+                    <th>@MyTime3.Content.PersianString.Taken</th>
+                    <td id="tdTotalTaken" class="twf-num">@Model.TotalTaken.ToString("0.00")</td>
+                </tr>
+                <tr>
+                    <th>@MyTime3.Content.PersianString.Requested</th>
+                    <td id="tdRequested" class="twf-num">@Model.Requested.ToString("0.00")</td>
+                </tr>
+                <tr>
+                    <th>@MyTime3.Content.PersianString.Remain</th>
+                    <td id="tdRemain" class="twf-num"><strong>@Model.Remain.ToString("0.00")</strong></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+}

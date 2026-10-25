@@ -1,0 +1,76 @@
+@model List<MyTime3.Models.EditableRequest>
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.EditRequest;
+}
+
+<div class="twf-panel">
+    <div class="twf-panel-header">
+        <h2 class="twf-panel-title">@Html.Raw(MyTime3.Content.PersianString.EditRequest)</h2>
+        <span class="twf-badge twf-badge-neutral">@(Model != null ? Model.Count : 0) مورد قابل ویرایش</span>
+    </div>
+    <div class="twf-panel-body">
+        @if (!string.IsNullOrEmpty(ViewBag.Message as string))
+        {
+            <div class="twf-alert twf-alert-info">@ViewBag.Message</div>
+        }
+
+        @if (Model != null && Model.Count > 0)
+        {
+            using (Html.BeginForm("DeleteSelected", "EditRequest", FormMethod.Post))
+            {
+                <div class="twf-table-wrap">
+                    <table class="twf-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 44px;">
+                                    <input type="checkbox" onclick="TWF.toggleSelectAll(this, '.twf-req-chk')" />
+                                </th>
+                                <th>@MyTime3.Content.PersianString.Type</th>
+                                <th>@MyTime3.Content.PersianString.RequestDetails</th>
+                                <th>@MyTime3.Content.PersianString.RequestTime</th>
+                                <th>@MyTime3.Content.PersianString.Descriptions</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (MyTime3.Models.EditableRequest req in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" class="twf-req-chk" name="SelectID" value="@req.RequestID" />
+                                    </td>
+                                    <td>@req.Type</td>
+                                    <td>@req.RequestDetails</td>
+                                    <td class="twf-num">@req.RequestTime</td>
+                                    <td>
+                                        @req.Descriptions
+                                        @if (req.HasFile)
+                                        {
+                                            <a href="@Url.Action("GetImage", "Request", new { reqId = req.RequestID })" target="_blank" class="twf-badge twf-badge-neutral" style="margin-right: 6px;">پیوست</a>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div style="display: flex; gap: 6px;">
+                                            @Html.ActionLink(MyTime3.Content.PersianString.Edit, "Edit", "EditRequest", new { id = req.RequestID }, new { @class = "twf-btn twf-btn-secondary twf-btn-sm" })
+                                            @Html.ActionLink(MyTime3.Content.PersianString.Remove, "Delete", "EditRequest", new { id = req.RequestID }, new { @class = "twf-btn twf-btn-danger twf-btn-sm" })
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="margin-top: 16px;">
+                    <button type="submit" class="twf-btn twf-btn-danger">@MyTime3.Content.PersianString.DeleteSelected</button>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="twf-alert twf-alert-info">
+                @MyTime3.Content.PersianString.NoEditableRequest
+            </div>
+        }
+    </div>
+</div>

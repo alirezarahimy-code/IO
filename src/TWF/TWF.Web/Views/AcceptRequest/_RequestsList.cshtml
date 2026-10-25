@@ -1,0 +1,168 @@
+@model IEnumerable<MyTime3.Models.Request>
+@{
+    bool prePageIsHome = ViewData["fromHome"] != null && (bool)ViewData["fromHome"];
+    bool groupByName = ViewBag.GroupByName != null ? (bool)ViewBag.GroupByName : true;
+    int sortByDate = ViewBag.SortByDate != null ? (int)ViewBag.SortByDate : -1;
+}
+
+@if (Model != null && Model.Any())
+{
+    <div class="twf-card">
+        <div class="twf-card-header">
+            <h3 class="twf-card-title">@MyTime3.Content.PersianString.AcceptRequest (@Model.Count())</h3>
+            <div style="display:flex; gap:8px; align-items:center;">
+                <button type="button" class="twf-btn" onclick="checkAllRequests()">@MyTime3.Content.PersianString.SelectAll</button>
+                <button type="button" class="twf-btn" onclick="reverseAllRequests()">@MyTime3.Content.PersianString.Reverse</button>
+                <label class="twf-badge" style="cursor:pointer;">
+                    <input type="checkbox" id="checg" @(groupByName ? "checked=\"checked\"" : "") onchange="@(prePageIsHome ? "chgr(this)" : "chgrreq(this)")" />
+                    <span>گروه‌بندی بر اساس پرسنل</span>
+                </label>
+            </div>
+        </div>
+        <div class="twf-card-body">
+            @using (Html.BeginForm("AcceptAll", "AcceptRequest", FormMethod.Post, new { id = "myForm" }))
+            {
+                <input type="hidden" name="returnToHome" value="@prePageIsHome.ToString()" />
+                if (ViewBag.requestBadgeFilter != null)
+                {
+                    <input type="hidden" name="forBadgeNumberFilter" value="@ViewBag.requestBadgeFilter" />
+                }
+
+                <div style="margin-bottom:12px; display:flex; gap:8px;">
+                    <button type="submit" name="action2" value="0" class="twf-btn twf-btn-primary">تایید انتخاب شده ها</button>
+                    <button type="submit" name="action2" value="1" class="twf-btn twf-btn-danger">رد انتخاب شده ها</button>
+                </div>
+
+                <div class="twf-table-wrap">
+                    <table class="twf-table">
+                        <thead>
+                            <tr>
+                                <th>@MyTime3.Content.PersianString.Select</th>
+                                <th>@MyTime3.Content.PersianString.BadgeNumber</th>
+                                <th>@MyTime3.Content.PersianString.Name</th>
+                                <th>@MyTime3.Content.PersianString.WorkflowType</th>
+                                <th>
+                                    @MyTime3.Content.PersianString.RequestTime
+                                    @{
+                                        int nextSort = sortByDate == 1 ? 2 : 1;
+                                        string sortUrl = (prePageIsHome ? "/Home/Index" : "/AcceptRequest/Index") + "?Sort=" + nextSort + "&g=" + groupByName.ToString();
+                                    }
+                                    <a href="@sortUrl" class="twf-badge" style="margin-right:4px;">مرتب‌سازی</a>
+                                </th>
+                                <th>@MyTime3.Content.PersianString.Type</th>
+                                <th>@MyTime3.Content.PersianString.From</th>
+                                <th>@MyTime3.Content.PersianString.To</th>
+                                <th>@MyTime3.Content.PersianString.Deputy</th>
+                                <th>@MyTime3.Content.PersianString.Descriptions</th>
+                                <th>@MyTime3.Content.PersianString.Operations</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                IEnumerable<MyTime3.Models.Request> orderedItems = Model;
+                                if (sortByDate == 1)
+                                {
+                                    orderedItems = orderedItems.OrderBy(r => r.RequestT5.ForDate);
+                                }
+                                else if (sortByDate == 2)
+                                {
+                                    orderedItems = orderedItems.OrderByDescending(r => r.RequestT5.ForDate);
+                                }
+                                if (groupByName)
+                                {
+                                    orderedItems = orderedItems.OrderBy(r => r.BadgeNumber);
+                                }
+                            }
+                            @foreach (MyTime3.Models.Request req in orderedItems)
+                            {
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" class="chkRequest" name="requestsChecked" value="@req.RequestID" />
+                                    </td>
+                                    <td class="twf-num">@req.BadgeNumber</td>
+                                    <td>@req.Name</td>
+                                    <td><span class="twf-badge">@req.WorkflowName</span></td>
+                                    <td class="twf-num" dir="ltr">@req.RequestTime</td>
+                                    <td>@req.TypeName</td>
+                                    <td class="twf-num" dir="ltr">@req.From</td>
+                                    <td class="twf-num" dir="ltr">
+                                        @if (req.RequestT5 != null && req.RequestT5.WorkflowType == T5V3.Model.WorkflowOperations.AllowOverTimes)
+                                        {
+                                            <input type="hidden" name="allOverIDs" value="@req.RequestID" />
+                                            <input type="text" name="overValues" id="@("over" + req.RequestID)" class="twf-input twf-num" dir="ltr" style="width:90px; padding:4px;" value="@req.To" />
+                                        }
+                                        else
+                                        {
+                                            @req.To
+                                        }
+                                    </td>
+                                    <td>@(req.ForDeputy ? req.DeputyTitleName : "-")</td>
+                                    <td>
+                                        <div>@req.Descriptions</div>
+                                        @if (req.Latitude != 0 && req.Longitude != 0)
+                                        {
+                                            <span class="twf-badge twf-num" dir="ltr">GPS: @req.Latitude, @req.Longitude</span>
+                                        }
+                                        @if (req.ImageData != null && req.ImageData.Length > 1)
+                                        {
+                                            <a class="twf-badge" target="_blank" href="/Request/ShowPhoto/@req.RequestID">@MyTime3.Content.PersianString.ShowAttachmentPhoto</a>
+                                        }
+                                    </td>
+                                    <td style="white-space:nowrap;">
+                                        @if (req.RequestT5 != null && req.RequestT5.WorkflowType == T5V3.Model.WorkflowOperations.AllowOverTimes)
+                                        {
+                                            <a href="javascript:sendEditOverTime(@req.RequestID)" class="twf-btn twf-btn-primary">@MyTime3.Content.PersianString.Accept</a>
+                                        }
+                                        else
+                                        {
+                                            @Html.ActionLink(MyTime3.Content.PersianString.Accept, "Accept", "AcceptRequest", new { requestID = req.RequestID, returnToHome = prePageIsHome ? (bool?)true : null }, new { @class = "twf-btn twf-btn-primary" })
+                                        }
+                                        @Html.ActionLink(MyTime3.Content.PersianString.Cancel, "Cancel", "AcceptRequest", new { requestID = req.RequestID, returnToHome = prePageIsHome ? (bool?)true : null }, new { @class = "twf-btn twf-btn-danger" })
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <script>
+        function checkAllRequests() {
+            var boxes = document.querySelectorAll('.chkRequest');
+            for (var i = 0; i < boxes.length; i++) boxes[i].checked = true;
+        }
+        function reverseAllRequests() {
+            var boxes = document.querySelectorAll('.chkRequest');
+            for (var i = 0; i < boxes.length; i++) boxes[i].checked = !boxes[i].checked;
+        }
+        function chgr(cb) {
+            window.location.href = '/Home/Index?g=' + cb.checked;
+        }
+        function chgrreq(cb) {
+            window.location.href = '/AcceptRequest/Index?g=' + cb.checked;
+        }
+        function sendEditOverTime(reqId) {
+            var valEl = document.getElementById('over' + reqId);
+            var editedVal = valEl ? valEl.value : '00:00';
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/AcceptRequest/Accept';
+            var f1 = document.createElement('input'); f1.type = 'hidden'; f1.name = 'requestID'; f1.value = reqId;
+            var f2 = document.createElement('input'); f2.type = 'hidden'; f2.name = 'editedValue'; f2.value = editedVal;
+            form.appendChild(f1);
+            form.appendChild(f2);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    </script>
+}
+else
+{
+    <div class="twf-card">
+        <div class="twf-card-body">
+            <p class="twf-muted">درخواستی در کارتابل تایید شما وجود ندارد.</p>
+        </div>
+    </div>
+}

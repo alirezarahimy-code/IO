@@ -1,0 +1,29 @@
+@model System.Web.Mvc.HandleErrorInfo
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@MyTime3.Content.PersianString.ServerError</title>
+    <link href="~/Content/twf-industrial-ui.css" rel="stylesheet" />
+</head>
+<body class="twf-auth-page">
+    <div class="twf-auth-card">
+        <div class="twf-auth-header">
+            <h1>@MyTime3.Content.PersianString.ServerError</h1>
+            <p>خطای داخلی در پردازش درخواست</p>
+        </div>
+        <div class="twf-auth-body">
+            <div class="twf-alert twf-alert-error">
+                در هنگام پردازش درخواست شما خطایی رخ داده است. لطفاً مجدداً تلاش نمایید.
+            </div>
+            <a href="~/Home/Index" class="twf-btn twf-btn-primary" style="width: 100%;">
+                @MyTime3.Content.PersianString.HomePage
+            </a>
+        </div>
+    </div>
+</body>
+</html>

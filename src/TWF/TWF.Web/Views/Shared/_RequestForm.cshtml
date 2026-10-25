@@ -1,0 +1,95 @@
+@model MyTime3.Models.GeneralRequest
+@{
+    var leaveTypes = ViewBag.LeaveTypes as List<T5V3.Model.LeaveType> ?? new List<T5V3.Model.LeaveType>();
+    var leaveDescriptions = ViewBag.LeaveDescriptions as List<T5V3.Model.LeaveDescription> ?? new List<T5V3.Model.LeaveDescription>();
+    bool allowLateEarly = (bool)MyTime3.Controllers.SettingsController.LoadValue("ValidLateEarly", typeof(bool), true);
+}
+
+<div class="twf-grid" style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px;">
+    <div class="twf-field">
+        <label class="twf-label">@MyTime3.Content.PersianString.Request</label>
+        <input type="hidden" name="RequestType" id="requestTypeID" value="@(Model != null ? Model.RequestType.ToString() : "0")" />
+        <select id="selectedName" class="twf-select" onchange="onRequestTypeSelect(this)">
+            <option value="0" data-daily="true">@MyTime3.Content.PersianString.DailyLeave</option>
+            <option value="1" data-daily="false">@MyTime3.Content.PersianString.HourlyLeave</option>
+            <option value="2" data-daily="true">@MyTime3.Content.PersianString.DailyDuty</option>
+            <option value="3" data-daily="false">@MyTime3.Content.PersianString.HourlyDuty</option>
+            <option value="4" data-daily="false">@MyTime3.Content.PersianString.InsertRecord</option>
+            @if (allowLateEarly)
+            {
+                <option value="5" data-daily="false">@MyTime3.Content.PersianString.RequestLate</option>
+                <option value="6" data-daily="false">@MyTime3.Content.PersianString.RequestEarly</option>
+            }
+            <option value="7" data-daily="false">@MyTime3.Content.PersianString.OverTimeAccess</option>
+        </select>
+    </div>
+
+    <div id="typeGroup" class="twf-field">
+        <label class="twf-label">@MyTime3.Content.PersianString.Type</label>
+        <input type="hidden" name="LeaveTypeID" id="LeaveTypeID" value="@(Model != null ? Model.LeaveTypeID.ToString() : "")" />
+        <select id="LeaveTypeName" class="twf-select" onchange="document.getElementById('LeaveTypeID').value=this.value">
+            <option value="-1" data-parent="7">@MyTime3.Content.PersianString.OverTimeAfter</option>
+            <option value="-2" data-parent="7">@MyTime3.Content.PersianString.OverTimeBefore</option>
+            <option value="-3" data-parent="7">@MyTime3.Content.PersianString.FreeOverTime</option>
+            @foreach (T5V3.Model.LeaveType lt in leaveTypes)
+            {
+                int parentCode = lt.LeaveType1 == T5V3.Model.LeaveTypeEnum.Leave
+                    ? (lt.IsHourly ? 1 : 0)
+                    : (lt.IsHourly ? 3 : 2);
+                <option value="@lt.LeaveTypeID" data-parent="@parentCode">@lt.LeaveName</option>
+            }
+        </select>
+    </div>
+
+    <div class="twf-field">
+        <label class="twf-label">@MyTime3.Content.PersianString.FromDate</label>
+        <input type="text" name="FromDateHijri" id="FromDateHijri" class="twf-input twf-num datepicker-farsi" dir="ltr" value="@(Model != null ? Model.FromDateHijri : "")" />
+    </div>
+
+    <div class="twf-field">
+        <label class="twf-label">@MyTime3.Content.PersianString.ToDate</label>
+        <input type="text" name="ToDateHijri" id="ToDateHijri" class="twf-input twf-num datepicker-farsi" dir="ltr" value="@(Model != null ? Model.ToDateHijri : "")" />
+    </div>
+
+    <div class="twf-field">
+        <label class="twf-label">@MyTime3.Content.PersianString.ForDate</label>
+        <input type="text" name="ForDateHijri" id="ForDateHijri" class="twf-input twf-num datepicker-farsi" dir="ltr" value="@(Model != null ? Model.ForDateHijri : "")" />
+    </div>
+
+    <div class="twf-field">
+        <label class="twf-label">@MyTime3.Content.PersianString.FromHour</label>
+        <input type="text" name="FromTime" id="FromTime" class="twf-input twf-num" dir="ltr" placeholder="08:00" value="@(Model != null ? Model.FromTime : "")" />
+    </div>
+
+    <div class="twf-field">
+        <label class="twf-label">@MyTime3.Content.PersianString.ToHour</label>
+        <input type="text" name="ToTime" id="ToTime" class="twf-input twf-num" dir="ltr" placeholder="10:00" value="@(Model != null ? Model.ToTime : "")" />
+    </div>
+
+    <div class="twf-field">
+        <label class="twf-label">@MyTime3.Content.PersianString.Time</label>
+        <input type="text" name="ForTime" id="ForTime" class="twf-input twf-num" dir="ltr" placeholder="08:00" value="@(Model != null ? Model.ForTime : "")" />
+    </div>
+
+    <div class="twf-field">
+        <label class="twf-label">@MyTime3.Content.PersianString.DetailDescriptions</label>
+        <select name="LeaveDescID" id="LeaveDescID" class="twf-select">
+            <option value="-1">-</option>
+            @foreach (T5V3.Model.LeaveDescription desc in leaveDescriptions)
+            {
+                <option value="@desc.ID">@desc.Description</option>
+            }
+        </select>
+    </div>
+
+    <div class="twf-field" style="grid-column:1 / -1;">
+        <label class="twf-label">@MyTime3.Content.PersianString.Descriptions</label>
+        <input type="text" name="Descriptions" id="Descriptions" class="twf-input" value="@(Model != null ? Model.Descriptions : "")" />
+    </div>
+</div>
+
+<script>
+    function onRequestTypeSelect(sel) {
+        document.getElementById('requestTypeID').value = sel.value;
+    }
+</script>

@@ -1,0 +1,17 @@
+@model MyTime3.Models.Deputy
+@{
+    bool returnToHome = ViewData["deputyReturnToHome"] != null && (bool)ViewData["deputyReturnToHome"];
+    bool showNoDeputy = ViewData["shownodeputy"] != null && (bool)ViewData["shownodeputy"];
+}
+@if (Model != null && Model.IsAnyDeputy)
+{
+    <span>
+        <strong>@MyTime3.Content.PersianString.CurrentDeputy:</strong>
+        @(Model.CurrentDeputy != null ? Model.CurrentDeputy.ToString() : "-")
+    </span>
+    @Html.ActionLink("(" + MyTime3.Content.PersianString.DeleteDeputy + ")", "Delete", "Deputy", new { returnToHome = returnToHome }, new { @class = "twf-btn twf-btn-danger", style = "margin-right:8px;" })
+}
+else if (showNoDeputy)
+{
+    <span>@MyTime3.Content.PersianString.YouCurrentlyDoNotHaveDeputy</span>
+}

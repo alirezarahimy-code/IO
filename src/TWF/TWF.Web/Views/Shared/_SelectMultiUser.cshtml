@@ -1,0 +1,73 @@
+@{
+    var personnelList = ViewBag.Personnel as List<MyTime3.Models.PersonnelModel>;
+}
+
+@if (personnelList != null && personnelList.Count > 0)
+{
+    <div class="twf-card" style="padding:12px;">
+        <div style="display:flex; gap:16px; align-items:center; margin-bottom:10px;">
+            <label for="radself" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
+                <input id="radself" type="radio" name="isSelf" value="true" checked="checked" onchange="onSelfChanged(this)" />
+                <span>@MyTime3.Content.PersianString.Self</span>
+            </label>
+            <label for="radpers" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
+                <input id="radpers" type="radio" name="isSelf" value="false" onchange="onSelfChanged(this)" />
+                <span>@MyTime3.Content.PersianString.Personnel</span>
+            </label>
+        </div>
+
+        <div id="divPersonnel" style="display:none; border-top:1px solid var(--twf-border); padding-top:12px;">
+            <div style="display:flex; gap:8px; margin-bottom:10px; align-items:center;">
+                <input type="text" class="twf-input" placeholder="@MyTime3.Content.PersianString.Search..." onkeyup="searchPersonnel(this)" style="max-width:300px;" />
+                <button type="button" class="twf-btn" onclick="selectAll();return false;">@MyTime3.Content.PersianString.SelectAll</button>
+                <button type="button" class="twf-btn" onclick="reverse();return false;">@MyTime3.Content.PersianString.Reverse</button>
+            </div>
+
+            <div id="divPersonnelList" style="max-height:220px; overflow-y:auto; display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:6px;">
+                @foreach (MyTime3.Models.PersonnelModel per in personnelList)
+                {
+                    <div class="divOnePerson" style="padding:4px;">
+                        <label for="check@(per.BadgeNumber)" style="cursor:pointer; display:flex; align-items:center; gap:6px;">
+                            <input type="checkbox" id="check@(per.BadgeNumber)" name="SelectedBadgeNumbers" value="@per.BadgeNumber" />
+                            <span><span class="twf-num">@per.BadgeNumber</span> - @per.FirstName @per.LastName</span>
+                        </label>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function reverse() {
+            var divs = document.getElementsByClassName('divOnePerson');
+            for (var i = 0; i < divs.length; i++) {
+                if (divs[i].style.display !== 'none') {
+                    var cb = divs[i].getElementsByTagName('input')[0];
+                    cb.checked = !cb.checked;
+                }
+            }
+        }
+        function selectAll() {
+            var divs = document.getElementsByClassName('divOnePerson');
+            for (var i = 0; i < divs.length; i++) {
+                if (divs[i].style.display !== 'none') {
+                    divs[i].getElementsByTagName('input')[0].checked = true;
+                }
+            }
+        }
+        function searchPersonnel(txt) {
+            var patt = txt.value || '';
+            var divs = document.getElementsByClassName('divOnePerson');
+            for (var i = 0; i < divs.length; i++) {
+                var nameStr = divs[i].getElementsByTagName('label')[0].innerHTML;
+                var isChecked = divs[i].getElementsByTagName('input')[0].checked;
+                divs[i].style.display = (nameStr.indexOf(patt) >= 0 || isChecked) ? 'block' : 'none';
+            }
+        }
+        function onSelfChanged(radio) {
+            var divP = document.getElementById('divPersonnel');
+            if (!divP) return;
+            divP.style.display = (radio.value === 'false' && radio.checked) ? 'block' : 'none';
+        }
+    </script>
+}

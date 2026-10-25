@@ -1,0 +1,56 @@
+@model long
+@{
+    ViewBag.Title = "مشاهده وضعیت کاربران";
+    var personnelList = ViewBag.Personnel as List<MyTime3.Models.PersonnelModel> ?? new List<MyTime3.Models.PersonnelModel>();
+}
+
+<div class="twf-card">
+    <div class="twf-card-header">
+        <h3 class="twf-card-title">مشاهده وضعیت کاربران در چارت سازمانی</h3>
+    </div>
+    <div class="twf-card-body">
+        @using (Html.BeginForm("Index", "ShowUsersRequest", FormMethod.Get, new { @class = "twf-form" }))
+        {
+            <div class="twf-grid" style="grid-template-columns:1fr auto; gap:16px; align-items:end; max-width:520px;">
+                <div class="twf-field">
+                    <label class="twf-label">انتخاب پرسنل</label>
+                    <select name="badge" id="badgeID" class="twf-select">
+                        @foreach (var personnel in personnelList)
+                        {
+                            <option value="@personnel.BadgeNumber" @(Model == personnel.BadgeNumber ? "selected=\"selected\"" : "")>
+                                @personnel.BadgeNumber - @personnel.FirstName @personnel.LastName
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="twf-field">
+                    <button type="button" onclick="showStatus()" class="twf-btn twf-btn-primary">نمایش وضعیت</button>
+                </div>
+            </div>
+        }
+
+        <div id="ShowDataDiv" style="margin-top:20px;"></div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        function showStatus() {
+            var selectEl = document.getElementById('badgeID');
+            if (!selectEl) return;
+            var data = new FormData();
+            data.append('badg', selectEl.value);
+            data.append('action', 'ShowusersStatus');
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/ShowUsersRequest/GetForUser', true);
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var target = document.getElementById('ShowDataDiv');
+                    if (target) target.innerHTML = xhr.responseText;
+                }
+            };
+            xhr.send(data);
+        }
+    </script>
+}

@@ -1,0 +1,76 @@
+@model IEnumerable<MyTime3.Models.OTConstDaily>
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.EditConstOT;
+    bool isPre = ViewBag.Pre != null && (bool)ViewBag.Pre;
+    var firstItem = Model != null ? Model.FirstOrDefault() : null;
+}
+
+<div class="twf-panel">
+    <div class="twf-panel-header">
+        <h2 class="twf-panel-title">@Html.Raw(MyTime3.Content.PersianString.EditConstOT)</h2>
+        @if (firstItem != null)
+        {
+            <form id="changeMonthForm" method="get" action="@Url.Action("Edit", "ConstOT")" style="display: flex; align-items: center; gap: 8px; margin: 0;">
+                <input type="hidden" value="@firstItem.BadgeNumber" name="badgeNumber" />
+                <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                    <input onchange="document.getElementById('changeMonthForm').submit()" @(isPre ? "checked=checked" : "") id="toggle1" name="pre" value="true" type="checkbox" />
+                    <span>@MyTime3.Content.PersianString.PreMonth</span>
+                </label>
+            </form>
+        }
+    </div>
+    <div class="twf-panel-body">
+        @if (!string.IsNullOrEmpty(ViewBag.ExMessage as string))
+        {
+            <div class="twf-alert twf-alert-danger">@ViewBag.ExMessage</div>
+        }
+
+        @if (Model != null && Model.Any())
+        {
+            <div class="twf-table-wrap">
+                <table class="twf-table">
+                    <thead>
+                        <tr>
+                            <th>@MyTime3.Content.PersianString.Date</th>
+                            <th>@MyTime3.Content.PersianString.DayOfWeek</th>
+                            <th>@MyTime3.Content.PersianString.Value</th>
+                            <th>@MyTime3.Content.PersianString.NewValue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (MyTime3.Models.OTConstDaily req in Model)
+                        {
+                            <tr>
+                                <td class="twf-num">@req.ForDate</td>
+                                <td>@req.DayOfWeek</td>
+                                <td class="twf-num">
+                                    @if (req.ValueDaily != TimeSpan.Zero)
+                                    {
+                                        <span class="twf-badge twf-badge-warning">@MyTime3.Controllers.Misc.TimeSpanToString(req.ValueDaily)</span>
+                                    }
+                                    else
+                                    {
+                                        <span>00:00</span>
+                                    }
+                                </td>
+                                <td>
+                                    @using (Html.BeginForm("Edit", "ConstOT", FormMethod.Post, new { style = "display: flex; gap: 6px; align-items: center; margin: 0;" }))
+                                    {
+                                        <input type="hidden" name="badgeNumber" value="@req.BadgeNumber" />
+                                        <input type="hidden" name="forDate" value="@req.ForDate" />
+                                        <input type="text" class="twf-input twf-num" style="max-width: 110px;" name="newValue" value="@MyTime3.Controllers.Misc.TimeSpanToString(req.ValueDaily)" />
+                                        <input type="submit" class="twf-btn twf-btn-primary twf-btn-sm" value="@MyTime3.Content.PersianString.OK" />
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top: 16px;">
+                <a href="~/ConstOT/Index" class="twf-btn twf-btn-secondary">@MyTime3.Content.PersianString.ReturnToConstOT</a>
+            </div>
+        }
+    </div>
+</div>

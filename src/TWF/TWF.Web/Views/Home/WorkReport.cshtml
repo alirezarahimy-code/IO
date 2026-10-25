@@ -1,0 +1,106 @@
+@{
+    Layout = null;
+}
+
+<div class="twf-panel" style="margin-top: 20px;">
+    <div class="twf-panel-header">
+        <h3 class="twf-panel-title">گزارش وضعیت کارکرد روزانه و ثبت سریع درخواست</h3>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="text" id="twfReportFromDate" class="twf-input datepicker-farsi twf-num" placeholder="از تاریخ (شمسی)" style="width: 135px;" />
+            <input type="text" id="twfReportToDate" class="twf-input datepicker-farsi twf-num" placeholder="تا تاریخ (شمسی)" style="width: 135px;" />
+            <button type="button" id="twfBtnLoadDailyReport" class="twf-btn twf-btn-primary twf-btn-sm" onclick="twfLoadDailyDetailsReport(0)">@MyTime3.Content.PersianString.View</button>
+            <button type="button" class="twf-btn twf-btn-secondary twf-btn-sm" onclick="twfLoadDailyDetailsReport(-1)">ماه قبل</button>
+        </div>
+    </div>
+    <div class="twf-panel-body">
+        <div id="twfDailyReportStatus" class="twf-alert twf-alert-info" style="display:none;"></div>
+        <div class="twf-table-wrap">
+            <table class="twf-table" id="twfDailyDetailsTable">
+                <thead>
+                    <tr>
+                        <th>ردیف</th>
+                        <th>@MyTime3.Content.PersianString.BadgeNumber</th>
+                        <th>@MyTime3.Content.PersianString.FullName</th>
+                        <th>@MyTime3.Content.PersianString.Date</th>
+                        <th>@MyTime3.Content.PersianString.DayOfWeek</th>
+                        <th>ورود اول</th>
+                        <th>خروج اول</th>
+                        <th>ورود دوم</th>
+                        <th>خروج دوم</th>
+                        <th>حضور</th>
+                        <th>کارکرد</th>
+                        <th>تاخیر</th>
+                        <th>تعجیل</th>
+                        <th>کسر کار</th>
+                        <th>اضافه کار</th>
+                        <th>مرخصی</th>
+                        <th>ماموریت</th>
+                        <th>توضیحات / اقدام</th>
+                    </tr>
+                </thead>
+                <tbody id="twfDailyDetailsBody">
+                    <tr>
+                        <td colspan="18" style="text-align: center; color: var(--twf-text-muted);">در حال بارگذاری اطلاعات کارکرد...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function twfLoadDailyDetailsReport(monthOffset) {
+        var fromDate = document.getElementById('twfReportFromDate').value || '';
+        var toDate = document.getElementById('twfReportToDate').value || '';
+        var tbody = document.getElementById('twfDailyDetailsBody');
+        tbody.innerHTML = '<tr><td colspan="18" style="text-align:center;">در حال دریافت اطلاعات...</td></tr>';
+
+        TWF.ajaxJson('/Home/GetDailyDetailsReport', {
+            start: 0,
+            length: 31,
+            fromDate: fromDate,
+            toDate: toDate,
+            badgeNumber: '',
+            FilterType: 0,
+            month: monthOffset || 0
+        }, function (err, resp) {
+            if (err || !resp || !resp.data) {
+                tbody.innerHTML = '<tr><td colspan="18" style="text-align:center;">اطلاعاتی جهت نمایش یافت نشد.</td></tr>';
+                return;
+            }
+            if (resp.data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="18" style="text-align:center;">رکوردی در این بازه زمانی ثبت نشده است.</td></tr>';
+                return;
+            }
+            var html = '';
+            for (var i = 0; i < resp.data.length; i++) {
+                var r = resp.data[i];
+                html += '<tr>' +
+                    '<td class="twf-num">' + (r.row || (i + 1)) + '</td>' +
+                    '<td class="twf-num">' + (r.BadgeNumber || '') + '</td>' +
+                    '<td>' + (r.FullName || '') + '</td>' +
+                    '<td class="twf-num">' + (r.Date || '') + '</td>' +
+                    '<td>' + (r.DayOfWeek || '') + '</td>' +
+                    '<td class="twf-num">' + (r.Enter1 || '-') + '</td>' +
+                    '<td class="twf-num">' + (r.Exit1 || '-') + '</td>' +
+                    '<td class="twf-num">' + (r.Enter2 || '-') + '</td>' +
+                    '<td class="twf-num">' + (r.Exit2 || '-') + '</td>' +
+                    '<td class="twf-num">' + (r.PresentDuration || '00:00') + '</td>' +
+                    '<td class="twf-num">' + (r.WorkDuration || '00:00') + '</td>' +
+                    '<td class="twf-num">' + (r.LateDuration || '00:00') + '</td>' +
+                    '<td class="twf-num">' + (r.EarlyDuration || '00:00') + '</td>' +
+                    '<td class="twf-num">' + (r.LessDuration || '00:00') + '</td>' +
+                    '<td class="twf-num">' + (r.OverTimeDuration || '00:00') + '</td>' +
+                    '<td>' + (r.Leave || '-') + '</td>' +
+                    '<td>' + (r.Duty || '-') + '</td>' +
+                    '<td>' + (r.Desc || '') + ' <a class="twf-btn twf-btn-secondary twf-btn-sm" href="/Request/New?forDate=' + encodeURIComponent(r.Date || '') + '">ثبت درخواست</a></td>' +
+                    '</tr>';
+            }
+            tbody.innerHTML = html;
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        twfLoadDailyDetailsReport(0);
+    });
+</script>

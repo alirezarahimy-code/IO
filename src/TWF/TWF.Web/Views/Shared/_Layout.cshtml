@@ -1,0 +1,10 @@
+@{
+    Layout = "~/Views/Shared/_Layout1.cshtml";
+}
+@section featured {
+    @RenderSection("featured", required: false)
+}
+@RenderBody()
+@section scripts {
+    @RenderSection("scripts", required: false)
+}

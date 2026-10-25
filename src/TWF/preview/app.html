@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>سامانه حضور و غیاب و کارتابل آریا — پیش‌نمایش عملیاتی</title>
+    <link href="../TWF.Web/Content/twf-industrial-ui.css" rel="stylesheet" />
+    <link href="preview.css" rel="stylesheet" />
+</head>
+<body>
+
+<div class="twf-preview-banner">
+    <span>پیش‌نمایش آفلاین بازنویسی — <strong>ARIA v5.0</strong> · داده‌های نمایشی · بدون قفل سخت‌افزاری</span>
+    <span><a href="index.html">صفحه ورود</a> &nbsp;|&nbsp; <span id="twfClock" class="twf-num"></span></span>
+</div>
+
+<header class="twf-topbar">
+    <div style="display:flex; align-items:center; gap:12px;">
+        <button type="button" class="twf-btn twf-btn-secondary" style="height:32px; padding:0 10px;" onclick="window.TWFUI.toggleSidebar()" title="نمایش / پنهان‌سازی منو">&#9776;</button>
+        <a href="#" class="twf-topbar-brand" onclick="showSection('dashboard');return false;">
+            <span class="twf-brand-mark">آ</span>
+            <span class="twf-brand-text">
+                <span class="twf-brand-name">سامانه حضور و غیاب و کارتابل آریا</span>
+                <span class="twf-brand-sub twf-num">Aria v5.0 &nbsp;·&nbsp; نسخه سازمانی</span>
+            </span>
+        </a>
+    </div>
+
+    <div class="twf-topbar-user">
+        <span class="twf-user-chip">
+            <span>کاربر جاری:</span>
+            <strong>مهندس رضا کاظمی</strong>
+        </span>
+        <a href="#" class="twf-btn twf-btn-secondary" style="height:32px; padding:0 12px; font-size:12.5px;" onclick="showSection('settings');return false;">تغییر کلمه عبور</a>
+        <a href="index.html" class="twf-btn twf-btn-danger" style="height:32px; padding:0 12px; font-size:12.5px;">خروج</a>
+    </div>
+</header>
+
+<div class="twf-shell">
+    <aside id="twf-sidebar" class="twf-sidebar">
+        <div class="twf-sidebar-profile">
+            <div class="twf-emp-name">مهندس رضا کاظمی</div>
+            <div class="twf-emp-meta twf-num">شماره کارت: ۲۰۰</div>
+            <div class="twf-emp-meta">سمت: مدیر فناوری اطلاعات</div>
+            <div class="twf-emp-meta">مقام مسئول: معاونت اداری و مالی</div>
+        </div>
+
+        <ul class="twf-nav-list">
+            <li class="twf-nav-item"><a href="#dashboard" class="twf-nav-link active" data-section="dashboard"><span>صفحه اصلی</span><span class="twf-num">◎</span></a></li>
+            <li class="twf-nav-item"><a href="#newRequest" class="twf-nav-link" data-section="newRequest"><span>ثبت درخواست</span><span>+</span></a></li>
+            <li class="twf-nav-item"><a href="#cartable" class="twf-nav-link" data-section="cartable"><span>کارتابل تایید</span><span class="twf-nav-count twf-num">۷</span></a></li>
+            <li class="twf-nav-item"><a href="#myRequests" class="twf-nav-link" data-section="myRequests"><span>درخواست‌های من</span><span>›</span></a></li>
+            <li class="twf-nav-item"><a href="#personnelStatus" class="twf-nav-link" data-section="personnelStatus"><span>وضعیت پرسنل زیرمجموعه</span><span>›</span></a></li>
+            <li class="twf-nav-item"><a href="#leavesReport" class="twf-nav-link" data-section="leavesReport"><span>مرخصی‌های امروز (انتظامات)</span><span>›</span></a></li>
+            <li class="twf-nav-item"><a href="#locationReport" class="twf-nav-link" data-section="locationReport"><span>گزارش موقعیت مکانی</span><span>›</span></a></li>
+            <li class="twf-nav-item"><a href="#selectArea" class="twf-nav-link" data-section="selectArea"><span>محدوده‌های مجاز</span><span>›</span></a></li>
+            <li class="twf-nav-item"><a href="#report" class="twf-nav-link" data-section="report"><span>گزارش کارکرد</span><span>›</span></a></li>
+            <li class="twf-nav-item"><a href="#settings" class="twf-nav-link" data-section="settings"><span>تنظیمات</span><span>›</span></a></li>
+            <li class="twf-nav-item"><a href="#about" class="twf-nav-link" data-section="about"><span>درباره سامانه</span><span>›</span></a></li>
+        </ul>
+    </aside>
+
+    <main class="twf-workspace">
+
+        <!-- ═══════════════ داشبورد ═══════════════ -->
+        <section id="dashboard" class="twf-section active">
+            <div class="twf-page-heading">
+                <div>
+                    <div class="twf-crumb">خانه / صفحه اصلی</div>
+                    <h1>داشبورد عملیاتی</h1>
+                    <p>خلاصه وضعیت حضور، سهمیه مرخصی و کارتابل تایید در یک نگاه</p>
+                </div>
+                <div class="twf-actions" style="margin:0;">
+                    <button type="button" class="twf-btn twf-btn-primary" onclick="openRequestDialog()">ثبت درخواست جدید</button>
+                    <button type="button" class="twf-btn twf-btn-secondary" onclick="showSection('cartable')">مشاهده کارتابل</button>
+                </div>
+            </div>
+
+            <div class="twf-panel">
+                <div class="twf-panel-header">
+                    <h2 class="twf-panel-title">اطلاعات شخصی</h2>
+                    <span class="twf-badge twf-badge-neutral">صفحه اصلی</span>
+                </div>
+                <div class="twf-panel-body">
+                    <div class="twf-grid-3">
+                        <div class="twf-stat-card">
+                            <div class="twf-stat-label">شناسه</div>
+                            <div class="twf-stat-value twf-num">۲۰۰</div>
+                        </div>
+                        <div class="twf-stat-card">
+                            <div class="twf-stat-label">نام و نام خانوادگی</div>
+                            <div class="twf-stat-value">رضا کاظمی</div>
+                        </div>
+                        <div class="twf-stat-card">
+                            <div class="twf-stat-label">سمت سازمانی</div>
+                            <div class="twf-stat-value">مدیر فناوری اطلاعات</div>
+                        </div>
+                        <div class="twf-stat-card">
+                            <div class="twf-stat-label">مقام مسئول</div>
+                            <div class="twf-stat-value">معاونت اداری و مالی</div>
+                        </div>
+                        <div class="twf-stat-card" style="border-right-color:#b45309;">
+                            <div class="twf-stat-label">درخواست‌های در انتظار تایید</div>
+                            <div class="twf-stat-value twf-num">
+                                ۷
+                                <a href="#cartable" class="twf-btn twf-btn-primary twf-btn-sm" onclick="showSection('cartable');return false;">مشاهده درخواست‌ها</a>
+                            </div>
+                        </div>
+                        <div class="twf-stat-card">
+                            <div class="twf-stat-label">جانشین</div>
+                            <div class="twf-stat-value">
+                                سارا محمدی
+                                <a href="#myRequests" class="twf-btn twf-btn-secondary twf-btn-sm" onclick="showSection('myRequests');return false;">مدیریت جانشین</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="twf-grid-2" style="margin-top:18px;">
+                        <div class="twf-section-box">
+                            <h4>سهمیه مرخصی استحقاقی (۱۴۰۴)</h4>
+                            <div class="twf-field-row"><span class="twf-field-label">کل سهمیه</span><span class="twf-num">۲۶ روز</span></div>
+                            <div class="twf-field-row"><span class="twf-field-label">گرفته شده</span><span class="twf-num">۹ روز و ۳ ساعت</span></div>
+                            <div class="twf-field-row"><span class="twf-field-label">مانده سهمیه</span><strong class="twf-num" style="color:#15803d;">۱۶ روز و ۵ ساعت</strong></div>
+                        </div>
+                        <div class="twf-section-box">
+                            <h4>وضعیت امروز — <span class="twf-num">۱۴۰۴/۰۸/۰۳</span></h4>
+                            <div class="twf-field-row"><span class="twf-field-label">ورود / خروج</span><span class="twf-num">۰۷:۵۸ / —</span></div>
+                            <div class="twf-field-row"><span class="twf-field-label">اضافه‌کار ثابت ماه</span><span class="twf-num">۱۲:۳۰ ساعت</span></div>
+                            <div class="twf-field-row"><span class="twf-field-label">وضعیت</span><span class="twf-badge twf-badge-success">حاضر</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="twf-panel">
+                <div class="twf-panel-header">
+                    <h3 class="twf-panel-title">خلاصه وضعیت حضور و غیاب روزهای اخیر</h3>
+                    <div class="twf-actions" style="margin:0;">
+                        <span class="twf-badge twf-badge-neutral twf-num">۳۰ روز</span>
+                        <button class="twf-btn twf-btn-secondary twf-btn-sm" onclick="window.print()">چاپ</button>
+                    </div>
+                </div>
+                <div class="twf-panel-body">
+                    <div class="twf-table-wrap">
+                        <table class="twf-table">
+                            <thead>
+                                <tr>
+                                    <th>تاریخ</th><th>روز هفته</th><th>ورود</th><th>خروج</th>
+                                    <th>تاخیر</th><th>تعجیل</th><th>کسر کار</th><th>وضعیت</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="twf-num" dir="ltr">1404/08/03</td><td>شنبه</td>
+                                    <td class="twf-num" dir="ltr">07:58</td><td class="twf-num" dir="ltr">—</td>
+                                    <td class="twf-num" dir="ltr">00:00</td><td class="twf-num" dir="ltr">00:00</td>
+                                    <td class="twf-num" dir="ltr">00:00</td>
+                                    <td><span class="twf-badge twf-badge-success">حاضر</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="twf-num" dir="ltr">1404/08/02</td><td>پنج‌شنبه</td>
+                                    <td class="twf-num" dir="ltr">08:12</td><td class="twf-num" dir="ltr">16:04</td>
+                                    <td class="twf-num" dir="ltr">00:12</td><td class="twf-num" dir="ltr">00:00</td>
+                                    <td class="twf-num" dir="ltr">00:00</td>
+                                    <td><span class="twf-badge twf-badge-warning">تاخیر</span> <a href="#" onclick="openRequestDialog(5,'','','','','1404/08/02');return false;">مجوز</a></td>
+                                </tr>
+                                <tr>
+                                    <td class="twf-num" dir="ltr">1404/08/01</td><td>چهارشنبه</td>
+                                    <td class="twf-num" dir="ltr">07:55</td><td class="twf-num" dir="ltr">16:02</td>
+                                    <td class="twf-num" dir="ltr">00:00</td><td class="twf-num" dir="ltr">00:00</td>
+                                    <td class="twf-num" dir="ltr">00:00</td>
+                                    <td><span class="twf-badge twf-badge-success">حاضر</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="twf-num" dir="ltr">1404/07/30</td><td>سه‌شنبه</td>
+                                    <td class="twf-num" dir="ltr">—</td><td class="twf-num" dir="ltr">—</td>
+                                    <td class="twf-num" dir="ltr">00:00</td><td class="twf-num" dir="ltr">00:00</td>
+                                    <td class="twf-num" dir="ltr">08:00</td>
+                                    <td><span class="twf-badge twf-badge-danger">غیبت</span> <a href="#" onclick="openRequestDialog(0,'','1404/07/30','1404/07/30');return false;">مرخصی روزانه</a></td>
+                                </tr>
+                                <tr>
+                                    <td class="twf-num" dir="ltr">1404/07/29</td><td>دوشنبه</td>
+                                    <td class="twf-num" dir="ltr">—</td><td class="twf-num" dir="ltr">—</td>
+                                    <td class="twf-num" dir="ltr">00:00</td><td class="twf-num" dir="ltr">00:00</td>
+                                    <td class="twf-num" dir="ltr">00:00</td>
+                                    <td><span class="twf-badge">مرخصی روزانه (تایید شده)</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="twf-num" dir="ltr">1404/07/28</td><td>یکشنبه</td>
+                                    <td class="twf-num" dir="ltr">08:00</td><td class="twf-num" dir="ltr">15:20</td>
+                                    <td class="twf-num" dir="ltr">00:00</td><td class="twf-num" dir="ltr">00:40</td>
+                                    <td class="twf-num" dir="ltr">00:00</td>
+                                    <td><span class="twf-badge twf-badge-warning">تعجیل</span> <a href="#" onclick="openRequestDialog(6,'','','','','1404/07/28');return false;">مجوز</a></td>
+                                </tr>
+                                <tr>
+                                    <td class="twf-num" dir="ltr">1404/07/27</td><td>شنبه</td>
+                                    <td class="twf-num" dir="ltr">07:49</td><td class="twf-num" dir="ltr">18:35</td>
+                                    <td class="twf-num" dir="ltr">00:00</td><td class="twf-num" dir="ltr">00:00</td>
+                                    <td class="twf-num" dir="ltr">00:00</td>
+                                    <td><span class="twf-badge twf-badge-success">حاضر</span> <span class="twf-badge twf-badge-neutral twf-num">۲:۳۵ اضافه‌کار</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════ ثبت درخواست ═══════════════ -->
+        <section id="newRequest" class="twf-section">
+            <div class="twf-page-heading">
+                <div>
+                    <div class="twf-crumb">خانه / ثبت درخواست</div>
+                    <h1>ثبت درخواست یکپارچه</h1>
+                    <p>مرخصی روزانه و ساعتی، ماموریت، تردد فراموش‌شده، تاخیر/تعجیل و اضافه‌کار در یک فرم واحد</p>
+                </div>
+                <span class="twf-badge twf-badge-success">گردش کار چندمرحله‌ای T5V3</span>
+            </div>
+
+            <div class="twf-panel">
+                <div class="twf-panel-header"><h2 class="twf-panel-title">فرم درخواست</h2></div>
+                <div class="twf-panel-body">
+                    <div class="twf-grid-3">
+                        <div class="twf-field">
+                            <label class="twf-label">نوع درخواست</label>
+                            <select class="twf-select" id="previewReqType" onchange="previewToggleFields()">
+                                <option value="0">مرخصی روزانه</option>
+                                <option value="1">مرخصی ساعتی</option>
+                                <option value="2">ماموریت روزانه</option>
+                                <option value="3">ماموریت ساعتی</option>
+                                <option value="4">ثبت تردد فراموش‌شده</option>
+                                <option value="5">مجوز تاخیر</option>
+                                <option value="6">مجوز تعجیل</option>
+                                <option value="7">مجوز اضافه‌کار</option>
+                            </select>
+                        </div>
+                        <div class="twf-field">
+                            <label class="twf-label">نوع مرخصی / ماموریت</label>
+                            <select class="twf-select">
+                                <option>استحقاقی</option>
+                                <option>استعلاجی</option>
+                                <option>بدون حقوق</option>
+                                <option>ماموریت اداری</option>
+                            </select>
+                        </div>
+                        <div class="twf-field">
+                            <label class="twf-label">علت درخواست</label>
+                            <select class="twf-select">
+                                <option>امور شخصی</option>
+                                <option>امور اداری</option>
+                                <option>درمان</option>
+                                <option>سایر</option>
+                            </select>
+                        </div>
+                        <div class="twf-field">
+                            <label class="twf-label">از تاریخ</label>
+                            <input type="text" class="twf-input twf-num datepicker-farsi" dir="ltr" value="1404/08/04" />
+                        </div>
+                        <div class="twf-field">
+                            <label class="twf-label">تا تاریخ</label>
+                            <input type="text" class="twf-input twf-num datepicker-farsi" dir="ltr" value="1404/08/04" />
+                        </div>
+                        <div class="twf-field">
+                            <label class="twf-label">از ساعت / تا ساعت</label>
+                            <div style="display:flex; gap:8px;">
+                                <input type="text" class="twf-input twf-num timeInput" dir="ltr" value="08:00" />
+                                <input type="text" class="twf-input twf-num timeInput" dir="ltr" value="12:00" />
+                            </div>
+                        </div>
+                        <div class="twf-field" style="grid-column:1 / -1;">
+                            <label class="twf-label">توضیحات</label>
+                            <input type="text" class="twf-input" value="پیگیری پرونده پشتیبانی سامانه تردد" />
+                        </div>
+                        <div class="twf-field" style="grid-column:1 / -1;">
+                            <label class="twf-label">فایل پیوست (اختیاری)</label>
+                            <input type="file" class="twf-input" />
+                        </div>
+                    </div>
+
+                    <div class="twf-alert twf-alert-info" style="margin-top:16px;">
+                        درخواست پس از ثبت، بر اساس چارت سازمانی و سمت‌های تعریف‌شده در T5 به کارتابل مسئول مستقیم و سپس معاونت ارسال می‌شود.
+                    </div>
+
+                    <div class="twf-actions">
+                        <button class="twf-btn twf-btn-primary" onclick="previewSubmitRequest()">ثبت درخواست</button>
+                        <button class="twf-btn twf-btn-secondary" onclick="showSection('dashboard')">انصراف</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════ کارتابل تایید ═══════════════ -->
+        <section id="cartable" class="twf-section">
+            <div class="twf-page-heading">
+                <div>
+                    <div class="twf-crumb">خانه / کارتابل تایید</div>
+                    <h1>کارتابل تایید درخواست‌ها</h1>
+                    <p>تایید یا رد مرحله جاری گردش کار، به‌صورت فردی یا گروهی و با پشتیبانی از جانشینی</p>
+                </div>
+                <div class="twf-actions" style="margin:0;">
+                    <button class="twf-btn twf-btn-secondary twf-btn-sm" onclick="previewBulk(false)">رد انتخاب‌شده‌ها</button>
+                    <button class="twf-btn twf-btn-primary twf-btn-sm" onclick="previewBulk(true)">تایید انتخاب‌شده‌ها</button>
+                </div>
+            </div>
+
+            <div class="twf-panel">
+                <div class="twf-panel-header">
+                    <h2 class="twf-panel-title">در انتظار تایید شما (۷)</h2>
+                    <span class="twf-badge twf-badge-warning">مرحله جاری: مدیر فناوری اطلاعات</span>
+                </div>
+                <div class="twf-panel-body">
+                    <div class="twf-table-wrap">
+                        <table class="twf-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:40px;"><input type="checkbox" class="twf-req-chk" onclick="TWF.toggleSelectAll(this, '.twf-row-chk')" /></th>
+                                    <th>درخواست‌دهنده</th><th>نوع</th><th>جزئیات</th><th>زمان ثبت</th><th>توضیحات</th><th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cartableBody">
+                                <tr>
+                                    <td><input type="checkbox" class="twf-row-chk" /></td>
+                                    <td>علی رضایی <span class="twf-num twf-muted">(۳۱۲)</span></td>
+                                    <td><span class="twf-badge">مرخصی روزانه</span></td>
+                                    <td class="twf-num">۱۴۰۴/۰۸/۰۴ — ۱۴۰۴/۰۸/۰۴</td>
+                                    <td class="twf-num">۱۴۰۴/۰۸/۰۲ ۰۹:۱۲</td>
+                                    <td>امور شخصی</td>
+                                    <td>
+                                        <button class="twf-btn twf-btn-primary twf-btn-sm" onclick="previewDecide(this,true)">تایید</button>
+                                        <button class="twf-btn twf-btn-danger twf-btn-sm" onclick="previewDecide(this,false)">رد</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" class="twf-row-chk" /></td>
+                                    <td>مریم حسینی <span class="twf-num twf-muted">(۳۱۸)</span></td>
+                                    <td><span class="twf-badge">ماموریت ساعتی</span></td>
+                                    <td class="twf-num">۱۴۰۴/۰۸/۰۴ ۱۰:۰۰ - ۱۲:۳۰</td>
+                                    <td class="twf-num">۱۴۰۴/۰۸/۰۲ ۱۰:۴۰</td>
+                                    <td>ماموریت اداری — بانک</td>
+                                    <td>
+                                        <button class="twf-btn twf-btn-primary twf-btn-sm" onclick="previewDecide(this,true)">تایید</button>
+                                        <button class="twf-btn twf-btn-danger twf-btn-sm" onclick="previewDecide(this,false)">رد</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" class="twf-row-chk" /></td>
+                                    <td>حسین کریمی <span class="twf-num twf-muted">(۳۲۷)</span></td>
+                                    <td><span class="twf-badge">ثبت تردد</span></td>
+                                    <td class="twf-num">۱۴۰۴/۰۸/۰۱ ۰۷:۴۸</td>
+                                    <td class="twf-num">۱۴۰۴/۰۸/۰۲ ۱۱:۰۵</td>
+                                    <td>خرابی دستگاه اثر انگشت</td>
+                                    <td>
+                                        <button class="twf-btn twf-btn-primary twf-btn-sm" onclick="previewDecide(this,true)">تایید</button>
+                                        <button class="twf-btn twf-btn-danger twf-btn-sm" onclick="previewDecide(this,false)">رد</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" class="twf-row-chk" /></td>
+                                    <td>زهرا نوری <span class="twf-num twf-muted">(۳۳۰)</span></td>
+                                    <td><span class="twf-badge">مجوز اضافه‌کار</span></td>
+                                    <td class="twf-num">۱۴۰۴/۰۸/۰۳ ۱۶:۰۰ - ۱۹:۰۰</td>
+                                    <td class="twf-num">۱۴۰۴/۰۸/۰۲ ۱۴:۲۰</td>
+                                    <td>تحویل پروژه گزارش‌ها</td>
+                                    <td>
+                                        <button class="twf-btn twf-btn-primary twf-btn-sm" onclick="previewDecide(this,true)">تایید</button>
+                                        <button class="twf-btn twf-btn-danger twf-btn-sm" onclick="previewDecide(this,false)">رد</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="twf-alert twf-alert-info" style="margin-top:16px;">
+                        شما به‌عنوان <strong>جانشین</strong> معاونت اداری نیز مجاز به تایید هستید؛ در این حالت نام تاییدکننده به‌صورت «جانشینِ …» ثبت می‌شود.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════ درخواست‌های من ═══════════════ -->
+        <section id="myRequests" class="twf-section">
+            <div class="twf-page-heading">
+                <div>
+                    <div class="twf-crumb">خانه / درخواست‌های من</div>
+                    <h1>پیگیری وضعیت درخواست‌ها</h1>
+                    <p>مسیر طی‌شده گردش کار، سمت در انتظار تایید و امکان بازگشت از تایید</p>
+                </div>
+                <span class="twf-badge twf-badge-neutral">۶ درخواست فعال</span>
+            </div>
+
+            <div class="twf-panel">
+                <div class="twf-panel-header"><h2 class="twf-panel-title">درخواست‌های جاری</h2></div>
+                <div class="twf-panel-body">
+                    <div class="twf-table-wrap">
+                        <table class="twf-table">
+                            <thead>
+                                <tr><th>نوع</th><th>جزئیات</th><th>زمان ثبت</th><th>وضعیت گردش کار</th><th>عملیات</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="twf-badge">مرخصی روزانه</span></td>
+                                    <td class="twf-num">۱۴۰۴/۰۸/۰۶ — ۱۴۰۴/۰۸/۰۷</td>
+                                    <td class="twf-num">۱۴۰۴/۰۸/۰۲ ۱۳:۱۰</td>
+                                    <td><span class="twf-badge twf-badge-warning">انتظار تایید از: معاونت اداری و مالی</span></td>
+                                    <td><a href="#" onclick="previewToast('درخواست از گردش کار بازگشت داده شد.');return false;">بازگشت از تایید</a></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="twf-badge">مجوز تاخیر</span></td>
+                                    <td class="twf-num">۱۴۰۴/۰۸/۰۲ — ۰۰:۱۲</td>
+                                    <td class="twf-num">۱۴۰۴/۰۸/۰۲ ۱۰:۰۱</td>
+                                    <td><span class="twf-badge twf-badge-success">تایید شده توسط مدیر فناوری اطلاعات</span></td>
+                                    <td><a href="#" onclick="previewToast('رکورد عملیاتی متناظر نیز حذف شد.');return false;">حذف درخواست</a></td>
+                                </tr>
+                                <tr>
+                                    <td><span class="twf-badge">ماموریت روزانه</span></td>
+                                    <td class="twf-num">۱۴۰۴/۰۷/۲۸</td>
+                                    <td class="twf-num">۱۴۰۴/۰۷/۲۶ ۰۹:۳۰</td>
+                                    <td><span class="twf-badge twf-badge-danger">رد شده توسط معاونت اداری</span></td>
+                                    <td><a href="#" onclick="previewToast('درخواست رد شده قابل ویرایش و ارسال مجدد است.');return false;">ویرایش و ارسال مجدد</a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="twf-grid-2" style="margin-top:18px;">
+                        <div class="twf-section-box">
+                            <h4>زنجیره تایید درخواست مرخصی ۱۴۰۴/۰۸/۰۶</h4>
+                            <ul class="twf-timeline">
+                                <li class="done"><strong>ثبت درخواست</strong> — رضا کاظمی · ۱۴۰۴/۰۸/۰۲ ۱۳:۱۰</li>
+                                <li class="done"><strong>تایید مدیر فناوری اطلاعات</strong> — ۱۴۰۴/۰۸/۰۲ ۱۵:۲۲</li>
+                                <li class="wait"><strong>در انتظار معاونت اداری و مالی</strong> — مرحله جاری</li>
+                                <li><strong>ثبت نهایی در T5</strong> — پس از آخرین تایید</li>
+                            </ul>
+                        </div>
+                        <div class="twf-section-box">
+                            <h4>مدیریت جانشین</h4>
+                            <div class="twf-field-row"><span class="twf-field-label">جانشین فعلی</span><strong>سارا محمدی</strong></div>
+                            <div class="twf-field-row"><span class="twf-field-label">سمت‌های مجاز جانشینی</span><span>مدیر فناوری اطلاعات</span></div>
+                            <div class="twf-field-row"><span class="twf-field-label">بازه جانشینی</span><span class="twf-num">۱۴۰۴/۰۸/۰۱ تا ۱۴۰۴/۰۸/۱۵</span></div>
+                            <div class="twf-actions">
+                                <button class="twf-btn twf-btn-secondary twf-btn-sm" onclick="previewToast('جانشین جدید ثبت شد.')">انتخاب جانشین</button>
+                                <button class="twf-btn twf-btn-danger twf-btn-sm" onclick="previewToast('جانشین حذف شد.')">حذف جانشین</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════ وضعیت پرسنل ═══════════════ -->
+        <section id="personnelStatus" class="twf-section">
+            <div class="twf-page-heading">
+                <div>
+                    <div class="twf-crumb">خانه / وضعیت پرسنل زیرمجموعه</div>
+                    <h1>وضعیت لحظه‌ای حضور و غیاب زیرمجموعه</h1>
+                    <p>فیلتر بر اساس غایب بدون تردد، تردد ناقص و غایب با تردد زوج</p>
+                </div>
+                <span class="twf-badge twf-badge-neutral twf-num">۱۴۰۴/۰۸/۰۳</span>
+            </div>
+
+            <div class="twf-panel">
+                <div class="twf-panel-header">
+                    <h2 class="twf-panel-title">پرسنل زیرمجموعه</h2>
+                    <div class="twf-chip-row" style="margin:0;">
+                        <button class="twf-tab active" data-rtype="1">همه</button>
+                        <button class="twf-tab" data-rtype="2">غایب بدون تردد</button>
+                        <button class="twf-tab" data-rtype="3">تردد ناقص</button>
+                        <button class="twf-tab" data-rtype="4">غایب با تردد زوج</button>
+                    </div>
+                </div>
+                <div class="twf-panel-body">
+                    <div class="twf-table-wrap">
+                        <table class="twf-table">
+                            <thead><tr><th>شناسه</th><th>نام</th><th>سمت</th><th>ورود</th><th>خروج</th><th>وضعیت</th></tr></thead>
+                            <tbody>
+                                <tr><td class="twf-num">۳۱۲</td><td>علی رضایی</td><td>کارشناس شبکه</td><td class="twf-num" dir="ltr">07:52</td><td class="twf-num" dir="ltr">—</td><td><span class="twf-badge twf-badge-success">حاضر</span></td></tr>
+                                <tr><td class="twf-num">۳۱۸</td><td>مریم حسینی</td><td>کارشناس نرم‌افزار</td><td class="twf-num" dir="ltr">08:20</td><td class="twf-num" dir="ltr">—</td><td><span class="twf-badge twf-badge-warning">تاخیر</span></td></tr>
+                                <tr><td class="twf-num">۳۲۷</td><td>حسین کریمی</td><td>پشتیبان فنی</td><td class="twf-num" dir="ltr">—</td><td class="twf-num" dir="ltr">—</td><td><span class="twf-badge twf-badge-danger">غایب بدون تردد</span></td></tr>
+                                <tr><td class="twf-num">۳۳۰</td><td>زهرا نوری</td><td>کارشناس گزارش‌ها</td><td class="twf-num" dir="ltr">07:59</td><td class="twf-num" dir="ltr">16:01</td><td><span class="twf-badge twf-badge-success">حاضر</span></td></tr>
+                                <tr><td class="twf-num">۳۴۱</td><td>سعید احمدی</td><td>اپراتور شیفت</td><td class="twf-num" dir="ltr">—</td><td class="twf-num" dir="ltr">16:00</td><td><span class="twf-badge twf-badge-warning">تردد ناقص</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════ مرخصی‌های امروز ═══════════════ -->
+        <section id="leavesReport" class="twf-section">
+            <div class="twf-page-heading">
+                <div>
+                    <div class="twf-crumb">خانه / انتظامات</div>
+                    <h1>مرخصی‌ها و ماموریت‌های امروز</h1>
+                    <p>ویژه سمت انتظامات/نگهبانی — مشاهده پرسنلی که امروز مجوز خروج دارند</p>
+                </div>
+                <span class="twf-badge twf-badge-warning">دسترسی سمت ناظر</span>
+            </div>
+
+            <div class="twf-panel">
+                <div class="twf-panel-header"><h2 class="twf-panel-title">مجوزهای خروج امروز</h2></div>
+                <div class="twf-panel-body">
+                    <div class="twf-table-wrap">
+                        <table class="twf-table">
+                            <thead><tr><th>شناسه</th><th>نام</th><th>نوع</th><th>از</th><th>تا</th><th>سمت تاییدکننده</th></tr></thead>
+                            <tbody>
+                                <tr><td class="twf-num">۳۱۸</td><td>مریم حسینی</td><td><span class="twf-badge">مرخصی ساعتی</span></td><td class="twf-num" dir="ltr">10:00</td><td class="twf-num" dir="ltr">12:30</td><td>مدیر فناوری اطلاعات</td></tr>
+                                <tr><td class="twf-num">۳۴۵</td><td>نگهبان شیفت ب</td><td><span class="twf-badge">ماموریت روزانه</span></td><td class="twf-num">۱۴۰۴/۰۸/۰۳</td><td class="twf-num">۱۴۰۴/۰۸/۰۳</td><td>سرپرست انتظامات</td></tr>
+                                <tr><td class="twf-num">۳۵۲</td><td>فاطمه صادقی</td><td><span class="twf-badge">مرخصی روزانه</span></td><td class="twf-num">۱۴۰۴/۰۸/۰۳</td><td class="twf-num">۱۴۰۴/۰۸/۰۴</td><td>معاونت اداری و مالی</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════ گزارش موقعیت مکانی ═══════════════ -->
+        <section id="locationReport" class="twf-section">
+            <div class="twf-page-heading">
+                <div>
+                    <div class="twf-crumb">خانه / گزارش موقعیت مکانی</div>
+                    <h1>گزارش موقعیت مکانی پرسنل</h1>
+                    <p>داده‌های موقعیت ثبت‌شده در T5 روی بوم برداری آفلاین (بدون Google Maps / بدون اینترنت)</p>
+                </div>
+                <span class="twf-badge twf-badge-success">۱۰۰٪ آفلاین</span>
+            </div>
+
+            <div class="twf-panel">
+                <div class="twf-panel-header"><h2 class="twf-panel-title">فیلتر گزارش</h2></div>
+                <div class="twf-panel-body">
+                    <div class="twf-grid-3">
+                        <div class="twf-field">
+                            <label class="twf-label">از تاریخ</label>
+                            <input type="text" class="twf-input twf-num datepicker-farsi" dir="ltr" value="1404/07/27" />
+                        </div>
+                        <div class="twf-field">
+                            <label class="twf-label">تا تاریخ</label>
+                            <input type="text" class="twf-input twf-num datepicker-farsi" dir="ltr" value="1404/08/03" />
+                        </div>
+                        <div class="twf-field">
+                            <label class="twf-label">پرسنل</label>
+                            <select class="twf-select">
+                                <option>همه پرسنل زیرمجموعه</option>
+                                <option>علی رضایی (۳۱۲)</option>
+                                <option>مریم حسینی (۳۱۸)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="twf-actions">
+                        <button class="twf-btn twf-btn-primary" onclick="previewToast('گزارش موقعیت مکانی برای بازه انتخابی بازخوانی شد.')">نمایش گزارش</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="twf-panel">
+                <div class="twf-panel-header"><h2 class="twf-panel-title">بوم موقعیت (Offline Vector Canvas)</h2></div>
+                <div class="twf-panel-body">
+                    <canvas id="locationCanvas" class="twf-canvas"></canvas>
+                    <div class="twf-meta-line" style="margin-top:12px;">
+                        <span>مختصات مرکز: <span class="twf-num">۳۵.۷۰۰۹۱۶</span> / <span class="twf-num">۵۱.۳۵۱۴۶۷</span></span>
+                        <span>تعداد نقاط ثبت‌شده: <span class="twf-num">۴۲</span></span>
+                        <span>دقت میانگین: <span class="twf-num">۱۸ متر</span></span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════ محدوده‌های مجاز ═══════════════ -->
+        <section id="selectArea" class="twf-section">
+            <div class="twf-page-heading">
+                <div>
+                    <div class="twf-crumb">خانه / محدوده‌های مجاز</div>
+                    <h1>ترسیم محدوده جغرافیایی مجاز</h1>
+                    <p>با کلیک روی بوم، رئوس چندضلعی محدوده را مشخص کنید — ذخیره در جدول AreaDA</p>
+                </div>
+                <span class="twf-badge twf-badge-neutral">جدول AreaDA · T5</span>
+            </div>
+
+            <div class="twf-panel">
+                <div class="twf-panel-header"><h2 class="twf-panel-title">بوم ترسیم محدوده</h2></div>
+                <div class="twf-panel-body">
+                    <div class="twf-canvas-toolbar">
+                        <button class="twf-btn twf-btn-primary twf-btn-sm" onclick="areaSave()">ذخیره محدوده</button>
+                        <button class="twf-btn twf-btn-secondary twf-btn-sm" onclick="areaClear()">پاک کردن نقاط</button>
+                        <button class="twf-btn twf-btn-secondary twf-btn-sm" onclick="areaUndo()">حذف آخرین راس</button>
+                        <span class="twf-badge twf-badge-neutral">رئوس: <span class="twf-num" id="areaPointCount">۰</span></span>
+                        <span class="twf-muted" style="font-size:12px;">برای افزودن راس روی بوم کلیک کنید.</span>
+                    </div>
+                    <canvas id="areaCanvas" class="twf-canvas"></canvas>
+
+                    <div class="twf-grid-2" style="margin-top:16px;">
+                        <div class="twf-section-box">
+                            <h4>مختصات رئوس</h4>
+                            <div class="twf-table-wrap" style="max-height:180px; overflow-y:auto;">
+                                <table class="twf-table">
+                                    <thead><tr><th>#</th><th>طول جغرافیایی</th><th>عرض جغرافیایی</th></tr></thead>
+                                    <tbody id="areaPointsBody">
+                                        <tr><td colspan="3" class="twf-muted" style="text-align:center;">هنوز راسی ثبت نشده است.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="twf-section-box">
+                            <h4>محدوده‌های ذخیره‌شده</h4>
+                            <div class="twf-field-row"><span class="twf-field-label">محوطه اصلی کارخانه</span><span class="twf-badge twf-badge-success">فعال</span></div>
+                            <div class="twf-field-row"><span class="twf-field-label">پارکینگ شمالی</span><span class="twf-badge twf-badge-success">فعال</span></div>
+                            <div class="twf-field-row"><span class="twf-field-label">انبار مرکزی</span><span class="twf-badge twf-badge-neutral">غیرفعال</span></div>
+                            <div class="twf-actions">
+                                <button class="twf-btn twf-btn-secondary twf-btn-sm" onclick="previewToast('محدوده انتخاب‌شده حذف شد.')">حذف محدوده</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════ گزارش کارکرد ═══════════════ -->
+        <section id="report" class="twf-section">
+            <div class="twf-page-heading">
+                <div>
+                    <div class="twf-crumb">خانه / گزارش کارکرد</div>
+                    <h1>گزارش‌ساز جامع T5</h1>
+                    <p>گزارش‌های کارکرد، تجمعی و روزانه با خروجی اکسل/ورد/PDF به‌صورت کاملاً آفلاین</p>
+                </div>
+                <div class="twf-actions" style="margin:0;">
+                    <button class="twf-btn twf-btn-secondary twf-btn-sm" onclick="previewToast('فایل اکسل گزارش تولید شد.')">EXCEL</button>
+                    <button class="twf-btn twf-btn-secondary twf-btn-sm" onclick="previewToast('فایل Word گزارش تولید شد.')">WORD</button>
+                    <button class="twf-btn twf-btn-secondary twf-btn-sm" onclick="previewToast('فایل PDF گزارش تولید شد.')">PDF</button>
+                </div>
+            </div>
+
+            <div class="twf-panel">
+                <div class="twf-panel-header"><h2 class="twf-panel-title">فیلتر گزارش</h2></div>
+                <div class="twf-panel-body">
+                    <div class="twf-grid-3">
+                        <div class="twf-field">
+                            <label class="twf-label">نوع گزارش</label>
+                            <select class="twf-select">
+                                <option>گزارش کارکرد پرسنل</option>
+                                <option>گزارش تجمعی ماهانه</option>
+                                <option>گزارش روزانه تردد</option>
+                                <option>گزارش اضافه‌کار ثابت</option>
+                            </select>
+                        </div>
+                        <div class="twf-field">
+                            <label class="twf-label">از تاریخ</label>
+                            <input type="text" class="twf-input twf-num datepicker-farsi" dir="ltr" value="1404/07/01" />
+                        </div>
+                        <div class="twf-field">
+                            <label class="twf-label">تا تاریخ</label>
+                            <input type="text" class="twf-input twf-num datepicker-farsi" dir="ltr" value="1404/07/31" />
+                        </div>
+                    </div>
+                    <div class="twf-actions">
+                        <button class="twf-btn twf-btn-primary" onclick="previewToast('گزارش تولید شد.')">نمایش گزارش</button>
+                        <button class="twf-btn twf-btn-secondary" onclick="window.print()">چاپ گزارش</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="twf-panel">
+                <div class="twf-panel-header"><h2 class="twf-panel-title">نتیجه گزارش — مهر ۱۴۰۴</h2><span class="twf-badge twf-badge-neutral">۵ رکورد</span></div>
+                <div class="twf-panel-body">
+                    <div class="twf-table-wrap">
+                        <table class="twf-table">
+                            <thead><tr><th>شناسه</th><th>نام</th><th>کارکرد موظفی</th><th>کارکرد واقعی</th><th>اضافه‌کار</th><th>اضافه‌کار ثابت</th><th>کسر کار</th><th>مرخصی</th></tr></thead>
+                            <tbody>
+                                <tr><td class="twf-num">۳۱۲</td><td>علی رضایی</td><td class="twf-num" dir="ltr">176:00</td><td class="twf-num" dir="ltr">181:25</td><td class="twf-num" dir="ltr">05:25</td><td class="twf-num" dir="ltr">12:00</td><td class="twf-num" dir="ltr">00:00</td><td class="twf-num" dir="ltr">08:00</td></tr>
+                                <tr><td class="twf-num">۳۱۸</td><td>مریم حسینی</td><td class="twf-num" dir="ltr">176:00</td><td class="twf-num" dir="ltr">174:10</td><td class="twf-num" dir="ltr">00:00</td><td class="twf-num" dir="ltr">10:00</td><td class="twf-num" dir="ltr">01:50</td><td class="twf-num" dir="ltr">00:00</td></tr>
+                                <tr><td class="twf-num">۳۲۷</td><td>حسین کریمی</td><td class="twf-num" dir="ltr">176:00</td><td class="twf-num" dir="ltr">168:00</td><td class="twf-num" dir="ltr">00:00</td><td class="twf-num" dir="ltr">08:00</td><td class="twf-num" dir="ltr">08:00</td><td class="twf-num" dir="ltr">00:00</td></tr>
+                                <tr><td class="twf-num">۳۳۰</td><td>زهرا نوری</td><td class="twf-num" dir="ltr">176:00</td><td class="twf-num" dir="ltr">188:40</td><td class="twf-num" dir="ltr">12:40</td><td class="twf-num" dir="ltr">14:00</td><td class="twf-num" dir="ltr">00:00</td><td class="twf-num" dir="ltr">00:00</td></tr>
+                                <tr><td class="twf-num">۳۴۱</td><td>سعید احمدی</td><td class="twf-num" dir="ltr">176:00</td><td class="twf-num" dir="ltr">176:00</td><td class="twf-num" dir="ltr">00:00</td><td class="twf-num" dir="ltr">09:30</td><td class="twf-num" dir="ltr">00:00</td><td class="twf-num" dir="ltr">00:00</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════ تنظیمات ═══════════════ -->
+        <section id="settings" class="twf-section">
+            <div class="twf-page-heading">
+                <div>
+                    <div class="twf-crumb">خانه / تنظیمات</div>
+                    <h1>تنظیمات کارکرد و امنیت</h1>
+                    <p>پارامترهای برنامه از Web.config / appSettings و بدون نیاز به بیلد مجدد</p>
+                </div>
+                <span class="twf-badge twf-badge-success">بدون قفل سخت‌افزاری</span>
+            </div>
+
+            <div class="twf-settings-grid">
+                <div class="twf-section-box">
+                    <h4>محدودیت‌های درخواست</h4>
+                    <div class="twf-field-row"><span class="twf-field-label">حداکثر روز مجاز درخواست</span><input type="text" class="twf-input twf-input-num" value="60" /></div>
+                    <div class="twf-field-row"><span class="twf-field-label">آخرین روز ماه برای درخواست</span><input type="text" class="twf-input twf-input-num" value="31" /></div>
+                    <div class="twf-field-row"><span class="twf-field-label">قفل درخواست‌ها</span><input type="checkbox" /></div>
+                    <div class="twf-field-row"><span class="twf-field-label">ساعت کار روزانه</span><input type="text" class="twf-input twf-input-num" value="8" /></div>
+                </div>
+
+                <div class="twf-section-box">
+                    <h4>نمایش انواع درخواست</h4>
+                    <div class="twf-field-row"><span class="twf-field-label">مرخصی روزانه</span><input type="checkbox" checked /></div>
+                    <div class="twf-field-row"><span class="twf-field-label">مرخصی ساعتی</span><input type="checkbox" checked /></div>
+                    <div class="twf-field-row"><span class="twf-field-label">ماموریت روزانه</span><input type="checkbox" checked /></div>
+                    <div class="twf-field-row"><span class="twf-field-label">ماموریت ساعتی</span><input type="checkbox" checked /></div>
+                    <div class="twf-field-row"><span class="twf-field-label">مجوز اضافه‌کار</span><input type="checkbox" checked /></div>
+                </div>
+
+                <div class="twf-section-box">
+                    <h4>سیاست کلمه عبور (AES-256 + HMAC-SHA256)</h4>
+                    <div class="twf-field-row"><span class="twf-field-label">حداقل طول کلمه عبور</span><input type="text" class="twf-input twf-input-num" value="8" /></div>
+                    <div class="twf-field-row"><span class="twf-field-label">دوره تغییر اجباری (روز)</span><input type="text" class="twf-input twf-input-num" value="90" /></div>
+                    <div class="twf-field-row"><span class="twf-field-label">قفل پس از تلاش ناموفق</span><input type="text" class="twf-input twf-input-num" value="5" /></div>
+                    <div class="twf-field-row"><span class="twf-field-label">الزام ترکیب حروف/اعداد/نماد</span><input type="checkbox" checked /></div>
+                </div>
+
+                <div class="twf-section-box">
+                    <h4>وضعیت اتصال زیرساخت</h4>
+                    <div class="twf-field-row"><span class="twf-field-label">اتصال T5V3 (T5V3DB)</span><span class="twf-badge twf-badge-success">متصل</span></div>
+                    <div class="twf-field-row"><span class="twf-field-label">اتصال Personnel</span><span class="twf-badge twf-badge-success">متصل</span></div>
+                    <div class="twf-field-row"><span class="twf-field-label">قفل سخت‌افزاری TINYLib</span><span class="twf-badge twf-badge-danger">حذف شده (Zero-Lock)</span></div>
+                    <div class="twf-field-row"><span class="twf-field-label">شبکه / CDN خارجی</span><span class="twf-badge twf-badge-success">بدون وابستگی</span></div>
+                </div>
+            </div>
+
+            <div class="twf-actions">
+                <button class="twf-btn twf-btn-primary" onclick="previewToast('تنظیمات ذخیره شد.')">ذخیره تغییرات</button>
+                <button class="twf-btn twf-btn-secondary" onclick="showSection('dashboard')">بازگشت</button>
+            </div>
+        </section>
+
+        <!-- ═══════════════ درباره ═══════════════ -->
+        <section id="about" class="twf-section">
+            <div class="twf-page-heading">
+                <div>
+                    <div class="twf-crumb">خانه / درباره سامانه</div>
+                    <h1>درباره سامانه آریا</h1>
+                    <p>بازنویسی کامل TWF 4.28 با معماری لایه‌ای، امنیت سطح‌بندی‌شده و رابط صنعتی آفلاین</p>
+                </div>
+                <span class="twf-badge twf-badge-success">Zero-Lock</span>
+            </div>
+
+            <div class="twf-panel">
+                <div class="twf-panel-header">
+                    <h2 class="twf-panel-title">شناسنامه محصول</h2>
+                    <span class="twf-num">Aria v5.0</span>
+                </div>
+                <div class="twf-panel-body">
+                    <div class="twf-grid-2">
+                        <div>
+                            <div class="twf-field-row"><span class="twf-field-label">نام محصول</span><strong>سامانه حضور و غیاب و کارتابل آریا</strong></div>
+                            <div class="twf-field-row"><span class="twf-field-label">نسخه</span><span class="twf-num">۵.۰</span></div>
+                            <div class="twf-field-row"><span class="twf-field-label">مبنا</span><span>TWF 4.28 (MyTime3.dll + TD5.dll)</span></div>
+                            <div class="twf-field-row"><span class="twf-field-label">معماری</span><span>Domain / Infrastructure / Application / Web + Dapper Data Access</span></div>
+                            <div class="twf-field-row"><span class="twf-field-label">وضعیت قفل</span><span class="twf-badge twf-badge-success">حذف کامل قفل سخت‌افزاری و لایسنس</span></div>
+                        </div>
+                        <div>
+                            <div class="twf-alert twf-alert-info">
+                                <div>۱۰۰٪ آفلاین: بدون CDN، بدون Google Maps، بدون فراخوانی سرویس ابری.</div>
+                                <div style="margin-top:8px;">تمامی فونت‌ها، آیکون‌ها، استایل‌ها و اسکریپت‌ها به‌صورت محلی و بدون وابستگی به اینترنت بارگذاری می‌شوند.</div>
+                            </div>
+                            <div class="twf-alert twf-alert-success">
+                                پوشش بازنویسی: ۱۳ فایل TD5، ۹۲ فایل MyTime3 (۳۴ کنترلر + ۳۳ مدل + هسته امنیت) و ۷۴ ویو.
+                            </div>
+                        </div>
+                    </div>
+                    <hr style="border:0; border-top:1px solid var(--twf-border-subtle); margin:18px 0;" />
+                    <div class="twf-muted" style="font-size:12px; text-align:center;">
+                        کلیه حقوق مادی و معنوی سامانه آریا محفوظ می‌باشد — پیش‌نمایش آفلاین رابط کاربری
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script src="../TWF.Web/Scripts/twf-core.js"></script>
+<script src="preview.js"></script>
+</body>
+</html>

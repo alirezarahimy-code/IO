@@ -1,0 +1,111 @@
+@model MyTime3.Models.NewRequestForm
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.RequestFromUser;
+    var personnelList = ViewBag.Personnel as List<MyTime3.Models.PersonnelModel> ?? new List<MyTime3.Models.PersonnelModel>();
+    var leaveTypes = ViewBag.LeaveTypes as List<T5V3.Model.LeaveType> ?? new List<T5V3.Model.LeaveType>();
+    var leaveDescs = ViewBag.LeaveDescriptions as List<T5V3.Model.LeaveDescription> ?? new List<T5V3.Model.LeaveDescription>();
+}
+
+<div class="twf-panel">
+    <div class="twf-panel-header">
+        <h2 class="twf-panel-title">@MyTime3.Content.PersianString.RequestFromUser</h2>
+        <span class="twf-badge twf-badge-neutral">ثبت درخواست توسط مدیر / جانشین برای زیرمجموعه</span>
+    </div>
+    <div class="twf-panel-body">
+        @if (Model != null && !string.IsNullOrEmpty(Model.Error))
+        {
+            var isOk = Model.Error == MyTime3.Content.PersianString.InsertSuccess;
+            <div class="twf-alert @(isOk ? "twf-alert-success" : "twf-alert-danger")">
+                @Model.Error
+            </div>
+        }
+
+        <form action="@Url.Action("AddRequestForUser", "Request")" method="post">
+            <input type="hidden" name="IsNew" value="True" />
+
+            <div class="twf-grid-2">
+                <div class="twf-form-group">
+                    <label class="twf-label" for="FromUserID">@MyTime3.Content.PersianString.For</label>
+                    <select id="FromUserID" name="FromUserID" class="twf-select" required>
+                        @foreach (var p in personnelList)
+                        {
+                            <option value="@p.BadgeNumber" @(Model != null && Model.FromUserID == p.BadgeNumber ? "selected" : "")>@p.DisplayName</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="twf-form-group">
+                    <label class="twf-label" for="RequestType">@MyTime3.Content.PersianString.RequestType</label>
+                    <select id="RequestType" name="RequestType" class="twf-select">
+                        <option value="0" @(Model != null && Model.RequestType == 0 ? "selected" : "")>@MyTime3.Content.PersianString.DailyLeave</option>
+                        <option value="1" @(Model != null && Model.RequestType == 1 ? "selected" : "")>@MyTime3.Content.PersianString.HourlyLeave</option>
+                        <option value="2" @(Model != null && Model.RequestType == 2 ? "selected" : "")>@MyTime3.Content.PersianString.DailyDuty</option>
+                        <option value="3" @(Model != null && Model.RequestType == 3 ? "selected" : "")>@MyTime3.Content.PersianString.HourlyDuty</option>
+                        <option value="4" @(Model != null && Model.RequestType == 4 ? "selected" : "")>@MyTime3.Content.PersianString.InsertRecord</option>
+                        <option value="5" @(Model != null && Model.RequestType == 5 ? "selected" : "")>@MyTime3.Content.PersianString.Late</option>
+                        <option value="6" @(Model != null && Model.RequestType == 6 ? "selected" : "")>@MyTime3.Content.PersianString.Early</option>
+                        @if ((bool)MyTime3.Controllers.SettingsController.LoadValue("OvertimeRequest", typeof(bool), true))
+                        {
+                            <option value="7" @(Model != null && Model.RequestType == 7 ? "selected" : "")>@MyTime3.Content.PersianString.OverTime</option>
+                        }
+                        <option value="8" @(Model != null && Model.RequestType == 8 ? "selected" : "")>@MyTime3.Content.PersianString.Reward</option>
+                        <option value="9" @(Model != null && Model.RequestType == 9 ? "selected" : "")>@MyTime3.Content.PersianString.Penalty</option>
+                    </select>
+                </div>
+
+                <div class="twf-form-group">
+                    <label class="twf-label" for="TypeID">@MyTime3.Content.PersianString.Type</label>
+                    <select id="TypeID" name="TypeID" class="twf-select">
+                        @foreach (var lt in leaveTypes)
+                        {
+                            <option value="@lt.LeaveTypeID" @(Model != null && Model.TypeID == lt.LeaveTypeID ? "selected" : "")>@lt.LeaveName</option>
+                        }
+                        <option value="0">@MyTime3.Content.PersianString.Early</option>
+                        <option value="1">@MyTime3.Content.PersianString.Late</option>
+                        <option value="2">@MyTime3.Content.PersianString.EarlyAndLate</option>
+                    </select>
+                </div>
+
+                <div class="twf-form-group">
+                    <label class="twf-label" for="ForDate">@MyTime3.Content.PersianString.Date / @MyTime3.Content.PersianString.FromDate</label>
+                    <input type="text" id="ForDate" name="ForDate" class="twf-input datepicker-farsi twf-num" value="@(Model != null ? Model.ForDate : "")" required />
+                </div>
+
+                <div class="twf-form-group">
+                    <label class="twf-label" for="ToDate">@MyTime3.Content.PersianString.ToDate</label>
+                    <input type="text" id="ToDate" name="ToDate" class="twf-input datepicker-farsi twf-num" value="@(Model != null ? Model.ToDate : "")" />
+                </div>
+
+                <div class="twf-form-group">
+                    <label class="twf-label" for="FromTime">@MyTime3.Content.PersianString.FromTime / @MyTime3.Content.PersianString.Time</label>
+                    <input type="text" id="FromTime" name="FromTime" class="twf-input timeInput twf-num" placeholder="08:00" value="@(Model != null ? Model.FromTime : "")" />
+                </div>
+
+                <div class="twf-form-group">
+                    <label class="twf-label" for="ToTime">@MyTime3.Content.PersianString.ToTime</label>
+                    <input type="text" id="ToTime" name="ToTime" class="twf-input timeInput twf-num" placeholder="16:00" value="@(Model != null ? Model.ToTime : "")" />
+                </div>
+
+                <div class="twf-form-group">
+                    <label class="twf-label" for="LeaveDescriptionTypeID">علت درخواست</label>
+                    <select id="LeaveDescriptionTypeID" name="LeaveDescriptionTypeID" class="twf-select">
+                        <option value="-1">-- انتخاب علت --</option>
+                        @foreach (var ld in leaveDescs)
+                        {
+                            <option value="@ld.ID" @(Model != null && Model.LeaveDescriptionTypeID == ld.ID ? "selected" : "")>@ld.Description</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="twf-form-group">
+                    <label class="twf-label" for="Description">@MyTime3.Content.PersianString.Descriptions</label>
+                    <input type="text" id="Description" name="Description" class="twf-input" value="@(Model != null ? Model.Description : "")" />
+                </div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <button type="submit" class="twf-btn twf-btn-primary">@MyTime3.Content.PersianString.OK</button>
+            </div>
+        </form>
+    </div>
+</div>

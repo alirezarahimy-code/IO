@@ -1,0 +1,103 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{A1000004-0000-4000-8000-000000000004}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>TWF.Web</RootNamespace>
+    <AssemblyName>MyTime3</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <LangVersion>7.3</LangVersion>
+    <AssemblyTitle>Aria Attendance &amp; Workflow Portal</AssemblyTitle>
+    <Product>Aria / سامانه حضور و غیاب و کارتابل آریا</Product>
+    <Company>Aria Enterprise Platform</Company>
+    <Description>Complete rewrite of TWF 4.28 (MyTime3 + TD5) — Zero-Lock, 100% offline, layered architecture.</Description>
+    <Copyright>Copyright © Aria 1404</Copyright>
+    <Version>5.0.0.0</Version>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Mvc">
+      <HintPath>..\..\TWF 4.28\App\bin\System.Web.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="Personnel">
+      <HintPath>..\..\TWF 4.28\App\bin\Personnel.dll</HintPath>
+    </Reference>
+    <Reference Include="T5V3.DB">
+      <HintPath>..\..\TWF 4.28\App\bin\T5V3.DB.dll</HintPath>
+    </Reference>
+    <Reference Include="T5V3.Model">
+      <HintPath>..\..\TWF 4.28\App\bin\T5V3.Model.dll</HintPath>
+    </Reference>
+    <Reference Include="T5V3.Attendance">
+      <HintPath>..\..\TWF 4.28\App\bin\T5V3.Attendance.dll</HintPath>
+    </Reference>
+    <Reference Include="T5V3.LeaveCalcs">
+      <HintPath>..\..\TWF 4.28\App\bin\T5V3.LeaveCalcs.dll</HintPath>
+    </Reference>
+    <Reference Include="T5V3.Report">
+      <HintPath>..\..\TWF 4.28\App\bin\T5V3.Report.dll</HintPath>
+    </Reference>
+    <Reference Include="T5V3.ReportGenerator">
+      <HintPath>..\..\TWF 4.28\App\bin\T5V3.ReportGenerator.dll</HintPath>
+    </Reference>
+    <Reference Include="T5V3.Misc">
+      <HintPath>..\..\TWF 4.28\App\bin\T5V3.Misc.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\TD5\TD5.csproj">
+      <Project>{A1000000-0000-4000-8000-000000000000}</Project>
+      <Name>TD5</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TWF.Domain\TWF.Domain.csproj">
+      <Project>{A1000001-0000-4000-8000-000000000001}</Project>
+      <Name>TWF.Domain</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TWF.Infrastructure\TWF.Infrastructure.csproj">
+      <Project>{A1000002-0000-4000-8000-000000000002}</Project>
+      <Name>TWF.Infrastructure</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TWF.Application\TWF.Application.csproj">
+      <Project>{A1000003-0000-4000-8000-000000000003}</Project>
+      <Name>TWF.Application</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Security\SessionAuthManager.cs" />
+    <Compile Include="Security\TwfAuthorizeAttribute.cs" />
+    <Compile Include="Helpers\GlobalHelper.cs" />
+    <Compile Include="Lock\*.cs" />
+    <Compile Include="Authorization\*.cs" />
+    <Compile Include="MyTime3\*.cs" />
+    <Compile Include="Content\*.cs" />
+    <Compile Include="Properties\*.cs" />
+    <Compile Include="Models\*.cs" />
+    <Compile Include="Controllers\*.cs" />
+    <Compile Include="Views\Report\Report.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

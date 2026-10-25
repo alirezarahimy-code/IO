@@ -1,0 +1,237 @@
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.SelectValidArea;
+    var personnelList = ViewBag.Personnel as List<MyTime3.Models.PersonnelModel> ?? new List<MyTime3.Models.PersonnelModel>();
+}
+
+<div class="twf-card">
+    <div class="twf-card-header">
+        <h3 class="twf-card-title">@MyTime3.Content.PersianString.SelectValidArea (ویرایشگر چندضلعی آفلاین)</h3>
+    </div>
+    <div class="twf-card-body">
+        <div class="twf-table-wrap" style="margin-bottom:20px;">
+            <table class="twf-table">
+                <thead>
+                    <tr>
+                        <th>@MyTime3.Content.PersianString.BadgeNumber</th>
+                        <th>@MyTime3.Content.PersianString.Name</th>
+                        <th>@MyTime3.Content.PersianString.Operations</th>
+                    </tr>
+                </thead>
+                <tbody id="area-data"></tbody>
+            </table>
+        </div>
+
+        <div class="twf-grid" style="grid-template-columns:1fr 340px; gap:16px; align-items:start;">
+            <div class="twf-card" style="padding:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <strong>بوم ترسیم محدوده جغرافیایی (کلیک روی شبکه برای افزودن راس چندضلعی)</strong>
+                    <button type="button" class="twf-btn" onclick="clearPolygonPoints()">پاک کردن نقاط</button>
+                </div>
+                <canvas id="offlineAreaCanvas" width="760" height="440" style="width:100%; height:440px; background:#0F172A; border:1px solid var(--twf-border); cursor:crosshair; display:block;"></canvas>
+            </div>
+
+            <div class="twf-card" style="padding:14px;">
+                <div class="twf-field" style="margin-bottom:12px;">
+                    <label class="twf-label">پرسنل مشمول محدوده</label>
+                    <select id="cmbBadgeNumber" class="twf-select">
+                        <option selected="selected" value="-1">@MyTime3.Content.PersianString.All</option>
+                        @foreach (var p in personnelList)
+                        {
+                            <option value="@p.BadgeNumber">@p.BadgeNumber - @p.FirstName @p.LastName</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="twf-field" style="margin-bottom:12px;">
+                    <label class="twf-label">افزودن مختصات دقیق (Latitude / Longitude)</label>
+                    <div style="display:flex; gap:6px;">
+                        <input type="text" id="manualLat" class="twf-input twf-num" dir="ltr" placeholder="Lat: 35.6892" />
+                        <input type="text" id="manualLng" class="twf-input twf-num" dir="ltr" placeholder="Lng: 51.3890" />
+                        <button type="button" class="twf-btn" onclick="addManualCoord()">+</button>
+                    </div>
+                </div>
+
+                <div class="twf-field" style="margin-bottom:12px;">
+                    <label class="twf-label">نقاط چندضلعی (<span id="ptCount" class="twf-num">0</span> نقطه)</label>
+                    <div id="pointsList" style="max-height:180px; overflow-y:auto; font-size:12px;" class="twf-num" dir="ltr"></div>
+                </div>
+
+                <button type="button" class="twf-btn twf-btn-primary" style="width:100%;" onclick="saveData()">
+                    @MyTime3.Content.PersianString.AddArea
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        var polygonPoints = [];
+        var centerLat = 35.6892;
+        var centerLng = 51.3890;
+        var spanDeg = 0.05;
+
+        function renderOfflineCanvas() {
+            var canvas = document.getElementById('offlineAreaCanvas');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            var w = canvas.width, h = canvas.height;
+            ctx.clearRect(0, 0, w, h);
+
+            ctx.strokeStyle = '#1E293B';
+            ctx.lineWidth = 1;
+            for (var x = 0; x <= w; x += 40) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+            }
+            for (var y = 0; y <= h; y += 40) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+            }
+
+            if (polygonPoints.length > 0) {
+                ctx.beginPath();
+                for (var i = 0; i < polygonPoints.length; i++) {
+                    var px = ((polygonPoints[i].lng - (centerLng - spanDeg)) / (2 * spanDeg)) * w;
+                    var py = h - (((polygonPoints[i].lat - (centerLat - spanDeg)) / (2 * spanDeg)) * h);
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+                if (polygonPoints.length >= 3) {
+                    ctx.closePath();
+                    ctx.fillStyle = 'rgba(217, 119, 6, 0.28)';
+                    ctx.fill();
+                }
+                ctx.strokeStyle = '#F59E0B';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                for (var j = 0; j < polygonPoints.length; j++) {
+                    var vx = ((polygonPoints[j].lng - (centerLng - spanDeg)) / (2 * spanDeg)) * w;
+                    var vy = h - (((polygonPoints[j].lat - (centerLat - spanDeg)) / (2 * spanDeg)) * h);
+                    ctx.fillStyle = '#38BDF8';
+                    ctx.beginPath();
+                    ctx.arc(vx, vy, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            var ptCountEl = document.getElementById('ptCount');
+            if (ptCountEl) ptCountEl.textContent = polygonPoints.length;
+            var listEl = document.getElementById('pointsList');
+            if (listEl) {
+                var html = '';
+                for (var k = 0; k < polygonPoints.length; k++) {
+                    html += '<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--twf-border);">' +
+                        '<span>#' + (k + 1) + ': ' + polygonPoints[k].lat.toFixed(5) + ', ' + polygonPoints[k].lng.toFixed(5) + '</span>' +
+                        '<a href="javascript:removePointIndex(' + k + ')" style="color:#EF4444;">حذف</a></div>';
+                }
+                listEl.innerHTML = html;
+            }
+        }
+
+        function removePointIndex(idx) {
+            polygonPoints.splice(idx, 1);
+            renderOfflineCanvas();
+        }
+
+        function clearPolygonPoints() {
+            polygonPoints = [];
+            renderOfflineCanvas();
+        }
+
+        function addManualCoord() {
+            var latVal = parseFloat(document.getElementById('manualLat').value);
+            var lngVal = parseFloat(document.getElementById('manualLng').value);
+            if (!isNaN(latVal) && !isNaN(lngVal)) {
+                polygonPoints.push({ lat: latVal, lng: lngVal });
+                renderOfflineCanvas();
+            }
+        }
+
+        (function initCanvasInteraction() {
+            var canvas = document.getElementById('offlineAreaCanvas');
+            if (!canvas) return;
+            canvas.addEventListener('click', function (ev) {
+                var rect = canvas.getBoundingClientRect();
+                var rx = (ev.clientX - rect.left) / rect.width;
+                var ry = (ev.clientY - rect.top) / rect.height;
+                var lng = (centerLng - spanDeg) + rx * (2 * spanDeg);
+                var lat = (centerLat - spanDeg) + (1 - ry) * (2 * spanDeg);
+                polygonPoints.push({ lat: lat, lng: lng });
+                renderOfflineCanvas();
+            });
+            renderOfflineCanvas();
+            getAreas();
+        })();
+
+        function getAreas() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/SelectArea/GetAreas', true);
+            xhr.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var data = JSON.parse(xhr.responseText || '[]');
+                    var tbody = document.getElementById('area-data');
+                    if (!tbody) return;
+                    var html = '';
+                    for (var i = 0; i < data.length; i++) {
+                        html += '<tr><td class="twf-num">' + data[i].UserID + '</td><td>' + (data[i].UserName || '') + '</td>' +
+                            '<td><a class="twf-btn" href="javascript:showOnMap(' + data[i].AreaID + ')">@MyTime3.Content.PersianString.Edit</a> ' +
+                            '<a class="twf-btn twf-btn-danger" href="javascript:deleteRule(' + data[i].AreaID + ')">@MyTime3.Content.PersianString.Delete</a></td></tr>';
+                    }
+                    tbody.innerHTML = html;
+                }
+            };
+            xhr.send('{}');
+        }
+
+        function showOnMap(areaID) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/SelectArea/GetArea', true);
+            xhr.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    var data = JSON.parse(xhr.responseText || '{}');
+                    polygonPoints = [];
+                    if (data && data.Points) {
+                        for (var i = 0; i < data.Points.length; i++) {
+                            polygonPoints.push({ lat: data.Points[i].Latitude, lng: data.Points[i].Longitude });
+                        }
+                    }
+                    if (data && data.Center) {
+                        centerLat = data.Center.Latitude || centerLat;
+                        centerLng = data.Center.Longitude || centerLng;
+                    }
+                    var cmb = document.getElementById('cmbBadgeNumber');
+                    if (cmb && data && data.UserID !== undefined) cmb.value = data.UserID;
+                    renderOfflineCanvas();
+                }
+            };
+            xhr.send(JSON.stringify({ id: areaID }));
+        }
+
+        function deleteRule(areaID) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/SelectArea/DeleteArea', true);
+            xhr.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    getAreas();
+                }
+            };
+            xhr.send(JSON.stringify({ id: areaID }));
+        }
+
+        function saveData() {
+            var badge = parseInt(document.getElementById('cmbBadgeNumber').value, 10);
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/SelectArea/InsertNew', true);
+            xhr.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    getAreas();
+                }
+            };
+            xhr.send(JSON.stringify({ badgeNumber: badge, points: polygonPoints }));
+        }
+    </script>
+}

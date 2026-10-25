@@ -1,0 +1,199 @@
+@using MyTime3.Content;
+@model MyTime3.Models.SettingsModel
+@{
+    ViewBag.Title = PersianString.Settings;
+}
+
+<div class="twf-card">
+    <div class="twf-card-header">
+        <h3 class="twf-card-title">@PersianString.Settings</h3>
+        <span class="twf-num" style="font-size: 12.5px; color: #475569;">مدیریت پیکربندی و سیاست‌های سامانه</span>
+    </div>
+
+    <div class="twf-card-body">
+        @if (Model != null && !string.IsNullOrEmpty(Model.OverAllMessage))
+        {
+            string alertClass = Model.OverAllMessage == PersianString.InsertSuccess
+                ? "twf-alert twf-alert-success"
+                : "twf-alert twf-alert-error";
+            <div class="@alertClass">
+                @Model.OverAllMessage
+            </div>
+        }
+
+        @using (Html.BeginForm("Index", "Settings", FormMethod.Post))
+        {
+            <div class="twf-settings-grid">
+                <!-- Panel 1: Attendance & Request Limits -->
+                <div class="twf-section-box">
+                    <h4>محدودیت‌های ثبت درخواست و تردد</h4>
+
+                    <div class="twf-field-row">
+                        <label class="twf-field-label" for="RequestRecordsDailyLimit">@PersianString.RequestRecordsDailyLimit</label>
+                        <input type="number" id="RequestRecordsDailyLimit" name="RequestRecordsDailyLimit" class="twf-input twf-input-num twf-num" value="@Model.RequestRecordsDailyLimit" />
+                    </div>
+
+                    <div class="twf-field-row">
+                        <label class="twf-field-label" for="RequestRecordsMonthlyLimit">@PersianString.RequestRecordsMonthlyLimit</label>
+                        <input type="number" id="RequestRecordsMonthlyLimit" name="RequestRecordsMonthlyLimit" class="twf-input twf-input-num twf-num" value="@Model.RequestRecordsMonthlyLimit" />
+                    </div>
+
+                    <div class="twf-field-row">
+                        <label class="twf-field-label" for="MaxRequestAgeDays">@PersianString.RequestAgeLimit</label>
+                        <input type="number" id="MaxRequestAgeDays" name="MaxRequestAgeDays" class="twf-input twf-input-num twf-num" value="@Model.MaxRequestAgeDays" />
+                    </div>
+
+                    <div class="twf-field-row">
+                        <label class="twf-field-label" for="LastDayForRequest">@PersianString.LimitEndMonth</label>
+                        <input type="number" id="LastDayForRequest" name="LastDayForRequest" class="twf-input twf-input-num twf-num" value="@Model.LastDayForRequest" />
+                    </div>
+
+                    <div class="twf-field-row">
+                        <label class="twf-field-label" for="HoursOfDays">@PersianString.HoursOfDay</label>
+                        <input type="number" id="HoursOfDays" name="HoursOfDays" class="twf-input twf-input-num twf-num" value="@Model.HoursOfDays" />
+                    </div>
+                </div>
+
+                <!-- Panel 2: Self-Service & Workflow Modules -->
+                <div class="twf-section-box">
+                    <h4>ماژول‌ها و مجوزهای کارتابل</h4>
+
+                    <div class="twf-field-row">
+                        <label class="twf-field-label" for="chk1">@PersianString.AllowRequestValidLate</label>
+                        <div>
+                            <input type="checkbox" id="chk1" name="AllowValidLate" value="true" checked="@Model.AllowValidLate" />
+                            <input type="hidden" name="AllowValidLate" value="false" />
+                        </div>
+                    </div>
+
+                    <div class="twf-field-row">
+                        <label class="twf-field-label" for="chk2">@PersianString.AllowRequestHourlyFree</label>
+                        <div>
+                            <input type="checkbox" id="chk2" name="AllowValidHourlyFree" value="true" checked="@Model.AllowValidHourlyFree" />
+                            <input type="hidden" name="AllowValidHourlyFree" value="false" />
+                        </div>
+                    </div>
+
+                    <div class="twf-field-row">
+                        <label class="twf-field-label" for="chk3">@PersianString.AllowDailyDuty</label>
+                        <div>
+                            <input type="checkbox" id="chk3" name="ViewDailyDuty" value="true" checked="@Model.ViewDailyDuty" />
+                            <input type="hidden" name="ViewDailyDuty" value="false" />
+                        </div>
+                    </div>
+
+                    <div class="twf-field-row">
+                        <label class="twf-field-label" for="chk4">@PersianString.AllowHourlyDuty</label>
+                        <div>
+                            <input type="checkbox" id="chk4" name="ViewHourlyDuty" value="true" checked="@Model.ViewHourlyDuty" />
+                            <input type="hidden" name="ViewHourlyDuty" value="false" />
+                        </div>
+                    </div>
+
+                    <div class="twf-field-row">
+                        <label class="twf-field-label" for="chk5">@PersianString.AllowDailyLeave</label>
+                        <div>
+                            <input type="checkbox" id="chk5" name="ViewDailyLeave" value="true" checked="@Model.ViewDailyLeave" />
+                            <input type="hidden" name="ViewDailyLeave" value="false" />
+                        </div>
+                    </div>
+
+                    <div class="twf-field-row">
+                        <label class="twf-field-label" for="chk6">@PersianString.AllowHourlyLeave</label>
+                        <div>
+                            <input type="checkbox" id="chk6" name="ViewHourlyLeave" value="true" checked="@Model.ViewHourlyLeave" />
+                            <input type="hidden" name="ViewHourlyLeave" value="false" />
+                        </div>
+                    </div>
+
+                    <div class="twf-field-row">
+                        <label class="twf-field-label" for="chk7">@PersianString.ViewOverTimeRequest</label>
+                        <div>
+                            <input type="checkbox" id="chk7" name="ViewOverTimeRequest" value="true" checked="@Model.ViewOverTimeRequest" />
+                            <input type="hidden" name="ViewOverTimeRequest" value="false" />
+                        </div>
+                    </div>
+
+                    <div class="twf-field-row">
+                        <label class="twf-field-label" for="chk8">@PersianString.ViewRewardRequest</label>
+                        <div>
+                            <input type="checkbox" id="chk8" name="ViewRewardRequest" value="true" checked="@Model.ViewRewardRequest" />
+                            <input type="hidden" name="ViewRewardRequest" value="false" />
+                        </div>
+                    </div>
+
+                    <div class="twf-field-row">
+                        <label class="twf-field-label" for="chk9">@PersianString.ViewConstOT</label>
+                        <div>
+                            <input type="checkbox" id="chk9" name="ViewConstOT" value="true" checked="@Model.ViewConstOT" />
+                            <input type="hidden" name="ViewConstOT" value="false" />
+                        </div>
+                    </div>
+
+                    <div class="twf-field-row">
+                        <label class="twf-field-label" for="chk10">@PersianString.RequestForUser</label>
+                        <div>
+                            <input type="checkbox" id="chk10" name="RequestForUser" value="true" checked="@Model.RequestForUser" />
+                            <input type="hidden" name="RequestForUser" value="false" />
+                        </div>
+                    </div>
+
+                    <div class="twf-field-row">
+                        <label class="twf-field-label" for="chk11">@PersianString.RequestRecord</label>
+                        <div>
+                            <input type="checkbox" id="chk11" name="RequestRecord" value="true" checked="@Model.RequestRecord" />
+                            <input type="hidden" name="RequestRecord" value="false" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel 3: Security, Password Policy & Reporting -->
+                <div class="twf-section-box">
+                    <h4>گزارش‌گیری و سیاست‌های امنیتی کلمه عبور</h4>
+
+                    <div class="twf-field-row">
+                        <label class="twf-field-label" for="chk12">@PersianString.ReportExport</label>
+                        <div>
+                            <input type="checkbox" id="chk12" name="ExportReport" value="true" checked="@Model.ExportReport" />
+                            <input type="hidden" name="ExportReport" value="false" />
+                        </div>
+                    </div>
+
+                    <div class="twf-field-row">
+                        <label class="twf-field-label" for="chk13">@PersianString.ChangePasswordLimitation</label>
+                        <div>
+                            <input type="checkbox" id="chk13" name="ChangePassRestriction" value="true" checked="@Model.ChangePassRestriction" />
+                            <input type="hidden" name="ChangePassRestriction" value="false" />
+                        </div>
+                    </div>
+
+                    <div class="twf-field-row">
+                        <label class="twf-field-label" for="chk14">@PersianString.ChangePasswordMonthly</label>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="chk14" name="ChangePassMonthly" value="true" checked="@Model.ChangePassMonthly" />
+                            <input type="hidden" name="ChangePassMonthly" value="false" />
+                            <span>@PersianString.ChangePasswordMonths</span>
+                            <input type="number" id="ChangePassLimit" name="ChangePassLimit" class="twf-input twf-input-num twf-num" style="width: 68px;" value="@Model.ChangePassLimit" />
+                            <span>@PersianString.ChangePasswordMonth</span>
+                        </div>
+                    </div>
+
+                    <div class="twf-field-row">
+                        <label class="twf-field-label" for="chk16">@PersianString.ChangePasswordForce</label>
+                        <div>
+                            <!-- Fixed BUG-03: Hidden field name is properly ChangePassForce instead of ChangePassLimit -->
+                            <input type="checkbox" id="chk16" name="ChangePassForce" value="true" checked="@Model.ChangePassForce" />
+                            <input type="hidden" name="ChangePassForce" value="false" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 22px; display: flex; justify-content: flex-end;">
+                <button type="submit" class="twf-btn twf-btn-primary">
+                    @PersianString.Save
+                </button>
+            </div>
+        }
+    </div>
+</div>

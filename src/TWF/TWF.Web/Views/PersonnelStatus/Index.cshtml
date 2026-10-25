@@ -1,0 +1,75 @@
+@model MyTime3.Models.PerosnnelStatusModel
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.PersonnelStatusReport;
+    string hjDateStr = Model != null && Model.ForDate != default(DateTime)
+        ? T5V3.Misc.DateConverter.ToHijriDate(Model.ForDate)
+        : T5V3.Misc.DateConverter.ToHijriDate(DateTime.Now.Date);
+    int rTypeVal = Model != null && Model.RType > 0 ? Model.RType : 1;
+}
+
+<div class="twf-card">
+    <div class="twf-card-header">
+        <h3 class="twf-card-title">@MyTime3.Content.PersianString.PersonnelStatusReport</h3>
+    </div>
+    <div class="twf-card-body">
+        @using (Html.BeginForm("Index", "PersonnelStatus", FormMethod.Get, new { @class = "twf-form" }))
+        {
+            <div class="twf-grid" style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; align-items:end; margin-bottom:16px;">
+                <div class="twf-field">
+                    <label class="twf-label">@MyTime3.Content.PersianString.Date</label>
+                    <input type="text" name="hjDate" class="twf-input twf-num datepicker-farsi" dir="ltr" value="@hjDateStr" required />
+                </div>
+                <div class="twf-field" style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+                    <label><input type="radio" name="rType" value="1" @(rTypeVal == 1 ? "checked=\"checked\"" : "") /> @MyTime3.Content.PersianString.All</label>
+                    <label><input type="radio" name="rType" value="2" @(rTypeVal == 2 ? "checked=\"checked\"" : "") /> @MyTime3.Content.PersianString.AbsentWORecord</label>
+                    <label><input type="radio" name="rType" value="3" @(rTypeVal == 3 ? "checked=\"checked\"" : "") /> @MyTime3.Content.PersianString.PresentOddRecord</label>
+                    <label><input type="radio" name="rType" value="4" @(rTypeVal == 4 ? "checked=\"checked\"" : "") /> @MyTime3.Content.PersianString.ExitEvenRecords</label>
+                </div>
+                <div class="twf-field">
+                    <button type="submit" class="twf-btn twf-btn-primary">@MyTime3.Content.PersianString.OK</button>
+                </div>
+            </div>
+        }
+
+        <div class="twf-table-wrap">
+            <table class="twf-table">
+                <thead>
+                    <tr>
+                        <th>@MyTime3.Content.PersianString.BadgeNumber</th>
+                        <th>@MyTime3.Content.PersianString.Name</th>
+                        <th>@MyTime3.Content.PersianString.Status</th>
+                        <th>ترددهای ثبت شده (ساعت / دستگاه)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Rows != null)
+                    {
+                        foreach (var row in Model.Rows)
+                        {
+                            <tr>
+                                <td class="twf-num">@row.BadgeNumber</td>
+                                <td>@row.Name</td>
+                                <td><span class="twf-badge">@row.State</span></td>
+                                <td>
+                                    @if (row.Records != null && row.Records.Count > 0)
+                                    {
+                                        foreach (var rec in row.Records)
+                                        {
+                                            <span class="twf-badge twf-num" dir="ltr" style="margin-left:6px;" title="@rec.Name">
+                                                @rec.CheckTime.ToString("HH:mm") (@(string.IsNullOrEmpty(rec.Name) ? "#" + rec.MachineNumber : rec.Name))
+                                            </span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="twf-muted">-</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

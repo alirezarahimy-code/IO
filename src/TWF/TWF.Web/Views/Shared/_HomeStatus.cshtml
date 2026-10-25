@@ -1,0 +1,171 @@
+@model List<MyTime3.Models.ADayReport>
+@{
+    bool allowRecordReq = (bool)MyTime3.Controllers.SettingsController.LoadValue("RequestRecord", typeof(bool), true);
+    bool allowLateEarly = (bool)MyTime3.Controllers.SettingsController.LoadValue("ValidLateEarly", typeof(bool), true);
+    bool allowHourlyLeave = (bool)MyTime3.Controllers.SettingsController.LoadValue("RequestHourlyLeave", typeof(bool), true);
+    bool allowHourlyDuty = (bool)MyTime3.Controllers.SettingsController.LoadValue("RequestHourlyDuty", typeof(bool), true);
+    bool allowDailyLeave = (bool)MyTime3.Controllers.SettingsController.LoadValue("RequestDailyLeave", typeof(bool), true);
+    bool allowDailyDuty = (bool)MyTime3.Controllers.SettingsController.LoadValue("RequestDailyDuty", typeof(bool), true);
+}
+
+<div class="twf-card" style="margin-top:20px;">
+    <div class="twf-card-header">
+        <h3 class="twf-card-title">@MyTime3.Content.PersianString.SimpleReport</h3>
+    </div>
+    <div class="twf-card-body">
+        <div class="twf-table-wrap">
+            <table class="twf-table">
+                <thead>
+                    <tr>
+                        <th>@MyTime3.Content.PersianString.Date</th>
+                        <th>@MyTime3.Content.PersianString.DayOfWeek</th>
+                        <th>@MyTime3.Content.PersianString.In</th>
+                        <th>@MyTime3.Content.PersianString.Out</th>
+                        <th>@MyTime3.Content.PersianString.Late</th>
+                        <th>@MyTime3.Content.PersianString.Early</th>
+                        <th>@MyTime3.Content.PersianString.AbsentHour</th>
+                        <th>@MyTime3.Content.PersianString.Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null)
+                    {
+                        foreach (MyTime3.Models.ADayReport rpt in Model)
+                        {
+                            <tr>
+                                <td class="twf-num" dir="ltr">@rpt.HijriDate</td>
+                                <td>@rpt.DayOfWeekName</td>
+                                <td class="twf-num" dir="ltr">
+                                    @if (rpt.WoIn)
+                                    {
+                                        if (rpt.IsWOInRequested)
+                                        {
+                                            <span class="twf-badge">@MyTime3.Content.PersianString.Requested</span>
+                                        }
+                                        else if (allowRecordReq)
+                                        {
+                                            <a class="twf-badge twf-badge-warning" href="javascript:showRequest(4,0,'','','@(rpt.HijriDate)','','','@(rpt.SchInTime)','@MyTime3.Content.PersianString.InsertRecord')">@MyTime3.Content.PersianString.WOIn</a>
+                                        }
+                                        else
+                                        {
+                                            <span>@MyTime3.Content.PersianString.WOIn</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span>@rpt.MainInTime</span>
+                                    }
+                                </td>
+                                <td class="twf-num" dir="ltr">
+                                    @if (rpt.WoOut)
+                                    {
+                                        if (rpt.IsWOOutRequested)
+                                        {
+                                            <span class="twf-badge">@MyTime3.Content.PersianString.Requested</span>
+                                        }
+                                        else if (allowRecordReq)
+                                        {
+                                            <a class="twf-badge twf-badge-warning" href="javascript:showRequest(4,0,'','','@(rpt.HijriDate)','','','@(rpt.SchOutTime)','@MyTime3.Content.PersianString.InsertRecord')">@MyTime3.Content.PersianString.WOOut</a>
+                                        }
+                                        else
+                                        {
+                                            <span>@MyTime3.Content.PersianString.WOOut</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span>@rpt.MainOutTime</span>
+                                    }
+                                </td>
+                                <td class="twf-num" dir="ltr">
+                                    @if (rpt.HaveLate)
+                                    {
+                                        <span class="twf-badge @(rpt.IsLateRequested ? "" : "twf-badge-danger")">@rpt.Late</span>
+                                        if (rpt.IsLateRequested)
+                                        {
+                                            <small>(@rpt.LateRequestedDescriptions)</small>
+                                        }
+                                        else
+                                        {
+                                            if (allowLateEarly)
+                                            {
+                                                <a href="javascript:showRequest(5,0,'','','@(rpt.HijriDate)','','','@(rpt.SchOutTime)','@MyTime3.Content.PersianString.RequestLate')">@MyTime3.Content.PersianString.Validate</a>
+                                            }
+                                            if (allowHourlyLeave)
+                                            {
+                                                <a href="javascript:showRequest(1,0,'','','@(rpt.HijriDate)','','@(rpt.SchInTime)','@(rpt.MainInTime)','@MyTime3.Content.PersianString.HourlyLeave')">@MyTime3.Content.PersianString.Leave</a>
+                                            }
+                                            if (allowHourlyDuty)
+                                            {
+                                                <a href="javascript:showRequest(3,0,'','','@(rpt.HijriDate)','','@(rpt.SchInTime)','@(rpt.MainInTime)','@MyTime3.Content.PersianString.HourlyDuty')">@MyTime3.Content.PersianString.Duty</a>
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span>@rpt.Late</span>
+                                    }
+                                </td>
+                                <td class="twf-num" dir="ltr">
+                                    @if (rpt.HaveEarly)
+                                    {
+                                        <span class="twf-badge @(rpt.IsEarlyRequested ? "" : "twf-badge-danger")">@rpt.Early</span>
+                                        if (rpt.IsEarlyRequested)
+                                        {
+                                            <small>(@rpt.EarlyRequestedDescriptions)</small>
+                                        }
+                                        else
+                                        {
+                                            if (allowLateEarly)
+                                            {
+                                                <a href="javascript:showRequest(6,0,'','','@(rpt.HijriDate)','','','@(rpt.SchOutTime)','@MyTime3.Content.PersianString.RequestEarly')">@MyTime3.Content.PersianString.Validate</a>
+                                            }
+                                            if (allowHourlyLeave)
+                                            {
+                                                <a href="javascript:showRequest(1,0,'','','@(rpt.HijriDate)','','@(rpt.MainOutTime)','@(rpt.SchOutTime)','@MyTime3.Content.PersianString.HourlyLeave')">@MyTime3.Content.PersianString.Leave</a>
+                                            }
+                                            if (allowHourlyDuty)
+                                            {
+                                                <a href="javascript:showRequest(3,0,'','','@(rpt.HijriDate)','','@(rpt.MainOutTime)','@(rpt.SchOutTime)','@MyTime3.Content.PersianString.HourlyDuty')">@MyTime3.Content.PersianString.Duty</a>
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span>@rpt.Early</span>
+                                    }
+                                </td>
+                                <td class="twf-num" dir="ltr">@rpt.AbsentHours</td>
+                                <td>
+                                    @if (rpt.Absent)
+                                    {
+                                        <span class="twf-badge @(rpt.IsAbsentRequested ? "" : "twf-badge-danger")">@MyTime3.Content.PersianString.Absent</span>
+                                        if (rpt.IsAbsentRequested)
+                                        {
+                                            <small>(@rpt.AbsentRequestedDescriptions)</small>
+                                        }
+                                        else
+                                        {
+                                            if (allowDailyLeave)
+                                            {
+                                                <a href="javascript:showRequest(0,0,'','@(rpt.HijriDate)','@(rpt.HijriDate)','','','','@MyTime3.Content.PersianString.DailyLeave')">@MyTime3.Content.PersianString.Leave</a>
+                                            }
+                                            if (allowDailyDuty)
+                                            {
+                                                <a href="javascript:showRequest(2,0,'','@(rpt.HijriDate)','@(rpt.HijriDate)','','','','@MyTime3.Content.PersianString.DailyDuty')">@MyTime3.Content.PersianString.Duty</a>
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span>@rpt.State</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

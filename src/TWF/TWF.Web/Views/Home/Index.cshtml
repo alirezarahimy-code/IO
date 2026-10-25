@@ -1,0 +1,63 @@
+@model MyTime3.Models.HomeModel
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.HomePage;
+}
+
+<div class="twf-panel">
+    <div class="twf-panel-header">
+        <h2 class="twf-panel-title">@MyTime3.Content.PersianString.PersonalInformation</h2>
+        <span class="twf-badge twf-badge-neutral">@MyTime3.Content.PersianString.HomePage</span>
+    </div>
+    <div class="twf-panel-body">
+        @if (Model != null && Model.UserInfo != null)
+        {
+            <div class="twf-grid-3">
+                <div class="twf-stat-card">
+                    <div class="twf-stat-label">@MyTime3.Content.PersianString.BadgeNumber</div>
+                    <div class="twf-stat-value twf-num">@Model.UserInfo.BadgeNumber</div>
+                </div>
+                <div class="twf-stat-card">
+                    <div class="twf-stat-label">@MyTime3.Content.PersianString.FullName</div>
+                    <div class="twf-stat-value">@Model.UserInfo.FirstName @Model.UserInfo.LastName</div>
+                </div>
+                <div class="twf-stat-card">
+                    <div class="twf-stat-label">@MyTime3.Content.PersianString.ChartTitle</div>
+                    <div class="twf-stat-value">@Model.UserInfo.TitleChartName</div>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.UserInfo.UpperTitleChartName))
+                {
+                    <div class="twf-stat-card">
+                        <div class="twf-stat-label">@MyTime3.Content.PersianString.UpperTitle</div>
+                        <div class="twf-stat-value">@Model.UserInfo.UpperTitleChartName</div>
+                    </div>
+                }
+                <div class="twf-stat-card">
+                    <div class="twf-stat-label">@MyTime3.Content.PersianString.WaitRequestsCount</div>
+                    <div class="twf-stat-value twf-num">
+                        @Model.RequestsCount
+                        @if (Model.RequestsCount > 0)
+                        {
+                            <a href="~/AcceptRequest/Index" class="twf-btn twf-btn-primary twf-btn-sm" style="margin-right: 12px;">@MyTime3.Content.PersianString.ViewWaitRequests</a>
+                        }
+                    </div>
+                </div>
+                <div class="twf-stat-card">
+                    <div class="twf-stat-label">@MyTime3.Content.PersianString.Deputy</div>
+                    <div class="twf-stat-value">
+                        @if (Model.Deputy != null && !string.IsNullOrEmpty(Model.Deputy.SelectedDeputyName))
+                        {
+                            <span>@Model.Deputy.SelectedDeputyName</span>
+                            <a href="~/Deputy/Index" class="twf-btn twf-btn-secondary twf-btn-sm" style="margin-right: 8px;">@MyTime3.Content.PersianString.RemoveDeputy</a>
+                        }
+                        else
+                        {
+                            <a href="~/Deputy/Index" class="twf-btn twf-btn-secondary twf-btn-sm">@MyTime3.Content.PersianString.SelectDeputy</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@Html.Action("WorkReport", "Home")

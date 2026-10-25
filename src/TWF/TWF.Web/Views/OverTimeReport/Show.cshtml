@@ -1,0 +1,96 @@
+@model IEnumerable<MyTime3.Models.OverTimeForDay>
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.OverTimeReport;
+    string fromDateHijri = ViewBag.fromDateHijri as string ?? "";
+    string toDateHijri = ViewBag.toDateHijri as string ?? "";
+    string[] selectedBadgeNumbers = ViewBag.selectedBadgeNumbers as string[] ?? new string[0];
+}
+
+<div class="twf-card">
+    <div class="twf-card-header">
+        <h3 class="twf-card-title">@MyTime3.Content.PersianString.OverTimeReport</h3>
+        @Html.ActionLink("بازگشت به فیلتر", "Index", "OverTimeReport", null, new { @class = "twf-btn" })
+    </div>
+    <div class="twf-card-body">
+        <div class="twf-table-wrap">
+            <table class="twf-table">
+                <thead>
+                    <tr>
+                        <th>@MyTime3.Content.PersianString.BadgeNumber</th>
+                        <th>@MyTime3.Content.PersianString.Name</th>
+                        <th>@MyTime3.Content.PersianString.Date</th>
+                        <th>@MyTime3.Content.PersianString.OTBeforeReal</th>
+                        <th>@MyTime3.Content.PersianString.OTBeforeLast</th>
+                        <th>@MyTime3.Content.PersianString.OTAfterReal</th>
+                        <th>@MyTime3.Content.PersianString.OTAfterLast</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null)
+                    {
+                        foreach (MyTime3.Models.OverTimeForDay req in Model)
+                        {
+                            <tr>
+                                <td class="twf-num">@req.BadgeNumber</td>
+                                <td>@req.Name</td>
+                                <td class="twf-num" dir="ltr">@req.ForDate</td>
+                                <td class="twf-num" dir="ltr">
+                                    @if (req.BeforeValueReal != req.BeforeValueLast && req.BeforeValueReal != "-")
+                                    {
+                                        <span class="twf-badge twf-badge-danger">@req.BeforeValueReal</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@req.BeforeValueReal</span>
+                                    }
+                                </td>
+                                <td>
+                                    @using (Html.BeginForm("ChangeBefore", "OverTimeReport", FormMethod.Post, new { style = "display:flex; gap:6px; align-items:center;" }))
+                                    {
+                                        <input type="hidden" name="fromDateHijri" value="@fromDateHijri" />
+                                        <input type="hidden" name="toDateHijri" value="@toDateHijri" />
+                                        foreach (string s in selectedBadgeNumbers)
+                                        {
+                                            <input type="hidden" name="allBadgeNumbers" value="@s" />
+                                        }
+                                        <input type="hidden" name="badgeNumber" value="@req.BadgeNumber" />
+                                        <input type="hidden" name="forDate" value="@req.ForDate" />
+                                        <input type="text" name="requredValue" class="twf-input twf-num" dir="ltr" style="width:90px; padding:4px;" value="@req.BeforeValueLast" />
+                                        <button type="submit" name="actionType" value="@MyTime3.Content.PersianString.OK" class="twf-btn twf-btn-primary">@MyTime3.Content.PersianString.OK</button>
+                                        <button type="submit" name="actionType" value="@MyTime3.Content.PersianString.Cancel" class="twf-btn twf-btn-danger">@MyTime3.Content.PersianString.Cancel</button>
+                                    }
+                                </td>
+                                <td class="twf-num" dir="ltr">
+                                    @if (req.AfterValueReal != req.AfterValueLast && req.AfterValueReal != "-")
+                                    {
+                                        <span class="twf-badge twf-badge-danger">@req.AfterValueReal</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@req.AfterValueReal</span>
+                                    }
+                                </td>
+                                <td>
+                                    @using (Html.BeginForm("ChangeAfter", "OverTimeReport", FormMethod.Post, new { style = "display:flex; gap:6px; align-items:center;" }))
+                                    {
+                                        <input type="hidden" name="fromDateHijri" value="@fromDateHijri" />
+                                        <input type="hidden" name="toDateHijri" value="@toDateHijri" />
+                                        foreach (string s in selectedBadgeNumbers)
+                                        {
+                                            <input type="hidden" name="allBadgeNumbers" value="@s" />
+                                        }
+                                        <input type="hidden" name="badgeNumber" value="@req.BadgeNumber" />
+                                        <input type="hidden" name="forDate" value="@req.ForDate" />
+                                        <input type="text" name="requredValue" class="twf-input twf-num" dir="ltr" style="width:90px; padding:4px;" value="@req.AfterValueLast" />
+                                        <button type="submit" name="actionType" value="@MyTime3.Content.PersianString.OK" class="twf-btn twf-btn-primary">@MyTime3.Content.PersianString.OK</button>
+                                        <button type="submit" name="actionType" value="@MyTime3.Content.PersianString.Cancel" class="twf-btn twf-btn-danger">@MyTime3.Content.PersianString.Cancel</button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

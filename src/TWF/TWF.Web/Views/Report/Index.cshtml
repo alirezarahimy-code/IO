@@ -1,0 +1,67 @@
+@model MyTime3.Models.ReportModel
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.ViewReport;
+    var reports = ViewBag.Reports as List<SelectListItem> ?? new List<SelectListItem>();
+    bool allowExport = (bool)MyTime3.Controllers.SettingsController.LoadValue("ReportExport", typeof(bool), true);
+}
+
+<div class="twf-card">
+    <div class="twf-card-header">
+        <h3 class="twf-card-title">@MyTime3.Content.PersianString.ViewReport</h3>
+    </div>
+    <div class="twf-card-body">
+        @using (Html.BeginForm("Report", "Report", FormMethod.Post, new { id = "reportForm", @class = "twf-form", target = "reportIframe" }))
+        {
+            <div class="twf-grid" style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-bottom:16px;">
+                <div class="twf-field">
+                    <label class="twf-label">@MyTime3.Content.PersianString.ReportName</label>
+                    <select name="ReportID" id="ReportID" class="twf-select" required>
+                        @foreach (var r in reports)
+                        {
+                            <option value="@r.Value" @(r.Selected ? "selected=\"selected\"" : "")>@r.Text</option>
+                        }
+                    </select>
+                </div>
+                <div class="twf-field">
+                    <label class="twf-label">@MyTime3.Content.PersianString.FromDate</label>
+                    <input type="text" name="FromDateHijri" class="twf-input twf-num datepicker-farsi" dir="ltr" required />
+                </div>
+                <div class="twf-field">
+                    <label class="twf-label">@MyTime3.Content.PersianString.ToDate</label>
+                    <input type="text" name="ToDateHijri" class="twf-input twf-num datepicker-farsi" dir="ltr" required />
+                </div>
+                @if (allowExport)
+                {
+                    <div class="twf-field">
+                        <label class="twf-label">@MyTime3.Content.PersianString.FileType</label>
+                        <select name="exportType" id="exportType" class="twf-select">
+                            <option value="EXCEL">EXCEL</option>
+                            <option value="PDF">PDF</option>
+                            <option value="WORD">WORD</option>
+                        </select>
+                    </div>
+                }
+            </div>
+
+            <div style="margin-bottom:16px;">
+                @Html.Partial("~/Views/Shared/_SelectMultiUser.cshtml")
+            </div>
+
+            <div class="twf-actions" style="display:flex; gap:10px;">
+                <button type="submit" name="action" value="@MyTime3.Content.PersianString.ShowReport" class="twf-btn twf-btn-primary">
+                    @MyTime3.Content.PersianString.ShowReport
+                </button>
+                @if (allowExport)
+                {
+                    <button type="submit" name="action" value="@MyTime3.Content.PersianString.DownloadExportFile" class="twf-btn">
+                        @MyTime3.Content.PersianString.DownloadExportFile
+                    </button>
+                }
+            </div>
+        }
+
+        <div style="margin-top:20px;">
+            <iframe name="reportIframe" id="reportIframe" style="width:100%; min-height:560px; border:1px solid var(--twf-border); border-radius:4px; background:#fff;"></iframe>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,48 @@
+@model MyTime3.Models.DailyExitRequest
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.RequestDailyDuty;
+    var dailyDutyTypes = ViewBag.DailyDutyTypes as List<SelectListItem> ?? new List<SelectListItem>();
+    var dutyDescs = ViewBag.DutyDescriptions as List<SelectListItem> ?? new List<SelectListItem>();
+}
+
+<div class="twf-panel">
+    <div class="twf-panel-header">
+        <h2 class="twf-panel-title">@MyTime3.Content.PersianString.RequestDailyDuty</h2>
+    </div>
+    <div class="twf-panel-body">
+        @if (!string.IsNullOrEmpty(ViewBag.Message as string))
+        {
+            var isOk = (ViewBag.Message as string) == MyTime3.Content.PersianString.InsertSuccess;
+            <div class="twf-alert @(isOk ? "twf-alert-success" : "twf-alert-danger")">@ViewBag.Message</div>
+        }
+
+        @using (Html.BeginForm("Add", "DailyDuty", FormMethod.Post))
+        {
+            <div class="twf-grid-2">
+                <div class="twf-form-group">
+                    @Html.Label(MyTime3.Content.PersianString.DutyType, new { @class = "twf-label" })
+                    @Html.DropDownListFor(m => m.LeaveID, dailyDutyTypes, new { @class = "twf-select" })
+                </div>
+                <div class="twf-form-group">
+                    @Html.Label(MyTime3.Content.PersianString.FromDate, new { @class = "twf-label" })
+                    @Html.TextBoxFor(m => m.ForDateHijri, new { @class = "twf-input datepicker-farsi twf-num" })
+                </div>
+                <div class="twf-form-group">
+                    @Html.Label(MyTime3.Content.PersianString.ToDate, new { @class = "twf-label" })
+                    @Html.TextBoxFor(m => m.ToDateHijri, new { @class = "twf-input datepicker-farsi twf-num" })
+                </div>
+                <div class="twf-form-group">
+                    @Html.Label(MyTime3.Content.PersianString.Descriptions, new { @class = "twf-label" })
+                    @Html.DropDownListFor(m => m.LeaveDescriptionID, dutyDescs, new { @class = "twf-select" })
+                </div>
+                <div class="twf-form-group">
+                    @Html.Label(MyTime3.Content.PersianString.Descriptions, new { @class = "twf-label" })
+                    @Html.TextBoxFor(m => m.Descriptions, new { @class = "twf-input" })
+                </div>
+            </div>
+            <div style="margin-top: 20px;">
+                <input type="submit" class="twf-btn twf-btn-primary" value="@MyTime3.Content.PersianString.OK" />
+            </div>
+        }
+    </div>
+</div>

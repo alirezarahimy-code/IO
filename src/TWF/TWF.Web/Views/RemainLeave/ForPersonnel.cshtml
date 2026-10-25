@@ -1,0 +1,13 @@
+@model MyTime3.Models.RemainLeave
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.RemainLeave;
+}
+
+<div class="twf-card">
+    <div class="twf-card-header">
+        <h3 class="twf-card-title">@MyTime3.Content.PersianString.RemainLeave</h3>
+    </div>
+    <div class="twf-card-body">
+        @Html.Partial("~/Views/Shared/_RemainLeave.cshtml", Model)
+    </div>
+</div>

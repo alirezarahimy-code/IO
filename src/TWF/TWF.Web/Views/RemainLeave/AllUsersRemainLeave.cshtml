@@ -1,0 +1,47 @@
+@model List<MyTime3.Models.RemainLeave>
+@{
+    Layout = null;
+}
+
+@if (Model != null && Model.Count > 0)
+{
+    <div class="twf-table-wrap">
+        <table class="twf-table">
+            <thead>
+                <tr>
+                    <th>@MyTime3.Content.PersianString.BadgeNumber</th>
+                    <th>@MyTime3.Content.PersianString.Name</th>
+                    <th>@MyTime3.Content.PersianString.LeaveType</th>
+                    <th>@MyTime3.Content.PersianString.DailyTaken</th>
+                    <th>@MyTime3.Content.PersianString.HourlyTaken</th>
+                    <th>@MyTime3.Content.PersianString.Taken</th>
+                    <th>@MyTime3.Content.PersianString.Requested</th>
+                    <th>@MyTime3.Content.PersianString.Remain</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (MyTime3.Models.RemainLeave rl in Model)
+                {
+                    <tr>
+                        <td class="twf-num">@rl.BadgeNumber</td>
+                        <td>@rl.Name</td>
+                        <td>@rl.LeaveTypeName</td>
+                        <td class="twf-num">@rl.DailyTaken</td>
+                        <td class="twf-num">@rl.HourlyTaken</td>
+                        <td class="twf-num">@rl.TotalTaken.ToString("0.00")</td>
+                        <td class="twf-num">@rl.Requested.ToString("0.00")</td>
+                        <td class="twf-num">
+                            <span class="twf-badge @(rl.Remain >= 0 ? "twf-badge-success" : "twf-badge-danger")">
+                                @rl.Remain.ToString("0.00")
+                            </span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="twf-alert twf-alert-info">اطلاعات مانده مرخصی جهت نمایش یافت نشد.</div>
+}

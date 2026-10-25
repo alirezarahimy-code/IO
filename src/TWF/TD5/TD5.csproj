@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{D5000000-0000-0000-0000-000000000005}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>TD5</RootNamespace>
+    <AssemblyName>TD5</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Dapper">
+      <HintPath>..\..\..\TWF 4.28\App\bin\Dapper.dll</HintPath>
+    </Reference>
+    <Reference Include="T5V3.Model">
+      <HintPath>..\..\..\TWF 4.28\App\bin\T5V3.Model.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TD5\Init.cs" />
+    <Compile Include="TD5\Repo.cs" />
+    <Compile Include="TD5.Model\DapType.cs" />
+    <Compile Include="TD5.Model\DapQuery.cs" />
+    <Compile Include="TD5.Model\Request.cs" />
+    <Compile Include="TD5.Controllers\Execution.cs" />
+    <Compile Include="TD5.Controllers\CalendarControllers.cs" />
+    <Compile Include="TD5.Controllers\DepartmentRuleControllers.cs" />
+    <Compile Include="TD5.Controllers\UserRuleControllers.cs" />
+    <Compile Include="TD5.Controllers\LeaveTypeControllers.cs" />
+    <Compile Include="TD5.Controllers\RequestController.cs" />
+    <Compile Include="TD5.Controllers\UserInfoController.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

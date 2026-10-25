@@ -1,0 +1,19 @@
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.LockError;
+}
+
+<div class="twf-card">
+    <div class="twf-card-header">
+        <h3 class="twf-card-title">وضعیت قفل سامانه (Zero-Lock Active)</h3>
+    </div>
+    <div class="twf-card-body">
+        <div class="twf-alert twf-alert-success">
+            وابستگی به قفل سخت‌افزاری (TINY) به طور کامل حذف شده است و سامانه بدون محدودیت لایسنس فعال می‌باشد.
+        </div>
+        @if (ViewBag.LockErrorText != null)
+        {
+            <p>@ViewBag.LockErrorText</p>
+        }
+        @Html.ActionLink(MyTime3.Content.PersianString.RetryCheck, "RetryCheck", "Login", null, new { @class = "twf-btn twf-btn-primary" })
+    </div>
+</div>

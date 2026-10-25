@@ -1,0 +1,13 @@
+@if (string.IsNullOrEmpty(MyTime3.Authorization.LoginManager.GetBadgeNumber(Context)))
+{
+    @Html.ActionLink(string.Format("[{0}]", MyTime3.Content.PersianString.Login), "Login", "Login")
+}
+else
+{
+    <span class="twf-user-chip">@MyTime3.GlobalHelper.GetLoggedInUserName(Context)</span>
+    if (MyTime3.Authorization.LoginManager.GetRole(Context) == "admin")
+    {
+        <a rel="noopener noreferrer" href="~/Settings/Index" class="twf-btn twf-btn-secondary">[@MyTime3.Content.PersianString.Settings]</a>
+    }
+    @Html.ActionLink(string.Format("[{0}]", MyTime3.Content.PersianString.Logout), "Logout", "Login")
+}

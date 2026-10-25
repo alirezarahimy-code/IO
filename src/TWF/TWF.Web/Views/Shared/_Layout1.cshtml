@@ -1,0 +1,259 @@
+@using MyTime3.Content;
+@using MyTime3.Controllers;
+@using MyTime3.Authorization;
+@using MyTime3;
+@using MyTime3.Models;
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@PersianString.AppName</title>
+
+    <!-- 100% Offline Local Stylesheets (zero CDN / zero vendor framework) -->
+    <link href="~/Content/twf-industrial-ui.css" rel="stylesheet" />
+    <link href="~/favicon.ico" rel="icon" type="image/x-icon" />
+
+    <!-- 100% Offline Local Script (vanilla JS core, framework-free) -->
+    <script src="~/Scripts/twf-core.js"></script>
+</head>
+<body>
+    @{
+        var currentContext = HttpContext.Current != null ? HttpContext.Current.Request.RequestContext.HttpContext : Context;
+        string loggedInName = GlobalHelper.GetLoggedInUserName(currentContext);
+        string currentRole = LoginManager.GetRole(currentContext);
+        bool showSidebar = HomeController.SideMenu(currentContext);
+    }
+
+    <!-- Industrial Slate-Navy Top Command Header -->
+    <header class="twf-topbar">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            @if (!string.IsNullOrEmpty(loggedInName) && currentRole == "user")
+            {
+                <button type="button" class="twf-btn twf-btn-secondary" style="height: 32px; padding: 0 10px;" onclick="window.TWFUI.toggleSidebar()" title="نمایش / پنهان‌سازی منو">
+                    &#9776;
+                </button>
+            }
+            <a href="~/Home/Index" class="twf-topbar-brand" title="@MyTime3.Content.AriaBranding.ProductName">
+                <span class="twf-brand-mark">آ</span>
+                <span class="twf-brand-text">
+                    <span class="twf-brand-name">@PersianString.AppName</span>
+                    <span class="twf-brand-sub twf-num">@MyTime3.Content.AriaBranding.FullVersion &nbsp;·&nbsp; نسخه سازمانی</span>
+                </span>
+            </a>
+        </div>
+
+        <div class="twf-topbar-user">
+            @if (!string.IsNullOrEmpty(loggedInName))
+            {
+                <span class="twf-user-chip">
+                    <span>@PersianString.LoggedInMessage</span>
+                    <strong>@loggedInName</strong>
+                </span>
+                <a href="~/Login/ChangePassword" class="twf-btn twf-btn-secondary" style="height: 32px; padding: 0 12px; font-size: 12.5px;">
+                    @PersianString.ChangePassword
+                </a>
+                <a href="~/Login/Logout" class="twf-btn twf-btn-danger" style="height: 32px; padding: 0 12px; font-size: 12.5px;">
+                    @PersianString.Logout
+                </a>
+            }
+            else if (currentRole == "admin")
+            {
+                <span class="twf-user-chip">
+                    <strong>مدیر سیستم (Admin)</strong>
+                </span>
+                <a href="~/Login/Logout" class="twf-btn twf-btn-danger" style="height: 32px; padding: 0 12px; font-size: 12.5px;">
+                    @PersianString.Logout
+                </a>
+            }
+        </div>
+    </header>
+
+    <div class="twf-shell">
+        @if (!string.IsNullOrEmpty(loggedInName) && currentRole == "user")
+        {
+            <aside id="twf-sidebar" class="twf-sidebar @(showSidebar ? "" : "collapsed")">
+                <div class="twf-sidebar-profile">
+                    @if (TitleChartClass.user != null && TitleChartClass.user.BadgeNumber > 0)
+                    {
+                        <div class="twf-emp-name">@TitleChartClass.user.Name</div>
+                        <div class="twf-emp-meta twf-num">شماره کارت: @TitleChartClass.user.BadgeNumber</div>
+                        if (!string.IsNullOrEmpty(TitleChartClass.user.TitleChartName))
+                        {
+                            <div class="twf-emp-meta">سمت: @TitleChartClass.user.TitleChartName</div>
+                        }
+                        if (!string.IsNullOrEmpty(TitleChartClass.user.UpperTitleChartName))
+                        {
+                            <div class="twf-emp-meta">مقام مسئول: @TitleChartClass.user.UpperTitleChartName</div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="twf-emp-name">@loggedInName</div>
+                    }
+                </div>
+
+                <ul class="twf-nav-list">
+                    <li class="twf-nav-item">
+                        <a href="~/Home/Index" class="twf-nav-link">
+                            <span>@PersianString.HomePage</span>
+                        </a>
+                    </li>
+
+                    @if (LeavesReportController.isObs(currentContext))
+                    {
+                        <li class="twf-nav-item">
+                            <a href="~/LeavesReport/Index" class="twf-nav-link">
+                                <span>@PersianString.LeavesReport</span>
+                            </a>
+                        </li>
+                    }
+
+                    @if (RequestController.ViewDailyLeave(currentContext) || RequestController.ViewHourlyLeave(currentContext))
+                    {
+                        <li class="twf-nav-item">
+                            <a href="#" class="twf-nav-link" data-twf-submenu="sub-leave">
+                                <span>@PersianString.RequestLeave</span>
+                                <span>&#9662;</span>
+                            </a>
+                            <ul id="sub-leave" class="twf-subnav">
+                                @if (RequestController.ViewDailyLeave(currentContext))
+                                {
+                                    <li><a href="~/DailyLeave/Index">@PersianString.DailyLeaveRequest</a></li>
+                                }
+                                @if (RequestController.ViewHourlyLeave(currentContext))
+                                {
+                                    <li><a href="~/HourlyLeave/Index">@PersianString.HourlyLeaveRequest</a></li>
+                                }
+                            </ul>
+                        </li>
+                    }
+
+                    @if (RequestController.ViewDailyDuty(currentContext) || RequestController.ViewHourlyDuty(currentContext))
+                    {
+                        <li class="twf-nav-item">
+                            <a href="#" class="twf-nav-link" data-twf-submenu="sub-duty">
+                                <span>@PersianString.RequestDuty</span>
+                                <span>&#9662;</span>
+                            </a>
+                            <ul id="sub-duty" class="twf-subnav">
+                                @if (RequestController.ViewDailyDuty(currentContext))
+                                {
+                                    <li><a href="~/DailyDuty/Index">@PersianString.DailyDutyRequest</a></li>
+                                }
+                                @if (RequestController.ViewHourlyDuty(currentContext))
+                                {
+                                    <li><a href="~/HourlyDuty/Index">@PersianString.HourlyDutyRequest</a></li>
+                                }
+                            </ul>
+                        </li>
+                    }
+
+                    @if (RequestController.RequestRecord(currentContext) || RequestController.AllowValidLate(currentContext))
+                    {
+                        <li class="twf-nav-item">
+                            <a href="#" class="twf-nav-link" data-twf-submenu="sub-records">
+                                <span>@PersianString.ForgetRecords</span>
+                                <span>&#9662;</span>
+                            </a>
+                            <ul id="sub-records" class="twf-subnav">
+                                @if (RequestController.RequestRecord(currentContext))
+                                {
+                                    <li><a href="~/Record/Index">@PersianString.RequestRecord</a></li>
+                                }
+                                @if (RequestController.AllowValidLate(currentContext))
+                                {
+                                    <li><a href="~/Late/Index">@PersianString.ValidLate</a></li>
+                                    <li><a href="~/Early/Index">@PersianString.ValidEarly</a></li>
+                                }
+                            </ul>
+                        </li>
+                    }
+
+                    <li class="twf-nav-item">
+                        <a href="#" class="twf-nav-link" data-twf-submenu="sub-reports">
+                            <span>@PersianString.Reports</span>
+                            <span>&#9662;</span>
+                        </a>
+                        <ul id="sub-reports" class="twf-subnav">
+                            <li><a href="~/Report/Index">@PersianString.ReportInOuts</a></li>
+                            <li><a href="~/RemainLeave/Index">@PersianString.RemainLeave</a></li>
+                            <li><a href="~/OverTimeReport/Index">@PersianString.OverTimeReport</a></li>
+                            @if (RequestController.ViewAcceptRequestMenu(currentContext))
+                            {
+                                <li><a href="~/PersonnelStatus/Index">@PersianString.PersonnelNow</a></li>
+                                <li><a href="~/LocationReport/Index">@PersianString.LocationReport</a></li>
+                            }
+                        </ul>
+                    </li>
+
+                    @if (RequestController.ViewAcceptRequestMenu(currentContext))
+                    {
+                        <li class="twf-nav-item">
+                            <a href="#" class="twf-nav-link" data-twf-submenu="sub-manager">
+                                <span>@PersianString.ManagementMenu</span>
+                                <span>&#9662;</span>
+                            </a>
+                            <ul id="sub-manager" class="twf-subnav">
+                                @if (RequestController.ViewOverTimeRequest(currentContext))
+                                {
+                                    <li><a href="~/OverTime/Index">@PersianString.OverTimeRequest</a></li>
+                                }
+                                @if (RequestController.ViewRewardRequest(currentContext))
+                                {
+                                    <li><a href="~/Reward/Index">@PersianString.RewardRequest</a></li>
+                                }
+                                <li><a href="~/AcceptRequest/Index">@PersianString.AcceptRequests</a></li>
+                                <li><a href="~/Undo/Index">@PersianString.UndoRequests</a></li>
+                                @if (RequestController.ViewConstOT(currentContext))
+                                {
+                                    <li><a href="~/ConstOT/Index">@PersianString.ConstOverTime</a></li>
+                                }
+                                @if (RequestController.RequestForUsers(currentContext))
+                                {
+                                    <li><a href="~/Request/Index">@PersianString.RequestForUser</a></li>
+                                }
+                                <li><a href="~/Deputy/Index">@PersianString.SelectDeputy</a></li>
+                            </ul>
+                        </li>
+                    }
+
+                    <li class="twf-nav-item">
+                        <a href="#" class="twf-nav-link" data-twf-submenu="sub-tracking">
+                            <span>@PersianString.RequestsMenu</span>
+                            <span>&#9662;</span>
+                        </a>
+                        <ul id="sub-tracking" class="twf-subnav">
+                            <li><a href="~/ShowRequest/Index">@PersianString.ShowRequests</a></li>
+                            <li><a href="~/EditRequest/Index">@PersianString.EditRequests</a></li>
+                            @if (RequestController.ViewAcceptRequestMenu(currentContext))
+                            {
+                                <li><a href="~/ShowUsersRequest/Index">@PersianString.ShowUsersRequests</a></li>
+                            }
+                        </ul>
+                    </li>
+
+                    @if (HomeController.CanDownloadNoti5(currentContext))
+                    {
+                        <li class="twf-nav-item">
+                            <a href="~/Home/GetNoti5" class="twf-nav-link">
+                                <span>@PersianString.DownloadNoti5</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </aside>
+        }
+
+        <main class="twf-workspace" id="body">
+            @RenderSection("featured", required: false)
+            <section class="content-wrapper main-content clear-fix">
+                @RenderBody()
+            </section>
+        </main>
+    </div>
+
+    @RenderSection("scripts", required: false)
+</body>
+</html>

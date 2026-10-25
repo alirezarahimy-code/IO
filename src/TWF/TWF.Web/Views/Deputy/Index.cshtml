@@ -1,0 +1,44 @@
+@model MyTime3.Models.Deputy
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.Deputy;
+    ViewData["shownodeputy"] = true;
+    ViewData["deputyReturnToHome"] = false;
+}
+
+<div class="twf-card">
+    <div class="twf-card-header">
+        <h3 class="twf-card-title">@MyTime3.Content.PersianString.Deputy</h3>
+    </div>
+    <div class="twf-card-body">
+        <div class="twf-alert" style="margin-bottom:16px;">
+            @Html.Partial("~/Views/Deputy/_CurrentDeputy.cshtml", Model, ViewData)
+        </div>
+
+        <h4 style="margin-bottom:12px;">@MyTime3.Content.PersianString.SelectDeputy</h4>
+
+        @using (Html.BeginForm("Add", "Deputy", FormMethod.Post, new { @class = "twf-form" }))
+        {
+            if (ViewBag.Message != null)
+            {
+                <div class="twf-alert twf-alert-danger">@ViewBag.Message</div>
+            }
+
+            <div class="twf-grid" style="grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:10px; margin-bottom:16px;">
+                @if (Model != null && Model.ValidList != null)
+                {
+                    foreach (Personnel.Model.UserInfo usr in Model.ValidList)
+                    {
+                        <label for="rad@(usr.BadgeNumber)" class="twf-card" style="padding:10px; cursor:pointer; display:flex; align-items:center; gap:8px;">
+                            <input id="rad@(usr.BadgeNumber)" type="radio" name="selectedBadgeNumber" value="@usr.BadgeNumber" />
+                            <span>@usr.ToString() (<span class="twf-num">@usr.BadgeNumber</span>)</span>
+                        </label>
+                    }
+                }
+            </div>
+
+            <div class="twf-actions">
+                <button type="submit" class="twf-btn twf-btn-primary">@MyTime3.Content.PersianString.OK</button>
+            </div>
+        }
+    </div>
+</div>

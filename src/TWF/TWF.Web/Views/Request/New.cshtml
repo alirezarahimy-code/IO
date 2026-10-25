@@ -1,0 +1,140 @@
+@model MyTime3.Models.NewRequestForm
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.NewRequest;
+    var leaveTypes = ViewBag.LeaveTypes as List<T5V3.Model.LeaveType> ?? new List<T5V3.Model.LeaveType>();
+    var leaveDescs = ViewBag.LeaveDescriptions as List<T5V3.Model.LeaveDescription> ?? new List<T5V3.Model.LeaveDescription>();
+}
+
+<div class="twf-panel">
+    <div class="twf-panel-header">
+        <h2 class="twf-panel-title">
+            @if (Model != null && !Model.IsNew)
+            {
+                @MyTime3.Content.PersianString.EditRequest
+            }
+            else
+            {
+                @MyTime3.Content.PersianString.NewRequest
+            }
+        </h2>
+        <span class="twf-badge twf-badge-neutral">گردش کار یکپارچه</span>
+    </div>
+    <div class="twf-panel-body">
+        @if (Model != null && !string.IsNullOrEmpty(Model.Error))
+        {
+            var isOk = Model.Error == MyTime3.Content.PersianString.InsertSuccess;
+            <div class="twf-alert @(isOk ? "twf-alert-success" : "twf-alert-danger")">
+                @Model.Error
+            </div>
+        }
+
+        <form action="@Url.Action("AddRequest", "Request")" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="IsNew" value="@(Model != null ? Model.IsNew.ToString() : "True")" />
+            <input type="hidden" name="RequestID" value="@(Model != null ? Model.RequestID : 0)" />
+            <input type="hidden" name="FromUserID" value="@(Model != null ? Model.FromUserID : 0)" />
+
+            <div class="twf-grid-2">
+                <div class="twf-form-group">
+                    <label class="twf-label" for="RequestType">@MyTime3.Content.PersianString.RequestType</label>
+                    <select id="RequestType" name="RequestType" class="twf-select" onchange="twfToggleUnifiedRequestFields()">
+                        <option value="0" @(Model != null && Model.RequestType == 0 ? "selected" : "")>@MyTime3.Content.PersianString.DailyLeave</option>
+                        <option value="1" @(Model != null && Model.RequestType == 1 ? "selected" : "")>@MyTime3.Content.PersianString.HourlyLeave</option>
+                        <option value="2" @(Model != null && Model.RequestType == 2 ? "selected" : "")>@MyTime3.Content.PersianString.DailyDuty</option>
+                        <option value="3" @(Model != null && Model.RequestType == 3 ? "selected" : "")>@MyTime3.Content.PersianString.HourlyDuty</option>
+                        <option value="4" @(Model != null && Model.RequestType == 4 ? "selected" : "")>@MyTime3.Content.PersianString.InsertRecord</option>
+                        <option value="5" @(Model != null && Model.RequestType == 5 ? "selected" : "")>@MyTime3.Content.PersianString.Late</option>
+                        <option value="6" @(Model != null && Model.RequestType == 6 ? "selected" : "")>@MyTime3.Content.PersianString.Early</option>
+                        @if ((bool)MyTime3.Controllers.SettingsController.LoadValue("OvertimeRequest", typeof(bool), true))
+                        {
+                            <option value="7" @(Model != null && Model.RequestType == 7 ? "selected" : "")>@MyTime3.Content.PersianString.OverTime</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="twf-form-group" id="twfSubTypeGroup">
+                    <label class="twf-label" for="TypeID">@MyTime3.Content.PersianString.Type</label>
+                    <select id="TypeID" name="TypeID" class="twf-select">
+                        @foreach (var lt in leaveTypes)
+                        {
+                            <option value="@lt.LeaveTypeID"
+                                    data-is-duty="@(lt.LeaveType1 == T5V3.Model.LeaveTypeEnum.Duty ? "1" : "0")"
+                                    data-is-hourly="@(lt.IsHourly ? "1" : "0")"
+                                    @(Model != null && Model.TypeID == lt.LeaveTypeID ? "selected" : "")>
+                                @lt.LeaveName
+                            </option>
+                        }
+                        <option value="0" data-is-overtime="1" @(Model != null && Model.TypeID == 0 ? "selected" : "")>@MyTime3.Content.PersianString.Early</option>
+                        <option value="1" data-is-overtime="1" @(Model != null && Model.TypeID == 1 ? "selected" : "")>@MyTime3.Content.PersianString.Late</option>
+                        <option value="2" data-is-overtime="1" @(Model != null && Model.TypeID == 2 ? "selected" : "")>@MyTime3.Content.PersianString.EarlyAndLate</option>
+                    </select>
+                </div>
+
+                <div class="twf-form-group" id="twfForDateGroup">
+                    <label class="twf-label" for="ForDate">@MyTime3.Content.PersianString.Date / @MyTime3.Content.PersianString.FromDate</label>
+                    <input type="text" id="ForDate" name="ForDate" class="twf-input datepicker-farsi twf-num" value="@(Model != null ? Model.ForDate : "")" required />
+                </div>
+
+                <div class="twf-form-group" id="twfToDateGroup">
+                    <label class="twf-label" for="ToDate">@MyTime3.Content.PersianString.ToDate</label>
+                    <input type="text" id="ToDate" name="ToDate" class="twf-input datepicker-farsi twf-num" value="@(Model != null ? Model.ToDate : "")" />
+                </div>
+
+                <div class="twf-form-group" id="twfFromTimeGroup">
+                    <label class="twf-label" for="FromTime">@MyTime3.Content.PersianString.FromTime / @MyTime3.Content.PersianString.Time</label>
+                    <input type="text" id="FromTime" name="FromTime" class="twf-input timeInput twf-num" placeholder="08:00" value="@(Model != null ? Model.FromTime : "")" />
+                </div>
+
+                <div class="twf-form-group" id="twfToTimeGroup">
+                    <label class="twf-label" for="ToTime">@MyTime3.Content.PersianString.ToTime</label>
+                    <input type="text" id="ToTime" name="ToTime" class="twf-input timeInput twf-num" placeholder="16:00" value="@(Model != null ? Model.ToTime : "")" />
+                </div>
+
+                <div class="twf-form-group" id="twfDescTypeGroup">
+                    <label class="twf-label" for="LeaveDescriptionTypeID">علت درخواست</label>
+                    <select id="LeaveDescriptionTypeID" name="LeaveDescriptionTypeID" class="twf-select">
+                        <option value="-1">-- انتخاب علت --</option>
+                        @foreach (var ld in leaveDescs)
+                        {
+                            <option value="@ld.ID" @(Model != null && Model.LeaveDescriptionTypeID == ld.ID ? "selected" : "")>@ld.Description</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="twf-form-group">
+                    <label class="twf-label" for="Description">@MyTime3.Content.PersianString.Descriptions</label>
+                    <input type="text" id="Description" name="Description" class="twf-input" value="@(Model != null ? Model.Description : "")" />
+                </div>
+
+                <div class="twf-form-group">
+                    <label class="twf-label" for="file">فایل پیوست (اختیاری - تصویر مستندات)</label>
+                    <input type="file" id="file" name="file" class="twf-input" accept=".jpg,.jpeg,.png" />
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <button type="submit" class="twf-btn twf-btn-primary">@MyTime3.Content.PersianString.OK</button>
+                <a href="~/EditRequest/Index" class="twf-btn twf-btn-secondary">@MyTime3.Content.PersianString.EditRequest</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function twfToggleUnifiedRequestFields() {
+        var reqTypeEl = document.getElementById('RequestType');
+        if (!reqTypeEl) return;
+        var rt = parseInt(reqTypeEl.value, 10);
+        var toDateGroup = document.getElementById('twfToDateGroup');
+        var fromTimeGroup = document.getElementById('twfFromTimeGroup');
+        var toTimeGroup = document.getElementById('twfToTimeGroup');
+        var subTypeGroup = document.getElementById('twfSubTypeGroup');
+        var descTypeGroup = document.getElementById('twfDescTypeGroup');
+
+        if (toDateGroup) toDateGroup.style.display = (rt === 0 || rt === 2) ? '' : 'none';
+        if (fromTimeGroup) fromTimeGroup.style.display = (rt === 1 || rt === 3 || rt === 4 || rt === 7) ? '' : 'none';
+        if (toTimeGroup) toTimeGroup.style.display = (rt === 1 || rt === 3) ? '' : 'none';
+        if (subTypeGroup) subTypeGroup.style.display = (rt === 0 || rt === 1 || rt === 2 || rt === 3 || rt === 7) ? '' : 'none';
+        if (descTypeGroup) descTypeGroup.style.display = (rt === 0 || rt === 1 || rt === 2 || rt === 3) ? '' : 'none';
+    }
+    document.addEventListener('DOMContentLoaded', twfToggleUnifiedRequestFields);
+</script>

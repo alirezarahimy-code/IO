@@ -1,0 +1,54 @@
+@model MyTime3.Models.HourlyExitRequest
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.EditHourlyLeave;
+    var hourlyLeaveTypes = ViewBag.HourlyLeaveTypes as List<SelectListItem> ?? new List<SelectListItem>();
+    var leaveDescs = ViewBag.LeaveDescriptions as List<SelectListItem> ?? new List<SelectListItem>();
+}
+
+<div class="twf-panel">
+    <div class="twf-panel-header">
+        <h2 class="twf-panel-title">@MyTime3.Content.PersianString.EditHourlyLeave</h2>
+    </div>
+    <div class="twf-panel-body">
+        @if (!string.IsNullOrEmpty(ViewBag.Message as string))
+        {
+            var isOk = (ViewBag.Message as string) == MyTime3.Content.PersianString.InsertSuccess;
+            <div class="twf-alert @(isOk ? "twf-alert-success" : "twf-alert-danger")">@ViewBag.Message</div>
+        }
+
+        @using (Html.BeginForm("Edit", "HourlyLeave", FormMethod.Post))
+        {
+            @Html.HiddenFor(m => m.RequestID)
+            <div class="twf-grid-2">
+                <div class="twf-form-group">
+                    @Html.Label(MyTime3.Content.PersianString.LeaveType, new { @class = "twf-label" })
+                    @Html.DropDownListFor(m => m.LeaveID, hourlyLeaveTypes, new { @class = "twf-select" })
+                </div>
+                <div class="twf-form-group">
+                    @Html.Label(MyTime3.Content.PersianString.Date, new { @class = "twf-label" })
+                    @Html.TextBoxFor(m => m.ForDateHijri, new { @class = "twf-input datepicker-farsi twf-num" })
+                </div>
+                <div class="twf-form-group">
+                    @Html.Label(MyTime3.Content.PersianString.FromTime, new { @class = "twf-label" })
+                    @Html.TextBoxFor(m => m.FromTimeStr, new { @class = "twf-input timeInput twf-num", placeholder = "08:00" })
+                </div>
+                <div class="twf-form-group">
+                    @Html.Label(MyTime3.Content.PersianString.ToTime, new { @class = "twf-label" })
+                    @Html.TextBoxFor(m => m.ToTimeStr, new { @class = "twf-input timeInput twf-num", placeholder = "10:00" })
+                </div>
+                <div class="twf-form-group">
+                    @Html.Label(MyTime3.Content.PersianString.Descriptions, new { @class = "twf-label" })
+                    @Html.DropDownListFor(m => m.LeaveDescriptionID, leaveDescs, new { @class = "twf-select" })
+                </div>
+                <div class="twf-form-group">
+                    @Html.Label(MyTime3.Content.PersianString.Descriptions, new { @class = "twf-label" })
+                    @Html.TextBoxFor(m => m.Descriptions, new { @class = "twf-input" })
+                </div>
+            </div>
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <input type="submit" class="twf-btn twf-btn-primary" value="@MyTime3.Content.PersianString.OK" />
+                @Html.ActionLink(MyTime3.Content.PersianString.ReturnToEditRequest, "Index", "EditRequest", null, new { @class = "twf-btn twf-btn-secondary" })
+            </div>
+        }
+    </div>
+</div>

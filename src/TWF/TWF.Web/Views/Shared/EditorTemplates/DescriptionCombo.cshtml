@@ -1,0 +1,33 @@
+@model string
+<select name="Descriptions" class="twf-input" id="comboD">
+    @if (ViewBag.LeaveDescriptions != null)
+    {
+        foreach (T5V3.Model.LeaveDescription desc in ViewBag.LeaveDescriptions)
+        {
+            <option value="@desc.Description">@desc.Description</option>
+        }
+    }
+    <option value="--" id="OtherOption">@MyTime3.Content.PersianString.Other</option>
+</select>
+<input type="text" id="textD" class="twf-input" style="display: none; margin-top: 6px;" />
+
+<script type="text/javascript">
+    (function () {
+        var combo = document.getElementById('comboD');
+        var text = document.getElementById('textD');
+        if (!combo || !text) return;
+        combo.addEventListener('change', function () {
+            var selected = combo.options[combo.selectedIndex];
+            if (selected && selected.id === 'OtherOption') {
+                combo.setAttribute('name', 'NotTarget');
+                text.setAttribute('name', 'Descriptions');
+                text.style.display = 'block';
+                text.focus();
+            } else {
+                text.setAttribute('name', 'NotTarget');
+                text.style.display = 'none';
+                combo.setAttribute('name', 'Descriptions');
+            }
+        });
+    })();
+</script>

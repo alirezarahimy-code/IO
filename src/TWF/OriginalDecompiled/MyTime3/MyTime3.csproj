@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{67271FA7-92B1-414A-A3DF-C379A7938BF4}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <OutputType>Library</OutputType>
+    <AssemblyName>MyTime3</AssemblyName>
+    <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Platform)' == 'AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System.Web.Optimization">
+      <HintPath>/home/user/IO/TWF 4.28/App/bin/System.Web.Optimization.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Mvc">
+      <HintPath>/home/user/IO/TWF 4.28/App/bin/System.Web.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web">
+      <HintPath>/tmp/dotnet/package/shared/Microsoft.NETCore.App/2.0.0/System.Web.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Http">
+      <HintPath>/home/user/IO/TWF 4.28/App/bin/System.Web.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="Personnel">
+      <HintPath>/home/user/IO/TWF 4.28/App/bin/Personnel.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Core">
+      <HintPath>/tmp/dotnet/package/shared/Microsoft.NETCore.App/2.0.0/System.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="T5V3.Model">
+      <HintPath>/home/user/IO/TWF 4.28/App/bin/T5V3.Model.dll</HintPath>
+    </Reference>
+    <Reference Include="T5V3.DB">
+      <HintPath>/home/user/IO/TWF 4.28/App/bin/T5V3.DB.dll</HintPath>
+    </Reference>
+    <Reference Include="System">
+      <HintPath>/tmp/dotnet/package/shared/Microsoft.NETCore.App/2.0.0/System.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Drawing">
+      <HintPath>/tmp/dotnet/package/shared/Microsoft.NETCore.App/2.0.0/System.Drawing.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data">
+      <HintPath>/tmp/dotnet/package/shared/Microsoft.NETCore.App/2.0.0/System.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="T5V3.Attendance">
+      <HintPath>/home/user/IO/TWF 4.28/App/bin/T5V3.Attendance.dll</HintPath>
+    </Reference>
+    <Reference Include="T5V3.LeaveCalcs">
+      <HintPath>/home/user/IO/TWF 4.28/App/bin/T5V3.LeaveCalcs.dll</HintPath>
+    </Reference>
+    <Reference Include="TD5">
+      <HintPath>/home/user/IO/TWF 4.28/App/bin/TD5.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp">
+      <HintPath>/tmp/dotnet/package/shared/Microsoft.NETCore.App/2.0.0/Microsoft.CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Http.WebHost">
+      <HintPath>/home/user/IO/TWF 4.28/App/bin/System.Web.Http.WebHost.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Configuration">
+      <HintPath>/tmp/dotnet/package/shared/Microsoft.NETCore.App/2.0.0/System.Configuration.dll</HintPath>
+    </Reference>
+    <Reference Include="T5V3.Misc">
+      <HintPath>/home/user/IO/TWF 4.28/App/bin/T5V3.Misc.dll</HintPath>
+    </Reference>
+    <Reference Include="Dapper">
+      <HintPath>/home/user/IO/TWF 4.28/App/bin/Dapper.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework">
+      <HintPath>/home/user/IO/TWF 4.28/App/bin/EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml">
+      <HintPath>/tmp/dotnet/package/shared/Microsoft.NETCore.App/2.0.0/System.Xml.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.WebForms">
+      <HintPath>/home/user/IO/TWF 4.28/App/bin/Microsoft.ReportViewer.WebForms.dll</HintPath>
+    </Reference>
+    <Reference Include="T5V3.ReportGenerator">
+      <HintPath>/home/user/IO/TWF 4.28/App/bin/T5V3.ReportGenerator.dll</HintPath>
+    </Reference>
+    <Reference Include="CaptchaMvc">
+      <HintPath>/home/user/IO/TWF 4.28/App/bin/CaptchaMvc.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="MyTime3.Authorization/Encryption.cs" />
+    <Compile Include="MyTime3.Authorization/LoginManager.cs" />
+    <Compile Include="MyTime3.Content/ImagesResource.cs" />
+    <Compile Include="MyTime3.Content/Noti5.cs" />
+    <Compile Include="MyTime3.Content/PersianString.cs" />
+    <Compile Include="MyTime3.Controllers/AcceptRequestController.cs" />
+    <Compile Include="MyTime3.Controllers/ChangePassController.cs" />
+    <Compile Include="MyTime3.Controllers/ConstOTController.cs" />
+    <Compile Include="MyTime3.Controllers/DailyDutyController.cs" />
+    <Compile Include="MyTime3.Controllers/DailyLeaveController.cs" />
+    <Compile Include="MyTime3.Controllers/DBInitializer.cs" />
+    <Compile Include="MyTime3.Controllers/DeputyController.cs" />
+    <Compile Include="MyTime3.Controllers/DescriptionClass.cs" />
+    <Compile Include="MyTime3.Controllers/EarlyController.cs" />
+    <Compile Include="MyTime3.Controllers/EditRequestController.cs" />
+    <Compile Include="MyTime3.Controllers/HomeController.cs" />
+    <Compile Include="MyTime3.Controllers/HourlyDutyController.cs" />
+    <Compile Include="MyTime3.Controllers/HourlyLeaveController.cs" />
+    <Compile Include="MyTime3.Controllers/LateController.cs" />
+    <Compile Include="MyTime3.Controllers/LeavesReportController.cs" />
+    <Compile Include="MyTime3.Controllers/LocationReportController.cs" />
+    <Compile Include="MyTime3.Controllers/LoginController.cs" />
+    <Compile Include="MyTime3.Controllers/Misc.cs" />
+    <Compile Include="MyTime3.Controllers/NotificationManager.cs" />
+    <Compile Include="MyTime3.Controllers/NotifyController.cs" />
+    <Compile Include="MyTime3.Controllers/OverTimeController.cs" />
+    <Compile Include="MyTime3.Controllers/OverTimeReportController.cs" />
+    <Compile Include="MyTime3.Controllers/PersonnelStatusController.cs" />
+    <Compile Include="MyTime3.Controllers/RecordController.cs" />
+    <Compile Include="MyTime3.Controllers/RemainLeaveController.cs" />
+    <Compile Include="MyTime3.Controllers/ReportController.cs" />
+    <Compile Include="MyTime3.Controllers/RequestController.cs" />
+    <Compile Include="MyTime3.Controllers/RewardController.cs" />
+    <Compile Include="MyTime3.Controllers/SelectAreaController.cs" />
+    <Compile Include="MyTime3.Controllers/SettingsController.cs" />
+    <Compile Include="MyTime3.Controllers/ShowRequestController.cs" />
+    <Compile Include="MyTime3.Controllers/ShowUsersRequestController.cs" />
+    <Compile Include="MyTime3.Controllers/UndoController.cs" />
+    <Compile Include="MyTime3.Controllers/ViewRController.cs" />
+    <Compile Include="MyTime3.Lock/CheckLockResult.cs" />
+    <Compile Include="MyTime3.Lock/LockCheker.cs" />
+    <Compile Include="MyTime3.Lock/LockResult.cs" />
+    <Compile Include="MyTime3.Models/ADayReport.cs" />
+    <Compile Include="MyTime3.Models/AppExtraDataForRequest.cs" />
+    <Compile Include="MyTime3.Models/ChangePasswordModel.cs" />
+    <Compile Include="MyTime3.Models/DailyExitRequest.cs" />
+    <Compile Include="MyTime3.Models/DailyLeaveRequest.cs" />
+    <Compile Include="MyTime3.Models/Deputy.cs" />
+    <Compile Include="MyTime3.Models/GeneralRequest.cs" />
+    <Compile Include="MyTime3.Models/HomeModel.cs" />
+    <Compile Include="MyTime3.Models/HourlyExitRequest.cs" />
+    <Compile Include="MyTime3.Models/HourlyLeaveRequest.cs" />
+    <Compile Include="MyTime3.Models/InShiftExit.cs" />
+    <Compile Include="MyTime3.Models/LateEarlyRequest.cs" />
+    <Compile Include="MyTime3.Models/LatLng.cs" />
+    <Compile Include="MyTime3.Models/LocationReportModel.cs" />
+    <Compile Include="MyTime3.Models/LoginModel.cs" />
+    <Compile Include="MyTime3.Models/OTConstDaily.cs" />
+    <Compile Include="MyTime3.Models/OverTimeForDay.cs" />
+    <Compile Include="MyTime3.Models/OverTimeRequest.cs" />
+    <Compile Include="MyTime3.Models/PerosnnelStatusModel.cs" />
+    <Compile Include="MyTime3.Models/PersonnelModel.cs" />
+    <Compile Include="MyTime3.Models/RecordRequest.cs" />
+    <Compile Include="MyTime3.Models/RemainLeave.cs" />
+    <Compile Include="MyTime3.Models/ReportModel.cs" />
+    <Compile Include="MyTime3.Models/Request.cs" />
+    <Compile Include="MyTime3.Models/RewardPenaltyRequest.cs" />
+    <Compile Include="MyTime3.Models/SettingsModel.cs" />
+    <Compile Include="MyTime3.Models/ShowRequestModel.cs" />
+    <Compile Include="MyTime3.Models/SumConstOT.cs" />
+    <Compile Include="MyTime3.Models/TitleChartClass.cs" />
+    <Compile Include="MyTime3.Models/TitleChartModel.cs" />
+    <Compile Include="MyTime3.Models/TotalCalcsModel.cs" />
+    <Compile Include="MyTime3.Models/UserInfoModel.cs" />
+    <Compile Include="MyTime3.Models/UserInfoTitlesModel.cs" />
+    <Compile Include="MyTime3.Properties/Resources.cs" />
+    <Compile Include="MyTime3.Views.Report/Report.cs" />
+    <Compile Include="MyTime3/AuthorizeFilter.cs" />
+    <Compile Include="MyTime3/BundleConfig.cs" />
+    <Compile Include="MyTime3/CustomVirtualFile.cs" />
+    <Compile Include="MyTime3/CustomVirtualPathProvider.cs" />
+    <Compile Include="MyTime3/FilterConfig.cs" />
+    <Compile Include="MyTime3/GlobalHelper.cs" />
+    <Compile Include="MyTime3/MvcApplication.cs" />
+    <Compile Include="MyTime3/RouteConfig.cs" />
+    <Compile Include="MyTime3/WebApiConfig.cs" />
+    <Compile Include="Properties/AssemblyInfo.cs" />
+    <Compile Include="TINYLib/Tiny.cs" />
+    <Compile Include="TINYLib/_DTiny.cs" />
+    <Compile Include="TINYLib/_DTinyEvents.cs" />
+    <Compile Include="TINYLib/_DTinyEvents_Event.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="/tmp/decompiled-mytime3/MyTime3.Content/ImagesResource.resource" />
+    <EmbeddedResource Include="/tmp/decompiled-mytime3/MyTime3.Content/Noti5.resource" />
+    <EmbeddedResource Include="/tmp/decompiled-mytime3/MyTime3.Content/PersianString.resource" />
+    <EmbeddedResource Include="/tmp/decompiled-mytime3/MyTime3.Properties/Resources.resource" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

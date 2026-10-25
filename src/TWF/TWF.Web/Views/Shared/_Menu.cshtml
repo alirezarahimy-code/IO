@@ -1,0 +1,72 @@
+@{
+    bool canManage = MyTime3.Controllers.HomeController.CanDownloadNoti5(Context);
+    bool isAdmin = MyTime3.Controllers.HomeController.IsAdmin(Context);
+}
+
+<ul class="twf-nav-list">
+    <li class="twf-nav-item">
+        <a href="~/Home/Index" class="twf-nav-link">
+            <span>@MyTime3.Content.PersianString.HomePage</span>
+        </a>
+    </li>
+    <li class="twf-nav-item">
+        <a href="~/Home/About" class="twf-nav-link">
+            <span>@MyTime3.Content.PersianString.About</span>
+        </a>
+    </li>
+
+    <li class="twf-nav-item">
+        <a href="#" class="twf-nav-link" data-twf-submenu="operation">
+            <span>@MyTime3.Content.PersianString.Operations</span>
+            <span>&#9662;</span>
+        </a>
+        <ul id="operation" class="twf-subnav open">
+            <li><a href="~/Request/New">@MyTime3.Content.PersianString.NewRequest</a></li>
+            @if (canManage && (bool)MyTime3.Controllers.SettingsController.LoadValue("RequestForUsers", typeof(bool), true))
+            {
+                <li><a href="~/Request/FromUser">@MyTime3.Content.PersianString.RequestFromUser</a></li>
+            }
+            @if (isAdmin)
+            {
+                <li><a href="~/ShowUsersRequest/Index">مشاهده وضعیت کاربران</a></li>
+            }
+            <li><a href="~/EditRequest/Index">@MyTime3.Content.PersianString.EditRequest</a></li>
+            <li><a href="~/AcceptRequest/Index">@MyTime3.Content.PersianString.AcceptRequest</a></li>
+            <li><a href="~/ShowRequest/Index">@MyTime3.Content.PersianString.RequestsStatus</a></li>
+            <li><a href="~/Deputy/Index">@MyTime3.Content.PersianString.Deputy</a></li>
+            <li><a href="~/Undo/Index">@MyTime3.Content.PersianString.Undo</a></li>
+            @if ((bool)MyTime3.Controllers.SettingsController.LoadValue("ViewConstOT", typeof(bool), true))
+            {
+                <li><a href="~/ConstOT/Index">@MyTime3.Content.PersianString.ConstOT</a></li>
+            }
+            @if ((bool)MyTime3.Controllers.SettingsController.LoadValue("ViewRewPen", typeof(bool), true))
+            {
+                <li><a href="~/Reward/Add">@MyTime3.Content.PersianString.InsertRewardAndPenalty</a></li>
+            }
+            @if (canManage)
+            {
+                <li><a href="~/SelectArea/Index">@MyTime3.Content.PersianString.SelectValidArea</a></li>
+                <li><a href="~/Home/GetNoti5">@MyTime3.Content.PersianString.DownloadNoti5</a></li>
+            }
+        </ul>
+    </li>
+
+    <li class="twf-nav-item">
+        <a href="#" class="twf-nav-link" data-twf-submenu="reportsmenu">
+            <span>@MyTime3.Content.PersianString.Reports</span>
+            <span>&#9662;</span>
+        </a>
+        <ul id="reportsmenu" class="twf-subnav open">
+            <li><a href="~/Report/Index">@MyTime3.Content.PersianString.ViewReports</a></li>
+            <li><a href="~/RemainLeave/Index">@MyTime3.Content.PersianString.RemainLeave</a></li>
+            @if (canManage)
+            {
+                <li><a href="~/PersonnelStatus/Index">@MyTime3.Content.PersianString.PersonnelStatusReport</a></li>
+            }
+            @if (MyTime3.Controllers.LeavesReportController.isObs(Context))
+            {
+                <li><a href="~/LeavesReport/Index">پرسنل مجاز برای خروج</a></li>
+            }
+        </ul>
+    </li>
+</ul>

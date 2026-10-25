@@ -1,0 +1,133 @@
+@model MyTime3.Models.LocationReportModel
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.LocationReport;
+    var positions = ViewBag.Positions as List<SelectListItem> ?? new List<SelectListItem>();
+}
+
+<div class="twf-card">
+    <div class="twf-card-header">
+        <h3 class="twf-card-title">@MyTime3.Content.PersianString.LocationReport</h3>
+    </div>
+    <div class="twf-card-body">
+        @using (Html.BeginForm("Report", "LocationReport", FormMethod.Post, new { @class = "twf-form" }))
+        {
+            if (Model != null && !string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="twf-alert twf-alert-danger">@Model.ErrorMessage</div>
+            }
+
+            <div class="twf-grid" style="grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:16px; margin-bottom:16px;">
+                <div class="twf-field">
+                    <label class="twf-label">@MyTime3.Content.PersianString.Type</label>
+                    @Html.DropDownListFor(m => m.ReportID, positions, new { @class = "twf-select" })
+                </div>
+                <div class="twf-field">
+                    <label class="twf-label">@MyTime3.Content.PersianString.FromDate</label>
+                    @Html.TextBoxFor(m => m.FromDateHijri, new { @class = "twf-input twf-num datepicker-farsi", dir = "ltr" })
+                </div>
+                <div class="twf-field">
+                    <label class="twf-label">@MyTime3.Content.PersianString.ToDate</label>
+                    @Html.TextBoxFor(m => m.ToDateHijri, new { @class = "twf-input twf-num datepicker-farsi", dir = "ltr" })
+                </div>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                @Html.Partial("~/Views/Shared/_SelectMultiUser.cshtml")
+            </div>
+
+            <div class="twf-actions">
+                <button type="submit" name="action" value="@MyTime3.Content.PersianString.ShowReport" class="twf-btn twf-btn-primary">
+                    @MyTime3.Content.PersianString.ShowReport
+                </button>
+            </div>
+        }
+
+        @if (Model != null && Model.data != null)
+        {
+            <div class="twf-table-wrap" style="margin-top:20px;">
+                <table class="twf-table">
+                    <thead>
+                        <tr>
+                            <th style="width:80px;">جزئیات</th>
+                            <th>@MyTime3.Content.PersianString.BadgeNumber</th>
+                            <th>@MyTime3.Content.PersianString.Name</th>
+                            <th>@MyTime3.Content.PersianString.Type</th>
+                            <th>@MyTime3.Content.PersianString.Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (T5V3.Model.UserPosition up in Model.data)
+                        {
+                            <tr>
+                                <td>
+                                    <button type="button" class="twf-btn" onclick="toggleLocationSteps('@up.ID')">+</button>
+                                </td>
+                                <td class="twf-num">@up.BadgeNumber</td>
+                                <td>@up.UserName</td>
+                                <td><span class="twf-badge">@up.PositionName</span></td>
+                                <td class="twf-num" dir="ltr">@T5V3.Misc.DateConverter.ToHijriDateWithTime(up.CreateTime)</td>
+                            </tr>
+                            <tr id="det_@up.ID" style="display:none;">
+                                <td></td>
+                                <td colspan="4">
+                                    <table class="twf-table">
+                                        <thead>
+                                            <tr>
+                                                <th>مرحله</th>
+                                                <th>زمان</th>
+                                                <th>توضیحات</th>
+                                                <th>مختصات جغرافیایی (آفلاین)</th>
+                                                <th>تصویر پیوست</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (up.Steps != null)
+                                            {
+                                                foreach (T5V3.Model.UserPositionStep step in up.Steps)
+                                                {
+                                                    <tr>
+                                                        <td>@step.StepName</td>
+                                                        <td class="twf-num" dir="ltr">@T5V3.Misc.DateConverter.ToHijriDateWithTime(step.CreateDate)</td>
+                                                        <td>@step.Descriptions</td>
+                                                        <td class="twf-num" dir="ltr">
+                                                            @if (step.Longitude.HasValue && step.Latitude.HasValue && (step.Longitude.Value != 0 || step.Latitude.Value != 0))
+                                                            {
+                                                                <span class="twf-badge">Lat: @step.Latitude.Value.ToString("0.000000"), Lng: @step.Longitude.Value.ToString("0.000000")</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span>-</span>
+                                                            }
+                                                        </td>
+                                                        <td>
+                                                            @if (step.ImageData != null && step.ImageData.Length > 1)
+                                                            {
+                                                                <a class="twf-btn" target="_blank" href="/LocationReport/ShowPhoto?id=@step.PositionID&index=@step.StepIndex">
+                                                                    @MyTime3.Content.PersianString.ShowAttachmentPhoto
+                                                                </a>
+                                                            }
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            }
+                                        </tbody>
+                                    </table>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        function toggleLocationSteps(id) {
+            var row = document.getElementById('det_' + id);
+            if (!row) return;
+            row.style.display = (row.style.display === 'none') ? 'table-row' : 'none';
+        }
+    </script>
+}

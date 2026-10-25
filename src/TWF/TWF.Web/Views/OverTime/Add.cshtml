@@ -1,0 +1,43 @@
+@model MyTime3.Models.OverTimeRequest
+@{
+    ViewBag.Title = MyTime3.Content.PersianString.RequestOverTime;
+    var overTimeTypes = ViewBag.OverTimeTypes as List<SelectListItem> ?? new List<SelectListItem>();
+}
+
+<div class="twf-panel">
+    <div class="twf-panel-header">
+        <h2 class="twf-panel-title">@Html.Raw(MyTime3.Content.PersianString.RequestOverTime)</h2>
+    </div>
+    <div class="twf-panel-body">
+        @if (!string.IsNullOrEmpty(ViewBag.Message as string))
+        {
+            var isOk = (ViewBag.Message as string) == MyTime3.Content.PersianString.InsertSuccess;
+            <div class="twf-alert @(isOk ? "twf-alert-success" : "twf-alert-danger")">@ViewBag.Message</div>
+        }
+
+        @using (Html.BeginForm("Add", "OverTime", FormMethod.Post))
+        {
+            <div class="twf-grid-2">
+                <div class="twf-form-group">
+                    @Html.Label(MyTime3.Content.PersianString.Date, new { @class = "twf-label" })
+                    @Html.TextBoxFor(m => m.ForDateHijri, new { @class = "twf-input datepicker-farsi twf-num" })
+                </div>
+                <div class="twf-form-group">
+                    @Html.Label(MyTime3.Content.PersianString.Type, new { @class = "twf-label" })
+                    @Html.DropDownListFor(m => m.OverTimeType, overTimeTypes, new { @class = "twf-select" })
+                </div>
+                <div class="twf-form-group">
+                    @Html.Label(MyTime3.Content.PersianString.Value, new { @class = "twf-label" })
+                    @Html.TextBoxFor(m => m.ValidValue, new { @class = "twf-input timeInput twf-num", placeholder = "02:00" })
+                </div>
+                <div class="twf-form-group">
+                    @Html.Label(MyTime3.Content.PersianString.Descriptions, new { @class = "twf-label" })
+                    @Html.TextBoxFor(m => m.Descriptions, new { @class = "twf-input" })
+                </div>
+            </div>
+            <div style="margin-top: 20px;">
+                <input type="submit" class="twf-btn twf-btn-primary" value="@MyTime3.Content.PersianString.OK" />
+            </div>
+        }
+    </div>
+</div>

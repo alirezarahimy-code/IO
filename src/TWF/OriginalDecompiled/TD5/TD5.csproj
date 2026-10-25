@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{492A6A2C-F36B-42A6-9CCF-6C447821B6A3}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <OutputType>Library</OutputType>
+    <AssemblyName>TD5</AssemblyName>
+    <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Platform)' == 'AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <OutputPath>bin\Debug\</OutputPath>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <OutputPath>bin\Release\</OutputPath>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System.Data">
+      <HintPath>/tmp/dotnet/package/shared/Microsoft.NETCore.App/2.0.0/System.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="Dapper">
+      <HintPath>/home/user/IO/TWF 4.28/App/bin/Dapper.dll</HintPath>
+    </Reference>
+    <Reference Include="T5V3.Model">
+      <HintPath>/home/user/IO/TWF 4.28/App/bin/T5V3.Model.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Core">
+      <HintPath>/tmp/dotnet/package/shared/Microsoft.NETCore.App/2.0.0/System.Core.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties/AssemblyInfo.cs" />
+    <Compile Include="TD5.Controllers/CalendarControllers.cs" />
+    <Compile Include="TD5.Controllers/DepartmentRuleControllers.cs" />
+    <Compile Include="TD5.Controllers/Execution.cs" />
+    <Compile Include="TD5.Controllers/LeaveTypeControllers.cs" />
+    <Compile Include="TD5.Controllers/RequestController.cs" />
+    <Compile Include="TD5.Controllers/UserInfoController.cs" />
+    <Compile Include="TD5.Controllers/UserRuleControllers.cs" />
+    <Compile Include="TD5.Model/DapQuery.cs" />
+    <Compile Include="TD5.Model/DapType.cs" />
+    <Compile Include="TD5.Model/Request.cs" />
+    <Compile Include="TD5/Init.cs" />
+    <Compile Include="TD5/Repo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

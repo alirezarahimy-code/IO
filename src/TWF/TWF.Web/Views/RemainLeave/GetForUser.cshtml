@@ -1,0 +1,18 @@
+@model List<MyTime3.Models.RemainLeave>
+
+<div class="twf-grid" style="grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:16px;">
+    @if (Model != null)
+    {
+        foreach (MyTime3.Models.RemainLeave rl in Model)
+        {
+            <div class="twf-card">
+                <div class="twf-card-header">
+                    <h4 class="twf-card-title">@rl.LeaveTypeName - @rl.Name</h4>
+                </div>
+                <div class="twf-card-body">
+                    @Html.Partial("~/Views/Shared/_RemainLeave.cshtml", rl)
+                </div>
+            </div>
+        }
+    }
+</div>

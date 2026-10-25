@@ -1,0 +1,11 @@
+@{
+    Layout = null;
+    MyTime3.Models.RemainLeave res = new MyTime3.Models.RemainLeave();
+    if (IsPost && Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+    {
+        var badgeNumber = Convert.ToInt64(System.Web.HttpContext.Current.Request.Params["badgeNumber"]);
+        var leaveID = Convert.ToInt32(System.Web.HttpContext.Current.Request.Params["leaveID"]);
+        var finall = new MyTime3.Controllers.RemainLeaveController();
+        res = finall.RemainLeaveJj(badgeNumber, leaveID);
+    }
+}@res

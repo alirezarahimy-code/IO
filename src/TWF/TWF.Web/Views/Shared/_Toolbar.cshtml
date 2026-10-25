@@ -1,0 +1,68 @@
+@{
+    List<int> items = MyTime3.Controllers.HomeController.GetToolbars(Context) ?? new List<int>();
+    bool hideToolbar = !MyTime3.Controllers.HomeController.ToolbarShow(Context);
+}
+
+<div id="toolbarmaindiv" class="twf-card @(hideToolbar ? "hidden" : "")" style="margin-bottom: 16px;">
+    <div class="twf-card-body" style="padding: 10px 16px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            @if (items.Contains(1))
+            {
+                <a href="~/Home/Index" class="twf-btn twf-btn-secondary">@MyTime3.Content.PersianString.HomePage</a>
+            }
+            @if (items.Contains(2))
+            {
+                <a href="~/Request/New" class="twf-btn twf-btn-primary">@MyTime3.Content.PersianString.NewRequest</a>
+            }
+            @if (items.Contains(3))
+            {
+                <a href="~/Request/FromUser" class="twf-btn twf-btn-secondary">@MyTime3.Content.PersianString.RequestFromUser</a>
+            }
+            @if (items.Contains(4))
+            {
+                <a href="~/EditRequest/Index" class="twf-btn twf-btn-secondary">@MyTime3.Content.PersianString.EditRequest</a>
+            }
+            @if (items.Contains(5))
+            {
+                <a href="~/AcceptRequest/Index" class="twf-btn twf-btn-secondary">@MyTime3.Content.PersianString.AcceptRequest</a>
+            }
+            @if (items.Contains(6))
+            {
+                <a href="~/ShowRequest/Index" class="twf-btn twf-btn-secondary">@MyTime3.Content.PersianString.RequestsStatus</a>
+            }
+            @if (items.Contains(7))
+            {
+                <a href="~/Deputy/Index" class="twf-btn twf-btn-secondary">@MyTime3.Content.PersianString.Deputy</a>
+            }
+            @if (items.Contains(8))
+            {
+                <a href="~/ConstOT/Index" class="twf-btn twf-btn-secondary">@MyTime3.Content.PersianString.ConstOT</a>
+            }
+            @if (items.Contains(9))
+            {
+                <a href="~/Reward/Add" class="twf-btn twf-btn-secondary">@MyTime3.Content.PersianString.RewardAndPenalty</a>
+            }
+            @if (items.Contains(10))
+            {
+                <a href="~/SelectArea/Index" class="twf-btn twf-btn-secondary">@MyTime3.Content.PersianString.SelectValidArea</a>
+            }
+            @if (items.Contains(12))
+            {
+                <a href="~/Report/Index" class="twf-btn twf-btn-secondary">@MyTime3.Content.PersianString.Report</a>
+            }
+            @if (items.Contains(13))
+            {
+                <a href="~/RemainLeave/Index" class="twf-btn twf-btn-secondary">@MyTime3.Content.PersianString.RemainLeave</a>
+            }
+            @if (items.Contains(14))
+            {
+                <a href="~/PersonnelStatus/Index" class="twf-btn twf-btn-secondary">@MyTime3.Content.PersianString.PersonnelStatus</a>
+            }
+        </div>
+        <div>
+            <button type="button" class="twf-btn twf-btn-secondary" data-toggle="modal" data-target="#toolbarselectModal" title="@MyTime3.Content.PersianString.ToolbarItems">
+                &#9881; @MyTime3.Content.PersianString.ToolbarItems
+            </button>
+        </div>
+    </div>
+</div>
