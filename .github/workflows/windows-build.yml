@@ -255,26 +255,47 @@ jobs:
 
       - name: The console answers a Windows user
         shell: pwsh
-        run: |
-          # Negoiate with the runner's own account. A 200 or a 302 proves IIS handed the
-          # request to ASP.NET; a 401 would mean the site still refuses authenticated users.
+        run: |-
+          # Negotiate with the runner's own account. 200 or 302 proves IIS handed the
+          # request to ASP.NET; 401 would mean the site still refuses authenticated
+          # users. -SkipHttpErrorCheck keeps the answer readable whatever it is.
           $url = 'http://localhost:8080/Content/t5web-admin.css'
+          $failure = ''
+          $response = $null
           try {
-            $response = Invoke-WebRequest -Uri $url -UseDefaultCredentials -UseBasicParsing -MaximumRedirection 0 -ErrorAction Stop
-            $code = [int]$response.StatusCode
-            $headers = $response.Headers
+            $response = Invoke-WebRequest -Uri $url -UseDefaultCredentials -UseBasicParsing `
+                                              -MaximumRedirection 0 -SkipHttpErrorCheck -ErrorAction Stop
           } catch {
-            $code = [int]$_.Exception.Response.StatusCode
-            $headers = @{}
+            # No HTTP answer at all: the worker process died, or nothing is listening.
+            $failure = $_.Exception.Message
           }
-          Write-Host "  status $code"
-          if ($code -ne 200) {
-            Write-Host "::error::authenticated request returned $code, expected 200"
+
+          if (-not $response) {
+            Write-Host "::error::the request failed before an HTTP answer: $failure"
+            # A 32-bit worker that cannot start leaves no page behind, only event log
+            # entries; print the ones that concern ASP.NET or WAS.
+            Get-WinEvent -LogName 'Application', 'System' -MaxEvents 40 -ErrorAction SilentlyContinue |
+              Where-Object { $_.ProviderName -match 'ASP\.NET|Application Error|WAS|IIS' } |
+              Select-Object -First 6 |
+              ForEach-Object {
+                $message = ($_.Message -replace '\s+', ' ').Trim()
+                Write-Host ('::error::event| ' + $_.ProviderName + ': ' + $message.Substring(0, [Math]::Min(500, $message.Length)))
+              }
             exit 1
           }
-          $csp = $headers['Content-Security-Policy']
+
+          $code = [int]$response.StatusCode
+          Write-Host "  status $code"
+          if ($code -ne 200) {
+            $plain = ($response.Content -replace '(?s)<script.*?</script>', ' ') -replace '<[^>]+>', ' '
+            $plain = (($plain -replace '&nbsp;', ' ') -replace '\s+', ' ').Trim()
+            $detail = if ($plain.Length -gt 0) { $plain.Substring(0, [Math]::Min(600, $plain.Length)) } else { '(empty body)' }
+            Write-Host "::error::authenticated request returned $code, expected 200 - $detail"
+            exit 1
+          }
+          $csp = $response.Headers['Content-Security-Policy']
           if (-not $csp) {
-            Write-Host "::error::the site sends no Content-Security-Policy header"
+            Write-Host '::error::the site sends no Content-Security-Policy header'
             exit 1
           }
           Write-Host "  CSP: $csp"
