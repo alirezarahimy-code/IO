@@ -156,12 +156,9 @@ jobs:
           Run-Script 'synthetic.sql' 'master'
           Run-Script 'src/T5Web/db/01-t5web-objects.sql' 'ReportT5V3'
           Run-Script 'src/T5Web/db/02-t5web-sql-login.sql' 'ReportT5V3'
-          # The pool identity joins the role db/02 filled - the portal connects as
-          # IIS APPPOOL\<pool>, not as t5web_admin, and not as the runner.
-          # sqlcmd wants the value quoted *inside* the argument when it contains a
-          # space: -v 'Name="IIS APPPOOL\X"'. Without the quotes it answers
-          # "Invalid argument" and the grants are silently not applied.
-          Run-Script 'src/T5Web/db/04-grant-app-pool-login.sql' 'master' @('-v', 'AppPoolLogin="IIS APPPOOL\T5WebAdmin"')
+          # The app pool's Windows login is created after the site exists: IIS APPPOOL\X
+          # is a virtual account that only resolves once the pool is there, and
+          # CREATE LOGIN ... FROM WINDOWS answers "user or group not found" before that.
           # A Windows account the run can actually sign in as, plus a permission row for
           # every feature (tools/ci-fixture-gate.py holds this list to AdminFeature.cs).
           Run-Script 'src/T5Web/tools/ci-seed.sql' 'ReportT5V3' @('-v', "Who=$env:USERNAME")
@@ -229,6 +226,19 @@ jobs:
             Write-Host "::error::3-deploy-portal.ps1 failed with $LASTEXITCODE"
             exit 1
           }
+
+      # Now that the pool exists, its virtual account resolves, and SQL Server can be
+      # told about it. The portal connects with integrated security, so this identity -
+      # not t5web_admin, not the runner - is the one whose grants are exercised.
+      - name: Grant the app pool identity (db/04)
+        shell: powershell
+        run: |
+          # sqlcmd wants the value quoted *inside* the argument when it contains a space:
+          # -v 'Name="IIS APPPOOL\X"'. Without the quotes it says "Invalid argument" and
+          # no grant is applied - which is how this step first passed a broken command.
+          sqlcmd -S $env:T5_SERVER -E -b -i src/T5Web/db/04-grant-app-pool-login.sql -d master `
+                 -v 'AppPoolLogin="IIS APPPOOL\T5WebAdmin"'
+          if ($LASTEXITCODE -ne 0) { Write-Host '::error::db/04-grant-app-pool-login.sql failed'; exit 1 }
 
       - name: The app pool is the one the runbook describes
         shell: powershell
