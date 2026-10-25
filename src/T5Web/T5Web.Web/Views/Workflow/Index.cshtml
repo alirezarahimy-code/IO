@@ -5,6 +5,7 @@
     var titles = ViewBag.Titles as IReadOnlyList<T5Web.Domain.Models.TitleNode>;
     int titleId = ViewBag.TitleId != null ? (int)ViewBag.TitleId : 0;
     int workflowType = ViewBag.WorkflowType != null ? (int)ViewBag.WorkflowType : 1;
+    int inFlight = ViewBag.InFlight != null ? (int)ViewBag.InFlight : 0;
 }
 <form method="get" action="@Url.Action("Index", "Workflow")" class="toolbar">
     <div class="field">
@@ -119,6 +120,17 @@
                     شماره مراحل باید پیوسته باشد و تأییدکننده با درخواست‌کننده یکسان نباشد؛
                     در غیر این صورت ذخیره رد می‌شود.
                 </div>
+                @if (inFlight > 0)
+                {
+                    <div class="notice notice--warn">
+                        این زنجیره هم‌اکنون @inFlight درخواست در جریان دارد. با تغییر آن، پاسخ‌های
+                        ثبت‌شده به مرحله‌های حذف‌شده بی‌مرجع می‌شوند و موتور آن‌ها را «تأییدشده» می‌خواند.
+                    </div>
+                    <label class="check">
+                        <input type="checkbox" name="confirmStranded" value="true" />
+                        تغییر با وجود درخواست‌های در جریان را می‌پذیرم.
+                    </label>
+                }
                 <button type="submit" class="btn btn--primary">ذخیره زنجیره</button>
             </form>
         </div>

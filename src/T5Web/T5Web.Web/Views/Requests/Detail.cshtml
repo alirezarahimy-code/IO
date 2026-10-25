@@ -1,0 +1,47 @@
+@model T5Web.Web.Controllers.RequestDetailModel
+@using T5Web.Domain.Models
+@{
+    RequestRow row = Model.Row;
+}
+<div class="panel">
+    <div class="panel__head">
+        <h2>درخواست #@row.RequestId</h2>
+        <a class="btn btn--ghost" href="@Url.Action("Index", "Requests")">بازگشت به فهرست</a>
+    </div>
+    <div class="panel__body">
+        <dl class="kv">
+            <dt>شماره پرسنلی</dt><dd class="num">@row.BadgeNumber</dd>
+            <dt>نام</dt><dd>@(string.IsNullOrWhiteSpace(row.PersonName) ? "—" : row.PersonName)</dd>
+            <dt>نوع</dt><dd>@(string.IsNullOrWhiteSpace(row.LeaveName) ? "—" : row.LeaveName)</dd>
+            <dt>تاریخ</dt><dd class="num">@JalaliText.Format(row.ForDate)</dd>
+            <dt>از ساعت</dt><dd class="num">@(row.FromTime.HasValue ? row.FromTime.Value.ToString("HH:mm") : "—")</dd>
+            <dt>تا ساعت</dt><dd class="num">@(row.ToTime.HasValue ? row.ToTime.Value.ToString("HH:mm") : "—")</dd>
+            <dt>مدت</dt><dd class="num">@row.Hours.ToString("0.##") ساعت</dd>
+            <dt>روزانه</dt><dd>@(row.IsDaily ? "بله" : "خیر")</dd>
+            <dt>وضعیت</dt><dd>@row.StateFa (@row.AcceptedCount از @row.StepCount مرحله)</dd>
+            <dt>توضیح</dt><dd>@(string.IsNullOrWhiteSpace(row.DescriptionText) ? "—" : row.DescriptionText)</dd>
+            <dt>ثبت در</dt><dd class="num">@JalaliText.FormatDateTime(row.CreateTime)</dd>
+        </dl>
+    </div>
+    @if (Model.CanApprove && row.IsPending)
+    {
+        <div class="panel__body u-row">
+            <form method="post" action="@Url.Action("Decide", "Requests")" class="inline" data-confirm="true">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@row.RequestId" />
+                <input type="hidden" name="cancel" value="false" />
+                <button type="submit" class="btn btn--primary" @(Model.MyTitleId > 0 ? null : "disabled")>تأیید مرحله</button>
+            </form>
+            <form method="post" action="@Url.Action("Decide", "Requests")" class="inline" data-confirm="true">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@row.RequestId" />
+                <input type="hidden" name="cancel" value="true" />
+                <button type="submit" class="btn btn--danger" @(Model.MyTitleId > 0 ? null : "disabled")>لغو درخواست</button>
+            </form>
+            @if (Model.MyTitleId <= 0)
+            {
+                <span class="tag tag--warn">عنوان شغلی فعال ندارید؛ تصمیم‌گیری ممکن نیست.</span>
+            }
+        </div>
+    }
+</div>

@@ -1,0 +1,126 @@
+@model T5Web.Web.Controllers.RulesIndexModel
+@using T5Web.Domain.Models
+@using T5Web.Application.Services
+<form method="get" action="@Url.Action("Index", "Rules")" class="toolbar">
+    <div class="field">
+        <label for="badge">شماره پرسنلی</label>
+        <input type="number" id="badge" name="badge" value="@(Model.BadgeNumber.HasValue ? Model.BadgeNumber.Value.ToString() : string.Empty)" />
+    </div>
+    <div class="field">
+        <label for="date">تاریخ (میلادی)</label>
+        <input type="date" id="date" name="date" value="@Model.DateIso" />
+    </div>
+    <div class="field">
+        <label for="globalRuleId">قاعده عمومی</label>
+        <input type="number" id="globalRuleId" name="globalRuleId" value="@Model.GlobalRuleId" min="0" />
+    </div>
+    <button type="submit" class="btn btn--primary">قاعده‌یابی</button>
+    <a class="btn" href="@Url.Action("Index", "Modules", new { code = "rule" })">فهرست قواعد</a>
+    <a class="btn" href="@Url.Action("Index", "Modules", new { code = "userrule" })">استثناهای پرسنل</a>
+    <a class="btn" href="@Url.Action("Index", "Modules", new { code = "departmentrule" })">استثناهای واحد</a>
+</form>
+
+@if (Model.Resolution != null)
+{
+    var resolution = Model.Resolution;
+    <div class="panel">
+        <div class="panel__head">
+            <h2>قاعده حاکم برای #@resolution.BadgeNumber در @JalaliText.Format(resolution.Date)</h2>
+            @if (resolution.AppliedRuleId > 0)
+            {
+                <span class="tag tag--ok">قاعده @resolution.AppliedRuleId — @resolution.LayerFa</span>
+            }
+            else
+            {
+                <span class="tag tag--warn">هیچ قاعده‌ای اعمال نمی‌شود</span>
+            }
+        </div>
+        <div class="panel__body">
+            <dl class="kv">
+                <dt>لایه‌های منطبق</dt>
+                <dd>@(resolution.MatchedLayers.Count == 0 ? "—" : string.Join(" ← ", resolution.MatchedLayers))</dd>
+                <dt>قاعده نهایی</dt>
+                <dd class="num">@(resolution.AppliedRuleId > 0 ? resolution.AppliedRuleId.ToString() : "—")</dd>
+                <dt>اولویت</dt>
+                <dd>استثنای پرسنل ← استثنای واحد ← قاعده عمومی</dd>
+            </dl>
+
+            @if (resolution.HasConflict)
+            {
+                <div class="u-mt14">
+                    @foreach (RuleConflict conflict in resolution.Conflicts)
+                    {
+                        <div class="notice @(conflict.IsBlocking ? "notice--bad" : "notice--warn")">@conflict.MessageFa</div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="notice notice--ok u-mt14">هیچ تضادی بین لایه‌ها دیده نمی‌شود.</div>
+            }
+        </div>
+    </div>
+}
+
+<div class="panel">
+    <div class="panel__head">
+        <h2>استثناهای پرسنل (@Model.UserRules.Count بازه)</h2>
+        <span class="muted u-sm">هم‌پوشانی بازه‌ها، مسدودکننده است</span>
+    </div>
+    @if (Model.UserRules.Count == 0)
+    {
+        <div class="empty">استثنای پرسنلی ثبت نشده است.</div>
+    }
+    else
+    {
+        <div class="u-scroll-x">
+            <table class="grid">
+                <thead>
+                    <tr><th class="num">شماره</th><th class="num">قاعده</th><th class="num">از</th><th class="num">تا</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.UserRules)
+                    {
+                        <tr>
+                            <td class="num">@row.BadgeNumber</td>
+                            <td class="num">@row.RuleId</td>
+                            <td class="num">@JalaliText.Format(row.FromDate)</td>
+                            <td class="num">@JalaliText.Format(row.ToDate)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<div class="panel">
+    <div class="panel__head">
+        <h2>استثناهای واحد (@Model.DepartmentRules.Count بازه)</h2>
+    </div>
+    @if (Model.DepartmentRules.Count == 0)
+    {
+        <div class="empty">استثنای واحدی ثبت نشده است.</div>
+    }
+    else
+    {
+        <div class="u-scroll-x">
+            <table class="grid">
+                <thead>
+                    <tr><th class="num">واحد</th><th class="num">قاعده</th><th class="num">از</th><th class="num">تا</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.DepartmentRules)
+                    {
+                        <tr>
+                            <td class="num">@row.DepartmentId</td>
+                            <td class="num">@row.RuleId</td>
+                            <td class="num">@JalaliText.Format(row.FromDate)</td>
+                            <td class="num">@JalaliText.Format(row.ToDate)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

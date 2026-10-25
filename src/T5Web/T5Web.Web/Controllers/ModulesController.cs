@@ -222,9 +222,18 @@ namespace T5Web.Web.Controllers
             });
         }
 
+        /// <summary>
+        /// Resolves a module and honours its kill switch: a disabled module behaves like
+        /// a missing one, so no action can be reached by guessing the code.
+        /// </summary>
         private static ModuleDescriptor Resolve(string code)
         {
-            return ModuleRegistry.Find(code);
+            ModuleDescriptor descriptor = ModuleRegistry.Find(code);
+            if (descriptor == null)
+            {
+                return null;
+            }
+            return ModuleSwitch.IsEnabled(descriptor.Code) ? descriptor : null;
         }
 
         private bool CanView(ModuleDescriptor descriptor)

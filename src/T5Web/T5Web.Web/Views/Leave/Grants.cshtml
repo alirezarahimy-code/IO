@@ -1,0 +1,110 @@
+@model T5Web.Web.Controllers.LeaveGrantsModel
+@using T5Web.Domain.Models
+<form method="get" action="@Url.Action("Grants", "Leave")" class="toolbar">
+    <div class="field">
+        <label for="badge">شماره پرسنلی</label>
+        <input type="number" id="badge" name="badge" value="@(Model.BadgeNumber.HasValue ? Model.BadgeNumber.Value.ToString() : string.Empty)" />
+    </div>
+    <div class="field">
+        <label for="leaveTypeId">نوع مرخصی</label>
+        <select id="leaveTypeId" name="leaveTypeId" data-autosubmit="true">
+            <option value="">همه</option>
+            @foreach (var type in Model.LeaveTypes)
+            {
+                bool selected = Model.LeaveTypeId.HasValue && Model.LeaveTypeId.Value == type.Key;
+                <option value="@type.Key" selected="@(selected ? "selected" : null)">@type.Value</option>
+            }
+        </select>
+    </div>
+    <button type="submit" class="btn btn--primary">اعمال</button>
+    <a class="btn" href="@Url.Action("Index", "Leave")">مانده‌ها</a>
+</form>
+
+@if (Model.CanEdit)
+{
+    <div class="panel">
+        <div class="panel__head">
+            <h2>ثبت مرخصی</h2>
+            <span class="tag tag--mute">سند الزامی · در دفتر رخداد ثبت می‌شود</span>
+        </div>
+        <div class="panel__body">
+            <form method="post" action="@Url.Action("Grant", "Leave")" data-confirm="true">
+                @Html.AntiForgeryToken()
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="grantBadge">شماره پرسنلی</label>
+                        <input type="number" id="grantBadge" name="badge" required />
+                    </div>
+                    <div class="field">
+                        <label for="grantType">نوع مرخصی</label>
+                        <select id="grantType" name="leaveTypeId" required>
+                            @foreach (var type in Model.LeaveTypes)
+                            {
+                                <option value="@type.Key">@type.Value</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="grantDate">تاریخ (میلادی)</label>
+                        <input type="date" id="grantDate" name="assignDate" required />
+                    </div>
+                    <div class="field">
+                        <label for="grantDays">مقدار (روز)</label>
+                        <input type="number" id="grantDays" name="days" step="0.5" min="0.5" max="366" required />
+                    </div>
+                    <div class="field">
+                        <label for="grantDoc">شماره سند/نامه</label>
+                        <input type="text" id="grantDoc" name="documentNumber" maxlength="40" required />
+                    </div>
+                    <div class="field">
+                        <label for="grantDesc">توضیح</label>
+                        <input type="text" id="grantDesc" name="descriptions" maxlength="200" />
+                    </div>
+                </div>
+                <button type="submit" class="btn btn--primary">ثبت</button>
+            </form>
+        </div>
+    </div>
+}
+
+<div class="panel">
+    <div class="panel__head">
+        <h2>مرخصی‌های ثبت‌شده — @Model.Rows.Count سطر</h2>
+    </div>
+    @if (Model.Rows.Count == 0)
+    {
+        <div class="empty">مرخصی ثبت نشده است.</div>
+    }
+    else
+    {
+        <div class="u-scroll-x">
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th class="num">شناسه</th>
+                        <th class="num">شماره</th>
+                        <th>نوع</th>
+                        <th class="num">تاریخ</th>
+                        <th class="num">مقدار</th>
+                        <th>سند</th>
+                        <th>توضیح</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.Rows)
+                    {
+                        <tr>
+                            <td class="num">@row.Id</td>
+                            <td class="num">@row.BadgeNumber</td>
+                            <td>@row.LeaveTypeName</td>
+                            <td class="num">@JalaliText.Format(row.AssignDate)</td>
+                            <td class="num">@row.Days.ToString("0.##")</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.DocumentNumber) ? "—" : row.DocumentNumber)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Descriptions) ? "—" : row.Descriptions)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Web.Mvc;
+using T5Web.Application.Services;
 using T5Web.Domain;
 using T5Web.Domain.Models;
 using T5Web.Web.Security;
@@ -15,6 +18,8 @@ namespace T5Web.Web.Controllers
             ViewBag.Gates = PortalServices.Repository.GetGates();
             ViewBag.GateId = gateId;
             ViewBag.CanEdit = CurrentSession != null && CurrentSession.CanEdit(AdminFeature.DeviceEdit);
+            ViewBag.CanSync = CurrentSession != null && CurrentSession.CanEdit(AdminFeature.DeviceSync);
+            ViewBag.Commands = new DeviceCommandService().Available();
             return View(devices);
         }
 
@@ -49,6 +54,36 @@ namespace T5Web.Web.Controllers
             Audit(AdminFeature.DeviceEdit, "ویرایش دستگاه", "دستگاه " + row.MachineNumber,
                 row.MachineName + " / " + row.Endpoint);
             TempData["Flash"] = "تنظیمات دستگاه «" + row.MachineName + "» ثبت شد.";
+            return RedirectToAction("Index");
+        }
+
+        /// <summary>
+        /// Issues one of the closed-set device commands. A raw command string is not
+        /// accepted, and no lock/licence command exists in this build at all.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [AdminGate(AdminFeature.DeviceSync)]
+        public ActionResult Command(int machineNumber, string command)
+        {
+            IReadOnlyList<DeviceRow> devices = PortalServices.Repository.GetDevices(null);
+            DeviceRow device = Find(devices, machineNumber);
+
+            DeviceCommand issued;
+            OperationResult result = new DeviceCommandService().Validate(command, device, out issued);
+            if (!result.Succeeded)
+            {
+                TempData["Flash"] = result.Message;
+                return RedirectToAction("Index");
+            }
+
+            // The transport to the hardware lives in the desktop service (it holds the
+            // device sockets). The portal records the intent and hands it over; it never
+            // pretends the device already answered.
+            Audit(AdminFeature.DeviceSync, "دستور دستگاه", device.MachineName + " (#" + device.MachineNumber + ")",
+                "command=" + issued.Code + "; note=" + issued.NoteFa);
+            TempData["Flash"] = "دستور «" + issued.TitleFa + "» برای دستگاه " + device.MachineName +
+                                " ثبت شد و در صف سرویس دستگاه قرار گرفت.";
             return RedirectToAction("Index");
         }
 

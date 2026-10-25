@@ -100,6 +100,23 @@ ORDER BY uit.[ID] DESC;";
             }
         }
 
+        public int GetTitleId(long badgeNumber)
+        {
+            const string sql = @"
+SELECT TOP 1 uit.[TitleChartID]
+FROM [UserInfoTitles] uit
+WHERE uit.[BadgeNumber] = @BadgeNumber
+  AND (@Today IS NULL OR ((uit.[FromDate] IS NULL OR uit.[FromDate] <= @Today)
+                       AND (uit.[ToDate] IS NULL OR uit.[ToDate] >= @Today)))
+ORDER BY uit.[ID] DESC;";
+
+            using (IDbConnection connection = Open())
+            {
+                return connection.ExecuteScalar<int?>(sql, new { BadgeNumber = badgeNumber, Today = DateTime.Today })
+                       ?? 0;
+            }
+        }
+
         public IReadOnlyList<PermissionRow> GetPermissions(long badgeNumber)
         {
             // BadgeNumber <= 0 means "all rows" (used only for counting administrators).
@@ -577,6 +594,30 @@ ORDER BY w.[OrderIndex];";
                     WorkflowType = workflowType,
                     LeaveTypeId = leaveTypeId
                 }).ToList();
+            }
+        }
+
+        public int CountInFlightRequests(int workflowType, int leaveTypeId)
+        {
+            // A request is "in flight" when it is not suspended and its accept rows do not
+            // yet cover every step of the chain currently stored in [Workflow].
+            const string sql = @"
+SELECT COUNT(1)
+FROM [Request] r
+LEFT JOIN [Workflow] w
+       ON w.[WorkflowType] = r.[WofkflowType]
+      AND w.[LeaveTypeID] = r.[LeaveID]
+WHERE ISNULL(r.[IsSuspend], 0) = 0
+  AND (@WorkflowType = 0 OR r.[WofkflowType] = @WorkflowType)
+  AND (@LeaveTypeId = 0 OR r.[LeaveID] = @LeaveTypeId)
+  AND (SELECT COUNT(1) FROM [RequestAccept] a
+        WHERE a.[RequestID] = r.[RequestID] AND ISNULL(a.[IsCancel], 0) = 0)
+      < (SELECT COUNT(1) FROM [Workflow] w2
+          WHERE w2.[WorkflowType] = r.[WofkflowType] AND w2.[LeaveTypeID] = r.[LeaveID]);";
+
+            using (IDbConnection connection = Open())
+            {
+                return connection.ExecuteScalar<int>(sql, new { WorkflowType = workflowType, LeaveTypeId = leaveTypeId });
             }
         }
 

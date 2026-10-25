@@ -1,0 +1,82 @@
+@model T5Web.Web.Controllers.LeaveIndexModel
+@using T5Web.Domain.Models
+<form method="get" action="@Url.Action("Index", "Leave")" class="toolbar">
+    <div class="field">
+        <label for="year">سال</label>
+        <input type="number" id="year" name="year" value="@Model.Year" min="1300" max="1500" />
+    </div>
+    <div class="field">
+        <label for="leaveTypeId">نوع مرخصی</label>
+        <select id="leaveTypeId" name="leaveTypeId" data-autosubmit="true">
+            <option value="">همه</option>
+            @foreach (var type in Model.LeaveTypes)
+            {
+                bool selected = Model.LeaveTypeId.HasValue && Model.LeaveTypeId.Value == type.Key;
+                <option value="@type.Key" selected="@(selected ? "selected" : null)">@type.Value</option>
+            }
+        </select>
+    </div>
+    <div class="field">
+        <label for="term">جست‌وجو</label>
+        <input type="search" id="term" name="term" value="@Model.Term" placeholder="نام یا شماره پرسنلی" />
+    </div>
+    <button type="submit" class="btn btn--primary">اعمال</button>
+    <a class="btn" href="@Url.Action("Export", "Leave", new { year = Model.Year, leaveTypeId = Model.LeaveTypeId, term = Model.Term })">خروجی CSV</a>
+    <a class="btn" href="@Url.Action("Grants", "Leave")">ثبت مرخصی</a>
+    @if (Model.CanEdit)
+    {
+        <a class="btn" href="@Url.Action("Transfer", "Leave", new { fromYear = Model.Year })">انتقال مانده سال</a>
+    }
+</form>
+
+<div class="panel">
+    <div class="panel__head">
+        <h2>مانده مرخصی سال @Model.Year</h2>
+        <span class="muted u-sm">جمع مانده پایان: @Model.TotalClosing.ToString("0.##") روز</span>
+    </div>
+    @if (Model.Rows.Count == 0)
+    {
+        <div class="empty">مانده‌ای برای این سال ثبت نشده است.</div>
+    }
+    else
+    {
+        <div class="u-scroll-x">
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th class="num">شماره</th>
+                        <th>نام</th>
+                        <th>نوع مرخصی</th>
+                        <th class="num">مانده آغاز</th>
+                        <th class="num">اضافه‌شده</th>
+                        <th class="num">مصرف</th>
+                        <th class="num">مانده پایان</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.Rows)
+                    {
+                        <tr>
+                            <td class="num">@row.BadgeNumber</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.PersonName) ? "—" : row.PersonName)</td>
+                            <td>@row.LeaveTypeName</td>
+                            <td class="num">@row.OpeningDays.ToString("0.##")</td>
+                            <td class="num">@row.AddedDays.ToString("0.##")</td>
+                            <td class="num">@row.UsedDays.ToString("0.##")</td>
+                            <td class="num"><strong>@row.ClosingDays.ToString("0.##")</strong></td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="6" class="u-right">جمع</td>
+                        <td class="num">@Model.TotalClosing.ToString("0.##")</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    }
+    <div class="panel__foot muted u-sm">
+        ناوردای حسابداری: مانده آغاز + اضافه‌شده − مصرف = مانده پایان. هر انتقال، یک سطر در دفتر رخداد ثبت می‌کند.
+    </div>
+</div>

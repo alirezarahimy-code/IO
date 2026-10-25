@@ -77,7 +77,9 @@ namespace T5Web.Data
             }
 
             string search = string.Empty;
-            var searchColumns = descriptor.Fields.Where(f => f.IsTextish && !f.IsKey).ToList();
+            // Search only typed text columns: a CAST over a column whose type we have not
+            // proved is exactly the kind of guess this portal refuses.
+            var searchColumns = descriptor.Fields.Where(f => f.IsTextish && !f.IsKey && !f.DisplayOnly).ToList();
             if (!string.IsNullOrWhiteSpace(term) && searchColumns.Count > 0)
             {
                 search = " WHERE " + string.Join(" OR ",
@@ -171,7 +173,7 @@ namespace T5Web.Data
                     var values = new List<string>();
                     foreach (ModuleField field in descriptor.Fields)
                     {
-                        if (field.Identity)
+                        if (field.Identity || field.DisplayOnly)
                         {
                             continue;
                         }
@@ -191,7 +193,7 @@ namespace T5Web.Data
                 }
 
                 var assignments = new List<string>();
-                foreach (ModuleField field in descriptor.Editable)
+                foreach (ModuleField field in descriptor.Editable)   // already excludes display-only
                 {
                     assignments.Add(Quote(field.Column) + " = @p" + assignments.Count);
                     arguments.Add("p" + (assignments.Count - 1), Normalize(row[field.Column], field));

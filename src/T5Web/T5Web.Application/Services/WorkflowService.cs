@@ -89,12 +89,38 @@ namespace T5Web.Application.Services
 
         public OperationResult Save(IReadOnlyList<WorkflowStep> steps, int workflowType, int leaveTypeId)
         {
+            return Save(steps, workflowType, leaveTypeId, false);
+        }
+
+        /// <summary>
+        /// Saves the chain, refusing to strand in-flight requests unless the caller
+        /// explicitly confirmed the purge. A rewritten chain leaves old approvals
+        /// pointing at steps that no longer exist, which the engine reads as "approved".
+        /// </summary>
+        public OperationResult Save(IReadOnlyList<WorkflowStep> steps, int workflowType, int leaveTypeId,
+                                    bool confirmStranded)
+        {
             OperationResult validation = Validate(steps);
             if (!validation.Succeeded)
             {
                 return validation;
             }
+
+            int inFlight = _repository.CountInFlightRequests(workflowType, leaveTypeId);
+            if (inFlight > 0 && !confirmStranded)
+            {
+                return OperationResult.Fail(
+                    "این زنجیره " + inFlight + " درخواست در جریان دارد؛ تغییر آن، پاسخ‌های ثبت‌شده را بی‌مرجع می‌کند. " +
+                    "برای ادامه، تأیید صریح («تغییر با وجود درخواست‌های در جریان») لازم است.");
+            }
+
             return _repository.SaveWorkflow(steps, workflowType, leaveTypeId);
+        }
+
+        /// <summary>How many requests would be stranded by a rewrite of this chain.</summary>
+        public int InFlight(int workflowType, int leaveTypeId)
+        {
+            return _repository.CountInFlightRequests(workflowType, leaveTypeId);
         }
     }
 }

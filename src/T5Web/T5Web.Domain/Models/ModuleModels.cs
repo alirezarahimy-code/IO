@@ -39,6 +39,17 @@ namespace T5Web.Domain.Models
         public double? Max { get; set; }
         public string HintFa { get; set; }
         public string TypeEvidence { get; set; }
+
+        /// <summary>
+        /// Shown (and exported) but never written and never used in a WHERE clause.
+        ///
+        /// Some legacy tables have a human label whose column type the engine does not
+        /// model (Schedule.SchName, ShiftDetail.DayIndex). Refusing to *display* them
+        /// would hide the row's identity from the operator; refusing to *write* them
+        /// keeps the portal from binding a value it cannot prove. Display-only is that
+        /// middle ground, and T16 checks the distinction.
+        /// </summary>
+        public bool DisplayOnly { get; set; }
         public IReadOnlyList<KeyValuePair<int, string>> Options { get; set; }
 
         public bool IsTextish
@@ -96,7 +107,13 @@ namespace T5Web.Domain.Models
 
         public IEnumerable<ModuleField> Editable
         {
-            get { return Fields.Where(f => !f.IsKey); }
+            get { return Fields.Where(f => !f.IsKey && !f.DisplayOnly); }
+        }
+
+        /// <summary>Fields the operator can actually type into (the form is built from this).</summary>
+        public IEnumerable<ModuleField> Inputs
+        {
+            get { return Fields.Where(f => !f.DisplayOnly); }
         }
 
         public ModuleField Key

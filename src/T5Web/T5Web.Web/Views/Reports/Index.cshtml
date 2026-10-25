@@ -1,0 +1,133 @@
+@model T5Web.Web.Controllers.ReportsIndexModel
+@using T5Web.Domain.Models
+<form method="get" action="@Url.Action("Index", "Reports")" class="toolbar">
+    <div class="field">
+        <label for="code">گزارش</label>
+        <select id="code" name="code" data-autosubmit="true" required>
+            <option value="">— انتخاب گزارش —</option>
+            @foreach (var report in Model.Reports)
+            {
+                bool selected = Model.Selected != null && Model.Selected.Code == report.Code;
+                <option value="@report.Code" selected="@(selected ? "selected" : null)">@report.TitleFa</option>
+            }
+        </select>
+    </div>
+    <div class="field">
+        <label for="from">از تاریخ</label>
+        <input type="date" id="from" name="from" value="@Model.FromIso" />
+    </div>
+    <div class="field">
+        <label for="to">تا تاریخ</label>
+        <input type="date" id="to" name="to" value="@Model.ToIso" />
+    </div>
+    <div class="field">
+        <label for="badge">شماره پرسنلی (اختیاری)</label>
+        <input type="number" id="badge" name="badge" value="@(Model.BadgeNumber.HasValue ? Model.BadgeNumber.Value.ToString() : string.Empty)" />
+    </div>
+    <button type="submit" class="btn btn--primary">اجرا</button>
+    @if (Model.Selected != null && Model.Result != null)
+    {
+        <a class="btn" href="@Url.Action("Export", "Reports", new { code = Model.Selected.Code, from = Model.FromIso, to = Model.ToIso, badge = Model.BadgeNumber })">خروجی CSV</a>
+    }
+</form>
+
+@if (!string.IsNullOrEmpty(Model.Error))
+{
+    <div class="notice notice--bad">@Model.Error</div>
+}
+
+@if (Model.Selected == null)
+{
+    <div class="panel">
+        <div class="panel__head">
+            <h2>گزارش‌های در دسترس (@Model.Reports.Count)</h2>
+            <span class="muted u-sm">فقط گزارش‌هایی که سطح دسترسی شما اجازه می‌دهد</span>
+        </div>
+        <div class="panel__body">
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th>گزارش</th>
+                        <th>منبع</th>
+                        <th class="num">حداکثر بازه</th>
+                        <th>کنترلر قدیمی</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var report in Model.Reports)
+                    {
+                        <tr>
+                            <td>@report.TitleFa</td>
+                            <td>
+                                @if (report.FromEngine)
+                                {
+                                    <span class="tag tag--mute">@report.SourceFa</span>
+                                }
+                                else
+                                {
+                                    <span class="tag tag--ok">@report.SourceFa</span>
+                                }
+                            </td>
+                            <td class="num">@report.MaxDays روز</td>
+                            <td class="num">@report.LegacyController</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+else if (Model.Result != null)
+{
+    <div class="panel">
+        <div class="panel__head">
+            <h2>@Model.Result.TitleFa</h2>
+            <span class="muted u-sm">
+                @Model.Result.RangeFa · @Model.Result.RowCount سطر ·
+                @Model.Result.Elapsed.TotalMilliseconds.ToString("0") میلی‌ثانیه
+            </span>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.Result.NoteFa))
+        {
+            <div class="panel__body">
+                <div class="notice @(Model.Selected.FromEngine ? "notice--warn" : "notice--info")">@Model.Result.NoteFa</div>
+            </div>
+        }
+        @if (Model.Result.Truncated)
+        {
+            <div class="panel__body">
+                <div class="notice notice--warn">خروجی به سقف سطرها رسید و بریده شد؛ بازه را کوتاه‌تر کنید.</div>
+            </div>
+        }
+        @if (Model.Result.RowCount == 0)
+        {
+            <div class="empty">برای این بازه داده‌ای پیدا نشد.</div>
+        }
+        else
+        {
+            <div class="u-scroll-x">
+                <table class="grid">
+                    <thead>
+                        <tr>
+                            @foreach (string column in Model.Result.Columns)
+                            {
+                                <th>@column</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var row in Model.Result.Rows)
+                        {
+                            <tr>
+                                @foreach (string cell in row)
+                                {
+                                    <td>@(string.IsNullOrWhiteSpace(cell) ? "—" : cell)</td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+}

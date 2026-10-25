@@ -83,6 +83,10 @@ namespace T5Web.Application.Modules
 
             foreach (ModuleField field in descriptor.Fields)
             {
+                if (field.DisplayOnly)
+                {
+                    continue; // shown, never written
+                }
                 string raw = Value(form, field.Column);
                 bool missing = string.IsNullOrWhiteSpace(raw);
 

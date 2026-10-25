@@ -109,6 +109,12 @@ namespace T5Web.Data
             return _titles.FirstOrDefault()?.TitleName ?? string.Empty;
         }
 
+        public int GetTitleId(long badgeNumber)
+        {
+            TitleNode title = _titles.FirstOrDefault();
+            return title == null ? 0 : title.TitleId;
+        }
+
         // ------------------------------------------------------------ organisation
 
         public IReadOnlyList<DepartmentNode> GetDepartments()
@@ -266,6 +272,14 @@ namespace T5Web.Data
             }
             return OperationResult.Ok();
         }
+
+        public int CountInFlightRequests(int workflowType, int leaveTypeId)
+        {
+            return InFlightRequests;
+        }
+
+        /// <summary>Test hook: how many stranded requests the in-memory repo pretends to hold.</summary>
+        public int InFlightRequests { get; set; }
 
         // ------------------------------------------------------------------- audit
 

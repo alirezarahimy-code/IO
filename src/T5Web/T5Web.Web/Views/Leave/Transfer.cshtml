@@ -1,0 +1,91 @@
+@model T5Web.Web.Controllers.LeaveTransferPreviewModel
+@using T5Web.Domain.Models
+<form method="get" action="@Url.Action("Transfer", "Leave")" class="toolbar">
+    <div class="field">
+        <label for="fromYear">سال مبدأ</label>
+        <input type="number" id="fromYear" name="fromYear" value="@Model.FromYear" min="1300" max="1500" />
+    </div>
+    <div class="field">
+        <label for="carryCap">سقف انتقال (روز، ۰ = بی‌سقف)</label>
+        <input type="number" id="carryCap" name="carryCap" value="@Model.CarryCap.ToString("0.##")" step="0.5" min="0" />
+    </div>
+    <button type="submit" class="btn btn--primary">پیش‌نمایش</button>
+    <a class="btn" href="@Url.Action("Index", "Leave")">بازگشت</a>
+</form>
+
+<div class="panel">
+    <div class="panel__head">
+        <h2>پیش‌نمایش انتقال @Model.FromYear → @(Model.FromYear + 1)</h2>
+        <span class="muted u-sm">جمع قابل انتقال: @Model.TotalDays.ToString("0.##") روز</span>
+    </div>
+    @if (Model.Rows.Count == 0)
+    {
+        <div class="empty">مانده‌ای برای انتقال پیدا نشد.</div>
+    }
+    else
+    {
+        <div class="u-scroll-x">
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th class="num">شماره</th>
+                        <th>نام</th>
+                        <th>نوع مرخصی</th>
+                        <th class="num">مانده آغاز</th>
+                        <th class="num">قابل انتقال</th>
+                        <th>یادداشت</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.Rows)
+                    {
+                        <tr>
+                            <td class="num">@row.BadgeNumber</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.PersonName) ? "—" : row.PersonName)</td>
+                            <td>@row.LeaveTypeName</td>
+                            <td class="num">@row.FromDays.ToString("0.##")</td>
+                            <td class="num">
+                                @if (row.TransferDays > 0)
+                                {
+                                    <strong>@row.TransferDays.ToString("0.##")</strong>
+                                }
+                                else
+                                {
+                                    <span class="tag tag--mute">۰</span>
+                                }
+                            </td>
+                            <td>@(string.IsNullOrWhiteSpace(row.Note) ? "—" : row.Note)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@if (Model.CanEdit && Model.TotalDays > 0)
+{
+    <div class="panel">
+        <div class="panel__head">
+            <h2>تأیید انتقال</h2>
+            <span class="tag tag--warn">همه‌یا‌هیچ · یک‌بار برای هر سال</span>
+        </div>
+        <div class="panel__body">
+            <form method="post" action="@Url.Action("CommitTransfer", "Leave")" data-confirm="true">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="fromYear" value="@Model.FromYear" />
+                <input type="hidden" name="carryCap" value="@Model.CarryCap.ToString("0.##")" />
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="reason">دلیل انتقال</label>
+                        <input type="text" id="reason" name="reason" minlength="4" maxlength="200" required />
+                    </div>
+                </div>
+                <p class="muted u-sm">
+                    مبالغ از پیش‌نمایش سمت سرور دوباره محاسبه می‌شوند؛ مقدار ارسالی از مرورگر پذیرفته نمی‌شود.
+                </p>
+                <button type="submit" class="btn btn--primary">ثبت انتقال @Model.TotalDays.ToString("0.##") روز</button>
+            </form>
+        </div>
+    </div>
+}

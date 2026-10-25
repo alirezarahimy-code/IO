@@ -1,0 +1,105 @@
+@model T5Web.Web.Controllers.ImportPreviewModel
+@using T5Web.Application.Services
+@{
+    bool hasRows = Model.HasRows;
+}
+<div class="panel">
+    <div class="panel__head">
+        <h2>ورود گروهی پرسنل از CSV</h2>
+        <span class="tag tag--mute">کاملاً آفلاین · بدون Excel Interop</span>
+    </div>
+    <div class="panel__body">
+        <div class="notice notice--info">
+            سرستون‌های فایل، به همین ترتیب: <code>badge, firstname, lastname, nationalno, phone, email, deptid, emptypeid, hireddate, fireddate</code>.
+            تاریخ‌ها به شکل <code>yyyy-MM-dd</code>. فایل را با «CSV UTF-8» ذخیره کنید.
+        </div>
+        <div class="notice notice--warn">
+            این صفحه فقط پرسنل <strong>موجود</strong> را به‌روزرسانی می‌کند. افزودن پرسنل جدید از برنامه دسکتاپ
+            انجام می‌شود، چون شماره کارت دستگاه و ترتیب شماره پرسنلی را موتور می‌سازد.
+        </div>
+        <form method="post" action="@Url.Action("Preview", "Import")" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <div class="field">
+                <label for="file">فایل CSV</label>
+                <input type="file" id="file" name="file" accept=".csv,text/csv" required />
+            </div>
+            <button type="submit" class="btn btn--primary">پیش‌نمایش</button>
+        </form>
+    </div>
+</div>
+
+@if (Model.FileProblems != null && Model.FileProblems.Count > 0)
+{
+    <div class="panel">
+        <div class="panel__head"><h2>ایرادهای فایل</h2></div>
+        <div class="panel__body">
+            @foreach (string problem in Model.FileProblems)
+            {
+                <div class="notice notice--bad">@problem</div>
+            }
+        </div>
+    </div>
+}
+
+@if (hasRows)
+{
+    <div class="panel">
+        <div class="panel__head">
+            <h2>پیش‌نمایش «@Model.FileName»</h2>
+            <span class="muted u-sm">
+                قابل ثبت: @Model.Preview.AcceptedCount · رد‌شده: @Model.Preview.RejectedCount ·
+                به‌روزرسانی: @Model.Preview.UpdateCount
+            </span>
+        </div>
+        <div class="u-scroll-x">
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th class="num">سطر</th>
+                        <th class="num">شماره</th>
+                        <th>نام</th>
+                        <th>نام خانوادگی</th>
+                        <th class="num">کد ملی</th>
+                        <th class="num">واحد</th>
+                        <th class="num">نوع استخدام</th>
+                        <th>وضعیت</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (ImportRow row in Model.Preview.Rows)
+                    {
+                        <tr>
+                            <td class="num">@row.Line</td>
+                            <td class="num">@row.BadgeNumber</td>
+                            <td>@row.FirstName</td>
+                            <td>@row.LastName</td>
+                            <td class="num">@(string.IsNullOrWhiteSpace(row.NationalNo) ? "—" : row.NationalNo)</td>
+                            <td class="num">@row.DeptId</td>
+                            <td class="num">@row.EmpTypeId</td>
+                            <td>
+                                @if (row.Accepted)
+                                {
+                                    <span class="tag tag--ok">پذیرفته</span>
+                                }
+                                else
+                                {
+                                    <span class="tag tag--bad">رد</span>
+                                    <span class="u-sm muted">@row.ProblemsFa</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if (Model.Preview.AcceptedCount > 0 && Model.FileProblems.Count == 0)
+    {
+        <form method="post" action="@Url.Action("Commit", "Import")" data-confirm="true">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="canonical" value="@Model.Canonical" />
+            <button type="submit" class="btn btn--primary">ثبت @Model.Preview.AcceptedCount سطر</button>
+        </form>
+    }
+}

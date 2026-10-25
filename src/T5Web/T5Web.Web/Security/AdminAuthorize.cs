@@ -277,6 +277,10 @@ namespace T5Web.Web.Security
         private static WorkflowService _workflow;
         private static AuditService _audit;
         private static T5Web.Application.Modules.ModuleService _modules;
+        private static IAttendanceStore _attendance;
+        private static ILeaveStore _leave;
+        private static IScheduleStore _schedule;
+        private static IReportStore _reports;
 
         /// <summary>
         /// Wires the process-wide services. The module store is optional: a deployment
@@ -285,10 +289,36 @@ namespace T5Web.Web.Security
         /// </summary>
         public static void Configure(IAdminRepository repository)
         {
-            Configure(repository, null);
+            Configure(repository, null, null, null, null, null);
         }
 
         public static void Configure(IAdminRepository repository, IModuleStore moduleStore)
+        {
+            Configure(repository, moduleStore, null, null, null, null);
+        }
+
+        public static void Configure(IAdminRepository repository, IModuleStore moduleStore,
+                                     IAttendanceStore attendanceStore)
+        {
+            Configure(repository, moduleStore, attendanceStore, null, null, null);
+        }
+
+        public static void Configure(IAdminRepository repository, IModuleStore moduleStore,
+                                     IAttendanceStore attendanceStore, ILeaveStore leaveStore)
+        {
+            Configure(repository, moduleStore, attendanceStore, leaveStore, null, null);
+        }
+
+        public static void Configure(IAdminRepository repository, IModuleStore moduleStore,
+                                     IAttendanceStore attendanceStore, ILeaveStore leaveStore,
+                                     IScheduleStore scheduleStore)
+        {
+            Configure(repository, moduleStore, attendanceStore, leaveStore, scheduleStore, null);
+        }
+
+        public static void Configure(IAdminRepository repository, IModuleStore moduleStore,
+                                     IAttendanceStore attendanceStore, ILeaveStore leaveStore,
+                                     IScheduleStore scheduleStore, IReportStore reportStore)
         {
             if (repository == null)
             {
@@ -303,6 +333,10 @@ namespace T5Web.Web.Security
                 _workflow = new WorkflowService(repository);
                 _audit = new AuditService(repository);
                 _modules = moduleStore == null ? null : new T5Web.Application.Modules.ModuleService(moduleStore);
+                _attendance = attendanceStore;
+                _leave = leaveStore;
+                _schedule = scheduleStore;
+                _reports = reportStore;
             }
         }
 
@@ -339,6 +373,26 @@ namespace T5Web.Web.Security
         public static T5Web.Application.Modules.ModuleService Modules
         {
             get { lock (SyncRoot) { return _modules; } }
+        }
+
+        public static IAttendanceStore Attendance
+        {
+            get { lock (SyncRoot) { return _attendance; } }
+        }
+
+        public static ILeaveStore LeaveStore
+        {
+            get { lock (SyncRoot) { return _leave; } }
+        }
+
+        public static IScheduleStore ScheduleStore
+        {
+            get { lock (SyncRoot) { return _schedule; } }
+        }
+
+        public static IReportStore Reports
+        {
+            get { lock (SyncRoot) { return _reports; } }
         }
 
         /// <summary>Menu entries the current operator can actually open.</summary>

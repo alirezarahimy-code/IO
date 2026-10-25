@@ -27,6 +27,14 @@ namespace T5Web.Domain.Interfaces
         /// <summary>Loads the job title of a person (for display in the header).</summary>
         string GetTitleName(long badgeNumber);
 
+        /// <summary>
+        /// The active title id of a person ([UserInfoTitles] -> [TitlesChart]).
+        ///
+        /// Approval decisions are stamped with this id; it must never come from the
+        /// request form, otherwise anybody could approve as the director.
+        /// </summary>
+        int GetTitleId(long badgeNumber);
+
         // ---- organisation ----
         IReadOnlyList<DepartmentNode> GetDepartments();
 
@@ -62,6 +70,16 @@ namespace T5Web.Domain.Interfaces
         IReadOnlyList<WorkflowStep> GetWorkflow(int workflowType, int leaveTypeId);
 
         OperationResult SaveWorkflow(IReadOnlyList<WorkflowStep> steps, int workflowType, int leaveTypeId);
+
+        /// <summary>
+        /// How many requests are currently waiting in this chain.
+        ///
+        /// Rewriting a chain that has requests in flight strands them: their stored
+        /// [RequestAccept] rows refer to steps that no longer exist, and the engine
+        /// silently treats them as approved (legacy behaviour, BUG-21). The screen must
+        /// therefore refuse - or demand an explicit purge - before saving.
+        /// </summary>
+        int CountInFlightRequests(int workflowType, int leaveTypeId);
 
         // ---- audit ----
         void AppendAudit(AuditEntry entry);

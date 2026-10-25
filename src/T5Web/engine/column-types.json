@@ -120,6 +120,15 @@
           "nullable": true,
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
+        },
+        "HolidayDate": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
         }
       },
       "sources": [
@@ -205,6 +214,42 @@
           "nullable": true,
           "source": "orm:T5V3.DB.dll",
           "type": "nvarchar"
+        },
+        "LeaveDescriptionID": {
+          "clr": "int?",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.DB.dll",
+          "type": "int"
+        },
+        "LeaveTypeID": {
+          "clr": "int?",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.DB.dll",
+          "type": "int"
+        },
+        "MaxRequestLen": {
+          "clr": "double?",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.DB.dll",
+          "type": "float"
+        },
+        "MinRequestLen": {
+          "clr": "double?",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.DB.dll",
+          "type": "float"
         }
       },
       "sources": [
@@ -221,6 +266,15 @@
           "nullable": false,
           "source": "orm:T5V3.DB.dll",
           "type": "bigint"
+        },
+        "Date": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "datetime"
         },
         "DescriptionID": {
           "clr": "int",
@@ -248,6 +302,15 @@
           "nullable": true,
           "source": "orm:T5V3.DB.dll",
           "type": "nvarchar"
+        },
+        "InsertDate": {
+          "clr": "datetime?",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.DB.dll",
+          "type": "datetime"
         },
         "LeaveID": {
           "clr": "int",
@@ -394,6 +457,15 @@
           "source": "orm:T5V3.Model.dll",
           "type": "int"
         },
+        "FromDate": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
+        },
         "FromDateHijri": {
           "clr": "string",
           "evidence": "orm",
@@ -420,6 +492,15 @@
           "nullable": true,
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
+        },
+        "ToDate": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
         },
         "ToDateHijri": {
           "clr": "string",
@@ -743,6 +824,15 @@
           "source": "ddl:Personnel.sql",
           "type": "bigint"
         },
+        "PWType": {
+          "clr": "int?",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:Personnel.dll",
+          "type": "int"
+        },
         "PhotoStamp": {
           "evidence": "ddl",
           "identity": false,
@@ -936,6 +1026,15 @@
           "source": "ddl:Personnel.sql",
           "type": "nvarchar"
         },
+        "Duration": {
+          "clr": "time",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:Personnel.dll",
+          "type": "time"
+        },
         "DurationMins": {
           "evidence": "ddl",
           "identity": false,
@@ -960,6 +1059,15 @@
           "source": "ddl:Personnel.sql",
           "type": "int"
         },
+        "ValidFrom": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:Personnel.dll",
+          "type": "datetime"
+        },
         "ValidFromTime": {
           "evidence": "ddl",
           "identity": false,
@@ -970,7 +1078,8 @@
         }
       },
       "sources": [
-        "ddl:Personnel.sql"
+        "ddl:Personnel.sql",
+        "orm:Personnel.dll"
       ]
     },
     "DeviceMessagePersonnel": {
@@ -1113,6 +1222,15 @@
           "source": "orm:T5V3.DB.dll",
           "type": "bigint"
         },
+        "EventTime": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "datetime"
+        },
         "MachineIP": {
           "clr": "string",
           "evidence": "orm",
@@ -1237,6 +1355,15 @@
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
         },
+        "FromTime": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
+        },
         "ID": {
           "clr": "int",
           "evidence": "orm",
@@ -1254,6 +1381,15 @@
           "nullable": false,
           "source": "orm:T5V3.Model.dll",
           "type": "int"
+        },
+        "ToTime": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
         }
       },
       "sources": [
@@ -1304,6 +1440,24 @@
           "nullable": false,
           "source": "orm:T5V3.Model.dll",
           "type": "int"
+        },
+        "DecreaseFromLeaveID": {
+          "clr": "int?",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "EachXHoursADay": {
+          "clr": "time",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "time"
         },
         "ForNextYear": {
           "clr": "double",
@@ -1377,6 +1531,24 @@
           "source": "orm:T5V3.Model.dll",
           "type": "float"
         },
+        "MaxHoursInADay": {
+          "clr": "time",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "time"
+        },
+        "MaxHoursInAMonth": {
+          "clr": "time",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "time"
+        },
         "MaxMinus": {
           "clr": "double",
           "evidence": "orm",
@@ -1394,6 +1566,15 @@
           "nullable": false,
           "source": "orm:T5V3.Model.dll",
           "type": "bit"
+        },
+        "ParameterID": {
+          "clr": "int?",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
         },
         "Payment": {
           "clr": "bool",
@@ -1421,6 +1602,15 @@
           "nullable": true,
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
+        },
+        "ValidFreeOT": {
+          "clr": "bool?",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bit"
         }
       },
       "sources": [
@@ -1429,6 +1619,15 @@
     },
     "LeavesAdded": {
       "columns": {
+        "AddedDate": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
+        },
         "AddedDateHijri": {
           "clr": "string",
           "evidence": "orm",
@@ -1473,6 +1672,15 @@
           "nullable": false,
           "source": "orm:T5V3.Model.dll",
           "type": "int"
+        },
+        "IsResell": {
+          "clr": "bool?",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bit"
         },
         "LeaveTypeID": {
           "clr": "int",
@@ -1741,6 +1949,15 @@
     },
     "Ramezan": {
       "columns": {
+        "FromDate": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "datetime"
+        },
         "ID": {
           "clr": "int",
           "evidence": "orm",
@@ -1768,6 +1985,15 @@
           "source": "orm:T5V3.DB.dll",
           "type": "float"
         },
+        "ToDate": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "datetime"
+        },
         "Year": {
           "clr": "int",
           "evidence": "orm",
@@ -1793,6 +2019,15 @@
           "source": "orm:Personnel.dll",
           "type": "bigint"
         },
+        "CheckTime": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:Personnel.dll",
+          "type": "datetime"
+        },
         "CheckType": {
           "clr": "int",
           "evidence": "orm",
@@ -1801,6 +2036,15 @@
           "nullable": false,
           "source": "orm:Personnel.dll",
           "type": "int"
+        },
+        "InsertTime": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:Personnel.dll",
+          "type": "datetime"
         },
         "InsertUser": {
           "clr": "long",
@@ -1872,6 +2116,15 @@
     },
     "Request": {
       "columns": {
+        "AllowValue": {
+          "clr": "time",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "time"
+        },
         "BadgeNumber": {
           "clr": "long",
           "evidence": "orm",
@@ -1881,6 +2134,15 @@
           "source": "orm:T5V3.Model.dll",
           "type": "bigint"
         },
+        "CreateTime": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
+        },
         "Descriptions": {
           "clr": "string",
           "evidence": "orm",
@@ -1889,6 +2151,24 @@
           "nullable": true,
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
+        },
+        "ForDate": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
+        },
+        "FromTime": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
         },
         "IsDaily": {
           "clr": "bool",
@@ -1908,6 +2188,15 @@
           "source": "orm:T5V3.Model.dll",
           "type": "bit"
         },
+        "Latitude": {
+          "clr": "double?",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "float"
+        },
         "LeaveDescriptionID": {
           "clr": "int",
           "evidence": "orm",
@@ -1926,6 +2215,24 @@
           "source": "orm:T5V3.Model.dll",
           "type": "int"
         },
+        "Longitude": {
+          "clr": "double?",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "float"
+        },
+        "RecordTime": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
+        },
         "RequestID": {
           "clr": "long",
           "evidence": "orm",
@@ -1943,6 +2250,15 @@
           "nullable": true,
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
+        },
+        "ToTime": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
         }
       },
       "sources": [
@@ -1951,6 +2267,15 @@
     },
     "RequestAccept": {
       "columns": {
+        "AcceptDate": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "datetime"
+        },
         "AccepterBadgeNumber": {
           "clr": "long",
           "evidence": "orm",
@@ -2003,6 +2328,24 @@
     },
     "Rule": {
       "columns": {
+        "ConstOTMaxDaily": {
+          "clr": "time",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "time"
+        },
+        "ConstOTMaxMonthly": {
+          "clr": "time",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "time"
+        },
         "EarlyMore": {
           "clr": "bool",
           "evidence": "orm",
@@ -2021,6 +2364,15 @@
           "source": "orm:T5V3.Model.dll",
           "type": "int"
         },
+        "EarlyMoreTime": {
+          "clr": "time",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "time"
+        },
         "FreeOverTime": {
           "clr": "bool",
           "evidence": "orm",
@@ -2029,6 +2381,15 @@
           "nullable": false,
           "source": "orm:T5V3.Model.dll",
           "type": "bit"
+        },
+        "FreeOverTimeMax": {
+          "clr": "time",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "time"
         },
         "LateMore": {
           "clr": "bool",
@@ -2048,6 +2409,15 @@
           "source": "orm:T5V3.Model.dll",
           "type": "int"
         },
+        "LateMoreTime": {
+          "clr": "time",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "time"
+        },
         "LimitRecReqInDay": {
           "clr": "int",
           "evidence": "orm",
@@ -2065,6 +2435,24 @@
           "nullable": false,
           "source": "orm:T5V3.Model.dll",
           "type": "int"
+        },
+        "MaxBalanceDay": {
+          "clr": "time",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "time"
+        },
+        "MinOverTimeInterval": {
+          "clr": "time",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "time"
         },
         "OverTime": {
           "clr": "bool",
@@ -2084,6 +2472,15 @@
           "source": "orm:T5V3.Model.dll",
           "type": "bit"
         },
+        "OverTimeAfterMax": {
+          "clr": "time",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "time"
+        },
         "OverTimeBefore": {
           "clr": "bool",
           "evidence": "orm",
@@ -2092,6 +2489,24 @@
           "nullable": false,
           "source": "orm:T5V3.Model.dll",
           "type": "bit"
+        },
+        "OverTimeBeforeMax": {
+          "clr": "time",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "time"
+        },
+        "OverTimeMax": {
+          "clr": "time",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "time"
         },
         "ParamName": {
           "clr": "string",
@@ -2228,6 +2643,15 @@
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
         },
+        "WebLeaveTelorance": {
+          "clr": "time",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "time"
+        },
         "WoIn": {
           "clr": "bool",
           "evidence": "orm",
@@ -2237,6 +2661,15 @@
           "source": "orm:T5V3.Model.dll",
           "type": "bit"
         },
+        "WoInLate": {
+          "clr": "time",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "time"
+        },
         "WoOut": {
           "clr": "bool",
           "evidence": "orm",
@@ -2245,6 +2678,15 @@
           "nullable": false,
           "source": "orm:T5V3.Model.dll",
           "type": "bit"
+        },
+        "WoOutEarly": {
+          "clr": "time",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "time"
         }
       },
       "sources": [
@@ -2253,6 +2695,24 @@
     },
     "Schedule": {
       "columns": {
+        "AfterI": {
+          "clr": "bool?",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bit"
+        },
+        "BeforeI": {
+          "clr": "bool?",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bit"
+        },
         "CalendarID": {
           "clr": "int",
           "evidence": "orm",
@@ -2271,6 +2731,15 @@
           "source": "orm:T5V3.Model.dll",
           "type": "int"
         },
+        "Early": {
+          "clr": "time",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "time"
+        },
         "EarlyToStr": {
           "clr": "string",
           "evidence": "orm",
@@ -2279,6 +2748,15 @@
           "nullable": true,
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
+        },
+        "EndFrom": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
         },
         "EndFromToStr": {
           "clr": "string",
@@ -2289,6 +2767,15 @@
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
         },
+        "EndTo": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
+        },
         "EndToToStr": {
           "clr": "string",
           "evidence": "orm",
@@ -2297,6 +2784,15 @@
           "nullable": true,
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
+        },
+        "FromTime": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
         },
         "FromTimeStr": {
           "clr": "string",
@@ -2334,6 +2830,15 @@
           "source": "orm:T5V3.Model.dll",
           "type": "int"
         },
+        "IntervalB": {
+          "clr": "time?",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "time"
+        },
         "IntervalBToStr": {
           "clr": "string",
           "evidence": "orm",
@@ -2342,6 +2847,15 @@
           "nullable": true,
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
+        },
+        "Late": {
+          "clr": "time",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "time"
         },
         "LateToStr": {
           "clr": "string",
@@ -2361,6 +2875,15 @@
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
         },
+        "RamzFromTime": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
+        },
         "RamzFromTimeToStr": {
           "clr": "string",
           "evidence": "orm",
@@ -2369,6 +2892,15 @@
           "nullable": true,
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
+        },
+        "RamzToTime": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
         },
         "RamzToTimeToStr": {
           "clr": "string",
@@ -2429,6 +2961,15 @@
           "source": "ddl:Link5.sql",
           "type": "int"
         },
+        "StartFrom": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
+        },
         "StartFromToStr": {
           "clr": "string",
           "evidence": "orm",
@@ -2438,6 +2979,15 @@
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
         },
+        "StartTo": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
+        },
         "StartToToStr": {
           "clr": "string",
           "evidence": "orm",
@@ -2446,6 +2996,15 @@
           "nullable": true,
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
+        },
+        "SuspendTime": {
+          "clr": "time",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "time"
         },
         "SuspendTimeToStr": {
           "clr": "string",
@@ -2464,6 +3023,15 @@
           "nullable": true,
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
+        },
+        "ToTime": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
         },
         "ToTimeStr": {
           "clr": "string",
@@ -2577,6 +3145,15 @@
     },
     "TempSchedule": {
       "columns": {
+        "AssignDate": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
+        },
         "AssignedSchedule": {
           "clr": "int",
           "evidence": "orm",
@@ -3094,6 +3671,15 @@
           "source": "ddl:Personnel.sql",
           "type": "datetime"
         },
+        "FiredDay": {
+          "clr": "datetime?",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:Personnel.dll",
+          "type": "datetime"
+        },
         "FirstLogin": {
           "evidence": "ddl",
           "identity": false,
@@ -3151,6 +3737,15 @@
           "length": null,
           "nullable": true,
           "source": "ddl:Personnel.sql",
+          "type": "datetime"
+        },
+        "HiredDay": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:Personnel.dll",
           "type": "datetime"
         },
         "IsFemale": {
@@ -3404,6 +3999,15 @@
           "source": "orm:T5V3.Model.dll",
           "type": "bigint"
         },
+        "FromDate": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
+        },
         "FromDateHijri": {
           "clr": "string",
           "evidence": "orm",
@@ -3439,6 +4043,15 @@
           "nullable": true,
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
+        },
+        "ToDate": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
         },
         "ToDateHijri": {
           "clr": "string",
@@ -3483,6 +4096,15 @@
           "source": "orm:T5V3.Model.dll",
           "type": "bigint"
         },
+        "FromDate": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
+        },
         "FromDateHijri": {
           "clr": "string",
           "evidence": "orm",
@@ -3509,6 +4131,15 @@
           "nullable": true,
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
+        },
+        "ToDate": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
         },
         "ToDateHijri": {
           "clr": "string",
@@ -3544,6 +4175,15 @@
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
         },
+        "FromDate": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
+        },
         "FromDateHijri": {
           "clr": "string",
           "evidence": "orm",
@@ -3571,6 +4211,15 @@
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
         },
+        "ToDate": {
+          "clr": "datetime",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "datetime"
+        },
         "ToDateHijri": {
           "clr": "string",
           "evidence": "orm",
@@ -3579,6 +4228,15 @@
           "nullable": true,
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
+        },
+        "ValidHours": {
+          "clr": "time",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "time"
         },
         "ValidStr": {
           "clr": "string",

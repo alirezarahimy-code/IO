@@ -1,0 +1,166 @@
+@model T5Web.Web.Controllers.RecordsIndexModel
+@using T5Web.Domain.Models
+@{
+    var query = Model.Query;
+}
+<form method="get" action="@Url.Action("Index", "Records")" class="toolbar">
+    <div class="field">
+        <label for="badge">شماره پرسنلی</label>
+        <input type="number" id="badge" name="badge" value="@(query.BadgeNumber.HasValue ? query.BadgeNumber.Value.ToString() : string.Empty)" />
+    </div>
+    <div class="field">
+        <label for="machine">دستگاه</label>
+        <select id="machine" name="machine" data-autosubmit="true">
+            <option value="">همه دستگاه‌ها</option>
+            @foreach (var device in Model.Devices)
+            {
+                bool selected = query.MachineNumber.HasValue && query.MachineNumber.Value == device.MachineNumber;
+                <option value="@device.MachineNumber" selected="@(selected ? "selected" : null)">@device.MachineName</option>
+            }
+        </select>
+    </div>
+    <div class="field">
+        <label for="from">از تاریخ</label>
+        <input type="date" id="from" name="from" value="@Model.FromIso" />
+    </div>
+    <div class="field">
+        <label for="to">تا تاریخ</label>
+        <input type="date" id="to" name="to" value="@Model.ToIso" />
+    </div>
+    <div class="field">
+        <label for="onlyInvalid">فقط نامعتبر</label>
+        <select id="onlyInvalid" name="onlyInvalid" data-autosubmit="true">
+            <option value="false" selected="@(!query.OnlyInvalid ? "selected" : null)">همه</option>
+            <option value="true" selected="@(query.OnlyInvalid ? "selected" : null)">فقط نامعتبر</option>
+        </select>
+    </div>
+    <div class="field">
+        <label for="onlyManual">فقط دستی</label>
+        <select id="onlyManual" name="onlyManual" data-autosubmit="true">
+            <option value="false" selected="@(!query.OnlyManual ? "selected" : null)">همه</option>
+            <option value="true" selected="@(query.OnlyManual ? "selected" : null)">فقط دستی</option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn--primary">اعمال</button>
+    <a class="btn" href="@Url.Action("Export", "Records", new { from = Model.FromIso, to = Model.ToIso, badge = query.BadgeNumber, machine = query.MachineNumber, onlyInvalid = query.OnlyInvalid })">خروجی CSV</a>
+</form>
+
+<div class="panel">
+    <div class="panel__head">
+        <h2>ترددها — @Model.Rows.Count سطر</h2>
+        <span class="muted u-sm">مرتب‌شده از جدید به قدیم · حداکثر @query.Take سطر</span>
+    </div>
+    @if (Model.Rows.Count == 0)
+    {
+        <div class="empty">ترددی با این فیلتر پیدا نشد.</div>
+    }
+    else
+    {
+        <div class="u-scroll-x">
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th class="num">شماره</th>
+                        <th>نام</th>
+                        <th class="num">تاریخ</th>
+                        <th class="num">ساعت</th>
+                        <th>نوع</th>
+                        <th>دستگاه</th>
+                        <th>وضعیت</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.Rows)
+                    {
+                        <tr>
+                            <td class="num">@row.BadgeNumber</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.PersonName) ? "—" : row.PersonName)</td>
+                            <td class="num">@JalaliText.Format(row.CheckTime)</td>
+                            <td class="num">@row.CheckTime.ToString("HH:mm")</td>
+                            <td>@row.CheckTypeFa</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.MachineName) ? "—" : row.MachineName)</td>
+                            <td class="nowrap">
+                                @if (row.IsValid)
+                                {
+                                    <span class="tag tag--ok">معتبر</span>
+                                }
+                                else
+                                {
+                                    <span class="tag tag--warn">نامعتبر</span>
+                                }
+                                @if (row.IsManual)
+                                {
+                                    <span class="tag tag--mute">دستی</span>
+                                }
+                            </td>
+                            <td>
+                                @if (Model.CanEdit)
+                                {
+                                    <form method="post" action="@Url.Action("Correct", "Records")" class="inline" data-confirm="true">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="badge" value="@row.BadgeNumber" />
+                                        <input type="hidden" name="checkTime" value="@row.CheckTime.ToString("yyyy-MM-ddTHH:mm")" />
+                                        <input type="hidden" name="originalType" value="@row.CheckType" />
+                                        <input type="hidden" name="isValid" value="@(row.IsValid ? "false" : "true")" />
+                                        <input type="hidden" name="checkType" value="@row.CheckType" />
+                                        <input type="text" name="reason" placeholder="دلیل" class="move-form__input" aria-label="دلیل اصلاح" />
+                                        <button type="submit" class="btn btn--ghost">@(row.IsValid ? "نامعتبر کن" : "معتبر کن")</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@if (Model.CanEdit)
+{
+    <div class="panel">
+        <div class="panel__head">
+            <h2>ثبت دستی تردد</h2>
+            <span class="tag tag--mute">در دفتر رخداد ثبت می‌شود</span>
+        </div>
+        <div class="panel__body">
+            <form method="post" action="@Url.Action("Insert", "Records")" data-confirm="true">
+                @Html.AntiForgeryToken()
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="insertBadge">شماره پرسنلی</label>
+                        <input type="number" id="insertBadge" name="badge" required />
+                    </div>
+                    <div class="field">
+                        <label for="insertTime">زمان (میلادی)</label>
+                        <input type="datetime-local" id="insertTime" name="checkTime" required />
+                    </div>
+                    <div class="field">
+                        <label for="insertType">نوع تردد</label>
+                        <select id="insertType" name="checkType">
+                            @foreach (var type in Model.CheckTypes)
+                            {
+                                <option value="@type.Key">@type.Value</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="insertMachine">دستگاه</label>
+                        <select id="insertMachine" name="machine">
+                            @foreach (var device in Model.Devices)
+                            {
+                                <option value="@device.MachineNumber">@device.MachineName</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="insertReason">دلیل ثبت</label>
+                        <input type="text" id="insertReason" name="reason" maxlength="200" required />
+                    </div>
+                </div>
+                <button type="submit" class="btn btn--primary">ثبت تردد</button>
+            </form>
+        </div>
+    </div>
+}

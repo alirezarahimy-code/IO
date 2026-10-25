@@ -1,0 +1,25 @@
+@model T5Web.Web.Controllers.ImportResultModel
+@using T5Web.Application.Services
+<div class="panel">
+    <div class="panel__head">
+        <h2>نتیجه ورود گروهی</h2>
+        <span class="muted u-sm">@Model.Outcome.SummaryFa</span>
+    </div>
+    @if (Model.Outcome.Messages.Count == 0)
+    {
+        <div class="empty">همه سطرها بدون ایراد ثبت شدند.</div>
+    }
+    else
+    {
+        <div class="panel__body">
+            @foreach (string message in Model.Outcome.Messages)
+            {
+                <div class="notice notice--bad">@message</div>
+            }
+        </div>
+    }
+    <div class="panel__foot">
+        <a class="btn" href="@Url.Action("Index", "Import")">ورود فایل دیگر</a>
+        <a class="btn" href="@Url.Action("Index", "Personnel")">فهرست پرسنل</a>
+    </div>
+</div>

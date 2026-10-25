@@ -20,6 +20,7 @@ namespace T5Web.Web.Controllers
             ViewBag.TitleId = titleId;
             ViewBag.Titles = PortalServices.Repository.GetTitles();
             ViewBag.CanEdit = CurrentSession != null && CurrentSession.CanEdit(AdminFeature.WorkflowEdit);
+            ViewBag.InFlight = PortalServices.Workflow.InFlight(workflowType, leaveTypeId);
             return View(steps);
         }
 
@@ -31,7 +32,7 @@ namespace T5Web.Web.Controllers
         [ValidateAntiForgeryToken]
         [AdminGate(AdminFeature.WorkflowEdit)]
         public ActionResult Save(int workflowType, int leaveTypeId, int titleId,
-                                 int[] accepterTitleId, int[] orderIndex)
+                                 int[] accepterTitleId, int[] orderIndex, bool confirmStranded = false)
         {
             if (titleId <= 0)
             {
@@ -61,12 +62,17 @@ namespace T5Web.Web.Controllers
                 });
             }
 
-            OperationResult result = PortalServices.Workflow.Save(steps, workflowType, leaveTypeId);
+            OperationResult result = PortalServices.Workflow.Save(steps, workflowType, leaveTypeId, confirmStranded);
             TempData["Flash"] = result.Succeeded ? "زنجیره تأیید ذخیره شد." : result.Message;
             if (result.Succeeded)
             {
+                string detail = steps.Count + " مرحله";
+                if (confirmStranded)
+                {
+                    detail += "; تأیید صریح با وجود درخواست در جریان";
+                }
                 Audit(AdminFeature.WorkflowEdit, "ذخیره زنجیره تأیید",
-                    "نوع " + workflowType + " / مرخصی " + leaveTypeId, steps.Count + " مرحله");
+                    "نوع " + workflowType + " / مرخصی " + leaveTypeId, detail);
             }
             return RedirectToAction("Index", new { workflowType, leaveTypeId, titleId });
         }

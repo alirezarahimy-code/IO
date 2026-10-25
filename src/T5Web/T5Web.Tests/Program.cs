@@ -46,6 +46,14 @@ namespace T5Web.Tests
             RunTest("T16: Module registry is proved against schema and column types", TestModuleRegistryProof);
             RunTest("T17: Module validation (required, range, dates, Persian digits)", TestModuleValidation);
             RunTest("T18: Module store (composite keys, uniqueness, delete, CSV)", TestModuleStore);
+            RunTest("T19: Rule layers resolve by precedence; same-layer overlap is a conflict", TestRuleResolution);
+            RunTest("T20: Attendance store refuses a duplicate punch and a repeated approval", TestAttendanceStore);
+            RunTest("T21: Leave balance invariant and all-or-nothing year transfer", TestLeaveBalances);
+            RunTest("T22: Schedule rules (contiguous cycle, overlap, retroactive window)", TestScheduleRules);
+            RunTest("T23: Report catalogue (access gating, per-report window, offline export)", TestReports);
+            RunTest("T24: Import (CSV round trip, rejected rows, update-only scope)", TestPersonnelImport);
+            RunTest("T25: 64/64 legacy coverage audit (no controller left pending)", TestLegacyCoverage);
+            RunTest("T26: Phase 5 delivery (screens, devices, cut-over switch)", TestPhase5Delivery);
 
             Console.WriteLine("----------------------------------------------------------------------");
             Console.WriteLine($"  Summary: {_passed} Passed, {_failed} Failed");
@@ -782,7 +790,7 @@ namespace T5Web.Tests
             Dictionary<string, Dictionary<string, string>> types = TypedColumns();
             var modules = ModuleRegistry.All();
 
-            Assert(modules.Count >= 13, "expected at least 13 generic modules, found " + modules.Count);
+            Assert(modules.Count >= 25, "expected at least 25 generic modules, found " + modules.Count);
             Assert(modules.Select(m => m.Code).Distinct(StringComparer.OrdinalIgnoreCase).Count() == modules.Count,
                 "two modules share the same code.");
 
@@ -810,6 +818,14 @@ namespace T5Web.Tests
 
                     string expectedType = null;
                     string evidence = field.TypeEvidence ?? string.Empty;
+                    if (field.DisplayOnly)
+                    {
+                        // Shown only: the manifest must know the column, and the descriptor
+                        // must say so explicitly. No type is implied, so nothing is bound.
+                        Assert(evidence == "display",
+                            module.Table + "." + field.Column + " is display-only but claims evidence '" + evidence + "'.");
+                        continue;
+                    }
                     if (evidence.StartsWith("orm-rename:", StringComparison.Ordinal))
                     {
                         string property = evidence.Substring("orm-rename:".Length);
@@ -995,6 +1011,626 @@ namespace T5Web.Tests
         }
 
         /// <summary>
+        /// T19 - the three-layer rule set must resolve by stated precedence, and two rows
+        /// on the same layer must be a conflict rather than "whichever came first".
+        /// </summary>
+        private static void TestRuleResolution()
+        {
+            var userRules = new List<RuleLayerRow>
+            {
+                new RuleLayerRow { RowId = 1, BadgeNumber = 1001, RuleId = 7,
+                                   FromDate = new DateTime(2024, 1, 1), ToDate = new DateTime(2024, 12, 31) }
+            };
+            var deptRules = new List<RuleLayerRow>
+            {
+                new RuleLayerRow { RowId = 1, DepartmentId = 10, RuleId = 4,
+                                   FromDate = new DateTime(2024, 1, 1), ToDate = new DateTime(2024, 12, 31) }
+            };
+
+            var resolver = new RuleResolutionService(userRules, deptRules, 1);
+            RuleResolution resolution = resolver.Resolve(1001, 10, new DateTime(2024, 6, 1));
+            Assert(resolution.AppliedRuleId == 7, "the personnel exception must win, got " + resolution.AppliedRuleId);
+            Assert(resolution.Layer == "user", "the winning layer must be reported, got " + resolution.Layer);
+            Assert(resolution.MatchedLayers.Count == 3, "all three layers apply and must be listed.");
+
+            // The override is legal but recorded - not silent.
+            Assert(resolution.HasConflict, "an upper-layer override must be recorded as an override.");
+            Assert(resolution.Conflicts.All(c => !c.IsBlocking), "an override must not block saving.");
+
+            // Outside the exception window the department rule wins.
+            RuleResolution later = resolver.Resolve(1001, 10, new DateTime(2025, 3, 1));
+            Assert(later.AppliedRuleId == 1, "with no exception the global rule must apply, got " + later.AppliedRuleId);
+            Assert(later.Layer == "global", "expected the global layer, got " + later.Layer);
+
+            // Two personnel rules covering the same day is a blocking conflict.
+            userRules.Add(new RuleLayerRow
+            {
+                RowId = 2, BadgeNumber = 1001, RuleId = 9,
+                FromDate = new DateTime(2024, 5, 1), ToDate = new DateTime(2024, 7, 1)
+            });
+            RuleResolution ambiguous = new RuleResolutionService(userRules, deptRules, 1)
+                .Resolve(1001, 10, new DateTime(2024, 6, 1));
+            Assert(ambiguous.HasConflict && ambiguous.Conflicts.Any(c => c.IsBlocking),
+                "two rules on the same layer must be a blocking conflict.");
+
+            // And the pre-save check refuses the same overlap.
+            var candidate = new RuleLayerRow
+            {
+                RowId = 0, BadgeNumber = 1001, RuleId = 11,
+                FromDate = new DateTime(2024, 3, 1), ToDate = new DateTime(2024, 3, 31)
+            };
+            Assert(!resolver.ValidateWindow(candidate, true).Succeeded,
+                "a window overlapping an existing personnel rule must be refused.");
+
+            var free = new RuleLayerRow
+            {
+                RowId = 0, BadgeNumber = 1001, RuleId = 11,
+                FromDate = new DateTime(2026, 1, 1), ToDate = new DateTime(2026, 2, 1)
+            };
+            Assert(resolver.ValidateWindow(free, true).Succeeded,
+                "a non-overlapping window must be accepted.");
+
+            var backwards = new RuleLayerRow
+            {
+                RowId = 0, BadgeNumber = 1002, RuleId = 5,
+                FromDate = new DateTime(2026, 2, 1), ToDate = new DateTime(2026, 1, 1)
+            };
+            Assert(!resolver.ValidateWindow(backwards, true).Succeeded, "an inverted window must be refused.");
+        }
+
+        /// <summary>
+        /// T20 - a punch is unique by (badge, time, type) and an approval step may be
+        /// decided once. The legacy screens allowed both, which double-counted hours.
+        /// </summary>
+        private static void TestAttendanceStore()
+        {
+            var store = new InMemoryAttendanceStore();
+            DateTime day = new DateTime(2024, 6, 10, 8, 0, 0);
+            var punch = new RecordRow
+            {
+                BadgeNumber = 1001, CheckTime = day, CheckType = 0, MachineNumber = 1,
+                IsValid = true, PersonName = "مریم کاظمی"
+            };
+            Assert(store.SaveRecord(punch, true).Succeeded, "the first punch must save.");
+            Assert(!store.SaveRecord(punch, true).Succeeded, "the identical punch must be refused.");
+
+            var otherType = new RecordRow { BadgeNumber = 1001, CheckTime = day, CheckType = 1, IsValid = true };
+            Assert(store.SaveRecord(otherType, true).Succeeded, "a different check type at the same minute is a different punch.");
+
+            // An invalid badge or an out-of-range type is refused, not written.
+            Assert(!store.SaveRecord(new RecordRow { BadgeNumber = 0, CheckTime = day }, true).Succeeded,
+                "a punch without a badge must be refused.");
+            Assert(!store.SaveRecord(new RecordRow { BadgeNumber = 1001, CheckTime = day, CheckType = 9 }, true).Succeeded,
+                "an unknown check type must be refused.");
+
+            // Correcting an unknown punch fails instead of creating one.
+            var ghost = new RecordRow { BadgeNumber = 1001, CheckTime = day.AddHours(5), CheckType = 0, OriginalCheckType = 0 };
+            Assert(!store.SaveRecord(ghost, false).Succeeded, "correcting a missing punch must fail.");
+
+            // Correcting a real punch keeps the row count.
+            var fix = new RecordRow { BadgeNumber = 1001, CheckTime = day, CheckType = 0, OriginalCheckType = 0, IsValid = false };
+            Assert(store.SaveRecord(fix, false).Succeeded, "an existing punch must be correctable.");
+            Assert(store.QueryRecords(new RecordQuery { OnlyInvalid = true }).Count == 1, "the corrected punch must read back as invalid.");
+
+            // Paging is clamped: the query can never ask for the whole table.
+            RecordQuery clamped = new RecordQuery { Take = 100000 }.Clamped();
+            Assert(clamped.Take <= 1000, "the row cap must be enforced, got " + clamped.Take);
+            RecordQuery swapped = new RecordQuery { FromDate = day.AddDays(5), ToDate = day }.Clamped();
+            Assert(swapped.FromDate <= swapped.ToDate, "a reversed range must be swapped, not silently emptied.");
+
+            // Requests: one decision per title, and a suspended request cannot be decided.
+            var request = new RequestRow
+            {
+                RequestId = 55, BadgeNumber = 1002, ForDate = day, StepCount = 2, AcceptedCount = 0,
+                IsDaily = true, PersonName = "حسین رستمی"
+            };
+            store.SeedRequest(request);
+            string detail;
+            Assert(store.DecideRequest(55, 9001, 12, false, false, out detail).Succeeded,
+                "the first decision must be accepted.");
+            Assert(!store.DecideRequest(55, 9002, 12, false, false, out detail).Succeeded,
+                "the same title must not decide twice.");
+            Assert(store.DecideRequest(55, 9003, 13, false, false, out detail).Succeeded,
+                "a different title must be able to decide the next step.");
+            Assert(!store.DecideRequest(9999, 9001, 12, false, false, out detail).Succeeded,
+                "an unknown request must be refused.");
+            Assert(store.DecideRequest(55, 9004, 14, true, false, out detail).Succeeded, "a cancel must be recorded.");
+            Assert(!store.DecideRequest(55, 9005, 15, false, false, out detail).Succeeded,
+                "a suspended request must not be decided again.");
+
+            // The summary counts odd punch counts as a missing punch, not as absence.
+            store.Seed(new RecordRow { BadgeNumber = 1003, CheckTime = day, CheckType = 0, IsValid = true, PersonName = "زهرا امینی" });
+            store.Seed(new RecordRow { BadgeNumber = 1003, CheckTime = day.AddHours(9), CheckType = 1, IsValid = true, PersonName = "زهرا امینی" });
+            store.Seed(new RecordRow { BadgeNumber = 1004, CheckTime = day, CheckType = 0, IsValid = true, PersonName = "علی رضایی" });
+            IReadOnlyList<AttendanceSummaryRow> summary = store.GetMonthlySummary(2024, 6, null, 50);
+            AttendanceSummaryRow odd = summary.FirstOrDefault(r => r.BadgeNumber == 1004);
+            Assert(odd != null && odd.MissingPunchDays == 1, "a single punch in a day must count as a missing punch.");
+
+            // Rewriting an approval chain that has requests in flight strands them: the
+            // old [RequestAccept] rows point at steps that no longer exist, and the engine
+            // reads a missing step as approved. The save must be refused unless confirmed.
+            var repository = BuildRepository();
+            var workflow = new WorkflowService(repository);
+            var chain = new List<WorkflowStep>
+            {
+                new WorkflowStep { TitleId = 1, AccepterTitleId = 2, OrderIndex = 1 },
+                new WorkflowStep { TitleId = 1, AccepterTitleId = 3, OrderIndex = 2 }
+            };
+            Assert(workflow.Save(chain, 1, 0).Succeeded, "a clean chain must save.");
+
+            repository.InFlightRequests = 3;
+            Assert(workflow.InFlight(1, 0) == 3, "the in-flight count must come from the repository.");
+            OperationResult blocked = workflow.Save(chain, 1, 0);
+            Assert(!blocked.Succeeded && blocked.Message.Contains("در جریان"),
+                "an in-flight chain must be refused with an explanation.");
+            Assert(workflow.Save(chain, 1, 0, true).Succeeded,
+                "an explicit confirmation must let the operator proceed.");
+            repository.InFlightRequests = 0;
+        }
+
+        /// <summary>
+        /// T21 - opening + added - used = closing, always; and a transfer either happens
+        /// completely or not at all, never twice.
+        /// </summary>
+        private static void TestLeaveBalances()
+        {
+            var store = new InMemoryLeaveStore()
+                .Type(1, "استحقاقی", true)
+                .Type(2, "بدون حقوق", false)
+                .Balance(1001, 1, 1403, opening: 20, added: 5, used: 12)
+                .Balance(1001, 2, 1403, opening: 3)
+                .Balance(1002, 1, 1403, opening: 8, used: 2);
+
+            LeaveBalanceRow first = store.GetBalances(1403, 1, null, 50).First(r => r.BadgeNumber == 1001);
+            Assert(Math.Abs(first.ClosingDays - 13) < 0.001,
+                "opening 20 + added 5 - used 12 must close at 13, got " + first.ClosingDays);
+
+            // Grant: validated, and immediately visible in the balance.
+            Assert(!store.AddGrant(new LeaveGrantRow { BadgeNumber = 1001, LeaveTypeId = 1, Days = 0, AssignDate = DateTime.Today }).Succeeded,
+                "a zero-day grant must be refused.");
+            Assert(!store.AddGrant(new LeaveGrantRow { BadgeNumber = 1001, LeaveTypeId = 1, Days = 400, AssignDate = DateTime.Today }).Succeeded,
+                "a grant beyond a year must be refused.");
+            Assert(!store.AddGrant(new LeaveGrantRow { BadgeNumber = 1001, LeaveTypeId = 1, Days = 1.3, AssignDate = DateTime.Today }).Succeeded,
+                "a grant with more than two decimals must be refused.");
+            Assert(store.AddGrant(new LeaveGrantRow { BadgeNumber = 1002, LeaveTypeId = 1, Days = 2, AssignDate = new DateTime(1403, 5, 1), DocumentNumber = "12" }).Succeeded,
+                "a valid grant must be accepted.");
+            Assert(Math.Abs(store.GetBalances(1403, 1, null, 50).First(r => r.BadgeNumber == 1002).ClosingDays - 8) < 0.001,
+                "the grant must land in the balance (8 + 2).");
+
+            // Preview: only carry types, capped, and the non-carry type is explained.
+            IReadOnlyList<LeaveTransferRow> preview = store.PreviewTransfer(1403, 1404, 10, null);
+            LeaveTransferRow capped = preview.FirstOrDefault(r => r.BadgeNumber == 1001 && r.LeaveTypeId == 1);
+            Assert(capped != null && Math.Abs(capped.TransferDays - 10) < 0.001 && capped.Capped,
+                "a 13-day balance with a 10-day cap must transfer 10 and be flagged.");
+            LeaveTransferRow blocked = preview.FirstOrDefault(r => r.BadgeNumber == 1001 && r.LeaveTypeId == 2);
+            Assert(blocked != null && blocked.TransferDays == 0, "a non-carry leave type must transfer nothing.");
+
+            // A transfer to anything but the next year is refused.
+            string detail;
+            Assert(!store.CommitTransfer(preview, 1403, 1405, "انتقال آزمایشی", out detail).Succeeded,
+                "a transfer over more than one year must be refused.");
+            Assert(!store.CommitTransfer(preview, 1403, 1404, "کم", out detail).Succeeded,
+                "a transfer without a real reason must be refused.");
+
+            // All-or-nothing: a missing source row aborts before anything moves.
+            var poisoned = new List<LeaveTransferRow>
+            {
+                new LeaveTransferRow { BadgeNumber = 1001, LeaveTypeId = 1, TransferDays = 5 },
+                new LeaveTransferRow { BadgeNumber = 4242, LeaveTypeId = 1, TransferDays = 5 }
+            };
+            Assert(!store.CommitTransfer(poisoned, 1403, 1404, "انتقال ناقص", out detail).Succeeded,
+                "a row without a source balance must abort the whole transfer.");
+            Assert(Math.Abs(store.GetBalances(1403, 1, null, 50).First(r => r.BadgeNumber == 1001).OpeningDays - 20) < 0.001,
+                "the aborted transfer must not have moved anything.");
+
+            // The real transfer succeeds once and is refused the second time.
+            Assert(store.CommitTransfer(preview, 1403, 1404, "پایان سال", out detail).Succeeded,
+                "a valid transfer must succeed: " + detail);
+            Assert(!store.CommitTransfer(preview, 1403, 1404, "پایان سال", out detail).Succeeded,
+                "a repeated transfer for the same year must be refused.");
+
+            LeaveBalanceRow nextYear = store.GetBalances(1404, 1, null, 50).FirstOrDefault(r => r.BadgeNumber == 1001);
+            Assert(nextYear != null && Math.Abs(nextYear.OpeningDays - 10) < 0.001,
+                "the transferred 10 days must open the next year.");
+            LeaveBalanceRow source = store.GetBalances(1403, 1, null, 50).First(r => r.BadgeNumber == 1001);
+            Assert(Math.Abs(source.OpeningDays - 10) < 0.001,
+                "the source year must be drained by the transferred amount, got " + source.OpeningDays);
+        }
+
+        /// <summary>
+        /// T22 - shift cycles must be contiguous, assignments must not overlap, and a
+        /// backdated change is limited by policy.
+        /// </summary>
+        private static void TestScheduleRules()
+        {
+            var store = new InMemoryScheduleStore { Today = new DateTime(2024, 6, 15) };
+            store.AddShift(1, "شیفت صبح", 7, 1, 2, 3, 4, 5, 6, 7)
+                 .AddShift(2, "شیفت ناقص", 7, 1, 2, 4)
+                 .AddShift(3, "بدون روز", 7);
+            store.AddSchedule(10, "صبح", 1, 2, 3);
+
+            var empty = new ShiftRow { ShiftId = 3, ShiftName = "بدون روز", DayIndexes = new List<int>() };
+            Assert(!string.IsNullOrEmpty(ShiftProblem(empty)), "a shift with no days must be reported.");
+
+            var gap = new ShiftRow { ShiftId = 2, DayIndexes = new List<int> { 1, 2, 4 } };
+            Assert(ShiftProblem(gap).Contains("پیوسته"), "a gap in the cycle must be reported: " + ShiftProblem(gap));
+
+            var notFromOne = new ShiftRow { ShiftId = 4, DayIndexes = new List<int> { 2, 3 } };
+            Assert(ShiftProblem(notFromOne).Contains("۱"), "a cycle not starting at day 1 must be reported.");
+
+            var good = new ShiftRow { ShiftId = 1, DayIndexes = new List<int> { 1, 2, 3, 4, 5, 6, 7 } };
+            Assert(ShiftProblem(good) == string.Empty, "a contiguous cycle must be accepted.");
+
+            // Assignment: policy window.
+            string detail;
+            Assert(!store.AssignShift(1001, 1, new DateTime(2024, 1, 1), null, out detail).Succeeded,
+                "a start older than the retroactive window must be refused.");
+            Assert(store.AssignShift(1001, 1, new DateTime(2024, 6, 10), new DateTime(2024, 6, 20), out detail).Succeeded,
+                "an in-window assignment must be accepted.");
+            Assert(!store.AssignShift(1001, 2, new DateTime(2024, 6, 15), null, out detail).Succeeded,
+                "an overlapping assignment must be refused.");
+            Assert(store.AssignShift(1001, 2, new DateTime(2024, 6, 21), null, out detail).Succeeded,
+                "a non-overlapping assignment must be accepted.");
+            Assert(!store.AssignShift(1001, 1, new DateTime(2024, 6, 1), new DateTime(2024, 1, 1), out detail).Succeeded,
+                "an inverted window must be refused.");
+            Assert(!store.AssignShift(1001, 99, new DateTime(2024, 6, 25), null, out detail).Succeeded,
+                "an unknown shift must be refused.");
+        }
+
+        /// <summary>Mirrors ScheduleController.CycleProblem without touching System.Web.</summary>
+        private static string ShiftProblem(ShiftRow shift)
+        {
+            if (shift.DayIndexes == null || shift.DayIndexes.Count == 0)
+            {
+                return "هیچ روزی تخصیص نیافته است.";
+            }
+            List<int> sorted = shift.DayIndexes.Distinct().OrderBy(i => i).ToList();
+            if (sorted[0] != 1)
+            {
+                return "شماره روزها باید از ۱ شروع شود.";
+            }
+            for (int i = 0; i < sorted.Count; i++)
+            {
+                if (sorted[i] != i + 1)
+                {
+                    return "روزهای شیفت پیوسته نیستند.";
+                }
+            }
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// T23 - a report a session cannot read must not be listed or run, each report
+        /// validates its own window, and the export is built locally.
+        /// </summary>
+        private static void TestReports()
+        {
+            Assert(ReportCatalog.All().Count >= 10, "the report catalogue must keep at least ten reports.");
+
+            var titles = ReportCatalog.All().Select(r => r.LegacyController).ToList();
+            Assert(titles.Distinct().Count() == titles.Count, "two reports claim the same legacy controller.");
+            foreach (string dropped in new[] { "ReportDatas", "ReportFilter", "ReportTablix", "ReportTextbox", "ReportTitles", "ReportDesign" })
+            {
+                Assert(!titles.Contains(dropped), "the RDLC designer controller '" + dropped + "' must stay dropped.");
+            }
+
+            // Access gating: a session that may read only personnel sees no attendance report.
+            var session = new AdminSession { BadgeNumber = 1001, DisplayName = "مریم کاظمی" };
+            session.Grant(AdminFeature.PersonnelView, AccessLevel.Allow);
+            IReadOnlyList<ReportDescriptor> visible = ReportCatalog.VisibleFor(session);
+            Assert(visible.Count > 0, "a personnel reader must see at least one report.");
+            Assert(visible.All(r => r.Feature == AdminFeature.PersonnelView),
+                "a personnel-only session must not see reports of other features.");
+            Assert(ReportCatalog.VisibleFor(null).Count == 0, "an anonymous session must see no report.");
+
+            // Window validation: reversed range, oversized window, and per-report ceiling.
+            ReportDescriptor grid = ReportCatalog.Find("grid");
+            Assert(grid != null && grid.MaxDays == 31, "the monthly grid must cap at 31 days.");
+            Assert(!ReportCatalog.ValidateRange(grid, new DateTime(2024, 6, 30), new DateTime(2024, 6, 1)).Succeeded,
+                "a reversed range must be refused.");
+            Assert(!ReportCatalog.ValidateRange(grid, new DateTime(2024, 1, 1), new DateTime(2024, 6, 1)).Succeeded,
+                "a 152-day window must be refused for a 31-day report.");
+            Assert(ReportCatalog.ValidateRange(grid, new DateTime(2024, 6, 1), new DateTime(2024, 6, 30)).Succeeded,
+                "a 30-day window must be accepted.");
+            Assert(ReportCatalog.ValidateRange(ReportCatalog.Find("exit"), new DateTime(2024, 1, 1), new DateTime(2024, 12, 31)).Succeeded,
+                "a year-long window must be accepted where the ceiling allows it.");
+
+            // Execution: a known report returns its columns; an unknown one does not throw.
+            var attendance = new InMemoryAttendanceStore();
+            attendance.Seed(new RecordRow
+            {
+                BadgeNumber = 1001, CheckTime = new DateTime(2024, 6, 10, 8, 0, 0), CheckType = 0,
+                IsValid = true, PersonName = "مریم کاظمی", MachineName = "درب اصلی"
+            });
+            var leave = new InMemoryLeaveStore().Type(1, "استحقاقی", true).Balance(1001, 1, 1403, 12);
+            var reports = new ReportStore(attendance, leave, BuildRepository());
+
+            ReportResult daily = reports.Run("daily", new DateTime(2024, 6, 1), new DateTime(2024, 6, 30), null, null);
+            Assert(daily.Rows.Count == 1 && daily.Columns.Count == 7, "the daily report must return one punch with seven columns.");
+            Assert(daily.Elapsed >= TimeSpan.Zero, "the run time must be reported.");
+
+            ReportResult engine = reports.Run("late-early", new DateTime(2024, 6, 1), new DateTime(2024, 6, 30), null, null);
+            Assert(engine.NoteFa.Contains("خام"), "an engine report must say that the rows are raw, not calculated.");
+            Assert(engine.Rows.Count == 1, "the engine report shell must still show the window's raw punches.");
+
+            ReportResult unknown = reports.Run("does-not-exist", DateTime.Today, DateTime.Today, null, null);
+            Assert(unknown.Rows.Count == 0 && unknown.Columns.Count == 0, "an unknown report must return an empty shell, not throw.");
+
+            // Export is local: no remote asset may appear in the view or the controller.
+            string view = Read("T5Web.Web", "Views", "Reports", "Index.cshtml");
+            Assert(view.IndexOf("http://", StringComparison.Ordinal) < 0 &&
+                   view.IndexOf("https://", StringComparison.Ordinal) < 0,
+                "the report view must not reference a remote asset.");
+        }
+
+        /// <summary>
+        /// T24 - the CSV import parses quoted cells, reports bad lines instead of writing
+        /// them, and refuses to invent personnel that the engine did not create.
+        /// </summary>
+        private static void TestPersonnelImport()
+        {
+            var service = new PersonnelImportService(BuildRepository());
+
+            string csv = "badge,firstname,lastname,nationalno,phone,email,deptid,emptypeid,hireddate,fireddate\n" +
+                         "1001,مریم,کاظمی,1234567890,0912,\"a,b@example.com\",10,1,2020-01-01,\n" +
+                         "1002,,رستمی,12345,0912,h@example.com,11,2,2020-01-01,\n" +
+                         "9999,ناشناس,غایب,,0912,,10,1,2020-01-01,\n";
+
+            ImportPreview preview = service.Parse(csv);
+            Assert(preview.FileProblems.Count == 0, "a well-formed header must be accepted: " + string.Join(";", preview.FileProblems));
+            Assert(preview.Rows.Count == 3, "three data rows were expected, got " + preview.Rows.Count);
+            Assert(preview.Rows[0].Accepted, "the first row is valid and must be accepted.");
+            Assert(preview.Rows[0].Email == "a,b@example.com", "a quoted comma must survive the parser.");
+            Assert(!preview.Rows[1].Accepted, "an empty first name must be rejected.");
+            Assert(!preview.Rows[2].Accepted, "an unknown badge must be rejected (import only updates).");
+            Assert(preview.Rows[2].Problems.Any(p => p.Contains("وجود ندارد")),
+                "the unknown badge must say that adding personnel is out of scope.");
+
+            // The canonical round trip keeps exactly the accepted rows.
+            string canonical = PersonnelImportService.ToCanonical(preview.Rows);
+            ImportPreview again = service.Parse(canonical);
+            Assert(again.Rows.Count == 1 && again.Rows[0].Accepted, "the canonical form must round-trip one accepted row.");
+
+            // A tampered payload is re-validated, not trusted.
+            string tampered = "badge,firstname,lastname,nationalno,phone,email,deptid,emptypeid,hireddate,fireddate\n" +
+                              "1002,,,bad,,,0,0,not-a-date,\n";
+            ImportOutcome outcome = service.Commit(tampered);
+            Assert(outcome.Updated == 0 && outcome.Failed == 1, "a tampered row must fail, not update.");
+            Assert(outcome.Messages.Count == 1, "the failure must be explained.");
+
+            // The valid row commits as an update.
+            ImportOutcome ok = service.Commit(canonical);
+            Assert(ok.Updated == 1 && ok.Failed == 0, "the accepted row must update exactly one person: " + ok.SummaryFa);
+
+            // A wrong header is refused before any row is read.
+            ImportPreview wrong = service.Parse("id,name\n1,x\n");
+            Assert(wrong.FileProblems.Count == 1, "a wrong header must be a file-level problem.");
+            Assert(wrong.Rows.Count == 0, "no row may be parsed from a file with a wrong header.");
+        }
+
+        /// <summary>
+        /// T25 - the 64/64 audit. Every legacy controller must be either delivered
+        /// (with the test that proves it) or explicitly dropped with a reason; nothing
+        /// may remain "pending". This is the ARIA TEST-40 equivalent, and it is the only
+        /// defence against a plan that quietly shrinks.
+        /// </summary>
+        private static void TestLegacyCoverage()
+        {
+            string[] inventory = File.ReadAllLines(Path.Combine(T5WebRoot, "docs", "legacy-controllers.txt"))
+                .Where(l => !l.StartsWith("#") && !string.IsNullOrWhiteSpace(l))
+                .Select(l => l.Trim())
+                .ToArray();
+            Assert(inventory.Length == 64, "the legacy inventory must list 64 controllers, found " + inventory.Length + ".");
+
+            string[] docLines = File.ReadAllLines(Path.Combine(T5WebRoot, "docs", "03-legacy-decomposition.md"));
+            var rows = new Dictionary<string, string[]>();
+            foreach (string line in docLines)
+            {
+                if (!line.StartsWith("| ", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+                string[] cells = line.Trim().Trim('|').Split('|')
+                    .Select(c => c.Trim()).ToArray();
+                if (cells.Length != 6)
+                {
+                    continue;
+                }
+                Match m = Regex.Match(cells[1], @"^`([A-Za-z]+)`$");
+                if (!m.Success)
+                {
+                    continue;
+                }
+                rows[m.Groups[1].Value] = cells;
+            }
+
+            var missing = inventory.Where(name => !rows.ContainsKey(name)).ToList();
+            Assert(missing.Count == 0, "these legacy controllers have no row in docs/03: " + string.Join(", ", missing));
+
+            var pending = rows.Where(r => r.Value[5].Contains("⏳"))
+                              .Select(r => r.Key).ToList();
+            Assert(pending.Count == 0, "these legacy controllers are still pending: " + string.Join(", ", pending));
+
+            foreach (var row in rows)
+            {
+                string status = row.Value[5];
+                Assert(status.StartsWith("✅") || status.StartsWith("⛔"),
+                    row.Key + " has an unrecognised status: " + status);
+                if (status.StartsWith("✅") && !status.Contains("فاز"))
+                {
+                    Assert(status.Contains("۵-"), row.Key + " claims delivery without naming its sub-phase.");
+                }
+                if (status.StartsWith("✅") && status.Contains("۵-"))
+                {
+                    // A delivered screen must cite the test that holds it down.
+                    Assert(Regex.IsMatch(status, @"`T\d\d`"),
+                        row.Key + " is marked delivered but cites no regression test: " + status);
+                }
+                if (status.StartsWith("⛔"))
+                {
+                    Assert(status.Length > 3 && (status.Contains("حذف") || status.Contains("خارج از دامنه") ||
+                                                 status.Contains("نیست") || status.Contains("Lock")),
+                        row.Key + " is dropped without a stated reason: " + status);
+                }
+            }
+
+            // Every cited test id must exist in this suite.
+            string self = File.ReadAllText(Path.Combine(T5WebRoot, "T5Web.Tests", "Program.cs"));
+            foreach (Match cited in Regex.Matches(string.Join("\n", rows.Values.Select(v => v[5])), @"`(T\d\d)`"))
+            {
+                Assert(self.Contains("\"" + cited.Groups[1].Value + ":"),
+                    "docs/03 cites " + cited.Groups[1].Value + ", which the suite does not define.");
+            }
+
+            // And the summary table must add up, so the count cannot drift from the rows.
+            int total = rows.Count;
+            Assert(total == 64, "the mapping table must keep exactly 64 controllers, found " + total + ".");
+            string summary = string.Join("\n", docLines);
+            int declared = Regex.Matches(summary, @"\| \*\*(\d+)\*\* \|")
+                .Cast<Match>()
+                .Select(m => int.Parse(m.Groups[1].Value))
+                .DefaultIfEmpty(0)
+                .Max();
+            Assert(declared == total,
+                "the summary table says " + declared + " controllers but the mapping has " + total + ".");
+        }
+
+        /// <summary>
+        /// T26 - the delivery test: every phase-5 screen exists and is gated, the device
+        /// command surface is a closed set, and the cut-over switch is documented.
+        /// </summary>
+        private static void TestPhase5Delivery()
+        {
+            TestDeviceCommands();
+            TestPhase5Screens();
+            TestCoexistenceSwitch();
+        }
+
+        /// <summary>
+        /// The device command surface is a closed set: no raw command, no lock.
+        /// </summary>
+        private static void TestDeviceCommands()
+        {
+            var service = new DeviceCommandService();
+            IReadOnlyList<DeviceCommand> commands = service.Available();
+            Assert(commands.Count > 0, "at least one device command must remain.");
+            foreach (DeviceCommand command in commands)
+            {
+                Assert(command.Code.IndexOf("lock", StringComparison.OrdinalIgnoreCase) < 0,
+                    "no lock command may exist: " + command.Code);
+                Assert(command.Code.IndexOf("usb", StringComparison.OrdinalIgnoreCase) < 0,
+                    "no USB-management command may exist: " + command.Code);
+            }
+
+            var device = new DeviceRow { MachineNumber = 1, MachineName = "درب اصلی", ConnectionType = 0, Ip = "192.168.1.20", Port = 4370 };
+            DeviceCommand issued;
+            Assert(service.Validate("sync-users", device, out issued).Succeeded, "a catalogued command must be accepted.");
+            Assert(issued != null && !issued.FetchesData, "sync-users must not be marked as a data fetch.");
+
+            Assert(!service.Validate("reboot-now", device, out issued).Succeeded, "an uncatalogued command must be refused.");
+            Assert(!service.Validate("change-lock", device, out issued).Succeeded, "a lock command must be refused.");
+            Assert(!service.Validate("", device, out issued).Succeeded, "an empty command must be refused.");
+            Assert(!service.Validate("sync-time", null, out issued).Succeeded, "a missing device must be refused.");
+
+            var unconfigured = new DeviceRow { MachineNumber = 2, ConnectionType = 0, Ip = "0.0.0.0" };
+            Assert(!service.Validate("sync-time", unconfigured, out issued).Succeeded,
+                "a network device without an address must be refused.");
+        }
+
+        /// <summary>
+        /// T26 - every sub-phase C/D/E screen must exist, be gated on a real feature and
+        /// be reachable from the menu. This is what keeps the 64/64 audit honest.
+        /// </summary>
+        private static void TestPhase5Screens()
+        {
+            var controllers = new[]
+            {
+                "RecordsController", "RequestsController", "LeaveController", "RulesController",
+                "ScheduleController", "ReportsController", "ImportController"
+            };
+            foreach (string controller in controllers)
+            {
+                string path = Path.Combine(T5WebRoot, "T5Web.Web", "Controllers", controller + ".cs");
+                Assert(File.Exists(path), "missing controller: " + controller);
+                string source = File.ReadAllText(path);
+                Assert(source.Contains("[AdminGate("),
+                    controller + " must declare an AdminGate (a screen without a feature is a hole).");
+                Assert(source.Contains("Audit("),
+                    controller + " writes data but never calls Audit().");
+
+                string view = Path.Combine(T5WebRoot, "T5Web.Web", "Views", controller.Replace("Controller", string.Empty));
+                Assert(Directory.Exists(view), "missing view folder for " + controller);
+                Assert(Directory.GetFiles(view, "*.cshtml").Length > 0, "no view in " + view);
+
+                string menuSource = Read("T5Web.Web", "Security", "AdminAuthorize.cs");
+                string name = controller.Replace("Controller", string.Empty);
+                Assert(menuSource.Contains("\"" + name + "\""),
+                    name + " is not reachable from MenuFor (a screen nobody can find is not delivered).");
+            }
+
+            // The features these screens rely on must exist with stable values.
+            foreach (AdminFeature feature in new[]
+                     {
+                         AdminFeature.RecordsView, AdminFeature.RecordManualInsert, AdminFeature.RequestView,
+                         AdminFeature.RequestApprove, AdminFeature.LeaveView, AdminFeature.LeaveEdit,
+                         AdminFeature.ScheduleView, AdminFeature.ScheduleEdit, AdminFeature.RulesView,
+                         AdminFeature.RulesEdit, AdminFeature.ReportView, AdminFeature.ReportExport,
+                         AdminFeature.PersonnelImport, AdminFeature.DeviceSync
+                     })
+            {
+                Assert(!string.IsNullOrEmpty(AdminFeatures.TitleOf(feature)) &&
+                       AdminFeatures.TitleOf(feature) != feature.ToString(),
+                    "feature " + feature + " has no Persian title.");
+            }
+
+            // Writes must be guarded by CSRF and by an explicit edit feature.
+            foreach (string file in new[] { "RecordsController.cs", "RequestsController.cs", "LeaveController.cs", "ScheduleController.cs", "ImportController.cs" })
+            {
+                string source = File.ReadAllText(Path.Combine(T5WebRoot, "T5Web.Web", "Controllers", file));
+                int postCount = Regex.Matches(source, @"\[HttpPost\]").Count;
+                int tokenCount = Regex.Matches(source, @"\[ValidateAntiForgeryToken\]").Count;
+                Assert(postCount == tokenCount,
+                    file + " has " + postCount + " POST actions but " + tokenCount + " anti-forgery attributes.");
+            }
+
+            // The phase-5 stores must all be wired in composition, not left dangling.
+            string startup = Read("T5Web.Web", "MvcApplication.cs");
+            foreach (string store in new[] { "SqlAttendanceStore", "SqlLeaveStore", "SqlScheduleStore", "ReportStore" })
+            {
+                Assert(startup.Contains(store), store + " is not wired in MvcApplication.");
+            }
+        }
+
+
+        /// <summary>
+        /// The cut-over switch must exist in configuration, be visible on every page and
+        /// be described in the runbook - otherwise a rollback is folklore.
+        /// </summary>
+        private static void TestCoexistenceSwitch()
+        {
+            string config = Read("T5Web.Web", "Web.config");
+            Assert(config.Contains("T5WebMode"), "Web.config must expose the T5WebMode switch.");
+            Assert(config.Contains("T5WebLegacyUrl"), "Web.config must expose the legacy URL.");
+
+            string switchSource = Read("T5Web.Web", "Security", "Coexistence.cs");
+            foreach (string mode in new[] { "portal", "coexist", "legacy" })
+            {
+                Assert(switchSource.Contains(mode), "the switch must understand mode '" + mode + "'.");
+            }
+
+            string layout = Read("T5Web.Web", "Views", "Shared", "_Layout.cshtml");
+            Assert(layout.Contains("Coexistence.BannerFa"),
+                "the layout must show which application owns the screen.");
+            Assert(layout.Contains("Coexistence.LegacyUrl"), "the layout must link back to the legacy site.");
+
+            string runbook = Read("docs", "08-runbook.md");
+            foreach (string required in new[] { "T5WebMode", "coexist", "portal", "legacy", "بازگردانی", "پشتیبان" })
+            {
+                Assert(runbook.Contains(required), "docs/08-runbook.md is missing '" + required + "'.");
+            }
+        }
+
+        /// <summary>
         /// T13 — A phased plan is only useful if it cannot drift away from the code.
         /// This test checks the tracker (docs/phase-status.csv), the plan document and
         /// the real files on disk against each other, and proves that the authoritative
@@ -1044,7 +1680,18 @@ namespace T5Web.Tests
                     nextCount++;
                 }
             }
-            Assert(nextCount == 1, "exactly one phase may be marked 'next', found " + nextCount + ".");
+            // While work is in progress exactly one phase is 'next'; when every phase is
+            // done (the delivery state) there is none. Two 'next' phases is never valid.
+            Assert(nextCount <= 1, "at most one phase may be marked 'next', found " + nextCount + ".");
+            if (nextCount == 0)
+            {
+                foreach (var row in rows)
+                {
+                    Assert(row.Value[1] == "done",
+                        "with no phase marked 'next', phase " + row.Key + " must be 'done' (found '" +
+                        row.Value[1] + "').");
+                }
+            }
 
             foreach (var row in rows.Where(r => r.Value[1] == "done"))
             {

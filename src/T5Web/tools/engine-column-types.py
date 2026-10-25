@@ -125,7 +125,7 @@ VALUE_TYPES = {
 }
 
 
-def read_type(data, index, type_rows):
+def read_type(data, index, type_rows, type_refs=None):
     """Decode one ELEMENT_TYPE, returning (name, next index).
 
     Handles the two shapes that actually matter for entities: a plain type, and a
@@ -139,25 +139,40 @@ def read_type(data, index, type_rows):
         coded, index = read_compressed(data, index)
         row, tag = coded >> 2, coded & 3
         if tag == 0 and 1 <= row <= len(type_rows):
+            # A type declared in this assembly (an engine enum, mostly).
             name = str(type_rows[row - 1].TypeName)
             return VALUE_TYPES.get(name, name), index
+        if tag == 1 and type_refs and 1 <= row <= len(type_refs):
+            # A type from another assembly - and this is where System.DateTime,
+            # System.Guid and friends live. Without this branch every nullable date
+            # column in the engine looks like "object" and becomes unwritable.
+            reference = type_refs[row - 1]
+            name = str(reference.TypeName or "")
+            namespace = str(reference.TypeNamespace or "")
+            if namespace == "System" or namespace == "System.Globalization":
+                return VALUE_TYPES.get(name, "object"), index
+            return "object", index
         return "object", index
     if code == 0x15:  # GENERICINST
         kind = data[index]
         index += 1
         coded, index = read_compressed(data, index)
-        row = coded >> 2
+        row, tag = coded >> 2, coded & 3
         count, index = read_compressed(data, index)
         args = []
         for _ in range(count):
-            arg, index = read_type(data, index, type_rows)
+            arg, index = read_type(data, index, type_rows, type_refs)
             args.append(arg)
-        generic = str(type_rows[row - 1].TypeName) if 1 <= row <= len(type_rows) else ""
+        generic = ""
+        if tag == 0 and 1 <= row <= len(type_rows):
+            generic = str(type_rows[row - 1].TypeName)
+        elif tag == 1 and type_refs and 1 <= row <= len(type_refs):
+            generic = str(type_refs[row - 1].TypeName or "")
         if generic in ("Nullable`1", "Nullable") and len(args) == 1:
             return args[0] + "?", index
         return "object", index
     if code == 0x1D:
-        inner, index = read_type(data, index, type_rows)
+        inner, index = read_type(data, index, type_rows, type_refs)
         return inner + "[]", index
     return PRIMITIVE.get(code, "object"), index
 
@@ -188,6 +203,7 @@ def read_orm(bin_dir):
         dn = dnfile.dnPE(path)
         tables = dn.net.mdtables
         type_rows = list(tables.TypeDef.rows)
+        type_refs = list(tables.TypeRef.rows)
         total = len(tables.MethodDef.rows)
         for index, row in enumerate(type_rows):
             name = str(row.TypeName or "")
@@ -208,7 +224,7 @@ def read_orm(bin_dir):
                 if flags & 0x10:
                     _, position = read_compressed(data, position)
                 _, position = read_compressed(data, position)
-                clr, _ = read_type(data, position, type_rows)
+                clr, _ = read_type(data, position, type_rows, type_refs)
                 if clr in ("object", "string[]") or clr.endswith("[]"):
                     continue  # navigation property, not a column
                 props[mname[4:]] = clr

@@ -46,9 +46,16 @@ namespace T5Web.Web
                 }
 
                 var engineDirectory = new PersonnelEngineDirectory(() => connectionString);
+                var admin = new SqlAdminRepository(() => new SqlConnection(connectionString), engineDirectory);
+                var attendance = new SqlAttendanceStore(() => new SqlConnection(connectionString));
+                var leave = new SqlLeaveStore(() => new SqlConnection(connectionString));
                 PortalServices.Configure(
-                    new SqlAdminRepository(() => new SqlConnection(connectionString), engineDirectory),
-                    new SqlModuleStore(() => new SqlConnection(connectionString)));
+                    admin,
+                    new SqlModuleStore(() => new SqlConnection(connectionString)),
+                    attendance,
+                    leave,
+                    new SqlScheduleStore(() => new SqlConnection(connectionString)),
+                    new ReportStore(attendance, leave, admin));
             }
             catch (Exception ex)
             {

@@ -4,6 +4,8 @@
     ViewBag.Title = "دستگاه‌های تردد";
     bool canEdit = ViewBag.CanEdit != null && (bool)ViewBag.CanEdit;
     var gates = ViewBag.Gates as IReadOnlyList<T5Web.Domain.Models.GateRow>;
+    bool canSync = ViewBag.CanSync != null && (bool)ViewBag.CanSync;
+    var commands = ViewBag.Commands as IReadOnlyList<DeviceCommand>;
 }
 <div class="panel">
     <div class="panel__head">
@@ -48,7 +50,23 @@
                     <td class="num">@(device.LastStamp.HasValue ? PersonnelService.ToJalali(device.LastStamp) : "—")</td>
                     @if (canEdit)
                     {
-                        <td><a class="btn btn--ghost" href="@Url.Action("Edit", "Device", new { id = device.MachineNumber })">تنظیمات</a></td>
+                        <td class="nowrap">
+                            <a class="btn btn--ghost" href="@Url.Action("Edit", "Device", new { id = device.MachineNumber })">تنظیمات</a>
+                            @if (canSync && commands != null && commands.Count > 0)
+                            {
+                                <form method="post" action="@Url.Action("Command", "Device")" class="inline" data-confirm="true">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="machineNumber" value="@device.MachineNumber" />
+                                    <select name="command" aria-label="دستور دستگاه">
+                                        @foreach (var command in commands)
+                                        {
+                                            <option value="@command.Code">@command.TitleFa</option>
+                                        }
+                                    </select>
+                                    <button type="submit" class="btn btn--ghost">اجرا</button>
+                                </form>
+                            }
+                        </td>
                     }
                 </tr>
             }

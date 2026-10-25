@@ -1,0 +1,105 @@
+@model T5Web.Web.Controllers.RequestsIndexModel
+@using T5Web.Domain.Models
+<form method="get" action="@Url.Action("Index", "Requests")" class="toolbar">
+    <div class="field">
+        <label for="pendingOnly">وضعیت</label>
+        <select id="pendingOnly" name="pendingOnly" data-autosubmit="true">
+            <option value="true" selected="@(Model.PendingOnly ? "selected" : null)">در انتظار تأیید</option>
+            <option value="false" selected="@(!Model.PendingOnly ? "selected" : null)">همه</option>
+        </select>
+    </div>
+    <div class="field">
+        <label for="badge">شماره پرسنلی</label>
+        <input type="number" id="badge" name="badge" value="@(Model.BadgeNumber.HasValue ? Model.BadgeNumber.Value.ToString() : string.Empty)" />
+    </div>
+    <button type="submit" class="btn btn--primary">اعمال</button>
+    <a class="btn" href="@Url.Action("Export", "Requests", new { pendingOnly = Model.PendingOnly })">خروجی CSV</a>
+</form>
+
+<div class="panel">
+    <div class="panel__head">
+        <h2>درخواست‌ها — @Model.Rows.Count سطر</h2>
+        @if (Model.MyTitleId > 0)
+        {
+            <span class="muted u-sm">عنوان شما: شناسه @Model.MyTitleId</span>
+        }
+        else
+        {
+            <span class="tag tag--warn">عنوان شغلی فعال ندارید — تأیید ممکن نیست</span>
+        }
+    </div>
+    @if (Model.Rows.Count == 0)
+    {
+        <div class="empty">درخواستی با این فیلتر پیدا نشد.</div>
+    }
+    else
+    {
+        <div class="u-scroll-x">
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th class="num">شناسه</th>
+                        <th class="num">شماره</th>
+                        <th>نام</th>
+                        <th>نوع</th>
+                        <th class="num">تاریخ</th>
+                        <th class="num">از</th>
+                        <th class="num">تا</th>
+                        <th class="num">ساعت</th>
+                        <th class="num">مراحل</th>
+                        <th>وضعیت</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.Rows)
+                    {
+                        <tr>
+                            <td class="num">@row.RequestId</td>
+                            <td class="num">@row.BadgeNumber</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.PersonName) ? "—" : row.PersonName)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.LeaveName) ? "—" : row.LeaveName)</td>
+                            <td class="num">@JalaliText.Format(row.ForDate)</td>
+                            <td class="num">@(row.FromTime.HasValue ? row.FromTime.Value.ToString("HH:mm") : "—")</td>
+                            <td class="num">@(row.ToTime.HasValue ? row.ToTime.Value.ToString("HH:mm") : "—")</td>
+                            <td class="num">@row.Hours.ToString("0.##")</td>
+                            <td class="num">@row.AcceptedCount / @row.StepCount</td>
+                            <td class="nowrap">
+                                @if (row.IsSuspended)
+                                {
+                                    <span class="tag tag--warn">لغو شده</span>
+                                }
+                                else if (row.IsFullyAccepted)
+                                {
+                                    <span class="tag tag--ok">تأیید نهایی</span>
+                                }
+                                else
+                                {
+                                    <span class="tag tag--mute">@row.StateFa</span>
+                                }
+                            </td>
+                            <td class="nowrap">
+                                <a class="btn btn--ghost" href="@Url.Action("Detail", "Requests", new { id = row.RequestId })">جزئیات</a>
+                                @if (Model.CanApprove && row.IsPending && Model.MyTitleId > 0)
+                                {
+                                    <form method="post" action="@Url.Action("Decide", "Requests")" class="inline" data-confirm="true">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@row.RequestId" />
+                                        <input type="hidden" name="cancel" value="false" />
+                                        <button type="submit" class="btn btn--primary">تأیید</button>
+                                    </form>
+                                    <form method="post" action="@Url.Action("Decide", "Requests")" class="inline" data-confirm="true">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@row.RequestId" />
+                                        <input type="hidden" name="cancel" value="true" />
+                                        <button type="submit" class="btn btn--danger">لغو</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

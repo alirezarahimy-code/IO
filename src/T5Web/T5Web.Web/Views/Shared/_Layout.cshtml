@@ -7,6 +7,9 @@
     string title = ViewBag.Title as string;
     if (string.IsNullOrEmpty(title)) { title = "کنسول مدیریت"; }
     string flash = TempData["Flash"] as string;
+    string coexistenceBanner = Coexistence.BannerFa;
+    string legacyUrl = Coexistence.LegacyUrl;
+    bool legacyMode = Coexistence.IsLegacyAuthoritative;
 }
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -28,6 +31,10 @@
             bool active = string.Equals(item.Controller, current, StringComparison.OrdinalIgnoreCase);
             <a href="@Url.Action(item.Action, item.Controller)" class="@(active ? "is-active" : "")">@item.Title</a>
         }
+        @if (!string.IsNullOrEmpty(legacyUrl))
+        {
+            <a href="@legacyUrl" class="rail__legacy" rel="noopener">رفتن به نسخه قبلی</a>
+        }
         <div class="rail__foot">
             @if (session != null)
             {
@@ -40,6 +47,10 @@
     </nav>
 
     <div class="main">
+        @if (!string.IsNullOrEmpty(coexistenceBanner))
+        {
+            <div class="coexistence @(legacyMode ? "coexistence--legacy" : "")" role="status">@coexistenceBanner</div>
+        }
         <header class="topbar">
             <h1>@title</h1>
             <div class="who">

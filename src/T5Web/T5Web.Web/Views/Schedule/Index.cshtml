@@ -1,0 +1,206 @@
+@model T5Web.Web.Controllers.ScheduleIndexModel
+@using T5Web.Domain.Models
+<form method="get" action="@Url.Action("Index", "Schedule")" class="toolbar">
+    <div class="field">
+        <label for="badge">شماره پرسنلی</label>
+        <input type="number" id="badge" name="badge" value="@(Model.BadgeNumber.HasValue ? Model.BadgeNumber.Value.ToString() : string.Empty)" />
+    </div>
+    <button type="submit" class="btn btn--primary">فیلتر</button>
+    <a class="btn" href="@Url.Action("Index", "Modules", new { code = "schedule" })">برنامه‌ها</a>
+    <a class="btn" href="@Url.Action("Index", "Modules", new { code = "shift" })">شیفت‌ها</a>
+    <a class="btn" href="@Url.Action("Index", "Modules", new { code = "tempschedule" })">برنامه موقت</a>
+</form>
+
+@if (Model.CycleProblems.Count > 0)
+{
+    <div class="panel">
+        <div class="panel__head">
+            <h2>شیفت‌های ناسازگار (@Model.CycleProblems.Count)</h2>
+            <span class="tag tag--warn">چرخه روزها باید پیوسته باشد</span>
+        </div>
+        <div class="panel__body">
+            @foreach (var pair in Model.CycleProblems)
+            {
+                <div class="notice notice--warn">
+                    <strong>@(string.IsNullOrWhiteSpace(pair.Key.ShiftName) ? "شیفت " + pair.Key.ShiftId : pair.Key.ShiftName)</strong>
+                    — @pair.Value
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<div class="panel">
+    <div class="panel__head">
+        <h2>شیفت‌ها (@Model.Shifts.Count)</h2>
+        <span class="muted u-sm">هر شیفت، یک چرخه از برنامه‌هاست</span>
+    </div>
+    @if (Model.Shifts.Count == 0)
+    {
+        <div class="empty">شیفتی تعریف نشده است.</div>
+    }
+    else
+    {
+        <div class="u-scroll-x">
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th class="num">شناسه</th>
+                        <th>نام شیفت</th>
+                        <th class="num">دوره</th>
+                        <th class="num">روزها</th>
+                        <th>شماره روزها</th>
+                        <th>وضعیت</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var shift in Model.Shifts)
+                    {
+                        string problem = string.Empty;
+                        foreach (var pair in Model.CycleProblems)
+                        {
+                            if (pair.Key.ShiftId == shift.ShiftId)
+                            {
+                                problem = pair.Value;
+                            }
+                        }
+                        <tr>
+                            <td class="num">@shift.ShiftId</td>
+                            <td>@(string.IsNullOrWhiteSpace(shift.ShiftName) ? "—" : shift.ShiftName)</td>
+                            <td class="num">@shift.PeriodFa</td>
+                            <td class="num">@shift.DayCount</td>
+                            <td class="num">@(shift.DayIndexes == null || shift.DayIndexes.Count == 0 ? "—" : string.Join("، ", shift.DayIndexes))</td>
+                            <td class="nowrap">
+                                @if (string.IsNullOrEmpty(problem))
+                                {
+                                    <span class="tag tag--ok">سازگار</span>
+                                }
+                                else
+                                {
+                                    <span class="tag tag--warn">ناسازگار</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<div class="panel">
+    <div class="panel__head">
+        <h2>برنامه‌های روزانه (@Model.Schedules.Count)</h2>
+    </div>
+    @if (Model.Schedules.Count == 0)
+    {
+        <div class="empty">برنامه روزانه‌ای تعریف نشده است.</div>
+    }
+    else
+    {
+        <div class="u-scroll-x">
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th class="num">شناسه</th>
+                        <th>نام</th>
+                        <th class="num">شروع</th>
+                        <th class="num">پایان</th>
+                        <th class="num">دقیقه کار</th>
+                        <th class="num">در چند شیفت</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var schedule in Model.Schedules)
+                    {
+                        <tr>
+                            <td class="num">@schedule.ScheduleId</td>
+                            <td>@(string.IsNullOrWhiteSpace(schedule.Name) ? "—" : schedule.Name)</td>
+                            <td class="num">@(string.IsNullOrWhiteSpace(schedule.StartTime) ? "—" : schedule.StartTime)</td>
+                            <td class="num">@(string.IsNullOrWhiteSpace(schedule.EndTime) ? "—" : schedule.EndTime)</td>
+                            <td class="num">@schedule.WorkMins</td>
+                            <td class="num">@schedule.ShiftCount</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@if (Model.CanEdit)
+{
+    <div class="panel">
+        <div class="panel__head">
+            <h2>تخصیص شیفت</h2>
+            <span class="tag tag--mute">بدون هم‌پوشانی · حداکثر @T5Web.Domain.SchedulePolicy.RetroactiveDays روز گذشته</span>
+        </div>
+        <div class="panel__body">
+            <form method="post" action="@Url.Action("Assign", "Schedule")" data-confirm="true">
+                @Html.AntiForgeryToken()
+                <div class="form-grid">
+                    <div class="field">
+                        <label for="assignBadge">شماره پرسنلی</label>
+                        <input type="number" id="assignBadge" name="badge" value="@(Model.BadgeNumber.HasValue ? Model.BadgeNumber.Value.ToString() : string.Empty)" required />
+                    </div>
+                    <div class="field">
+                        <label for="assignShift">شیفت</label>
+                        <select id="assignShift" name="shiftId" required>
+                            @foreach (var shift in Model.Shifts)
+                            {
+                                <option value="@shift.ShiftId">@shift.ShiftName (@shift.PeriodFa)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label for="assignFrom">از تاریخ (میلادی)</label>
+                        <input type="date" id="assignFrom" name="fromDate" required />
+                    </div>
+                    <div class="field">
+                        <label for="assignTo">تا تاریخ (خالی = باز)</label>
+                        <input type="date" id="assignTo" name="endDate" />
+                    </div>
+                </div>
+                <button type="submit" class="btn btn--primary">ثبت برنامه</button>
+            </form>
+        </div>
+    </div>
+}
+
+<div class="panel">
+    <div class="panel__head">
+        <h2>بازه‌های تخصیص‌یافته (@Model.Assignments.Count)</h2>
+    </div>
+    @if (Model.Assignments.Count == 0)
+    {
+        <div class="empty">بازه‌ای ثبت نشده است.</div>
+    }
+    else
+    {
+        <div class="u-scroll-x">
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th class="num">شماره</th>
+                        <th>نام</th>
+                        <th>شیفت</th>
+                        <th class="num">از</th>
+                        <th class="num">تا</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var assignment in Model.Assignments)
+                    {
+                        <tr>
+                            <td class="num">@assignment.BadgeNumber</td>
+                            <td>@(string.IsNullOrWhiteSpace(assignment.PersonName) ? "—" : assignment.PersonName)</td>
+                            <td>@(string.IsNullOrWhiteSpace(assignment.ShiftName) ? "—" : assignment.ShiftName)</td>
+                            <td class="num">@JalaliText.Format(assignment.FromDate)</td>
+                            <td class="num">@(assignment.IsOpen ? "باز" : JalaliText.Format(assignment.EndDate))</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
