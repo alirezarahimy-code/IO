@@ -60,6 +60,7 @@ namespace T5Web.Tests
             RunTest("T30: product identity (آریا ادمین / ARIA-ADMIN registered everywhere)", TestProductIdentity);
             RunTest("T31: wave-1 T5V3 gaps (photos, entitlements, leave descriptions, leaves report)", TestWaveOneGaps);
             RunTest("T32: waves 2-3 (organisation, access, devices, logs, data health) + feature catalogue", TestWavesTwoAndThree);
+            RunTest("T33: data migration (no schema drift, fingerprint covers the model, gates documented)", TestDataMigration);
 
             Console.WriteLine("----------------------------------------------------------------------");
             Console.WriteLine($"  Summary: {_passed} Passed, {_failed} Failed");
@@ -2650,6 +2651,76 @@ namespace T5Web.Tests
                 Assert(ownActions[controller].Contains(action),
                     key + " maps to " + target + ", but " + controller + "Controller has no public action '" + action + "'.");
             }
+        }
+
+        /// <summary>
+        /// T33 - data migration (docs/12).
+        ///
+        /// The claim this test guards is simple and load-bearing: the rewrites do not own
+        /// the schema. If somebody ever adds an ALTER to a vendor table, or a fourth portal
+        /// table, or a migration that rewrites engine data, the "just point it at the existing
+        /// database" promise is gone and every customer upgrade becomes a migration project.
+        /// </summary>
+        private static void TestDataMigration()
+        {
+            string dbRoot = Path.Combine(T5WebRoot, "db");
+            string[] scripts = Directory.GetFiles(dbRoot, "*.sql");
+
+            // 1. No script may change a vendor table, and only 01 may create tables.
+            foreach (string script in scripts)
+            {
+                string text = File.ReadAllText(script);
+                Assert(!Regex.IsMatch(text, @"(?i)\bALTER\s+TABLE\b"),
+                    Path.GetFileName(script) + " alters a table; the engine owns its schema (docs/12 §1).");
+                Assert(!Regex.IsMatch(text, @"(?i)\bDROP\s+TABLE\b"),
+                    Path.GetFileName(script) + " drops a table.");
+                if (!script.EndsWith("01-t5web-objects.sql", StringComparison.Ordinal))
+                {
+                    Assert(!Regex.IsMatch(text, @"(?i)\bCREATE\s+TABLE\b"),
+                        Path.GetFileName(script) + " creates a table; only 01-t5web-objects.sql may.");
+                }
+            }
+
+            // 2. Exactly the three portal-owned tables, each guarded by IF OBJECT_ID (idempotent).
+            string objects = File.ReadAllText(Path.Combine(dbRoot, "01-t5web-objects.sql"));
+            var created = Regex.Matches(objects, @"CREATE TABLE dbo\.(\w+)")
+                .Cast<Match>().Select(m => m.Groups[1].Value).OrderBy(n => n).ToList();
+            string[] expected = { "T5WebAccess", "T5WebAudit", "T5WebDeviceCommand" };
+            Assert(created.SequenceEqual(expected),
+                "db/01 creates " + string.Join(", ", created) + " but docs/12 promises exactly " +
+                string.Join(", ", expected) + ".");
+            Assert(Regex.Matches(objects, @"IF OBJECT_ID\(N'dbo\.T5Web\w+', N'U'\) IS NULL\)").Count >= 3 ||
+                   Regex.Matches(objects, @"IF OBJECT_ID\(N'dbo\.T5Web\w+', N'U'\) IS NULL").Count >= 3,
+                "every portal object must be created behind an IF OBJECT_ID guard (idempotent).");
+
+            // 3. The fingerprint tool exists, reads the schema model, and is a build gate.
+            string tool = Path.Combine(T5WebRoot, "tools", "migration-fingerprint.py");
+            Assert(File.Exists(tool), "missing tools/migration-fingerprint.py (docs/12 §3-1).");
+            string source = File.ReadAllText(tool);
+            Assert(source.Contains("relations.json"), "the fingerprint must be generated from engine/relations.json.");
+            Assert(source.Contains("--compare") && source.Contains("MISSING"),
+                "the fingerprint must compare two runs and survive a table an older install lacks.");
+            string build = File.ReadAllText(Path.Combine(T5WebRoot, "build-and-test.sh"));
+            Assert(build.Contains("migration-fingerprint.py"),
+                "the migration fingerprint must be a build gate, not an optional script.");
+
+            // 4. The playbook says the things a playbook has to say.
+            string doc = Path.Combine(T5WebRoot, "docs", "12-data-migration.md");
+            Assert(File.Exists(doc), "missing docs/12-data-migration.md.");
+            string playbook = File.ReadAllText(doc);
+            foreach (string required in new[]
+                     {
+                         "T5CnnStr", "PersonnelCnnStr", "T5WebAccess", "T5WebAudit", "T5WebDeviceCommand",
+                         "verify.sql", "03-relations.sql", "migration-fingerprint", "T5WebMode",
+                         "WebUser", "Template", "MachineNumber", "BACKUP DATABASE", "rollback"
+                     })
+            {
+                Assert(playbook.Contains(required), "docs/12 never mentions " + required + ".");
+            }
+
+            // 5. The README index must list it, or the playbook is unreachable.
+            string readme = File.ReadAllText(Path.Combine(T5WebRoot, "README.md"));
+            Assert(readme.Contains("docs/12"), "README does not list docs/12-data-migration.md.");
         }
 
         private static void TestNoLockDependency()
