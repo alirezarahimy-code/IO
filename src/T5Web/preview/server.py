@@ -27,6 +27,11 @@ PORT = int(os.environ.get("PORT", "8090"))
 # The product sends 'none'; here the page must be embeddable to be reviewed.
 FRAME_ANCESTORS = os.environ.get("PREVIEW_FRAME_ANCESTORS", "*")
 
+# Which screen the root URL opens. The index is the guide to the whole preview; a
+# reviewer looking at one screen can point the root straight at it instead:
+#     PREVIEW_START=personnel.html python3 preview/server.py
+START_PAGE = os.environ.get("PREVIEW_START", "index.html")
+
 
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -35,7 +40,7 @@ class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path in ("/", "/index.html"):
             self.send_response(302)
-            self.send_header("Location", "/preview/index.html")
+            self.send_header("Location", "/preview/" + START_PAGE)
             self.end_headers()
             return
         super().do_GET()
@@ -72,5 +77,5 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    print("T5Web preview  ->  http://0.0.0.0:%d/preview/" % PORT)
+    print("T5Web preview  ->  http://0.0.0.0:%d/preview/%s" % (PORT, START_PAGE))
     ThreadingHTTPServer(("0.0.0.0", PORT), Handler).serve_forever()
