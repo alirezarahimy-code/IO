@@ -57,8 +57,16 @@ if ($Build) {
         throw 'MSBuild not found. Install the .NET Framework 4.7.2 targeting pack or Build Tools, or build first and omit -Build.'
     }
     Write-Host ("  building {0} ({1})" -f $solution, $Configuration)
-    & $msbuild $solution "/p:Configuration=$Configuration" /m /v:minimal /nologo
-    if ($LASTEXITCODE -ne 0) { throw "MSBuild failed with exit code $LASTEXITCODE." }
+    # Capture the compiler's own words: "MSBuild failed with exit code 1" is not a
+    # diagnosis, and the caller may only be able to show one line of the exception.
+    $output = & $msbuild $solution "/p:Configuration=$Configuration" /m /v:minimal /nologo 2>&1
+    $code = $LASTEXITCODE
+    $output | ForEach-Object { Write-Host $_ }
+    if ($code -ne 0) {
+        $reasons = @($output | Where-Object { $_ -match ': error ' } | Select-Object -First 5)
+        if ($reasons.Count -eq 0) { $reasons = @($output | Select-Object -Last 5) }
+        throw ("MSBuild failed with exit code {0}: {1}" -f $code, ($reasons -join ' | '))
+    }
 }
 
 $binSource = Join-Path $webRoot ("bin\" + $Configuration)

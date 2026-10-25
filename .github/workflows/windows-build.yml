@@ -117,7 +117,7 @@ jobs:
           try {
             ./src/T5Web/deploy/0-publish.ps1 -OutputPath $out -Build
           } catch {
-            Write-Host ("::error::0-publish.ps1: " + $_.Exception.Message)
+            Write-Host ("::error::0-publish.ps1: " + ($_.Exception.Message -replace "`r?`n", ' | '))
             exit 1
           }
           if ($LASTEXITCODE -ne 0) {
@@ -133,7 +133,7 @@ jobs:
           try {
             ./src/T5Web/deploy/1-install-iis.ps1 -NoRebootPrompt
           } catch {
-            Write-Host ("::error::1-install-iis.ps1: " + $_.Exception.Message)
+            Write-Host ("::error::1-install-iis.ps1: " + ($_.Exception.Message -replace "`r?`n", ' | '))
             exit 1
           }
           if ($LASTEXITCODE -ne 0) {
@@ -155,7 +155,7 @@ jobs:
             ./src/T5Web/deploy/3-deploy-portal.ps1 -SitePath $env:publish -Port 8080 `
                 -DataSource '(localdb)\T5Web' -Mode coexist
           } catch {
-            Write-Host ("::error::3-deploy-portal.ps1: " + $_.Exception.Message)
+            Write-Host ("::error::3-deploy-portal.ps1: " + ($_.Exception.Message -replace "`r?`n", ' | '))
             exit 1
           }
           if ($LASTEXITCODE -ne 0) {
