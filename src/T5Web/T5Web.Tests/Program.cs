@@ -3154,6 +3154,18 @@ namespace T5Web.Tests
             Assert(views.Contains("System.Web.Mvc.MvcWebRazorHostFactory"),
                 "Views/Web.config must use the MVC Razor host factory, or @model is not recognised.");
 
+            // The version in Views/Web.config must be the version on disk: the Razor host
+            // factory is resolved from that file, so a mismatch is FileLoadException
+            // 0x80131040 on every page - after this file was written with 5.2.9.0 while the
+            // pinned build ships 5.2.7.0.
+            string mvcPath = Path.GetFullPath(Path.Combine(T5WebRoot, "..", "..", "T5Web [3.5.7]", "App", "bin", "System.Web.Mvc.dll"));
+            Assert(File.Exists(mvcPath), "the pinned build should ship System.Web.Mvc.dll at " + mvcPath);
+            var mvcName = System.Reflection.AssemblyName.GetAssemblyName(mvcPath);
+            string expected = mvcName.Version.ToString();
+            Assert(views.Contains("System.Web.Mvc, Version=" + expected),
+                "Views/Web.config names a different System.Web.Mvc version than the assembly in the "
+                + "pinned build (" + expected + "); IIS then answers FileLoadException 0x80131040.");
+
             string publish = File.ReadAllText(Path.Combine(T5WebRoot, "deploy", "0-publish.ps1"));
             Assert(publish.Contains("Views\\Web.config"),
                 "0-publish.ps1 must refuse to publish a folder without Views\\Web.config: a config that "
@@ -3165,6 +3177,15 @@ namespace T5Web.Tests
                 + "First context answers MetadataException on its first query (BUG-39).");
             Assert(web.Contains("EntityFramework.SqlServer"),
                 "Web.config must point the provider at EntityFramework.SqlServer.");
+
+            // WebPages and Razor are what the views are actually compiled against; MVC
+            // does not copy them for you, and "could not load System.Web.WebPages" is the
+            // next 500 in line.
+            foreach (string assembly in new[] { "System.Web.WebPages", "System.Web.WebPages.Razor", "System.Web.Razor" })
+            {
+                string hint = Path.GetFullPath(Path.Combine(T5WebRoot, "..", "..", "T5Web [3.5.7]", "App", "bin", assembly + ".dll"));
+                Assert(File.Exists(hint), "the pinned build should ship " + assembly + ".dll");
+            }
 
             string data = File.ReadAllText(Path.Combine(T5WebRoot, "T5Web.Data", "T5Web.Data.csproj"));
             foreach (string assembly in new[] { "EntityFramework", "EntityFramework.SqlServer" })

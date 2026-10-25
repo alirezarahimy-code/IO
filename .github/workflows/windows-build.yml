@@ -188,6 +188,11 @@ jobs:
           }
           "publish=$out" | Out-File -FilePath $env:GITHUB_ENV -Append
           Get-ChildItem $out | Select-Object Name, Length | Format-Table | Out-String | Write-Host
+          # The views and the engine's dependencies are configuration-coupled: a missing
+          # assembly here is a 500 on the first request, not a build error.
+          Get-ChildItem (Join-Path $out 'bin') -Filter '*.dll' |
+            Where-Object { $_.Name -match 'Mvc|EntityFramework|Personnel|WebPages|Razor' } |
+            ForEach-Object { Write-Host ("  bin\" + $_.Name) }
 
       - name: Install IIS (deploy/1-install-iis.ps1)
         shell: powershell

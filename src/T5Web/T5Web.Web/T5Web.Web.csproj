@@ -43,6 +43,22 @@
       <HintPath>..\..\..\T5Web [3.5.7]\App\bin\System.Web.Mvc.dll</HintPath>
       <Private>true</Private>
     </Reference>
+    <!-- The view engine. MVC does not copy these for you, and a server that has never
+         seen an MVC installation has no GAC copy: the published folder is the only
+         place IIS can find them. "Could not load file or assembly 'System.Web.WebPages'"
+         is the 500 that follows if it cannot. -->
+    <Reference Include="System.Web.WebPages">
+      <HintPath>..\..\..\T5Web [3.5.7]\App\bin\System.Web.WebPages.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Razor">
+      <HintPath>..\..\..\T5Web [3.5.7]\App\bin\System.Web.WebPages.Razor.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="System.Web.Razor">
+      <HintPath>..\..\..\T5Web [3.5.7]\App\bin\System.Web.Razor.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
     <Reference Include="Dapper">
       <HintPath>..\..\..\T5Web [3.5.7]\App\bin\Dapper.dll</HintPath>
       <Private>true</Private>
