@@ -45,7 +45,7 @@ namespace T5Web.Application.Modules
             return _store.Query(descriptor, term ?? string.Empty, page, pageSize);
         }
 
-        public ModuleRow Get(ModuleDescriptor descriptor, IDictionary<string, string> key)
+        public ModuleRow Get(ModuleDescriptor descriptor, IReadOnlyDictionary<string, string> key)
         {
             IReadOnlyDictionary<string, string> frozen;
             if (!TryFreeze(descriptor, key, false, out frozen))
@@ -223,7 +223,7 @@ namespace T5Web.Application.Modules
             return _store.Save(descriptor, row, isNew);
         }
 
-        public OperationResult Delete(ModuleDescriptor descriptor, IDictionary<string, string> key)
+        public OperationResult Delete(ModuleDescriptor descriptor, IReadOnlyDictionary<string, string> key)
         {
             if (!descriptor.AllowDelete)
             {
@@ -240,7 +240,7 @@ namespace T5Web.Application.Modules
         }
 
         /// <summary>Key dictionary, validated to contain every key column exactly once.</summary>
-        private static bool TryFreeze(ModuleDescriptor descriptor, IDictionary<string, string> key,
+        private static bool TryFreeze(ModuleDescriptor descriptor, IReadOnlyDictionary<string, string> key,
                                       bool required, out IReadOnlyDictionary<string, string> frozen)
         {
             var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
