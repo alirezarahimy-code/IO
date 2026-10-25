@@ -34,6 +34,9 @@ python3 "$SCRIPT_DIR/tools/engine-column-types.py" --check
 # Coverage: every public action of the legacy web assembly has a recorded decision and
 # every target really exists in this solution (T25 controller-level, T27 action-level).
 python3 "$SCRIPT_DIR/tools/legacy-coverage.py" --check
+# Data model: every table has a catalog, every key has a proof, every reference a target,
+# and no SQL statement joins two catalogs (T28).
+python3 "$SCRIPT_DIR/tools/engine-relations.py" --check
 
 if [ "$GATES_ONLY" = "true" ]; then
   echo "OK: static gates passed (compiler step skipped)"

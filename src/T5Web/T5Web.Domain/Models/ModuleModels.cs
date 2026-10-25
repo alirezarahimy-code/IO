@@ -88,6 +88,14 @@ namespace T5Web.Domain.Models
         public string TitleFa { get; set; }
         public string GroupFa { get; set; }
         public string Table { get; set; }
+
+        /// <summary>
+        /// Which catalog of the two the table lives in: "t5" (ReportT5V3) or "personnel"
+        /// (Personnel). Proved against engine/relations.json by T16; the store opens the
+        /// matching connection, so a module never issues a statement on the wrong catalog
+        /// (docs/09, BUG-30).
+        /// </summary>
+        public string Catalog { get; set; } = "t5";
         public string NoteFa { get; set; }
         public AdminFeature ViewFeature { get; set; }
         public AdminFeature EditFeature { get; set; }

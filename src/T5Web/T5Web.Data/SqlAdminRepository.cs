@@ -28,6 +28,7 @@ namespace T5Web.Data
     public sealed class SqlAdminRepository : IAdminRepository
     {
         private readonly Func<IDbConnection> _connectionFactory;
+        private readonly Func<IDbConnection> _personnelFactory;
         private readonly IEngineDirectory _engine;
 
         /// <param name="connectionFactory">Opens the shared T5 connection.</param>
@@ -37,7 +38,8 @@ namespace T5Web.Data
         /// SQL fallback is used. See Engine/PersonnelEngineDirectory.cs for why reads
         /// delegate and writes do not.
         /// </param>
-        public SqlAdminRepository(Func<IDbConnection> connectionFactory, IEngineDirectory engine = null)
+        public SqlAdminRepository(Func<IDbConnection> connectionFactory, IEngineDirectory engine = null,
+                                  Func<IDbConnection> personnelFactory = null)
         {
             if (connectionFactory == null)
             {
@@ -45,6 +47,9 @@ namespace T5Web.Data
             }
             _connectionFactory = connectionFactory;
             _engine = engine;
+            // Two catalogs (docs/09): the engine's T5 database and the Personnel database.
+            // A single-database deployment passes nothing and both point at the same one.
+            _personnelFactory = personnelFactory ?? connectionFactory;
         }
 
         /// <summary>True when reads are served by the engine's data-access layer.</summary>
@@ -56,6 +61,14 @@ namespace T5Web.Data
         private IDbConnection Open()
         {
             IDbConnection connection = _connectionFactory();
+            connection.Open();
+            return connection;
+        }
+
+        /// <summary>Connection to the Personnel catalog (people, departments, devices).</summary>
+        private IDbConnection OpenPersonnel()
+        {
+            IDbConnection connection = _personnelFactory();
             connection.Open();
             return connection;
         }
@@ -79,7 +92,7 @@ SELECT TOP 1
 FROM [UserInfo] u
 WHERE u.[UserName] = @UserName;";
 
-            using (IDbConnection connection = Open())
+            using (IDbConnection connection = OpenPersonnel())
             {
                 return MapPersonnel(connection.QueryFirstOrDefault<PersonnelRecord>(sql, new { UserName = userName.Trim() }));
             }
@@ -94,7 +107,7 @@ INNER JOIN [TitlesChart] tc ON tc.[TitleID] = uit.[TitleChartID]
 WHERE uit.[BadgeNumber] = @BadgeNumber
 ORDER BY uit.[ID] DESC;";
 
-            using (IDbConnection connection = Open())
+            using (IDbConnection connection = OpenPersonnel())
             {
                 return connection.ExecuteScalar<string>(sql, new { BadgeNumber = badgeNumber }) ?? string.Empty;
             }
@@ -110,7 +123,7 @@ WHERE uit.[BadgeNumber] = @BadgeNumber
                        AND (uit.[ToDate] IS NULL OR uit.[ToDate] >= @Today)))
 ORDER BY uit.[ID] DESC;";
 
-            using (IDbConnection connection = Open())
+            using (IDbConnection connection = OpenPersonnel())
             {
                 return connection.ExecuteScalar<int?>(sql, new { BadgeNumber = badgeNumber, Today = DateTime.Today })
                        ?? 0;
@@ -120,24 +133,18 @@ ORDER BY uit.[ID] DESC;";
         public IReadOnlyList<PermissionRow> GetPermissions(long badgeNumber)
         {
             // BadgeNumber <= 0 means "all rows" (used only for counting administrators).
+            // The permission matrix is portal-owned and lives in the engine catalog; the
+            // person's name lives in the Personnel catalog, so it is merged in memory
+            // rather than joined across databases (docs/09).
             const string sql = @"
-SELECT p.[BadgeNumber], p.[Feature], p.[Level],
-       ISNULL(u.[FirstName], N'') + N' ' + ISNULL(u.[LastName], N'') AS PersonName
+SELECT p.[BadgeNumber], p.[Feature], p.[Level]
 FROM [T5WebAccess] p
-LEFT JOIN [UserInfo] u ON u.[BadgeNumber] = p.[BadgeNumber]
 WHERE (@BadgeNumber <= 0 OR p.[BadgeNumber] = @BadgeNumber);";
 
             using (IDbConnection connection = Open())
             {
-                return connection.Query<PermissionRecord>(sql, new { BadgeNumber = badgeNumber })
-                    .Select(r => new PermissionRow
-                    {
-                        BadgeNumber = r.BadgeNumber,
-                        PersonName = r.PersonName ?? string.Empty,
-                        Feature = (AdminFeature)r.Feature,
-                        Level = (AccessLevel)r.Level
-                    })
-                    .ToList();
+                return FillPermissionNames(connection.Query<PermissionRecord>(sql,
+                    new { BadgeNumber = badgeNumber }).ToList());
             }
         }
 
@@ -167,7 +174,7 @@ SELECT d.[DepartmentID] AS DepartmentId,
 FROM [Department] d
 ORDER BY d.[DepartmentName];";
 
-            using (IDbConnection connection = Open())
+            using (IDbConnection connection = OpenPersonnel())
             {
                 return connection.Query<DepartmentNode>(sql).ToList();
             }
@@ -189,7 +196,7 @@ SELECT t.[TitleID] AS TitleId,
 FROM [TitlesChart] t
 ORDER BY t.[TitleName];";
 
-            using (IDbConnection connection = Open())
+            using (IDbConnection connection = OpenPersonnel())
             {
                 return connection.Query<TitleNode>(sql).ToList();
             }
@@ -205,7 +212,7 @@ SELECT g.[GateID] AS GateId,
 FROM [Gate] g
 ORDER BY g.[GateName];";
 
-            using (IDbConnection connection = Open())
+            using (IDbConnection connection = OpenPersonnel())
             {
                 return connection.Query<GateRow>(sql).ToList();
             }
@@ -223,7 +230,7 @@ SELECT e.[EmpTypeID] AS EmpTypeId, ISNULL(e.[EmpTypeName], N'') AS EmpTypeName
 FROM [EmpType] e
 ORDER BY e.[EmpTypeName];";
 
-            using (IDbConnection connection = Open())
+            using (IDbConnection connection = OpenPersonnel())
             {
                 return connection.Query<EmpTypeRecord>(sql)
                     .Select(r => new KeyValuePair<int, string>(r.EmpTypeId, r.EmpTypeName ?? string.Empty))
@@ -238,7 +245,7 @@ UPDATE [Department] SET [UpperDeptID] = @NewParentId WHERE [DepartmentID] = @Dep
 
             try
             {
-                using (IDbConnection connection = Open())
+                using (IDbConnection connection = OpenPersonnel())
                 {
                     int affected = connection.Execute(sql, new { DepartmentId = departmentId, NewParentId = newParentId });
                     return affected == 1
@@ -259,7 +266,8 @@ SELECT [DeptID] AS DeptId, COUNT(1) AS MemberCount
 FROM [UserInfo]
 GROUP BY [DeptID];";
 
-            using (IDbConnection connection = Open())
+            // UserInfo lives in the Personnel catalog (docs/09), not on T5CnnStr.
+            using (IDbConnection connection = OpenPersonnel())
             {
                 return connection.Query<DeptCountRecord>(sql)
                     .ToDictionary(r => r.DeptId, r => r.MemberCount);
@@ -297,7 +305,7 @@ WHERE (@Term = N''
   AND (@IncludeFormer = 1 OR u.[FiredDate] IS NULL)
 ORDER BY u.[LastName], u.[FirstName];";
 
-            using (IDbConnection connection = Open())
+            using (IDbConnection connection = OpenPersonnel())
             {
                 return connection.Query<PersonnelRecord>(sql, new
                 {
@@ -323,7 +331,7 @@ FROM [UserInfo] u
 LEFT JOIN [Department] d ON d.[DepartmentID] = u.[DeptID]
 WHERE u.[BadgeNumber] = @BadgeNumber;";
 
-            using (IDbConnection connection = Open())
+            using (IDbConnection connection = OpenPersonnel())
             {
                 return MapPersonnel(connection.QueryFirstOrDefault<PersonnelRecord>(sql, new { BadgeNumber = badgeNumber }));
             }
@@ -357,7 +365,7 @@ WHERE [BadgeNumber] = @BadgeNumber;";
 
             try
             {
-                using (IDbConnection connection = Open())
+                using (IDbConnection connection = OpenPersonnel())
                 {
                     int affected = connection.Execute(sql, new
                     {
@@ -420,7 +428,7 @@ LEFT JOIN [Gate] g ON g.[GateID] = d.[GateID]
 WHERE (@GateId IS NULL OR d.[GateID] = @GateId)
 ORDER BY d.[MachineNumber];";
 
-            using (IDbConnection connection = Open())
+            using (IDbConnection connection = OpenPersonnel())
             {
                 return connection.Query<DeviceRecord>(sql, new { GateId = gateId })
                     .Select(r => new DeviceRow
@@ -487,7 +495,7 @@ WHERE [MachineNumber] = @MachineNumber;";
 
             try
             {
-                using (IDbConnection connection = Open())
+                using (IDbConnection connection = OpenPersonnel())
                 {
                     int affected = connection.Execute(sql, new
                     {
@@ -624,6 +632,25 @@ WHEN NOT MATCHED THEN INSERT ([BadgeNumber], [Feature], [Level], [ChangedBy], [C
             }
         }
 
+        private List<PermissionRow> FillPermissionNames(List<PermissionRecord> records)
+        {
+            var names = new PersonnelDirectory(_personnelFactory)
+                .Names(records.Select(r => r.BadgeNumber));
+            var rows = new List<PermissionRow>(records.Count);
+            foreach (PermissionRecord record in records)
+            {
+                string person;
+                rows.Add(new PermissionRow
+                {
+                    BadgeNumber = record.BadgeNumber,
+                    Feature = (AdminFeature)record.Feature,
+                    Level = (AccessLevel)record.Level,
+                    PersonName = names.TryGetValue(record.BadgeNumber, out person) ? person : string.Empty
+                });
+            }
+            return rows;
+        }
+
         /// <summary>Set by the web layer before a write so the audit trail has an actor.</summary>
         public string CurrentActor { get; set; } = "system";
 
@@ -633,26 +660,37 @@ WHEN NOT MATCHED THEN INSERT ([BadgeNumber], [Feature], [Level], [ChangedBy], [C
         {
             const string sql = @"
 SELECT w.[TitleID] AS TitleId,
-       ISNULL(t.[TitleName], N'') AS TitleName,
        w.[AccepterTitleID] AS AccepterTitleId,
-       ISNULL(a.[TitleName], N'') AS AccepterTitleName,
        w.[WorkflowType] AS WorkflowType,
        w.[LeaveTypeID] AS LeaveTypeId,
        w.[OrderIndex] AS OrderIndex
 FROM [Workflow] w
-LEFT JOIN [TitlesChart] t ON t.[TitleID] = w.[TitleID]
-LEFT JOIN [TitlesChart] a ON a.[TitleID] = w.[AccepterTitleID]
 WHERE w.[WorkflowType] = @WorkflowType AND w.[LeaveTypeID] = @LeaveTypeId
 ORDER BY w.[OrderIndex];";
 
+            List<WorkflowStep> steps;
             using (IDbConnection connection = Open())
             {
-                return connection.Query<WorkflowStep>(sql, new
+                steps = connection.Query<WorkflowStep>(sql, new
                 {
                     WorkflowType = workflowType,
                     LeaveTypeId = leaveTypeId
                 }).ToList();
             }
+
+            // The two TitlesChart joins the legacy screen used crossed into the Personnel
+            // catalog; the names are fetched there and merged here instead.
+            if (steps.Count > 0)
+            {
+                var titles = new PersonnelDirectory(_personnelFactory).TitleNames();
+                foreach (WorkflowStep step in steps)
+                {
+                    string name;
+                    step.TitleName = titles.TryGetValue(step.TitleId, out name) ? name : string.Empty;
+                    step.AccepterTitleName = titles.TryGetValue(step.AccepterTitleId, out name) ? name : string.Empty;
+                }
+            }
+            return steps;
         }
 
         public int CountInFlightRequests(int workflowType, int leaveTypeId)
@@ -790,30 +828,37 @@ ORDER BY a.[ID] DESC;";
         public IReadOnlyDictionary<string, int> GetTableCounts()
         {
             var counts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+            // Each count runs on the catalog its table lives in (docs/09): people and devices
+            // are in Personnel, workflow and the portal's own tables in ReportT5V3. Counting
+            // them on one connection is exactly BUG-28/30 and shows a page of -1 on a split
+            // deployment.
             var queries = new[]
             {
-                new { Name = "UserInfo", Sql = @"SELECT COUNT(1) FROM [UserInfo];" },
-                new { Name = "Department", Sql = @"SELECT COUNT(1) FROM [Department];" },
-                new { Name = "Device", Sql = @"SELECT COUNT(1) FROM [Device];" },
-                new { Name = "Workflow", Sql = @"SELECT COUNT(1) FROM [Workflow];" },
-                new { Name = "T5WebDeviceCommand", Sql = @"SELECT COUNT(1) FROM [T5WebDeviceCommand];" },
-                new { Name = "T5WebAccess", Sql = @"SELECT COUNT(1) FROM [T5WebAccess];" },
-                new { Name = "T5WebAudit", Sql = @"SELECT COUNT(1) FROM [T5WebAudit];" }
+                new { Name = "UserInfo", Catalog = "personnel", Sql = @"SELECT COUNT(1) FROM [UserInfo];" },
+                new { Name = "Department", Catalog = "personnel", Sql = @"SELECT COUNT(1) FROM [Department];" },
+                new { Name = "Device", Catalog = "personnel", Sql = @"SELECT COUNT(1) FROM [Device];" },
+                new { Name = "Workflow", Catalog = "t5", Sql = @"SELECT COUNT(1) FROM [Workflow];" },
+                new { Name = "T5WebDeviceCommand", Catalog = "t5", Sql = @"SELECT COUNT(1) FROM [T5WebDeviceCommand];" },
+                new { Name = "T5WebAccess", Catalog = "t5", Sql = @"SELECT COUNT(1) FROM [T5WebAccess];" },
+                new { Name = "T5WebAudit", Catalog = "t5", Sql = @"SELECT COUNT(1) FROM [T5WebAudit];" }
             };
 
-            using (IDbConnection connection = Open())
+            foreach (var query in queries)
             {
-                foreach (var query in queries)
+                try
                 {
-                    try
+                    using (IDbConnection connection = string.Equals(query.Catalog, "personnel", StringComparison.Ordinal)
+                        ? OpenPersonnel()
+                        : Open())
                     {
                         counts[query.Name] = connection.ExecuteScalar<int>(query.Sql);
                     }
-                    catch (Exception)
-                    {
-                        // A missing table is reported as -1 instead of breaking the page.
-                        counts[query.Name] = -1;
-                    }
+                }
+                catch (Exception)
+                {
+                    // A missing table is reported as -1 instead of breaking the page.
+                    counts[query.Name] = -1;
                 }
             }
             return counts;

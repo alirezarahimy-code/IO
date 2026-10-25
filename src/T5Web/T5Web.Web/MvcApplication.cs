@@ -38,23 +38,41 @@ namespace T5Web.Web
 
             try
             {
-                string connectionString = BuildConnectionString();
+                string connectionString = BuildConnectionString("T5CnnStr");
                 if (string.IsNullOrWhiteSpace(connectionString))
                 {
                     StartupError = "رشته اتصال پایگاه‌داده تنظیم نشده است (appSettings: T5CnnStr).";
                     return;
                 }
 
-                var engineDirectory = new PersonnelEngineDirectory(() => connectionString);
-                var admin = new SqlAdminRepository(() => new SqlConnection(connectionString), engineDirectory);
-                var attendance = new SqlAttendanceStore(() => new SqlConnection(connectionString));
-                var leave = new SqlLeaveStore(() => new SqlConnection(connectionString));
+                // The portal lives on two catalogs (docs/09). When PersonnelCnnStr is not
+                // configured the deployment keeps everything in one database, which is what
+                // a small site does; the code path is identical, only the factory differs.
+                string personnelConnection = BuildConnectionString("PersonnelCnnStr");
+                if (string.IsNullOrWhiteSpace(personnelConnection))
+                {
+                    personnelConnection = connectionString;
+                }
+
+                Func<IDbConnection> t5 = () => new SqlConnection(connectionString);
+                Func<IDbConnection> personnelFactory = () => new SqlConnection(personnelConnection);
+                var personnel = new PersonnelDirectory(personnelFactory);
+
+                // PersonnelSystem (Personnel.dll) is the engine's *people* layer, exactly like
+                // the legacy appSettings.personnelConnectionString: departments, titles,
+                // employment types, devices and gates all live in the Personnel catalog
+                // (engine/relations.json). Pointing it at T5CnnStr would make every directory
+                // call fail with "Invalid object name 'UserInfos'" on a split deployment.
+                var engineDirectory = new PersonnelEngineDirectory(() => personnelConnection);
+                var admin = new SqlAdminRepository(t5, engineDirectory, personnelFactory);
+                var attendance = new SqlAttendanceStore(t5, personnel);
+                var leave = new SqlLeaveStore(t5, personnel);
                 PortalServices.Configure(
                     admin,
-                    new SqlModuleStore(() => new SqlConnection(connectionString)),
+                    new SqlModuleStore(t5, personnelFactory),
                     attendance,
                     leave,
-                    new SqlScheduleStore(() => new SqlConnection(connectionString)),
+                    new SqlScheduleStore(t5, personnel),
                     new ReportStore(attendance, leave, admin));
             }
             catch (Exception ex)
@@ -70,12 +88,12 @@ namespace T5Web.Web
         /// ("metadata=...;provider=System.Data.SqlClient;provider connection string=...").
         /// Reusing the existing value means a migration needs no new secret on the server.
         /// </summary>
-        public static string BuildConnectionString()
+        public static string BuildConnectionString(string name)
         {
-            string raw = ConfigurationManager.AppSettings["T5CnnStr"];
+            string raw = ConfigurationManager.AppSettings[name];
             if (string.IsNullOrWhiteSpace(raw))
             {
-                var configured = ConfigurationManager.ConnectionStrings["T5CnnStr"];
+                var configured = ConfigurationManager.ConnectionStrings[name];
                 raw = configured == null ? string.Empty : configured.ConnectionString;
             }
             if (string.IsNullOrWhiteSpace(raw))

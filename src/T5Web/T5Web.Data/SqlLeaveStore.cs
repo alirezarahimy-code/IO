@@ -25,22 +25,37 @@ namespace T5Web.Data
     public sealed class SqlLeaveStore : ILeaveStore
     {
         private readonly Func<IDbConnection> _connectionFactory;
+        private readonly PersonnelDirectory _personnel;
 
-        public SqlLeaveStore(Func<IDbConnection> connectionFactory)
+        public SqlLeaveStore(Func<IDbConnection> connectionFactory, PersonnelDirectory personnel = null)
         {
             if (connectionFactory == null)
             {
                 throw new ArgumentNullException(nameof(connectionFactory));
             }
             _connectionFactory = connectionFactory;
+            // The ledger is in the engine catalog, the names in the Personnel catalog;
+            // a search term is resolved there first (docs/09).
+            _personnel = personnel ?? new PersonnelDirectory(connectionFactory);
         }
 
         public IReadOnlyList<LeaveBalanceRow> GetBalances(int year, int? leaveTypeId, string term, int take)
         {
+            string termText = (term ?? string.Empty).Trim();
+            long[] badges = termText.Length == 0
+                ? null
+                : _personnel.BadgesMatching(termText, 500).ToArray();
+            if (badges != null && badges.Length == 0)
+            {
+                // The term matches nobody in the Personnel catalog: an empty answer, and
+                // not an accidental "all rows" (an empty IN () is a syntax error).
+                return new List<LeaveBalanceRow>();
+            }
+
             const string sql = @"
 SELECT TOP (@Take)
     y.[BadgeNumber] AS BadgeNumber,
-    ISNULL(u.[FirstName], N'') + N' ' + ISNULL(u.[LastName], N'') AS PersonName,
+    CAST('' AS nvarchar(1)) AS PersonName,
     y.[LeaveTypeID] AS LeaveTypeId,
     ISNULL(lt.[LeaveName], N'') AS LeaveTypeName,
     y.[Year] AS Year,
@@ -54,26 +69,38 @@ SELECT TOP (@Take)
                     AND dl.[LeaveID] = y.[LeaveTypeID]
                     AND YEAR(dl.[Date]) = y.[Year]), 0) AS float) AS UsedDays
 FROM [YearRemain] y
-LEFT JOIN [UserInfo] u ON u.[BadgeNumber] = y.[BadgeNumber]
 LEFT JOIN [LeaveType] lt ON lt.[LeaveID] = y.[LeaveTypeID]
 WHERE y.[Year] = @Year
   AND (@LeaveTypeId = 0 OR y.[LeaveTypeID] = @LeaveTypeId)
-  AND (@Term = N'' OR u.[FirstName] LIKE N'%' + @Term + N'%'
-                     OR u.[LastName] LIKE N'%' + @Term + N'%'
-                     OR CAST(y.[BadgeNumber] AS nvarchar(20)) = @Term)
-ORDER BY u.[FirstName], u.[LastName], lt.[LeaveName];";
+  AND (@NoTerm = 1 OR y.[BadgeNumber] IN @Badges)
+ORDER BY y.[BadgeNumber], lt.[LeaveName];";
 
+            List<LeaveBalanceRecord> rows;
             using (IDbConnection connection = Open())
             {
-                List<LeaveBalanceRecord> rows = connection.Query<LeaveBalanceRecord>(sql, new
+                rows = connection.Query<LeaveBalanceRecord>(sql, new
                 {
                     Year = year,
                     LeaveTypeId = leaveTypeId ?? 0,
-                    Term = (term ?? string.Empty).Trim(),
+                    NoTerm = badges == null ? 1 : 0,
+                    Badges = badges ?? new long[0],
                     Take = Clamp(take, 1, 500, 200)
                 }).ToList();
+            }
 
-                return rows.Select(r => new LeaveBalanceRow
+            // The name is not in this catalog, so it is filled here and the ordering the
+            // legacy grid used (by person, then leave type) is applied afterwards.
+            var names = _personnel.Names(rows.Select(r => r.BadgeNumber));
+            foreach (LeaveBalanceRecord row in rows)
+            {
+                string name;
+                row.PersonName = names.TryGetValue(row.BadgeNumber, out name) ? name : string.Empty;
+            }
+
+            return rows
+                .OrderBy(r => r.PersonName, StringComparer.Create(CultureInfo.InvariantCulture, true))
+                .ThenBy(r => r.LeaveTypeName)
+                .Select(r => new LeaveBalanceRow
                 {
                     BadgeNumber = r.BadgeNumber,
                     PersonName = (r.PersonName ?? string.Empty).Trim(),
@@ -87,7 +114,6 @@ ORDER BY u.[FirstName], u.[LastName], lt.[LeaveName];";
                     // below zero with no usage is a data problem worth flagging, not hiding.
                     IsInconsistent = false
                 }).ToList();
-            }
         }
 
         public IReadOnlyList<LeaveGrantRow> GetGrants(long? badgeNumber, int? leaveTypeId, int take)

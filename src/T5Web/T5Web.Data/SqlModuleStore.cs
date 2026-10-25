@@ -12,7 +12,7 @@ using T5Web.Domain.Models;
 namespace T5Web.Data
 {
     /// <summary>
-    /// Generic table access for the module screens, over the shared T5 database.
+    /// Generic table access for the module screens, over the catalog each module declares.
     ///
     /// Safety model (this is the only place in the portal that builds SQL text):
     ///   1. a table or column name is *never* taken from a request - it comes from a
@@ -31,19 +31,28 @@ namespace T5Web.Data
         private static readonly Regex Identifier = new Regex("^[A-Za-z_][A-Za-z0-9_]{0,127}$", RegexOptions.Compiled);
 
         private readonly Func<IDbConnection> _connectionFactory;
+        private readonly Func<IDbConnection> _personnelFactory;
 
-        public SqlModuleStore(Func<IDbConnection> connectionFactory)
+        public SqlModuleStore(Func<IDbConnection> connectionFactory, Func<IDbConnection> personnelFactory = null)
         {
             if (connectionFactory == null)
             {
                 throw new ArgumentNullException(nameof(connectionFactory));
             }
             _connectionFactory = connectionFactory;
+            // Falls back to the engine catalog when the deployment keeps everything in one
+            // database (docs/09): the code path is the same, only the factory differs.
+            _personnelFactory = personnelFactory ?? connectionFactory;
         }
 
-        private IDbConnection Open()
+        /// <summary>Opens the catalog the module declared: people live in Personnel.</summary>
+        private IDbConnection Open(ModuleDescriptor descriptor)
         {
-            IDbConnection connection = _connectionFactory();
+            string catalog = descriptor == null ? null : descriptor.Catalog;
+            Func<IDbConnection> factory = string.Equals(catalog, "personnel", StringComparison.OrdinalIgnoreCase)
+                ? _personnelFactory
+                : _connectionFactory;
+            IDbConnection connection = factory();
             connection.Open();
             return connection;
         }
@@ -100,7 +109,7 @@ namespace T5Web.Data
             arguments.Add("from", ((page - 1) * pageSize) + 1);
             arguments.Add("to", page * pageSize);
 
-            using (IDbConnection connection = Open())
+            using (IDbConnection connection = Open(descriptor))
             {
                 int total = connection.ExecuteScalar<int>(countSql, arguments);
                 List<IDictionary<string, object>> raw = connection.Query(pageSql, arguments)
@@ -138,7 +147,7 @@ namespace T5Web.Data
             string sql = "SELECT TOP 1 " + ColumnList(descriptor) + " FROM " + Quote(descriptor.Table) +
                          " WHERE " + predicate + ";";
 
-            using (IDbConnection connection = Open())
+            using (IDbConnection connection = Open(descriptor))
             {
                 IDictionary<string, object> source = connection.Query(sql, arguments)
                     .Cast<IDictionary<string, object>>()
@@ -185,7 +194,7 @@ namespace T5Web.Data
                     string sql = "INSERT INTO " + Quote(descriptor.Table) +
                                  " (" + string.Join(", ", columns) + ") VALUES (" + string.Join(", ", values) + ");";
 
-                    using (IDbConnection connection = Open())
+                    using (IDbConnection connection = Open(descriptor))
                     {
                         connection.Execute(sql, arguments);
                     }
@@ -209,7 +218,7 @@ namespace T5Web.Data
                 string update = "UPDATE " + Quote(descriptor.Table) + " SET " +
                                 string.Join(", ", assignments) + " WHERE " + predicate + ";";
 
-                using (IDbConnection connection = Open())
+                using (IDbConnection connection = Open(descriptor))
                 {
                     int affected = connection.Execute(update, arguments);
                     return affected == 1
@@ -239,7 +248,7 @@ namespace T5Web.Data
             string sql = "DELETE FROM " + Quote(descriptor.Table) + " WHERE " + predicate + ";";
             try
             {
-                using (IDbConnection connection = Open())
+                using (IDbConnection connection = Open(descriptor))
                 {
                     int affected = connection.Execute(sql, arguments);
                     return affected >= 1
@@ -262,7 +271,7 @@ namespace T5Web.Data
             string sql = "SELECT " + Quote(keyColumn) + " AS K, " + Quote(labelColumn) + " AS L FROM " +
                          Quote(descriptor.Table) + " ORDER BY " + Quote(labelColumn) + ";";
 
-            using (IDbConnection connection = Open())
+            using (IDbConnection connection = Open(descriptor))
             {
                 return connection.Query(sql)
                     .Cast<IDictionary<string, object>>()

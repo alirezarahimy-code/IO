@@ -1,0 +1,2725 @@
+{
+  "generated_by": "src/T5Web/tools/engine-relations.py",
+  "sources": {
+    "manifest": "src/TWF/db/schema-manifest.json",
+    "ddl": {
+      "device": "Link5 v4.0.4/Link5.sql",
+      "personnel": "Link5 v4.0.4/Personnel.sql"
+    }
+  },
+  "catalogs": {
+    "t5": "ReportT5V3",
+    "personnel": "Personnel",
+    "device": "Link5 service database",
+    "portal": "ReportT5V3"
+  },
+  "summary": {
+    "tables": 130,
+    "by_database": {
+      "device": 40,
+      "personnel": 33,
+      "portal": 3,
+      "t5": 54
+    },
+    "declared_relations": 33,
+    "inferred_relations": 60,
+    "cross_database_relations": 31,
+    "keys_declared": 53,
+    "keys_inferred": 7,
+    "keys_unconfirmed": 8,
+    "exceptions": 9,
+    "unresolved": 0
+  },
+  "databases": {
+    "AccessCombo": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "AccessControl": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "AccessGroup": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "AllowValue": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "AppRule": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "Area": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "AreaPoint": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "AutoSchedule": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "BlackList": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "Calendar": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "CalendarHoliday": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "Card": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "Certificate": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "Command": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "CommandLog": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "CustomWorkflow": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "DailyLeaf": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "Dashboard": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "DashboardItem": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "Department": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "DepartmentRule": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "DepartmentRules": {
+      "database": "personnel",
+      "evidence": "legacy TD5 SQL"
+    },
+    "Deputy": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "Device": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "DeviceAlarm": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "DeviceBioTypes": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "DeviceConnectionState": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "DeviceErrorLog": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "DeviceMessage": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "DeviceMessagePersonnel": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "DeviceOperationLog": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "DeviceProps": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "DeviceSetting": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "DeviceStatus": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "DownloadRecordsLog": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "DownloadTime": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "DownloadTimeDevice": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "EditedValue": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "EmpType": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "EmpTypeLeave": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "ErrorLog": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "EvenetsLog": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "FontSize": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "Gate": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "Ghadir1": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "HourlyLeave": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "IntervalSchedule": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "KeyCodeConvert": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "LeaveDescription": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "LeaveType": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "LeaveTypes": {
+      "database": "personnel",
+      "evidence": "legacy TD5 SQL"
+    },
+    "LeavesAdded": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "ManagerDevice": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "Map": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "MapDoor": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "MyTimeToolbarItem": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "OperationLog": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "Option": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "Parameter": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "PassCheckProps": {
+      "database": "t5",
+      "evidence": "ARIA-owned (src/TWF/db/01-app-objects.sql)"
+    },
+    "PersonnelDeputy": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "Position": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "PositionStep": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "PositionStepData": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "Property": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "PropertyDropdownValue": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "PushCommand": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "PushCommands": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "Ramezan": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "Record": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "RecordsLog": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "RecordsLogData": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "RecordsLogInvalid": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "RecordsLogTemp": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "Report": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "ReportAccess": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "ReportChart": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "ReportData": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "ReportFilter": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "ReportTablix": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "ReportTablixColumn": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "ReportTextbox": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "Request": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "RequestAccept": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "RestTime": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "Rule": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "Schedule": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "ScheduleDevice": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "SchedulerOptions": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "SchedulerSettings": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "Schedules": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "SelectedColumn": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "Shift": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "ShiftDetail": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "SystemLog": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "T5WebAccess": {
+      "database": "portal",
+      "evidence": "db/01-t5web-objects.sql"
+    },
+    "T5WebAudit": {
+      "database": "portal",
+      "evidence": "db/01-t5web-objects.sql"
+    },
+    "T5WebDeviceCommand": {
+      "database": "portal",
+      "evidence": "db/01-t5web-objects.sql"
+    },
+    "TempSchedule": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "Template": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "TimeTable": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "TitlesChart": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "User": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "UserAccess": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "UserAlarm": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "UserBioData": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "UserDeptAccess": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "UserDeviceAccess": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "UserDeviceUpload": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "UserDeviceValid": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "UserInfo": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "UserInfoManager": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "UserInfoProperty": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "UserInfoTitles": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "UserInfoVaccinationDetails": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "UserPermission": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "UserPositionData": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "UserRule": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "UserRules": {
+      "database": "personnel",
+      "evidence": "legacy TD5 SQL"
+    },
+    "UserShift": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "VaccineLog": {
+      "database": "personnel",
+      "evidence": "Personnel.sql DDL"
+    },
+    "ValidLeave": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "WebUser": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "Workflow": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "YearRemain": {
+      "database": "t5",
+      "evidence": "T5V3.DB.dll EntityClasses"
+    },
+    "test": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "webpages_Membership": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "webpages_OAuthMembership": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "webpages_Roles": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    },
+    "webpages_UsersInRoles": {
+      "database": "device",
+      "evidence": "Link5.sql DDL"
+    }
+  },
+  "keys": {
+    "AccessCombo": {
+      "columns": [
+        "ComboID"
+      ],
+      "evidence": "ddl"
+    },
+    "AccessControl": {
+      "columns": [
+        "Badgenumber",
+        "MachineNumber"
+      ],
+      "evidence": "ddl"
+    },
+    "AccessGroup": {
+      "columns": [
+        "GroupID"
+      ],
+      "evidence": "ddl"
+    },
+    "AllowValue": {
+      "columns": [
+        "BadgeNumber",
+        "ForDate"
+      ],
+      "evidence": "inferred-composite"
+    },
+    "AppRule": {
+      "columns": [],
+      "evidence": "unconfirmed"
+    },
+    "Area": {
+      "columns": [
+        "AreaID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "AreaPoint": {
+      "columns": [
+        "AreaID",
+        "PointIndex"
+      ],
+      "evidence": "inferred-composite"
+    },
+    "AutoSchedule": {
+      "columns": [
+        "BadgeNumber",
+        "ScheduleID"
+      ],
+      "evidence": "inferred-composite"
+    },
+    "BlackList": {
+      "columns": [
+        "UserID",
+        "BadgeNumber"
+      ],
+      "evidence": "ddl"
+    },
+    "Calendar": {
+      "columns": [
+        "CalendarID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "CalendarHoliday": {
+      "columns": [
+        "CalendarID",
+        "HolidayDate"
+      ],
+      "evidence": "inferred-composite"
+    },
+    "Card": {
+      "columns": [
+        "CardBadgeNumber"
+      ],
+      "evidence": "ddl"
+    },
+    "Certificate": {
+      "columns": [
+        "CertID"
+      ],
+      "evidence": "ddl"
+    },
+    "Command": {
+      "columns": [
+        "OperationID"
+      ],
+      "evidence": "inferred-unique"
+    },
+    "CommandLog": {
+      "columns": [
+        "Id"
+      ],
+      "evidence": "inferred-convention"
+    },
+    "CustomWorkflow": {
+      "columns": [
+        "CustomWorkflowID"
+      ],
+      "evidence": "inferred-convention"
+    },
+    "DailyLeaf": {
+      "columns": [
+        "BadgeNumber",
+        "Date",
+        "LeaveID"
+      ],
+      "evidence": "inferred-composite"
+    },
+    "Dashboard": {
+      "columns": [
+        "ID"
+      ],
+      "evidence": "ddl"
+    },
+    "DashboardItem": {
+      "columns": [
+        "ID"
+      ],
+      "evidence": "ddl"
+    },
+    "Department": {
+      "columns": [
+        "UpperDeptID"
+      ],
+      "evidence": "inferred-unique"
+    },
+    "DepartmentRule": {
+      "columns": [
+        "DeptRuleID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "DepartmentRules": {
+      "columns": [
+        "DeptRuleID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "Deputy": {
+      "columns": [
+        "DeputyTitleID"
+      ],
+      "evidence": "inferred-unique"
+    },
+    "Device": {
+      "columns": [
+        "MachineNumber"
+      ],
+      "evidence": "ddl"
+    },
+    "DeviceAlarm": {
+      "columns": [
+        "AlarmID"
+      ],
+      "evidence": "ddl"
+    },
+    "DeviceBioTypes": {
+      "columns": [
+        "Id"
+      ],
+      "evidence": "inferred-convention"
+    },
+    "DeviceConnectionState": {
+      "columns": [
+        "Id"
+      ],
+      "evidence": "ddl"
+    },
+    "DeviceErrorLog": {
+      "columns": [],
+      "evidence": "unconfirmed"
+    },
+    "DeviceMessage": {
+      "columns": [
+        "SMSID"
+      ],
+      "evidence": "ddl"
+    },
+    "DeviceMessagePersonnel": {
+      "columns": [
+        "SMSID",
+        "BadgeNumber"
+      ],
+      "evidence": "ddl"
+    },
+    "DeviceOperationLog": {
+      "columns": [],
+      "evidence": "unconfirmed"
+    },
+    "DeviceProps": {
+      "columns": [
+        "Id"
+      ],
+      "evidence": "inferred-convention"
+    },
+    "DeviceSetting": {
+      "columns": [
+        "MachineNumber"
+      ],
+      "evidence": "ddl"
+    },
+    "DeviceStatus": {
+      "columns": [
+        "MachineNumber"
+      ],
+      "evidence": "ddl"
+    },
+    "DownloadRecordsLog": {
+      "columns": [],
+      "evidence": "unconfirmed"
+    },
+    "DownloadTime": {
+      "columns": [
+        "ID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "DownloadTimeDevice": {
+      "columns": [
+        "DownloadTimeID"
+      ],
+      "evidence": "inferred-unique"
+    },
+    "EditedValue": {
+      "columns": [
+        "BadgeNumber",
+        "ForDate"
+      ],
+      "evidence": "inferred-composite"
+    },
+    "EmpType": {
+      "columns": [
+        "EmpTypeID"
+      ],
+      "evidence": "ddl"
+    },
+    "EmpTypeLeave": {
+      "columns": [
+        "EmpTypeID",
+        "LeaveTypeID"
+      ],
+      "evidence": "inferred-composite"
+    },
+    "ErrorLog": {
+      "columns": [
+        "Id"
+      ],
+      "evidence": "ddl"
+    },
+    "EvenetsLog": {
+      "columns": [
+        "ID"
+      ],
+      "evidence": "ddl"
+    },
+    "FontSize": {
+      "columns": [
+        "BadgeNumber"
+      ],
+      "evidence": "ddl"
+    },
+    "Gate": {
+      "columns": [
+        "UpperGateID"
+      ],
+      "evidence": "inferred-unique"
+    },
+    "Ghadir1": {
+      "columns": [],
+      "evidence": "unconfirmed"
+    },
+    "HourlyLeave": {
+      "columns": [
+        "ID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "IntervalSchedule": {
+      "columns": [
+        "ID"
+      ],
+      "evidence": "ddl"
+    },
+    "KeyCodeConvert": {
+      "columns": [
+        "MachineNumber",
+        "KeyCode"
+      ],
+      "evidence": "ddl"
+    },
+    "LeaveDescription": {
+      "columns": [
+        "ID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "LeaveType": {
+      "columns": [
+        "LeaveID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "LeaveTypes": {
+      "columns": [
+        "LeaveID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "LeavesAdded": {
+      "columns": [
+        "ID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "ManagerDevice": {
+      "columns": [
+        "ManagerID",
+        "DeviceNumber"
+      ],
+      "evidence": "ddl"
+    },
+    "Map": {
+      "columns": [
+        "MapID"
+      ],
+      "evidence": "ddl"
+    },
+    "MapDoor": {
+      "columns": [
+        "MapID",
+        "MachineNumber"
+      ],
+      "evidence": "ddl"
+    },
+    "MyTimeToolbarItem": {
+      "columns": [
+        "BadgeNumber",
+        "ItemID"
+      ],
+      "evidence": "ddl"
+    },
+    "OperationLog": {
+      "columns": [],
+      "evidence": "unconfirmed"
+    },
+    "Option": {
+      "columns": [
+        "SettingsID"
+      ],
+      "evidence": "ddl"
+    },
+    "Parameter": {
+      "columns": [
+        "ParameterID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "PassCheckProps": {
+      "columns": [
+        "ID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "PersonnelDeputy": {
+      "columns": [
+        "BadgeNumber",
+        "DeputyBadgeNumber"
+      ],
+      "evidence": "inferred-composite"
+    },
+    "Position": {
+      "columns": [
+        "PositionID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "PositionStep": {
+      "columns": [
+        "PositionID",
+        "OperationIndex"
+      ],
+      "evidence": "inferred-composite"
+    },
+    "PositionStepData": {
+      "columns": [
+        "UserPositionID"
+      ],
+      "evidence": "inferred-unique"
+    },
+    "Property": {
+      "columns": [
+        "PropertyID"
+      ],
+      "evidence": "ddl"
+    },
+    "PropertyDropdownValue": {
+      "columns": [
+        "DropdownValueID"
+      ],
+      "evidence": "ddl"
+    },
+    "PushCommand": {
+      "columns": [
+        "CommandID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "PushCommands": {
+      "columns": [
+        "Id"
+      ],
+      "evidence": "ddl"
+    },
+    "Ramezan": {
+      "columns": [
+        "ID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "Record": {
+      "columns": [
+        "BadgeNumber",
+        "CheckTime",
+        "CheckType"
+      ],
+      "evidence": "inferred-composite"
+    },
+    "RecordsLog": {
+      "columns": [
+        "BadgeNumber",
+        "CheckTime"
+      ],
+      "evidence": "ddl"
+    },
+    "RecordsLogData": {
+      "columns": [
+        "BadgeNumber",
+        "CheckTime"
+      ],
+      "evidence": "ddl"
+    },
+    "RecordsLogInvalid": {
+      "columns": [
+        "BadgeNumber",
+        "CheckTime"
+      ],
+      "evidence": "ddl"
+    },
+    "RecordsLogTemp": {
+      "columns": [
+        "BadgeNumber",
+        "CheckTime"
+      ],
+      "evidence": "ddl"
+    },
+    "Report": {
+      "columns": [
+        "SortColumnID"
+      ],
+      "evidence": "inferred-unique"
+    },
+    "ReportAccess": {
+      "columns": [
+        "ReportID",
+        "TitleID"
+      ],
+      "evidence": "inferred-composite"
+    },
+    "ReportChart": {
+      "columns": [
+        "ChartID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "ReportData": {
+      "columns": [
+        "ReportDataID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "ReportFilter": {
+      "columns": [
+        "FilterID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "ReportTablix": {
+      "columns": [
+        "TablixID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "ReportTablixColumn": {
+      "columns": [
+        "ColumnID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "ReportTextbox": {
+      "columns": [
+        "TextBoxID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "Request": {
+      "columns": [
+        "RequestID"
+      ],
+      "evidence": "inferred-composite"
+    },
+    "RequestAccept": {
+      "columns": [
+        "RequestID",
+        "AccepterTitleID"
+      ],
+      "evidence": "inferred-composite"
+    },
+    "RestTime": {
+      "columns": [
+        "SchID"
+      ],
+      "evidence": "inferred-unique"
+    },
+    "Rule": {
+      "columns": [
+        "RuleID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "Schedule": {
+      "columns": [
+        "SchClassID"
+      ],
+      "evidence": "inferred-unique"
+    },
+    "ScheduleDevice": {
+      "columns": [
+        "ScheduleID",
+        "MachineNumber",
+        "ScheduleType"
+      ],
+      "evidence": "ddl"
+    },
+    "SchedulerOptions": {
+      "columns": [],
+      "evidence": "unconfirmed"
+    },
+    "SchedulerSettings": {
+      "columns": [],
+      "evidence": "unconfirmed"
+    },
+    "Schedules": {
+      "columns": [
+        "Id"
+      ],
+      "evidence": "inferred-convention"
+    },
+    "SelectedColumn": {
+      "columns": [
+        "ID"
+      ],
+      "evidence": "ddl"
+    },
+    "Shift": {
+      "columns": [
+        "ShiftID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "ShiftDetail": {
+      "columns": [
+        "ShiftID",
+        "ScheduleID",
+        "DayIndex"
+      ],
+      "evidence": "inferred-composite"
+    },
+    "SystemLog": {
+      "columns": [
+        "ID"
+      ],
+      "evidence": "ddl"
+    },
+    "T5WebAccess": {
+      "columns": [
+        "BadgeNumber",
+        "Feature"
+      ],
+      "evidence": "inferred-composite"
+    },
+    "T5WebAudit": {
+      "columns": [
+        "ID"
+      ],
+      "evidence": "inferred-composite"
+    },
+    "T5WebDeviceCommand": {
+      "columns": [
+        "ID"
+      ],
+      "evidence": "inferred-composite"
+    },
+    "TempSchedule": {
+      "columns": [
+        "BadgeNumber",
+        "ScheduleID",
+        "AssignDate"
+      ],
+      "evidence": "inferred-composite"
+    },
+    "Template": {
+      "columns": [
+        "BadgeNumber",
+        "FingerIndex",
+        "IsFace"
+      ],
+      "evidence": "ddl"
+    },
+    "TimeTable": {
+      "columns": [
+        "TimeTableID"
+      ],
+      "evidence": "ddl"
+    },
+    "TitlesChart": {
+      "columns": [
+        "UpperTitleID"
+      ],
+      "evidence": "inferred-unique"
+    },
+    "User": {
+      "columns": [
+        "UserID"
+      ],
+      "evidence": "ddl"
+    },
+    "UserAccess": {
+      "columns": [
+        "UserID",
+        "AccessType"
+      ],
+      "evidence": "ddl"
+    },
+    "UserAlarm": {
+      "columns": [
+        "AlarmID"
+      ],
+      "evidence": "ddl"
+    },
+    "UserBioData": {
+      "columns": [
+        "Id"
+      ],
+      "evidence": "inferred-convention"
+    },
+    "UserDeptAccess": {
+      "columns": [
+        "UserID",
+        "DeptID"
+      ],
+      "evidence": "ddl"
+    },
+    "UserDeviceAccess": {
+      "columns": [
+        "UserID",
+        "DeviceID"
+      ],
+      "evidence": "ddl"
+    },
+    "UserDeviceUpload": {
+      "columns": [
+        "BadgeNumber",
+        "MachineNumber"
+      ],
+      "evidence": "ddl"
+    },
+    "UserDeviceValid": {
+      "columns": [
+        "BadgeNumber",
+        "MachineNumber"
+      ],
+      "evidence": "ddl"
+    },
+    "UserInfo": {
+      "columns": [
+        "BadgeNumber"
+      ],
+      "evidence": "ddl"
+    },
+    "UserInfoManager": {
+      "columns": [
+        "ID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "UserInfoProperty": {
+      "columns": [
+        "BadgeNumber",
+        "PropertyID"
+      ],
+      "evidence": "ddl"
+    },
+    "UserInfoTitles": {
+      "columns": [
+        "ID"
+      ],
+      "evidence": "ddl"
+    },
+    "UserInfoVaccinationDetails": {
+      "columns": [
+        "Id"
+      ],
+      "evidence": "inferred-convention"
+    },
+    "UserPermission": {
+      "columns": [
+        "BadgeNumber",
+        "AccessType"
+      ],
+      "evidence": "inferred-composite"
+    },
+    "UserPositionData": {
+      "columns": [
+        "ID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "UserRule": {
+      "columns": [
+        "UserRuleID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "UserRules": {
+      "columns": [
+        "UserRuleID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "UserShift": {
+      "columns": [
+        "BadgeNumber",
+        "ShiftID",
+        "FromDate"
+      ],
+      "evidence": "inferred-composite"
+    },
+    "VaccineLog": {
+      "columns": [
+        "VaccineId"
+      ],
+      "evidence": "inferred-unique"
+    },
+    "ValidLeave": {
+      "columns": [
+        "ID"
+      ],
+      "evidence": "inferred-model"
+    },
+    "WebUser": {
+      "columns": [
+        "Id"
+      ],
+      "evidence": "ddl"
+    },
+    "Workflow": {
+      "columns": [
+        "WorkflowType",
+        "LeaveTypeID",
+        "OrderIndex"
+      ],
+      "evidence": "inferred-composite"
+    },
+    "YearRemain": {
+      "columns": [
+        "BadgeNumber",
+        "LeaveTypeID"
+      ],
+      "evidence": "inferred-composite"
+    },
+    "test": {
+      "columns": [
+        "SensorID"
+      ],
+      "evidence": "inferred-unique"
+    },
+    "webpages_Membership": {
+      "columns": [
+        "UserId"
+      ],
+      "evidence": "ddl"
+    },
+    "webpages_OAuthMembership": {
+      "columns": [
+        "Provider",
+        "ProviderUserId"
+      ],
+      "evidence": "ddl"
+    },
+    "webpages_Roles": {
+      "columns": [
+        "RoleId"
+      ],
+      "evidence": "ddl"
+    },
+    "webpages_UsersInRoles": {
+      "columns": [
+        "UserId",
+        "RoleId"
+      ],
+      "evidence": "ddl"
+    }
+  },
+  "relations": [
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "AppRule",
+        "column": "RuleID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "Rule",
+        "column": "RuleID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "Area",
+        "column": "ManagerID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "UserInfo",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "Card",
+        "column": "LeaveTypeID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "LeaveType",
+        "column": "LeaveID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "Card",
+        "column": "MachineNumber",
+        "database": "t5"
+      },
+      "to": {
+        "table": "Device",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "Command",
+        "column": "MachineNumber",
+        "database": "device"
+      },
+      "to": {
+        "table": "Device",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "CommandLog",
+        "column": "MachineNumber",
+        "database": "device"
+      },
+      "to": {
+        "table": "Device",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "CustomWorkflow",
+        "column": "LeaveDescriptionID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "LeaveDescription",
+        "column": "ID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "CustomWorkflow",
+        "column": "LeaveTypeID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "LeaveType",
+        "column": "LeaveID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "DailyLeaf",
+        "column": "DescriptionID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "LeaveDescription",
+        "column": "ID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "Dashboard",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "UserInfo",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "evidence": "FK_Dashboard_UserInfo (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "DashboardItem",
+        "column": "GroupID",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "Dashboard",
+        "column": "ID",
+        "database": "personnel"
+      },
+      "evidence": "FK_DashboardItem_Dashboard (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "DepartmentRule",
+        "column": "DepartmentID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "Department",
+        "column": "DepartmentID",
+        "database": "personnel"
+      },
+      "evidence": "table-name"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "DepartmentRule",
+        "column": "RuleID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "Rule",
+        "column": "RuleID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "DepartmentRules",
+        "column": "DepartmentID",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "Department",
+        "column": "DepartmentID",
+        "database": "personnel"
+      },
+      "evidence": "table-name"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "DepartmentRules",
+        "column": "RuleID",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "Rule",
+        "column": "RuleID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "Device",
+        "column": "GateID",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "Gate",
+        "column": "GateID",
+        "database": "personnel"
+      },
+      "evidence": "FK_Device_Gate"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "DeviceAlarm",
+        "column": "MachineNumber",
+        "database": "device"
+      },
+      "to": {
+        "table": "Device",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "DeviceAlarm",
+        "column": "ViewUserID",
+        "database": "device"
+      },
+      "to": {
+        "table": "User",
+        "column": "UserID",
+        "database": "device"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "DeviceMessagePersonnel",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "UserInfo",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "evidence": "FK_DeviceMessagePersonnel_UserInfo (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "DeviceMessagePersonnel",
+        "column": "SMSID",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "DeviceMessage",
+        "column": "SMSID",
+        "database": "personnel"
+      },
+      "evidence": "FK_DeviceMessagePersonnel_DeviceMessage (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "DeviceOperationLog",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "UserInfo",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "DeviceOperationLog",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "Device",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "evidence": "FK_DeviceOperationLog_Device (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "DownloadRecordsLog",
+        "column": "MachineNumber",
+        "database": "t5"
+      },
+      "to": {
+        "table": "Device",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "DownloadTimeDevice",
+        "column": "MachineNumber",
+        "database": "t5"
+      },
+      "to": {
+        "table": "Device",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "EvenetsLog",
+        "column": "MachineNumber",
+        "database": "device"
+      },
+      "to": {
+        "table": "Device",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "FontSize",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "UserInfo",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "evidence": "FK_FontSize_UserInfo (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "HourlyLeave",
+        "column": "BadgeNumber",
+        "database": "t5"
+      },
+      "to": {
+        "table": "UserInfo",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "HourlyLeave",
+        "column": "DescriptionID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "LeaveDescription",
+        "column": "ID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "HourlyLeave",
+        "column": "LeaveID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "LeaveType",
+        "column": "LeaveID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "IntervalSchedule",
+        "column": "MachineNumber",
+        "database": "device"
+      },
+      "to": {
+        "table": "Device",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "LeaveType",
+        "column": "DecreaseFromLeaveID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "LeaveType",
+        "column": "LeaveID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "LeaveType",
+        "column": "ParameterID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "Parameter",
+        "column": "ParameterID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "LeaveTypes",
+        "column": "DecreaseFromLeaveID",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "LeaveType",
+        "column": "LeaveID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "LeaveTypes",
+        "column": "ParameterID",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "Parameter",
+        "column": "ParameterID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "LeavesAdded",
+        "column": "BadgeNumber",
+        "database": "t5"
+      },
+      "to": {
+        "table": "UserInfo",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "LeavesAdded",
+        "column": "LeaveTypeID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "LeaveType",
+        "column": "LeaveID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "ManagerDevice",
+        "column": "DeviceNumber",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "Device",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "evidence": "FK_ManagerDevice_Device (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "ManagerDevice",
+        "column": "ManagerID",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "UserInfo",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "evidence": "FK_ManagerDevice_UserInfo (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "Map",
+        "column": "UserID",
+        "database": "device"
+      },
+      "to": {
+        "table": "User",
+        "column": "UserID",
+        "database": "device"
+      },
+      "evidence": "FK_Map_User (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "MapDoor",
+        "column": "MapID",
+        "database": "device"
+      },
+      "to": {
+        "table": "Map",
+        "column": "MapID",
+        "database": "device"
+      },
+      "evidence": "FK_MapDoor_Map (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "OperationLog",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "UserInfo",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "OperationLog",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "Device",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "evidence": "FK_OperationLog_Device (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "PropertyDropdownValue",
+        "column": "PropertyID",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "Property",
+        "column": "PropertyID",
+        "database": "personnel"
+      },
+      "evidence": "FK_per_PropertyDropdownValue_per_Property (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "PushCommand",
+        "column": "MachineNumber",
+        "database": "device"
+      },
+      "to": {
+        "table": "Device",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "Record",
+        "column": "MachineNumber",
+        "database": "t5"
+      },
+      "to": {
+        "table": "Device",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "RecordsLog",
+        "column": "MachineNumber",
+        "database": "device"
+      },
+      "to": {
+        "table": "Device",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "RecordsLogData",
+        "column": "MachineNumber",
+        "database": "device"
+      },
+      "to": {
+        "table": "Device",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "RecordsLogInvalid",
+        "column": "MachineNumber",
+        "database": "device"
+      },
+      "to": {
+        "table": "Device",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "RecordsLogTemp",
+        "column": "MachineNumber",
+        "database": "device"
+      },
+      "to": {
+        "table": "Device",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "ReportChart",
+        "column": "ReportID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "Report",
+        "column": "ReportID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "ReportData",
+        "column": "ParameterID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "Parameter",
+        "column": "ParameterID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "ReportData",
+        "column": "ReportID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "Report",
+        "column": "ReportID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "ReportFilter",
+        "column": "ReportDataID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "ReportData",
+        "column": "ReportDataID",
+        "database": "t5"
+      },
+      "evidence": "table-name"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "ReportTablix",
+        "column": "ReportID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "Report",
+        "column": "ReportID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "ReportTablixColumn",
+        "column": "TablixID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "ReportTablix",
+        "column": "TablixID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "ReportTextbox",
+        "column": "ReportID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "Report",
+        "column": "ReportID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "Request",
+        "column": "BadgeNumber",
+        "database": "t5"
+      },
+      "to": {
+        "table": "UserInfo",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "Request",
+        "column": "LeaveDescriptionID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "LeaveDescription",
+        "column": "ID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "Request",
+        "column": "LeaveID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "LeaveType",
+        "column": "LeaveID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "Schedule",
+        "column": "CalendarID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "Calendar",
+        "column": "CalendarID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "Schedule",
+        "column": "RuleID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "Rule",
+        "column": "RuleID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "ScheduleDevice",
+        "column": "ScheduleID",
+        "database": "device"
+      },
+      "to": {
+        "table": "Schedule",
+        "column": "ScheduleID",
+        "database": "t5"
+      },
+      "evidence": "FK_ScheduleDevice_Schedule (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "SchedulerOptions",
+        "column": "MachineNumber",
+        "database": "device"
+      },
+      "to": {
+        "table": "Device",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "T5WebDeviceCommand",
+        "column": "MachineNumber",
+        "database": "portal"
+      },
+      "to": {
+        "table": "Device",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "Template",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "UserInfo",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "evidence": "FK_Template_UserInfo (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "UserAccess",
+        "column": "UserID",
+        "database": "device"
+      },
+      "to": {
+        "table": "User",
+        "column": "UserID",
+        "database": "device"
+      },
+      "evidence": "FK_UserAccess_User (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "UserAlarm",
+        "column": "UserID",
+        "database": "device"
+      },
+      "to": {
+        "table": "User",
+        "column": "UserID",
+        "database": "device"
+      },
+      "evidence": "FK_UserAlarm_UserAlarm (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "UserDeptAccess",
+        "column": "UserID",
+        "database": "device"
+      },
+      "to": {
+        "table": "User",
+        "column": "UserID",
+        "database": "device"
+      },
+      "evidence": "FK_UserDeptAccess_User (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "UserDeviceAccess",
+        "column": "UserID",
+        "database": "device"
+      },
+      "to": {
+        "table": "User",
+        "column": "UserID",
+        "database": "device"
+      },
+      "evidence": "FK_UserDeviceAccess_User (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "UserDeviceUpload",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "UserInfo",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "evidence": "FK_UserDeviceUpload_UserInfo (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "UserDeviceUpload",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "Device",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "evidence": "FK_UserDeviceUpload_Device (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "UserDeviceValid",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "UserInfo",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "evidence": "FK_UserDeviceValid_UserInfo (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "UserDeviceValid",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "Device",
+        "column": "MachineNumber",
+        "database": "personnel"
+      },
+      "evidence": "FK_UserDeviceValid_Device (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "UserInfo",
+        "column": "CertificateID",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "Certificate",
+        "column": "CertID",
+        "database": "personnel"
+      },
+      "evidence": "FK_UserInfo_Certificate"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "UserInfo",
+        "column": "DeptID",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "Department",
+        "column": "DepartmentID",
+        "database": "personnel"
+      },
+      "evidence": "FK_UserInfo_Department"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "UserInfo",
+        "column": "EmpTypeID",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "EmpType",
+        "column": "EmpTypeID",
+        "database": "personnel"
+      },
+      "evidence": "FK_UserInfo_EmpType"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "UserInfoProperty",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "UserInfo",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "evidence": "FK_per_UserInfoProperty_per_UserInfo (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "UserInfoProperty",
+        "column": "DropDownValue",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "PropertyDropdownValue",
+        "column": "DropdownValueID",
+        "database": "personnel"
+      },
+      "evidence": "FK_per_UserInfoProperty_per_PropertyDropdownValue"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "UserInfoProperty",
+        "column": "PropertyID",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "Property",
+        "column": "PropertyID",
+        "database": "personnel"
+      },
+      "evidence": "FK_per_UserInfoProperty_per_Property (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "UserInfoTitles",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "UserInfo",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "evidence": "FK_UserInfoTitles_UserInfo (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "UserInfoTitles",
+        "column": "TitleChartID",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "TitlesChart",
+        "column": "TitleID",
+        "database": "personnel"
+      },
+      "evidence": "FK_UserInfoTitles_TitlesChart (ON DELETE CASCADE)"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "UserPositionData",
+        "column": "BadgeNumber",
+        "database": "t5"
+      },
+      "to": {
+        "table": "UserInfo",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "UserPositionData",
+        "column": "PositionID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "Position",
+        "column": "PositionID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "UserRule",
+        "column": "BadgeNumber",
+        "database": "t5"
+      },
+      "to": {
+        "table": "UserInfo",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "UserRule",
+        "column": "RuleID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "Rule",
+        "column": "RuleID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "UserRules",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "UserInfo",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "UserRules",
+        "column": "RuleID",
+        "database": "personnel"
+      },
+      "to": {
+        "table": "Rule",
+        "column": "RuleID",
+        "database": "t5"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "ValidLeave",
+        "column": "BadgeNumber",
+        "database": "t5"
+      },
+      "to": {
+        "table": "UserInfo",
+        "column": "BadgeNumber",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "Workflow",
+        "column": "AccepterTitleID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "TitlesChart",
+        "column": "TitleID",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "Workflow",
+        "column": "TitleID",
+        "database": "t5"
+      },
+      "to": {
+        "table": "TitlesChart",
+        "column": "TitleID",
+        "database": "personnel"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "inferred",
+      "from": {
+        "table": "webpages_OAuthMembership",
+        "column": "UserId",
+        "database": "device"
+      },
+      "to": {
+        "table": "WebUser",
+        "column": "Id",
+        "database": "device"
+      },
+      "evidence": "alias"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "webpages_UsersInRoles",
+        "column": "RoleId",
+        "database": "device"
+      },
+      "to": {
+        "table": "webpages_Roles",
+        "column": "RoleId",
+        "database": "device"
+      },
+      "evidence": "fk_RoleId"
+    },
+    {
+      "kind": "declared",
+      "from": {
+        "table": "webpages_UsersInRoles",
+        "column": "UserId",
+        "database": "device"
+      },
+      "to": {
+        "table": "WebUser",
+        "column": "Id",
+        "database": "device"
+      },
+      "evidence": "fk_UserId"
+    }
+  ],
+  "exceptions": [
+    {
+      "table": "Area",
+      "column": "UserID",
+      "reason": "شناسه کاربر نرم‌افزار؛ در اسکیما فقط User در پایگاه سرویس دستگاه هست و نگاشت آن به پرسنل اثبات نشده"
+    },
+    {
+      "table": "CommandLog",
+      "column": "CommandId",
+      "reason": "شناسه فرمان سمت دستگاه؛ جدول Command در پورتال نوشته نمی‌شود"
+    },
+    {
+      "table": "DashboardItem",
+      "column": "ItemID",
+      "reason": "شناسه آیتم نوار ابزار دسکتاپ (Misc/ToolbarItems.xml)؛ جدولی در اسکیما ندارد"
+    },
+    {
+      "table": "DeviceErrorLog",
+      "column": "CmdId",
+      "reason": "شناسه فرمانی که خود دستگاه می‌فرستد؛ جدول متناظر در اسکیما نیست"
+    },
+    {
+      "table": "DownloadRecordsLog",
+      "column": "EventID",
+      "reason": "نوع رویداد دانلود؛ enum سرویس Link5"
+    },
+    {
+      "table": "DownloadRecordsLog",
+      "column": "UserID",
+      "reason": "شناسه کاربر سرویس دانلود؛ جدول متناظر در این کاتالوگ نیست"
+    },
+    {
+      "table": "PushCommands",
+      "column": "CommandId",
+      "reason": "کلید اصلی همان جدول است، نه ارجاع"
+    },
+    {
+      "table": "SystemLog",
+      "column": "EventID",
+      "reason": "کلید اصلی همان جدول است، نه ارجاع"
+    },
+    {
+      "table": "SystemLog",
+      "column": "UserID",
+      "reason": "شناسه کاربر نرم‌افزار در لاگ موتور؛ جدول متناظر در این کاتالوگ نیست"
+    }
+  ],
+  "not_tables": {
+    "Entities": "نام مجموعه‌های EF است، نه جدول",
+    "sys": "مخزن سامانه‌ای SQL Server است، نه جدول"
+  },
+  "unresolved": []
+}

@@ -55,6 +55,8 @@ namespace T5Web.Tests
             RunTest("T25: 67/67 legacy coverage audit (no controller or action left pending)", TestLegacyCoverage);
             RunTest("T26: Phase 5 delivery (screens, devices, cut-over switch)", TestPhase5Delivery);
             RunTest("T27: 343/343 action coverage (every action decided, every target real)", TestActionCoverage);
+            RunTest("T28: database model (catalogs, keys, relations, one catalog per statement)", TestDatabaseModel);
+            RunTest("T29: legacy surface (views, first-party assemblies, every appSettings key)", TestLegacySurface);
 
             Console.WriteLine("----------------------------------------------------------------------");
             Console.WriteLine($"  Summary: {_passed} Passed, {_failed} Failed");
@@ -789,6 +791,7 @@ namespace T5Web.Tests
         {
             Dictionary<string, HashSet<string>> manifest = ManifestColumns();
             Dictionary<string, Dictionary<string, string>> types = TypedColumns();
+            Dictionary<string, string> catalogs = TableCatalogs();
             var modules = ModuleRegistry.All();
 
             Assert(modules.Count >= 25, "expected at least 25 generic modules, found " + modules.Count);
@@ -802,6 +805,18 @@ namespace T5Web.Tests
                     "module '" + module.Code + "' points at table " + module.Table + ", which is not in the schema manifest.");
                 Assert(types.ContainsKey(module.Table),
                     "table " + module.Table + " has no column types; the portal must not write it.");
+
+                // The catalog decides which connection the store opens (docs/09, BUG-30).
+                // A module whose table lives in Personnel must not be read through T5CnnStr,
+                // and nothing may point at the device service database: the portal never
+                // writes the device catalog at all.
+                string catalog;
+                Assert(catalogs.TryGetValue(module.Table, out catalog),
+                    "module '" + module.Code + "' points at " + module.Table + ", which the database model does not place in a catalog.");
+                Assert(string.Equals(catalog, module.Catalog, StringComparison.OrdinalIgnoreCase),
+                    "module '" + module.Code + "' declares catalog '" + module.Catalog + "' but " + module.Table + " lives in '" + catalog + "'.");
+                Assert(catalog == "t5" || catalog == "personnel",
+                    "module '" + module.Code + "' targets the '" + catalog + "' catalog; the portal only reads t5 and personnel.");
 
                 Assert(module.Fields.Count > 0, "module '" + module.Code + "' has no fields.");
                 Assert(module.Keys.Any(), "module '" + module.Code + "' has no key column.");
@@ -867,6 +882,26 @@ namespace T5Web.Tests
                 Assert(!module.ReadOnly || module.EditFeature != AdminFeature.PortalAdmin,
                     "module '" + module.Code + "' marks itself read-only but carries an edit feature.");
             }
+        }
+
+        /// <summary>
+        /// table -> catalog ("t5" = ReportT5V3, "personnel" = Personnel, "device" = the
+        /// Link5 service database), read from engine/relations.json. No JSON library is
+        /// available offline, so the small "Name": { "database": "x" } block is parsed
+        /// directly; T28 re-checks the same file against the DDL.
+        /// </summary>
+        private static Dictionary<string, string> TableCatalogs()
+        {
+            string path = Path.Combine(T5WebRoot, "engine", "relations.json");
+            Assert(File.Exists(path), "engine/relations.json is missing; run tools/engine-relations.py --write.");
+            string json = File.ReadAllText(path);
+            var catalogs = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (Match m in Regex.Matches(json, "\"([A-Za-z0-9_]+)\"\\s*:\\s*\\{\\s*\"database\"\\s*:\\s*\"([a-z0-9]+)\"", RegexOptions.Singleline))
+            {
+                catalogs[m.Groups[1].Value] = m.Groups[2].Value;
+            }
+            Assert(catalogs.Count >= 100, "engine/relations.json placed only " + catalogs.Count + " tables in a catalog.");
+            return catalogs;
         }
 
         private static bool KindMatchesType(FieldKind kind, string sqlType)
@@ -994,11 +1029,16 @@ namespace T5Web.Tests
             OperationResult halfKey = service.Delete(deputy, new Dictionary<string, string> { { "TitleID", "3" } });
             Assert(!halfKey.Succeeded, "a half key must be refused, never treated as a wildcard.");
 
-            // Read-only modules cannot be written even by an administrator.
-            ModuleDescriptor parameters = ModuleRegistry.Find("option");
-            Assert(service.Build(parameters, new Dictionary<string, string> { { "SettingsID", "1" }, { "Value", "x" } }, false, out row).Succeeded,
-                "an option row must build.");
-            Assert(service.Save(parameters, row, true).Succeeded == false,
+            // A module can forbid creation while still allowing an edit of an existing row
+            // (the device-validity flag is the real case: the pair exists or it does not).
+            ModuleDescriptor deviceValid = ModuleRegistry.Find("userdevicevalid");
+            Assert(deviceValid != null, "the userdevicevalid module must exist.");
+            Assert(service.Build(deviceValid, new Dictionary<string, string>
+                {
+                    { "BadgeNumber", "1001" }, { "MachineNumber", "5" }, { "IsValid", "true" }
+                }, false, out row).Succeeded,
+                "a device-validity row must build.");
+            Assert(service.Save(deviceValid, row, true).Succeeded == false,
                 "a module with AllowCreate = false must refuse a new row.");
 
             // CSV: a value containing a comma or quote survives the round trip.
@@ -1820,6 +1860,216 @@ namespace T5Web.Tests
                 .Where(n => n.EndsWith("Controller", StringComparison.Ordinal) && n != "HomeController")
                 .ToList();
             Assert(controllers.Count > 0, "no controllers found.");
+        }
+
+        /// <summary>
+        /// T28 - the database model. The portal reads a schema it does not own, spread over
+        /// two catalogs, and it owns three tables itself. This test holds that model down:
+        /// every table has a catalog, the declared keys and relations still match the DDL,
+        /// no reference is unclassified, and no SQL statement joins across catalogs (which
+        /// would only work when both databases sit on one server).
+        ///
+        /// It also enforces the code shape that makes the rule possible: the personnel-side
+        /// display fields are completed by PersonnelDirectory, never by a JOIN.
+        /// </summary>
+        private static void TestDatabaseModel()
+        {
+            string tsv = Path.Combine(T5WebRoot, "engine", "relations.tsv");
+            Assert(File.Exists(tsv), "engine/relations.tsv is missing; run tools/engine-relations.py --write.");
+            string[] lines = File.ReadAllLines(tsv);
+            Assert(lines.Length > 1 && lines[0] == "kind\tfrom_database\tfrom_table\tfrom_column\tto_database\tto_table\tto_column\tevidence",
+                "engine/relations.tsv must start with its header row.");
+
+            var rows = new List<string[]>();
+            foreach (string line in lines.Skip(1))
+            {
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    continue;
+                }
+                string[] cells = line.Split('\t');
+                Assert(cells.Length == 8, "malformed relation row: " + line);
+                rows.Add(cells);
+            }
+            Assert(rows.Count >= 90, "the model must carry every relation; found " + rows.Count + ".");
+
+            var catalogs = new HashSet<string>(StringComparer.Ordinal);
+            int declared = 0, inferred = 0;
+            foreach (string[] cells in rows)
+            {
+                string kind = cells[0];
+                Assert(kind == "declared" || kind == "inferred", "unknown relation kind: " + kind);
+                if (kind == "declared")
+                {
+                    declared++;
+                    // The DDL writes fk_RoleId, the model keeps that spelling.
+                    Assert(cells[7].StartsWith("FK_", StringComparison.OrdinalIgnoreCase),
+                        "a declared relation must name its constraint: " + cells[7]);
+                }
+                else
+                {
+                    inferred++;
+                }
+
+                catalogs.Add(cells[1]);
+                catalogs.Add(cells[4]);
+                Assert(cells[1] != "?" && cells[4] != "?", "a relation endpoint has no catalog: " + string.Join("|", cells));
+                Assert(!(cells[2] == cells[5] && cells[3] == cells[6]),
+                    "a column cannot reference itself: " + cells[2] + "." + cells[3]);
+            }
+
+            // The declared relations must be exactly the DDL's own foreign keys.
+            int ddlKeys = 0;
+            foreach (string file in new[] { "Link5 v4.0.4/Personnel.sql", "Link5 v4.0.4/Link5.sql" })
+            {
+                string path = Path.Combine(T5WebRoot, "..", "..", file);
+                if (!File.Exists(path))
+                {
+                    continue;
+                }
+                // These scripts are UTF-16 with a BOM; ReadAllLines detects it.
+                string ddl = string.Join("\n", File.ReadAllLines(path));
+                ddlKeys += Regex.Matches(ddl, @"FOREIGN\s+KEY", RegexOptions.IgnoreCase).Count;
+            }
+            Assert(ddlKeys == declared,
+                "the DDL declares " + ddlKeys + " foreign keys but the model carries " + declared + " declared relations.");
+            Assert(inferred > 0, "the model must also carry the references the DDL never declared.");
+
+            // Four catalogs, each named in the model and in the document.
+            string json = File.ReadAllText(Path.Combine(T5WebRoot, "engine", "relations.json"));
+            foreach (string catalog in new[] { "ReportT5V3", "Personnel", "Link5 service database", "db/01-t5web-objects.sql" })
+            {
+                Assert(json.Contains(catalog), "engine/relations.json must name '" + catalog + "'.");
+            }
+
+            string doc = Path.Combine(T5WebRoot, "docs", "09-database-model.md");
+            Assert(File.Exists(doc), "docs/09-database-model.md is missing: the model needs a written contract.");
+            string model = File.ReadAllText(doc);
+            foreach (string required in new[] { "ReportT5V3", "Personnel", "PersonnelDirectory", "cross-database",
+                                                "db/03-relations.sql", "engine/relations.tsv" })
+            {
+                Assert(model.Contains(required), "docs/09 must explain '" + required + "'.");
+            }
+
+            // The configuration must name both catalogs, and the composition must pass both.
+            string config = File.ReadAllText(Path.Combine(T5WebRoot, "T5Web.Web", "Web.config"));
+            Assert(config.Contains("PersonnelCnnStr"), "Web.config must expose PersonnelCnnStr.");
+            string startup = File.ReadAllText(Path.Combine(T5WebRoot, "T5Web.Web", "MvcApplication.cs"));
+            Assert(startup.Contains("PersonnelDirectory") && startup.Contains("personnelFactory"),
+                "MvcApplication must build the personnel connection and the directory.");
+
+            // No statement in the data layer may mix the two catalogs.
+            var personnel = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "UserInfo", "Department", "TitlesChart", "EmpType", "Gate", "UserInfoTitles", "Device", "Certificate"
+            };
+            var engine = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "Record", "Request", "RequestAccept", "Workflow", "LeaveType", "LeavesAdded", "YearRemain",
+                "DailyLeaf", "HourlyLeave", "Schedule", "Shift", "ShiftDetail", "UserShift", "Rule", "UserRule",
+                "DepartmentRule", "Parameter"
+            };
+            foreach (string file in Directory.GetFiles(Path.Combine(T5WebRoot, "T5Web.Data"), "*.cs"))
+            {
+                string source = File.ReadAllText(file);
+                foreach (Match literal in Regex.Matches(source, "@\"(.*?)\";", RegexOptions.Singleline))
+                {
+                    string query = literal.Groups[1].Value;
+                    var fromTables = new HashSet<string>(
+                        Regex.Matches(query, @"\b(?:FROM|JOIN|INTO|UPDATE|MERGE)\s+\[?([A-Za-z_][A-Za-z0-9_]*)\]?",
+                            RegexOptions.IgnoreCase).Cast<Match>().Select(m => m.Groups[1].Value),
+                        StringComparer.OrdinalIgnoreCase);
+                    Assert(!(fromTables.Overlaps(personnel) && fromTables.Overlaps(engine)),
+                        Path.GetFileName(file) + " has a statement that joins the Personnel catalog to the engine catalog: " +
+                        string.Join(", ", fromTables));
+                }
+            }
+
+            // The integrity report is read-only: it reports, it never repairs.
+            string report = File.ReadAllText(Path.Combine(T5WebRoot, "db", "03-relations.sql"));
+            Assert(report.Contains("VIOLATION"), "db/03-relations.sql must classify violations.");
+            Assert(!report.Contains("INSERT INTO ["), "db/03-relations.sql must not write to a table.");
+            Assert(!report.Contains("DELETE FROM ["), "db/03-relations.sql must not delete.");
+        }
+
+        /// <summary>
+        /// T29 - the file-level audit. T25 and T27 look *inside* T5V3Web.dll and prove every
+        /// controller and every public action has a decision. A legacy application is more
+        /// than its controller assembly, though: the view folder, the first-party
+        /// assemblies that sit beside it (TC5, TMisc5, PersianDate and the engine), and the
+        /// sixteen appSettings keys can each carry behaviour. This test counts them on disk
+        /// and requires the documents to state the same numbers, so a view folder or a
+        /// configuration switch cannot quietly disappear from the audit.
+        /// </summary>
+        private static void TestLegacySurface()
+        {
+            string legacy = Path.Combine(RepoRoot, "T5Web [3.5.7]", "App");
+            Assert(Directory.Exists(legacy), "the legacy web application folder is missing: " + legacy);
+
+            string decomposition = File.ReadAllText(Path.Combine(T5WebRoot, "docs", "03-legacy-decomposition.md"));
+            string phaseLog = File.ReadAllText(Path.Combine(T5WebRoot, "docs", "02-phase-log.md"));
+
+            // 1. The views: 112 files in 65 folders (64 controllers + Shared). The documents
+            //    state the same numbers, and every view folder belongs to a legacy controller.
+            string views = Path.Combine(legacy, "Views");
+            int viewFiles = Directory.GetFiles(views, "*.cshtml", SearchOption.AllDirectories).Length;
+            int viewFolders = Directory.GetDirectories(views).Length;
+            Assert(viewFiles == 112 && viewFolders == 65,
+                "the legacy view folder changed: " + viewFiles + " views in " + viewFolders + " folders.");
+            Assert(decomposition.Contains("۱۱۲ فایل") && decomposition.Contains("۶۵ پوشه"),
+                "docs/03 must state the view count it audits (112 files / 65 folders).");
+
+            var controllers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string line in File.ReadAllLines(Path.Combine(T5WebRoot, "docs", "legacy-controllers.txt")))
+            {
+                string name = line.Trim();
+                if (name.Length > 0 && !name.StartsWith("#", StringComparison.Ordinal))
+                {
+                    controllers.Add(name);
+                }
+            }
+            Assert(controllers.Count == 67, "docs/legacy-controllers.txt must list 67 controllers.");
+            foreach (string folder in Directory.GetDirectories(views).Select(d => Path.GetFileName(d)))
+            {
+                if (string.Equals(folder, "Shared", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+                Assert(controllers.Contains(folder),
+                    "the legacy view folder '" + folder + "' has no controller in the audit.");
+            }
+
+            // 2. The first-party assemblies beside the controller assembly. Each must still be
+            //    on disk (the pin or the removal decision refers to it) and be named in docs/03.
+            foreach (string assembly in new[]
+                     {
+                         "T5V3Web.dll", "T5V3.DB.dll", "T5V3.Model.dll", "T5V3.Attendance.dll",
+                         "T5V3.LeaveCalcs.dll", "T5V3.Report.dll", "T5V3.ReportGenerator.dll",
+                         "Personnel.dll", "TC5.dll", "TMisc5.dll", "PersianDate.dll"
+                     })
+            {
+                Assert(File.Exists(Path.Combine(legacy, "bin", assembly)),
+                    "the legacy assembly '" + assembly + "' is missing from bin.");
+                Assert(decomposition.Contains(assembly),
+                    "docs/03 does not account for the legacy assembly '" + assembly + "'.");
+            }
+
+            // 3. Every appSettings key of the legacy Web.config has a written decision. The two
+            //    connection keys are the important ones: they name the two catalogs (docs/09),
+            //    and the portal's own keys are different on purpose.
+            string config = File.ReadAllText(Path.Combine(legacy, "Web.config"));
+            var keys = Regex.Matches(config, "<add key=\"([^\"]+)\"")
+                .Cast<Match>().Select(m => m.Groups[1].Value).ToList();
+            Assert(keys.Count == 16, "the legacy Web.config changed: " + keys.Count + " appSettings keys.");
+            foreach (string key in keys)
+            {
+                Assert(phaseLog.Contains("`" + key + "`"),
+                    "the legacy configuration key '" + key + "' has no decision in docs/02.");
+            }
+            Assert(config.Contains("t5ConnectionString") && config.Contains("personnelConnectionString"),
+                "the legacy configuration must still name both catalogs.");
+            Assert(decomposition.Contains("`t5ConnectionString`") && decomposition.Contains("`personnelConnectionString`"),
+                "docs/03 must record the legacy connection-string names, not the portal's names.");
         }
 
         /// <summary>

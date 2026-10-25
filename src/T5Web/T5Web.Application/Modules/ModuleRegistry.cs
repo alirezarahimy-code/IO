@@ -118,6 +118,7 @@ namespace T5Web.Application.Modules
                 TitleFa = "انواع استخدام",
                 GroupFa = "داده پایه",
                 Table = "EmpType",
+                Catalog = "personnel",
                 OrderBy = "EmpTypeName",
                 LabelColumn = "EmpTypeName",
                 ViewFeature = AdminFeature.BaseDataView,
@@ -138,6 +139,7 @@ namespace T5Web.Application.Modules
                 TitleFa = "مدارک تحصیلی",
                 GroupFa = "داده پایه",
                 Table = "Certificate",
+                Catalog = "personnel",
                 OrderBy = "CertName",
                 LabelColumn = "CertName",
                 ViewFeature = AdminFeature.BaseDataView,
@@ -253,6 +255,7 @@ namespace T5Web.Application.Modules
                 TitleFa = "فیلدهای اضافی پرسنل",
                 GroupFa = "داده پایه",
                 Table = "Property",
+                Catalog = "personnel",
                 OrderBy = "PropertyName",
                 LabelColumn = "PropertyName",
                 ViewFeature = AdminFeature.BaseDataView,
@@ -274,6 +277,7 @@ namespace T5Web.Application.Modules
                 TitleFa = "مقادیر فیلد انتخابی",
                 GroupFa = "داده پایه",
                 Table = "PropertyDropdownValue",
+                Catalog = "personnel",
                 OrderBy = "DropdownValue",
                 LabelColumn = "DropdownValue",
                 ViewFeature = AdminFeature.BaseDataView,
@@ -294,6 +298,7 @@ namespace T5Web.Application.Modules
                 TitleFa = "درب‌ها",
                 GroupFa = "دستگاه‌ها",
                 Table = "Gate",
+                Catalog = "personnel",
                 OrderBy = "GateName",
                 LabelColumn = "GateName",
                 ViewFeature = AdminFeature.GateView,
@@ -309,26 +314,7 @@ namespace T5Web.Application.Modules
                 }
             });
 
-            modules.Add(new ModuleDescriptor
-            {
-                Code = "option",
-                TitleFa = "تنظیمات پورتال",
-                GroupFa = "قواعد",
-                Table = "Option",
-                OrderBy = "SettingsID",
-                ViewFeature = AdminFeature.ParametersView,
-                EditFeature = AdminFeature.ParametersEdit,
-                AllowCreate = false,
-                AllowDelete = false,
-                NoteFa = "کلید/مقدار تنظیمات موتور؛ افزودن کلید جدید فقط از دسکتاپ انجام می‌شود.",
-                Fields = new List<ModuleField>
-                {
-                    Key("SettingsID", "کلید", FieldKind.Number, "ddl"),
-                    Text("Value", "مقدار", 400, "ddl")
-                }
-            });
-
-            modules.Add(new ModuleDescriptor
+modules.Add(new ModuleDescriptor
             {
                 Code = "deputy",
                 TitleFa = "جانشین عناوین",
@@ -353,6 +339,7 @@ namespace T5Web.Application.Modules
                 TitleFa = "پیام‌های دستگاه",
                 GroupFa = "دستگاه‌ها",
                 Table = "DeviceMessage",
+                Catalog = "personnel",
                 OrderBy = "SMSID",
                 ViewFeature = AdminFeature.DeviceView,
                 EditFeature = AdminFeature.DeviceEdit,
@@ -374,6 +361,7 @@ namespace T5Web.Application.Modules
                 TitleFa = "اعتبار دستگاه هر پرسنل",
                 GroupFa = "دستگاه‌ها",
                 Table = "UserDeviceValid",
+                Catalog = "personnel",
                 OrderBy = "BadgeNumber",
                 ViewFeature = AdminFeature.DeviceView,
                 EditFeature = AdminFeature.DeviceEdit,
@@ -724,6 +712,7 @@ namespace T5Web.Application.Modules
                 TitleFa = "مقدار فیلد اضافی پرسنل",
                 GroupFa = "داده پایه",
                 Table = "UserInfoProperty",
+                Catalog = "personnel",
                 OrderBy = "BadgeNumber",
                 ViewFeature = AdminFeature.BaseDataView,
                 EditFeature = AdminFeature.BaseDataEdit,
@@ -744,6 +733,7 @@ namespace T5Web.Application.Modules
                 TitleFa = "گروه‌های داشبورد",
                 GroupFa = "داشبورد",
                 Table = "Dashboard",
+                Catalog = "personnel",
                 OrderBy = "ID",
                 ViewFeature = AdminFeature.BaseDataView,
                 EditFeature = AdminFeature.BaseDataEdit,
@@ -764,6 +754,7 @@ namespace T5Web.Application.Modules
                 TitleFa = "عناوین شغلی",
                 GroupFa = "سازمان",
                 Table = "TitlesChart",
+                Catalog = "personnel",
                 OrderBy = "TitleName",
                 LabelColumn = "TitleName",
                 ViewFeature = AdminFeature.TitlesView,

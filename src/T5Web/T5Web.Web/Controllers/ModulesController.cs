@@ -49,7 +49,7 @@ namespace T5Web.Web.Controllers
                 Descriptor = descriptor,
                 Page = PortalServices.Modules.Page(descriptor, term, page, PageSize),
                 Groups = ModulesFor(descriptor),
-                CanEdit = CurrentSession != null && CurrentSession.CanEdit(descriptor.EditFeature)
+                CanEdit = !descriptor.ReadOnly && CurrentSession != null && CurrentSession.CanEdit(descriptor.EditFeature)
             };
             ViewBag.Title = descriptor.TitleFa;
             return View(model);
@@ -65,6 +65,11 @@ namespace T5Web.Web.Controllers
             if (!CanView(descriptor))
             {
                 return Denied(descriptor.ViewFeature);
+            }
+
+            if (descriptor.ReadOnly)
+            {
+                return Denied(descriptor.EditFeature);
             }
 
             bool isNew = string.IsNullOrWhiteSpace(key);
@@ -112,7 +117,7 @@ namespace T5Web.Web.Controllers
             {
                 return Denied(descriptor.ViewFeature);
             }
-            if (!(CurrentSession != null && CurrentSession.CanEdit(descriptor.EditFeature)))
+            if (descriptor.ReadOnly || !(CurrentSession != null && CurrentSession.CanEdit(descriptor.EditFeature)))
             {
                 return Denied(descriptor.EditFeature);
             }
@@ -153,7 +158,7 @@ namespace T5Web.Web.Controllers
             {
                 return HttpNotFound("ماژول خواسته‌شده وجود ندارد.");
             }
-            if (!(CurrentSession != null && CurrentSession.CanEdit(descriptor.EditFeature)))
+            if (descriptor.ReadOnly || !(CurrentSession != null && CurrentSession.CanEdit(descriptor.EditFeature)))
             {
                 return Denied(descriptor.EditFeature);
             }

@@ -40,6 +40,8 @@
 :r .\db\02-t5web-sql-login.sql
 -- سپس بررسی
 :r .\db\verify.sql
+-- و اختیاری ولی توصیه‌شده: سلامت رابطه‌ها روی داده واقعی (docs/09)
+:r .\db\03-relations.sql
 ```
 
 `verify.sql` باید **هیچ** سطر `MISSING` برنگرداند. اگر برگرداند، نصب کامل نیست؛ به بخش ۶ بروید.
@@ -48,7 +50,10 @@
 
 ```xml
 <appSettings>
+  <!-- کاتالوگ موتور: تردد، درخواست، مرخصی، شیفت، گردش کار -->
   <add key="T5CnnStr" value="data source=SQL01;initial catalog=ReportT5V3;integrated security=True;MultipleActiveResultSets=True" />
+  <!-- کاتالوگ پرسنل: افراد، سازمان، عناوین، دستگاه‌ها (docs/09) -->
+  <add key="PersonnelCnnStr" value="data source=SQL01;initial catalog=Personnel;integrated security=True;MultipleActiveResultSets=True" />
   <add key="T5WebMode" value="coexist" />
   <add key="T5WebLegacyUrl" value="http://legacy-web/" />
 </appSettings>
@@ -151,6 +156,8 @@ WHERE Status = 0;
 | صفحه «پیکربندی ناقص» | `T5CnnStr` خالی یا نامعتبر | `Web.config` را اصلاح و Application Pool را ری‌استارت کنید |
 | خطای ۴۰۱ برای همه | Anonymous روشن و Windows Authentication خاموش | تنظیمات Authentication سایت را درست کنید |
 | `MISSING` در `verify.sql` | اجرای ناقص `db/01` | اسکریپت را دوباره و کامل اجرا کنید |
+| صفحه «پیکربندی ناقص» با پیام `PersonnelCnnStr` | کلید دوم کاتالوگ تنظیم نشده | اگر همه‌ی جدول‌ها در `ReportT5V3` هستند، خالی بگذارید (پورتال تک‌پایگاهی کار می‌کند)؛ در غیر این صورت مقدار بدهید (docs/09) |
+| `Invalid object name 'UserInfo'` | `PersonnelCnnStr` به پایگاه اشتباه اشاره می‌کند یا خالی است و جدول‌ها در `ReportT5V3` نیستند | مقدار درست را بگذارید؛ `db/03-relations.sql` را اجرا کنید |
 | «مخزن … تنظیم نشده است» | یکی از storeها در `MvcApplication` ساخته نشده | نسخه انتشار را کامل کپی کنید (فایل‌های `T5Web.Data` جا افتاده‌اند) |
 | «عنوان شغلی فعال ندارید» در تأیید درخواست | پرسنل در `UserInfoTitles` سطر فعال ندارد | در برنامه دسکتاپ عنوان را ثبت کنید؛ پورتال عمداً هیچ عنوانی حدس نمی‌زند |
 | گزارش «موتور حضور» عدد محاسبه‌شده نشان نمی‌دهد | این گزارش‌ها را موتور رندر می‌کند، نه پورتال | همان قالب RDLC را در برنامه دسکتاپ اجرا کنید؛ پورتال فقط «تردد خام» می‌دهد |

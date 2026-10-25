@@ -19,14 +19,18 @@ namespace T5Web.Data
     public sealed class SqlAttendanceStore : IAttendanceStore
     {
         private readonly Func<IDbConnection> _connectionFactory;
+        private readonly PersonnelDirectory _personnel;
 
-        public SqlAttendanceStore(Func<IDbConnection> connectionFactory)
+        public SqlAttendanceStore(Func<IDbConnection> connectionFactory, PersonnelDirectory personnel = null)
         {
             if (connectionFactory == null)
             {
                 throw new ArgumentNullException(nameof(connectionFactory));
             }
             _connectionFactory = connectionFactory;
+            // Records, requests and leave ledgers live in the engine catalog; names and
+            // departments live in the Personnel catalog (docs/09). Never joined in SQL.
+            _personnel = personnel ?? new PersonnelDirectory(connectionFactory);
         }
 
         private IDbConnection Open()
@@ -51,11 +55,9 @@ SELECT TOP (@Take)
     r.[WorkCode]         AS WorkCode,
     r.[InsertUser]       AS InsertUser,
     r.[InsertTime]       AS InsertTime,
-    ISNULL(u.[FirstName], N'') + N' ' + ISNULL(u.[LastName], N'') AS PersonName,
-    ISNULL(d.[MachineName], N'') AS MachineName
+    CAST('' AS nvarchar(1)) AS PersonName,
+    CAST('' AS nvarchar(1)) AS MachineName
 FROM [Record] r
-LEFT JOIN [UserInfo] u ON u.[BadgeNumber] = r.[BadgeNumber]
-LEFT JOIN [Device] d ON d.[MachineNumber] = r.[MachineNumber]
 WHERE (@BadgeNumber IS NULL OR r.[BadgeNumber] = @BadgeNumber)
   AND (@MachineNumber IS NULL OR r.[MachineNumber] = @MachineNumber)
   AND (@FromDate IS NULL OR r.[CheckTime] >= @FromDate)
@@ -64,9 +66,10 @@ WHERE (@BadgeNumber IS NULL OR r.[BadgeNumber] = @BadgeNumber)
   AND (@OnlyManual = 0 OR r.[InsertUser] > 0)
 ORDER BY r.[CheckTime] DESC;";
 
+            List<RecordRow> rows;
             using (IDbConnection connection = Open())
             {
-                return connection.Query<RecordRow>(sql, new
+                rows = connection.Query<RecordRow>(sql, new
                 {
                     q.Take,
                     BadgeNumber = q.BadgeNumber,
@@ -77,6 +80,19 @@ ORDER BY r.[CheckTime] DESC;";
                     OnlyManual = q.OnlyManual ? 1 : 0
                 }).ToList();
             }
+
+            if (rows.Count > 0)
+            {
+                var names = _personnel.Names(rows.Select(r => r.BadgeNumber));
+                var machines = _personnel.MachineNames(rows.Select(r => r.MachineNumber));
+                foreach (RecordRow row in rows)
+                {
+                    string name, machine;
+                    row.PersonName = names.TryGetValue(row.BadgeNumber, out name) ? name : string.Empty;
+                    row.MachineName = machines.TryGetValue(row.MachineNumber, out machine) ? machine : string.Empty;
+                }
+            }
+            return rows;
         }
 
         public OperationResult SaveRecord(RecordRow row, bool isNew)
@@ -182,13 +198,12 @@ SELECT TOP (@Take)
     q.[IsDaily]          AS IsDaily,
     q.[IsSuspend]        AS IsSuspended,
     q.[WofkflowType]     AS WorkflowType,
-    ISNULL(u.[FirstName], N'') + N' ' + ISNULL(u.[LastName], N'') AS PersonName,
+    CAST('' AS nvarchar(1)) AS PersonName,
     ISNULL(lt.[LeaveName], N'') AS LeaveName,
     (SELECT COUNT(1) FROM [RequestAccept] a WHERE a.[RequestID] = q.[RequestID]) AS AcceptedCount,
     (SELECT COUNT(1) FROM [Workflow] w
       WHERE w.[WorkflowType] = q.[WofkflowType] AND w.[LeaveTypeID] = q.[LeaveID]) AS StepCount
 FROM [Request] q
-LEFT JOIN [UserInfo] u ON u.[BadgeNumber] = q.[BadgeNumber]
 LEFT JOIN [LeaveType] lt ON lt.[LeaveID] = q.[LeaveID]
 WHERE (@BadgeNumber IS NULL OR q.[BadgeNumber] = @BadgeNumber)
   AND (@PendingOnly = 0 OR (q.[IsSuspend] = 0
@@ -197,15 +212,17 @@ WHERE (@BadgeNumber IS NULL OR q.[BadgeNumber] = @BadgeNumber)
            > (SELECT COUNT(1) FROM [RequestAccept] a WHERE a.[RequestID] = q.[RequestID])))
 ORDER BY q.[RequestID] DESC;";
 
+            List<RequestRow> rows;
             using (IDbConnection connection = Open())
             {
-                return connection.Query<RequestRow>(sql, new
+                rows = connection.Query<RequestRow>(sql, new
                 {
                     Take = take <= 0 ? 100 : Math.Min(take, 500),
                     BadgeNumber = badgeNumber,
                     PendingOnly = pendingOnly ? 1 : 0
                 }).ToList();
             }
+            return FillRequestNames(rows);
         }
 
         public RequestRow GetRequest(long requestId)
@@ -224,20 +241,45 @@ SELECT TOP 1
     q.[IsDaily]          AS IsDaily,
     q.[IsSuspend]        AS IsSuspended,
     q.[WofkflowType]     AS WorkflowType,
-    ISNULL(u.[FirstName], N'') + N' ' + ISNULL(u.[LastName], N'') AS PersonName,
+    CAST('' AS nvarchar(1)) AS PersonName,
     ISNULL(lt.[LeaveName], N'') AS LeaveName,
     (SELECT COUNT(1) FROM [RequestAccept] a WHERE a.[RequestID] = q.[RequestID]) AS AcceptedCount,
     (SELECT COUNT(1) FROM [Workflow] w
       WHERE w.[WorkflowType] = q.[WofkflowType] AND w.[LeaveTypeID] = q.[LeaveID]) AS StepCount
 FROM [Request] q
-LEFT JOIN [UserInfo] u ON u.[BadgeNumber] = q.[BadgeNumber]
 LEFT JOIN [LeaveType] lt ON lt.[LeaveID] = q.[LeaveID]
 WHERE q.[RequestID] = @RequestId;";
 
+            RequestRow row;
             using (IDbConnection connection = Open())
             {
-                return connection.QueryFirstOrDefault<RequestRow>(sql, new { RequestId = requestId });
+                row = connection.QueryFirstOrDefault<RequestRow>(sql, new { RequestId = requestId });
             }
+            if (row == null)
+            {
+                return null;
+            }
+            FillRequestNames(new List<RequestRow> { row });
+            return row;
+        }
+
+        /// <summary>
+        /// Completes the display-only fields the legacy query joined in from the Personnel
+        /// catalog. A missing person yields an empty name, never a null row.
+        /// </summary>
+        private List<RequestRow> FillRequestNames(List<RequestRow> rows)
+        {
+            if (rows == null || rows.Count == 0)
+            {
+                return rows ?? new List<RequestRow>();
+            }
+            var names = _personnel.Names(rows.Select(r => r.BadgeNumber));
+            foreach (RequestRow row in rows)
+            {
+                string name;
+                row.PersonName = names.TryGetValue(row.BadgeNumber, out name) ? name : string.Empty;
+            }
+            return rows;
         }
 
         public OperationResult DecideRequest(long requestId, long accepterBadgeNumber, int accepterTitleId,
@@ -342,47 +384,112 @@ WHERE q.[RequestID] = @RequestId;";
             // The Gregorian month is only the *storage* window; the Persian report
             // converts with PersianCalendar (see ReportsController), because a Jalali
             // month never aligns with a Gregorian one.
+            //
+            // The legacy screen drove this from the Personnel catalog and looked up the
+            // engine numbers per person. Here the two are separated: the calendar
+            // aggregates come from one grouped query on the engine catalog, the people
+            // and department names from the Personnel catalog, and they are merged in
+            // memory (docs/09).
             const string sql = @"
-SELECT TOP (@Take)
-    u.[BadgeNumber] AS BadgeNumber,
-    ISNULL(u.[FirstName], N'') + N' ' + ISNULL(u.[LastName], N'') AS PersonName,
-    ISNULL(d.[DepartmentName], N'') AS DeptName,
-    (SELECT COUNT(DISTINCT CAST(r.[CheckTime] AS date)) FROM [Record] r
-      WHERE r.[BadgeNumber] = u.[BadgeNumber] AND r.[CheckTime] >= @From AND r.[CheckTime] < @To
-        AND r.[IsValid] = 1) AS PresentDays,
-    (SELECT COUNT(1) FROM [Record] r
-      WHERE r.[BadgeNumber] = u.[BadgeNumber] AND r.[CheckTime] >= @From AND r.[CheckTime] < @To
-        AND r.[CheckType] = 0 AND r.[IsValid] = 0) AS LateCount,
-    (SELECT COUNT(1) FROM [Record] r
-      WHERE r.[BadgeNumber] = u.[BadgeNumber] AND r.[CheckTime] >= @From AND r.[CheckTime] < @To
-        AND r.[CheckType] = 1 AND r.[IsValid] = 0) AS EarlyCount,
-    (SELECT COUNT(1) FROM (
-        SELECT CAST(r.[CheckTime] AS date) AS Day, COUNT(1) AS Punches
-        FROM [Record] r
-        WHERE r.[BadgeNumber] = u.[BadgeNumber] AND r.[CheckTime] >= @From AND r.[CheckTime] < @To
-        GROUP BY CAST(r.[CheckTime] AS date)
-        HAVING COUNT(1) % 2 = 1) AS odd_days) AS MissingPunchDays,
-    (SELECT ISNULL(SUM(y.[DailyValue]), 0) FROM [YearRemain] y
-      WHERE y.[BadgeNumber] = u.[BadgeNumber] AND y.[Year] = @Year) AS LeaveBalanceDays,
-    (SELECT ISNULL(SUM(l.[DailyValue]), 0) FROM [LeavesAdded] l
-      WHERE l.[BadgeNumber] = u.[BadgeNumber] AND l.[AssignDate] >= @From AND l.[AssignDate] < @To) AS LeaveAddedDays,
-    0 AS OvertimeHours
-FROM [UserInfo] u
-LEFT JOIN [Department] d ON d.[DepartmentID] = u.[DeptID]
-WHERE (@BadgeNumber IS NULL OR u.[BadgeNumber] = @BadgeNumber)
-ORDER BY u.[BadgeNumber];";
+SELECT r.[BadgeNumber] AS BadgeNumber,
+       COUNT(DISTINCT CASE WHEN r.[IsValid] = 1 THEN CAST(r.[CheckTime] AS date) END) AS PresentDays,
+       SUM(CASE WHEN r.[CheckType] = 0 AND r.[IsValid] = 0 THEN 1 ELSE 0 END) AS LateCount,
+       SUM(CASE WHEN r.[CheckType] = 1 AND r.[IsValid] = 0 THEN 1 ELSE 0 END) AS EarlyCount
+FROM [Record] r
+WHERE r.[CheckTime] >= @From AND r.[CheckTime] < @To
+GROUP BY r.[BadgeNumber];";
 
+            // A day whose punch count is odd has a missing check-in or check-out. It is
+            // counted per badge in SQL so the result keeps the engine's own definition,
+            // instead of approximating it from averages in memory.
+            const string oddSql = @"
+SELECT t.[BadgeNumber] AS BadgeNumber, COUNT(1) AS MissingPunchDays
+FROM (SELECT r.[BadgeNumber] AS BadgeNumber, CAST(r.[CheckTime] AS date) AS Day, COUNT(1) AS Punches
+      FROM [Record] r
+      WHERE r.[CheckTime] >= @From AND r.[CheckTime] < @To
+      GROUP BY r.[BadgeNumber], CAST(r.[CheckTime] AS date)
+      HAVING COUNT(1) % 2 = 1) t
+GROUP BY t.[BadgeNumber];";
+
+            const string leaveSql = @"
+SELECT y.[BadgeNumber] AS BadgeNumber,
+       ISNULL(SUM(y.[DailyValue]), 0) AS LeaveBalanceDays,
+       ISNULL((SELECT SUM(l.[DailyValue]) FROM [LeavesAdded] l
+                WHERE l.[BadgeNumber] = y.[BadgeNumber]
+                  AND l.[AssignDate] >= @From AND l.[AssignDate] < @To), 0) AS LeaveAddedDays
+FROM [YearRemain] y
+WHERE y.[Year] = @Year
+GROUP BY y.[BadgeNumber];";
+
+            var punches = new Dictionary<long, PunchAggregate>();
+            var leave = new Dictionary<long, LeaveAggregate>();
+            var oddDays = new Dictionary<long, int>();
             using (IDbConnection connection = Open())
             {
-                return connection.Query<AttendanceSummaryRow>(sql, new
+                foreach (var row in connection.Query<PunchAggregate>(sql, new { From = from, To = to }))
                 {
-                    Take = take <= 0 ? 200 : Math.Min(take, 1000),
-                    From = from,
-                    To = to,
-                    Year = year,
-                    BadgeNumber = badgeNumber
-                }).ToList();
+                    punches[row.BadgeNumber] = row;
+                }
+                foreach (var row in connection.Query<LeaveAggregate>(leaveSql, new { From = from, To = to, Year = year }))
+                {
+                    leave[row.BadgeNumber] = row;
+                }
+                foreach (var row in connection.Query<OddDayAggregate>(oddSql, new { From = from, To = to }))
+                {
+                    oddDays[row.BadgeNumber] = row.MissingPunchDays;
+                }
             }
+
+            IReadOnlyList<PersonRef> people = _personnel.People(badgeNumber, take);
+            var departments = _personnel.DepartmentNames();
+            var rows = new List<AttendanceSummaryRow>(people.Count);
+            foreach (PersonRef person in people)
+            {
+                PunchAggregate punch;
+                LeaveAggregate paid;
+                punches.TryGetValue(person.BadgeNumber, out punch);
+                leave.TryGetValue(person.BadgeNumber, out paid);
+
+                string department;
+                int missing;
+                oddDays.TryGetValue(person.BadgeNumber, out missing);
+
+                rows.Add(new AttendanceSummaryRow
+                {
+                    BadgeNumber = person.BadgeNumber,
+                    PersonName = person.PersonName ?? string.Empty,
+                    DeptName = departments.TryGetValue(person.DepartmentId, out department) ? department : string.Empty,
+                    PresentDays = punch == null ? 0 : punch.PresentDays,
+                    LateCount = punch == null ? 0 : punch.LateCount,
+                    EarlyCount = punch == null ? 0 : punch.EarlyCount,
+                    MissingPunchDays = missing,
+                    LeaveBalanceDays = paid == null ? 0 : paid.LeaveBalanceDays,
+                    LeaveAddedDays = paid == null ? 0 : paid.LeaveAddedDays,
+                    OvertimeHours = 0
+                });
+            }
+            return rows;
+        }
+
+        private sealed class PunchAggregate
+        {
+            public long BadgeNumber { get; set; }
+            public int PresentDays { get; set; }
+            public int LateCount { get; set; }
+            public int EarlyCount { get; set; }
+        }
+
+        private sealed class OddDayAggregate
+        {
+            public long BadgeNumber { get; set; }
+            public int MissingPunchDays { get; set; }
+        }
+
+        private sealed class LeaveAggregate
+        {
+            public long BadgeNumber { get; set; }
+            public double LeaveBalanceDays { get; set; }
+            public double LeaveAddedDays { get; set; }
         }
 
         public IReadOnlyList<KeyValuePair<int, string>> GetCheckTypes()

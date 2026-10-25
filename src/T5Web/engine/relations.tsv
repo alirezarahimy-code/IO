@@ -1,0 +1,94 @@
+kind	from_database	from_table	from_column	to_database	to_table	to_column	evidence
+inferred	t5	AppRule	RuleID	t5	Rule	RuleID	alias
+inferred	t5	Area	ManagerID	personnel	UserInfo	BadgeNumber	alias
+inferred	t5	Card	LeaveTypeID	t5	LeaveType	LeaveID	alias
+inferred	t5	Card	MachineNumber	personnel	Device	MachineNumber	alias
+inferred	device	Command	MachineNumber	personnel	Device	MachineNumber	alias
+inferred	device	CommandLog	MachineNumber	personnel	Device	MachineNumber	alias
+inferred	t5	CustomWorkflow	LeaveDescriptionID	t5	LeaveDescription	ID	alias
+inferred	t5	CustomWorkflow	LeaveTypeID	t5	LeaveType	LeaveID	alias
+inferred	t5	DailyLeaf	DescriptionID	t5	LeaveDescription	ID	alias
+declared	personnel	Dashboard	BadgeNumber	personnel	UserInfo	BadgeNumber	FK_Dashboard_UserInfo (ON DELETE CASCADE)
+declared	personnel	DashboardItem	GroupID	personnel	Dashboard	ID	FK_DashboardItem_Dashboard (ON DELETE CASCADE)
+inferred	t5	DepartmentRule	DepartmentID	personnel	Department	DepartmentID	table-name
+inferred	t5	DepartmentRule	RuleID	t5	Rule	RuleID	alias
+inferred	personnel	DepartmentRules	DepartmentID	personnel	Department	DepartmentID	table-name
+inferred	personnel	DepartmentRules	RuleID	t5	Rule	RuleID	alias
+declared	personnel	Device	GateID	personnel	Gate	GateID	FK_Device_Gate
+inferred	device	DeviceAlarm	MachineNumber	personnel	Device	MachineNumber	alias
+inferred	device	DeviceAlarm	ViewUserID	device	User	UserID	alias
+declared	personnel	DeviceMessagePersonnel	BadgeNumber	personnel	UserInfo	BadgeNumber	FK_DeviceMessagePersonnel_UserInfo (ON DELETE CASCADE)
+declared	personnel	DeviceMessagePersonnel	SMSID	personnel	DeviceMessage	SMSID	FK_DeviceMessagePersonnel_DeviceMessage (ON DELETE CASCADE)
+inferred	personnel	DeviceOperationLog	BadgeNumber	personnel	UserInfo	BadgeNumber	alias
+declared	personnel	DeviceOperationLog	MachineNumber	personnel	Device	MachineNumber	FK_DeviceOperationLog_Device (ON DELETE CASCADE)
+inferred	t5	DownloadRecordsLog	MachineNumber	personnel	Device	MachineNumber	alias
+inferred	t5	DownloadTimeDevice	MachineNumber	personnel	Device	MachineNumber	alias
+inferred	device	EvenetsLog	MachineNumber	personnel	Device	MachineNumber	alias
+declared	personnel	FontSize	BadgeNumber	personnel	UserInfo	BadgeNumber	FK_FontSize_UserInfo (ON DELETE CASCADE)
+inferred	t5	HourlyLeave	BadgeNumber	personnel	UserInfo	BadgeNumber	alias
+inferred	t5	HourlyLeave	DescriptionID	t5	LeaveDescription	ID	alias
+inferred	t5	HourlyLeave	LeaveID	t5	LeaveType	LeaveID	alias
+inferred	device	IntervalSchedule	MachineNumber	personnel	Device	MachineNumber	alias
+inferred	t5	LeaveType	DecreaseFromLeaveID	t5	LeaveType	LeaveID	alias
+inferred	t5	LeaveType	ParameterID	t5	Parameter	ParameterID	alias
+inferred	personnel	LeaveTypes	DecreaseFromLeaveID	t5	LeaveType	LeaveID	alias
+inferred	personnel	LeaveTypes	ParameterID	t5	Parameter	ParameterID	alias
+inferred	t5	LeavesAdded	BadgeNumber	personnel	UserInfo	BadgeNumber	alias
+inferred	t5	LeavesAdded	LeaveTypeID	t5	LeaveType	LeaveID	alias
+declared	personnel	ManagerDevice	DeviceNumber	personnel	Device	MachineNumber	FK_ManagerDevice_Device (ON DELETE CASCADE)
+declared	personnel	ManagerDevice	ManagerID	personnel	UserInfo	BadgeNumber	FK_ManagerDevice_UserInfo (ON DELETE CASCADE)
+declared	device	Map	UserID	device	User	UserID	FK_Map_User (ON DELETE CASCADE)
+declared	device	MapDoor	MapID	device	Map	MapID	FK_MapDoor_Map (ON DELETE CASCADE)
+inferred	personnel	OperationLog	BadgeNumber	personnel	UserInfo	BadgeNumber	alias
+declared	personnel	OperationLog	MachineNumber	personnel	Device	MachineNumber	FK_OperationLog_Device (ON DELETE CASCADE)
+declared	personnel	PropertyDropdownValue	PropertyID	personnel	Property	PropertyID	FK_per_PropertyDropdownValue_per_Property (ON DELETE CASCADE)
+inferred	device	PushCommand	MachineNumber	personnel	Device	MachineNumber	alias
+inferred	t5	Record	MachineNumber	personnel	Device	MachineNumber	alias
+inferred	device	RecordsLog	MachineNumber	personnel	Device	MachineNumber	alias
+inferred	device	RecordsLogData	MachineNumber	personnel	Device	MachineNumber	alias
+inferred	device	RecordsLogInvalid	MachineNumber	personnel	Device	MachineNumber	alias
+inferred	device	RecordsLogTemp	MachineNumber	personnel	Device	MachineNumber	alias
+inferred	t5	ReportChart	ReportID	t5	Report	ReportID	alias
+inferred	t5	ReportData	ParameterID	t5	Parameter	ParameterID	alias
+inferred	t5	ReportData	ReportID	t5	Report	ReportID	alias
+inferred	t5	ReportFilter	ReportDataID	t5	ReportData	ReportDataID	table-name
+inferred	t5	ReportTablix	ReportID	t5	Report	ReportID	alias
+inferred	t5	ReportTablixColumn	TablixID	t5	ReportTablix	TablixID	alias
+inferred	t5	ReportTextbox	ReportID	t5	Report	ReportID	alias
+inferred	t5	Request	BadgeNumber	personnel	UserInfo	BadgeNumber	alias
+inferred	t5	Request	LeaveDescriptionID	t5	LeaveDescription	ID	alias
+inferred	t5	Request	LeaveID	t5	LeaveType	LeaveID	alias
+inferred	t5	Schedule	CalendarID	t5	Calendar	CalendarID	alias
+inferred	t5	Schedule	RuleID	t5	Rule	RuleID	alias
+declared	device	ScheduleDevice	ScheduleID	t5	Schedule	ScheduleID	FK_ScheduleDevice_Schedule (ON DELETE CASCADE)
+inferred	device	SchedulerOptions	MachineNumber	personnel	Device	MachineNumber	alias
+inferred	portal	T5WebDeviceCommand	MachineNumber	personnel	Device	MachineNumber	alias
+declared	personnel	Template	BadgeNumber	personnel	UserInfo	BadgeNumber	FK_Template_UserInfo (ON DELETE CASCADE)
+declared	device	UserAccess	UserID	device	User	UserID	FK_UserAccess_User (ON DELETE CASCADE)
+declared	device	UserAlarm	UserID	device	User	UserID	FK_UserAlarm_UserAlarm (ON DELETE CASCADE)
+declared	device	UserDeptAccess	UserID	device	User	UserID	FK_UserDeptAccess_User (ON DELETE CASCADE)
+declared	device	UserDeviceAccess	UserID	device	User	UserID	FK_UserDeviceAccess_User (ON DELETE CASCADE)
+declared	personnel	UserDeviceUpload	BadgeNumber	personnel	UserInfo	BadgeNumber	FK_UserDeviceUpload_UserInfo (ON DELETE CASCADE)
+declared	personnel	UserDeviceUpload	MachineNumber	personnel	Device	MachineNumber	FK_UserDeviceUpload_Device (ON DELETE CASCADE)
+declared	personnel	UserDeviceValid	BadgeNumber	personnel	UserInfo	BadgeNumber	FK_UserDeviceValid_UserInfo (ON DELETE CASCADE)
+declared	personnel	UserDeviceValid	MachineNumber	personnel	Device	MachineNumber	FK_UserDeviceValid_Device (ON DELETE CASCADE)
+declared	personnel	UserInfo	CertificateID	personnel	Certificate	CertID	FK_UserInfo_Certificate
+declared	personnel	UserInfo	DeptID	personnel	Department	DepartmentID	FK_UserInfo_Department
+declared	personnel	UserInfo	EmpTypeID	personnel	EmpType	EmpTypeID	FK_UserInfo_EmpType
+declared	personnel	UserInfoProperty	BadgeNumber	personnel	UserInfo	BadgeNumber	FK_per_UserInfoProperty_per_UserInfo (ON DELETE CASCADE)
+declared	personnel	UserInfoProperty	DropDownValue	personnel	PropertyDropdownValue	DropdownValueID	FK_per_UserInfoProperty_per_PropertyDropdownValue
+declared	personnel	UserInfoProperty	PropertyID	personnel	Property	PropertyID	FK_per_UserInfoProperty_per_Property (ON DELETE CASCADE)
+declared	personnel	UserInfoTitles	BadgeNumber	personnel	UserInfo	BadgeNumber	FK_UserInfoTitles_UserInfo (ON DELETE CASCADE)
+declared	personnel	UserInfoTitles	TitleChartID	personnel	TitlesChart	TitleID	FK_UserInfoTitles_TitlesChart (ON DELETE CASCADE)
+inferred	t5	UserPositionData	BadgeNumber	personnel	UserInfo	BadgeNumber	alias
+inferred	t5	UserPositionData	PositionID	t5	Position	PositionID	alias
+inferred	t5	UserRule	BadgeNumber	personnel	UserInfo	BadgeNumber	alias
+inferred	t5	UserRule	RuleID	t5	Rule	RuleID	alias
+inferred	personnel	UserRules	BadgeNumber	personnel	UserInfo	BadgeNumber	alias
+inferred	personnel	UserRules	RuleID	t5	Rule	RuleID	alias
+inferred	t5	ValidLeave	BadgeNumber	personnel	UserInfo	BadgeNumber	alias
+inferred	t5	Workflow	AccepterTitleID	personnel	TitlesChart	TitleID	alias
+inferred	t5	Workflow	TitleID	personnel	TitlesChart	TitleID	alias
+inferred	device	webpages_OAuthMembership	UserId	device	WebUser	Id	alias
+declared	device	webpages_UsersInRoles	RoleId	device	webpages_Roles	RoleId	fk_RoleId
+declared	device	webpages_UsersInRoles	UserId	device	WebUser	Id	fk_UserId

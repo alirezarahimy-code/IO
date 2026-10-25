@@ -20,14 +20,16 @@ namespace T5Web.Data
     public sealed class SqlScheduleStore : IScheduleStore
     {
         private readonly Func<IDbConnection> _connectionFactory;
+        private readonly PersonnelDirectory _personnel;
 
-        public SqlScheduleStore(Func<IDbConnection> connectionFactory)
+        public SqlScheduleStore(Func<IDbConnection> connectionFactory, PersonnelDirectory personnel = null)
         {
             if (connectionFactory == null)
             {
                 throw new ArgumentNullException(nameof(connectionFactory));
             }
             _connectionFactory = connectionFactory;
+            _personnel = personnel ?? new PersonnelDirectory(connectionFactory);
         }
 
         public IReadOnlyList<ScheduleRow> GetSchedules()
@@ -90,25 +92,36 @@ ORDER BY d.[ShiftID], d.[DayIndex];";
             const string sql = @"
 SELECT TOP (@Take)
     us.[BadgeNumber] AS BadgeNumber,
-    ISNULL(u.[FirstName], N'') + N' ' + ISNULL(u.[LastName], N'') AS PersonName,
+    CAST('' AS nvarchar(1)) AS PersonName,
     us.[ShiftID] AS ShiftId,
     ISNULL(sh.[ShiftName], N'') AS ShiftName,
     us.[FromDate] AS FromDate,
     us.[EndDate] AS EndDate
 FROM [UserShift] us
-LEFT JOIN [UserInfo] u ON u.[BadgeNumber] = us.[BadgeNumber]
 LEFT JOIN [Shift] sh ON sh.[ShiftID] = us.[ShiftID]
 WHERE (@BadgeNumber = 0 OR us.[BadgeNumber] = @BadgeNumber)
 ORDER BY us.[FromDate] DESC, us.[BadgeNumber];";
 
+            List<UserShiftRow> rows;
             using (IDbConnection connection = Open())
             {
-                return connection.Query<UserShiftRow>(sql, new
+                rows = connection.Query<UserShiftRow>(sql, new
                 {
                     BadgeNumber = badgeNumber ?? 0,
                     Take = take <= 0 ? 200 : take
                 }).ToList();
             }
+
+            if (rows.Count > 0)
+            {
+                var names = _personnel.Names(rows.Select(r => r.BadgeNumber));
+                foreach (UserShiftRow row in rows)
+                {
+                    string name;
+                    row.PersonName = names.TryGetValue(row.BadgeNumber, out name) ? name : string.Empty;
+                }
+            }
+            return rows;
         }
 
         public OperationResult AssignShift(long badgeNumber, int shiftId, DateTime fromDate, DateTime? endDate,
