@@ -1,0 +1,3642 @@
+{
+  "ddl_sources": [
+    {
+      "file": "Link5 v4.0.4/Link5.sql",
+      "sha256": "6b8d1ab38f6b4146e1d26180702695fda2e288428bdfbd3ff430b1e9a6cd3ba3"
+    },
+    {
+      "file": "Link5 v4.0.4/Personnel.sql",
+      "sha256": "8a6954ee924e52fbfcdd1a5cc5dff1a259dacfc1ede8c81e771b4a1a77fe4a2b"
+    }
+  ],
+  "description": "Column types for every table a phase-5 module touches. Vendor DDL wins; the pinned engine's ORM entities fill the gaps. A column absent here is not written by the portal - see db/column-types-probe.sql.",
+  "engine_build": "t5web-3.5.7",
+  "generated_by": "tools/engine-column-types.py",
+  "tables": {
+    "AccessGroup": {
+      "columns": {
+        "GroupID": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "int"
+        },
+        "Name": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "nvarchar"
+        },
+        "TimeTable1": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Link5.sql",
+          "type": "int"
+        },
+        "TimeTable2": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Link5.sql",
+          "type": "int"
+        },
+        "TimeTable3": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Link5.sql",
+          "type": "int"
+        },
+        "UseHolidays": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "bit"
+        },
+        "VerifyStyle": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "int"
+        }
+      },
+      "sources": [
+        "ddl:Link5.sql"
+      ]
+    },
+    "Calendar": {
+      "columns": {
+        "CalendarID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "CalendarName": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        }
+      },
+      "sources": [
+        "orm:T5V3.Model.dll"
+      ]
+    },
+    "CalendarHoliday": {
+      "columns": {
+        "CalendarID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "Descriptions": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        }
+      },
+      "sources": [
+        "orm:T5V3.Model.dll"
+      ]
+    },
+    "Certificate": {
+      "columns": {
+        "CertID": {
+          "evidence": "ddl",
+          "identity": true,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "CertName": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "CertificateID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:Personnel.dll",
+          "type": "int"
+        },
+        "CertificateName": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:Personnel.dll",
+          "type": "nvarchar"
+        }
+      },
+      "sources": [
+        "ddl:Personnel.sql",
+        "orm:Personnel.dll"
+      ]
+    },
+    "CustomWorkflow": {
+      "columns": {
+        "CustomWorkflowID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "int"
+        },
+        "DescriptionsContains": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.DB.dll",
+          "type": "nvarchar"
+        },
+        "DescriptionsStartWith": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.DB.dll",
+          "type": "nvarchar"
+        },
+        "Label": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.DB.dll",
+          "type": "nvarchar"
+        }
+      },
+      "sources": [
+        "orm:T5V3.DB.dll"
+      ]
+    },
+    "DailyLeaf": {
+      "columns": {
+        "BadgeNumber": {
+          "clr": "long",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "bigint"
+        },
+        "DescriptionID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "int"
+        },
+        "Descriptions": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.DB.dll",
+          "type": "nvarchar"
+        },
+        "DocumentNumber": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.DB.dll",
+          "type": "nvarchar"
+        },
+        "LeaveID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "int"
+        }
+      },
+      "sources": [
+        "orm:T5V3.DB.dll"
+      ]
+    },
+    "Dashboard": {
+      "columns": {
+        "BadgeNumber": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "bigint"
+        },
+        "GroupName": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "ID": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "OrderIndex": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        }
+      },
+      "sources": [
+        "ddl:Personnel.sql"
+      ]
+    },
+    "DashboardItem": {
+      "columns": {
+        "GroupID": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "ID": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "ItemID": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        }
+      },
+      "sources": [
+        "ddl:Personnel.sql"
+      ]
+    },
+    "Department": {
+      "columns": {
+        "DepartmentID": {
+          "evidence": "ddl",
+          "identity": true,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "DepartmentName": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 250,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "Name": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:Personnel.dll",
+          "type": "nvarchar"
+        },
+        "UpperDeptID": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        }
+      },
+      "sources": [
+        "ddl:Personnel.sql",
+        "orm:Personnel.dll"
+      ]
+    },
+    "DepartmentRule": {
+      "columns": {
+        "DepartmentID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "DeptRuleID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "FromDateHijri": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "RuleID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "RuleName": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "ToDateHijri": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        }
+      },
+      "sources": [
+        "orm:T5V3.Model.dll"
+      ]
+    },
+    "Deputy": {
+      "columns": {
+        "DeputyTitleID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "int"
+        },
+        "TitleID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "int"
+        }
+      },
+      "sources": [
+        "orm:T5V3.DB.dll"
+      ]
+    },
+    "Device": {
+      "columns": {
+        "ATTLOGStamp": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "ATTPHOTOStamp": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "AttCount": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "BaudRate": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "Code": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "CommPassword": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "ConnectionType": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "Delay": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "DevFPVersion": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "DevFirmwareVersion": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "DevMac": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "DevTpe": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "Encrypt": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "ErrorDelay": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "ErrorDelaySecs": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "FaceCount": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "FpCount": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "GateID": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "GateName": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:Personnel.dll",
+          "type": "nvarchar"
+        },
+        "IP": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "IRTempDetectionFunOn": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "IsFirst": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "bit"
+        },
+        "LastRequestTime": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "datetime"
+        },
+        "LastStamp": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "bigint"
+        },
+        "MachineName": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "MachineNumber": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "MaskDetectionFunOn": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "MaxMultiBioDataCount": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "MaxMultiBioPhotoCount": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "MultiBioCount": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "MultiBioDataSupport": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "MultiBioPhotoSupport": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "MultiBioVersion": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "OPERLOGStamp": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "OperationLogStamp": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "bigint"
+        },
+        "PhotoStamp": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "bigint"
+        },
+        "Ping": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "bit"
+        },
+        "Port": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "Push": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "bit"
+        },
+        "RS485Number": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "Realtime": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "RequestDelaySecs": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "SerialNo": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "SerialNumber": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:Personnel.dll",
+          "type": "nvarchar"
+        },
+        "SerialPort": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "SyncTime": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "TCPPush": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "bit"
+        },
+        "TemplateStamp": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "bigint"
+        },
+        "TimeZone": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "Timeout": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "TransFlag": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "TransInterval": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "TransTimes": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 60,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "UserCount": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "UserInfoStamp": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "bigint"
+        },
+        "UserPicURLFunOn": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "VendorName": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        }
+      },
+      "sources": [
+        "ddl:Personnel.sql",
+        "orm:Personnel.dll"
+      ]
+    },
+    "DeviceMessage": {
+      "columns": {
+        "Content": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 350,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "DurationMins": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "SMSID": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "SMSType": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "ValidFromTime": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "datetime"
+        }
+      },
+      "sources": [
+        "ddl:Personnel.sql"
+      ]
+    },
+    "DeviceMessagePersonnel": {
+      "columns": {
+        "BadgeNumber": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "bigint"
+        },
+        "SMSID": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        }
+      },
+      "sources": [
+        "ddl:Personnel.sql"
+      ]
+    },
+    "DeviceOperationLog": {
+      "columns": {
+        "BadgeNumber": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "bigint"
+        },
+        "DeviceSerialnumber": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "MachineNumber": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "OperationTime": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "datetime"
+        },
+        "OperationType": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "Param1": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "Param2": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "Param3": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "Param4": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        }
+      },
+      "sources": [
+        "ddl:Personnel.sql"
+      ]
+    },
+    "DownloadRecordsLog": {
+      "columns": {
+        "ComputerName": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.DB.dll",
+          "type": "nvarchar"
+        },
+        "Descriptions": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.DB.dll",
+          "type": "nvarchar"
+        },
+        "DeviceDownloadEventType": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "int"
+        },
+        "EventID": {
+          "clr": "long",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "bigint"
+        },
+        "MachineIP": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.DB.dll",
+          "type": "nvarchar"
+        },
+        "MachineNumber": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "int"
+        },
+        "RecordsCount": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "int"
+        },
+        "Success": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "bit"
+        },
+        "UserID": {
+          "clr": "long",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "bigint"
+        }
+      },
+      "sources": [
+        "orm:T5V3.DB.dll"
+      ]
+    },
+    "EmpType": {
+      "columns": {
+        "EmpTypeID": {
+          "evidence": "ddl",
+          "identity": true,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "EmpTypeName": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        }
+      },
+      "sources": [
+        "ddl:Personnel.sql"
+      ]
+    },
+    "Gate": {
+      "columns": {
+        "GateID": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "GateName": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "UpperGateID": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        }
+      },
+      "sources": [
+        "ddl:Personnel.sql"
+      ]
+    },
+    "HourlyLeave": {
+      "columns": {
+        "BadgeNumber": {
+          "clr": "long",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bigint"
+        },
+        "Descriptions": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "ID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "LeaveTypeID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        }
+      },
+      "sources": [
+        "orm:T5V3.Model.dll"
+      ]
+    },
+    "LeaveDescription": {
+      "columns": {
+        "Description": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "ID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        }
+      },
+      "sources": [
+        "orm:T5V3.Model.dll"
+      ]
+    },
+    "LeaveType": {
+      "columns": {
+        "AutoInHolidays": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bit"
+        },
+        "Color": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "ForNextYear": {
+          "clr": "double",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "float"
+        },
+        "ForNextYearSum": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bit"
+        },
+        "GetInHolidays": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bit"
+        },
+        "IsHourly": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bit"
+        },
+        "LeaveName": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "LeaveTypeID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "MaxDailyInMonth": {
+          "clr": "double",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "float"
+        },
+        "MaxDailyInYear": {
+          "clr": "double",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "float"
+        },
+        "MaxMinus": {
+          "clr": "double",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "float"
+        },
+        "OnlyOne": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bit"
+        },
+        "Payment": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bit"
+        },
+        "StateKey": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "Symbol": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        }
+      },
+      "sources": [
+        "orm:T5V3.Model.dll"
+      ]
+    },
+    "LeavesAdded": {
+      "columns": {
+        "AddedDateHijri": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "BadgeNumber": {
+          "clr": "long",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bigint"
+        },
+        "Descriptions": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "DocumentNumber": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "ID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "LeaveTypeID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "LeaveTypeName": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "ValueAdded": {
+          "clr": "double",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "float"
+        }
+      },
+      "sources": [
+        "orm:T5V3.Model.dll"
+      ]
+    },
+    "Option": {
+      "columns": {
+        "SettingsID": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "int"
+        },
+        "Value": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 500,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "nvarchar"
+        }
+      },
+      "sources": [
+        "ddl:Link5.sql"
+      ]
+    },
+    "Parameter": {
+      "columns": {
+        "Formula": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.DB.dll",
+          "type": "nvarchar"
+        },
+        "IsSum": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "bit"
+        },
+        "ParameterID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "int"
+        },
+        "ParameterName": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.DB.dll",
+          "type": "nvarchar"
+        },
+        "SumFormula": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.DB.dll",
+          "type": "nvarchar"
+        },
+        "UniqueSymbol": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.DB.dll",
+          "type": "nvarchar"
+        }
+      },
+      "sources": [
+        "orm:T5V3.DB.dll"
+      ]
+    },
+    "Property": {
+      "columns": {
+        "IsSearchFilter": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "bit"
+        },
+        "PropertyID": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "PropertyName": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "PropertyType": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        }
+      },
+      "sources": [
+        "ddl:Personnel.sql"
+      ]
+    },
+    "PropertyDropdownValue": {
+      "columns": {
+        "DropdownValue": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "DropdownValueID": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "PropertyID": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        }
+      },
+      "sources": [
+        "ddl:Personnel.sql"
+      ]
+    },
+    "PushCommand": {
+      "columns": {
+        "CommandDescriptions": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 1000,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "nvarchar"
+        },
+        "CommandID": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "int"
+        },
+        "CommandStr": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "nvarchar"
+        },
+        "CommandType": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "int"
+        },
+        "CreateTime": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "datetime"
+        },
+        "ID": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "bigint"
+        },
+        "MachineNumber": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "int"
+        },
+        "ResponseTime": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Link5.sql",
+          "type": "datetime"
+        },
+        "Status": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "int"
+        }
+      },
+      "sources": [
+        "ddl:Link5.sql"
+      ]
+    },
+    "Ramezan": {
+      "columns": {
+        "ID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "int"
+        },
+        "Late192123": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "bit"
+        },
+        "Late192123Value": {
+          "clr": "double",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "float"
+        },
+        "Year": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "int"
+        }
+      },
+      "sources": [
+        "orm:T5V3.DB.dll"
+      ]
+    },
+    "Record": {
+      "columns": {
+        "BadgeNumber": {
+          "clr": "long",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:Personnel.dll",
+          "type": "bigint"
+        },
+        "CheckType": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:Personnel.dll",
+          "type": "int"
+        },
+        "InsertUser": {
+          "clr": "long",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:Personnel.dll",
+          "type": "bigint"
+        },
+        "IsValid": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:Personnel.dll",
+          "type": "bit"
+        },
+        "MachineNumber": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:Personnel.dll",
+          "type": "int"
+        },
+        "Name": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:Personnel.dll",
+          "type": "nvarchar"
+        },
+        "OriginalSCheckType": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:Personnel.dll",
+          "type": "int"
+        },
+        "TimeString": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:Personnel.dll",
+          "type": "nvarchar"
+        },
+        "WorkCode": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:Personnel.dll",
+          "type": "int"
+        }
+      },
+      "sources": [
+        "orm:Personnel.dll"
+      ]
+    },
+    "Request": {
+      "columns": {
+        "BadgeNumber": {
+          "clr": "long",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bigint"
+        },
+        "Descriptions": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "IsDaily": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bit"
+        },
+        "IsSuspend": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bit"
+        },
+        "LeaveDescriptionID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "LeaveID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "RequestID": {
+          "clr": "long",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bigint"
+        },
+        "RequesterName": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        }
+      },
+      "sources": [
+        "orm:T5V3.Model.dll"
+      ]
+    },
+    "RequestAccept": {
+      "columns": {
+        "AccepterBadgeNumber": {
+          "clr": "long",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "bigint"
+        },
+        "AccepterTitleID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "int"
+        },
+        "IsCancel": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "bit"
+        },
+        "IsDeputy": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "bit"
+        },
+        "RequestID": {
+          "clr": "long",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "bigint"
+        }
+      },
+      "sources": [
+        "orm:T5V3.DB.dll"
+      ]
+    },
+    "Rule": {
+      "columns": {
+        "EarlyMore": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bit"
+        },
+        "EarlyMoreLeaveID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "FreeOverTime": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bit"
+        },
+        "LateMore": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bit"
+        },
+        "LateMoreLeaveID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "LimitRecReqInDay": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "LimitRecReqInMonth": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "OverTime": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bit"
+        },
+        "OverTimeAfter": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bit"
+        },
+        "OverTimeBefore": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bit"
+        },
+        "ParamName": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "RuleID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "StrConstOTMaxDaily": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "StrConstOTMaxMonthly": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "StrEarlyMoreTime": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "StrFreeOverTimeMax": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "StrLateMoreTime": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "StrMaxBalanceDay": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "StrMinOverTimeInterval": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "StrOverTimeAfterMax": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "StrOverTimeBeforeMax": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "StrOverTimeMax": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "StrWebLeaveTelorance": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "StrWoInLate": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "StrWoOutEarly": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "WoIn": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bit"
+        },
+        "WoOut": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bit"
+        }
+      },
+      "sources": [
+        "orm:T5V3.Model.dll"
+      ]
+    },
+    "Schedule": {
+      "columns": {
+        "CalendarID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "Color": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "EarlyToStr": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "EndFromToStr": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "EndToToStr": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "FromTimeStr": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "FromTimeToStr": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "HTMLColor": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "ID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "IntervalBToStr": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "LateToStr": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "Name": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "RamzFromTimeToStr": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "RamzToTimeToStr": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "RestTime": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bit"
+        },
+        "RuleID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "ScheduleID": {
+          "evidence": "ddl",
+          "identity": true,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "int"
+        },
+        "ScheduleTime": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "int"
+        },
+        "ScheduleTimeOfDay": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "datetime"
+        },
+        "ScheduleTimeType": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "int"
+        },
+        "StartFromToStr": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "StartToToStr": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "SuspendTimeToStr": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "Symbol": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "ToTimeStr": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "ToTimeToStr": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "WorkDays": {
+          "clr": "double",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "float"
+        },
+        "WorkMins": {
+          "clr": "double",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "float"
+        }
+      },
+      "sources": [
+        "ddl:Link5.sql",
+        "orm:T5V3.Model.dll"
+      ]
+    },
+    "Shift": {
+      "columns": {
+        "Period": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "ShiftID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "ShiftName": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        }
+      },
+      "sources": [
+        "orm:T5V3.Model.dll"
+      ]
+    },
+    "ShiftDetail": {
+      "columns": {
+        "Index": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "ScheduleID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "ShiftID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        }
+      },
+      "sources": [
+        "orm:T5V3.Model.dll"
+      ]
+    },
+    "TempSchedule": {
+      "columns": {
+        "AssignedSchedule": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "BadgeNumber": {
+          "clr": "long",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bigint"
+        }
+      },
+      "sources": [
+        "orm:T5V3.Model.dll"
+      ]
+    },
+    "TimeTable": {
+      "columns": {
+        "FriFrom": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "datetime"
+        },
+        "FriTo": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "datetime"
+        },
+        "MonFrom": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "datetime"
+        },
+        "MonTo": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "datetime"
+        },
+        "Name": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "nvarchar"
+        },
+        "SatFrom": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "datetime"
+        },
+        "SatTo": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "datetime"
+        },
+        "SunFrom": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "datetime"
+        },
+        "SunTo": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "datetime"
+        },
+        "ThFrom": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "datetime"
+        },
+        "ThTo": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "datetime"
+        },
+        "TimeTableID": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "int"
+        },
+        "TuFrom": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "datetime"
+        },
+        "TuTo": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "datetime"
+        },
+        "WedFrom": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "datetime"
+        },
+        "WedTo": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Link5.sql",
+          "type": "datetime"
+        }
+      },
+      "sources": [
+        "ddl:Link5.sql"
+      ]
+    },
+    "TitlesChart": {
+      "columns": {
+        "Address": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 250,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "Certs": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 500,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "DisplayName": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "Duties": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 500,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "EmailAddress": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 250,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "Observer": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "bit"
+        },
+        "TitleID": {
+          "evidence": "ddl",
+          "identity": true,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "TitleName": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "UpperTitleID": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        }
+      },
+      "sources": [
+        "ddl:Personnel.sql"
+      ]
+    },
+    "UserDeviceUpload": {
+      "columns": {
+        "BadgeNumber": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "bigint"
+        },
+        "IsUpload": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "bit"
+        },
+        "MachineNumber": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        }
+      },
+      "sources": [
+        "ddl:Personnel.sql"
+      ]
+    },
+    "UserDeviceValid": {
+      "columns": {
+        "BadgeNumber": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "bigint"
+        },
+        "IsValid": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "bit"
+        },
+        "MachineNumber": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        }
+      },
+      "sources": [
+        "ddl:Personnel.sql"
+      ]
+    },
+    "UserInfo": {
+      "columns": {
+        "Address": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 250,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "BadgeAndName": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:Personnel.dll",
+          "type": "nvarchar"
+        },
+        "BadgeNumber": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "bigint"
+        },
+        "Birthday": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "datetime"
+        },
+        "CertificateID": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "DeptID": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "DeptName": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:Personnel.dll",
+          "type": "nvarchar"
+        },
+        "Descriptions": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 250,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "DeviceCardNo": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "DeviceCardNumber": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:Personnel.dll",
+          "type": "nvarchar"
+        },
+        "DeviceEnable": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "bit"
+        },
+        "DeviceGroupNumber": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:Personnel.dll",
+          "type": "int"
+        },
+        "DeviceMachineNumber": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:Personnel.dll",
+          "type": "int"
+        },
+        "DeviceName": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "DevicePass": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 250,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "DevicePassword": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:Personnel.dll",
+          "type": "nvarchar"
+        },
+        "DevicePriv": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "DevicePrivilage": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:Personnel.dll",
+          "type": "int"
+        },
+        "DeviceSerialNumber": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "DviceGroup": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "Email": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "EmpTypeID": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "EmpTypeName": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:Personnel.dll",
+          "type": "nvarchar"
+        },
+        "EmployeeNumber": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 20,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "FatherName": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "FiredDate": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "datetime"
+        },
+        "FirstLogin": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "bit"
+        },
+        "FirstName": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "Gender": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "bit"
+        },
+        "HijriBirthDay": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:Personnel.dll",
+          "type": "nvarchar"
+        },
+        "HijriFiredDay": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:Personnel.dll",
+          "type": "nvarchar"
+        },
+        "HijriHireDay": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:Personnel.dll",
+          "type": "nvarchar"
+        },
+        "HiredDate": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "datetime"
+        },
+        "IsFemale": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:Personnel.dll",
+          "type": "bit"
+        },
+        "Janbaz": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "JanbazCode": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:Personnel.dll",
+          "type": "int"
+        },
+        "LastName": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "NationalNo": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 50,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "NationalNumber": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:Personnel.dll",
+          "type": "nvarchar"
+        },
+        "Password": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 250,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "Phone": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 20,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "Photo": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "image"
+        },
+        "ProgramUser": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "bit"
+        },
+        "ShiftName": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:Personnel.dll",
+          "type": "nvarchar"
+        },
+        "Tel": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:Personnel.dll",
+          "type": "nvarchar"
+        },
+        "UserName": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 100,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "VaccineBarcode": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        },
+        "ValidFrom": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "datetime"
+        },
+        "ValidFromHasValue": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:Personnel.dll",
+          "type": "bit"
+        },
+        "ValidFromHijriDateOnly": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:Personnel.dll",
+          "type": "nvarchar"
+        },
+        "ValidFromTimeOnly": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:Personnel.dll",
+          "type": "nvarchar"
+        },
+        "ValidTo": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "datetime"
+        },
+        "ValidToHasValue": {
+          "clr": "bool",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:Personnel.dll",
+          "type": "bit"
+        },
+        "ValidToHijriDateOnly": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:Personnel.dll",
+          "type": "nvarchar"
+        },
+        "ValidToTimeOnly": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:Personnel.dll",
+          "type": "nvarchar"
+        },
+        "WebUser": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "bit"
+        }
+      },
+      "sources": [
+        "ddl:Personnel.sql",
+        "orm:Personnel.dll"
+      ]
+    },
+    "UserInfoProperty": {
+      "columns": {
+        "BadgeNumber": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "bigint"
+        },
+        "DropDownValue": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "PropertyID": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "ddl:Personnel.sql",
+          "type": "int"
+        },
+        "StringValue": {
+          "evidence": "ddl",
+          "identity": false,
+          "length": 250,
+          "nullable": true,
+          "source": "ddl:Personnel.sql",
+          "type": "nvarchar"
+        }
+      },
+      "sources": [
+        "ddl:Personnel.sql"
+      ]
+    },
+    "UserRule": {
+      "columns": {
+        "BadgeNumber": {
+          "clr": "long",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bigint"
+        },
+        "FromDateHijri": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "RuleID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "RuleName": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "RuleTypeName": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "ToDateHijri": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "UserName": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "UserRuleID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        }
+      },
+      "sources": [
+        "orm:T5V3.Model.dll"
+      ]
+    },
+    "UserShift": {
+      "columns": {
+        "BadgeNumber": {
+          "clr": "long",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bigint"
+        },
+        "FromDateHijri": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "ShiftID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "ShiftName": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "ToDateHijri": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        }
+      },
+      "sources": [
+        "orm:T5V3.Model.dll"
+      ]
+    },
+    "ValidLeave": {
+      "columns": {
+        "BadgeNumber": {
+          "clr": "long",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "bigint"
+        },
+        "Descriptions": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "FromDateHijri": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "ID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.Model.dll",
+          "type": "int"
+        },
+        "Name": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "ToDateHijri": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        },
+        "ValidStr": {
+          "clr": "string",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "orm:T5V3.Model.dll",
+          "type": "nvarchar"
+        }
+      },
+      "sources": [
+        "orm:T5V3.Model.dll"
+      ]
+    },
+    "YearRemain": {
+      "columns": {
+        "BadgeNumber": {
+          "clr": "long",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "bigint"
+        },
+        "DailyValue": {
+          "clr": "double",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "float"
+        },
+        "LeaveTypeID": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "int"
+        },
+        "Year": {
+          "clr": "int",
+          "evidence": "orm",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "orm:T5V3.DB.dll",
+          "type": "int"
+        }
+      },
+      "sources": [
+        "orm:T5V3.DB.dll"
+      ]
+    }
+  },
+  "unmodelled": []
+}

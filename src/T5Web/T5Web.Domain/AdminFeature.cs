@@ -22,17 +22,31 @@ namespace T5Web.Domain
         PersonnelPhoto = 12,
         PersonnelImport = 13,
 
+        // --- attendance records and requests (phase 5) ---
+        RecordsView = 15,
+        RecordsEdit = 16,
+        RequestView = 17,
+        RequestApprove = 18,
+
         // --- organisation ---
         DepartmentView = 20,
         DepartmentEdit = 21,
         TitlesView = 22,
         TitlesEdit = 23,
 
+        // --- base data (phase 5): emp types, certificates, properties ---
+        BaseDataView = 24,
+        BaseDataEdit = 25,
+        ParametersView = 26,
+        ParametersEdit = 27,
+
         // --- devices and gates ---
         DeviceView = 30,
         DeviceEdit = 31,
         GateEdit = 32,
         DeviceSync = 33,
+        DeviceCommand = 34,
+        GateView = 35,
 
         // --- access levels ---
         AccessView = 40,
@@ -42,9 +56,18 @@ namespace T5Web.Domain
         WorkflowView = 50,
         WorkflowEdit = 51,
 
+        // --- rules, schedules and leave (phase 5) ---
+        RulesView = 52,
+        RulesEdit = 53,
+        ScheduleView = 54,
+        ScheduleEdit = 55,
+        LeaveView = 56,
+        LeaveEdit = 57,
+
         // --- operations ---
         ReportView = 60,
         RecordManualInsert = 61,
+        ReportExport = 62,
         LogView = 70,
         PortalAdmin = 90
     }
@@ -69,7 +92,24 @@ namespace T5Web.Domain
                 { AdminFeature.PersonnelView, "مشاهده پرسنل" },
                 { AdminFeature.PersonnelEdit, "ویرایش پرسنل" },
                 { AdminFeature.PersonnelPhoto, "مدیریت تصویر پرسنل" },
-                { AdminFeature.PersonnelImport, "ورود گروهی از اکسل" },
+                { AdminFeature.PersonnelImport, "ورود گروهی از فایل" },
+                { AdminFeature.RecordsView, "مشاهده ترددها" },
+                { AdminFeature.RecordsEdit, "ویرایش ترددها" },
+                { AdminFeature.RequestView, "مشاهده درخواست‌ها" },
+                { AdminFeature.RequestApprove, "تأیید درخواست‌ها" },
+                { AdminFeature.BaseDataView, "مشاهده داده پایه" },
+                { AdminFeature.BaseDataEdit, "ویرایش داده پایه" },
+                { AdminFeature.ParametersView, "مشاهده پارامترها" },
+                { AdminFeature.ParametersEdit, "ویرایش پارامترها" },
+                { AdminFeature.DeviceCommand, "ارسال دستور به دستگاه" },
+                { AdminFeature.GateView, "مشاهده درب‌ها" },
+                { AdminFeature.RulesView, "مشاهده قواعد حضور" },
+                { AdminFeature.RulesEdit, "ویرایش قواعد حضور" },
+                { AdminFeature.ScheduleView, "مشاهده شیفت و برنامه" },
+                { AdminFeature.ScheduleEdit, "ویرایش شیفت و برنامه" },
+                { AdminFeature.LeaveView, "مشاهده مرخصی و مانده" },
+                { AdminFeature.LeaveEdit, "ویرایش مرخصی و مانده" },
+                { AdminFeature.ReportExport, "خروجی گرفتن از گزارش‌ها" },
                 { AdminFeature.DepartmentView, "مشاهده چارت سازمانی" },
                 { AdminFeature.DepartmentEdit, "ویرایش چارت سازمانی" },
                 { AdminFeature.TitlesView, "مشاهده عناوین شغلی" },
@@ -106,7 +146,9 @@ namespace T5Web.Domain
             if (name.EndsWith("Edit", StringComparison.Ordinal) ||
                 name.EndsWith("Import", StringComparison.Ordinal) ||
                 name.EndsWith("Sync", StringComparison.Ordinal) ||
+                name.EndsWith("Approve", StringComparison.Ordinal) ||
                 name.Equals("RecordManualInsert", StringComparison.Ordinal) ||
+                name.Equals("DeviceCommand", StringComparison.Ordinal) ||
                 name.Equals("PortalAdmin", StringComparison.Ordinal))
             {
                 return AccessLevel.Allow;

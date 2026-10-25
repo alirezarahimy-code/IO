@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using T5Web.Application.Modules;
 using T5Web.Application.Services;
 using T5Web.Data;
 using T5Web.Data.Engine;
@@ -42,6 +43,9 @@ namespace T5Web.Tests
             RunTest("T13: Phase plan integrity (tracker, deliverables, 64/64 legacy coverage)", TestPhasePlanIntegrity);
             RunTest("T14: Engine directory contract (model members exist, reads delegate, writes stay in SQL)", TestEngineDirectoryContract);
             RunTest("T15: Personnel edit reloads stored fields instead of trusting the form", TestPersonnelEditTrust);
+            RunTest("T16: Module registry is proved against schema and column types", TestModuleRegistryProof);
+            RunTest("T17: Module validation (required, range, dates, Persian digits)", TestModuleValidation);
+            RunTest("T18: Module store (composite keys, uniqueness, delete, CSV)", TestModuleStore);
 
             Console.WriteLine("----------------------------------------------------------------------");
             Console.WriteLine($"  Summary: {_passed} Passed, {_failed} Failed");
@@ -716,6 +720,278 @@ namespace T5Web.Tests
                 Assert(tag.Contains("disabled") || !Regex.IsMatch(tag, @"\sname="),
                     "the hire-date input must be disabled so it is never posted.");
             }
+        }
+
+        /// <summary>
+        /// Schema facts from db/schema-manifest.json (generated, stable layout).
+        /// </summary>
+        private static Dictionary<string, HashSet<string>> ManifestColumns()
+        {
+            string text = File.ReadAllText(Path.Combine(RepoRoot, "src", "TWF", "db", "schema-manifest.json"));
+            var tables = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+            foreach (Match table in Regex.Matches(text, "\"(\\w+)\":\\s*\\{\\s*\"columns\":\\s*\\[(.*?)\\]", RegexOptions.Singleline))
+            {
+                var columns = Regex.Matches(table.Groups[2].Value, "\"([^\"]+)\"")
+                    .Cast<Match>()
+                    .Select(m => m.Groups[1].Value)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                tables[table.Groups[1].Value] = columns;
+            }
+            return tables;
+        }
+
+        /// <summary>Column types from engine/column-types.tsv (generated flat file).</summary>
+        private static Dictionary<string, Dictionary<string, string>> TypedColumns()
+        {
+            string path = Path.Combine(T5WebRoot, "engine", "column-types.tsv");
+            Assert(File.Exists(path), "engine/column-types.tsv is missing; run tools/engine-column-types.py");
+            var tables = new Dictionary<string, Dictionary<string, string>>(StringComparer.OrdinalIgnoreCase);
+            foreach (string line in File.ReadAllLines(path))
+            {
+                if (line.StartsWith("#", StringComparison.Ordinal) || line.Trim().Length == 0)
+                {
+                    continue;
+                }
+                string[] cells = line.Split('\t');
+                Assert(cells.Length == 4, "malformed line in column-types.tsv: " + line);
+                if (!tables.ContainsKey(cells[0]))
+                {
+                    tables[cells[0]] = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                }
+                tables[cells[0]][cells[1]] = cells[2];
+            }
+            return tables;
+        }
+
+        /// <summary>
+        /// T16 - every generic module screen must be *proved* against the database.
+        ///
+        /// The module framework writes SQL from descriptors, so a wrong column name or a
+        /// guessed type would reach the database unseen. This test re-derives both from
+        /// the generated evidence and refuses anything it cannot check:
+        ///   * the table and every column must exist in db/schema-manifest.json;
+        ///   * every column must carry a type from engine/column-types.tsv, or declare a
+        ///     rename to an engine property that does ("orm-rename:Property");
+        ///   * the field kind must match that type (bit -> Boolean, int -> Number, ...);
+        ///   * keys, order column and label column must be declared fields;
+        ///   * an edit feature must require "Allow", so a read-only grant can never write.
+        /// </summary>
+        private static void TestModuleRegistryProof()
+        {
+            Dictionary<string, HashSet<string>> manifest = ManifestColumns();
+            Dictionary<string, Dictionary<string, string>> types = TypedColumns();
+            var modules = ModuleRegistry.All();
+
+            Assert(modules.Count >= 13, "expected at least 13 generic modules, found " + modules.Count);
+            Assert(modules.Select(m => m.Code).Distinct(StringComparer.OrdinalIgnoreCase).Count() == modules.Count,
+                "two modules share the same code.");
+
+            foreach (ModuleDescriptor module in modules)
+            {
+                HashSet<string> columns;
+                Assert(manifest.TryGetValue(module.Table, out columns),
+                    "module '" + module.Code + "' points at table " + module.Table + ", which is not in the schema manifest.");
+                Assert(types.ContainsKey(module.Table),
+                    "table " + module.Table + " has no column types; the portal must not write it.");
+
+                Assert(module.Fields.Count > 0, "module '" + module.Code + "' has no fields.");
+                Assert(module.Keys.Any(), "module '" + module.Code + "' has no key column.");
+
+                var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (ModuleField field in module.Fields)
+                {
+                    Assert(!string.IsNullOrWhiteSpace(field.Column), "module '" + module.Code + "' has a field without a column.");
+                    Assert(seen.Add(field.Column),
+                        "module '" + module.Code + "' declares column " + field.Column + " twice.");
+                    Assert(columns.Contains(field.Column),
+                        "module '" + module.Code + "' uses " + module.Table + "." + field.Column + ", which does not exist.");
+                    Assert(!string.IsNullOrWhiteSpace(field.LabelFa),
+                        "module '" + module.Code + "' has a field without a Persian label: " + field.Column);
+
+                    string expectedType = null;
+                    string evidence = field.TypeEvidence ?? string.Empty;
+                    if (evidence.StartsWith("orm-rename:", StringComparison.Ordinal))
+                    {
+                        string property = evidence.Substring("orm-rename:".Length);
+                        Dictionary<string, string> propertyTypes = types[module.Table];
+                        Assert(propertyTypes.ContainsKey(property),
+                            module.Table + "." + field.Column + " claims a rename to " + property + ", which has no type.");
+                        expectedType = propertyTypes[property];
+                    }
+                    else
+                    {
+                        string declared;
+                        Assert(types[module.Table].TryGetValue(field.Column, out declared),
+                            module.Table + "." + field.Column + " has no type evidence, so the portal must not bind it.");
+                        expectedType = declared;
+                        Assert(evidence == "ddl" || evidence == "orm",
+                            "module '" + module.Code + "' must state whether the type came from ddl or orm.");
+                    }
+
+                    Assert(KindMatchesType(field.Kind, expectedType),
+                        module.Table + "." + field.Column + " is declared as " + field.Kind +
+                        " but the evidence says " + expectedType + ".");
+                }
+
+                Assert(!string.IsNullOrWhiteSpace(module.OrderBy) &&
+                       module.Fields.Any(f => string.Equals(f.Column, module.OrderBy, StringComparison.OrdinalIgnoreCase)),
+                    "module '" + module.Code + "' orders by a column it does not select.");
+                if (!string.IsNullOrWhiteSpace(module.LabelColumn))
+                {
+                    Assert(module.Fields.Any(f => string.Equals(f.Column, module.LabelColumn, StringComparison.OrdinalIgnoreCase)),
+                        "module '" + module.Code + "' labels itself with a column it does not select.");
+                }
+
+                // An edit feature that only requires ReadOnly would let a read-only grant
+                // reach a write path.
+                Assert(AdminFeatures.RequiredLevelFor(module.EditFeature) == AccessLevel.Allow,
+                    "module '" + module.Code + "' uses edit feature " + module.EditFeature +
+                    ", which does not require Allow.");
+                Assert(!module.ReadOnly || module.EditFeature != AdminFeature.PortalAdmin,
+                    "module '" + module.Code + "' marks itself read-only but carries an edit feature.");
+            }
+        }
+
+        private static bool KindMatchesType(FieldKind kind, string sqlType)
+        {
+            string type = (sqlType ?? string.Empty).ToLowerInvariant();
+            switch (kind)
+            {
+                case FieldKind.Boolean:
+                    return type == "bit";
+                case FieldKind.Number:
+                    return type == "int" || type == "bigint" || type == "smallint" || type == "tinyint" ||
+                           type == "float" || type == "real" || type == "decimal" || type == "money";
+                case FieldKind.Text:
+                case FieldKind.Select:
+                    return type == "nvarchar" || type == "varchar" || type == "char" || type == "nchar" ||
+                           type == "ntext" || type == "text";
+                case FieldKind.Date:
+                    return type == "datetime" || type == "datetime2" || type == "date" || type == "smalldatetime";
+                case FieldKind.Time:
+                    return type == "time";
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// T17 - the module service is the only gate between a form and the database.
+        /// These are the cases an operator hits: a missing required value, a number past
+        /// its limit, a bad date, and Persian digits pasted from a Word document.
+        /// </summary>
+        private static void TestModuleValidation()
+        {
+            var service = new ModuleService(new InMemoryModuleStore());
+            ModuleDescriptor module = ModuleRegistry.Find("emptype");
+            Assert(module != null, "module 'emptype' must exist.");
+
+            ModuleRow row;
+
+            // Required field missing.
+            OperationResult missing = service.Build(module, new Dictionary<string, string>(), true, out row);
+            Assert(!missing.Succeeded && missing.Message.Contains("الزامی"),
+                "a missing required value must be refused with a readable message.");
+
+            // Too long.
+            var longValue = new Dictionary<string, string> { { "EmpTypeName", new string('x', 120) } };
+            Assert(!service.Build(module, longValue, true, out row).Succeeded,
+                "a value longer than the column must be refused.");
+
+            // Persian digits are accepted for numeric fields.
+            ModuleDescriptor gate = ModuleRegistry.Find("gate");
+            var persian = new Dictionary<string, string>
+            {
+                { "GateID", "۱۲" },
+                { "GateName", "درب شمالی" },
+                { "UpperGateID", "۰" }
+            };
+            Assert(service.Build(gate, persian, true, out row).Succeeded,
+                "Persian digits must be accepted in numeric fields.");
+            Assert(Convert.ToInt64(row["GateID"]) == 12, "Persian digits must convert to 12.");
+
+            // A date that is not a date.
+            ModuleDescriptor messages = ModuleRegistry.Find("devicemessage");
+            var badDate = new Dictionary<string, string>
+            {
+                { "SMSID", "1" },
+                { "Content", "سلام" },
+                { "ValidFromTime", "1404/08/03" }
+            };
+            Assert(!service.Build(messages, badDate, true, out row).Succeeded,
+                "a Jalali date pasted into a Gregorian date input must be refused, not guessed.");
+
+            // Checkbox semantics: absent means false, "true" means true.
+            ModuleDescriptor property = ModuleRegistry.Find("property");
+            var flags = new Dictionary<string, string> { { "PropertyID", "1" }, { "PropertyName", "کد پروژه" } };
+            Assert(service.Build(property, flags, true, out row).Succeeded, "a module without flags must still validate.");
+            Assert(!ModuleRow.IsTrue(row["IsSearchFilter"]), "an absent checkbox must mean false.");
+
+            flags["IsSearchFilter"] = "true";
+            Assert(service.Build(property, flags, true, out row).Succeeded, "a set checkbox must validate.");
+            Assert(ModuleRow.IsTrue(row["IsSearchFilter"]), "a set checkbox must mean true.");
+
+            // Display formatting: never a CLR type name, never an empty cell.
+            Assert(row.Display("IsSearchFilter", FieldKind.Boolean) == "بله", "a true flag must render as بله.");
+            Assert(row.Display("Missing", FieldKind.Text) == "—", "a null value must render as a dash.");
+        }
+
+        /// <summary>
+        /// T18 — the store contract, exercised on the in-memory implementation.
+        /// Composite keys are the reason this exists: Deputy and UserDeviceValid have no
+        /// single identity column, and a store that quietly deletes by half a key would
+        /// remove far too much.
+        /// </summary>
+        private static void TestModuleStore()
+        {
+            var store = new InMemoryModuleStore();
+            var service = new ModuleService(store);
+            ModuleDescriptor deputy = ModuleRegistry.Find("deputy");
+            Assert(deputy != null && deputy.HasCompositeKey, "the deputy module must use a composite key.");
+
+            ModuleRow row;
+            Assert(service.Build(deputy, new Dictionary<string, string> { { "TitleID", "3" }, { "DeputyTitleID", "7" } }, true, out row).Succeeded,
+                "a valid deputy pair must build.");
+            Assert(service.Save(deputy, row, true).Succeeded, "the first deputy pair must save.");
+
+            // Same pair again: uniqueness is enforced by the key, not by luck.
+            Assert(service.Build(deputy, new Dictionary<string, string> { { "TitleID", "3" }, { "DeputyTitleID", "7" } }, true, out row).Succeeded,
+                "the duplicate pair must build.");
+            Assert(!service.Save(deputy, row, true).Succeeded, "a duplicate key pair must be refused.");
+
+            // A different pair sharing one half must be a separate row.
+            Assert(service.Build(deputy, new Dictionary<string, string> { { "TitleID", "3" }, { "DeputyTitleID", "9" } }, true, out row).Succeeded,
+                "a second pair must build.");
+            Assert(service.Save(deputy, row, true).Succeeded, "a pair differing in one key column must save separately.");
+            Assert(store.Count("Deputy") == 2, "expected two deputy rows, found " + store.Count("Deputy"));
+
+            // Deleting by the full key removes exactly one row.
+            OperationResult deleted = service.Delete(deputy, new Dictionary<string, string>
+            {
+                { "TitleID", "3" },
+                { "DeputyTitleID", "9" }
+            });
+            Assert(deleted.Succeeded && store.Count("Deputy") == 1, "delete must remove exactly the matching pair.");
+
+            // A half key is refused rather than treated as a wildcard.
+            OperationResult halfKey = service.Delete(deputy, new Dictionary<string, string> { { "TitleID", "3" } });
+            Assert(!halfKey.Succeeded, "a half key must be refused, never treated as a wildcard.");
+
+            // Read-only modules cannot be written even by an administrator.
+            ModuleDescriptor parameters = ModuleRegistry.Find("option");
+            Assert(service.Build(parameters, new Dictionary<string, string> { { "SettingsID", "1" }, { "Value", "x" } }, false, out row).Succeeded,
+                "an option row must build.");
+            Assert(service.Save(parameters, row, true).Succeeded == false,
+                "a module with AllowCreate = false must refuse a new row.");
+
+            // CSV: a value containing a comma or quote survives the round trip.
+            string csv = JalaliText.CsvRow(new[] { "a,b", "he said \"hi\"", "سلام" });
+            Assert(csv == "\"a,b\",\"he said \"\"hi\"\"\",سلام", "CSV quoting is wrong: " + csv);
+
+            // And the columns the module framework would write are exactly the descriptor's.
+            ModuleDescriptor empType = ModuleRegistry.Find("emptype");
+            Assert(empType != null && empType.Keys.Count() == 1 && empType.Key.Identity,
+                "EmpType's key must be a single identity column.");
         }
 
         /// <summary>

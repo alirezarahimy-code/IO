@@ -1,0 +1,101 @@
+@model T5Web.Web.Controllers.ModuleEditModel
+@using T5Web.Domain.Models
+@{
+    var descriptor = Model.Descriptor;
+    var row = Model.Row;
+    string error = ViewBag.Error as string;
+}
+@if (!string.IsNullOrEmpty(error))
+{
+    <div class="notice notice--bad u-mt6">@error</div>
+}
+
+<form method="post" action="@Model.FormAction">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="__isNew" value="@(Model.IsNew ? "true" : "false")" />
+
+    <div class="panel">
+        <div class="panel__head">
+            <h2>@descriptor.TitleFa</h2>
+            <span class="tag tag--mute">جدول <span class="mono">@descriptor.Table</span></span>
+        </div>
+        <div class="panel__body">
+            <div class="form-grid">
+                @foreach (var field in descriptor.Fields)
+                {
+                    <div class="field">
+                        <label for="@field.Column">
+                            @field.LabelFa
+                            @if (field.Required && !field.Identity)
+                            {
+                                <span class="muted u-sm">*</span>
+                            }
+                        </label>
+                        @if (field.Kind == FieldKind.Boolean)
+                        {
+                            <span class="check">
+                                <input type="checkbox" id="@field.Column" name="@field.Column" value="true"
+                                       checked="@(ModuleRow.IsTrue(row[field.Column]) ? "checked" : null)" />
+                                <label for="@field.Column">فعال</label>
+                            </span>
+                        }
+                        else if (field.Kind == FieldKind.Select && field.Options != null && field.Options.Count > 0)
+                        {
+                            <select id="@field.Column" name="@field.Column">
+                                @foreach (var option in field.Options)
+                                {
+                                    bool selected = string.Equals(Convert.ToString(row[field.Column]), option.Key.ToString(), StringComparison.Ordinal);
+                                    <option value="@option.Key" selected="@(selected ? "selected" : null)">@option.Value</option>
+                                }
+                            </select>
+                        }
+                        else if (field.IsKey && field.Identity)
+                        {
+                            <input type="text" id="@field.Column" value="@(Model.IsNew ? "خودکار" : Convert.ToString(row[field.Column]))" disabled />
+                        }
+                        else if (field.IsKey)
+                        {
+                            <input type="number" id="@field.Column" name="@field.Column" value="@Convert.ToString(row[field.Column])" required />
+                        }
+                        else if (field.Kind == FieldKind.Number)
+                        {
+                            <input type="number" step="any" id="@field.Column" name="@field.Column" value="@Convert.ToString(row[field.Column])" />
+                        }
+                        else if (field.Kind == FieldKind.Date)
+                        {
+                            DateTime? date = row[field.Column] as DateTime?;
+                            <input type="date" id="@field.Column" name="@field.Column"
+                                   value="@(date.HasValue ? date.Value.ToString("yyyy-MM-dd") : string.Empty)" />
+                        }
+                        else if (field.Kind == FieldKind.Time)
+                        {
+                            <input type="time" id="@field.Column" name="@field.Column" value="@Convert.ToString(row[field.Column])" />
+                        }
+                        else
+                        {
+                            <input type="text" id="@field.Column" name="@field.Column" value="@Convert.ToString(row[field.Column])"
+                                   maxlength="@field.MaxLength" />
+                        }
+                        @if (!string.IsNullOrEmpty(field.HintFa))
+                        {
+                            <div class="muted u-sm u-mt6">@field.HintFa</div>
+                        }
+                    </div>
+                }
+            </div>
+            <div class="muted u-sm u-mt14">
+                نام ستون‌ها با اسکیمای واقعی پایگاه‌داده تطبیق داده شده است؛ آزمون
+                <span class="mono">T16</span> جلوی هر ستون یا نوعی که شاهد ندارد را می‌گیرد.
+            </div>
+        </div>
+    </div>
+
+    <div class="u-row">
+        <button type="submit" class="btn btn--primary">@(Model.IsNew ? "ثبت سطر" : "ذخیره تغییرات")</button>
+        <a href="@Url.Action("Index", "Modules", new { code = descriptor.Code })" class="btn">بازگشت</a>
+        @if (Model.CanDelete)
+        {
+            <span class="muted u-sm">حذف از فهرست انجام می‌شود و در دفتر رخداد ثبت می‌گردد.</span>
+        }
+    </div>
+</form>

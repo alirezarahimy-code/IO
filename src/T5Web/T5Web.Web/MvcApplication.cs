@@ -47,7 +47,8 @@ namespace T5Web.Web
 
                 var engineDirectory = new PersonnelEngineDirectory(() => connectionString);
                 PortalServices.Configure(
-                    new SqlAdminRepository(() => new SqlConnection(connectionString), engineDirectory));
+                    new SqlAdminRepository(() => new SqlConnection(connectionString), engineDirectory),
+                    new SqlModuleStore(() => new SqlConnection(connectionString)));
             }
             catch (Exception ex)
             {

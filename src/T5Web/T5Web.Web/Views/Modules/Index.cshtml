@@ -1,0 +1,105 @@
+@model T5Web.Web.Controllers.ModuleIndexModel
+@using T5Web.Domain.Models
+@{
+    var descriptor = Model.Descriptor;
+    var page = Model.Page;
+}
+<div class="u-row u-mt6">
+    @foreach (var module in Model.Groups)
+    {
+        bool active = string.Equals(module.Code, descriptor.Code, StringComparison.OrdinalIgnoreCase);
+        <a href="@Url.Action("Index", "Modules", new { code = module.Code })"
+           class="btn @(active ? "btn--primary" : "")">@module.TitleFa</a>
+    }
+</div>
+
+<form method="get" action="@Url.Action("Index", "Modules")" class="toolbar u-mt14">
+    <input type="hidden" name="code" value="@descriptor.Code" />
+    <div class="field">
+        <label for="term">جست‌وجو</label>
+        <input type="text" id="term" name="term" value="@page.Term" placeholder="بخشی از متن" />
+    </div>
+    <button type="submit" class="btn">اعمال</button>
+    @if (Model.CanEdit && descriptor.AllowCreate)
+    {
+        <a href="@Url.Action("Edit", "Modules", new { code = descriptor.Code })" class="btn btn--primary">سطر جدید</a>
+    }
+    <a href="@Url.Action("Export", "Modules", new { code = descriptor.Code, term = page.Term })" class="btn">خروجی CSV</a>
+</form>
+
+@if (!string.IsNullOrEmpty(descriptor.NoteFa))
+{
+    <div class="notice notice--info u-mt6">@descriptor.NoteFa</div>
+}
+
+<div class="panel">
+    <div class="panel__head">
+        <h2>@descriptor.TitleFa — @page.Total سطر</h2>
+        <span class="muted u-sm">
+            صفحه @page.Page از @page.PageCount · جدول <span class="mono">@descriptor.Table</span>
+        </span>
+    </div>
+    @if (page.Rows.Count == 0)
+    {
+        <div class="empty">سطری برای نمایش وجود ندارد.</div>
+    }
+    else
+    {
+        <div class="u-scroll-x">
+            <table class="grid">
+                <thead>
+                    <tr>
+                        @foreach (var field in descriptor.Fields)
+                        {
+                            <th class="@(field.IsNumeric ? "num" : "")">@field.LabelFa</th>
+                        }
+                        @if (Model.CanEdit)
+                        {
+                            <th></th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in page.Rows)
+                    {
+                        string key = descriptor.KeyFrom(row);
+                        <tr>
+                            @foreach (var field in descriptor.Fields)
+                            {
+                                <td class="@(field.IsNumeric ? "num" : "")">@row.Display(field.Column, field.Kind)</td>
+                            }
+                            @if (Model.CanEdit)
+                            {
+                                <td class="nowrap">
+                                    <a href="@Url.Action("Edit", "Modules", new { code = descriptor.Code, key = key })" class="btn btn--ghost">ویرایش</a>
+                                    @if (descriptor.AllowDelete)
+                                    {
+                                        <form method="post" action="@Url.Action("Delete", "Modules", new { code = descriptor.Code })" class="inline" data-confirm="true">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="key" value="@key" />
+                                            <button type="submit" class="btn btn--ghost">حذف</button>
+                                        </form>
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@if (page.PageCount > 1)
+{
+    <div class="u-row">
+        @if (page.HasPrevious)
+        {
+            <a href="@Url.Action("Index", "Modules", new { code = descriptor.Code, term = page.Term, page = page.Page - 1 })" class="btn">صفحه قبل</a>
+        }
+        @if (page.HasNext)
+        {
+            <a href="@Url.Action("Index", "Modules", new { code = descriptor.Code, term = page.Term, page = page.Page + 1 })" class="btn">صفحه بعد</a>
+        }
+    </div>
+}

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using T5Web.Application.Services;
@@ -144,9 +145,29 @@ namespace T5Web.Web.Security
         public AdminGateAttribute(AdminFeature feature)
         {
             Feature = feature;
+            Features = new[] { feature };
+        }
+
+        /// <summary>
+        /// Gate on *any* of several capabilities.
+        ///
+        /// Used only where one screen hosts modules that belong to different features
+        /// (the generic module screens: base data, leave types, rules, devices). The
+        /// action then narrows to the module's own feature before touching data, so a
+        /// broad gate can never widen access.
+        /// </summary>
+        public AdminGateAttribute(params AdminFeature[] anyOf)
+        {
+            Features = anyOf == null || anyOf.Length == 0
+                ? new[] { AdminFeature.PortalAdmin }
+                : anyOf;
+            Feature = Features[0];
         }
 
         public AdminFeature Feature { get; private set; }
+
+        /// <summary>Every capability that opens this gate (one, normally).</summary>
+        public IReadOnlyList<AdminFeature> Features { get; private set; }
 
         /// <summary>When true, ReadOnly is enough; otherwise Allow is required.</summary>
         public bool AllowReadOnly { get; set; }
@@ -164,16 +185,19 @@ namespace T5Web.Web.Security
                 return false;
             }
 
-            AccessLevel level = session.LevelOf(Feature);
-            if (level == AccessLevel.Deny)
+            foreach (AdminFeature feature in Features)
             {
-                return false;
+                AccessLevel level = session.LevelOf(feature);
+                if (level == AccessLevel.Allow)
+                {
+                    return true;
+                }
+                if (level == AccessLevel.ReadOnly && AllowReadOnly)
+                {
+                    return true;
+                }
             }
-            if (level == AccessLevel.Allow)
-            {
-                return true;
-            }
-            return AllowReadOnly;
+            return false;
         }
 
         protected override void HandleUnauthorizedRequest(AuthorizationContext filterContext)
@@ -197,10 +221,11 @@ namespace T5Web.Web.Security
                 return;
             }
 
+            string titles = string.Join("» یا «", Features.Select(AdminFeatures.TitleOf));
             filterContext.Result = new ViewResult
             {
                 ViewName = "~/Views/Account/NoAccess.cshtml",
-                ViewData = new ViewDataDictionary { { "Reason", "سطح دسترسی لازم برای «" + AdminFeatures.TitleOf(Feature) + "» را ندارید." } },
+                ViewData = new ViewDataDictionary { { "Reason", "سطح دسترسی لازم برای «" + titles + "» را ندارید." } },
                 TempData = filterContext.Controller.TempData
             };
             filterContext.HttpContext.Response.StatusCode = 403;
@@ -251,8 +276,19 @@ namespace T5Web.Web.Security
         private static AccessService _access;
         private static WorkflowService _workflow;
         private static AuditService _audit;
+        private static T5Web.Application.Modules.ModuleService _modules;
 
+        /// <summary>
+        /// Wires the process-wide services. The module store is optional: a deployment
+        /// that only runs the classic screens does not need it, and the module screens
+        /// then answer with the "not configured" page instead of a NullReferenceException.
+        /// </summary>
         public static void Configure(IAdminRepository repository)
+        {
+            Configure(repository, null);
+        }
+
+        public static void Configure(IAdminRepository repository, IModuleStore moduleStore)
         {
             if (repository == null)
             {
@@ -266,6 +302,7 @@ namespace T5Web.Web.Security
                 _access = new AccessService(repository);
                 _workflow = new WorkflowService(repository);
                 _audit = new AuditService(repository);
+                _modules = moduleStore == null ? null : new T5Web.Application.Modules.ModuleService(moduleStore);
             }
         }
 
@@ -299,6 +336,11 @@ namespace T5Web.Web.Security
             get { lock (SyncRoot) { return _audit; } }
         }
 
+        public static T5Web.Application.Modules.ModuleService Modules
+        {
+            get { lock (SyncRoot) { return _modules; } }
+        }
+
         /// <summary>Menu entries the current operator can actually open.</summary>
         public static IReadOnlyList<MenuEntry> MenuFor(AdminSession session)
         {
@@ -311,6 +353,14 @@ namespace T5Web.Web.Security
             Add(menu, session, AdminFeature.PersonnelView, "پرسنل", "Personnel", "Index");
             Add(menu, session, AdminFeature.DepartmentView, "چارت سازمانی", "Department", "Index");
             Add(menu, session, AdminFeature.DeviceView, "دستگاه‌ها", "Device", "Index");
+            Add(menu, session, AdminFeature.RecordsView, "ترددها", "Records", "Index");
+            Add(menu, session, AdminFeature.RulesView, "قواعد حضور", "Rules", "Index");
+            Add(menu, session, AdminFeature.ScheduleView, "شیفت و برنامه", "Schedule", "Index");
+            Add(menu, session, AdminFeature.LeaveView, "مرخصی و مانده", "Leave", "Index");
+            Add(menu, session, AdminFeature.RequestView, "درخواست‌ها", "Requests", "Index");
+            Add(menu, session, AdminFeature.ReportView, "گزارش‌ها", "Reports", "Index");
+            Add(menu, session, AdminFeature.BaseDataView, "داده پایه", "Modules", "Index");
+            Add(menu, session, AdminFeature.PersonnelImport, "ورود از فایل", "Import", "Index");
             Add(menu, session, AdminFeature.AccessView, "سطوح دسترسی", "Access", "Index");
             Add(menu, session, AdminFeature.WorkflowView, "گردش کار", "Workflow", "Index");
             Add(menu, session, AdminFeature.LogView, "رخدادها", "Audit", "Index");

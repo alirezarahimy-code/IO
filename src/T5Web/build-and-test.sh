@@ -29,6 +29,8 @@ python3 "$ARIA_TOOLS/lint-csharp.py"
 # The portal reads organisational data through the engine's DA layer, so the engine
 # model members it names must exist in the pinned build (gate T14, BUG-01..BUG-07).
 python3 "$SCRIPT_DIR/tools/engine-model-contract.py" --check
+# Column types the generic module screens bind to (T16). DDL wins, engine ORM fills gaps.
+python3 "$SCRIPT_DIR/tools/engine-column-types.py" --check
 
 if [ "$GATES_ONLY" = "true" ]; then
   echo "OK: static gates passed (compiler step skipped)"
