@@ -189,6 +189,27 @@ def check_files_exist():
     else:
         with open(views_config, encoding="utf-8") as handle:
             views = handle.read()
+        # Every imported namespace must exist in the sources: a guessed one is
+        # "CS0234: The type or namespace name 'Models' does not exist" on every page,
+        # which is how T5Web.Web.Models got here.
+        declared = set()
+        for folder, _, files in os.walk(ROOT):
+            if os.sep + "bin" in folder or os.sep + "obj" in folder:
+                continue
+            for name in files:
+                if not name.endswith(".cs"):
+                    continue
+                with open(os.path.join(folder, name), encoding="utf-8", errors="ignore") as handle:
+                    for line in handle:
+                        if line.startswith("namespace "):
+                            declared.add(line.split()[1].strip(";{"))
+        for match in re.finditer(r'<add namespace="([^"]+)"', views):
+            imported = match.group(1)
+            if imported.startswith("System."):
+                continue
+            if imported not in declared:
+                problems.append("Views/Web.config imports %s, which no source file declares" % imported)
+
         for needed in ("pageBaseType=\"System.Web.Mvc.WebViewPage\"", "System.Web.Mvc.MvcWebRazorHostFactory"):
             if needed not in views:
                 problems.append("Views/Web.config does not set %s" % needed)
