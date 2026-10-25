@@ -2236,7 +2236,9 @@ namespace T5Web.Tests
                 .Where(l => !l.StartsWith("#") && !string.IsNullOrWhiteSpace(l))
                 .Select(l => l.Trim())
                 .ToArray();
-            Assert(inventory.Length == 64,
+            // 67, not 64: the hand-written list missed Rule, Shift and AssignShift until
+            // tools/legacy-coverage.py regenerated it from the assembly (BUG-24).
+            Assert(inventory.Length == 67,
                 "legacy-controllers.txt must list all 67 controllers, found " + inventory.Length + ".");
             Assert(inventory.Distinct(StringComparer.Ordinal).Count() == inventory.Length,
                 "legacy-controllers.txt contains duplicate entries.");
