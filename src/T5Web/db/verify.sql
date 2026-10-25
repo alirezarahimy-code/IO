@@ -177,6 +177,11 @@ SELECT @Personnel, N'user t5web_admin (personnel)', N'principal',
             WHEN EXISTS (SELECT 1 FROM [Personnel].sys.database_principals WHERE name = N't5web_admin')
             THEN N'OK' ELSE N'MISSING' END;
 
+/* The audit trail must be append-only for every identity the portal runs as. The
+   privileges live on the role [t5web_app] (db\02), and the logins are members of it,
+   so asking for a DENY addressed to t5web_admin by name would report MISSING on a
+   perfectly good install - and would keep doing so after the app pool identity was
+   added, which is the identity that actually writes. */
 INSERT INTO @results (Catalog, ObjectName, Kind, Status)
 SELECT @T5, N'audit is append-only', N'policy',
        CASE WHEN EXISTS
@@ -184,11 +189,24 @@ SELECT @T5, N'audit is append-only', N'policy',
                 SELECT 1
                 FROM sys.database_permissions p
                 INNER JOIN sys.database_principals u ON u.principal_id = p.grantee_principal_id
-                WHERE u.name = N't5web_admin'
+                WHERE u.name = N't5web_app'
                   AND p.state = N'D'
                   AND p.major_id = OBJECT_ID(N'dbo.T5WebAudit')
                   AND p.permission_name IN (N'UPDATE', N'DELETE')
-            ) THEN N'OK' ELSE N'MISSING' END;
+            )
+            AND NOT EXISTS
+            (
+                -- A member of the role with an explicit GRANT would defeat the DENY
+                -- (DENY wins only for the same principal; a member's own grant wins).
+                SELECT 1
+                FROM sys.database_permissions p
+                INNER JOIN sys.database_principals u ON u.principal_id = p.grantee_principal_id
+                WHERE u.name IN (N't5web_admin', N't5web_app')
+                  AND p.state IN (N'G', N'W')
+                  AND p.major_id = OBJECT_ID(N'dbo.T5WebAudit')
+                  AND p.permission_name IN (N'UPDATE', N'DELETE')
+            )
+       THEN N'OK' ELSE N'MISSING' END;
 
 /* ---------- output ---------- */
 SELECT Catalog, ObjectName, Kind, Status FROM @results ORDER BY

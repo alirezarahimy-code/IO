@@ -143,7 +143,12 @@ jobs:
             $out = & sqlcmd $args 2>&1
             $code = $LASTEXITCODE
             $out | Write-Host
-            if ($code -ne 0) { Fail "$path failed with $code" }
+            if ($code -ne 0) {
+              # sqlcmd's own message names the line and the object; without it the step
+              # only reports "failed with 1" and the reason stays in the unreadable log.
+              foreach ($line in ($out | Select-Object -Last 12)) { Write-Host "::error::${path}: $line" }
+              Fail "$path failed with $code"
+            }
           }
 
           python src/T5Web/tools/synthetic-schema.py --sql > synthetic.sql
