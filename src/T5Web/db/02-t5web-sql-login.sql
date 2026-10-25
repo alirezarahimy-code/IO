@@ -133,18 +133,31 @@ GO
    Verbs are the ones the data layer uses, not "everything": the portal edits a
    record and can never delete one, and can only insert a request acceptance.
    ===================================================================== */
-GRANT INSERT, UPDATE ON OBJECT::[dbo].[Record]        TO [t5web_app];
-GRANT UPDATE         ON OBJECT::[dbo].[Request]       TO [t5web_app];
-GRANT INSERT         ON OBJECT::[dbo].[RequestAccept] TO [t5web_app];
-GRANT INSERT, DELETE ON OBJECT::[dbo].[Workflow]      TO [t5web_app];
-GRANT INSERT, DELETE ON OBJECT::[dbo].[EmpTypeLeave]  TO [t5web_app];
+/* Guarded per table because these belong to the engine: a table that this version of
+   the engine does not have is not a grant this script can make. Without the guard the
+   whole batch stops at
+     Msg 15151: Cannot find the object 'EmpTypeLeave', because it does not exist
+   which is how a CI job with a reduced engine model reported it. */
+IF OBJECT_ID(N'dbo.[Record]', N'U') IS NOT NULL
+    GRANT INSERT, UPDATE ON OBJECT::[dbo].[Record] TO [t5web_app];
+IF OBJECT_ID(N'dbo.[Request]', N'U') IS NOT NULL
+    GRANT UPDATE ON OBJECT::[dbo].[Request] TO [t5web_app];
+IF OBJECT_ID(N'dbo.[RequestAccept]', N'U') IS NOT NULL
+    GRANT INSERT ON OBJECT::[dbo].[RequestAccept] TO [t5web_app];
+IF OBJECT_ID(N'dbo.[Workflow]', N'U') IS NOT NULL
+    GRANT INSERT, DELETE ON OBJECT::[dbo].[Workflow] TO [t5web_app];
+IF OBJECT_ID(N'dbo.[EmpTypeLeave]', N'U') IS NOT NULL
+    GRANT INSERT, DELETE ON OBJECT::[dbo].[EmpTypeLeave] TO [t5web_app];
 GO
 
 /* Attendance and requests are the engine's history. Editing is the administrator's
    job; erasing is not, and the refusal is the database's, not the screen's. */
-DENY DELETE ON OBJECT::[dbo].[Record]        TO [t5web_app];
-DENY DELETE ON OBJECT::[dbo].[Request]       TO [t5web_app];
-DENY DELETE ON OBJECT::[dbo].[RequestAccept] TO [t5web_app];
+IF OBJECT_ID(N'dbo.[Record]', N'U') IS NOT NULL
+    DENY DELETE ON OBJECT::[dbo].[Record] TO [t5web_app];
+IF OBJECT_ID(N'dbo.[Request]', N'U') IS NOT NULL
+    DENY DELETE ON OBJECT::[dbo].[Request] TO [t5web_app];
+IF OBJECT_ID(N'dbo.[RequestAccept]', N'U') IS NOT NULL
+    DENY DELETE ON OBJECT::[dbo].[RequestAccept] TO [t5web_app];
 GO
 
 /* The audit trail is append-only: even the portal login cannot rewrite history. */
@@ -216,14 +229,18 @@ GO
 
 /* The three tables the personnel, department-chart and device screens update.
    The screens rendered fine without these grants; clicking save did not. */
-GRANT UPDATE ON OBJECT::[dbo].[Department] TO [t5web_app];
-GRANT UPDATE ON OBJECT::[dbo].[Device]     TO [t5web_app];
-GRANT UPDATE ON OBJECT::[dbo].[UserInfo]   TO [t5web_app];
+IF OBJECT_ID(N'dbo.[Department]', N'U') IS NOT NULL
+    GRANT UPDATE ON OBJECT::[dbo].[Department] TO [t5web_app];
+IF OBJECT_ID(N'dbo.[Device]', N'U') IS NOT NULL
+    GRANT UPDATE ON OBJECT::[dbo].[Device] TO [t5web_app];
+IF OBJECT_ID(N'dbo.[UserInfo]', N'U') IS NOT NULL
+    GRANT UPDATE ON OBJECT::[dbo].[UserInfo] TO [t5web_app];
 GO
 
 /* A person is never deleted from the portal: the engine's own client owns that,
    and a deleted row would take the attendance history with it. */
-DENY DELETE ON OBJECT::[dbo].[UserInfo] TO [t5web_app];
+IF OBJECT_ID(N'dbo.[UserInfo]', N'U') IS NOT NULL
+    DENY DELETE ON OBJECT::[dbo].[UserInfo] TO [t5web_app];
 GO
 
 PRINT N't5web_admin created with least-privilege grants. Change its password now.';
