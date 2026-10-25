@@ -59,6 +59,11 @@ jobs:
                         Select-Object -First 1)
           Write-Host ("NET FX   : release {0} = .NET Framework {1} (the projects target 4.7.2)" -f $release, $map[$framework])
           if ($release -lt 461808) { Write-Host '::error::.NET Framework 4.7.2 or newer is required and this runner has less' ; exit 1 }
+          # A notice, not a log line: the job log is not reachable from outside the runner,
+          # and "which version was this proven on" has to be readable by whoever asks.
+          Write-Host ("::notice::VERSIONS build | OS {0} | .NET Framework {1} (release {2}) | target 4.7.2 | C# 7.3 | MSBuild {3}" -f `
+                       (Get-CimInstance Win32_OperatingSystem).Version, $map[$framework], $release, `
+                       ((msbuild -version -nologo | Select-Object -Last 1)))
 
       # The static gates run on Linux too; running them here proves they do not depend on
       # the developer machine. dnfile is needed by the engine-metadata gates.
@@ -280,6 +285,9 @@ jobs:
           }
           $net = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full').Release
           Write-Host "  NET FX   : release $net"
+          Write-Host ("::notice::VERSIONS iis | OS {0} {1} | IIS {2}.{3} | app pool managedRuntime='{4}' enable32Bit={5} | .NET release {6}" -f `
+                       $os.Caption, $os.Version, $iis.MajorVersion, $iis.MinorVersion, `
+                       $pool.managedRuntimeVersion, $pool.enable32BitAppOnWin64, $net)
 
       - name: The app pool is the one the runbook describes
         shell: powershell
@@ -714,6 +722,7 @@ jobs:
           }
           $name = @{ 13 = '2016'; 14 = '2017'; 15 = '2019'; 16 = '2022'; 17 = '2025' }[[int]$major]
           Write-Host "  PASS: SQL Server $major ($name) - the runbook's floor is 2016 (13.x)"
+          Write-Host ("::notice::VERSIONS sql | {0} | {1}" -f $name, ($out -replace '\s+', ' '))
 
       # An empty engine schema would make every script here meaningless, so the fixture is
       # generated from engine/column-types.json - the same model the build gates use.
