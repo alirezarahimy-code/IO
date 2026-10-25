@@ -1,0 +1,146 @@
+name: windows-build
+
+# The rewrite targets .NET Framework 4.7.2 + IIS + SQL Server, and none of that
+# exists on the Linux machine where the code is written. This workflow is the
+# Windows machine: it compiles with MSBuild, runs the 34-test suite, and proves
+# the database scripts against a real SQL Server instance.
+#
+# It is deliberately push-triggered: a red run here is the same signal a red
+# build on the customer's server would give, only earlier.
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'src/T5Web/**'
+      - '.github/workflows/windows-build.yml'
+  pull_request:
+    paths:
+      - 'src/T5Web/**'
+  workflow_dispatch:
+
+concurrency:
+  group: windows-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: MSBuild + 34 tests
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show toolchain
+        shell: pwsh
+        run: |
+          Write-Host "MSBuild: $((Get-Command msbuild).Source)"
+          msbuild -version
+          Write-Host "sqlcmd : $((Get-Command sqlcmd -ErrorAction SilentlyContinue).Source)"
+
+      # The static gates run on Linux too, but running them here proves they do
+      # not depend on the developer machine. dnfile is needed for the engine
+      # metadata gates; without it build-schema-manifest --check reports STALE.
+      - name: Static gates
+        shell: pwsh
+        run: |
+          python -m pip install --disable-pip-version-check --quiet dnfile
+          bash src/T5Web/build-and-test.sh --gates
+
+      - name: Restore and build (Release)
+        shell: pwsh
+        run: |
+          msbuild src/T5Web/T5Web.sln /p:Configuration=Release /m /v:minimal /nologo
+          if ($LASTEXITCODE -ne 0) { throw "MSBuild failed with $LASTEXITCODE" }
+
+      - name: Run the suite
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem -Recurse -Filter T5Web.Tests.exe | Select-Object -First 1
+          if (-not $exe) { throw 'T5Web.Tests.exe was not produced' }
+          Write-Host "running $($exe.FullName)"
+          & $exe.FullName
+          if ($LASTEXITCODE -ne 0) { throw "test suite failed with $LASTEXITCODE" }
+
+      - name: Upload build output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: t5web-release
+          path: |
+            src/T5Web/T5Web.Web/bin/Release
+            src/T5Web/T5Web.Tests/bin/Release
+          retention-days: 7
+          if-no-files-found: warn
+
+  database:
+    name: SQL Server scripts
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      # SQL Server Express LocalDB ships with the runner image. It is a real SQL
+      # Server engine: T-SQL, cross-database queries, IDENTITY, collations.
+      - name: Start LocalDB
+        shell: pwsh
+        run: |
+          sqllocaldb create T5Web -s
+          sqllocaldb info T5Web
+          $instance = "(localdb)\T5Web"
+          sqlcmd -S $instance -E -Q "SELECT @@VERSION" -h -1 -W
+
+      # An empty engine schema would make every script here meaningless, so the
+      # fixture is generated from engine/column-types.json - the same model the
+      # build gates use to prove every column name in the C# code.
+      - name: Build the synthetic engine schema
+        shell: pwsh
+        run: |
+          python -m pip install --disable-pip-version-check --quiet dnfile
+          python src/T5Web/tools/synthetic-schema.py --sql > $env:TEMP\synthetic.sql
+          $env:T5_DB = 'ReportT5V3'
+          sqlcmd -S '(localdb)\T5Web' -E -b -i $env:TEMP\synthetic.sql -d master
+          if ($LASTEXITCODE -ne 0) { throw "synthetic schema failed with $LASTEXITCODE" }
+
+      - name: Portal objects and the least-privilege login
+        shell: pwsh
+        run: |
+          sqlcmd -S '(localdb)\T5Web' -E -b -i src/T5Web/db/01-t5web-objects.sql -d ReportT5V3
+          if ($LASTEXITCODE -ne 0) { throw "01-t5web-objects.sql failed" }
+          sqlcmd -S '(localdb)\T5Web' -E -b -i src/T5Web/db/02-t5web-sql-login.sql -d ReportT5V3
+          if ($LASTEXITCODE -ne 0) { throw "02-t5web-sql-login.sql failed" }
+          # Second run must be a no-op: both scripts are documented as idempotent.
+          sqlcmd -S '(localdb)\T5Web' -E -b -i src/T5Web/db/01-t5web-objects.sql -d ReportT5V3
+
+      - name: verify.sql must report no MISSING
+        shell: pwsh
+        run: |
+          $out = sqlcmd -S '(localdb)\T5Web' -E -b -i src/T5Web/db/verify.sql -d ReportT5V3 -h -1 -W
+          $out | Write-Host
+          $missing = $out | Select-String -Pattern 'MISSING'
+          if ($missing) { throw "verify.sql reports $($missing.Count) MISSING object(s)" }
+
+      - name: 03-relations.sql must report no VIOLATION
+        shell: pwsh
+        run: |
+          sqlcmd -S '(localdb)\T5Web' -E -b -Q "DBCC CHECKIDENT ('dbo.UserInfo', RESEED, 0)" | Out-Null
+          $out = sqlcmd -S '(localdb)\T5Web' -E -b -i src/T5Web/db/03-relations.sql -d ReportT5V3 -h -1 -W
+          $out | Write-Host
+          $bad = $out | Select-String -Pattern 'VIOLATION'
+          if ($bad) { throw "03-relations.sql reports $($bad.Count) violation(s)" }
+
+      - name: Migration fingerprint round trip
+        shell: pwsh
+        run: |
+          python -m pip install --disable-pip-version-check --quiet dnfile
+          python src/T5Web/tools/migration-fingerprint.py --sql > $env:TEMP\fp.sql
+          sqlcmd -S '(localdb)\T5Web' -E -i $env:TEMP\fp.sql -h -1 -W -s '' |
+            Out-File -FilePath $env:TEMP\fp-a.txt -Encoding utf8
+          sqlcmd -S '(localdb)\T5Web' -E -i $env:TEMP\fp.sql -h -1 -W -s '' |
+            Out-File -FilePath $env:TEMP\fp-b.txt -Encoding utf8
+          python src/T5Web/tools/migration-fingerprint.py --compare $env:TEMP\fp-a.txt $env:TEMP\fp-b.txt
+
+      - name: Portal SQL statements against the real engine
+        shell: pwsh
+        run: |
+          python src/T5Web/tools/sql-smoke.py --server '(localdb)\T5Web' --database ReportT5V3

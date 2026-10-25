@@ -62,6 +62,7 @@ namespace T5Web.Tests
             RunTest("T32: waves 2-3 (organisation, access, devices, logs, data health) + feature catalogue", TestWavesTwoAndThree);
             RunTest("T33: data migration (no schema drift, fingerprint covers the model, gates documented)", TestDataMigration);
             RunTest("T34: install kit (IIS + SQL scripts, idempotent, no secrets, documented order)", TestInstallKit);
+            RunTest("T35: executable SQL (synthetic schema from the model, smoke extractor, CI wiring)", TestExecutableSql);
 
             Console.WriteLine("----------------------------------------------------------------------");
             Console.WriteLine($"  Summary: {_passed} Passed, {_failed} Failed");
@@ -2809,6 +2810,70 @@ namespace T5Web.Tests
             Assert(File.Exists(Path.Combine(deploy, "README.md")), "missing deploy/README.md.");
             string readme = File.ReadAllText(Path.Combine(T5WebRoot, "README.md"));
             Assert(readme.Contains("docs/13"), "README does not list the install book.");
+        }
+
+        /// <summary>
+        /// T35 - the SQL can be executed, not only read (docs/14).
+        ///
+        /// Two things make the SQL testable off the customer's server: a synthetic schema
+        /// generated from the model the gates already prove, and a smoke runner that
+        /// compiles each embedded statement with SET NOEXEC ON. This test guards that
+        /// both still exist, that the synthetic schema is generated from the model (never
+        /// hand-written) and that it excludes the device catalog the portal never opens.
+        /// </summary>
+        private static void TestExecutableSql()
+        {
+            string synthetic = Path.Combine(T5WebRoot, "tools", "synthetic-schema.py");
+            string smoke = Path.Combine(T5WebRoot, "tools", "sql-smoke.py");
+            Assert(File.Exists(synthetic), "missing tools/synthetic-schema.py");
+            Assert(File.Exists(smoke), "missing tools/sql-smoke.py");
+
+            string builder = File.ReadAllText(synthetic);
+            Assert(builder.Contains("column-types.json"),
+                "the synthetic schema must be generated from engine/column-types.json, not written by hand.");
+            Assert(builder.Contains("TYPE_MAP") && builder.Contains("do not guess"),
+                "an unknown recorded type must be a hard error, never silently widened.");
+
+            string runner = File.ReadAllText(smoke);
+            Assert(runner.Contains("SET NOEXEC ON"),
+                "the smoke runner must compile statements (SET NOEXEC ON) rather than trust a text check.");
+            Assert(runner.Contains("is_fragment"),
+                "statements assembled at run time must be skipped explicitly, not counted as failures.");
+            Assert(runner.Contains("DECLARE @"),
+                "Dapper parameters have to be declared or SQL Server cannot compile the statement.");
+
+            // The model must cover every table the modules write to; without it the
+            // synthetic schema would silently miss a table and the smoke run would pass.
+            Dictionary<string, Dictionary<string, string>> typed = TypedColumns();
+            Assert(typed.Count >= 70, "engine/column-types.json has only " + typed.Count + " tables.");
+            foreach (string table in new[] { "UserInfo", "Department", "TitlesChart", "Device", "Record", "Request", "UserShift" })
+            {
+                Assert(typed.ContainsKey(table), "the synthetic schema has no table for " + table + ".");
+            }
+            if (typed.ContainsKey("UserInfo"))
+            {
+                Assert(typed["UserInfo"].ContainsKey("BadgeNumber"),
+                    "UserInfo.BadgeNumber is missing from the typed model - every statement joins on it.");
+            }
+
+            // CI is the Windows machine: without it, "it compiles on Windows" is a claim.
+            string workflow = Path.GetFullPath(Path.Combine(T5WebRoot, "..", "..", ".github", "workflows", "windows-build.yml"));
+            Assert(File.Exists(workflow), "missing .github/workflows/windows-build.yml (docs/14).");
+            string yaml = File.ReadAllText(workflow);
+            foreach (string required in new[] { "windows-latest", "msbuild", "T5Web.Tests.exe",
+                                                "synthetic-schema.py", "sql-smoke.py", "verify.sql",
+                                                "03-relations.sql", "migration-fingerprint.py" })
+            {
+                Assert(yaml.Contains(required), "the Windows workflow never runs " + required + ".");
+            }
+            Assert(yaml.Contains("workflow_dispatch"),
+                "the Windows workflow must be startable by hand as well as on push.");
+
+            string build = File.ReadAllText(Path.Combine(T5WebRoot, "build-and-test.sh"));
+            foreach (string tool in new[] { "csharp-parse-gate.py", "synthetic-schema.py", "sql-smoke.py" })
+            {
+                Assert(build.Contains(tool), tool + " is not a build gate.");
+            }
         }
 
         private static void TestNoLockDependency()

@@ -37,6 +37,14 @@ python3 "$SCRIPT_DIR/tools/legacy-coverage.py" --check
 # Data model: every table has a catalog, every key has a proof, every reference a target,
 # and no SQL statement joins two catalogs (T28).
 python3 "$SCRIPT_DIR/tools/engine-relations.py" --check
+# Syntax: braces balancing is not syntax. A real C# grammar parses every file (T35).
+# Type checking is impossible here (no compiler, no .NET Framework) and is done by the
+# Windows CI job instead - see docs/14.
+python3 "$SCRIPT_DIR/tools/csharp-parse-gate.py"
+# SQL executable against the model: the synthetic schema stands in for the vendor
+# install, and the smoke tool must still extract the statements it compiles (T35).
+python3 "$SCRIPT_DIR/tools/synthetic-schema.py" --check
+python3 "$SCRIPT_DIR/tools/sql-smoke.py" --check
 # Deployment kit: the Windows install scripts must parse, stay idempotent, keep passwords
 # out of the repository and reference files that exist (docs/13).
 python3 "$SCRIPT_DIR/tools/deploy-kit-gate.py"

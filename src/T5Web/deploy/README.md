@@ -28,3 +28,8 @@ at run time.
 
 The book that explains *why* each step exists, and what to do when one fails, is
 `../docs/13-install-iis-sqlserver.md`.
+
+Compiling and running the 35 tests needs no server of your own: the GitHub Actions
+workflow `.github/workflows/windows-build.yml` does it on a real Windows runner,
+together with the database scripts on SQL Server Express LocalDB. See
+`../docs/14-windows-ci.md`.
