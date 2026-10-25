@@ -31,7 +31,7 @@ RELATIONS = os.path.join(ROOT, "engine", "relations.json")
 
 SECTION_RE = re.compile(r"USE\s+\[(\w+)\]\s*;", re.I)
 GRANT_RE = re.compile(r"GRANT\s+[^;]*?ON\s+(.*?)TO\s+\[", re.I | re.S)
-OBJECT_RE = re.compile(r"OBJECT::dbo\.(\w+)")
+OBJECT_RE = re.compile(r"OBJECT::(?:dbo\.|\[dbo\]\.)\[?(\w+)\]?")
 
 
 def module_writes():
@@ -70,8 +70,16 @@ def multi_object_grants(text):
     text = re.sub(r"--[^\n]*", " ", text)
 
     problems = []
+    # `OBJECT::dbo.Rule` is Msg 156: [Rule] is a reserved word, and the grant that names
+    # it fails the batch. Bracket every identifier instead of remembering which table
+    # names happen to be keywords.
+    for match in re.finditer(r"OBJECT::dbo\.", text, re.I):
+        problems.append("an object name is not bracketed (OBJECT::dbo.%s...): a reserved word "
+                        "such as [Rule] turns the whole batch into Msg 156"
+                        % text[match.end():match.end() + 12].split()[0].split(";")[0])
+
     for match in re.finditer(r"GRANT\s+[^;]*?\bON\b([^;]*?)\bTO\b", text, re.I | re.S):
-        securables = re.findall(r"OBJECT::[\w\.]+|SCHEMA::\w+", match.group(1))
+        securables = re.findall(r"OBJECT::[\w\.\[\]]+|SCHEMA::\w+", match.group(1))
         if len(securables) > 1:
             problems.append("one GRANT lists %d objects (%s ...); T-SQL accepts one and "
                             "answers Msg 102 for the rest, which silently cancels every grant "
@@ -164,11 +172,16 @@ def main():
 
 if __name__ == "__main__":
     if "--self-test" in sys.argv:
-        bad = ("GRANT SELECT, INSERT ON\n    OBJECT::dbo.A,\n    OBJECT::dbo.B TO [x];")
-        good = "GRANT SELECT ON OBJECT::dbo.A TO [x];\nGRANT SELECT ON OBJECT::dbo.B TO [x];"
-        # A comment quoting the bad form must not trip the gate.
-        quoted = "-- GRANT ON OBJECT::a, OBJECT::b is invalid\nGRANT SELECT ON OBJECT::dbo.A TO [x];"
+        # The three shapes that matter: the multi-object form (Msg 102), a bare
+        # identifier (Msg 156 for [Rule]), and a comment that merely quotes them.
+        bad = "GRANT SELECT, INSERT ON\n    OBJECT::[dbo].[A],\n    OBJECT::[dbo].[B] TO [x];"
+        unbracketed = "GRANT SELECT ON OBJECT::dbo.Rule TO [x];"
+        good = ("GRANT SELECT ON OBJECT::[dbo].[A] TO [x];\n"
+                "GRANT SELECT ON OBJECT::[dbo].[B] TO [x];")
+        quoted = ("-- GRANT ON OBJECT::a, OBJECT::b is invalid, and so is OBJECT::dbo.Rule\n"
+                  "GRANT SELECT ON OBJECT::[dbo].[A] TO [x];")
         ok = (len(multi_object_grants(bad)) == 1
+              and len(multi_object_grants(unbracketed)) == 1
               and not multi_object_grants(good)
               and not multi_object_grants(quoted))
         print("OK: the single-securable guard behaves" if ok else "FAIL: the guard does not detect a multi-object GRANT")
