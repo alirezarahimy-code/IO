@@ -6,6 +6,7 @@
     bool compatible = Model != null && Model.IsCompatible;
     bool reachable = Model != null && Model.DatabaseReachable;
     var problems = Model != null ? Model.Problems : new List<string>();
+    var advisories = Model != null ? Model.Advisories : new List<string>();
 }
 
 <div class="twf-page-heading" style="display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:16px;">
@@ -87,6 +88,19 @@
                     </tbody>
                 </table>
             </div>
+        }
+
+        @if (advisories.Count > 0)
+        {
+            <h3 style="margin:20px 0 10px 0; font-size:14px; font-weight:700; color:var(--twf-navy-900);">
+                موارد اختیاری (غیرمسدودکننده)
+            </h3>
+            <ul class="twf-advisory-list">
+                @foreach (string advisory in advisories)
+                {
+                    <li>@advisory</li>
+                }
+            </ul>
         }
 
         <div class="twf-alert twf-alert-info" style="margin-top:18px;">

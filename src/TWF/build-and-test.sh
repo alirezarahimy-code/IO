@@ -66,6 +66,12 @@ for dll in \
   fi
 done
 
+echo "[0/7] Static gates: engine pin, schema manifest, SQL conformance, C# lint"
+python3 "$SCRIPT_DIR/tools/verify-engine-pin.py" --check
+python3 "$SCRIPT_DIR/tools/build-schema-manifest.py" --check
+python3 "$SCRIPT_DIR/tools/verify-sql-schema.py"
+python3 "$SCRIPT_DIR/tools/lint-csharp.py"
+
 echo "[1/7] Compiling .NET Framework 4.0 Reference Facades..."
 "$CSC" -nologo -target:library -out:"$FACADES_DIR/System.Configuration.dll" \
   "${REF_ARGS[@]}" \

@@ -167,13 +167,20 @@ namespace TWF.Infrastructure.Data
                 return null;
             }
 
+            // Schema notes (verified against Link5 v4.0.4/Personnel.sql and the
+            // T5V3.DB entity metadata - see db/schema-manifest.json):
+            //   * table is [UserInfo], not [UserInfos];
+            //   * the person's name is [NationalNo];
+            //   * the person->department link is UserInfo.[DeptID], because
+            //     [TitlesChart] has no DepartmentID column;
+            //   * [UserInfoTitles] points at the chart row through [TitleChartID].
             const string sql = @"
 SELECT TOP 1
     u.[BadgeNumber],
     ISNULL(u.[UserName], N'') AS UserName,
     ISNULL(u.[FirstName], N'') AS FirstName,
     ISNULL(u.[LastName], N'') AS LastName,
-    ISNULL(u.[NationalCode], N'') AS NationalCode,
+    ISNULL(u.[NationalNo], N'') AS NationalCode,
     ISNULL(tc.[TitleID], 0) AS TitleId,
     ISNULL(tc.[TitleName], N'') AS TitleName,
     ISNULL(tc.[UpperTitleID], 0) AS UpperTitleId,
@@ -181,11 +188,11 @@ SELECT TOP 1
     ISNULL(d.[DepartmentID], 0) AS DepartmentId,
     ISNULL(d.[DepartmentName], N'') AS DepartmentName,
     ISNULL(tc.[Observer], 0) AS IsObserver
-FROM [UserInfos] u
+FROM [UserInfo] u
 LEFT JOIN [UserInfoTitles] uit ON u.[BadgeNumber] = uit.[BadgeNumber]
-LEFT JOIN [TitlesChart] tc ON uit.[TitleID] = tc.[TitleID]
+LEFT JOIN [TitlesChart] tc ON uit.[TitleChartID] = tc.[TitleID]
 LEFT JOIN [TitlesChart] utc ON tc.[UpperTitleID] = utc.[TitleID]
-LEFT JOIN [Departments] d ON tc.[DepartmentID] = d.[DepartmentID]
+LEFT JOIN [Department] d ON u.[DeptID] = d.[DepartmentID]
 WHERE u.[BadgeNumber] = @BadgeNumber;";
 
             using (IDbConnection conn = _connectionFactory(_personnelConnectionString))
@@ -234,7 +241,7 @@ WHERE u.[BadgeNumber] = @BadgeNumber;";
             }
 
             const string sql = @"
-SELECT TOP 1 ISNULL([Description], N'')
+SELECT TOP 1 ISNULL([Descriptions], N'')
 FROM [Request]
 WHERE [BadgeNumber] = @BadgeNumber
   AND [FromTime] >= @DayStart
@@ -301,27 +308,59 @@ ORDER BY [RequestID] DESC;";
                 return results;
             }
 
+            // The legacy [Request] table stores only the raw submission; the workflow
+            // state lives in [RequestAccept] rows. Everything the UI needs is derived
+            // here instead of inventing columns:
+            //   RequestState  0 unknown, 1 accepted, 2 rejected, 3 waiting, 4 first accept
+            //   SubType       [LeaveID] for leave/duty rows, [OverTimeType] for overtime
+            //   duration      DATEDIFF(minute) between [FromTime] and [ToTime]
+            //   accepter      the last non-cancel acceptance, resolved to its title name
             const string sql = @"
 SELECT
-    [RequestID] AS RequestId,
-    [BadgeNumber],
-    [RequestDate],
-    [WofkflowType] AS WorkflowType,
-    [SubType],
-    [FromTime],
-    [ToTime],
-    ISNULL([RequestDuration], 0) AS RequestDurationMinutes,
-    [RequestState],
-    ISNULL([Description], N'') AS Description,
-    ISNULL([AccepterDescription], N'') AS AccepterDescription,
-    ISNULL([SenderBadgeNumber], 0) AS SenderBadgeNumber,
-    ISNULL([SenderTitleID], 0) AS SenderTitleId
-FROM [Request]
-WHERE [BadgeNumber] = @BadgeNumber
-  AND [FromTime] >= @FromDate
-  AND [FromTime] <= @ToDate
-  AND (@WorkflowType IS NULL OR [WofkflowType] = @WorkflowType)
-ORDER BY [FromTime] DESC;";
+    r.[RequestID] AS RequestId,
+    r.[BadgeNumber],
+    r.[CreateDate] AS RequestDate,
+    r.[WofkflowType] AS WorkflowType,
+    CASE WHEN r.[WofkflowType] = 3 THEN ISNULL(r.[OverTimeType], 0)
+         ELSE ISNULL(r.[LeaveID], 0) END AS SubType,
+    r.[FromTime],
+    r.[ToTime],
+    CASE WHEN r.[ToTime] > r.[FromTime]
+         THEN DATEDIFF(MINUTE, r.[FromTime], r.[ToTime]) ELSE 0 END AS RequestDurationMinutes,
+    CASE
+        WHEN EXISTS (SELECT 1 FROM [RequestAccept] c
+                     WHERE c.[RequestID] = r.[RequestID] AND c.[IsCancel] = 1) THEN 2
+        WHEN r.[IsSuspend] = 1 AND EXISTS (SELECT 1 FROM [RequestAccept] a
+                     WHERE a.[RequestID] = r.[RequestID] AND a.[IsCancel] = 0) THEN 4
+        WHEN r.[IsSuspend] = 1 THEN 3
+        WHEN EXISTS (SELECT 1 FROM [RequestAccept] a2
+                     WHERE a2.[RequestID] = r.[RequestID] AND a2.[IsCancel] = 0) THEN 1
+        ELSE 0
+    END AS RequestState,
+    ISNULL(r.[Descriptions], N'') AS Description,
+    ISNULL(lastAccept.[TitleName], N'') AS AccepterDescription,
+    r.[BadgeNumber] AS SenderBadgeNumber,
+    ISNULL(senderTitle.[TitleID], 0) AS SenderTitleId
+FROM [Request] r
+OUTER APPLY (
+    SELECT TOP 1 ra.[AccepterTitleID]
+    FROM [RequestAccept] ra
+    WHERE ra.[RequestID] = r.[RequestID] AND ra.[IsCancel] = 0
+    ORDER BY ra.[AcceptDate] DESC
+) AS lastStep
+LEFT JOIN [TitlesChart] lastAccept ON lastAccept.[TitleID] = lastStep.[AccepterTitleID]
+OUTER APPLY (
+    SELECT TOP 1 uit.[TitleChartID]
+    FROM [UserInfoTitles] uit
+    WHERE uit.[BadgeNumber] = r.[BadgeNumber]
+    ORDER BY uit.[ID] DESC
+) AS senderLink
+LEFT JOIN [TitlesChart] senderTitle ON senderTitle.[TitleID] = senderLink.[TitleChartID]
+WHERE r.[BadgeNumber] = @BadgeNumber
+  AND r.[FromTime] >= @FromDate
+  AND r.[FromTime] <= @ToDate
+  AND (@WorkflowType IS NULL OR r.[WofkflowType] = @WorkflowType)
+ORDER BY r.[FromTime] DESC;";
 
             using (IDbConnection conn = _connectionFactory(_t5ConnectionString))
             {

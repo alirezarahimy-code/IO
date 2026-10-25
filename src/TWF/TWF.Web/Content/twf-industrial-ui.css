@@ -1084,3 +1084,17 @@ body.twf-modal-open {
 .twf-crumb a:hover {
     color: var(--twf-navy-700, #2c4a6e);
 }
+
+/* Advisory list on the diagnostics page: informational, deliberately quiet so it
+   never competes with a blocking problem above it. */
+.twf-advisory-list {
+    margin: 0 0 6px 0;
+    padding: 10px 26px 10px 12px;
+    list-style: disc;
+    background: var(--twf-bg-subtle);
+    border: 1px solid var(--twf-border-subtle);
+    border-radius: var(--twf-radius-sm);
+    font-size: 12.5px;
+    line-height: 1.9;
+    color: var(--twf-text-secondary);
+}

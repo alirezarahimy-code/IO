@@ -1,0 +1,1923 @@
+{
+  "description": "Ground truth for the shared T5 schema. Built by tools/build-schema-manifest.py from vendor DDL, engine ORM metadata and the legacy (working) data layer. Hand-editing this file is not allowed.",
+  "generated_by": "tools/build-schema-manifest.py",
+  "section": "vendor-ddl|engine-orm|legacy-sql",
+  "tables": {
+    "AccessCombo": {
+      "columns": [
+        "ComboID",
+        "Descriptions",
+        "Group1",
+        "Group2",
+        "Group3",
+        "Group4",
+        "Group5"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "AccessControl": {
+      "columns": [
+        "Badgenumber",
+        "GroupNumber",
+        "IsPersonnal",
+        "IsUploaded",
+        "MachineNumber",
+        "TimeTable1",
+        "TimeTable2",
+        "TimeTable3",
+        "VerifyStyle"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "AccessGroup": {
+      "columns": [
+        "GroupID",
+        "Name",
+        "TimeTable1",
+        "TimeTable2",
+        "TimeTable3",
+        "UseHolidays",
+        "VerifyStyle"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "AllowValue": {
+      "columns": [
+        "AllowValue1",
+        "AllowValueType",
+        "BadgeNumber",
+        "ForDate"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "AppRule": {
+      "columns": [
+        "App",
+        "Location",
+        "Photo",
+        "Rule",
+        "RuleID",
+        "ShowLocation",
+        "ShowPhoto",
+        "Web",
+        "WorkflowType"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "Area": {
+      "columns": [
+        "AreaID",
+        "ManagerID",
+        "UserID",
+        "ValidType"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "AreaPoint": {
+      "columns": [
+        "Area",
+        "AreaID",
+        "Latitude",
+        "Longitude",
+        "PointIndex"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "AutoSchedule": {
+      "columns": [
+        "BadgeNumber",
+        "Schedule",
+        "ScheduleID"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "BlackList": {
+      "columns": [
+        "BadgeNumber",
+        "UserID"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "Calendar": {
+      "columns": [
+        "CalendarID",
+        "CalendarName"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses",
+        "legacy TD5 SQL"
+      ]
+    },
+    "CalendarHoliday": {
+      "columns": [
+        "Calendar",
+        "CalendarID",
+        "Descriptions",
+        "HolidayDate"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "Card": {
+      "columns": [
+        "CardBadgeNumber",
+        "LeaveType",
+        "LeaveTypeID",
+        "MachineNumber",
+        "OnlyFirst",
+        "StateKey",
+        "ValidSecs"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql",
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "Certificate": {
+      "columns": [
+        "CertID",
+        "CertName"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "Command": {
+      "columns": [
+        "ID",
+        "InsertTime",
+        "MachineNumber",
+        "OperationID",
+        "Results"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "CommandLog": {
+      "columns": [
+        "AnswerTime",
+        "CommandId",
+        "CommandSource",
+        "CommandType",
+        "IP",
+        "Id",
+        "IsAnswered",
+        "MachineNumber",
+        "MachineSerialNumber",
+        "RequestedTime",
+        "State"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "CustomWorkflow": {
+      "columns": [
+        "CustomWorkflowID",
+        "DescriptionsContains",
+        "DescriptionsStartWith",
+        "Label",
+        "LeaveDescriptionID",
+        "LeaveTypeID",
+        "MaxRequestLen",
+        "MinRequestLen"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "DailyLeaf": {
+      "columns": [
+        "BadgeNumber",
+        "Date",
+        "DescriptionID",
+        "Descriptions",
+        "DocumentNumber",
+        "InsertDate",
+        "LeaveDescription",
+        "LeaveID",
+        "LeaveType"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "Dashboard": {
+      "columns": [
+        "BadgeNumber",
+        "GroupName",
+        "ID",
+        "OrderIndex"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "DashboardItem": {
+      "columns": [
+        "GroupID",
+        "ID",
+        "ItemID"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "Department": {
+      "columns": [
+        "DepartmentID",
+        "DepartmentName",
+        "UpperDeptID"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "DepartmentRule": {
+      "columns": [
+        "DepartmentID",
+        "DeptRuleID",
+        "FromDate",
+        "Rule",
+        "RuleID",
+        "ToDate"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "DepartmentRules": {
+      "columns": [
+        "DepartmentID",
+        "DeptRuleID",
+        "FromDate",
+        "RuleID",
+        "ToDate"
+      ],
+      "sources": [
+        "legacy TD5 SQL"
+      ]
+    },
+    "Deputy": {
+      "columns": [
+        "DeputyTitleID",
+        "TitleID"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "Device": {
+      "columns": [
+        "ATTLOGStamp",
+        "ATTPHOTOStamp",
+        "AttCount",
+        "BaudRate",
+        "Code",
+        "CommPassword",
+        "ConnectionType",
+        "Delay",
+        "DevFPVersion",
+        "DevFirmwareVersion",
+        "DevMac",
+        "DevTpe",
+        "Encrypt",
+        "ErrorDelay",
+        "ErrorDelaySecs",
+        "FaceCount",
+        "FpCount",
+        "GateID",
+        "IP",
+        "IRTempDetectionFunOn",
+        "IsFirst",
+        "LastRequestTime",
+        "LastStamp",
+        "MachineName",
+        "MachineNumber",
+        "MaskDetectionFunOn",
+        "MaxMultiBioDataCount",
+        "MaxMultiBioPhotoCount",
+        "MultiBioCount",
+        "MultiBioDataSupport",
+        "MultiBioPhotoSupport",
+        "MultiBioVersion",
+        "OPERLOGStamp",
+        "OperationLogStamp",
+        "PhotoStamp",
+        "Ping",
+        "Port",
+        "Push",
+        "RS485Number",
+        "Realtime",
+        "RequestDelaySecs",
+        "SerialNo",
+        "SerialPort",
+        "SyncTime",
+        "TCPPush",
+        "TemplateStamp",
+        "TimeZone",
+        "Timeout",
+        "TransFlag",
+        "TransInterval",
+        "TransTimes",
+        "UserCount",
+        "UserInfoStamp",
+        "UserPicURLFunOn",
+        "VendorName"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "DeviceAlarm": {
+      "columns": [
+        "AlarmID",
+        "Color",
+        "CreateTime",
+        "MachineNumber",
+        "Message",
+        "ViewUserID"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "DeviceBioTypes": {
+      "columns": [
+        "BioType",
+        "Id",
+        "MachineSerialNumber",
+        "Version"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "DeviceConnectionState": {
+      "columns": [
+        "ConnectDLL",
+        "DeviceSerialNumber",
+        "HasPush",
+        "Id",
+        "Ping",
+        "Push"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "DeviceErrorLog": {
+      "columns": [
+        "Additional",
+        "CmdId",
+        "DataOrigin",
+        "ErrCode",
+        "ErrMsg",
+        "machineSN"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "DeviceMessage": {
+      "columns": [
+        "Content",
+        "DurationMins",
+        "SMSID",
+        "SMSType",
+        "ValidFromTime"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "DeviceMessagePersonnel": {
+      "columns": [
+        "BadgeNumber",
+        "SMSID"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "DeviceOperationLog": {
+      "columns": [
+        "BadgeNumber",
+        "DeviceSerialnumber",
+        "MachineNumber",
+        "OperationTime",
+        "OperationType",
+        "Param1",
+        "Param2",
+        "Param3",
+        "Param4"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "DeviceProps": {
+      "columns": [
+        "BioPhotoVersion",
+        "FaceTempVersion",
+        "FaceVersion",
+        "FingerTempVersion",
+        "FingerVersion",
+        "Id",
+        "IsBioPhoto",
+        "IsFace",
+        "IsFaceTemp",
+        "IsFinger",
+        "IsFingerTemp",
+        "IsPalm",
+        "PalmVersion",
+        "SerialNumber"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "DeviceSetting": {
+      "columns": [
+        "AutoConnectInStartUp",
+        "DeleteAfterReadAll",
+        "DeleteBeforeHours",
+        "DeleteBeforeHoursEnable",
+        "DeleteMoreCount",
+        "DeleteMoreEnable",
+        "DeleteSchedule",
+        "DownloadInterval",
+        "DownloadOnline",
+        "DownloadPhoto",
+        "DownloadPush",
+        "MachineNumber",
+        "OnlyNewRecords",
+        "TimeSyncSchedule",
+        "UseGeneralSettings"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "DeviceStatus": {
+      "columns": [
+        "DuplicateRecordsCount",
+        "LastDeleteBeforeTime",
+        "LastDeleteWasSuccess",
+        "LastOnlineRead",
+        "LastOnlineRecordTime",
+        "LastReadRecordsCount",
+        "LastReadedRecordTime",
+        "LastSuccessDeleteTime",
+        "LastSuccessReadFromTime",
+        "LastSuccessReadTime",
+        "LastSuccessReadToTime",
+        "LastTryDeleteTime",
+        "LastTryTime",
+        "LastTryWasSuccess",
+        "MachineNumber",
+        "PushLastRecordTime",
+        "PushLastStamp",
+        "PushLastTransactionTime",
+        "ReadRecordsCount",
+        "RecordsCount",
+        "SaveRecordsCount"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "DownloadRecordsLog": {
+      "columns": [
+        "ComputerName",
+        "Descriptions",
+        "DeviceDownloadEventType",
+        "EventID",
+        "EventTime",
+        "MachineIP",
+        "MachineNumber",
+        "RecordsCount",
+        "Success",
+        "UserID"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "DownloadTime": {
+      "columns": [
+        "DownloadTime1",
+        "DownloadTimeDevices",
+        "ID"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "DownloadTimeDevice": {
+      "columns": [
+        "DownloadTime",
+        "DownloadTimeID",
+        "MachineNumber"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "EditedValue": {
+      "columns": [
+        "BadgeNumber",
+        "EditValue",
+        "EditValueType",
+        "ForDate"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "EmpType": {
+      "columns": [
+        "EmpTypeID",
+        "EmpTypeName"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "EmpTypeLeave": {
+      "columns": [
+        "EmpTypeID",
+        "LeaveType",
+        "LeaveTypeID"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "Entities": {
+      "columns": [
+        "AllowValues",
+        "Areas",
+        "Calendars",
+        "Cards",
+        "CustomWorkflows",
+        "DailyLeaves",
+        "Deputies",
+        "DownloadRecordsLogs",
+        "DownloadTimeDevices",
+        "DownloadTimes",
+        "EditedValues",
+        "EmpTypeLeaves",
+        "HourlyLeaves",
+        "LeaveDescriptions",
+        "LeaveTypes",
+        "LeavesAddeds",
+        "Parameters",
+        "PersonnelDeputies",
+        "Positions",
+        "Ramezans",
+        "Records",
+        "ReportFilters",
+        "ReportTablixColumns",
+        "Reports",
+        "Requests",
+        "RestTimes",
+        "ShiftDetails",
+        "Shifts",
+        "SystemLogs",
+        "UserInfoManagers",
+        "UserPermissions",
+        "UserShifts",
+        "ValidLeaves",
+        "Workflows",
+        "YearRemains"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "ErrorLog": {
+      "columns": [
+        "Code",
+        "Id",
+        "Message"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "EvenetsLog": {
+      "columns": [
+        "Count",
+        "EventTime",
+        "EventType",
+        "FromDate",
+        "ID",
+        "IP",
+        "MachineNumber",
+        "Success",
+        "ToDate"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "FontSize": {
+      "columns": [
+        "BadgeNumber",
+        "FontSize"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "Gate": {
+      "columns": [
+        "GateID",
+        "GateName",
+        "UpperGateID"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "Ghadir1": {
+      "columns": [
+        "Clock_BDate",
+        "Clock_BRdrCode",
+        "Clock_BRecState",
+        "Clock_BTime",
+        "Clock_BarCode",
+        "Clock_Chg",
+        "Clock_Date",
+        "Clock_RdrCode",
+        "Clock_RecState",
+        "Clock_Time",
+        "Clock_User"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "HourlyLeave": {
+      "columns": [
+        "BadgeNumber",
+        "DescriptionID",
+        "Descriptions",
+        "FromTime",
+        "ID",
+        "LeaveDescription",
+        "LeaveID",
+        "LeaveType",
+        "ToTime"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "IntervalSchedule": {
+      "columns": [
+        "DayOfMonth",
+        "DayOfWeeks",
+        "DeleteOrTimeSync",
+        "FromTime",
+        "ID",
+        "MachineNumber",
+        "ScheduleDateType",
+        "ToTime"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "KeyCodeConvert": {
+      "columns": [
+        "KeyCode",
+        "MachineNumber",
+        "NewKeyCode"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "LeaveDescription": {
+      "columns": [
+        "DailyLeaves",
+        "DutyOrLeave",
+        "HourlyLeaves",
+        "ID",
+        "LeaveDescriptions"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "LeaveType": {
+      "columns": [
+        "Cards",
+        "Color",
+        "DailyLeaves",
+        "DecreaseFromLeaveID",
+        "DutyOrLeave",
+        "EachXHoursADay",
+        "EmpTypeLeaves",
+        "ForNextYear",
+        "ForNextYearSum",
+        "GetInType",
+        "Hourly",
+        "HourlyLeaves",
+        "LeaveID",
+        "LeaveName",
+        "LeavesAddeds",
+        "MaxDailyInMonth",
+        "MaxDailyInYear",
+        "MaxHoursInDay",
+        "MaxHoursInMonth",
+        "MaxMinus",
+        "OnlyOne",
+        "Parameter",
+        "ParameterID",
+        "Payment",
+        "StateKey",
+        "Symbol",
+        "ValidFreeOT",
+        "YearRemains"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "LeaveTypes": {
+      "columns": [
+        "AutoInHolidays",
+        "Color",
+        "DecreaseFromLeaveID",
+        "DutyOrLeave",
+        "EachXHoursADay",
+        "ForNextYear",
+        "ForNextYearSum",
+        "GetInHolidays",
+        "GetInType",
+        "Hourly",
+        "LeaveID",
+        "LeaveName",
+        "MaxDailyInMonth",
+        "MaxDailyInYear",
+        "MaxHoursInDay",
+        "MaxHoursInMonth",
+        "MaxMinus",
+        "OnlyOne",
+        "ParameterID",
+        "Payment",
+        "StateKey",
+        "Symbol",
+        "ValidFreeOT"
+      ],
+      "sources": [
+        "legacy TD5 SQL"
+      ]
+    },
+    "LeavesAdded": {
+      "columns": [
+        "AssignDate",
+        "BadgeNumber",
+        "DailyValue",
+        "Descriptions",
+        "DocumentNumber",
+        "ID",
+        "IsResell",
+        "LeaveType",
+        "LeaveTypeID"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "ManagerDevice": {
+      "columns": [
+        "DeviceNumber",
+        "ManagerID"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "Map": {
+      "columns": [
+        "ImageData",
+        "MapID",
+        "Name",
+        "UserID"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "MapDoor": {
+      "columns": [
+        "LeftPos",
+        "MachineNumber",
+        "MapID",
+        "TopPos"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "MyTimeToolbarItem": {
+      "columns": [
+        "BadgeNumber",
+        "ItemID"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "OperationLog": {
+      "columns": [
+        "BadgeNumber",
+        "DeviceSerialnumber",
+        "MachineNumber",
+        "OperationTime",
+        "OperationType",
+        "Param1",
+        "Param2",
+        "Param3",
+        "Param4"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "Option": {
+      "columns": [
+        "SettingsID",
+        "Value"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "Parameter": {
+      "columns": [
+        "Formula",
+        "IsSum",
+        "LeaveTypes",
+        "ParameterID",
+        "ParameterName",
+        "SumFormula",
+        "UniqueSymbol"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "PassCheckProps": {
+      "columns": [
+        "Badge",
+        "ID",
+        "LastChangeDate"
+      ],
+      "sources": [
+        "db/01-app-objects.sql"
+      ]
+    },
+    "PersonnelDeputy": {
+      "columns": [
+        "BadgeNumber",
+        "DeputyBadgeNumber"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "Position": {
+      "columns": [
+        "PositionID",
+        "PositionName"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "PositionStep": {
+      "columns": [
+        "Descriptions",
+        "Location",
+        "OperationIndex",
+        "OperationName",
+        "Photo",
+        "Position",
+        "PositionID",
+        "Required"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "PositionStepData": {
+      "columns": [
+        "CreateDate",
+        "Descriptions",
+        "ImageData",
+        "Latitude",
+        "Longitude",
+        "StepIndex",
+        "UserPositionData",
+        "UserPositionID"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "Property": {
+      "columns": [
+        "IsSearchFilter",
+        "PropertyID",
+        "PropertyName",
+        "PropertyType"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "PropertyDropdownValue": {
+      "columns": [
+        "DropdownValue",
+        "DropdownValueID",
+        "PropertyID"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "PushCommand": {
+      "columns": [
+        "CommandDescriptions",
+        "CommandID",
+        "CommandStr",
+        "CommandType",
+        "CreateTime",
+        "ID",
+        "MachineNumber",
+        "ResponseTime",
+        "Status"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "PushCommands": {
+      "columns": [
+        "CommandDescriptions",
+        "CommandId",
+        "CommandType",
+        "Id",
+        "MachineSerialNumber",
+        "ResponseTime",
+        "SendTime",
+        "Status"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "Ramezan": {
+      "columns": [
+        "FromDate",
+        "ID",
+        "Late192123",
+        "Late192123Value",
+        "ToDate",
+        "Year"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "Record": {
+      "columns": [
+        "BadgeNumber",
+        "CheckTime",
+        "CheckType",
+        "InsertTime",
+        "InsertUser",
+        "IsValid",
+        "MachineNumber",
+        "OriginalSCheckType",
+        "SourceType",
+        "VerifyMethod",
+        "WorkCode"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "RecordsLog": {
+      "columns": [
+        "BadgeNumber",
+        "CheckTime",
+        "CheckType",
+        "InsertTime",
+        "LastError",
+        "MachineNumber",
+        "ReadType",
+        "RetryTime",
+        "Transfered",
+        "VerifyMethod"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "RecordsLogData": {
+      "columns": [
+        "BadgeNumber",
+        "CheckTime",
+        "CheckType",
+        "InsertTime",
+        "LastError",
+        "MachineNumber",
+        "Read",
+        "ReadType",
+        "RetryTime",
+        "Transfered",
+        "VerifyMethod"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "RecordsLogInvalid": {
+      "columns": [
+        "BadgeNumber",
+        "CheckTime",
+        "CheckType",
+        "InsertTime",
+        "LastError",
+        "MachineNumber",
+        "ReadType",
+        "RetryTime",
+        "Transfered",
+        "VerifyMethod"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "RecordsLogTemp": {
+      "columns": [
+        "BadgeNumber",
+        "CheckTime",
+        "CheckType",
+        "InsertTime",
+        "LastError",
+        "MachineNumber",
+        "ReadType",
+        "RetryTime",
+        "Transfered",
+        "VerifyMethod"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "Report": {
+      "columns": [
+        "Footer",
+        "FooterHeight",
+        "Header",
+        "HeaderHeight",
+        "Height",
+        "IsSumReport",
+        "PageBreakColumn",
+        "ReportID",
+        "ReportName",
+        "RowColor",
+        "SortColumnID",
+        "SumRow",
+        "Width"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "ReportAccess": {
+      "columns": [
+        "Report",
+        "ReportID",
+        "TitleID"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "ReportChart": {
+      "columns": [
+        "CategoryName",
+        "CategoryValue",
+        "ChartID",
+        "ChartTitle",
+        "ChartType",
+        "Height",
+        "Left",
+        "LocationType",
+        "Report",
+        "ReportID",
+        "SeriName",
+        "SeriValue",
+        "Top",
+        "Width"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "ReportData": {
+      "columns": [
+        "ParameterID",
+        "ParameterType",
+        "Report",
+        "ReportDataID",
+        "ReportFilters",
+        "ReportID"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "ReportFilter": {
+      "columns": [
+        "FilterID",
+        "Operator",
+        "PassIfTrue",
+        "ReportData",
+        "ReportDataID",
+        "Value"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "ReportTablix": {
+      "columns": [
+        "Height",
+        "Left",
+        "LocationType",
+        "Report",
+        "ReportID",
+        "ReportTablixColumns",
+        "TablixID",
+        "Top",
+        "Width"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "ReportTablixColumn": {
+      "columns": [
+        "ColumnID",
+        "HeaderHeight",
+        "HeaderText",
+        "Height",
+        "ReportTablix",
+        "TablixID",
+        "ValueText",
+        "Width"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "ReportTextbox": {
+      "columns": [
+        "BorderStyle",
+        "Height",
+        "Left",
+        "LocationType",
+        "Report",
+        "ReportID",
+        "Text",
+        "TextboxID",
+        "Top",
+        "Width"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "Request": {
+      "columns": [
+        "BadgeNumber",
+        "CreateDate",
+        "Descriptions",
+        "ForDate",
+        "FromTime",
+        "ImageData",
+        "IsDaily",
+        "IsSuspend",
+        "Latitude",
+        "LeaveDescriptionID",
+        "LeaveID",
+        "Longitude",
+        "OverTimeAllowValue",
+        "OverTimeType",
+        "RecordTime",
+        "RequestID",
+        "ToTime",
+        "WofkflowType"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "RequestAccept": {
+      "columns": [
+        "AcceptDate",
+        "AccepterBadgeNumber",
+        "AccepterTitleID",
+        "IsCancel",
+        "IsDeputy",
+        "RequestID"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "RestTime": {
+      "columns": [
+        "FromTime",
+        "RestIndex",
+        "SchID",
+        "Schedule",
+        "ToTime"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "Rule": {
+      "columns": [
+        "ConstOTMaxDaily",
+        "ConstOTMaxMonhtly",
+        "EarlyMore",
+        "EarlyMoreMins",
+        "EarlyMoreMode",
+        "FreeOverTime",
+        "FreeOverTimeMax",
+        "LateMore",
+        "LateMoreMins",
+        "LateMoreMode",
+        "MaxBalanceDay",
+        "MinOverTimeInterval",
+        "OverTime",
+        "OverTimeAfter",
+        "OverTimeAfterMax",
+        "OverTimeBefore",
+        "OverTimeBeforeMax",
+        "OverTimeMax",
+        "ParamName",
+        "RecReqDailyLimit",
+        "RecReqMonthlyLimit",
+        "RuleID",
+        "WebTelorance",
+        "woIn",
+        "woInLateMins",
+        "woInMode",
+        "woOut",
+        "woOutEarlyMins",
+        "woOutMode"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "Schedule": {
+      "columns": [
+        "AfterI",
+        "BeforeI",
+        "Calendar",
+        "CalendarID",
+        "CheckIn",
+        "CheckInTime1",
+        "CheckInTime2",
+        "CheckOut",
+        "CheckOutTime1",
+        "CheckOutTime2",
+        "Color",
+        "EarlyMinutes",
+        "EndTime",
+        "FoodTimeFrom",
+        "FoodTimeTo",
+        "IntervalB",
+        "IntervalIn",
+        "LateMinutes",
+        "RamezanIn",
+        "RamezanOut",
+        "RestTime",
+        "RestTimes",
+        "Rule",
+        "RuleID",
+        "SchClassID",
+        "SchName",
+        "ScheduleID",
+        "ScheduleTime",
+        "ScheduleTimeOfDay",
+        "ScheduleTimeType",
+        "ShiftDetails",
+        "StartTime",
+        "Symbol",
+        "WorkDay",
+        "WorkMins"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql",
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "ScheduleDevice": {
+      "columns": [
+        "MachineNumber",
+        "ScheduleID",
+        "ScheduleType"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "SchedulerOptions": {
+      "columns": [
+        "DeleteEarlierRecords",
+        "DeleteRecordsAfterRead",
+        "DeleteRecordsEarlierThan",
+        "DeleteRecordsMore",
+        "DeleteRecordsMoreThan",
+        "DeleteSchedule",
+        "DeleteSchedulePeriod",
+        "MachineNumber",
+        "OnlineAttBroker",
+        "ReadSchedule",
+        "ReadSchedulePeriod",
+        "RecordsGapTime",
+        "TimeSync",
+        "TimeSyncPeriod"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "SchedulerSettings": {
+      "columns": [
+        "DeleteAfterRead",
+        "DeleteEarlier",
+        "DeleteEarlierThan",
+        "DeleteMore",
+        "DeleteMoreThan",
+        "DeleteSch",
+        "DeleteSchModel",
+        "MachineSerialNumber",
+        "OnlyNewRecords",
+        "ReadInTime",
+        "ReadOnline",
+        "RecordsGapTime",
+        "TimeOfRead",
+        "TimeSync",
+        "TimeSyncModel"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "Schedules": {
+      "columns": [
+        "Id",
+        "Name",
+        "Span"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "SelectedColumn": {
+      "columns": [
+        "DeviceDataType",
+        "FormatString",
+        "ID",
+        "TableColumnName"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "Shift": {
+      "columns": [
+        "Period",
+        "ShiftDetails",
+        "ShiftID",
+        "ShiftName",
+        "Unit",
+        "UserShifts",
+        "WeekEnds"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "ShiftDetail": {
+      "columns": [
+        "DayIndex",
+        "Schedule",
+        "ScheduleID",
+        "Shift",
+        "ShiftID"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "SystemLog": {
+      "columns": [
+        "ComputerName",
+        "Descriptions",
+        "EventID",
+        "EventTime",
+        "EventType",
+        "ID",
+        "OperationType",
+        "UserID"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql",
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "TempSchedule": {
+      "columns": [
+        "AssignDate",
+        "BadgeNumber",
+        "Schedule",
+        "ScheduleID"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "Template": {
+      "columns": [
+        "BadgeNumber",
+        "FingerIndex",
+        "Flags",
+        "IsFace",
+        "Len",
+        "PhotoFace",
+        "Template"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "TimeTable": {
+      "columns": [
+        "FriFrom",
+        "FriTo",
+        "MonFrom",
+        "MonTo",
+        "Name",
+        "SatFrom",
+        "SatTo",
+        "SunFrom",
+        "SunTo",
+        "ThFrom",
+        "ThTo",
+        "TimeTableID",
+        "TuFrom",
+        "TuTo",
+        "WedFrom",
+        "WedTo"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "TitlesChart": {
+      "columns": [
+        "Address",
+        "Certs",
+        "DisplayName",
+        "Duties",
+        "EmailAddress",
+        "Observer",
+        "TitleID",
+        "TitleName",
+        "UpperTitleID"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "User": {
+      "columns": [
+        "IsMainManager",
+        "LoginName",
+        "Password",
+        "UserID"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "UserAccess": {
+      "columns": [
+        "Access",
+        "AccessType",
+        "UserID"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "UserAlarm": {
+      "columns": [
+        "Alarm",
+        "AlarmID",
+        "AlarmType",
+        "Dismiss",
+        "EventTime",
+        "EventType",
+        "RefLink",
+        "UserID"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "UserBioData": {
+      "columns": [
+        "BioType",
+        "Content",
+        "Id",
+        "Index",
+        "No",
+        "Pin",
+        "Type",
+        "Version"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "UserDeptAccess": {
+      "columns": [
+        "DeptID",
+        "UserID"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "UserDeviceAccess": {
+      "columns": [
+        "Access",
+        "DeviceID",
+        "UserID"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "UserDeviceUpload": {
+      "columns": [
+        "BadgeNumber",
+        "IsUpload",
+        "MachineNumber"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "UserDeviceValid": {
+      "columns": [
+        "BadgeNumber",
+        "IsValid",
+        "MachineNumber"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "UserInfo": {
+      "columns": [
+        "Address",
+        "BadgeNumber",
+        "Birthday",
+        "CertificateID",
+        "DeptID",
+        "Descriptions",
+        "DeviceCardNo",
+        "DeviceEnable",
+        "DeviceName",
+        "DevicePass",
+        "DevicePriv",
+        "DeviceSerialNumber",
+        "DviceGroup",
+        "Email",
+        "EmpTypeID",
+        "EmployeeNumber",
+        "FatherName",
+        "FiredDate",
+        "FirstLogin",
+        "FirstName",
+        "Gender",
+        "HiredDate",
+        "Janbaz",
+        "LastName",
+        "NationalNo",
+        "Password",
+        "Phone",
+        "Photo",
+        "ProgramUser",
+        "UserName",
+        "VaccineBarcode",
+        "ValidFrom",
+        "ValidTo",
+        "WebUser"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql",
+        "legacy TD5 SQL"
+      ]
+    },
+    "UserInfoManager": {
+      "columns": [
+        "Access",
+        "ID",
+        "ManagerBadgeNumber",
+        "PersonnelBadgeNumber"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "UserInfoProperty": {
+      "columns": [
+        "BadgeNumber",
+        "DropDownValue",
+        "PropertyID",
+        "StringValue"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "UserInfoTitles": {
+      "columns": [
+        "BadgeNumber",
+        "FromDate",
+        "ID",
+        "TitleChartID",
+        "ToDate"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "UserInfoVaccinationDetails": {
+      "columns": [
+        "Id",
+        "NationalId",
+        "Pin",
+        "VaccinationAPICheckString"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "UserPermission": {
+      "columns": [
+        "AccessLevel",
+        "AccessType",
+        "BadgeNumber"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "UserPositionData": {
+      "columns": [
+        "BadgeNumber",
+        "CreateTime",
+        "ID",
+        "Position",
+        "PositionID"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "UserRule": {
+      "columns": [
+        "BadgeNumber",
+        "FromDate",
+        "Rule",
+        "RuleID",
+        "RuleType",
+        "ToDate",
+        "UserRuleID"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "UserRules": {
+      "columns": [
+        "BadgeNumber",
+        "FromDate",
+        "RuleID",
+        "RuleType",
+        "ToDate",
+        "UserRuleID"
+      ],
+      "sources": [
+        "legacy TD5 SQL"
+      ]
+    },
+    "UserShift": {
+      "columns": [
+        "BadgeNumber",
+        "EndDate",
+        "FromDate",
+        "Shift",
+        "ShiftID"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "VaccineLog": {
+      "columns": [
+        "BatchNumber",
+        "Country",
+        "FirstName",
+        "Id",
+        "LastName",
+        "NationalId",
+        "VaccineDate",
+        "VaccineId",
+        "VaccineTitle"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "ValidLeave": {
+      "columns": [
+        "BadgeNumber",
+        "Descriptions",
+        "FromDate",
+        "ID",
+        "ToDate",
+        "ValidHours"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "WebUser": {
+      "columns": [
+        "Id",
+        "Username"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "Workflow": {
+      "columns": [
+        "AccepterTitleID",
+        "LeaveTypeID",
+        "OrderIndex",
+        "TitleID",
+        "WorkflowType"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "YearRemain": {
+      "columns": [
+        "BadgeNumber",
+        "DailyValue",
+        "LeaveType",
+        "LeaveTypeID",
+        "Year"
+      ],
+      "sources": [
+        "T5V3.DB.dll EntityClasses"
+      ]
+    },
+    "sys": {
+      "columns": [
+        "databases",
+        "name"
+      ],
+      "sources": [
+        "legacy TD5 SQL"
+      ]
+    },
+    "test": {
+      "columns": [
+        "BadgeNumber",
+        "CheckTime",
+        "CheckType",
+        "SensorID"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "webpages_Membership": {
+      "columns": [
+        "ConfirmationToken",
+        "CreateDate",
+        "IsConfirmed",
+        "LastPasswordFailureDate",
+        "Password",
+        "PasswordChangedDate",
+        "PasswordFailuresSinceLastSuccess",
+        "PasswordSalt",
+        "PasswordVerificationToken",
+        "PasswordVerificationTokenExpirationDate",
+        "UserId"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "webpages_OAuthMembership": {
+      "columns": [
+        "Provider",
+        "ProviderUserId",
+        "UserId"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "webpages_Roles": {
+      "columns": [
+        "RoleId",
+        "RoleName"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    },
+    "webpages_UsersInRoles": {
+      "columns": [
+        "ActionNo",
+        "Active",
+        "ApproachType",
+        "CreateDate",
+        "DeviceSerialNumber",
+        "Id",
+        "MaximumOfValue",
+        "MinimumOfValue",
+        "MinutesToShowQueue",
+        "OpenDoor",
+        "PromptMessage",
+        "RequestType",
+        "RoleId",
+        "SaveRecord",
+        "SendTime",
+        "Sender",
+        "State",
+        "UserId",
+        "Value"
+      ],
+      "sources": [
+        "Link5 v4.0.4/*.sql"
+      ]
+    }
+  }
+}

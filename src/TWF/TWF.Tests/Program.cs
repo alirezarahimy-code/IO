@@ -88,6 +88,8 @@ namespace TWF.Tests
             RunTest("TEST-43: SchemaGuard Wiring (Startup Probe, Global Filter, Diagnostics View & Project)", TestSchemaGuardWiring);
             RunTest("TEST-44: Pinned Engine Enforcement (Pin File, Project HintPaths, Build Script)", TestPinnedEngineEnforcement);
             RunTest("TEST-45: Diagnostics Endpoints & Persian Failure Page (No Stack Traces Leaked)", TestDiagnosticsEndpoints);
+            RunTest("TEST-46: Schema Manifest Conformance (No Invented Tables/Columns in Hand-Written SQL)", TestSchemaManifestConformance);
+            RunTest("TEST-47: Evidence Rule (Guard May Only Block on Proven Objects)", TestGuardEvidenceRule);
 
             Console.WriteLine("----------------------------------------------------------------------");
             Console.WriteLine($"  Summary: {_passedTests} Passed, {_failedTests} Failed");
@@ -2666,17 +2668,44 @@ namespace TWF.Tests
                 "SchemaGuard must cover at least the 16 contracted tables, found " + contract.Count + ".");
             foreach (string required in new[]
             {
-                "Request", "RequestAccept", "Workflow", "DailyLeave", "HourlyLeave", "Record",
-                "OverTime", "Deputy", "PersonnelDeputy", "UserInfo", "Calendar", "LeaveTypes",
-                "UserRules", "DepartmentRules", "Area", "Position"
+                "Request", "RequestAccept", "Workflow", "HourlyLeave", "Record",
+                "Deputy", "PersonnelDeputy", "UserInfo", "UserInfoTitles", "TitlesChart",
+                "Department", "Calendar", "LeaveTypes", "UserRules", "DepartmentRules",
+                "Area", "Position", "PassCheckProps"
             })
             {
                 Assert(contract.ContainsKey(required), "SchemaGuard contract is missing table '" + required + "'.");
             }
 
+            // Objects without shipped evidence must never block start-up: they live in
+            // AdvisoryContract, which is reported but cannot make the portal incompatible.
+            foreach (string advisory in new[] { "DailyLeave", "OverTime" })
+            {
+                Assert(!contract.ContainsKey(advisory),
+                    "'" + advisory + "' has no schema evidence and must not block the portal.");
+                Assert(MyTime3.Security.SchemaGuard.AdvisoryContract.ContainsKey(advisory),
+                    "'" + advisory + "' must still be reported as an advisory.");
+            }
+
+            // Real column names, not the legacy view-model names (BUG: [Description],
+            // [NationalCode], [RequestDate] and [SubType] do not exist in T5).
+            Assert(contract["Request"].Contains("WofkflowType"),
+                "Request.WofkflowType is the real (misspelled) column; Aria must not rename it.");
+            Assert(contract["Request"].Contains("Descriptions"),
+                "Request.Descriptions is the real column name.");
+
             // 1. Full contract present -> compatible.
             var complete = new List<string>();
             foreach (var entry in contract)
+            {
+                complete.Add(entry.Key);
+                foreach (string column in entry.Value)
+                {
+                    complete.Add(entry.Key + "." + column);
+                }
+            }
+            // A healthy database also contains the advisory tables.
+            foreach (var entry in MyTime3.Security.SchemaGuard.AdvisoryContract)
             {
                 complete.Add(entry.Key);
                 foreach (string column in entry.Value)
@@ -2717,7 +2746,18 @@ namespace TWF.Tests
             Assert(!thrown.IsCompatible && !thrown.DatabaseReachable && thrown.Problems.Count > 0,
                 "A connect failure must be converted into a verdict, not propagated.");
 
-            // 5. Case sensitivity must not create false alarms (SQL Server is CI).
+            // 5. Advisories are reported yet never change the verdict.
+            Assert(ok.Advisories.Count == 0,
+                "A database that satisfies the whole contract must not report advisories.");
+
+            var withoutDailyLeave = new List<string>(complete.Where(x => x != "DailyLeave" && !x.StartsWith("DailyLeave.", StringComparison.OrdinalIgnoreCase)));
+            var advisoryOnly = MyTime3.Security.SchemaGuard.Evaluate(withoutDailyLeave);
+            Assert(advisoryOnly.IsCompatible,
+                "A missing advisory table must not block the portal.");
+            Assert(advisoryOnly.Advisories.Count == 1,
+                "The missing advisory table must still be reported (got " + advisoryOnly.Advisories.Count + ").");
+
+            // 6. Case sensitivity must not create false alarms (SQL Server is CI).
             var lower = complete.Select(x => x.ToLowerInvariant()).ToList();
             Assert(MyTime3.Security.SchemaGuard.Evaluate(lower).IsCompatible,
                 "Schema comparison must be case-insensitive like SQL Server's default collation.");
@@ -2846,6 +2886,83 @@ namespace TWF.Tests
                 "Recheck must force a fresh probe instead of returning the cached verdict.");
             Assert(controller.Contains("JsonRequestBehavior.AllowGet"),
                 "Health must be callable by a monitoring GET.");
+        }
+
+        /// <summary>
+        /// TEST-46 — The failure this feature exists for: hand-written SQL that names an
+        /// object the database does not have. It does not fail at build time, it fails at
+        /// 21:00 on a shift. The manifest + tools/verify-sql-schema.py catch it statically;
+        /// this test pins the four concrete regressions that were found and fixed.
+        /// </summary>
+        private static void TestSchemaManifestConformance()
+        {
+            string twfRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".."));
+            string manifestPath = Path.Combine(twfRoot, "db", "schema-manifest.json");
+            Assert(File.Exists(manifestPath),
+                "db/schema-manifest.json is missing; run tools/build-schema-manifest.py.");
+            string manifest = File.ReadAllText(manifestPath);
+
+            foreach (string table in new[]
+            {
+                "\"UserInfo\"", "\"Department\"", "\"TitlesChart\"", "\"Request\"",
+                "\"RequestAccept\"", "\"LeaveTypes\"", "\"Record\"", "\"Workflow\""
+            })
+            {
+                Assert(manifest.Contains(table), "schema manifest is missing table " + table + ".");
+            }
+            Assert(manifest.Contains("\"WofkflowType\""),
+                "The manifest must record the real (misspelled) Request column 'WofkflowType'.");
+            Assert(manifest.Contains("\"NationalNo\""),
+                "The manifest must record UserInfo.NationalNo.");
+
+            string repo = File.ReadAllText(Path.Combine(twfRoot, "TWF.Infrastructure", "Data", "TwfDataRepository.cs"));
+            foreach (string wrong in new[]
+            {
+                "[UserInfos]", "[Departments]", "u.[NationalCode]", "uit.[TitleID]",
+                "tc.[DepartmentID]", "[Description]", "[RequestDate]", "[RequestDuration]",
+                "[RequestState]", "[SubType]", "[AccepterDescription]", "[SenderBadgeNumber]",
+                "[SenderTitleID]"
+            })
+            {
+                Assert(!repo.Contains(wrong),
+                    "TwfDataRepository still references the non-existent identifier '" + wrong + "'.");
+            }
+
+            // The corrected join path: person -> UserInfoTitles -> TitlesChart -> Department.
+            Assert(repo.Contains("FROM [UserInfo] u") && repo.Contains("uit.[TitleChartID] = tc.[TitleID]"),
+                "The profile query must join UserInfoTitles via TitleChartID.");
+            Assert(repo.Contains("LEFT JOIN [Department] d ON u.[DeptID] = d.[DepartmentID]"),
+                "The profile query must resolve the department through UserInfo.DeptID.");
+            Assert(repo.Contains("FROM [RequestAccept]"),
+                "The request list must derive workflow state from RequestAccept rows.");
+        }
+
+        /// <summary>
+        /// TEST-47 — A guard that blocks on a guess is worse than no guard: it takes a
+        /// healthy system offline. Every blocking entry must be provable.
+        /// </summary>
+        private static void TestGuardEvidenceRule()
+        {
+            string twfRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".."));
+            string guard = File.ReadAllText(Path.Combine(twfRoot, "TWF.Web", "Security", "SchemaGuard.cs"));
+
+            int requiredAt = guard.IndexOf("IReadOnlyDictionary<string, string[]> Contract", StringComparison.Ordinal);
+            int advisoryAt = guard.IndexOf("AdvisoryContract", StringComparison.Ordinal);
+            Assert(requiredAt > 0 && advisoryAt > requiredAt,
+                "SchemaGuard must declare a required contract and a separate advisory contract.");
+
+            string requiredBlock = guard.Substring(requiredAt, advisoryAt - requiredAt);
+            foreach (string unproven in new[] { "\"DailyLeave\"", "\"OverTime\"" })
+            {
+                Assert(!requiredBlock.Contains(unproven),
+                    unproven + " has no schema evidence and must stay in AdvisoryContract.");
+            }
+
+            string tool = File.ReadAllText(Path.Combine(twfRoot, "tools", "verify-sql-schema.py"));
+            Assert(tool.Contains("def check_guard_contract"),
+                "tools/verify-sql-schema.py must verify the guard contract against the manifest.");
+            Assert(tool.Contains("AdvisoryContract"),
+                "The verifier must explain the required/advisory split when it fails.");
         }
 }
 }

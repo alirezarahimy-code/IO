@@ -30,6 +30,7 @@ namespace MyTime3.Controllers
             ViewBag.DatabaseReachable = result.DatabaseReachable;
             ViewBag.Message = result.Message;
             ViewBag.Problems = result.Problems;
+            ViewBag.Advisories = result.Advisories;
             ViewBag.CheckedAt = result.CheckedAt.ToString("yyyy/MM/dd HH:mm:ss");
             ViewBag.ContractTableCount = SchemaGuard.Contract.Count;
 
@@ -56,7 +57,8 @@ namespace MyTime3.Controllers
                     schemaCompatible = result != null && result.IsCompatible,
                     databaseReachable = result != null && result.DatabaseReachable,
                     checkedAt = result != null ? result.CheckedAt.ToString("s") : null,
-                    contractTables = SchemaGuard.Contract.Count
+                    contractTables = SchemaGuard.Contract.Count,
+                    advisories = result != null ? result.Advisories.Count : 0
                 },
                 JsonRequestBehavior.AllowGet);
         }
