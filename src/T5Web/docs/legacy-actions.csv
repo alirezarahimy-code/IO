@@ -212,44 +212,44 @@ Records,Show,new,Records.Index,
 RemainedLeavesReport,Calc,new,Reports.Index,
 RemainedLeavesReport,Index,new,Reports.Index,
 RemainedLeavesReport,ToExcel,new,Reports.Index,
-ReportDatas,Delete,drop,,بدون تصمیم ثبت‌شده
+ReportDatas,Delete,drop,,ویرایشگر گرافیکی گزارش در مرورگر (RDLC/Kendo)؛ قابل ایمن‌سازی و آزمون نیست؛ دسترسی به‌ازای گزارش با گیت ReportView جایگزین شد
 ReportDatas,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
-ReportDatas,Edit,drop,,بدون تصمیم ثبت‌شده
+ReportDatas,Edit,drop,,ویرایشگر گرافیکی گزارش در مرورگر (RDLC/Kendo)؛ قابل ایمن‌سازی و آزمون نیست؛ دسترسی به‌ازای گزارش با گیت ReportView جایگزین شد
 ReportDatas,GetByID,drop,,خواندن یک رکورد JSON برای فرم قدیمی؛ نماهای جدید سرور-رندر هستند
 ReportDatas,GetList,drop,,خواندن فهرست JSON برای گرید قدیمی؛ صفحه‌بندی سمت سرور جایگزین شد
-ReportDatas,Index,drop,,بدون تصمیم ثبت‌شده
-ReportDesign,Delete,drop,,بدون تصمیم ثبت‌شده
+ReportDatas,Index,drop,,ویرایشگر گرافیکی گزارش در مرورگر (RDLC/Kendo)؛ قابل ایمن‌سازی و آزمون نیست؛ دسترسی به‌ازای گزارش با گیت ReportView جایگزین شد
+ReportDesign,Delete,drop,,ویرایشگر گرافیکی گزارش در مرورگر (RDLC/Kendo)؛ قابل ایمن‌سازی و آزمون نیست؛ دسترسی به‌ازای گزارش با گیت ReportView جایگزین شد
 ReportDesign,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
-ReportDesign,Edit,drop,,بدون تصمیم ثبت‌شده
-ReportDesign,EditAccess,drop,,بدون تصمیم ثبت‌شده
+ReportDesign,Edit,drop,,ویرایشگر گرافیکی گزارش در مرورگر (RDLC/Kendo)؛ قابل ایمن‌سازی و آزمون نیست؛ دسترسی به‌ازای گزارش با گیت ReportView جایگزین شد
+ReportDesign,EditAccess,drop,,ویرایشگر گرافیکی گزارش در مرورگر (RDLC/Kendo)؛ قابل ایمن‌سازی و آزمون نیست؛ دسترسی به‌ازای گزارش با گیت ReportView جایگزین شد
 ReportDesign,GetByID,drop,,خواندن یک رکورد JSON برای فرم قدیمی؛ نماهای جدید سرور-رندر هستند
 ReportDesign,GetList,drop,,خواندن فهرست JSON برای گرید قدیمی؛ صفحه‌بندی سمت سرور جایگزین شد
-ReportDesign,GetTitlesTree,drop,,بدون تصمیم ثبت‌شده
-ReportDesign,Index,drop,,بدون تصمیم ثبت‌شده
-ReportFilter,Delete,drop,,بدون تصمیم ثبت‌شده
+ReportDesign,GetTitlesTree,drop,,ویرایشگر گرافیکی گزارش در مرورگر (RDLC/Kendo)؛ قابل ایمن‌سازی و آزمون نیست؛ دسترسی به‌ازای گزارش با گیت ReportView جایگزین شد
+ReportDesign,Index,drop,,ویرایشگر گرافیکی گزارش در مرورگر (RDLC/Kendo)؛ قابل ایمن‌سازی و آزمون نیست؛ دسترسی به‌ازای گزارش با گیت ReportView جایگزین شد
+ReportFilter,Delete,drop,,ویرایشگر گرافیکی گزارش در مرورگر (RDLC/Kendo)؛ قابل ایمن‌سازی و آزمون نیست؛ دسترسی به‌ازای گزارش با گیت ReportView جایگزین شد
 ReportFilter,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
-ReportFilter,Edit,drop,,بدون تصمیم ثبت‌شده
+ReportFilter,Edit,drop,,ویرایشگر گرافیکی گزارش در مرورگر (RDLC/Kendo)؛ قابل ایمن‌سازی و آزمون نیست؛ دسترسی به‌ازای گزارش با گیت ReportView جایگزین شد
 ReportFilter,GetByID,drop,,خواندن یک رکورد JSON برای فرم قدیمی؛ نماهای جدید سرور-رندر هستند
 ReportFilter,GetList,drop,,خواندن فهرست JSON برای گرید قدیمی؛ صفحه‌بندی سمت سرور جایگزین شد
-ReportFilter,Index,drop,,بدون تصمیم ثبت‌شده
-ReportTablix,Delete,drop,,بدون تصمیم ثبت‌شده
+ReportFilter,Index,drop,,ویرایشگر گرافیکی گزارش در مرورگر (RDLC/Kendo)؛ قابل ایمن‌سازی و آزمون نیست؛ دسترسی به‌ازای گزارش با گیت ReportView جایگزین شد
+ReportTablix,Delete,drop,,ویرایشگر گرافیکی گزارش در مرورگر (RDLC/Kendo)؛ قابل ایمن‌سازی و آزمون نیست؛ دسترسی به‌ازای گزارش با گیت ReportView جایگزین شد
 ReportTablix,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
-ReportTablix,Edit,drop,,بدون تصمیم ثبت‌شده
+ReportTablix,Edit,drop,,ویرایشگر گرافیکی گزارش در مرورگر (RDLC/Kendo)؛ قابل ایمن‌سازی و آزمون نیست؛ دسترسی به‌ازای گزارش با گیت ReportView جایگزین شد
 ReportTablix,GetByID,drop,,خواندن یک رکورد JSON برای فرم قدیمی؛ نماهای جدید سرور-رندر هستند
 ReportTablix,GetList,drop,,خواندن فهرست JSON برای گرید قدیمی؛ صفحه‌بندی سمت سرور جایگزین شد
-ReportTablix,Index,drop,,بدون تصمیم ثبت‌شده
-ReportTablixColumn,Delete,drop,,بدون تصمیم ثبت‌شده
+ReportTablix,Index,drop,,ویرایشگر گرافیکی گزارش در مرورگر (RDLC/Kendo)؛ قابل ایمن‌سازی و آزمون نیست؛ دسترسی به‌ازای گزارش با گیت ReportView جایگزین شد
+ReportTablixColumn,Delete,drop,,ویرایشگر گرافیکی گزارش در مرورگر (RDLC/Kendo)؛ قابل ایمن‌سازی و آزمون نیست؛ دسترسی به‌ازای گزارش با گیت ReportView جایگزین شد
 ReportTablixColumn,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
-ReportTablixColumn,Edit,drop,,بدون تصمیم ثبت‌شده
+ReportTablixColumn,Edit,drop,,ویرایشگر گرافیکی گزارش در مرورگر (RDLC/Kendo)؛ قابل ایمن‌سازی و آزمون نیست؛ دسترسی به‌ازای گزارش با گیت ReportView جایگزین شد
 ReportTablixColumn,GetByID,drop,,خواندن یک رکورد JSON برای فرم قدیمی؛ نماهای جدید سرور-رندر هستند
 ReportTablixColumn,GetList,drop,,خواندن فهرست JSON برای گرید قدیمی؛ صفحه‌بندی سمت سرور جایگزین شد
-ReportTablixColumn,Index,drop,,بدون تصمیم ثبت‌شده
-ReportTextbox,Delete,drop,,بدون تصمیم ثبت‌شده
+ReportTablixColumn,Index,drop,,ویرایشگر گرافیکی گزارش در مرورگر (RDLC/Kendo)؛ قابل ایمن‌سازی و آزمون نیست؛ دسترسی به‌ازای گزارش با گیت ReportView جایگزین شد
+ReportTextbox,Delete,drop,,ویرایشگر گرافیکی گزارش در مرورگر (RDLC/Kendo)؛ قابل ایمن‌سازی و آزمون نیست؛ دسترسی به‌ازای گزارش با گیت ReportView جایگزین شد
 ReportTextbox,DeleteAll,drop,,حذف گروهی بی‌ردپا مجاز نیست؛ در پورتال هر حذف یک سطر حسابرسی دارد
-ReportTextbox,Edit,drop,,بدون تصمیم ثبت‌شده
+ReportTextbox,Edit,drop,,ویرایشگر گرافیکی گزارش در مرورگر (RDLC/Kendo)؛ قابل ایمن‌سازی و آزمون نیست؛ دسترسی به‌ازای گزارش با گیت ReportView جایگزین شد
 ReportTextbox,GetByID,drop,,خواندن یک رکورد JSON برای فرم قدیمی؛ نماهای جدید سرور-رندر هستند
 ReportTextbox,GetList,drop,,خواندن فهرست JSON برای گرید قدیمی؛ صفحه‌بندی سمت سرور جایگزین شد
-ReportTextbox,Index,drop,,بدون تصمیم ثبت‌شده
+ReportTextbox,Index,drop,,ویرایشگر گرافیکی گزارش در مرورگر (RDLC/Kendo)؛ قابل ایمن‌سازی و آزمون نیست؛ دسترسی به‌ازای گزارش با گیت ReportView جایگزین شد
 ReportTitles,EditAccess,drop,,دسترسی گزارش به‌ازای عنوان (جدول ReportAccess بدون شاهد نوع) با گیت قابلیت ReportView جایگزین شد
 ReportTitles,GetByID,drop,,خواندن یک رکورد JSON برای فرم قدیمی؛ نماهای جدید سرور-رندر هستند
 ReportTitles,GetDepartmentsTree,drop,,دسترسی گزارش به‌ازای عنوان (جدول ReportAccess بدون شاهد نوع) با گیت قابلیت ReportView جایگزین شد

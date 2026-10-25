@@ -117,3 +117,7 @@ cd src/TWF && python3 -m http.server 8080 --bind 0.0.0.0
 
 هر دو برنامه فقط پایگاه‌داده را شریک هستند و به یک بیلد موتور مقیدند
 (`engine/engine-pin.json`). قرارداد مشترک: `docs/02-shared-database-contract.md` (بندهای R12–R14).
+
+---
+
+**ممیزی:** نتیجه مقایسه آریا با T5Web و با منبع در `docs/rewrite-audit-aria-vs-t5web.md` (ریشه مخزن) آمده است — شامل شکاف‌های شناخته‌شده (CSRF، CSP، مدل رابطه، دستور دوکاتالوگی).
