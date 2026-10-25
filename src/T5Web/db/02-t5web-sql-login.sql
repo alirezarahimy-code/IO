@@ -69,56 +69,49 @@ GRANT SELECT ON SCHEMA::dbo TO [t5web_app];
 GO
 
 /* Writes: only the tables a generic module can edit (generated from ModuleRegistry,
-   catalog t5). Nothing else in this catalog is writable by the portal login. */
-GRANT SELECT, INSERT, UPDATE, DELETE ON
-    OBJECT::dbo.AllowValue,
-    OBJECT::dbo.Area,
-    OBJECT::dbo.AreaPoint TO [t5web_app];
+   catalog t5). One statement per table on purpose: `GRANT ... ON OBJECT::a, OBJECT::b`
+   is a syntax error (Msg 102) that takes the whole batch down with it. It was written
+   that way until a CI job finally ran these scripts with -b and reported "Incorrect
+   syntax near ','" - the grants had never executed anywhere (BUG-36). */
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.AllowValue TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.Area TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.AreaPoint TO [t5web_app];
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON
-    OBJECT::dbo.Calendar,
-    OBJECT::dbo.CalendarHoliday,
-    OBJECT::dbo.CustomWorkflow TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.Calendar TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.CalendarHoliday TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.CustomWorkflow TO [t5web_app];
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON
-    OBJECT::dbo.DailyLeaf,
-    OBJECT::dbo.DepartmentRule,
-    OBJECT::dbo.Deputy TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.DailyLeaf TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.DepartmentRule TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.Deputy TO [t5web_app];
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON
-    OBJECT::dbo.HourlyLeave,
-    OBJECT::dbo.LeaveDescription,
-    OBJECT::dbo.LeaveType TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.HourlyLeave TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.LeaveDescription TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.LeaveType TO [t5web_app];
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON
-    OBJECT::dbo.LeavesAdded,
-    OBJECT::dbo.Parameter,
-    OBJECT::dbo.PersonnelDeputy TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.LeavesAdded TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.Parameter TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.PersonnelDeputy TO [t5web_app];
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON
-    OBJECT::dbo.Position,
-    OBJECT::dbo.PositionStep,
-    OBJECT::dbo.Ramezan TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.Position TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.PositionStep TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.Ramezan TO [t5web_app];
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON
-    OBJECT::dbo.ReportAccess,
-    OBJECT::dbo.Rule,
-    OBJECT::dbo.Schedule TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.ReportAccess TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.Rule TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.Schedule TO [t5web_app];
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON
-    OBJECT::dbo.Shift,
-    OBJECT::dbo.TempSchedule,
-    OBJECT::dbo.UserInfoManager TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.Shift TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.TempSchedule TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.UserInfoManager TO [t5web_app];
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON
-    OBJECT::dbo.UserPermission,
-    OBJECT::dbo.UserPositionData,
-    OBJECT::dbo.UserRule TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.UserPermission TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.UserPositionData TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.UserRule TO [t5web_app];
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON
-    OBJECT::dbo.UserShift,
-    OBJECT::dbo.ValidLeave,
-    OBJECT::dbo.YearRemain TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.UserShift TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.ValidLeave TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.YearRemain TO [t5web_app];
 GO
 
 GRANT SELECT, INSERT, UPDATE ON OBJECT::dbo.T5WebAccess TO [t5web_app];
@@ -172,25 +165,21 @@ GRANT SELECT ON SCHEMA::dbo TO [t5web_app];
 GO
 
 /* Writes: the base-data modules that live in this catalog (catalog personnel). */
-GRANT SELECT, INSERT, UPDATE, DELETE ON
-    OBJECT::dbo.Certificate,
-    OBJECT::dbo.Dashboard,
-    OBJECT::dbo.DeviceMessage TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.Certificate TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.Dashboard TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.DeviceMessage TO [t5web_app];
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON
-    OBJECT::dbo.EmpType,
-    OBJECT::dbo.Gate,
-    OBJECT::dbo.ManagerDevice TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.EmpType TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.Gate TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.ManagerDevice TO [t5web_app];
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON
-    OBJECT::dbo.Property,
-    OBJECT::dbo.PropertyDropdownValue,
-    OBJECT::dbo.TitlesChart TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.Property TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.PropertyDropdownValue TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.TitlesChart TO [t5web_app];
 
-GRANT SELECT, INSERT, UPDATE, DELETE ON
-    OBJECT::dbo.UserInfoProperty,
-    OBJECT::dbo.UserInfoTitles,
-    OBJECT::dbo.UserInfoVaccinationDetails TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.UserInfoProperty TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.UserInfoTitles TO [t5web_app];
+GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.UserInfoVaccinationDetails TO [t5web_app];
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON
     OBJECT::dbo.VaccineLog TO [t5web_app];

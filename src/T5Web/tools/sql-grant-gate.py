@@ -51,6 +51,34 @@ def module_writes():
     return writes
 
 
+class GrantSyntaxProblem(Exception):
+    pass
+
+
+def multi_object_grants(text):
+    """GRANT statements whose ON clause lists more than one securable.
+
+    T-SQL takes exactly one securable per GRANT: `GRANT SELECT ON OBJECT::a, OBJECT::b`
+    is Msg 102 ("Incorrect syntax near ','"), and it takes the whole batch with it, so
+    *none* of the grants in that file run. This file was written that way, and no test
+    noticed because the database job called sqlcmd without -b: a syntax error exited 0.
+    Found by the IIS job, which needed the grants to actually work (BUG-36).
+    """
+    # Comments are prose, not T-SQL: this file *quotes* the broken form in a comment, and
+    # a gate that cannot tell a quotation from a statement is a gate nobody trusts.
+    text = re.sub(r"/\*.*?\*/", " ", text, flags=re.S)
+    text = re.sub(r"--[^\n]*", " ", text)
+
+    problems = []
+    for match in re.finditer(r"GRANT\s+[^;]*?\bON\b([^;]*?)\bTO\b", text, re.I | re.S):
+        securables = re.findall(r"OBJECT::[\w\.]+|SCHEMA::\w+", match.group(1))
+        if len(securables) > 1:
+            problems.append("one GRANT lists %d objects (%s ...); T-SQL accepts one and "
+                            "answers Msg 102 for the rest, which silently cancels every grant "
+                            "in the batch" % (len(securables), ", ".join(securables[:3])))
+    return problems
+
+
 def granted():
     with open(GRANTS, encoding="utf-8") as handle:
         text = handle.read()
@@ -78,7 +106,7 @@ def catalog_of(database_name):
 def main():
     problems = []
     writes = module_writes()
-    sections, _ = granted()
+    sections, text = granted()
 
     if not writes:
         problems.append("no writable module found - the registry parser is broken")
@@ -119,6 +147,9 @@ def main():
                 problems.append("%s is granted under USE [%s] but lives in catalog %s"
                                 % (table, database, owner))
 
+    for problem in multi_object_grants(text):
+        problems.append(problem)
+
     if problems:
         print("FAIL: grants do not match what the modules write")
         for problem in sorted(set(problems)):
@@ -132,4 +163,14 @@ def main():
 
 
 if __name__ == "__main__":
+    if "--self-test" in sys.argv:
+        bad = ("GRANT SELECT, INSERT ON\n    OBJECT::dbo.A,\n    OBJECT::dbo.B TO [x];")
+        good = "GRANT SELECT ON OBJECT::dbo.A TO [x];\nGRANT SELECT ON OBJECT::dbo.B TO [x];"
+        # A comment quoting the bad form must not trip the gate.
+        quoted = "-- GRANT ON OBJECT::a, OBJECT::b is invalid\nGRANT SELECT ON OBJECT::dbo.A TO [x];"
+        ok = (len(multi_object_grants(bad)) == 1
+              and not multi_object_grants(good)
+              and not multi_object_grants(quoted))
+        print("OK: the single-securable guard behaves" if ok else "FAIL: the guard does not detect a multi-object GRANT")
+        sys.exit(0 if ok else 1)
     sys.exit(main())

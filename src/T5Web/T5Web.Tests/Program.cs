@@ -65,6 +65,7 @@ namespace T5Web.Tests
             RunTest("T35: executable SQL (synthetic schema from the model, smoke extractor, CI wiring)", TestExecutableSql);
             RunTest("T36: two catalogs (verify.sql names them, the login exists in both, grants match the modules)", TestTwoCatalogInstall);
             RunTest("T37: what only a real IIS can show (x86 engine, 32-bit pool, no duplicate config keys)", TestWebHostSettings);
+            RunTest("T38: the grants are valid T-SQL and the job that runs them reads the exit code", TestGrantStatementsExecute);
 
             Console.WriteLine("----------------------------------------------------------------------");
             Console.WriteLine($"  Summary: {_passed} Passed, {_failed} Failed");
@@ -3021,6 +3022,56 @@ namespace T5Web.Tests
             Assert(workflow.Contains("4-verify-install.ps1"),
                 "the Windows workflow must run the acceptance checklist, or the script itself "
                 + "is never executed anywhere.");
+        }
+
+        /// <summary>
+        /// T38 - the grant statements have to be executable SQL (BUG-36).
+        ///
+        /// db/02 wrote `GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::dbo.AllowValue,
+        /// OBJECT::dbo.Area, ... TO [t5web_admin]`. T-SQL takes one securable per GRANT,
+        /// so that is Msg 102 - and because it was one batch, every grant in the file was
+        /// cancelled while the portal still had SELECT on the schema and looked healthy
+        /// until the first edit. Nobody noticed for the same reason: the database job
+        /// called sqlcmd without -b, which exits 0 on a syntax error. Two things kept a
+        /// customer from finding this instead of us.
+        /// </summary>
+        private static void TestGrantStatementsExecute()
+        {
+            string grants = File.ReadAllText(Path.Combine(T5WebRoot, "db", "02-t5web-sql-login.sql"));
+
+            // Strip comments: the file quotes the broken form to explain it.
+            string code = System.Text.RegularExpressions.Regex.Replace(
+                grants, @"(?s)/\*.*?\*/", " ");
+            code = System.Text.RegularExpressions.Regex.Replace(code, @"--[^\n]*", " ");
+
+            var multi = new List<string>();
+            foreach (System.Text.RegularExpressions.Match match in
+                     System.Text.RegularExpressions.Regex.Matches(
+                         code, @"GRANT\s+[^;]*?\bON\b([^;]*?)\bTO\b",
+                         System.Text.RegularExpressions.RegexOptions.IgnoreCase
+                         | System.Text.RegularExpressions.RegexOptions.Singleline))
+            {
+                var securables = System.Text.RegularExpressions.Regex.Matches(
+                    match.Groups[1].Value, @"(OBJECT|SCHEMA|DATABASE)::?[\w\.]*");
+                if (securables.Count > 1)
+                {
+                    multi.Add(match.Value.Trim());
+                }
+            }
+            Assert(multi.Count == 0,
+                "a GRANT lists more than one securable, which is Msg 102 and cancels every grant "
+                + "in the batch: " + (multi.Count > 0 ? multi[0] : string.Empty));
+
+            string workflow = File.ReadAllText(
+                Path.GetFullPath(Path.Combine(T5WebRoot, "..", "..", ".github", "workflows", "windows-build.yml")));
+            Assert(workflow.Contains("sqlcmd") && workflow.Contains("-b"),
+                "every sqlcmd invocation in the Windows job must pass -b: without it a syntax error "
+                + "exits 0 and the job reports success for a script that never ran (BUG-36).");
+
+            string verify = File.ReadAllText(Path.Combine(T5WebRoot, "db", "verify.sql"));
+            Assert(verify.Contains("t5web_app"),
+                "verify.sql must ask for the append-only policy on the role [t5web_app]; asking for a "
+                + "DENY addressed to one login reports MISSING on a correct install.");
         }
 
         private static void TestNoLockDependency()

@@ -562,7 +562,9 @@ jobs:
         run: |
           function Invoke-SqlScript([string]$path, [string]$database) {
             Write-Host "--- $path"
-            $out = sqlcmd -S "(localdb)\T5Web" -E -i $path -d $database -f 65001 2>&1
+            # -b: without it sqlcmd exits 0 on a syntax error, and this job reported
+            # "success" for a file whose every GRANT was rejected (BUG-36).
+            $out = sqlcmd -S "(localdb)\T5Web" -E -b -i $path -d $database -f 65001 2>&1
             $code = $LASTEXITCODE
             $out | Write-Host
             if ($code -ne 0) {
