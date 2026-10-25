@@ -526,15 +526,21 @@ jobs:
           }
 
           # A parent to move something into: the fixture's own department is a root, so
-          # moving it to "no parent" would change nothing and prove nothing.
-          Sql "IF NOT EXISTS (SELECT 1 FROM [dbo].[Department] WHERE [DepartmentName] = N'والد آزمایشی')
+          # moving it to "no parent" would change nothing and prove nothing. The name is
+          # ASCII on purpose - sqlcmd hands -Q to the server in the console code page, and
+          # this step must fail for permission reasons, never for encoding ones.
+          $temp = 'CI-VERIFY-PARENT'
+          $seeded = Sql "IF NOT EXISTS (SELECT 1 FROM [dbo].[Department] WHERE [DepartmentName] = N'$temp')
                  INSERT INTO [dbo].[Department] ([DepartmentName], [Name], [UpperDeptID])
-                     VALUES (N'والد آزمایشی', N'والد آزمایشی', 0);" | Out-Null
-          $parent = Sql "SELECT [DepartmentID] FROM [dbo].[Department] WHERE [DepartmentName] = N'والد آزمایشی'"
-          $child  = Sql "SELECT TOP 1 [DepartmentID] FROM [dbo].[Department] WHERE [DepartmentName] = N'واحد آزمون'"
+                     VALUES (N'$temp', N'$temp', 0);
+               SELECT [DepartmentID] FROM [dbo].[Department] WHERE [DepartmentName] = N'$temp';"
+          Write-Host "  seeded parent: $seeded"
+          $parent = ($seeded -split ' ' | Where-Object { $_ -match '^\d+$' } | Select-Object -Last 1)
+          $child  = Sql "SELECT TOP 1 [DepartmentID] FROM [dbo].[Department] WHERE ISNULL([UpperDeptID], 0) = 0 AND [DepartmentName] <> N'$temp' ORDER BY [DepartmentID]"
           if ($parent -notmatch '^\d+$' -or $child -notmatch '^\d+$') {
-            Fail "could not find the two departments to move (parent='$parent', child='$child')"
+            Fail "could not find the two departments to move (parent='$parent', child='$child', seeded='$seeded')"
           }
+          Write-Host "  parent=$parent child=$child"
           if ((Sql "SELECT ISNULL([UpperDeptID], 0) FROM [dbo].[Department] WHERE [DepartmentID] = $child") -ne '0') {
             Fail "the fixture department starts under a parent, so this test cannot tell a move from a no-op"
           }
