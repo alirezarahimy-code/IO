@@ -38,16 +38,27 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
+      # Every claim about "which version this was proven on" comes from here, printed by
+      # the machine that ran it. The numbers in the docs are these numbers, not memory.
       - name: Show toolchain
         shell: pwsh
         run: |
           $msbuild = (Get-Command msbuild -ErrorAction SilentlyContinue).Source
           $sqlcmd  = (Get-Command sqlcmd  -ErrorAction SilentlyContinue).Source
-          Write-Host "MSBuild : $msbuild"
-          Write-Host "sqlcmd  : $sqlcmd"
-          Write-Host "python  : $((Get-Command python -ErrorAction SilentlyContinue).Source)"
+          Write-Host "OS       : $((Get-CimInstance Win32_OperatingSystem).Caption) $((Get-CimInstance Win32_OperatingSystem).Version)"
+          Write-Host "MSBuild  : $msbuild"
+          Write-Host "sqlcmd   : $sqlcmd"
+          Write-Host "python   : $((Get-Command python -ErrorAction SilentlyContinue).Source)"
           if (-not $msbuild) { Write-Host '::error::MSBuild is not on PATH' ; exit 1 }
           msbuild -version
+
+          # .NET Framework 4.x "release" key -> the version the compiler actually targets.
+          $release = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full' -ErrorAction SilentlyContinue).Release
+          $map = @{ 533320 = '4.8.1'; 528040 = '4.8'; 461808 = '4.7.2'; 460798 = '4.7'; 394802 = '4.6.2' }
+          $framework = ($map.Keys | Where-Object { $release -ge $_ } | Sort-Object -Descending |
+                        Select-Object -First 1)
+          Write-Host ("NET FX   : release {0} = .NET Framework {1} (the projects target 4.7.2)" -f $release, $map[$framework])
+          if ($release -lt 461808) { Write-Host '::error::.NET Framework 4.7.2 or newer is required and this runner has less' ; exit 1 }
 
       # The static gates run on Linux too; running them here proves they do not depend on
       # the developer machine. dnfile is needed by the engine-metadata gates.
@@ -246,6 +257,29 @@ jobs:
           sqlcmd -S $env:T5_SERVER -E -b -i src/T5Web/db/04-grant-app-pool-login.sql -d master `
                  -v 'AppPoolLogin="IIS APPPOOL\T5WebAdmin"'
           if ($LASTEXITCODE -ne 0) { Write-Host '::error::db/04-grant-app-pool-login.sql failed'; exit 1 }
+
+      - name: Show the web server versions
+        shell: powershell
+        run: |
+          $iis = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\InetStp' -ErrorAction SilentlyContinue)
+          $os = Get-CimInstance Win32_OperatingSystem
+          Write-Host ("  OS       : {0} {1}" -f $os.Caption, $os.Version)
+          Write-Host ("  IIS      : {0}.{1} (build {2})" -f $iis.MajorVersion, $iis.MinorVersion, $iis.MajorVersion*10 + $iis.MinorVersion)
+          Import-Module WebAdministration
+          $pool = Get-ItemProperty 'IIS:\AppPools\T5WebAdmin' -ErrorAction SilentlyContinue
+          if ($pool) {
+            Write-Host ("  app pool : managedRuntime={0} enable32Bit={1} identity={2}" -f `
+                        $pool.managedRuntimeVersion, $pool.enable32BitAppOnWin64, $pool.processModel.identityType)
+            if ($pool.enable32BitAppOnWin64 -ne $true) {
+              Write-Host '::error::the app pool is not 32-bit, so the engine assemblies (x86) cannot load (BUG-34)'
+              exit 1
+            }
+          } else {
+            Write-Host '::error::app pool T5WebAdmin does not exist yet'
+            exit 1
+          }
+          $net = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full').Release
+          Write-Host "  NET FX   : release $net"
 
       - name: The app pool is the one the runbook describes
         shell: powershell
@@ -653,6 +687,33 @@ jobs:
           sqllocaldb info T5Web
           sqlcmd -S "(localdb)\T5Web" -E -Q "SELECT @@VERSION" -h -1 -W
           if ($LASTEXITCODE -ne 0) { throw "LocalDB did not start" }
+
+      # The runbook promises "SQL Server 2016 or newer". This is where that promise is
+      # checked instead of assumed: product version, edition and compatibility level,
+      # read from the engine itself.
+      - name: Show the SQL Server version
+        shell: pwsh
+        run: |
+          $q = @"
+          SET NOCOUNT ON;
+          SELECT CONCAT('product=', CONVERT(varchar(30), SERVERPROPERTY('ProductVersion')),
+                        '|level=',   CONVERT(varchar(10), SERVERPROPERTY('ProductLevel')),
+                        '|edition=', CONVERT(varchar(60), SERVERPROPERTY('Edition')),
+                        '|engine=',  CONVERT(varchar(10), SERVERPROPERTY('EngineEdition')),
+                        '|major=',   CONVERT(varchar(10), SERVERPROPERTY('ProductMajorVersion')));
+          SELECT CONCAT('version=', @@VERSION);
+          SELECT CONCAT('compat=', CONVERT(varchar(10), compatibility_level)) FROM sys.databases WHERE name = 'master';
+          "@
+          $out = (sqlcmd -S '(localdb)\T5Web' -E -b -h -1 -W -Q $q 2>&1) -join ' '
+          Write-Host "  $out"
+          $major = [int]([regex]::Match($out, 'major=(\d+)').Groups[1].Value)
+          if (-not $major) { Write-Host '::error::could not read the SQL Server major version' ; exit 1 }
+          if ($major -lt 13) {
+            Write-Host "::error::SQL Server $major is older than 2016 (13.x); the runbook requires 2016 or newer"
+            exit 1
+          }
+          $name = @{ 13 = '2016'; 14 = '2017'; 15 = '2019'; 16 = '2022'; 17 = '2025' }[[int]$major]
+          Write-Host "  PASS: SQL Server $major ($name) - the runbook's floor is 2016 (13.x)"
 
       # An empty engine schema would make every script here meaningless, so the fixture is
       # generated from engine/column-types.json - the same model the build gates use.
