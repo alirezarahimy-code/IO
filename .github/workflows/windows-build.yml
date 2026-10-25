@@ -43,23 +43,38 @@ jobs:
         run: |
           $msbuild = (Get-Command msbuild -ErrorAction SilentlyContinue).Source
           $sqlcmd  = (Get-Command sqlcmd  -ErrorAction SilentlyContinue).Source
-          Write-Host "MSBuild : $msbuild"
-          Write-Host "sqlcmd  : $sqlcmd"
-          Write-Host "python  : $((Get-Command python -ErrorAction SilentlyContinue).Source)"
+          "MSBuild : $msbuild" | Tee-Object -FilePath diag.txt
+          "sqlcmd  : $sqlcmd"  | Tee-Object -FilePath diag.txt -Append
+          "python  : $((Get-Command python -ErrorAction SilentlyContinue).Source)" |
+              Tee-Object -FilePath diag.txt -Append
           if (-not $msbuild) { Write-Host '::error::MSBuild is not on PATH' ; exit 1 }
-          msbuild -version
+          msbuild -version | Tee-Object -FilePath diag.txt -Append
 
-          # MSBuild keeps answering "OutputPath is not set" for projects that clearly
-          # declare one, so print what the evaluated properties really are. A missing
-          # value here is the difference between a bad project file and a bad invocation.
-          # Job logs live in blob storage that cannot be read from here, so the
-          # diagnostic is emitted as annotations (::error::), which can.
-          $project = 'src/T5Web/T5Web.Domain/T5Web.Domain.csproj'
-          foreach ($line in (Get-Content $project -TotalCount 5)) { Write-Host "::error::head| $line" }
-          foreach ($line in (Get-Content $project -Tail 4)) { Write-Host "::error::tail| $line" }
-          $props = msbuild $project -p:Configuration=Release -getProperty:Configuration `
-                     -getProperty:Platform -getProperty:OutputPath -getProperty:BaseOutputPath 2>&1
-          foreach ($line in $props) { Write-Host "::error::prop| $line" }
+          # Why is OutputPath "not set" for a project that declares it three times?
+          # Evaluate it with the MSBuild API itself and write the answer to diag.txt,
+          # which is uploaded as an artifact - job logs are not readable from here.
+          $bin = Split-Path $msbuild -Parent
+          Add-Type -Path (Join-Path $bin 'Microsoft.Build.dll') -ErrorAction SilentlyContinue
+          $project = (Resolve-Path 'src/T5Web/T5Web.Domain/T5Web.Domain.csproj').Path
+          $collection = New-Object Microsoft.Build.Evaluation.ProjectCollection
+          $loaded = $collection.LoadProject($project)
+          foreach ($name in 'Configuration', 'Platform', 'OutputPath', 'BaseOutputPath',
+                            'TargetFrameworkVersion', 'ToolsVersion') {
+            "$name = [$($loaded.GetPropertyValue($name))]" |
+                Tee-Object -FilePath diag.txt -Append
+          }
+          "all properties containing Output: " + (($loaded.AllEvaluatedProperties |
+              Where-Object { $_.Name -like '*OutputPath*' } |
+              ForEach-Object { "$($_.Name)=$($_.EvaluatedValue)" }) -join '; ') |
+              Tee-Object -FilePath diag.txt -Append
+
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnostics
+          path: diag.txt
+          retention-days: 3
 
       # The static gates run on Linux too; running them here proves they do not depend on
       # the developer machine. dnfile is needed by the engine-metadata gates.
