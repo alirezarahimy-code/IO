@@ -3227,6 +3227,28 @@ namespace T5Web.Tests
             string[] views = Directory.GetFiles(viewsRoot, "*.cshtml", SearchOption.AllDirectories);
             Assert(views.Length > 25, "expected the whole view tree, found " + views.Length + " files.");
 
+            // Encoding first: a Persian view without a BOM is compiled by IIS in the
+            // machine's ANSI code page, and a quote character then breaks the C# that
+            // Razor generates (BUG-42). Parsing it correctly from here would prove
+            // nothing about what the server does.
+            var noBom = new List<string>();
+            foreach (string view in views)
+            {
+                byte[] head = new byte[3];
+                using (var stream = File.OpenRead(view))
+                {
+                    if (stream.Read(head, 0, 3) < 3) { continue; }
+                }
+                bool bom = head[0] == 0xEF && head[1] == 0xBB && head[2] == 0xBF;
+                if (!bom)
+                {
+                    noBom.Add(view.Substring(viewsRoot.Length).Replace('\\', '/'));
+                }
+            }
+            Assert(noBom.Count == 0,
+                "these views have no UTF-8 BOM, so IIS compiles them in the ANSI code page (BUG-42): "
+                + string.Join(", ", noBom.Take(5)));
+
             var problems = new List<string>();
             foreach (string view in views)
             {

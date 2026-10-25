@@ -513,6 +513,10 @@ jobs:
 
       # The pool identity is what SQL Server sees, so its rights are the ones that
       # matter. Asked of SQL Server itself, in the pool's own security context.
+      # The pool identity is what SQL Server sees, so its rights are the ones that
+      # matter. Asked of SQL Server itself, inside EXECUTE AS LOGIN, and asked in the
+      # catalog that owns each table - a database-scope HAS_PERMS_BY_NAME answers 0 on
+      # a correct install, because the read grant is on the schema.
       - name: The pool identity is least-privileged
         shell: pwsh
         run: |
@@ -520,11 +524,20 @@ jobs:
           SET NOCOUNT ON;
           BEGIN TRY
               EXECUTE AS LOGIN = N'IIS APPPOOL\T5WebAdmin';
+
+              USE [ReportT5V3];
               SELECT CONCAT(
-                  'can_read=',        HAS_PERMS_BY_NAME(DB_NAME(), 'DATABASE', 'SELECT'),
-                  '|can_create_ddl=', HAS_PERMS_BY_NAME(NULL, NULL, 'CREATE TABLE'),
-                  '|can_audit_upd=',  HAS_PERMS_BY_NAME(N'dbo.T5WebAudit', 'OBJECT', 'UPDATE'),
-                  '|can_write_acc=',  HAS_PERMS_BY_NAME(N'dbo.T5WebAccess', 'OBJECT', 'INSERT'));
+                  'portal|read=',        HAS_PERMS_BY_NAME(N'dbo.T5WebAccess', 'OBJECT', 'SELECT'),
+                  '|write=',             HAS_PERMS_BY_NAME(N'dbo.T5WebAccess', 'OBJECT', 'INSERT'),
+                  '|audit_update=',      HAS_PERMS_BY_NAME(N'dbo.T5WebAudit',  'OBJECT', 'UPDATE'),
+                  '|create_table=',      HAS_PERMS_BY_NAME(NULL, NULL, 'CREATE TABLE'));
+
+              USE [Personnel];
+              SELECT CONCAT(
+                  'people|read=',        HAS_PERMS_BY_NAME(N'dbo.UserInfo',    'OBJECT', 'SELECT'),
+                  '|write=',             HAS_PERMS_BY_NAME(N'dbo.UserInfo',    'OBJECT', 'UPDATE'),
+                  '|drop=',              HAS_PERMS_BY_NAME(N'dbo.UserInfo',    'OBJECT', 'DELETE'));
+
               REVERT;
           END TRY
           BEGIN CATCH
@@ -534,14 +547,21 @@ jobs:
           $out = (sqlcmd -S $env:T5_SERVER -E -h -1 -W -Q $probe 2>&1) -join ' '
           Write-Host "  $out"
           $failed = $false
-          foreach ($expectation in @('can_read=1', 'can_create_ddl=0', 'can_audit_upd=0', 'can_write_acc=1')) {
+          $expectations = @(
+            'portal|read=1',      # the permission matrix is readable
+            'write=1',            # and editable, or the access screen cannot save
+            'audit_update=0',     # the audit trail is append-only for this identity too
+            'create_table=0',     # no DDL: an administrator cannot drop the engine's schema
+            'people|read=1'       # the second catalog is reachable through the same role
+          )
+          foreach ($expectation in $expectations) {
             if ($out -notmatch [regex]::Escape($expectation)) {
               Write-Host "::error::the pool identity fails '$expectation' - the role grants are wrong (db/02, db/04)"
               $failed = $true
             }
           }
           if ($failed) { exit 1 }
-          Write-Host '  PASS: the pool identity can read, cannot change the schema, and cannot rewrite the audit trail'
+          Write-Host '  PASS: the pool identity reads both catalogs, cannot create a table and cannot rewrite the audit trail'
 
       - name: Show the IIS log tail on failure
         if: failure()
