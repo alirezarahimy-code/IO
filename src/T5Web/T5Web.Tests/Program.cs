@@ -64,6 +64,7 @@ namespace T5Web.Tests
             RunTest("T34: install kit (IIS + SQL scripts, idempotent, no secrets, documented order)", TestInstallKit);
             RunTest("T35: executable SQL (synthetic schema from the model, smoke extractor, CI wiring)", TestExecutableSql);
             RunTest("T36: two catalogs (verify.sql names them, the login exists in both, grants match the modules)", TestTwoCatalogInstall);
+            RunTest("T37: what only a real IIS can show (x86 engine, 32-bit pool, no duplicate config keys)", TestWebHostSettings);
 
             Console.WriteLine("----------------------------------------------------------------------");
             Console.WriteLine($"  Summary: {_passed} Passed, {_failed} Failed");
@@ -2970,6 +2971,56 @@ namespace T5Web.Tests
         {
             Dictionary<string, Dictionary<string, string>> typed = TypedColumns();
             return typed.ContainsKey(table) && typed[table].ContainsKey(column);
+        }
+
+        /// <summary>
+        /// T37 - settings that only a real IIS can disprove (docs/14 section 5.2).
+        ///
+        /// Two defects looked perfect in review and took the site down on the first real
+        /// install: the engine's assemblies are x86, so a 64-bit app pool answers 500 for
+        /// every URL including a .css file (BUG-34), and re-declaring .cs in
+        /// requestFiltering is a duplicate key, so the whole site answers 500.19
+        /// (BUG-35). Neither is visible to the compiler, and both are one line to undo by
+        /// accident.
+        /// </summary>
+        private static void TestWebHostSettings()
+        {
+            string deploy = File.ReadAllText(Path.Combine(T5WebRoot, "deploy", "3-deploy-portal.ps1"));
+            Assert(deploy.Contains("enable32BitAppOnWin64"),
+                "3-deploy-portal.ps1 must set enable32BitAppOnWin64: the pinned engine "
+                + "(Personnel.dll, T5V3.*.dll, Dapper.dll) is x86 only, and a 64-bit worker "
+                + "process fails to load it with 'an attempt was made to load a program with "
+                + "an incorrect format' - every URL then answers 500, a static file included.");
+
+            string verify = File.ReadAllText(Path.Combine(T5WebRoot, "deploy", "4-verify-install.ps1"));
+            Assert(verify.Contains("bitness"),
+                "4-verify-install.ps1 must check the pool bitness; 'the site answers 500' is "
+                + "a symptom, the pool flag is the cause.");
+
+            string config = File.ReadAllText(Path.Combine(T5WebRoot, "T5Web.Web", "Web.config"));
+            int denyBlock = config.IndexOf("fileExtensions", StringComparison.Ordinal);
+            Assert(denyBlock >= 0, "Web.config lost its requestFiltering deny list.");
+            string section = config.Substring(denyBlock, Math.Min(1600, config.Length - denyBlock));
+            int remove = section.IndexOf("<remove fileExtension=\".cs\"", StringComparison.Ordinal);
+            int add = section.IndexOf("<add fileExtension=\".cs\"", StringComparison.Ordinal);
+            Assert(add > 0, "the .cs deny rule is gone from Web.config.");
+            Assert(remove >= 0 && remove < add,
+                "every denied extension must be <remove>d before it is <add>ed: IIS already "
+                + "denies .cs, and the duplicate entry makes the whole site answer 500.19 "
+                + "(BUG-35). <remove> is a no-op when the entry is absent, so this is safe "
+                + "on every server.");
+
+            string gate = File.ReadAllText(Path.Combine(T5WebRoot, "tools", "deploy-kit-gate.py"));
+            Assert(gate.Contains("enable32BitAppOnWin64"),
+                "the deploy gate must refuse a 3-deploy-portal.ps1 that drops the 32-bit pool.");
+
+            string workflow = File.ReadAllText(
+                Path.GetFullPath(Path.Combine(T5WebRoot, "..", "..", ".github", "workflows", "windows-build.yml")));
+            Assert(workflow.Contains("enable32BitAppOnWin64"),
+                "the Windows workflow must assert the 32-bit pool; it is the only machine that can.");
+            Assert(workflow.Contains("4-verify-install.ps1"),
+                "the Windows workflow must run the acceptance checklist, or the script itself "
+                + "is never executed anywhere.");
         }
 
         private static void TestNoLockDependency()
