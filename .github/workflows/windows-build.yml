@@ -519,60 +519,69 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          function Fail([string]$message) { Write-Host "::error::$message"; exit 1 }
           function Sql([string]$query) {
             return ((sqlcmd -S $env:T5_SERVER -E -b -h -1 -W -d Personnel -Q "SET NOCOUNT ON; $query" 2>&1) |
                     Where-Object { $_ -match '\S' }) -join ' '
           }
 
-          # A parent to move something into: the fixture's own department is a root, so
-          # moving it to "no parent" would change nothing and prove nothing. The name is
-          # ASCII on purpose - sqlcmd hands -Q to the server in the console code page, and
-          # this step must fail for permission reasons, never for encoding ones.
-          $temp = 'CI-VERIFY-PARENT'
-          $seeded = Sql "IF NOT EXISTS (SELECT 1 FROM [dbo].[Department] WHERE [DepartmentName] = N'$temp')
-                 INSERT INTO [dbo].[Department] ([DepartmentName], [Name], [UpperDeptID])
-                     VALUES (N'$temp', N'$temp', 0);
-               SELECT [DepartmentID] FROM [dbo].[Department] WHERE [DepartmentName] = N'$temp';"
-          Write-Host "  seeded parent: $seeded"
-          $parent = ($seeded -split ' ' | Where-Object { $_ -match '^\d+$' } | Select-Object -Last 1)
-          $child  = Sql "SELECT TOP 1 [DepartmentID] FROM [dbo].[Department] WHERE ISNULL([UpperDeptID], 0) = 0 AND [DepartmentName] <> N'$temp' ORDER BY [DepartmentID]"
-          if ($parent -notmatch '^\d+$' -or $child -notmatch '^\d+$') {
-            Fail "could not find the two departments to move (parent='$parent', child='$child', seeded='$seeded')"
+          try {
+            # A parent to move something into: the fixture's own department is a root, so
+            # moving it to "no parent" would change nothing and prove nothing. The name is
+            # ASCII on purpose - sqlcmd hands -Q to the server in the console code page, and
+            # this step must fail for permission reasons, never for encoding ones.
+            $temp = 'CI-VERIFY-PARENT'
+            $seeded = Sql "IF NOT EXISTS (SELECT 1 FROM [dbo].[Department] WHERE [DepartmentName] = N'$temp')
+                   INSERT INTO [dbo].[Department] ([DepartmentName], [Name], [UpperDeptID])
+                       VALUES (N'$temp', N'$temp', 0);
+                 SELECT [DepartmentID] FROM [dbo].[Department] WHERE [DepartmentName] = N'$temp';"
+            $parent = ($seeded -split '\s+' | Where-Object { $_ -match '^\d+$' } | Select-Object -Last 1)
+            $child  = Sql "SELECT TOP 1 [DepartmentID] FROM [dbo].[Department] WHERE ISNULL([UpperDeptID], 0) = 0 AND [DepartmentName] <> N'$temp' ORDER BY [DepartmentID]"
+            Write-Host "  parent='$parent' child='$child' (seeded: $seeded)"
+            if ($parent -notmatch '^\d+$' -or $child -notmatch '^\d+$') {
+              throw "could not set up the two departments (parent='$parent', child='$child')"
+            }
+
+            $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+            $page = Invoke-WebRequest -Uri 'http://localhost:8080/Department' -UseDefaultCredentials -WebSession $session
+            Write-Host ("  GET /Department -> {0}, {1} bytes" -f $page.StatusCode, $page.Content.Length)
+            $token = [regex]::Match([string]$page.Content, 'name="__RequestVerificationToken"[^>]*value="([^"]+)"')
+            if (-not $token.Success) {
+              $flat = ([string]$page.Content -replace '<[^>]+>', ' ' -replace '\s+', ' ').Trim()
+              throw ("the department screen carries no antiforgery token, so no form on it can post - " +
+                     "the page the portal returned says: " + $flat.Substring(0, [Math]::Min(300, $flat.Length)))
+            }
+
+            function Move([int]$to) {
+              $body = @{
+                __RequestVerificationToken = $token.Groups[1].Value
+                departmentId               = $child
+                newParentId                = $to
+              }
+              return Invoke-WebRequest -Uri 'http://localhost:8080/Department/Move' -Method Post `
+                -Body $body -UseDefaultCredentials -WebSession $session -MaximumRedirection 5
+            }
+
+            $response = Move $parent
+            Write-Host ("  POST /Department/Move -> {0}, landed on {1}" -f $response.StatusCode, $response.BaseResponse.ResponseUri)
+            $after = Sql "SELECT ISNULL([UpperDeptID], 0) FROM [dbo].[Department] WHERE [DepartmentID] = $child"
+            if ($after -ne "$parent") {
+              throw ("the move was accepted but the row still has UpperDeptID=$after instead of $parent - " +
+                     "the portal is not reaching the table it draws (catalog or permission)")
+            }
+            Write-Host "  PASS: department $child now sits under $parent"
+
+            $response = Move 0
+            $back = Sql "SELECT ISNULL([UpperDeptID], 0) FROM [dbo].[Department] WHERE [DepartmentID] = $child"
+            if ($back -ne '0') { throw "the second move left UpperDeptID=$back instead of 0" }
+            Write-Host '  PASS: and back again, so the write is repeatable'
+
+            Sql "DELETE FROM [dbo].[Department] WHERE [DepartmentID] = $parent" | Out-Null
+            Write-Host '  the audit rows this wrote stay: they are the evidence.'
           }
-          Write-Host "  parent=$parent child=$child"
-          if ((Sql "SELECT ISNULL([UpperDeptID], 0) FROM [dbo].[Department] WHERE [DepartmentID] = $child") -ne '0') {
-            Fail "the fixture department starts under a parent, so this test cannot tell a move from a no-op"
+          catch {
+            Write-Host ("::error::the portal cannot save: " + $_.Exception.Message)
+            exit 1
           }
-
-          $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
-          $page = Invoke-WebRequest -Uri 'http://localhost:8080/Department' -UseDefaultCredentials -WebSession $session
-          $token = [regex]::Match([string]$page.Content, 'name="__RequestVerificationToken"[^>]*value="([^"]+)"')
-          if (-not $token.Success) { Fail "the department screen carries no antiforgery token, so no form on it can post" }
-          $verification = $token.Groups[1].Value
-
-          function Move([int]$to) {
-            Invoke-WebRequest -Uri 'http://localhost:8080/Department/Move' -Method Post -UseDefaultCredentials `
-              -WebSession $session -MaximumRedirection 5 `
-              -Headers @{ Referer = 'http://localhost:8080/Department' } `
-              -Body @{ __RequestVerificationToken = $verification; departmentId = $child; newParentId = $to } | Out-Null
-          }
-
-          Move $parent
-          $after = Sql "SELECT ISNULL([UpperDeptID], 0) FROM [dbo].[Department] WHERE [DepartmentID] = $child"
-          if ($after -ne "$parent") {
-            Fail "the move POST was accepted but the row still has UpperDeptID=$after instead of $parent - " +
-                 "the app is not reaching the table it draws (catalog or permission)"
-          }
-          Write-Host "  PASS: department $child now sits under $parent"
-
-          Move 0
-          $back = Sql "SELECT ISNULL([UpperDeptID], 0) FROM [dbo].[Department] WHERE [DepartmentID] = $child"
-          if ($back -ne '0') { Fail "the second move left UpperDeptID=$back instead of 0" }
-          Write-Host '  PASS: and back again, so the write is repeatable'
-
-          Sql "DELETE FROM [dbo].[Department] WHERE [DepartmentID] = $parent" | Out-Null
-          Write-Host '  the audit rows this wrote stay: they are the evidence.'
 
       # The pool identity is what SQL Server sees, so its rights are the ones that
       # matter. db/02 states them; db/verify-grants.sql asks SQL Server, inside
@@ -602,11 +611,11 @@ jobs:
           if (Test-Path $log) {
             Get-ChildItem $log -Recurse -Filter *.log |
               Sort-Object LastWriteTime -Descending | Select-Object -First 1 |
-              ForEach-Object { Get-Content $_.FullName -Tail 40 | ForEach-Object { Write-Host "::error::iis| $_" } }
+              ForEach-Object { Get-Content $_.FullName -Tail 40 | ForEach-Object { Write-Host "iis| $_" } }
           }
           foreach ($eventLog in 'System', 'Application') {
             Get-EventLog -LogName $eventLog -Newest 10 -EntryType Error -ErrorAction SilentlyContinue |
-              ForEach-Object { Write-Host ("::error::{0}| {1}" -f $eventLog, $_.Message.Split("`n")[0]) }
+              ForEach-Object { Write-Host ("{0}| {1}" -f $eventLog, $_.Message.Split("`n")[0]) }
           }
 
   database:
