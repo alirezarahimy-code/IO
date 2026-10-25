@@ -227,16 +227,29 @@ jobs:
             Write-Host "::error::anonymous request returned $code, expected 401 (Windows authentication)"
             # The body of a 500 is the only place the actual exception is written down:
             # IIS answers with the yellow screen, and job logs are unreadable here.
+            $text = ''
             try {
-              $raw = Invoke-WebRequest -Uri $url -UseBasicParsing -ErrorAction SilentlyContinue
-              $text = $raw.Content
+              Invoke-WebRequest -Uri $url -UseBasicParsing -ErrorAction Stop | Out-Null
             } catch {
-              $stream = $_.Exception.Response.GetResponseStream()
-              $text = (New-Object System.IO.StreamReader($stream)).ReadToEnd()
+              # In PowerShell 7 the response body of a non-2xx answer lives in
+              # ErrorDetails.Message; Response.GetResponseStream() is the 5.1 way.
+              $text = [string]$_.ErrorDetails.Message
+              if (-not $text) {
+                try {
+                  $stream = $_.Exception.Response.GetResponseStream()
+                  $text = (New-Object System.IO.StreamReader($stream)).ReadToEnd()
+                } catch { $text = $_.Exception.Message }
+              }
             }
-            $lines = ($text -split "`r?`n" | Where-Object { $_ -match 'Exception|error|Error|description|Description|line [0-9]+' } |
-                      Select-Object -First 8) -join ' | '
-            Write-Host ("::error::body: " + $lines)
+            $plain = ($text -replace '<[^>]+>', ' ') -replace '\s+', ' '
+            foreach ($needle in 'Config Error', 'Source File', 'Line Number', 'Error Code', 'section') {
+              $index = $plain.IndexOf($needle)
+              if ($index -ge 0) {
+                $snippet = $plain.Substring($index, [Math]::Min(300, $plain.Length - $index))
+                Write-Host ("::error::body| " + $snippet)
+              }
+            }
+            if ($plain.Length -gt 0 -and $plain.Length -le 400) { Write-Host ("::error::body| " + $plain) }
             exit 1
           }
           Write-Host '  PASS: anonymous is refused before MVC runs'
