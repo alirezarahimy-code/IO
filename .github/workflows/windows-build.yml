@@ -49,6 +49,16 @@ jobs:
           if (-not $msbuild) { Write-Host '::error::MSBuild is not on PATH' ; exit 1 }
           msbuild -version
 
+          # MSBuild keeps answering "OutputPath is not set" for projects that clearly
+          # declare one, so print what the evaluated properties really are. A missing
+          # value here is the difference between a bad project file and a bad invocation.
+          $project = 'src/T5Web/T5Web.Domain/T5Web.Domain.csproj'
+          Get-Content $project -TotalCount 12 | Write-Host
+          Get-Content $project -Tail 6 | Write-Host
+          Write-Host '--- evaluated properties'
+          msbuild $project -p:Configuration=Release -getProperty:Configuration `
+                   -getProperty:Platform -getProperty:OutputPath -getProperty:BaseOutputPath
+
       # The static gates run on Linux too; running them here proves they do not depend on
       # the developer machine. dnfile is needed by the engine-metadata gates.
       - name: Static gates
