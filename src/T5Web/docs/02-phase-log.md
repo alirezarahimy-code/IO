@@ -124,7 +124,7 @@
 | مورد | خروجی |
 | :-- | :-- |
 | B | چارچوب ماژول عمومی: `ModuleRegistry` (۳۰ ماژول / ۱۵۶ فیلد در پایان فاز ۵؛ امروز ۵۱ / ۲۴۷) + `SqlModuleStore` + `InMemoryModuleStore` + `ModuleService`؛ هر ستون با شاهد `ddl`/`orm`/`orm-rename:*` و `T16` |
-| B | `tools/engine-column-types.py` — نوع ستون‌ها از DDL و ORM استخراج و در `engine/column-types.tsv` قفل می‌شود (۴۶ جدول / ۴۶۰ ستون / ۰ بدون نوع؛ امروز ۷۵ / ۶۱۶ — `docs/11`) |
+| B | `tools/engine-column-types.py` — نوع ستون‌ها از DDL و ORM استخراج و در `engine/column-types.tsv` قفل می‌شود (۴۶ جدول / ۴۶۰ ستون / ۰ بدون نوع؛ امروز ۷۵ / ۶۲۹ — `docs/11`) |
 | C | `SqlAttendanceStore` + `SqlLeaveStore` + `SqlScheduleStore` و نسخه‌های درون‌حافظه‌ای؛ ۵ کنترلر: تردد، درخواست، مرخصی، شیفت، قواعد |
 | C | `RuleResolutionService` — اولویت سه‌لایه صریح (پرسنل ← واحد ← عمومی) و تضاد هم‌لایه به‌عنوان خطای مسدودکننده |
 | C | گارد زنجیره تأیید (`BUG-21`) و گارد هم‌پوشانی شیفت داخل تراکنش (`BUG-22`) |

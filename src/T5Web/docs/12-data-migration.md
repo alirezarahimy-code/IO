@@ -32,7 +32,7 @@
 | شاهد | چه چیزی را ثابت می‌کند | آزمون/ابزار |
 | :-- | :-- | :-- |
 | `engine/engine-pin.json` | مدل، از بیلد قفل‌شدهٔ `T5Web [3.5.7]` خوانده می‌شود، نه از حدس | `verify-engine-pin.py` |
-| `engine/column-types.json` | ۷۵ جدول / ۶۱۶ ستون با شاهد `ddl` یا `orm`؛ صفر ستون بی‌شاهد | `engine-column-types.py --check` |
+| `engine/column-types.json` | ۷۵ جدول / ۶۲۹ ستون (شاهد `ddl`/`orm`، و ۱۳ ستون با شاهد `manifest`)؛ صفر ستون بی‌شاهد | `engine-column-types.py --check` |
 | `db/verify.sql` | هر شیء و ستونی که کد به آن دست می‌زند، روی سرور واقعی موجود است | اجرا روی سرور |
 | `db/03-relations.sql` | داده واقعاً رابطه‌هایی را که کد فرض می‌کند رعایت می‌کند | اجرا پیش و پس از هر انتقال |
 

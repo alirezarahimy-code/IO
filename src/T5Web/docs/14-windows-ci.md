@@ -101,6 +101,7 @@ gh run watch <run-id>
 | ۴ | `fingerprint: target fingerprint has no table lines` | `sqlcmd … -s ''` در PowerShell آرگومان خالی می‌گیرد و هیچ سطری چاپ نمی‌شد؛ خروجی هم با BOM نوشته می‌شد | ورودی خالی حذف شد، `Set-Content -Encoding ascii`، ابزار با `utf-8-sig` می‌خواند، و گام CI حالا خودش «کمتر از ۸۰ سطر جدول» را خطا می‌داند |
 | ۵ | `smoke: Invalid column name 'WorkflowType'` | مدل ستون‌ها `Workflow.WorkflowType` و `Request.WofkflowType` را نداشت (پروپرتی ORM ندارند) ولی جدول واقعی دارد؛ اسکیمای جانشین نمی‌توانست آن دستورها را کامپایل کند | دو استثنای نام‌دار در `tools/engine-column-types.py` با شاهد manifest + گیت `synthetic-schema` که خودش وجود ستون را در manifest می‌سنجد + `verify.sql` که روی سرور واقعی هم می‌پرسد |
 | ۵ | `smoke: Msg 102` روی چهار دستور `IN @Badges` | Dapper پیش از رسیدن دستور به موتور، `IN @Ids` را به فهرست پارامترها باز می‌کند؛ متن خام معتبر نیست | `sql-smoke` همان باز‌کردن را شبیه‌سازی می‌کند (table variable) و خودش هم آزمون دارد |
+| ۶ | `smoke: Invalid column name 'LeaveID' / 'CreateDate'` (و پیش از آن چهار مورد مشابه) | همان کلاس: ستون‌هایی که موتور دارد و موجودیت ORM نشان نمی‌دهد | ۱۳ ستون در `EXTRA_COLUMNS` (شاهد manifest + ارجاع در SQL خودمان)، `verify.sql` تک‌تکشان را روی سرور می‌پرسد، و گیت تازهٔ `tools/sql-column-coverage.py` این کلاس را در بیلد پیدا می‌کند، نه در دور بعدی CI |
 
 درس عملی: **گیت استاتیک، اجرا نیست.** هر سه عیب از آن دسته‌ای بودند که متن درست به نظر
 می‌رسد و فقط در موتور/کامپایلر خطا می‌دهند. این همان چیزی است که `docs/12` دربارهٔ پشتیبان و

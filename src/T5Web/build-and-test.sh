@@ -45,6 +45,10 @@ python3 "$SCRIPT_DIR/tools/csharp-parse-gate.py"
 # Windows CI found four projects with no configuration at all, and then a project file
 # that a text substitution had turned into broken XML (BUG-32).
 python3 "$SCRIPT_DIR/tools/project-file-gate.py"
+# Column coverage: every `alias.[Column]` in the data layer must exist in the typed
+# model (or in the portal's own DDL). The Windows CI found this class four times in a
+# row; now a build finds it, not a CI round trip.
+python3 "$SCRIPT_DIR/tools/sql-column-coverage.py"
 # SQL executable against the model: the synthetic schema stands in for the vendor
 # install, and the smoke tool must still extract the statements it compiles (T35).
 python3 "$SCRIPT_DIR/tools/synthetic-schema.py" --check

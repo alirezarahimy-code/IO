@@ -136,6 +136,31 @@ FROM (VALUES
     (N'T5WebDeviceCommand', N'Status')
 ) AS v(ObjectName, ColumnName);
 
+/* ---------- columns the engine has but its ORM entity does not expose ----------
+   These are referenced by the portal's own SQL, are listed for their table in the
+   shared manifest (src/TWF/db/schema-manifest.json), and are the ones a synthetic
+   schema had to be taught. If one of them is missing here, the portal compiles on
+   the build machine and fails on this server - so ask it, per column. */
+INSERT INTO @results (Catalog, ObjectName, Kind, Status)
+SELECT @T5, v.ObjectName + N'.' + v.ColumnName, N'column',
+       CASE WHEN COL_LENGTH(QUOTENAME(@T5) + N'.dbo.' + v.ObjectName, v.ColumnName) IS NULL
+            THEN N'MISSING' ELSE N'OK' END
+FROM (VALUES
+    (N'Workflow', N'WorkflowType'),
+    (N'Request', N'CreateDate'),
+    (N'Request', N'WofkflowType'),
+    (N'LeaveType', N'LeaveID'),
+    (N'LeavesAdded', N'AssignDate'),
+    (N'LeavesAdded', N'DailyValue'),
+    (N'Schedule', N'EndTime'),
+    (N'Schedule', N'SchName'),
+    (N'Schedule', N'StartTime'),
+    (N'Shift', N'Unit'),
+    (N'Shift', N'WeekEnds'),
+    (N'ShiftDetail', N'DayIndex'),
+    (N'UserShift', N'EndDate')
+) AS v(ObjectName, ColumnName);
+
 /* ---------- the portal login ---------- */
 INSERT INTO @results (Catalog, ObjectName, Kind, Status)
 SELECT N'server', N'login t5web_admin', N'principal',

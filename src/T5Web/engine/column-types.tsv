@@ -229,6 +229,7 @@ LeaveType	ForNextYear	float	orm
 LeaveType	ForNextYearSum	bit	orm
 LeaveType	GetInHolidays	bit	orm
 LeaveType	IsHourly	bit	orm
+LeaveType	LeaveID	int	manifest
 LeaveType	LeaveName	nvarchar	orm
 LeaveType	LeaveTypeID	int	orm
 LeaveType	MaxDailyInMonth	float	orm
@@ -244,7 +245,9 @@ LeaveType	Symbol	nvarchar	orm
 LeaveType	ValidFreeOT	bit	orm
 LeavesAdded	AddedDate	datetime	orm
 LeavesAdded	AddedDateHijri	nvarchar	orm
+LeavesAdded	AssignDate	datetime	manifest
 LeavesAdded	BadgeNumber	bigint	orm
+LeavesAdded	DailyValue	float	manifest
 LeavesAdded	Descriptions	nvarchar	orm
 LeavesAdded	DocumentNumber	nvarchar	orm
 LeavesAdded	ID	int	orm
@@ -325,6 +328,7 @@ ReportAccess	ReportID	int	orm
 ReportAccess	TitleID	int	orm
 Request	AllowValue	time	orm
 Request	BadgeNumber	bigint	orm
+Request	CreateDate	datetime	manifest
 Request	CreateTime	datetime	orm
 Request	Descriptions	nvarchar	orm
 Request	ForDate	datetime	orm
@@ -394,6 +398,7 @@ Schedule	Early	time	orm
 Schedule	EarlyToStr	nvarchar	orm
 Schedule	EndFrom	datetime	orm
 Schedule	EndFromToStr	nvarchar	orm
+Schedule	EndTime	time	manifest
 Schedule	EndTo	datetime	orm
 Schedule	EndToToStr	nvarchar	orm
 Schedule	FromTime	datetime	orm
@@ -412,12 +417,14 @@ Schedule	RamzToTime	datetime	orm
 Schedule	RamzToTimeToStr	nvarchar	orm
 Schedule	RestTime	bit	orm
 Schedule	RuleID	int	orm
+Schedule	SchName	nvarchar	manifest
 Schedule	ScheduleID	int	ddl
 Schedule	ScheduleTime	int	ddl
 Schedule	ScheduleTimeOfDay	datetime	ddl
 Schedule	ScheduleTimeType	int	ddl
 Schedule	StartFrom	datetime	orm
 Schedule	StartFromToStr	nvarchar	orm
+Schedule	StartTime	time	manifest
 Schedule	StartTo	datetime	orm
 Schedule	StartToToStr	nvarchar	orm
 Schedule	SuspendTime	time	orm
@@ -431,6 +438,9 @@ Schedule	WorkMins	float	orm
 Shift	Period	int	orm
 Shift	ShiftID	int	orm
 Shift	ShiftName	nvarchar	orm
+Shift	Unit	int	manifest
+Shift	WeekEnds	nvarchar	manifest
+ShiftDetail	DayIndex	int	manifest
 ShiftDetail	Index	int	orm
 ShiftDetail	ScheduleID	int	orm
 ShiftDetail	ShiftID	int	orm
@@ -583,6 +593,7 @@ UserRule	ToDateHijri	nvarchar	orm
 UserRule	UserName	nvarchar	orm
 UserRule	UserRuleID	int	orm
 UserShift	BadgeNumber	bigint	orm
+UserShift	EndDate	datetime	manifest
 UserShift	FromDate	datetime	orm
 UserShift	FromDateHijri	nvarchar	orm
 UserShift	ShiftID	int	orm

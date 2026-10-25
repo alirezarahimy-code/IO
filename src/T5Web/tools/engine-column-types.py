@@ -276,21 +276,43 @@ def orm_sql_type(clr):
 # named, reviewable exception with its evidence written down.
 EXTRA_COLUMNS = {
     "Workflow": {
-        "WorkflowType": {
-            "type": "int", "length": None, "nullable": False, "identity": False,
-            "source": "manifest:TWF/db/schema-manifest.json + sql:SqlAdminRepository",
-            "evidence": "manifest",
-        },
+        "WorkflowType": {"type": "int", "nullable": False},
     },
     "Request": {
         # The typo is the vendor's: the column is spelled "WofkflowType" in the engine.
-        "WofkflowType": {
-            "type": "int", "length": None, "nullable": False, "identity": False,
-            "source": "manifest:TWF/db/schema-manifest.json + sql:SqlAdminRepository",
-            "evidence": "manifest",
-        },
+        "WofkflowType": {"type": "int", "nullable": False},
+        "CreateDate": {"type": "datetime", "nullable": False},
+    },
+    "LeaveType": {
+        "LeaveID": {"type": "int", "nullable": False},
+    },
+    "LeavesAdded": {
+        "AssignDate": {"type": "datetime", "nullable": True},
+        "DailyValue": {"type": "float", "nullable": True},
+    },
+    "Schedule": {
+        "SchName": {"type": "nvarchar", "length": 200, "nullable": True},
+        "StartTime": {"type": "time", "nullable": True},
+        "EndTime": {"type": "time", "nullable": True},
+    },
+    "Shift": {
+        "Unit": {"type": "int", "nullable": True},
+        "WeekEnds": {"type": "nvarchar", "length": 100, "nullable": True},
+    },
+    "ShiftDetail": {
+        "DayIndex": {"type": "int", "nullable": False},
+    },
+    "UserShift": {
+        "EndDate": {"type": "datetime", "nullable": True},
     },
 }
+
+for _table, _columns in EXTRA_COLUMNS.items():
+    for _column, _detail in _columns.items():
+        _detail.setdefault("length", None)
+        _detail.setdefault("identity", False)
+        _detail["source"] = "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data"
+        _detail["evidence"] = "manifest"
 
 
 def merge(ddl, orm):

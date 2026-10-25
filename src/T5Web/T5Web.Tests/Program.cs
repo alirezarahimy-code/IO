@@ -2892,7 +2892,8 @@ namespace T5Web.Tests
 
             string build = File.ReadAllText(Path.Combine(T5WebRoot, "build-and-test.sh"));
             foreach (string tool in new[] { "csharp-parse-gate.py", "synthetic-schema.py", "sql-smoke.py",
-                                            "project-file-gate.py", "sql-grant-gate.py" })
+                                            "project-file-gate.py", "sql-grant-gate.py",
+                                            "sql-column-coverage.py" })
             {
                 Assert(build.Contains(tool), tool + " is not a build gate.");
             }

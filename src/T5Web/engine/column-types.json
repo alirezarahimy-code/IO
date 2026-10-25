@@ -2171,6 +2171,14 @@
           "source": "orm:T5V3.Model.dll",
           "type": "bit"
         },
+        "LeaveID": {
+          "evidence": "manifest",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
+          "type": "int"
+        },
         "LeaveName": {
           "clr": "string",
           "evidence": "orm",
@@ -2290,6 +2298,7 @@
         }
       },
       "sources": [
+        "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
         "orm:T5V3.Model.dll"
       ]
     },
@@ -2313,6 +2322,14 @@
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
         },
+        "AssignDate": {
+          "evidence": "manifest",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
+          "type": "datetime"
+        },
         "BadgeNumber": {
           "clr": "long",
           "evidence": "orm",
@@ -2321,6 +2338,14 @@
           "nullable": false,
           "source": "orm:T5V3.Model.dll",
           "type": "bigint"
+        },
+        "DailyValue": {
+          "evidence": "manifest",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
+          "type": "float"
         },
         "Descriptions": {
           "clr": "string",
@@ -2387,6 +2412,7 @@
         }
       },
       "sources": [
+        "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
         "orm:T5V3.Model.dll"
       ]
     },
@@ -3118,6 +3144,14 @@
           "source": "orm:T5V3.Model.dll",
           "type": "bigint"
         },
+        "CreateDate": {
+          "evidence": "manifest",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
+          "type": "datetime"
+        },
         "CreateTime": {
           "clr": "datetime",
           "evidence": "orm",
@@ -3249,12 +3283,12 @@
           "identity": false,
           "length": null,
           "nullable": false,
-          "source": "manifest:TWF/db/schema-manifest.json + sql:SqlAdminRepository",
+          "source": "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
           "type": "int"
         }
       },
       "sources": [
-        "manifest:TWF/db/schema-manifest.json + sql:SqlAdminRepository",
+        "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
         "orm:T5V3.Model.dll"
       ]
     },
@@ -3760,6 +3794,14 @@
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
         },
+        "EndTime": {
+          "evidence": "manifest",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
+          "type": "time"
+        },
         "EndTo": {
           "clr": "datetime",
           "evidence": "orm",
@@ -3922,6 +3964,14 @@
           "source": "orm:T5V3.Model.dll",
           "type": "int"
         },
+        "SchName": {
+          "evidence": "manifest",
+          "identity": false,
+          "length": 200,
+          "nullable": true,
+          "source": "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
+          "type": "nvarchar"
+        },
         "ScheduleID": {
           "evidence": "ddl",
           "identity": true,
@@ -3971,6 +4021,14 @@
           "nullable": true,
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
+        },
+        "StartTime": {
+          "evidence": "manifest",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
+          "type": "time"
         },
         "StartTo": {
           "clr": "datetime",
@@ -4065,6 +4123,7 @@
       },
       "sources": [
         "ddl:Link5.sql",
+        "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
         "orm:T5V3.Model.dll"
       ]
     },
@@ -4096,14 +4155,39 @@
           "nullable": true,
           "source": "orm:T5V3.Model.dll",
           "type": "nvarchar"
+        },
+        "Unit": {
+          "evidence": "manifest",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
+          "type": "int"
+        },
+        "WeekEnds": {
+          "evidence": "manifest",
+          "identity": false,
+          "length": 100,
+          "nullable": true,
+          "source": "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
+          "type": "nvarchar"
         }
       },
       "sources": [
+        "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
         "orm:T5V3.Model.dll"
       ]
     },
     "ShiftDetail": {
       "columns": {
+        "DayIndex": {
+          "evidence": "manifest",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
+          "type": "int"
+        },
         "Index": {
           "clr": "int",
           "evidence": "orm",
@@ -4133,6 +4217,7 @@
         }
       },
       "sources": [
+        "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
         "orm:T5V3.Model.dll"
       ]
     },
@@ -5497,6 +5582,14 @@
           "source": "orm:T5V3.Model.dll",
           "type": "bigint"
         },
+        "EndDate": {
+          "evidence": "manifest",
+          "identity": false,
+          "length": null,
+          "nullable": true,
+          "source": "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
+          "type": "datetime"
+        },
         "FromDate": {
           "clr": "datetime",
           "evidence": "orm",
@@ -5553,6 +5646,7 @@
         }
       },
       "sources": [
+        "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
         "orm:T5V3.Model.dll"
       ]
     },
@@ -5784,12 +5878,12 @@
           "identity": false,
           "length": null,
           "nullable": false,
-          "source": "manifest:TWF/db/schema-manifest.json + sql:SqlAdminRepository",
+          "source": "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
           "type": "int"
         }
       },
       "sources": [
-        "manifest:TWF/db/schema-manifest.json + sql:SqlAdminRepository",
+        "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
         "orm:T5V3.Model.dll"
       ]
     },
