@@ -30,6 +30,15 @@
         <label for="term">جست‌وجو</label>
         <input type="search" id="term" name="term" value="@Model.Term" placeholder="شرح، رایانه یا نوع عملیات" />
     </div>
+    <div class="field">
+        <label for="take">تعداد سطر</label>
+        <select id="take" name="take">
+            @foreach (int option in new[] { 100, 250, 500 })
+            {
+                <option value="@option" selected="@(option == Model.Take ? "selected" : null)">@option</option>
+            }
+        </select>
+    </div>
     <button type="submit" class="btn btn--primary">اعمال</button>
 </form>
 

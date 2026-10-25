@@ -57,8 +57,13 @@ namespace T5Web.Data
             {
                 query = query.Where(r => string.Equals(r.Source, source, StringComparison.OrdinalIgnoreCase));
             }
+            if (to.Date < from.Date)
+            {
+                return new List<LogEntryRow>();
+            }
+            DateTime lower = LogWindow.ClampFrom(from, to);
             query = query.Where(r => r.Time.HasValue &&
-                                     r.Time.Value.Date >= from.Date &&
+                                     r.Time.Value.Date >= lower &&
                                      r.Time.Value.Date <= to.Date);
             if (badgeNumber.HasValue && badgeNumber.Value > 0)
             {
@@ -72,7 +77,7 @@ namespace T5Web.Data
                     (r.KindFa ?? string.Empty).IndexOf(needle, StringComparison.CurrentCultureIgnoreCase) >= 0);
             }
 
-            int limit = take <= 0 ? 100 : Math.Min(take, SqlLogStore.MaxTake);
+            int limit = LogWindow.ClampTake(take);
             return query.OrderByDescending(r => r.Time).Take(limit).ToList();
         }
     }

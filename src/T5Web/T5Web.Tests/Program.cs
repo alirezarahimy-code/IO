@@ -872,6 +872,20 @@ namespace T5Web.Tests
             Assert(logs.Search(null, new DateTime(2026, 10, 1), new DateTime(2026, 10, 31), null, null, 2).Count == 2,
                 "the take cap did not apply.");
 
+            // The window limits live in the domain, so the screen, the SQL reader and the
+            // in-memory reader cannot drift apart. A 63+ day request must shrink to 62.
+            DateTime farPast = new DateTime(2020, 1, 1);
+            IReadOnlyList<LogEntryRow> clamped = logs.Search("system", farPast, new DateTime(2026, 10, 21), null, null, 100);
+            Assert(clamped.Count == 2,
+                "a request wider than " + LogWindow.MaxDays + " days must still return the rows inside the window " +
+                "(got " + clamped.Count + ").");
+            Assert(LogWindow.ClampFrom(farPast, new DateTime(2026, 10, 21)) == new DateTime(2026, 10, 21).AddDays(-LogWindow.MaxDays),
+                "LogWindow.ClampFrom did not shrink the left edge to " + LogWindow.MaxDays + " days.");
+            Assert(LogWindow.ClampTake(0) == LogWindow.DefaultTake && LogWindow.ClampTake(9999) == LogWindow.MaxTake,
+                "LogWindow.ClampTake must fall back to the default and cap at the maximum.");
+            Assert(LogWindow.MaxTake == SqlLogStore.MaxTake,
+                "the domain limit and the SQL reader's constant disagree.");
+
             // The SQL reader must publish its sources without touching a database, and each
             // source must name a real table in the right catalog.
             var sqlLogs = new SqlLogStore(() => null, () => null);

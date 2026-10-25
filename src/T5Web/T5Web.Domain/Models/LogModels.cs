@@ -6,6 +6,41 @@ using T5Web.Domain.Models;
 namespace T5Web.Domain.Models
 {
     /// <summary>
+    /// The limits of the log reader, in one place.
+    ///
+    /// The screen, the SQL store and the in-memory store all read them from here; if the
+    /// controller clamped on its own, the dates it shows could disagree with the rows it
+    /// actually asked for.
+    /// </summary>
+    public static class LogWindow
+    {
+        /// <summary>A log is not an archive: 62 days is the widest window on offer.</summary>
+        public const int MaxDays = 62;
+
+        public const int DefaultDays = 7;
+
+        /// <summary>Enough to see a busy day without turning the page into a data dump.</summary>
+        public const int MaxTake = 500;
+
+        public const int DefaultTake = 100;
+
+        /// <summary>Newest day is <paramref name="to"/>; a longer span shrinks from the left.</summary>
+        public static DateTime ClampFrom(DateTime from, DateTime to)
+        {
+            return from.Date < to.Date.AddDays(-MaxDays) ? to.Date.AddDays(-MaxDays) : from.Date;
+        }
+
+        public static int ClampTake(int take)
+        {
+            if (take <= 0)
+            {
+                return DefaultTake;
+            }
+            return take > MaxTake ? MaxTake : take;
+        }
+    }
+
+    /// <summary>
     /// One line of a system log the portal may read.
     ///
     /// The three logs this portal can show are the ones that live in the two catalogs it

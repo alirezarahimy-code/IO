@@ -26,7 +26,8 @@ namespace T5Web.Data
     /// </summary>
     public sealed class SqlLogStore : ILogStore
     {
-        public const int MaxTake = 500;
+        /// <summary>Kept as a named constant for callers; the value lives in <see cref="LogWindow"/>.</summary>
+        public const int MaxTake = LogWindow.MaxTake;
 
         private static readonly List<LogSourceDescriptor> Descriptors = new List<LogSourceDescriptor>
         {
@@ -80,19 +81,15 @@ namespace T5Web.Data
         public IReadOnlyList<LogEntryRow> Search(string source, DateTime from, DateTime to,
                                                  long? badgeNumber, string term, int take)
         {
-            int limit = take <= 0 ? 100 : (take > MaxTake ? MaxTake : take);
+            int limit = LogWindow.ClampTake(take);
             string normalized = (source ?? string.Empty).Trim().ToLowerInvariant();
-            int days = (to.Date - from.Date).Days;
-            if (days < 0)
+            if (to.Date < from.Date)
             {
                 return new List<LogEntryRow>();
             }
             // A log is not an archive: the screen asks for a short window, and the query
             // says so rather than scanning a decade of rows.
-            if (days > 62)
-            {
-                from = to.AddDays(-62);
-            }
+            from = LogWindow.ClampFrom(from, to);
 
             IReadOnlyList<LogEntryRow> rows;
             switch (normalized)

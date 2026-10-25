@@ -33,13 +33,17 @@ namespace T5Web.Web.Controllers
                 string.Equals(s.Code, source, StringComparison.OrdinalIgnoreCase)) ?? sources.FirstOrDefault();
 
             DateTime toDate = ParseDate(to, DateTime.Today);
-            DateTime fromDate = ParseDate(from, toDate.AddDays(-6));
+            DateTime fromDate = ParseDate(from, toDate.AddDays(-LogWindow.DefaultDays));
             if (fromDate > toDate)
             {
                 DateTime swap = fromDate;
                 fromDate = toDate;
                 toDate = swap;
             }
+            // The store clamps to the same limits; clamping here too keeps the dates the
+            // operator sees identical to the dates the query ran with.
+            fromDate = LogWindow.ClampFrom(fromDate, toDate);
+            take = LogWindow.ClampTake(take);
 
             var model = new LogsIndexModel
             {
