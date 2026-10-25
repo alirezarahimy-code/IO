@@ -212,44 +212,41 @@ jobs:
         shell: pwsh
         run: |
           $url = 'http://localhost:8080/Content/t5web-admin.css'
+          # -SkipHttpErrorCheck returns the answer instead of throwing, which is the
+          # only reliable way to read a non-2xx body: in PowerShell 7 the stream that
+          # the exception carries is already gone.
           for ($i = 0; $i -lt 10; $i++) {
-            try {
-              $response = Invoke-WebRequest -Uri $url -UseBasicParsing -MaximumRedirection 0 -ErrorAction Stop
-              $code = [int]$response.StatusCode
-            } catch {
-              $code = [int]$_.Exception.Response.StatusCode
-            }
+            $response = Invoke-WebRequest -Uri $url -UseBasicParsing -SkipHttpErrorCheck -MaximumRedirection 0
+            $code = [int]$response.StatusCode
             Write-Host "  attempt $($i + 1): $code"
-            if ($code -ne 0 -and $code -ne 500) { break }
+            if ($code -ne 500) { break }
             Start-Sleep -Seconds 3
           }
+
           if ($code -ne 401) {
             Write-Host "::error::anonymous request returned $code, expected 401 (Windows authentication)"
-            # The body of a 500 is the only place the actual exception is written down:
-            # IIS answers with the yellow screen, and job logs are unreadable here.
-            $text = ''
+
+            # 1. The page itself: IIS/ASP.NET write the cause there ("Config Error",
+            #    "Source File", "Line Number", the exception class and message).
+            $text = [string]$response.Content
+            $plain = ($text -replace '(?s)<script.*?</script>', ' ') -replace '<[^>]+>', ' '
+            $plain = ($plain -replace '&nbsp;', ' ') -replace '\s+', ' '
+            $plain = $plain.Trim()
+            if ($plain.Length -gt 0) {
+              Write-Host ('::error::body| ' + $plain.Substring(0, [Math]::Min(900, $plain.Length)))
+            }
+
+            # 2. ASP.NET logs the exception to the Application log even when the page
+            #    is a generic one, so it survives customErrors.
             try {
-              Invoke-WebRequest -Uri $url -UseBasicParsing -ErrorAction Stop | Out-Null
+              $entries = Get-WinEvent -FilterHashtable @{ LogName = 'Application'; Level = 1, 2 } -MaxEvents 6 -ErrorAction Stop
+              foreach ($entry in $entries) {
+                $message = ($entry.Message -replace '\s+', ' ').Trim()
+                Write-Host ('::error::event| ' + $entry.ProviderName + ': ' + $message.Substring(0, [Math]::Min(600, $message.Length)))
+              }
             } catch {
-              # In PowerShell 7 the response body of a non-2xx answer lives in
-              # ErrorDetails.Message; Response.GetResponseStream() is the 5.1 way.
-              $text = [string]$_.ErrorDetails.Message
-              if (-not $text) {
-                try {
-                  $stream = $_.Exception.Response.GetResponseStream()
-                  $text = (New-Object System.IO.StreamReader($stream)).ReadToEnd()
-                } catch { $text = $_.Exception.Message }
-              }
+              Write-Host "  (no Application log entries: $($_.Exception.Message))"
             }
-            $plain = ($text -replace '<[^>]+>', ' ') -replace '\s+', ' '
-            foreach ($needle in 'Config Error', 'Source File', 'Line Number', 'Error Code', 'section') {
-              $index = $plain.IndexOf($needle)
-              if ($index -ge 0) {
-                $snippet = $plain.Substring($index, [Math]::Min(300, $plain.Length - $index))
-                Write-Host ("::error::body| " + $snippet)
-              }
-            }
-            if ($plain.Length -gt 0 -and $plain.Length -le 400) { Write-Host ("::error::body| " + $plain) }
             exit 1
           }
           Write-Host '  PASS: anonymous is refused before MVC runs'
