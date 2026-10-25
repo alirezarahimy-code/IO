@@ -28,12 +28,13 @@ IIS هم مؤلفهٔ خودِ ویندوز است. «اجازه دادن» ای
 | :-- | :-- | :-- |
 | Static gates | `build-and-test.sh --gates` | ۱۳ گیت، همان‌ها که روی لینوکس هم اجرا می‌شوند (بدون وابستگی به ماشین توسعه) |
 | Build | `msbuild T5Web.sln /p:Configuration=Release` | **اولین کامپایل واقعی C#** — چیزی که تا امروز انجام نشده بود |
-| Suite | `T5Web.Tests.exe` | هر ۳۵ آزمون (`T01`…`T35`) روی .NET Framework 4.7.2 واقعی |
+| Suite | `T5Web.Tests.exe` | هر ۳۶ آزمون (`T01`…`T36`) روی .NET Framework 4.7.2 واقعی |
 | SQL | SQL Server Express **LocalDB** (روی تصویر runner موجود است) | همان موتور T-SQL، بدون نیاز به نصب |
 | Fixture | `tools/synthetic-schema.py` | ۷۱ جدول از مدل اثبات‌شده (۷۵ منهای ۴ جدول کاتالوگ `device`) |
 | Scripts | `db/01` · `db/02` (دو بار) · `verify.sql` · `03-relations.sql` | اسکریپت‌ها واقعاً اجرا می‌شوند، idempotent می‌مانند، `MISSING`/`VIOLATION` ندارند |
 | Fingerprint | `tools/migration-fingerprint.py --sql` + `--compare` | اثر انگشت روی یک سرور واقعی گرفته و مقایسه می‌شود |
 | Smoke | `tools/sql-smoke.py --server '(localdb)\T5Web'` | هر ۸۱ دستور کاملِ SQL با `SET NOEXEC ON` کامپایل می‌شود |
+| **IIS** | `deploy/0` → `1` → `3`، سپس ادعاهای `app pool` و دو کاوش HTTP | **نصب واقعی**: کیت استقرار روی یک IIS 10 واقعی اجرا می‌شود و سایت با Windows Authentication پاسخ می‌دهد (job سوم: `iis-install`) |
 
 ### چرا `SET NOEXEC ON` و نه اجرای واقعی
 
@@ -64,7 +65,9 @@ gh run watch <run-id>
 
 | مورد | چرا | جای واقعی‌اش |
 | :-- | :-- | :-- |
-| IIS و Windows Authentication | LocalDB روی runner هست، IIS نه | `deploy/1` + `deploy/3` روی سرور شما |
+| Windows Authentication با حساب دامنه | runner عضو دامنه نیست؛ کاوش ۲۰۰ با حساب محلی همان runner انجام می‌شود | یک ورود واقعی با کاربر `WebUser` روی سرور شما |
+| HTTPS، گواهی و نام میزبان | سایت CI روی `http://localhost:8080` است | `-Port`/بایندینگ واقعی + سیاست HTTPS در `1-install-iis.ps1` |
+| کاتالوگ‌های واقعی `ReportT5V3`/`Personnel` | در job IIS هیچ کاتالوگی ساخته نمی‌شود؛ صفحاتی که SQL می‌خوانند ۵۰۰ می‌دهند | `deploy/2` + `4-verify-install.ps1` روی سرور شما |
 | `System.Web.Mvc` و `Personnel.dll` واقعی | در مخزن هستند (پوشهٔ `T5Web [3.5.7]`) و CI از همان‌ها استفاده می‌کند؛ ولی رفتار runtime آن‌ها با IIS سنجیده نمی‌شود | `deploy/4-verify-install.ps1` |
 | اسکیمای واقعی موتور | fixture از مدل ساخته می‌شود، نه از نصب فروشنده | `deploy/2` با `-BackupFolder` |
 | دادهٔ واقعی و کارایی | پایگاه تست خالی است | سرور آزمایشی شما |
@@ -109,6 +112,32 @@ gh run watch <run-id>
 درس عملی: **گیت استاتیک، اجرا نیست.** هر سه عیب از آن دسته‌ای بودند که متن درست به نظر
 می‌رسد و فقط در موتور/کامپایلر خطا می‌دهند. این همان چیزی است که `docs/12` دربارهٔ پشتیبان و
 `docs/07` دربارهٔ روش می‌گوید.
+
+---
+
+## ۵.۲ نتیجهٔ job سوم (`iis-install`) — دوازده اجرا، یازده عیب واقعی
+
+هدف این job یک جمله است: **کیت استقرار را اجرا کن، ادعا نکن.** رسیدن به سبز، دوازده اجرا برد و
+هر اجرا دقیقاً یک عیب را رو کرد؛ هیچ‌کدام در بیلد یا در بازبینی متن دیده نمی‌شد:
+
+| اجرا | نشانه | علت | اصلاح |
+| :-- | :-- | :-- | :-- |
+| ۱ | `Publish (exit code 1)` بدون پیام | خطای PowerShell داخل `run:` گم می‌شود | `try/catch` + `::error::` و تخت‌کردن خطوط جدید |
+| ۲ | `MSBuild failed with exit code 1` | همان: خروجی MSBuild دور ریخته می‌شد | اسکریپت خروجی را چاپ می‌کند و تا ۵ خط `: error` را در استثنا می‌آورد |
+| ۳ | `CS1617: Invalid option '7.3' for /langversion` | `MSBuild.exe` نسخهٔ ۴ فریم‌ورک، `LangVersion 7.3` را نمی‌فهمد | کشف MSBuild با `vswhere` در `0` و `3` |
+| ۴ | `the published folder contains source: …\Content\AriaAdminBranding.cs` | انتشار، `**\*.cs` را هم کپی می‌کرد | فیلتر پسوند در `0` + `requestFiltering` در `Web.config` |
+| ۵ | `the published folder is missing bin\T5Web.Web.dll` | اسم اسمبلی وب `T5Web.Admin` است (csproj `AssemblyName`) و خروجی‌اش در `bin\` است، نه `bin\Release\` | انتظار روی `bin\T5Web.Admin.dll` + یافتن پوشه در `bin\<Configuration>` یا `bin\` |
+| ۶ | `Cannot find drive. A drive with the name 'IIS' does not exist` | اسکریپت‌ها `#requires -Version 5.1` دارند و provider `WebAdministration` فقط در Windows PowerShell است؛ CI آن‌ها را با `pwsh` صدا می‌زد | `shell: powershell` + بررسی وجود درایو `IIS:` با پیام روشن |
+| ۷ | `The app pool is the one the runbook describes` | خودِ ادعا: `$pool.$name` مسیر نقطه‌ای را باز نمی‌کند | خواندن صریح هر مقدار + گزارش مقدار واقعی در برابر انتظار |
+| ۸ | `anonymous request returned 500` بدون جزئیات | بدنهٔ ۵۰۰ هیچ‌جا چاپ نمی‌شد | `-SkipHttpErrorCheck` و چاپ متن صفحه |
+| ۹ | `Cannot add duplicate collection entry … 'fileExtension' set to '.cs'` | IIS خودش `.cs` را می‌بندد؛ `add` دوباره = خطای پیکربندی و **۵۰۰.۱۹ روی کل سایت** | `<remove>` پیش از هر `add` (`BUG-35`) |
+| ۱۰ | `Could not load file or assembly 'Personnel' … incorrect format` | اسمبلی‌های موتور **x86** هستند و app pool ۶۴-بیتی بود؛ حتی `.css` هم ۵۰۰ می‌داد | `enable32BitAppOnWin64 = true` در `3`، بررسی `bitness` در `4`، ادعا در CI (`BUG-34`) |
+| ۱۱ | `authenticated request returned 0` | PowerShell 7 با `-UseDefaultCredentials` روی `http` مقدار ۰ برمی‌گرداند و دلیل را در پیام استثنا می‌گذارد | چاپ `$_.Exception.Message` + رویدادهای `Application`/`System` |
+| ۱۲ | `cannot protect plain text secrets sent over unencrypted connections` | **خودِ PowerShell 7** اجازهٔ فرستادن اعتبارنامه روی `http` را نمی‌دهد | `-AllowUnencryptedAuthentication` (در `4` فقط برای ۶+) |
+| ۱۳ | **سبز** | — | هر سه job سبز: `MSBuild + tests`, `SQL Server scripts`, `IIS + the published console` |
+
+درس: **اجرا کردن، عیب‌هایی می‌دهد که بازبینی هرگز نمی‌دهد** — ۵۰۰.۱۹ و `BadImageFormat` هر دو
+از آن دسته‌اند که فقط یک IIS واقعی نشانشان می‌دهد.
 
 ---
 

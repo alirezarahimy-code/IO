@@ -309,6 +309,26 @@ jobs:
           }
           Write-Host '  PASS: authenticated request served, CSP present and strict'
 
+      - name: Run the acceptance checklist against the site
+        shell: powershell
+        run: |
+          # deploy/4-verify-install.ps1 is the checklist a customer runs after the
+          # install. Running it here proves the script itself works, not just the probes
+          # written inline above. The database half needs the two catalogs, which this
+          # job does not have, so only its IIS half is required to pass.
+          $output = & .\deploy\4-verify-install.ps1 -BaseUrl http://localhost:8080 2>&1
+          $output | ForEach-Object { Write-Host $_ }
+          $text = ($output | Out-String)
+          $failed = $false
+          foreach ($check in 'bitness', 'auth-anonymous') {
+            if ($text -notmatch ("PASS\s+" + $check)) {
+              Write-Host "::error::4-verify-install.ps1 did not pass the '$check' check"
+              $failed = $true
+            }
+          }
+          if ($failed) { exit 1 }
+          Write-Host '  PASS: the acceptance checklist runs and its IIS checks pass'
+
       - name: Show the IIS log tail on failure
         if: failure()
         shell: pwsh

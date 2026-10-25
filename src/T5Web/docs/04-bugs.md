@@ -43,7 +43,10 @@
 | **BUG-33** | `db/verify.sql` یک کاتالوگ را می‌دید، `db/02` یک کاتالوگ را اجازه می‌داد | `db/verify.sql`، `db/02-t5web-sql-login.sql` | روی SQL واقعی: `Department.DepartmentName` و `Department.DepartmentID` «MISSING» گزارش شدند درحالی‌که در `Personnel` بودند، `LeaveTypes` نامی بود که وجود ندارد (واقعی: `LeaveType`)، ستون‌های `Record.RecordDate`/`Request.RequestAccept`/`Workflow.TitleChartID`/`UserShift.EndDate` هم خیالی بودند، و کاربر `t5web_admin` فقط در `ReportT5V3` ساخته می‌شد — یعنی هر صفحهٔ پرسنلی در استقرار واقعی با «server principal is not able to access the database» می‌افتاد. حالا `verify.sql` هر کاتالوگ را با نام خودش می‌پرسد (ستون `Catalog` هم چاپ می‌شود)، فهرست ستون‌ها از `engine/column-types.json` آمده، `02` یک بخش `USE [Personnel]` دارد، و گیت `tools/sql-grant-gate.py` فهرست جدول‌های نوشتنی را از `ModuleRegistry.cs` می‌خواند و با `GRANT`ها می‌سنجد | `T36` |
 ---
 
-**آمار:** ۳۳ عیب ثبت‌شده · ۳۶ آزمون در `T5Web.Tests` · ۰ عیب باز بدون آزمون.
+| **BUG-34** | app pool ۶۴-بیتی، موتور x86 | `deploy/3-deploy-portal.ps1` | اسمبلی‌های پین‌شده (`Personnel.dll`، `T5V3.DB.dll`، `T5V3.Model.dll`، `Dapper.dll` در `T5Web [3.5.7]\App\bin`) نوع PE شان **x86** است. روی IIS واقعی، app pool پیش‌فرض ۶۴-بیتی نمی‌تواند آن‌ها را بار کند: `Could not load file or assembly 'Personnel' … an attempt was made to load a program with an incorrect format` — و چون خطا در بارگذاری اسمبلی است، **همهٔ** آدرس‌ها ۵۰۰ می‌دهند، حتی یک فایل `.css`. حالا `3` همیشه `enable32BitAppOnWin64=true` را ست می‌کند، `4` بررسی `bitness` دارد، gate استقرار حذف این خط را رد می‌کند و CI آن را ادعا می‌کند | `deploy-kit-gate.py` + job `iis-install` |
+| **BUG-35** | قاعدهٔ سخت‌سازی، کل سایت را از کار انداخت | `T5Web.Web/Web.config` (`requestFiltering`) | IIS از پیش `.cs` را نمی‌دهد؛ `add fileExtension=".cs"` دوباره، خطای «duplicate collection entry» می‌دهد و کل سایت **۵۰۰.۱۹** می‌شود — یعنی یک قاعدهٔ امنیتی، کنسول را از دسترس خارج می‌کرد. حالا هر پسوند اول `<remove>` و سپس `<add>` می‌شود (برای ورودی ناموجود، `remove` بی‌اثر است) | job `iis-install` (کاوش ۴۰۱/۲۰۰) |
+
+**آمار:** ۳۵ عیب ثبت‌شده · ۳۶ آزمون در `T5Web.Tests` · ۰ عیب باز بدون آزمون.
 
 ## چگونه یک عیب جدید اضافه می‌شود
 
