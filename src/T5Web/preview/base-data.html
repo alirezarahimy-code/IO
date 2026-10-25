@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>داده پایه · آریا ادمین</title>
+    <link rel="stylesheet" href="../T5Web.Web/Content/t5web-admin.css" />
+    <script src="../T5Web.Web/Content/t5web-admin.js" defer></script>
+</head>
+<body>
+<div class="shell">
+    <nav class="rail">
+        <div class="rail__brand">
+            <b>آریا ادمین</b>
+            <span>ARIA-ADMIN · v5.0</span>
+            <span>مدیریت پرسنل، تردد، مرخصی، شیفت، گردش کار و دستگاه‌ها</span>
+        </div>
+        <a href="index.html">راهنمای پیش‌نمایش</a>
+        <a href="dashboard.html">داشبورد</a>
+        <a href="personnel.html">پرسنل</a>
+        <a href="department.html">چارت سازمانی</a>
+        <a href="devices.html">دستگاه‌ها</a>
+        <a href="records.html">ترددها</a>
+        <a href="leave.html">مرخصی و مانده</a>
+        <a href="reports.html">گزارش‌ها</a>
+        <a href="base-data.html" class="is-active">داده پایه</a>
+        <a href="logs.html">لاگ سامانه</a>
+        <a href="access.html">سطوح دسترسی</a>
+        <a href="diagnostics.html">پایش سامانه</a>
+        <a href="integrity.html">سلامت داده</a>
+        <div class="rail__foot">
+            <div>مریم کاظمی</div>
+            <div class="mono">1001</div>
+            <div class="u-mt6">ورود با حساب ویندوز</div>
+        </div>
+    </nav>
+
+    <div class="main">
+        <header class="topbar">
+            <h1>داده پایه — ۵۱ ماژول</h1>
+            <div class="who"><b>مریم کاظمی</b><span> · مدیر فناوری اطلاعات</span></div>
+        </header>
+
+        <main class="content">
+            <div class="notice notice--info">
+                یک چارچوب، ۵۱ جدول: ۳۳ ماژول روی کاتالوگ <span class="mono">t5</span>، ۱۸ ماژول روی
+                <span class="mono">personnel</span> و ۷ ماژول فقط‌خواندنی (ورودی دستگاه یا دادهٔ بیومتریک).
+                هر ستون با شاهد <span class="mono">ddl</span> / <span class="mono">orm</span> /
+                <span class="mono">orm-rename:*</span> اثبات شده است؛ نام حدسی وجود ندارد.
+            </div>
+
+            <div class="u-row u-mt6">
+                <a href="base-data.html" class="btn">ثبت‌های سازمانی</a>
+                <a href="base-data.html" class="btn btn--primary">سازمان</a>
+                <a href="base-data.html" class="btn">عنوان شغلی</a>
+                <a href="base-data.html" class="btn">مرخصی</a>
+                <a href="base-data.html" class="btn">قواعد</a>
+                <a href="base-data.html" class="btn">دستگاه</a>
+                <a href="base-data.html" class="btn">پرونده پرسنل</a>
+                <a href="base-data.html" class="btn">دسترسی</a>
+                <a href="base-data.html" class="btn">گردش کار</a>
+            </div>
+
+            <form method="get" action="base-data.html" class="toolbar u-mt14">
+                <div class="field">
+                    <label for="term">جست‌وجو</label>
+                    <input type="text" id="term" name="term" placeholder="بخشی از متن" />
+                </div>
+                <button type="submit" class="btn">اعمال</button>
+                <a href="base-data.html" class="btn btn--primary">سطر جدید</a>
+                <a href="base-data.html" class="btn">خروجی CSV</a>
+            </form>
+
+            <div class="notice notice--info u-mt6">
+                انتساب سِمَت به پرسنل؛ هر انتساب یک زمان ایجاد دارد.
+            </div>
+
+            <div class="panel">
+                <div class="panel__head">
+                    <h2>سِمَت هر پرسنل — ۴۸ سطر</h2>
+                    <span class="muted u-sm">
+                        صفحه ۱ از ۳ · جدول <span class="mono">UserPositionData</span>
+                    </span>
+                </div>
+                <div class="u-scroll-x">
+                    <table class="grid">
+                        <thead>
+                            <tr>
+                                <th class="num">شناسه</th>
+                                <th class="num">شماره پرسنلی</th>
+                                <th class="num">سِمَت</th>
+                                <th>زمان انتساب</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="num">31</td>
+                                <td class="num">1001</td>
+                                <td class="num">4</td>
+                                <td>1405/02/11</td>
+                                <td class="nowrap">
+                                    <a href="base-data.html" class="btn btn--ghost">ویرایش</a>
+                                    <form method="post" action="base-data.html" class="inline" data-confirm="true">
+                                        <button type="submit" class="btn btn--ghost">حذف</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="num">32</td>
+                                <td class="num">1002</td>
+                                <td class="num">7</td>
+                                <td>1405/02/11</td>
+                                <td class="nowrap">
+                                    <a href="base-data.html" class="btn btn--ghost">ویرایش</a>
+                                    <form method="post" action="base-data.html" class="inline" data-confirm="true">
+                                        <button type="submit" class="btn btn--ghost">حذف</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="num">33</td>
+                                <td class="num">1003</td>
+                                <td class="num">2</td>
+                                <td>1405/03/04</td>
+                                <td class="nowrap">
+                                    <a href="base-data.html" class="btn btn--ghost">ویرایش</a>
+                                    <form method="post" action="base-data.html" class="inline" data-confirm="true">
+                                        <button type="submit" class="btn btn--ghost">حذف</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="num">34</td>
+                                <td class="num">1004</td>
+                                <td class="num">2</td>
+                                <td>1405/03/04</td>
+                                <td class="nowrap">
+                                    <a href="base-data.html" class="btn btn--ghost">ویرایش</a>
+                                    <form method="post" action="base-data.html" class="inline" data-confirm="true">
+                                        <button type="submit" class="btn btn--ghost">حذف</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="num">35</td>
+                                <td class="num">1006</td>
+                                <td class="num">9</td>
+                                <td>1405/04/19</td>
+                                <td class="nowrap">
+                                    <a href="base-data.html" class="btn btn--ghost">ویرایش</a>
+                                    <form method="post" action="base-data.html" class="inline" data-confirm="true">
+                                        <button type="submit" class="btn btn--ghost">حذف</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="panel__foot u-row">
+                    <a href="base-data.html" class="btn">صفحه قبل</a>
+                    <a href="base-data.html" class="btn">صفحه بعد</a>
+                    <span class="muted u-xs">هر صفحه ۲۰ سطر · مرتب‌سازی با <span class="mono">ID</span></span>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel__head"><h2>ماژول‌های فقط‌خواندنی — چرا دکمهٔ ویرایش ندارند</h2></div>
+                <table class="grid">
+                    <thead><tr><th>ماژول</th><th>جدول</th><th>چرا فقط‌خواندنی</th></tr></thead>
+                    <tbody>
+                        <tr><td>پنجرهٔ مجاز کارت</td><td class="mono">Card</td><td>ورودی دستگاه است؛ نوشتن از وب می‌تواند پنجرهٔ تردد را بی‌صدا خراب کند</td></tr>
+                        <tr><td>دادهٔ بیومتریک پرسنل</td><td class="mono">UserBioData</td><td>الگوی اثر انگشت/چهره؛ فقط خود دستگاه می‌نویسد</td></tr>
+                        <tr><td>وضعیت اتصال دستگاه</td><td class="mono">DeviceConnectionState</td><td>سرویس دستگاه هر لحظه به‌روزش می‌کند؛ ویرایش دستی یعنی دادهٔ کهنه</td></tr>
+                        <tr><td>زمان‌بندی دانلود</td><td class="mono">DownloadTime</td><td>برنامهٔ دانلود را سرویس دستگاه اجرا می‌کند، نه اپراتور</td></tr>
+                        <tr><td>انواع بیومتریک</td><td class="mono">DeviceBioTypes</td><td>فهرست بستهٔ خود دستگاه</td></tr>
+                        <tr><td>ویژگی‌های دستگاه</td><td class="mono">DeviceProps</td><td>خروجی پرس‌وجوی دستگاه</td></tr>
+                        <tr><td>زمان‌بندی دستگاه</td><td class="mono">DownloadTimeDevice</td><td>همان دلیل زمان‌بندی دانلود</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

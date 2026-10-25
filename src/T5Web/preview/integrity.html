@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>سلامت داده · آریا ادمین</title>
+    <link rel="stylesheet" href="../T5Web.Web/Content/t5web-admin.css" />
+    <script src="../T5Web.Web/Content/t5web-admin.js" defer></script>
+</head>
+<body>
+<div class="shell">
+    <nav class="rail">
+        <div class="rail__brand">
+            <b>آریا ادمین</b>
+            <span>ARIA-ADMIN · v5.0</span>
+            <span>مدیریت پرسنل، تردد، مرخصی، شیفت، گردش کار و دستگاه‌ها</span>
+        </div>
+        <a href="index.html">راهنمای پیش‌نمایش</a>
+        <a href="dashboard.html">داشبورد</a>
+        <a href="personnel.html">پرسنل</a>
+        <a href="department.html">چارت سازمانی</a>
+        <a href="devices.html">دستگاه‌ها</a>
+        <a href="records.html">ترددها</a>
+        <a href="leave.html">مرخصی و مانده</a>
+        <a href="reports.html">گزارش‌ها</a>
+        <a href="base-data.html">داده پایه</a>
+        <a href="logs.html">لاگ سامانه</a>
+        <a href="access.html">سطوح دسترسی</a>
+        <a href="diagnostics.html">پایش سامانه</a>
+        <a href="integrity.html" class="is-active">سلامت داده</a>
+        <div class="rail__foot">
+            <div>مریم کاظمی</div>
+            <div class="mono">1001</div>
+            <div class="u-mt6">ورود با حساب ویندوز</div>
+        </div>
+    </nav>
+
+    <div class="main">
+        <header class="topbar">
+            <h1>سلامت داده</h1>
+            <div class="who"><b>مریم کاظمی</b><span> · مدیر فناوری اطلاعات</span></div>
+        </header>
+
+        <main class="content">
+            <div class="kpis">
+                <div class="kpi">
+                    <div class="kpi__label">بررسی‌ها</div>
+                    <div class="kpi__value">7</div>
+                    <div class="kpi__note">رابطه‌های منطقیِ بدون کلید خارجی</div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi__label">بررسی‌های دارای مشکل</div>
+                    <div class="kpi__value">1</div>
+                    <div class="kpi__note">نیازمند بررسی</div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi__label">سطرهای یتیم</div>
+                    <div class="kpi__value">3</div>
+                    <div class="kpi__note">اشاره به ردیفی که وجود ندارد</div>
+                </div>
+            </div>
+
+            <div class="notice notice--info">
+                موتور T5 کلید خارجی ندارد و ۳۱ رابطه بین دو کاتالوگ است، پس SQL Server نمی‌تواند آن‌ها را تضمین کند.
+                این صفحه همان رابطه‌ها را می‌شمارد و چیزی را تغییر نمی‌دهد: تصمیم «کدام طرف رابطه درست است» با اپراتور است.
+            </div>
+
+            <div class="panel">
+                <div class="panel__head">
+                    <h2>سلامت داده</h2>
+                    <span class="muted u-sm">۷ بررسی · فقط‌خواندنی · بدون کنش نوشتنی</span>
+                </div>
+                <div class="u-scroll-x">
+                    <table class="grid">
+                        <thead>
+                            <tr>
+                                <th>بررسی</th>
+                                <th>رابطه</th>
+                                <th class="num">تعداد</th>
+                                <th>نمونه</th>
+                                <th>وضعیت</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <strong>مرخصی با نوع ناموجود</strong>
+                                    <div class="muted u-xs">سطر مرخصی که به نوع حذف‌شده اشاره می‌کند</div>
+                                </td>
+                                <td class="mono u-xs">LeavesAdded.LeaveTypeID</td>
+                                <td class="num">0</td>
+                                <td class="mono u-xs">—</td>
+                                <td><span class="tag tag--ok">سالم</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>مانده سالانه با نوع ناموجود</strong>
+                                    <div class="muted u-xs">مانده‌ای که نوع مرخصی‌اش دیگر وجود ندارد</div>
+                                </td>
+                                <td class="mono u-xs">YearRemain.LeaveTypeID</td>
+                                <td class="num">0</td>
+                                <td class="mono u-xs">—</td>
+                                <td><span class="tag tag--ok">سالم</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>مرخصی روزانه با شرح ناموجود</strong>
+                                    <div class="muted u-xs">روزهای تفصیلی که شرح مرخصی‌شان حذف شده است</div>
+                                </td>
+                                <td class="mono u-xs">DailyLeave.DescriptionID</td>
+                                <td class="num">0</td>
+                                <td class="mono u-xs">—</td>
+                                <td><span class="tag tag--ok">سالم</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>درخواست با نوع ناموجود</strong>
+                                    <div class="muted u-xs">درخواستی که به نوع مرخصی حذف‌شده اشاره می‌کند</div>
+                                </td>
+                                <td class="mono u-xs">Request.LeaveID</td>
+                                <td class="num">0</td>
+                                <td class="mono u-xs">—</td>
+                                <td><span class="tag tag--ok">سالم</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>سهمیهٔ نوع استخدام بی‌نوع</strong>
+                                    <div class="muted u-xs">سهمیه‌ای که نوع استخدامش وجود ندارد</div>
+                                </td>
+                                <td class="mono u-xs">EmpTypeLeave.EmpTypeID</td>
+                                <td class="num">0</td>
+                                <td class="mono u-xs">—</td>
+                                <td><span class="tag tag--ok">سالم</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>گردش کار با عنوان ناموجود</strong>
+                                    <div class="muted u-xs">مرحله‌ای که عنوان شغلی‌اش حذف شده است</div>
+                                </td>
+                                <td class="mono u-xs">Workflow.TitleChartID</td>
+                                <td class="num">0</td>
+                                <td class="mono u-xs">—</td>
+                                <td><span class="tag tag--ok">سالم</span></td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <strong>شیفت پرسنل ناموجود</strong>
+                                    <div class="muted u-xs">برای پرسنلی که در کاتالوگ Personnel نیست</div>
+                                </td>
+                                <td class="mono u-xs">UserShift → UserInfo</td>
+                                <td class="num">3</td>
+                                <td class="mono u-xs">1007 ، 1014 ، 1032 …</td>
+                                <td><span class="tag tag--bad">یافت شد</span></td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="5">
+                                    بررسی‌ها بین دو کاتالوگ مقایسه می‌کنند، پس در حافظه انجام می‌شوند نه با
+                                    <span class="mono">JOIN</span>؛ گیت <span class="mono">engine-relations.py</span>
+                                    هر پرس‌وجوی دوکاتالوگی را رد می‌کند.
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

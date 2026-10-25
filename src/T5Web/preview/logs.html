@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>لاگ سامانه · آریا ادمین</title>
+    <link rel="stylesheet" href="../T5Web.Web/Content/t5web-admin.css" />
+    <script src="../T5Web.Web/Content/t5web-admin.js" defer></script>
+</head>
+<body>
+<div class="shell">
+    <nav class="rail">
+        <div class="rail__brand">
+            <b>آریا ادمین</b>
+            <span>ARIA-ADMIN · v5.0</span>
+            <span>مدیریت پرسنل، تردد، مرخصی، شیفت، گردش کار و دستگاه‌ها</span>
+        </div>
+        <a href="index.html">راهنمای پیش‌نمایش</a>
+        <a href="dashboard.html">داشبورد</a>
+        <a href="personnel.html">پرسنل</a>
+        <a href="department.html">چارت سازمانی</a>
+        <a href="devices.html">دستگاه‌ها</a>
+        <a href="records.html">ترددها</a>
+        <a href="leave.html">مرخصی و مانده</a>
+        <a href="reports.html">گزارش‌ها</a>
+        <a href="base-data.html">داده پایه</a>
+        <a href="logs.html" class="is-active">لاگ سامانه</a>
+        <a href="access.html">سطوح دسترسی</a>
+        <a href="diagnostics.html">پایش سامانه</a>
+        <a href="integrity.html">سلامت داده</a>
+        <div class="rail__foot">
+            <div>مریم کاظمی</div>
+            <div class="mono">1001</div>
+            <div class="u-mt6">ورود با حساب ویندوز</div>
+        </div>
+    </nav>
+
+    <div class="main">
+        <header class="topbar">
+            <h1>لاگ سامانه</h1>
+            <div class="who"><b>مریم کاظمی</b><span> · مدیر فناوری اطلاعات</span></div>
+        </header>
+
+        <main class="content">
+            <div class="notice notice--info">
+                فقط‌خواندنی است و هیچ کنش نوشتنی ندارد: سطرهای لاگ را موتور دسکتاپ و سرویس دستگاه می‌نویسند.
+                لاگ دستگاه (<span class="mono">RecordsLog*</span>، <span class="mono">CommandLog</span>) در کاتالوگ
+                <span class="mono">device</span> است و این پورتال هرگز آن را باز نمی‌کند.
+            </div>
+
+            <form method="get" action="logs.html" class="toolbar">
+                <div class="field">
+                    <label for="source">منبع</label>
+                    <select id="source" name="source" data-autosubmit="true">
+                        <option value="system" selected="selected">رخدادهای سامانه دسکتاپ</option>
+                        <option value="operation">عملیات دستگاه روی پرسنل</option>
+                        <option value="download">دفتر دانلود تردد</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="from">از تاریخ</label>
+                    <input type="date" id="from" name="from" value="2026-10-19" />
+                </div>
+                <div class="field">
+                    <label for="to">تا تاریخ</label>
+                    <input type="date" id="to" name="to" value="2026-10-25" />
+                </div>
+                <div class="field">
+                    <label for="badge">شماره پرسنلی</label>
+                    <input type="number" id="badge" name="badge" min="1" />
+                </div>
+                <div class="field">
+                    <label for="term">جست‌وجو</label>
+                    <input type="search" id="term" name="term" placeholder="شرح، رایانه یا نوع عملیات" />
+                </div>
+                <div class="field">
+                    <label for="take">تعداد سطر</label>
+                    <select id="take" name="take">
+                        <option value="100" selected="selected">100</option>
+                        <option value="250">250</option>
+                        <option value="500">500</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn--primary">اعمال</button>
+            </form>
+
+            <div class="panel">
+                <div class="panel__head">
+                    <h2>رخدادهای سامانه دسکتاپ</h2>
+                    <span class="muted u-sm">
+                        ۱۸ سطر · ۷ روز ·
+                        جدول <span class="mono">SystemLog</span> ·
+                        کاتالوگ <span class="mono">t5</span>
+                    </span>
+                </div>
+                <div class="panel__body muted u-sm">
+                    تغییرات ثبت‌شده توسط نسخه دسکتاپ T5V3 (کاربر، رایانه، نوع رخداد).
+                </div>
+                <div class="u-scroll-x">
+                    <table class="grid">
+                        <thead>
+                            <tr>
+                                <th class="nowrap">زمان</th>
+                                <th>پرسنل</th>
+                                <th>دستگاه</th>
+                                <th>نوع</th>
+                                <th>جزئیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="nowrap mono">1405/08/03 08:41</td>
+                                <td>—</td>
+                                <td>—</td>
+                                <td>ویرایش پارامتر</td>
+                                <td>مقدار پارامتر «سقف تأخیر مجاز» از ۱۰ به ۱۵ دقیقه تغییر کرد</td>
+                            </tr>
+                            <tr>
+                                <td class="nowrap mono">1405/08/03 08:33</td>
+                                <td><span class="mono">1001</span> <span>· مریم کاظمی</span></td>
+                                <td>—</td>
+                                <td>ورود کاربر</td>
+                                <td>ورود از رایانه <span class="mono">ADMIN-PC</span></td>
+                            </tr>
+                            <tr>
+                                <td class="nowrap mono">1405/08/02 17:22</td>
+                                <td>—</td>
+                                <td>—</td>
+                                <td>ویرایش شیفت</td>
+                                <td>بازهٔ شیفت «صبح اداری» از ۰۷:۰۰ به ۰۷:۱۵ منتقل شد</td>
+                            </tr>
+                            <tr>
+                                <td class="nowrap mono">1405/08/02 17:05</td>
+                                <td><span class="mono">1002</span> <span>· حسین رستمی</span></td>
+                                <td>—</td>
+                                <td>ورود کاربر</td>
+                                <td>ورود از رایانه <span class="mono">HR-PC</span></td>
+                            </tr>
+                            <tr>
+                                <td class="nowrap mono">1405/08/02 09:12</td>
+                                <td>—</td>
+                                <td>—</td>
+                                <td>ارسال به دستگاه</td>
+                                <td>کارت پرسنل <span class="mono">1003</span> به دستگاه شماره ۱ ارسال شد</td>
+                            </tr>
+                            <tr>
+                                <td class="nowrap mono">1405/08/01 18:40</td>
+                                <td><span class="mono">1001</span> <span>· مریم کاظمی</span></td>
+                                <td>—</td>
+                                <td>ویرایش پرسنل</td>
+                                <td>تلفن پرسنل <span class="mono">1003</span> تغییر کرد</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="panel__foot muted u-xs">
+                    بازهٔ لاگ حداکثر ۶۲ روز و تعداد سطر حداکثر ۵۰۰ است؛ هر دو سقف در
+                    <span class="mono">LogWindow</span> دامنه تعریف شده‌اند تا فرم و پرس‌وجو یک عدد را نشان دهند.
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel__head"><h2>سه منبعی که پورتال می‌خواند</h2></div>
+                <table class="grid">
+                    <thead><tr><th>منبع</th><th>جدول</th><th>کاتالوگ</th><th>چه می‌گوید</th></tr></thead>
+                    <tbody>
+                        <tr><td>رخدادهای سامانه دسکتاپ</td><td class="mono">SystemLog</td><td class="mono">t5</td><td>تغییرات و ورودهای خود برنامهٔ دسکتاپ</td></tr>
+                        <tr><td>عملیات دستگاه روی پرسنل</td><td class="mono">OperationLog</td><td class="mono">personnel</td><td>هر عملیات دستگاه برای یک نفر با چهار پارامتر</td></tr>
+                        <tr><td>دفتر دانلود تردد</td><td class="mono">DownloadRecordsLog</td><td class="mono">t5</td><td>هر بار دانلود: تعداد رکورد، موفق/ناموفق، رایانه مبدأ</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

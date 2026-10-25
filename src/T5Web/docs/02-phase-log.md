@@ -265,7 +265,7 @@
 | عنوان تب مرورگر و برند ریل کنار | `Views/Shared/_Layout.cshtml` (تنها مصرف‌کننده) |
 | نسخه در صفحه پایش | `DiagnosticsController` → `FullVersion` |
 | کلیدهای پیکربندی | `PortalName`, `PortalProductCode`, `PortalVersion` در `Web.config` |
-| پیش‌نمایش آفلاین (۱۰ صفحه) | `preview/*.html` |
+| پیش‌نمایش آفلاین (۱۳ صفحه، شامل لاگ/سلامت داده/داده پایه) | `preview/*.html` |
 | قفل در بیلد | آزمون `T30` (ثابت‌های برند + نبود نام قدیمی در UI + هم‌خوانی README/docs) |
 
 ### ۶-ب. آنچه از پوشه `Views` قدیمی باقی نمی‌ماند

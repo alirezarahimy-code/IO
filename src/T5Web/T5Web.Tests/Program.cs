@@ -470,6 +470,28 @@ namespace T5Web.Tests
                 Assert(!Regex.IsMatch(html, @"\sstyle="""), name + " uses an inline style, which the product CSP blocks.");
                 Assert(!Regex.IsMatch(html, @"\son(click|change|submit|load)="""), name + " uses an inline event handler.");
             }
+            // Every rail link must resolve: a preview full of dead ends teaches the
+            // reviewer nothing, and a renamed page would silently rot.
+            var pageNames = new HashSet<string>(
+                previewPages.Select(p => Path.GetFileName(p)), StringComparer.OrdinalIgnoreCase);
+            foreach (string page in previewPages)
+            {
+                string html = File.ReadAllText(page);
+                string name = Path.GetFileName(page);
+                foreach (Match link in Regex.Matches(html, "href=\"([A-Za-z0-9_-]+\\.html)\""))
+                {
+                    Assert(pageNames.Contains(link.Groups[1].Value),
+                        name + " links to " + link.Groups[1].Value + ", which does not exist.");
+                }
+                Assert(Regex.Matches(html, "class=\"is-active\"").Count == 1,
+                    name + " must mark exactly one rail item as current.");
+            }
+            // The three screens added in waves 2-3 must have a mirror, otherwise the newest
+            // work is the part nobody can look at.
+            foreach (string required in new[] { "logs.html", "integrity.html", "base-data.html" })
+            {
+                Assert(pageNames.Contains(required), "the preview has no page for " + required + ".");
+            }
             Assert(File.Exists(Path.Combine(previewRoot, "server.py")),
                 "preview/server.py must exist so the preview can be served offline.");
         }
