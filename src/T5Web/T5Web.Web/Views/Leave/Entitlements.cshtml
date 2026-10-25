@@ -1,0 +1,78 @@
+@model T5Web.Domain.Models.EntitlementMatrix
+@using T5Web.Domain.Models
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    bool canEdit = ViewBag.CanEdit is bool && (bool)ViewBag.CanEdit;
+}
+<div class="toolbar">
+    <a class="btn" href="@Url.Action("Index", "Leave")">مرخصی و مانده</a>
+    <a class="btn" href="@Url.Action("Grants", "Leave")">ثبت مرخصی</a>
+    <span class="muted u-sm">
+        @Model.GrantedCount سهمیه از @Model.PossibleCount ترکیب ممکن ثبت شده است.
+        فقط انواع مرخصیِ سهمیه‌دار برای پرسنل آن نوع استخدام در فرم ثبت مرخصی پیشنهاد می‌شوند.
+    </span>
+</div>
+
+<div class="panel">
+    <div class="panel__head">
+        <h2>سهمیهٔ مرخصی نوع استخدام</h2>
+        <span class="muted u-sm">دسکتاپ: frmEmpLeaveType · جدول <span class="mono">EmpTypeLeave</span></span>
+    </div>
+    @if (Model.EmpTypes.Count == 0 || Model.LeaveTypes.Count == 0)
+    {
+        <div class="empty">برای نمایش این جدول باید هم انواع استخدام (داده پایه) و هم انواع مرخصی تعریف شده باشند.</div>
+    }
+    else
+    {
+        <div class="u-scroll-x">
+            <table class="matrix">
+                <thead>
+                    <tr>
+                        <th>نوع استخدام</th>
+                        @foreach (var leaveType in Model.LeaveTypes)
+                        {
+                            <th>@leaveType.Value</th>
+                        }
+                        <th class="num">تعداد</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var empType in Model.EmpTypes)
+                    {
+                        <tr>
+                            <td>@empType.Value</td>
+                            @foreach (var leaveType in Model.LeaveTypes)
+                            {
+                                bool granted = Model.IsGranted(empType.Key, leaveType.Key);
+                                <td>
+                                    @if (canEdit)
+                                    {
+                                        <form method="post" action="@Url.Action("SetEntitlement", "Leave")" class="inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="empTypeId" value="@empType.Key" />
+                                            <input type="hidden" name="leaveTypeId" value="@leaveType.Key" />
+                                            <input type="hidden" name="grant" value="@(granted ? "false" : "true")" />
+                                            <button type="submit" class="@(granted ? "btn btn--primary" : "btn btn--ghost")"
+                                                    title="@(granted ? "حذف سهمیه" : "افزودن سهمیه")">
+                                                @(granted ? "دارد" : "—")
+                                            </button>
+                                        </form>
+                                    }
+                                    else if (granted)
+                                    {
+                                        <span class="tag tag--ok">دارد</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="muted">—</span>
+                                    }
+                                </td>
+                            }
+                            <td class="num">@Model.CountFor(empType.Key)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

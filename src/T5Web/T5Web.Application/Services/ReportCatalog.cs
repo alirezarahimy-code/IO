@@ -11,6 +11,7 @@ namespace T5Web.Application.Services
     ///
     /// Legacy inventory (docs/03) has 343 actions across 67 controllers; 26 of them are
     /// report screens. The rewrite keeps the 11 that answer a real operational question
+    /// (plus one that only ever existed in the desktop client, "لیست مرخصی‌ها" - docs/10)
     /// and drops the RDLC designer (ReportDatas / ReportFilter / ReportTablix* /
     /// ReportTextbox / ReportTitles / ReportDesign) - a browser-based graphical report
     /// designer cannot be secured, tested or kept offline, and the RDLC files themselves
@@ -113,6 +114,17 @@ namespace T5Web.Application.Services
                 Source = "query",
                 Feature = AdminFeature.LeaveView,
                 NoteFa = "مانده پایان سال برای هر نفر و نوع مرخصی.",
+                MaxDays = 366
+            },
+            new ReportDescriptor
+            {
+                Code = "leaves",
+                TitleFa = "لیست مرخصی‌ها",
+                LegacyController = "T5V3/frmLeavesReport",
+                Source = "query",
+                Feature = AdminFeature.LeaveView,
+                NoteFa = "مرخصی‌های ثبت‌شده در بازه تاریخ ثبت، با نوع، روز، سند و توضیح. " +
+                         "این گزارش فقط در نسخه دسکتاپ بود (frmLeavesReport) و به پورتال اضافه شد.",
                 MaxDays = 366
             },
             new ReportDescriptor

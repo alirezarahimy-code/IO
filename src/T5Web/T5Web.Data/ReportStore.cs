@@ -81,6 +81,9 @@ namespace T5Web.Data
                 case "requests":
                     result = Requests(from, to, badgeNumber);
                     break;
+                case "leaves":
+                    result = Leaves(from, to, badgeNumber, departmentId);
+                    break;
                 case "late-early":
                     result = RawPunches("تأخیر و تعجیل", "LateEarlyReport.rdlc", from, to, badgeNumber);
                     break;
@@ -318,6 +321,54 @@ namespace T5Web.Data
                     b.ClosingDays.ToString("0.##", CultureInfo.InvariantCulture)
                 }).ToList(),
                 Truncated = balances.Count >= RowLimit
+            };
+        }
+
+        /// <summary>
+        /// "لیست مرخصی‌ها" - the desktop's frmLeavesReport.
+        ///
+        /// The legacy web portal had no such screen at all, so this is one of the few
+        /// reports the rewrite *added* rather than ported (docs/10, wave 1). It reads the
+        /// grants the engine already stores; nothing is recalculated.
+        /// </summary>
+        private ReportResult Leaves(DateTime from, DateTime to, long? badgeNumber, int? departmentId)
+        {
+            IReadOnlyList<PersonnelRow> people = _admin.SearchPersonnel(string.Empty,
+                departmentId.HasValue && departmentId.Value > 0 ? departmentId : null, true, 2000);
+
+            var names = new Dictionary<long, string>();
+            foreach (PersonnelRow person in people)
+            {
+                if (!names.ContainsKey(person.BadgeNumber))
+                {
+                    names[person.BadgeNumber] = person.FullName;
+                }
+            }
+
+            bool scoped = departmentId.HasValue && departmentId.Value > 0;
+            List<LeaveGrantRow> grants = _leave.GetGrants(badgeNumber, null, RowLimit)
+                .Where(g => g.AssignDate.Date >= from.Date && g.AssignDate.Date <= to.Date)
+                .Where(g => !scoped || names.ContainsKey(g.BadgeNumber))
+                .OrderBy(g => g.AssignDate)
+                .ThenBy(g => g.BadgeNumber)
+                .ToList();
+
+            return new ReportResult
+            {
+                TitleFa = "لیست مرخصی‌ها",
+                Columns = new[] { "شماره", "نام", "نوع مرخصی", "تاریخ ثبت", "روز", "سند", "توضیح" },
+                Rows = grants.Select(g => (IReadOnlyList<string>)new[]
+                {
+                    g.BadgeNumber.ToString(CultureInfo.InvariantCulture),
+                    names.ContainsKey(g.BadgeNumber) ? names[g.BadgeNumber] : string.Empty,
+                    g.LeaveTypeName,
+                    JalaliText.Format(g.AssignDate),
+                    g.Days.ToString("0.##", CultureInfo.InvariantCulture),
+                    g.DocumentNumber,
+                    g.Descriptions
+                }).ToList(),
+                Truncated = grants.Count >= RowLimit,
+                NoteFa = "مرخصی‌های ثبت‌شده در بازه؛ مانده و مصرف محاسبه نمی‌شود."
             };
         }
 

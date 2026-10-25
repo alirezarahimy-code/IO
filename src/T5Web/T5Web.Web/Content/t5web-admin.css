@@ -526,3 +526,32 @@ a:hover { text-decoration: underline; }
 }
 
 .rail__legacy:hover { background: #1e2a34; color: #fff; text-decoration: none; }
+
+/* ------------------------------------------------------- photo sheet (print) -- */
+/* The printable photo sheet (Views/Photos/Sheet.cshtml). Everything here is a
+   same-origin stylesheet rule, never an inline style: the CSP keeps
+   style-src 'self', and a print layout that silently disappeared would waste paper. */
+.sheet { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+
+.sheet__card {
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    padding: 8px;
+    text-align: center;
+    background: #fff;
+}
+
+.sheet__photo { width: 100%; height: 120px; object-fit: cover; border-radius: var(--radius); background: var(--paper); }
+
+.sheet__name { font-size: 12.5px; font-weight: 600; margin-top: 6px; }
+.sheet__meta { font-size: 11px; color: var(--ink-faint); }
+
+@media print {
+    .rail, .topbar, .toolbar, .coexistence, .panel__head .btn, .notice { display: none !important; }
+    .shell { display: block; }
+    .main { margin: 0; }
+    .content { padding: 0; }
+    .panel { border: 0; box-shadow: none; }
+    .sheet { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+    .sheet__card { break-inside: avoid; page-break-inside: avoid; }
+}

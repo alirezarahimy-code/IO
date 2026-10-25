@@ -708,6 +708,29 @@ modules.Add(new ModuleDescriptor
 
             modules.Add(new ModuleDescriptor
             {
+                Code = "leavedescription",
+                TitleFa = "توضیحات مرخصی",
+                GroupFa = "مرخصی و تردد",
+                Table = "LeaveDescription",
+                Catalog = "t5",
+                OrderBy = "ID",
+                ViewFeature = AdminFeature.LeaveView,
+                EditFeature = AdminFeature.LeaveEdit,
+                AllowCreate = true,
+                AllowDelete = true,
+                NoteFa = "فهرست شرح‌های استاندارد مرخصی که در ثبت مرخصی انتخاب می‌شوند " +
+                         "(دسکتاپ: frmLeaveDescription). شناسه را اپراتور تعیین می‌کند، چون ستون identity نیست.",
+                Fields = new List<ModuleField>
+                {
+                    Key("ID", "شناسه", FieldKind.Number, "orm"),
+                    // The ORM exposes Description as nvarchar without a declared length, so the
+                    // portal caps input at a value the engine itself accepts everywhere.
+                    Text("Description", "شرح", 250, "orm", required: true)
+                }
+            });
+
+            modules.Add(new ModuleDescriptor
+            {
                 Code = "userinfoproperty",
                 TitleFa = "مقدار فیلد اضافی پرسنل",
                 GroupFa = "داده پایه",

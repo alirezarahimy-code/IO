@@ -281,6 +281,8 @@ namespace T5Web.Web.Security
         private static ILeaveStore _leave;
         private static IScheduleStore _schedule;
         private static IReportStore _reports;
+        private static IPhotoStore _photos;
+        private static IEntitlementStore _entitlements;
 
         /// <summary>
         /// Wires the process-wide services. The module store is optional: a deployment
@@ -320,6 +322,21 @@ namespace T5Web.Web.Security
                                      IAttendanceStore attendanceStore, ILeaveStore leaveStore,
                                      IScheduleStore scheduleStore, IReportStore reportStore)
         {
+            Configure(repository, moduleStore, attendanceStore, leaveStore, scheduleStore, reportStore,
+                      null, null);
+        }
+
+        /// <summary>
+        /// Full wiring, including the wave-1 stores (photos, leave entitlements - docs/10).
+        /// Screens whose store is absent answer with the "not configured" page instead of
+        /// throwing.
+        /// </summary>
+        public static void Configure(IAdminRepository repository, IModuleStore moduleStore,
+                                     IAttendanceStore attendanceStore, ILeaveStore leaveStore,
+                                     IScheduleStore scheduleStore, IReportStore reportStore,
+                                     IPhotoStore photoStore,
+                                     IEntitlementStore entitlementStore)
+        {
             if (repository == null)
             {
                 throw new ArgumentNullException(nameof(repository));
@@ -337,6 +354,8 @@ namespace T5Web.Web.Security
                 _leave = leaveStore;
                 _schedule = scheduleStore;
                 _reports = reportStore;
+                _photos = photoStore;
+                _entitlements = entitlementStore;
             }
         }
 
@@ -395,6 +414,18 @@ namespace T5Web.Web.Security
             get { lock (SyncRoot) { return _reports; } }
         }
 
+        /// <summary>Personnel photo archive (docs/10, wave 1).</summary>
+        public static IPhotoStore Photos
+        {
+            get { lock (SyncRoot) { return _photos; } }
+        }
+
+        /// <summary>Leave entitlements per employment type.</summary>
+        public static IEntitlementStore Entitlements
+        {
+            get { lock (SyncRoot) { return _entitlements; } }
+        }
+
         /// <summary>Menu entries the current operator can actually open.</summary>
         public static IReadOnlyList<MenuEntry> MenuFor(AdminSession session)
         {
@@ -414,7 +445,9 @@ namespace T5Web.Web.Security
             Add(menu, session, AdminFeature.RequestView, "درخواست‌ها", "Requests", "Index");
             Add(menu, session, AdminFeature.ReportView, "گزارش‌ها", "Reports", "Index");
             Add(menu, session, AdminFeature.BaseDataView, "داده پایه", "Modules", "Index");
+            Add(menu, session, AdminFeature.PersonnelPhoto, "تصاویر پرسنل", "Photos", "Index");
             Add(menu, session, AdminFeature.PersonnelImport, "ورود از فایل", "Import", "Index");
+            Add(menu, session, AdminFeature.LeaveView, "سهمیهٔ مرخصی", "Leave", "Entitlements");
             Add(menu, session, AdminFeature.AccessView, "سطوح دسترسی", "Access", "Index");
             Add(menu, session, AdminFeature.WorkflowView, "گردش کار", "Workflow", "Index");
             Add(menu, session, AdminFeature.LogView, "رخدادها", "Audit", "Index");

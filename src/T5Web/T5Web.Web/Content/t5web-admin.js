@@ -17,6 +17,17 @@
         }
     });
 
+    // Buttons marked data-print open the browser print dialog. Done here rather than as
+    // an inline onclick so the CSP can keep "script-src 'self'" (photo sheet, docs/10).
+    document.addEventListener('click', function (event) {
+        var target = event.target;
+        if (!target || target.getAttribute('data-print') !== 'true') {
+            return;
+        }
+        event.preventDefault();
+        window.print();
+    });
+
     // Destructive-looking actions ask once, in the operator's language.
     document.addEventListener('submit', function (event) {
         var form = event.target;

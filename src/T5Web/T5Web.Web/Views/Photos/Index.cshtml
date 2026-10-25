@@ -1,0 +1,97 @@
+@model T5Web.Web.Controllers.PhotosIndexModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<form method="get" action="@Url.Action("Index", "Photos")" class="toolbar">
+    <div class="field">
+        <label for="term">جست‌وجو</label>
+        <input type="search" id="term" name="term" value="@Model.Term" placeholder="نام یا شماره پرسنلی" />
+    </div>
+    <div class="field">
+        <label for="departmentId">واحد</label>
+        <select id="departmentId" name="departmentId" data-autosubmit="true">
+            <option value="">همه</option>
+            @foreach (var department in Model.Departments)
+            {
+                bool selected = Model.DepartmentId.HasValue && Model.DepartmentId.Value == department.DepartmentId;
+                <option value="@department.DepartmentId" selected="@(selected ? "selected" : null)">@department.DepartmentName</option>
+            }
+        </select>
+    </div>
+    <div class="field">
+        <label for="missingOnly">فقط بدون تصویر</label>
+        <input type="checkbox" id="missingOnly" name="missingOnly" value="true" checked="@(Model.MissingOnly ? "checked" : null)" />
+    </div>
+    <button type="submit" class="btn btn--primary">اعمال</button>
+    <a class="btn" href="@Url.Action("Sheet", "Photos", new { term = Model.Term, departmentId = Model.DepartmentId, missingOnly = Model.MissingOnly })">برگه چاپی</a>
+    <a class="btn" href="@Url.Action("Index", "Photos", new { missingOnly = true })">پرسنل بدون تصویر (@Model.WithoutPhoto)</a>
+</form>
+
+<div class="kpis">
+    <div class="kpi">
+        <div class="kpi__label">با تصویر</div>
+        <div class="kpi__value">@Model.WithPhoto</div>
+        <div class="kpi__note">پرسنل ثبت‌شده در آرشیو</div>
+    </div>
+    <div class="kpi">
+        <div class="kpi__label">بدون تصویر</div>
+        <div class="kpi__value">@Model.WithoutPhoto</div>
+        <div class="kpi__note">نیازمند ثبت روی دستگاه</div>
+    </div>
+    <div class="kpi">
+        <div class="kpi__label">پوشش</div>
+        <div class="kpi__value">@Model.CoveragePercent%</div>
+        <div class="kpi__note">از @Model.Total پرسنل</div>
+    </div>
+</div>
+
+<div class="panel">
+    <div class="panel__head">
+        <h2>@(Model.MissingOnly ? "پرسنل بدون تصویر" : "آرشیو تصاویر")</h2>
+        <span class="muted u-sm">تصویر از ستون <span class="mono">UserInfo.Photo</span> خوانده می‌شود؛ پورتال آن را تغییر نمی‌دهد.</span>
+    </div>
+    @if (Model.Rows.Count == 0)
+    {
+        <div class="empty">برای این فیلتر سطری یافت نشد.</div>
+    }
+    else
+    {
+        <div class="u-scroll-x">
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th class="num">شماره</th>
+                        <th>تصویر</th>
+                        <th>نام</th>
+                        <th>واحد</th>
+                        <th>حجم</th>
+                        <th>پرونده</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.Rows)
+                    {
+                        <tr>
+                            <td class="num mono">@row.BadgeNumber</td>
+                            <td>
+                                @if (row.HasPhoto)
+                                {
+                                    <img src="@Url.Action("Image", "Photos", new { id = row.BadgeNumber })"
+                                         alt="تصویر @row.PersonName" width="48" height="60" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <span class="tag tag--mute">بدون تصویر</span>
+                                }
+                            </td>
+                            <td>@(string.IsNullOrWhiteSpace(row.PersonName) ? "—" : row.PersonName)</td>
+                            <td>@(string.IsNullOrWhiteSpace(row.DeptName) ? "—" : row.DeptName)</td>
+                            <td class="num">@row.SizeFa</td>
+                            <td><a class="btn btn--ghost" href="@Url.Action("Edit", "Personnel", new { id = row.BadgeNumber })">پرونده</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

@@ -296,6 +296,16 @@ namespace T5Web.Domain.Models
             return OkInstance;
         }
 
+        /// <summary>
+        /// Success that carries a value back to the caller (today: the identifier of a row
+        /// the store just created). Kept separate from <see cref="Ok()"/> so the common
+        /// case stays allocation-free.
+        /// </summary>
+        public static OperationResult Ok(string message)
+        {
+            return new OperationResult(true, message ?? string.Empty);
+        }
+
         public static OperationResult Fail(string message)
         {
             return new OperationResult(false, message);

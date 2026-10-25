@@ -93,6 +93,7 @@ namespace T5Web.Domain
                 { AdminFeature.PersonnelEdit, "ویرایش پرسنل" },
                 { AdminFeature.PersonnelPhoto, "مدیریت تصویر پرسنل" },
                 { AdminFeature.PersonnelImport, "ورود گروهی از فایل" },
+                { AdminFeature.PersonnelPhoto, "مشاهده تصویر پرسنل" },
                 { AdminFeature.RecordsView, "مشاهده ترددها" },
                 { AdminFeature.RecordsEdit, "ویرایش ترددها" },
                 { AdminFeature.RequestView, "مشاهده درخواست‌ها" },

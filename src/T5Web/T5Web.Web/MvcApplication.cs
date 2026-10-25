@@ -73,7 +73,12 @@ namespace T5Web.Web
                     attendance,
                     leave,
                     new SqlScheduleStore(t5, personnel),
-                    new ReportStore(attendance, leave, admin));
+                    new ReportStore(attendance, leave, admin),
+                    // Wave 1 (docs/10): the photo archive and the leave-entitlement matrix.
+                    // Weekly work hours ([TimeTable]) belong to the device service database
+                    // and are deliberately *not* wired here - see docs/10 §5.
+                    new SqlPhotoStore(personnelFactory, personnel),
+                    new SqlEntitlementStore(t5, personnelFactory));
             }
             catch (Exception ex)
             {

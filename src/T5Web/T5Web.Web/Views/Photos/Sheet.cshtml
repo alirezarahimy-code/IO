@@ -1,0 +1,40 @@
+@model T5Web.Web.Controllers.PhotosIndexModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="toolbar">
+    <a class="btn" href="@Url.Action("Index", "Photos", new { term = Model.Term, departmentId = Model.DepartmentId, missingOnly = Model.MissingOnly })">بازگشت به فهرست</a>
+    <button type="button" class="btn btn--primary" data-print="true">چاپ</button>
+    <span class="muted u-sm">برگه چاپی برای ثبت تصویر کنار دستگاه؛ فقط برای پرسنل این فهرست.</span>
+</div>
+
+<div class="panel">
+    <div class="panel__head">
+        <h2>برگه تصاویر پرسنل</h2>
+        <span class="muted u-sm">@Model.Rows.Count سطر · @(Model.MissingOnly ? "بدون تصویر" : "با تصویر")</span>
+    </div>
+    @if (Model.Rows.Count == 0)
+    {
+        <div class="empty">سطری برای چاپ نیست.</div>
+    }
+    else
+    {
+        <div class="sheet">
+            @foreach (var row in Model.Rows)
+            {
+                <div class="sheet__card">
+                    @if (row.HasPhoto)
+                    {
+                        <img class="sheet__photo" src="@Url.Action("Image", "Photos", new { id = row.BadgeNumber })" alt="تصویر @row.PersonName" />
+                    }
+                    else
+                    {
+                        <div class="sheet__photo"></div>
+                    }
+                    <div class="sheet__name">@(string.IsNullOrWhiteSpace(row.PersonName) ? "—" : row.PersonName)</div>
+                    <div class="sheet__meta mono">@row.BadgeNumber · @(string.IsNullOrWhiteSpace(row.DeptName) ? "بدون واحد" : row.DeptName)</div>
+                </div>
+            }
+        </div>
+    }
+</div>

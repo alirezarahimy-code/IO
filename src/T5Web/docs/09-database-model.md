@@ -79,9 +79,11 @@
 | `SqlAttendanceStore`، `SqlLeaveStore`، `SqlScheduleStore` | `Open()` (+ نام‌ها از `PersonnelDirectory`) | `ReportT5V3` | `BUG-22`، `BUG-28` |
 | `PersonnelDirectory` | کارخانهٔ پرسنلی که به سازنده‌اش داده می‌شود | `Personnel` | نام کلاس |
 | `PersonnelEngineDirectory` (`Personnel.dll`) | `PersonnelCnnStr` | `Personnel` | `BUG-30` — قبلاً `T5CnnStr` بود |
-| `SqlModuleStore` (۲۹ ماژول) | بر اساس `ModuleDescriptor.Catalog` | ۱۹ ماژول `t5` · ۱۰ ماژول `Personnel` | `T16` هر ماژول را با این فایل می‌سنجد |
+| `SqlModuleStore` (۳۰ ماژول) | بر اساس `ModuleDescriptor.Catalog` | ۲۰ ماژول `t5` · ۱۰ ماژول `Personnel` | `T16` هر ماژول را با این فایل می‌سنجد |
+| `SqlPhotoStore` (آرشیو تصاویر، `docs/10`) | `personnelFactory` (`OpenPersonnel`) | `Personnel` | `[UserInfo].[Photo]` نوع `image` در DDL |
+| `SqlEntitlementStore` (سهمیهٔ مرخصی) | `EmpType` از `Personnel` · `LeaveType`/`EmpTypeLeave` از `t5` | دو کاتالوگ، دو دستور | `T31` + لایهٔ دوم گیت |
 | جدول‌های پورتال (`T5WebAccess`/`T5WebAudit`/`T5WebDeviceCommand`) | `Open()` | `ReportT5V3` | `db/01-t5web-objects.sql` |
-| کاتالوگ سرویس دستگاه | هیچ‌کدام | `Link5 service database` | پورتال به آن وصل نمی‌شود؛ ماژول `option` به همین دلیل حذف شد |
+| کاتالوگ سرویس دستگاه | هیچ‌کدام | `Link5 service database` | پورتال به آن وصل نمی‌شود؛ ماژول `option` و صفحهٔ «ساعات کار هفتگی» (`[TimeTable]`) به همین دلیل حذف/اضافه نشدند (`docs/10` §5) |
 
 ---
 

@@ -58,6 +58,7 @@ namespace T5Web.Tests
             RunTest("T28: database model (catalogs, keys, relations, one catalog per statement)", TestDatabaseModel);
             RunTest("T29: legacy surface (views, first-party assemblies, every appSettings key)", TestLegacySurface);
             RunTest("T30: product identity (آریا ادمین / ARIA-ADMIN registered everywhere)", TestProductIdentity);
+            RunTest("T31: wave-1 T5V3 gaps (photos, entitlements, leave descriptions, leaves report)", TestWaveOneGaps);
 
             Console.WriteLine("----------------------------------------------------------------------");
             Console.WriteLine($"  Summary: {_passed} Passed, {_failed} Failed");
@@ -773,6 +774,150 @@ namespace T5Web.Tests
                 tables[cells[0]][cells[1]] = cells[2];
             }
             return tables;
+        }
+
+        /// <summary>
+        /// T31 - wave 1 of the T5V3 gap analysis (docs/10): the four capabilities the
+        /// desktop had and the rewrite did not, plus the one that was deliberately left
+        /// out because its table belongs to the device service database.
+        ///
+        /// The test is written so that deleting a screen, dropping the feature gate,
+        /// loosening the photo cap or re-introducing a lock would each fail the build.
+        /// </summary>
+        private static void TestWaveOneGaps()
+        {
+            // ---- 1. the photo archive ------------------------------------------------
+            string controller = Read("T5Web.Web", "Controllers", "PhotosController.cs");
+            Assert(controller.Contains("[AdminGate(AdminFeature.PersonnelPhoto"),
+                "the photo screen must be gated on PersonnelPhoto.");
+            Assert(!controller.Contains("[HttpPost]"),
+                "the photo archive is read-only; the picture belongs to the terminal enrolment flow.");
+            Assert(controller.Contains("HttpCacheability.Private"),
+                "a photograph of a person must not be cached as public content.");
+            foreach (string view in new[] { "Index.cshtml", "Sheet.cshtml" })
+            {
+                Assert(File.Exists(Path.Combine(T5WebRoot, "T5Web.Web", "Views", "Photos", view)),
+                    "missing photo view: " + view);
+            }
+
+            // Content sniffing: the column is an untyped image blob.
+            byte[] jpeg = { 0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10 };
+            byte[] png = { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A };
+            Assert(SqlPhotoStore.Sniff(jpeg) == "image/jpeg", "a JPEG must be served as image/jpeg.");
+            Assert(SqlPhotoStore.Sniff(png) == "image/png", "a PNG must be served as image/png.");
+
+            var photos = new InMemoryPhotoStore()
+                .Person(10, "مریم کاظمی", "فنی")
+                .Person(11, "علی رضایی", "فنی")
+                .WithPhoto(10, jpeg);
+            Assert(photos.CountWithPhoto() == 1 && photos.CountWithoutPhoto() == 1,
+                "photo counts must follow the stored blobs.");
+            Assert(photos.Search(string.Empty, null, true, 50).Single().BadgeNumber == 11,
+                "the missingOnly filter must return exactly the people without a picture.");
+            Assert(photos.GetImage(10).ContentType == "image/jpeg", "the archive must sniff the content type.");
+            Assert(photos.GetImage(11) == null, "a person without a picture must return null, not an empty image.");
+
+            var oversized = new InMemoryPhotoStore().Person(12, "بزرگ", string.Empty)
+                .WithPhoto(12, new byte[SqlPhotoStore.MaxImageBytes + 1]);
+            Assert(oversized.GetImage(12) == null,
+                "a picture larger than the cap must be refused instead of handed to the browser.");
+
+            // ---- 2. the entitlement matrix ------------------------------------------
+            var entitlements = new InMemoryEntitlementStore()
+                .EmpType(1, "رسمی").EmpType(2, "پیمانی")
+                .LeaveType(5, "استحقاقی").LeaveType(6, "استعلاجی")
+                .Grant(1, 5);
+            OperationResult granted = entitlements.Set(2, 6, true);
+            OperationResult again = entitlements.Set(2, 6, true);
+            Assert(granted.Succeeded && again.Succeeded, "granting a pair twice must not fail.");
+            Assert(entitlements.GetPairs().Count == 2, "granting twice must not duplicate the pair.");
+
+            EntitlementMatrix matrix = entitlements.BuildMatrix();
+            Assert(matrix.IsGranted(1, 5) && matrix.IsGranted(2, 6) && !matrix.IsGranted(1, 6),
+                "the matrix must reflect exactly the granted pairs.");
+            Assert(matrix.CountFor(1) == 1, "the per-employment-type count is wrong.");
+            Assert(matrix.PossibleCount == 4, "the matrix must expose the number of possible pairs.");
+
+            OperationResult revoked = entitlements.Set(1, 5, false);
+            Assert(revoked.Succeeded && !entitlements.BuildMatrix().IsGranted(1, 5), "revoking must work.");
+            Assert(!entitlements.Set(0, 5, true).Succeeded, "an invalid employment type must be refused.");
+
+            // ---- 3. leave descriptions as a proved module ---------------------------
+            ModuleDescriptor descriptions = ModuleRegistry.Find("leavedescription");
+            Assert(descriptions != null, "the 'leavedescription' module (frmLeaveDescription) is missing.");
+            Assert(descriptions.Table == "LeaveDescription" && descriptions.Catalog == "t5",
+                "leave descriptions must read the engine catalog, not the device one.");
+            Assert(descriptions.EditFeature == AdminFeature.LeaveEdit,
+                "leave descriptions must require the leave-edit feature.");
+
+            // ---- 4. the new report ---------------------------------------------------
+            ReportDescriptor leaves = ReportCatalog.Find("leaves");
+            Assert(leaves != null, "the 'لیست مرخصی‌ها' report (frmLeavesReport) is missing.");
+            Assert(leaves.Feature == AdminFeature.LeaveView, "the leaves report must be gated on LeaveView.");
+            Assert(leaves.MaxDays >= 31, "the leaves report needs at least a month window.");
+
+            var leaveStore = new InMemoryLeaveStore().Type(5, "استحقاقی", true);
+            OperationResult grantedLeave = leaveStore.AddGrant(new LeaveGrantRow
+            {
+                BadgeNumber = 10,
+                LeaveTypeId = 5,
+                LeaveTypeName = "استحقاقی",
+                AssignDate = new DateTime(2026, 10, 20),
+                Days = 3,
+                DocumentNumber = "DOC-1"
+            });
+            Assert(grantedLeave.Succeeded, "the fixture grant must be accepted: " + grantedLeave.Message);
+
+            var reportStore = new ReportStore(new InMemoryAttendanceStore(), leaveStore, BuildRepository());
+            ReportResult result = reportStore.Run("leaves",
+                new DateTime(2026, 10, 1), new DateTime(2026, 10, 31), 10, null);
+            Assert(result.TitleFa == "لیست مرخصی‌ها", "the leaves report returned another title.");
+            Assert(result.Columns.Count == 7, "the leaves report must keep its seven columns.");
+            Assert(result.Code == "leaves", "the report result must carry its own code.");
+            Assert(result.Rows.Count == 1, "the fixture grant must appear in the report.");
+            Assert(Regex.IsMatch(result.Rows[0][3], @"^\d{4}/\d{2}/\d{2}$"),
+                "the report must print a Jalali date, got: " + result.Rows[0][3]);
+            Assert(result.Rows[0][4] == "3", "the grant amount must be printed as days: " + result.Rows[0][4]);
+
+            // ---- 5. the deliberate exclusion ----------------------------------------
+            string doc = Read("docs", "10-t5v3-gap-analysis.md");
+            Assert(doc.Contains("TimeTable"), "docs/10 must record why weekly work hours were left out.");
+            Assert(doc.Contains("دستگاه"), "docs/10 must name the device catalog as the owner of TimeTable.");
+
+            // ---- 5b. wiring and reachability -----------------------------------------
+            string startup = Read("T5Web.Web", "MvcApplication.cs");
+            Assert(startup.Contains("new SqlPhotoStore(") && startup.Contains("new SqlEntitlementStore("),
+                "the wave-1 stores must be wired in MvcApplication, not left dangling.");
+            Assert(!startup.Contains("SqlWorkTimeStore"),
+                "weekly work hours belong to the device catalog and must not be wired.");
+
+            string menu = Read("T5Web.Web", "Security", "AdminAuthorize.cs");
+            foreach (string entry in new[] { "\"Photos\"", "\"Entitlements\"" })
+            {
+                Assert(menu.Contains(entry), "a wave-1 screen is not reachable from MenuFor: " + entry);
+            }
+            Assert(menu.Contains("AdminFeature.PersonnelPhoto, \"تصاویر پرسنل\""),
+                "the photo screen must be listed under the PersonnelPhoto feature.");
+
+            // ---- 6. nothing in wave 1 may re-introduce a lock -----------------------
+            var waveOneFiles = new[]
+            {
+                Path.Combine(T5WebRoot, "T5Web.Web", "Controllers", "PhotosController.cs"),
+                Path.Combine(T5WebRoot, "T5Web.Data", "SqlPhotoStore.cs"),
+                Path.Combine(T5WebRoot, "T5Web.Data", "InMemoryPhotoStore.cs"),
+                Path.Combine(T5WebRoot, "T5Web.Data", "SqlEntitlementStore.cs"),
+                Path.Combine(T5WebRoot, "T5Web.Data", "InMemoryEntitlementStore.cs"),
+                Path.Combine(T5WebRoot, "T5Web.Domain", "Models", "PhotoModels.cs"),
+                Path.Combine(T5WebRoot, "T5Web.Domain", "Models", "EntitlementModels.cs")
+            };
+            foreach (string path in waveOneFiles)
+            {
+                Assert(File.Exists(path), "missing wave-1 file: " + path);
+                string source = File.ReadAllText(path);
+                Assert(source.IndexOf("TINYLib", StringComparison.OrdinalIgnoreCase) < 0 &&
+                       source.IndexOf("dongle", StringComparison.OrdinalIgnoreCase) < 0,
+                    Path.GetFileName(path) + " must not mention a hardware lock (Zero-Lock).");
+            }
         }
 
         /// <summary>
@@ -1723,9 +1868,10 @@ namespace T5Web.Tests
                 rows[cells[0]] = cells;
             }
 
-            // The method is ARIA's: five numbered phases, each ending in a compiled,
-            // tested deliverable. Phase 5 is then broken into execution sub-phases B..F.
-            var expectedPhases = new[] { "1", "2", "3", "4", "5" };
+            // The method is ARIA's: five numbered build phases, each ending in a compiled,
+            // tested deliverable (phase 5 is broken into sub-phases B..F), plus the
+            // numbered delivery waves that follow it (phase 6 = wave 1 of docs/10).
+            var expectedPhases = new[] { "1", "2", "3", "4", "5", "6" };
             foreach (string phase in expectedPhases)
             {
                 Assert(rows.ContainsKey(phase), "phase-status.csv is missing phase " + phase + ".");
@@ -1788,7 +1934,7 @@ namespace T5Web.Tests
             // 4. Every phase in the tracker has a section in the plan document, and the
             //    five execution sub-phases of phase 5 are each planned.
             string plan = File.ReadAllText(Path.Combine(docs, "06-phase-plan.md"));
-            var persianDigits = new[] { "۱", "۲", "۳", "۴", "۵" };
+            var persianDigits = new[] { "۱", "۲", "۳", "۴", "۵", "۶" };
             foreach (string phase in expectedPhases)
             {
                 // The document is Persian, so the heading uses Persian numerals while the

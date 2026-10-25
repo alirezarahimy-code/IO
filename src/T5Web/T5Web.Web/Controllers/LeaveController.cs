@@ -198,6 +198,71 @@ namespace T5Web.Web.Controllers
                 "t5web-leave-" + current + ".csv");
         }
 
+        /// <summary>
+        /// The entitlement matrix: which leave type each employment type may take
+        /// (T5V3 desktop: frmEmpLeaveType; never exposed by the legacy web portal - docs/10).
+        ///
+        /// It lives on the leave screen because that is where an operator looks for it;
+        /// the feature gate is the same one the rest of the leave area uses.
+        /// </summary>
+        public ActionResult Entitlements()
+        {
+            IEntitlementStore store = PortalServices.Entitlements;
+            if (store == null)
+            {
+                return NotConfigured("مخزن سهمیه مرخصی تنظیم نشده است.");
+            }
+
+            try
+            {
+                var model = new EntitlementMatrix
+                {
+                    EmpTypes = store.GetEmpTypes(),
+                    LeaveTypes = store.GetLeaveTypes(),
+                    Granted = new HashSet<string>(
+                        store.GetPairs().Select(p => p.Key), StringComparer.OrdinalIgnoreCase)
+                };
+                ViewBag.Title = "سهمیهٔ مرخصی نوع استخدام";
+                ViewBag.CanEdit = CanEdit();
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                return NotConfigured("خواندن سهمیه‌ها ناموفق بود: " + ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Grants or revokes one cell of the matrix. The browser posts a state, never an
+        /// amount: there is nothing here the engine needs to recompute.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [AdminGate(AdminFeature.LeaveEdit)]
+        public ActionResult SetEntitlement(int empTypeId, int leaveTypeId, bool grant)
+        {
+            IEntitlementStore store = PortalServices.Entitlements;
+            if (store == null)
+            {
+                return NotConfigured("مخزن سهمیه مرخصی تنظیم نشده است.");
+            }
+
+            OperationResult result = store.Set(empTypeId, leaveTypeId, grant);
+            if (!result.Succeeded)
+            {
+                TempData["Flash"] = result.Message;
+                return RedirectToAction("Entitlements");
+            }
+
+            Audit(AdminFeature.LeaveEdit, grant ? "افزودن سهمیه مرخصی" : "حذف سهمیه مرخصی",
+                EntitlementMatrix.KeyOf(empTypeId, leaveTypeId),
+                (grant ? "نوع استخدام " : "حذف از نوع استخدام ") + empTypeId + " / نوع مرخصی " + leaveTypeId);
+            TempData["Flash"] = grant
+                ? "سهمیه اضافه شد."
+                : "سهمیه حذف شد.";
+            return RedirectToAction("Entitlements");
+        }
+
         private bool CanEdit()
         {
             return CurrentSession != null && CurrentSession.CanEdit(AdminFeature.LeaveEdit);
