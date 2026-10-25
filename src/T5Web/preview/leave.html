@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>مرخصی و مانده · T5Web Admin</title>
+    <link rel="stylesheet" href="../T5Web.Web/Content/t5web-admin.css" />
+    <script src="../T5Web.Web/Content/t5web-admin.js" defer></script>
+</head>
+<body>
+<div class="shell">
+    <nav class="rail">
+        <div class="rail__brand">
+            <b>کنسول مدیریت T5Web</b>
+            <span>ADMIN CONSOLE · v5</span>
+        </div>
+        <a href="index.html">راهنمای پیش‌نمایش</a>
+        <a href="dashboard.html">داشبورد</a>
+        <a href="personnel.html">پرسنل</a>
+        <a href="department.html">چارت سازمانی</a>
+        <a href="devices.html">دستگاه‌ها</a>
+        <a href="records.html">ترددها</a>
+        <a href="leave.html" class="is-active">مرخصی و مانده</a>
+        <a href="reports.html">گزارش‌ها</a>
+        <a href="access.html">دسترسی‌ها</a>
+        <a href="diagnostics.html">پایش و رخدادها</a>
+        <div class="rail__legacy">رفتن به نسخه قبلی</div>
+        <div class="rail__foot">
+            <div>مریم کاظمی</div>
+            <div class="mono">1001</div>
+            <div class="u-mt6">ورود با حساب ویندوز</div>
+        </div>
+    </nav>
+
+    <div class="main">
+        <div class="coexistence" role="status">
+            حالت هم‌زیستی: پورتال و نسخه قبلی هر دو فعال‌اند. پورتال مانده را محاسبه نمی‌کند؛ همان اعداد موتور را نشان می‌دهد.
+        </div>
+        <header class="topbar">
+            <h1>مرخصی و مانده</h1>
+            <div class="who"><b>مریم کاظمی</b><span> · مدیر فناوری اطلاعات</span></div>
+        </header>
+
+        <main class="content">
+            <form class="toolbar">
+                <div class="field">
+                    <label for="year">سال</label>
+                    <input type="number" id="year" value="1403" min="1300" max="1500" />
+                </div>
+                <div class="field">
+                    <label for="type">نوع مرخصی</label>
+                    <select id="type">
+                        <option>همه</option>
+                        <option selected>استحقاقی</option>
+                        <option>استعلاجی</option>
+                        <option>بدون حقوق</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="term">جست‌وجو</label>
+                    <input type="search" id="term" placeholder="نام یا شماره پرسنلی" />
+                </div>
+                <button type="submit" class="btn btn--primary">اعمال</button>
+                <button type="button" class="btn">خروجی CSV</button>
+                <button type="button" class="btn">انتقال مانده سال</button>
+            </form>
+
+            <div class="panel">
+                <div class="panel__head">
+                    <h2>مانده مرخصی سال ۱۴۰۳</h2>
+                    <span class="muted u-sm">جمع مانده پایان: ۴۰٫۵ روز</span>
+                </div>
+                <div class="u-scroll-x">
+                    <table class="grid">
+                        <thead>
+                            <tr>
+                                <th class="num">شماره</th>
+                                <th>نام</th>
+                                <th>نوع مرخصی</th>
+                                <th class="num">مانده آغاز</th>
+                                <th class="num">اضافه‌شده</th>
+                                <th class="num">مصرف</th>
+                                <th class="num">مانده پایان</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="num">1001</td>
+                                <td>مریم کاظمی</td>
+                                <td>استحقاقی</td>
+                                <td class="num">20</td>
+                                <td class="num">5</td>
+                                <td class="num">12</td>
+                                <td class="num"><strong>13</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="num">1002</td>
+                                <td>حسین رستمی</td>
+                                <td>استحقاقی</td>
+                                <td class="num">18</td>
+                                <td class="num">2</td>
+                                <td class="num">6</td>
+                                <td class="num"><strong>14</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="num">1003</td>
+                                <td>زهرا امینی</td>
+                                <td>استحقاقی</td>
+                                <td class="num">12</td>
+                                <td class="num">4</td>
+                                <td class="num">5٫5</td>
+                                <td class="num"><strong>10٫5</strong></td>
+                            </tr>
+                            <tr>
+                                <td class="num">1004</td>
+                                <td>علی رضایی</td>
+                                <td>استعلاجی</td>
+                                <td class="num">10</td>
+                                <td class="num">0</td>
+                                <td class="num">7</td>
+                                <td class="num"><strong>3</strong></td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="6" class="u-right">جمع</td>
+                                <td class="num">40٫5</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="panel__foot muted u-sm">
+                    ناوردای حسابداری: مانده آغاز + اضافه‌شده − مصرف = مانده پایان. هر انتقال، یک سطر در دفتر رخداد ثبت می‌کند.
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel__head">
+                    <h2>پیش‌نمایش انتقال ۱۴۰۳ → ۱۴۰۴</h2>
+                    <span class="muted u-sm">جمع قابل انتقال: ۲۸ روز · سقف ۱۵ روز برای هر نفر</span>
+                </div>
+                <div class="u-scroll-x">
+                    <table class="grid">
+                        <thead>
+                            <tr>
+                                <th class="num">شماره</th>
+                                <th>نام</th>
+                                <th>نوع مرخصی</th>
+                                <th class="num">مانده آغاز</th>
+                                <th class="num">قابل انتقال</th>
+                                <th>یادداشت</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="num">1001</td>
+                                <td>مریم کاظمی</td>
+                                <td>استحقاقی</td>
+                                <td class="num">13</td>
+                                <td class="num"><strong>13</strong></td>
+                                <td>—</td>
+                            </tr>
+                            <tr>
+                                <td class="num">1002</td>
+                                <td>حسین رستمی</td>
+                                <td>استحقاقی</td>
+                                <td class="num">18</td>
+                                <td class="num"><strong>14</strong></td>
+                                <td>بیش از سقف انتقال؛ مازاد حذف می‌شود.</td>
+                            </tr>
+                            <tr>
+                                <td class="num">1005</td>
+                                <td>سعید نوری</td>
+                                <td>بدون حقوق</td>
+                                <td class="num">6</td>
+                                <td class="num"><span class="tag tag--mute">۰</span></td>
+                                <td>این نوع مرخصی قابل انتقال نیست.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="panel__body">
+                    <div class="notice notice--warn">
+                        انتقال، همه‌یا‌هیچ است و برای هر سال فقط یک‌بار انجام می‌شود؛ دلیل انتقال الزامی است.
+                    </div>
+                    <button type="button" class="btn btn--primary">ثبت انتقال ۲۷ روز</button>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

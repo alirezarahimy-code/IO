@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ترددها · T5Web Admin</title>
+    <link rel="stylesheet" href="../T5Web.Web/Content/t5web-admin.css" />
+    <script src="../T5Web.Web/Content/t5web-admin.js" defer></script>
+</head>
+<body>
+<div class="shell">
+    <nav class="rail">
+        <div class="rail__brand">
+            <b>کنسول مدیریت T5Web</b>
+            <span>ADMIN CONSOLE · v5</span>
+        </div>
+        <a href="index.html">راهنمای پیش‌نمایش</a>
+        <a href="dashboard.html">داشبورد</a>
+        <a href="personnel.html">پرسنل</a>
+        <a href="department.html">چارت سازمانی</a>
+        <a href="devices.html">دستگاه‌ها</a>
+        <a href="records.html" class="is-active">ترددها</a>
+        <a href="leave.html">مرخصی و مانده</a>
+        <a href="reports.html">گزارش‌ها</a>
+        <a href="access.html">دسترسی‌ها</a>
+        <a href="diagnostics.html">پایش و رخدادها</a>
+        <div class="rail__legacy">رفتن به نسخه قبلی</div>
+        <div class="rail__foot">
+            <div>مریم کاظمی</div>
+            <div class="mono">1001</div>
+            <div class="u-mt6">ورود با حساب ویندوز</div>
+        </div>
+    </nav>
+
+    <div class="main">
+        <div class="coexistence" role="status">
+            حالت هم‌زیستی: پورتال و نسخه قبلی هر دو فعال‌اند. هر تغییری که اینجا ثبت کنید در همان پایگاه‌داده ذخیره می‌شود.
+        </div>
+        <header class="topbar">
+            <h1>ترددها</h1>
+            <div class="who"><b>مریم کاظمی</b><span> · مدیر فناوری اطلاعات</span></div>
+        </header>
+
+        <main class="content">
+            <form class="toolbar">
+                <div class="field">
+                    <label for="badge">شماره پرسنلی</label>
+                    <input type="number" id="badge" value="1001" />
+                </div>
+                <div class="field">
+                    <label for="machine">دستگاه</label>
+                    <select id="machine">
+                        <option>همه دستگاه‌ها</option>
+                        <option selected>درب اصلی</option>
+                        <option>درب پارکینگ</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="from">از تاریخ</label>
+                    <input type="date" id="from" value="2024-06-01" />
+                </div>
+                <div class="field">
+                    <label for="to">تا تاریخ</label>
+                    <input type="date" id="to" value="2024-06-30" />
+                </div>
+                <button type="submit" class="btn btn--primary">اعمال</button>
+                <button type="button" class="btn">خروجی CSV</button>
+            </form>
+
+            <div class="panel">
+                <div class="panel__head">
+                    <h2>ترددها — ۶ سطر</h2>
+                    <span class="muted u-sm">مرتب‌شده از جدید به قدیم · حداکثر ۲۰۰ سطر</span>
+                </div>
+                <div class="u-scroll-x">
+                    <table class="grid">
+                        <thead>
+                            <tr>
+                                <th class="num">شماره</th>
+                                <th>نام</th>
+                                <th class="num">تاریخ</th>
+                                <th class="num">ساعت</th>
+                                <th>نوع</th>
+                                <th>دستگاه</th>
+                                <th>وضعیت</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="num">1001</td>
+                                <td>مریم کاظمی</td>
+                                <td class="num">۱۴۰۳/۰۳/۲۱</td>
+                                <td class="num">08:02</td>
+                                <td>ورود</td>
+                                <td>درب اصلی</td>
+                                <td class="nowrap"><span class="tag tag--ok">معتبر</span></td>
+                                <td class="nowrap"><span class="btn btn--ghost">اصلاح</span></td>
+                            </tr>
+                            <tr>
+                                <td class="num">1001</td>
+                                <td>مریم کاظمی</td>
+                                <td class="num">۱۴۰۳/۰۳/۲۱</td>
+                                <td class="num">17:34</td>
+                                <td>خروج</td>
+                                <td>درب اصلی</td>
+                                <td class="nowrap"><span class="tag tag--ok">معتبر</span></td>
+                                <td class="nowrap"><span class="btn btn--ghost">اصلاح</span></td>
+                            </tr>
+                            <tr>
+                                <td class="num">1002</td>
+                                <td>حسین رستمی</td>
+                                <td class="num">۱۴۰۳/۰۳/۲۱</td>
+                                <td class="num">08:41</td>
+                                <td>ورود</td>
+                                <td>درب پارکینگ</td>
+                                <td class="nowrap"><span class="tag tag--warn">نامعتبر</span></td>
+                                <td class="nowrap"><span class="btn btn--ghost">اصلاح</span></td>
+                            </tr>
+                            <tr>
+                                <td class="num">1002</td>
+                                <td>حسین رستمی</td>
+                                <td class="num">۱۴۰۳/۰۳/۲۱</td>
+                                <td class="num">13:10</td>
+                                <td>شروع استراحت</td>
+                                <td>درب پارکینگ</td>
+                                <td class="nowrap"><span class="tag tag--ok">معتبر</span><span class="tag tag--mute">دستی</span></td>
+                                <td class="nowrap"><span class="btn btn--ghost">اصلاح</span></td>
+                            </tr>
+                            <tr>
+                                <td class="num">1003</td>
+                                <td>زهرا امینی</td>
+                                <td class="num">۱۴۰۳/۰۳/۲۰</td>
+                                <td class="num">07:58</td>
+                                <td>ورود</td>
+                                <td>درب اصلی</td>
+                                <td class="nowrap"><span class="tag tag--ok">معتبر</span></td>
+                                <td class="nowrap"><span class="btn btn--ghost">اصلاح</span></td>
+                            </tr>
+                            <tr>
+                                <td class="num">1003</td>
+                                <td>زهرا امینی</td>
+                                <td class="num">۱۴۰۳/۰۳/۲۰</td>
+                                <td class="num">16:05</td>
+                                <td>خروج</td>
+                                <td>درب اصلی</td>
+                                <td class="nowrap"><span class="tag tag--ok">معتبر</span></td>
+                                <td class="nowrap"><span class="btn btn--ghost">اصلاح</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="panel__foot muted u-sm">
+                    هر اصلاح، دلیل اجباری و یک سطر در دفتر رخداد دارد؛ تردد تکراری (شماره، زمان، نوع) پذیرفته نمی‌شود.
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel__head">
+                    <h2>ثبت دستی تردد</h2>
+                    <span class="tag tag--mute">در دفتر رخداد ثبت می‌شود</span>
+                </div>
+                <div class="panel__body">
+                    <div class="form-grid">
+                        <div class="field">
+                            <label for="ib">شماره پرسنلی</label>
+                            <input type="number" id="ib" />
+                        </div>
+                        <div class="field">
+                            <label for="it">زمان (میلادی)</label>
+                            <input type="datetime-local" id="it" />
+                        </div>
+                        <div class="field">
+                            <label for="ity">نوع تردد</label>
+                            <select id="ity"><option>ورود</option><option>خروج</option></select>
+                        </div>
+                        <div class="field">
+                            <label for="ir">دلیل ثبت</label>
+                            <input type="text" id="ir" placeholder="حداقل ۴ نویسه" />
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn--primary">ثبت تردد</button>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>گزارش‌ها · T5Web Admin</title>
+    <link rel="stylesheet" href="../T5Web.Web/Content/t5web-admin.css" />
+    <script src="../T5Web.Web/Content/t5web-admin.js" defer></script>
+</head>
+<body>
+<div class="shell">
+    <nav class="rail">
+        <div class="rail__brand">
+            <b>کنسول مدیریت T5Web</b>
+            <span>ADMIN CONSOLE · v5</span>
+        </div>
+        <a href="index.html">راهنمای پیش‌نمایش</a>
+        <a href="dashboard.html">داشبورد</a>
+        <a href="personnel.html">پرسنل</a>
+        <a href="department.html">چارت سازمانی</a>
+        <a href="devices.html">دستگاه‌ها</a>
+        <a href="records.html">ترددها</a>
+        <a href="leave.html">مرخصی و مانده</a>
+        <a href="reports.html" class="is-active">گزارش‌ها</a>
+        <a href="access.html">دسترسی‌ها</a>
+        <a href="diagnostics.html">پایش و رخدادها</a>
+        <div class="rail__legacy">رفتن به نسخه قبلی</div>
+        <div class="rail__foot">
+            <div>مریم کاظمی</div>
+            <div class="mono">1001</div>
+            <div class="u-mt6">ورود با حساب ویندوز</div>
+        </div>
+    </nav>
+
+    <div class="main">
+        <div class="coexistence" role="status">
+            حالت هم‌زیستی: پورتال و نسخه قبلی هر دو فعال‌اند. گزارش‌های «موتور حضور» عدد محاسبه‌شده نمی‌دهند؛ تردد خام می‌دهند.
+        </div>
+        <header class="topbar">
+            <h1>گزارش‌ها</h1>
+            <div class="who"><b>مریم کاظمی</b><span> · مدیر فناوری اطلاعات</span></div>
+        </header>
+
+        <main class="content">
+            <form class="toolbar">
+                <div class="field">
+                    <label for="code">گزارش</label>
+                    <select id="code" data-autosubmit="true">
+                        <option>گزارش روزانه تردد</option>
+                        <option>گزارش تأخیر و تعجیل</option>
+                        <option>جمع‌بندی ماهانه</option>
+                        <option>مانده مرخصی</option>
+                        <option>خروج از سازمان</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="from">از تاریخ</label>
+                    <input type="date" id="from" value="2024-06-01" />
+                </div>
+                <div class="field">
+                    <label for="to">تا تاریخ</label>
+                    <input type="date" id="to" value="2024-06-30" />
+                </div>
+                <div class="field">
+                    <label for="badge">شماره پرسنلی (اختیاری)</label>
+                    <input type="number" id="badge" />
+                </div>
+                <button type="submit" class="btn btn--primary">اجرا</button>
+                <button type="button" class="btn">خروجی CSV</button>
+            </form>
+
+            <div class="panel">
+                <div class="panel__head">
+                    <h2>گزارش‌های در دسترس (۵)</h2>
+                    <span class="muted u-sm">فقط گزارش‌هایی که سطح دسترسی شما اجازه می‌دهد</span>
+                </div>
+                <div class="panel__body u-scroll-x">
+                    <table class="grid">
+                        <thead>
+                            <tr>
+                                <th>گزارش</th>
+                                <th>منبع</th>
+                                <th class="num">حداکثر بازه</th>
+                                <th>کنترلر قدیمی</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>گزارش روزانه تردد</td>
+                                <td><span class="tag tag--ok">پرس‌وجوی پورتال</span></td>
+                                <td class="num">62 روز</td>
+                                <td class="num">DailyReport</td>
+                            </tr>
+                            <tr>
+                                <td>گزارش تأخیر و تعجیل</td>
+                                <td><span class="tag tag--mute">موتور حضور</span></td>
+                                <td class="num">31 روز</td>
+                                <td class="num">LateEarlyReport</td>
+                            </tr>
+                            <tr>
+                                <td>جمع‌بندی ماهانه</td>
+                                <td><span class="tag tag--ok">پرس‌وجوی پورتال</span></td>
+                                <td class="num">62 روز</td>
+                                <td class="num">SumReport</td>
+                            </tr>
+                            <tr>
+                                <td>مانده مرخصی</td>
+                                <td><span class="tag tag--ok">پرس‌وجوی پورتال</span></td>
+                                <td class="num">366 روز</td>
+                                <td class="num">RemainedLeavesReport</td>
+                            </tr>
+                            <tr>
+                                <td>خروج از سازمان</td>
+                                <td><span class="tag tag--ok">پرس‌وجوی پورتال</span></td>
+                                <td class="num">366 روز</td>
+                                <td class="num">ExitReport</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel__head">
+                    <h2>گزارش تأخیر و تعجیل</h2>
+                    <span class="muted u-sm">۱۴۰۳/۰۳/۰۱ تا ۱۴۰۳/۰۳/۳۱ · ۳ سطر · ۴۲ میلی‌ثانیه</span>
+                </div>
+                <div class="panel__body">
+                    <div class="notice notice--warn">
+                        این گزارش در نسخه دسکتاپ با قالب LateEarlyReport.rdlc و محاسبه موتور حضور تولید می‌شود.
+                        اعداد زیر «تردد خام» است و محاسبه‌شده نیست؛ برای رقم رسمی، همان قالب را در برنامه دسکتاپ اجرا کنید.
+                    </div>
+                </div>
+                <div class="u-scroll-x">
+                    <table class="grid">
+                        <thead>
+                            <tr>
+                                <th class="num">شماره</th>
+                                <th>نام</th>
+                                <th class="num">تاریخ</th>
+                                <th class="num">ساعت</th>
+                                <th>نوع</th>
+                                <th>دستگاه</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="num">1002</td>
+                                <td>حسین رستمی</td>
+                                <td class="num">۱۴۰۳/۰۳/۲۱</td>
+                                <td class="num">08:41</td>
+                                <td>ورود</td>
+                                <td>درب پارکینگ</td>
+                            </tr>
+                            <tr>
+                                <td class="num">1001</td>
+                                <td>مریم کاظمی</td>
+                                <td class="num">۱۴۰۳/۰۳/۲۱</td>
+                                <td class="num">08:02</td>
+                                <td>ورود</td>
+                                <td>درب اصلی</td>
+                            </tr>
+                            <tr>
+                                <td class="num">1003</td>
+                                <td>زهرا امینی</td>
+                                <td class="num">۱۴۰۳/۰۳/۲۰</td>
+                                <td class="num">07:58</td>
+                                <td>ورود</td>
+                                <td>درب اصلی</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="panel__foot muted u-sm">
+                    خروجی CSV در حافظه ساخته می‌شود: بدون ReportViewer، بدون درخواست بیرونی، بدون فونت یا فایل دانلودی.
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>
