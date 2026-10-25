@@ -1,0 +1,110 @@
+@model MyTime3.Security.SchemaCheckResult
+@{
+    ViewBag.Title = "وضعیت پایگاه‌داده";
+    Layout = "~/Views/Shared/_Layout1.cshtml";
+
+    bool compatible = Model != null && Model.IsCompatible;
+    bool reachable = Model != null && Model.DatabaseReachable;
+    var problems = Model != null ? Model.Problems : new List<string>();
+}
+
+<div class="twf-page-heading" style="display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:16px;">
+    <div>
+        <div class="twf-crumb">خانه / پایش سامانه</div>
+        <h1 style="margin:0; font-size:18px; font-weight:700; color:var(--twf-navy-900);">وضعیت اسکیمای پایگاه‌داده</h1>
+        <p style="margin:4px 0 0 0; font-size:12.5px; color:var(--twf-text-muted);">
+            بررسی خودکار مطابقت پایگاه‌داده T5 با قرارداد نسخه جاری آریا
+        </p>
+    </div>
+    @if (compatible)
+    {
+        <span class="twf-badge twf-badge-success">سازگار</span>
+    }
+    else
+    {
+        <span class="twf-badge twf-badge-danger">ناسازگار</span>
+    }
+</div>
+
+<div class="twf-panel">
+    <div class="twf-panel-header">
+        <h2 class="twf-panel-title">نتیجه بررسی</h2>
+        <span class="twf-num" style="font-size:12px; color:var(--twf-text-muted);">
+            آخرین بررسی: @ViewBag.CheckedAt
+        </span>
+    </div>
+    <div class="twf-panel-body">
+
+        <div class="twf-alert @(compatible ? "twf-alert-success" : "twf-alert-danger")">
+            @ViewBag.Message
+        </div>
+
+        <div class="twf-grid-3">
+            <div class="twf-stat-card">
+                <div class="twf-stat-label">اتصال به پایگاه‌داده</div>
+                <div class="twf-stat-value">
+                    @if (reachable)
+                    {
+                        <span class="twf-badge twf-badge-success">برقرار</span>
+                    }
+                    else
+                    {
+                        <span class="twf-badge twf-badge-danger">برقرار نیست</span>
+                    }
+                </div>
+            </div>
+            <div class="twf-stat-card">
+                <div class="twf-stat-label">جداول تحت قرارداد</div>
+                <div class="twf-stat-value twf-num">@ViewBag.ContractTableCount</div>
+            </div>
+            <div class="twf-stat-card">
+                <div class="twf-stat-label">موارد ناسازگار</div>
+                <div class="twf-stat-value twf-num">@problems.Count</div>
+            </div>
+        </div>
+
+        @if (problems.Count > 0)
+        {
+            <h3 style="margin:20px 0 10px 0; font-size:14px; font-weight:700; color:var(--twf-navy-900);">
+                فهرست موارد ناسازگار
+            </h3>
+            <div class="twf-table-wrap">
+                <table class="twf-table">
+                    <thead>
+                        <tr>
+                            <th style="width:56px;">#</th>
+                            <th>شرح</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < problems.Count; i++)
+                        {
+                            <tr>
+                                <td class="twf-num">@(i + 1)</td>
+                                <td>@problems[i]</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <div class="twf-alert twf-alert-info" style="margin-top:18px;">
+            <div><strong>راهنمای رفع:</strong></div>
+            <div style="margin-top:8px; line-height:1.9;">
+                ۱. اگر پایگاه‌داده در دسترس نیست: سرویس SQL Server و رشته اتصال
+                <span class="twf-num">T5CnnStr</span> را در <span class="twf-num">Web.config</span> بررسی کنید.
+                <br />
+                ۲. اگر جداول یا ستون‌ها ناقص‌اند: ابتدا نصب/ارتقای T5 را کامل کنید، سپس اسکریپت
+                <span class="twf-num">db/01-app-objects.sql</span> را اجرا کنید.
+                <br />
+                ۳. گزارش کامل را با <span class="twf-num">db/verify-schema.sql</span> بگیرید.
+            </div>
+        </div>
+
+        <div class="twf-actions">
+            <a href="@Url.Action("Recheck", "Diagnostics")" class="twf-btn twf-btn-primary">بررسی مجدد</a>
+            <a href="@Url.Action("Index", "Home")" class="twf-btn twf-btn-secondary">بازگشت به صفحه اصلی</a>
+        </div>
+    </div>
+</div>

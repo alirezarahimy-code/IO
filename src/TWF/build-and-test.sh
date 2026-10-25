@@ -9,7 +9,12 @@ mkdir -p "$BUILD_DIR" "$FACADES_DIR"
 
 FX_DIR="/tmp/dotnet/package/shared/Microsoft.NETCore.App/2.0.0"
 SQL_DLL="/tmp/dotnet/package/store/x64/netcoreapp2.0/system.data.sqlclient/4.4.0/runtimes/unix/lib/netstandard2.0/System.Data.SqlClient.dll"
-BIN_DIR="$REPO_ROOT/TWF 4.28/App/bin"
+# Engine assemblies come from the PINNED build (engine/engine-pin.json),
+# never from the legacy TWF 4.28 folder. tools/verify-engine-pin.py --check
+# must pass before a build is considered valid.
+PIN_FILE="$SCRIPT_DIR/engine/engine-pin.json"
+PIN_SOURCE="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["pinned_from"])' "$PIN_FILE")"
+BIN_DIR="$REPO_ROOT/$PIN_SOURCE"
 CSC="/usr/local/bin/csc"
 DOTNET="/usr/local/bin/dotnet"
 

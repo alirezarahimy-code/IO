@@ -14,6 +14,9 @@
     --twf-navy-700: #334155;
     --twf-border-strong: #cbd5e1;
     --twf-border-subtle: #e2e8f0;
+    /* Default hairline border. Older screens already referenced --twf-border,
+       so it is defined here instead of leaving those rules silently invalid. */
+    --twf-border: #e2e8f0;
     --twf-text-primary: #0f172a;
     --twf-text-secondary: #475569;
     --twf-text-muted: #64748b;
@@ -1053,4 +1056,31 @@ body.twf-modal-open {
 
 .twf-form .twf-field-row {
     padding: 7px 0;
+}
+
+/* ---------------------------------------------------------------------------
+   Page heading + breadcrumb (diagnostics and report screens).
+   Deliberately quiet: a hairline rule instead of a colour band, so the eye
+   lands on the data below rather than on the chrome.
+   --------------------------------------------------------------------------- */
+.twf-page-heading {
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--twf-border-subtle, #d8dee6);
+    margin-bottom: 18px;
+}
+
+.twf-crumb {
+    font-size: 11.5px;
+    letter-spacing: .02em;
+    color: var(--twf-text-muted, #6b7785);
+    margin-bottom: 6px;
+}
+
+.twf-crumb a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.twf-crumb a:hover {
+    color: var(--twf-navy-700, #2c4a6e);
 }

@@ -34,28 +34,28 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Personnel">
-      <HintPath>..\..\TWF 4.28\App\bin\Personnel.dll</HintPath>
+      <HintPath>..\..\T5Web [3.5.7]\App\bin\Personnel.dll</HintPath>
     </Reference>
     <Reference Include="T5V3.DB">
-      <HintPath>..\..\TWF 4.28\App\bin\T5V3.DB.dll</HintPath>
+      <HintPath>..\..\T5Web [3.5.7]\App\bin\T5V3.DB.dll</HintPath>
     </Reference>
     <Reference Include="T5V3.Model">
-      <HintPath>..\..\TWF 4.28\App\bin\T5V3.Model.dll</HintPath>
+      <HintPath>..\..\T5Web [3.5.7]\App\bin\T5V3.Model.dll</HintPath>
     </Reference>
     <Reference Include="T5V3.Attendance">
-      <HintPath>..\..\TWF 4.28\App\bin\T5V3.Attendance.dll</HintPath>
+      <HintPath>..\..\T5Web [3.5.7]\App\bin\T5V3.Attendance.dll</HintPath>
     </Reference>
     <Reference Include="T5V3.LeaveCalcs">
-      <HintPath>..\..\TWF 4.28\App\bin\T5V3.LeaveCalcs.dll</HintPath>
+      <HintPath>..\..\T5Web [3.5.7]\App\bin\T5V3.LeaveCalcs.dll</HintPath>
     </Reference>
     <Reference Include="T5V3.Report">
-      <HintPath>..\..\TWF 4.28\App\bin\T5V3.Report.dll</HintPath>
+      <HintPath>..\..\T5Web [3.5.7]\App\bin\T5V3.Report.dll</HintPath>
     </Reference>
     <Reference Include="T5V3.ReportGenerator">
-      <HintPath>..\..\TWF 4.28\App\bin\T5V3.ReportGenerator.dll</HintPath>
+      <HintPath>..\..\T5Web [3.5.7]\App\bin\T5V3.ReportGenerator.dll</HintPath>
     </Reference>
     <Reference Include="T5V3.Misc">
-      <HintPath>..\..\TWF 4.28\App\bin\T5V3.Misc.dll</HintPath>
+      <HintPath>..\..\T5Web [3.5.7]\App\bin\T5V3.Misc.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

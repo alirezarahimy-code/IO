@@ -84,6 +84,10 @@ namespace TWF.Tests
             RunTest("TEST-39: OverTimeReportController & ReportController (Zero-Lock API, BUG-10 OverTimeConst Fix & Export)", TestPhase5OverTimeAndReportControllers);
             RunTest("TEST-40: 100% Source & View Rewrite Completeness Audit (All 105 C# Files & All 74 Offline Views)", TestPhase5FullProjectCompletenessAudit);
             RunTest("TEST-41: Aria Offline UI Contract (Self-Contained Assets, CSS Class Coverage & Request Dialog Wiring)", TestAriaOfflineUiContract);
+            RunTest("TEST-42: SchemaGuard Contract Logic (Missing Table, Missing Column, Full Match, Unreachable DB)", TestSchemaGuardEvaluation);
+            RunTest("TEST-43: SchemaGuard Wiring (Startup Probe, Global Filter, Diagnostics View & Project)", TestSchemaGuardWiring);
+            RunTest("TEST-44: Pinned Engine Enforcement (Pin File, Project HintPaths, Build Script)", TestPinnedEngineEnforcement);
+            RunTest("TEST-45: Diagnostics Endpoints & Persian Failure Page (No Stack Traces Leaked)", TestDiagnosticsEndpoints);
 
             Console.WriteLine("----------------------------------------------------------------------");
             Console.WriteLine($"  Summary: {_passedTests} Passed, {_failedTests} Failed");
@@ -2458,8 +2462,16 @@ namespace TWF.Tests
             // 2. Verify all 34 Controllers and all 33 Models exist in rewritten TWF.Web project
             int rewrittenControllers = Directory.GetFiles(Path.Combine(webRoot, "Controllers"), "*.cs").Length;
             int origControllers = Directory.GetFiles(Path.Combine(origMyTimeRoot, "MyTime3.Controllers"), "*.cs").Length;
-            Assert(rewrittenControllers == 34 && rewrittenControllers == origControllers,
-                $"TWF.Web/Controllers must contain all 34 controllers (found {rewrittenControllers} vs {origControllers}).");
+            // Aria adds exactly two files on top of the 34 legacy controllers:
+            //   ConnectionStringResolver (config helper) and DiagnosticsController (schema self-check).
+            Assert(rewrittenControllers == origControllers + 2,
+                $"TWF.Web/Controllers must contain the 34 legacy controllers plus 2 Aria files (found {rewrittenControllers} vs {origControllers}).");
+            foreach (string legacyController in Directory.GetFiles(Path.Combine(origMyTimeRoot, "MyTime3.Controllers"), "*.cs"))
+            {
+                string controllerName = Path.GetFileName(legacyController);
+                Assert(File.Exists(Path.Combine(webRoot, "Controllers", controllerName)),
+                    $"Missing rewritten controller for legacy file '{controllerName}'.");
+            }
 
             int rewrittenModels = Directory.GetFiles(Path.Combine(webRoot, "Models"), "*.cs").Length;
             int origModels = Directory.GetFiles(Path.Combine(origMyTimeRoot, "MyTime3.Models"), "*.cs").Length;
@@ -2562,15 +2574,34 @@ namespace TWF.Tests
                 defined.Add(m.Groups[1].Value);
             }
 
+            // CSS custom properties (--twf-xxx) are variables, not classes: they must be
+            // defined in :root instead, and are validated separately below.
+            var definedVars = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(css, @"(--twf-[A-Za-z0-9_-]+)\s*:"))
+            {
+                definedVars.Add(m.Groups[1].Value);
+            }
+
             var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var usedVars = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (string view in Directory.GetFiles(viewsRoot, "*.cshtml", SearchOption.AllDirectories))
             {
                 string text = File.ReadAllText(view);
+                foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(text, @"(--twf-[A-Za-z0-9_-]+)"))
+                {
+                    usedVars.Add(m.Groups[1].Value);
+                }
+                // Strip the variable references so they are not mistaken for class names.
+                text = System.Text.RegularExpressions.Regex.Replace(text, @"--twf-[A-Za-z0-9_-]+", " ");
                 foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(text, @"twf-[A-Za-z0-9_-]+"))
                 {
                     used.Add(m.Value);
                 }
             }
+
+            var undefinedVars = usedVars.Where(v => !definedVars.Contains(v)).OrderBy(v => v).ToList();
+            Assert(undefinedVars.Count == 0,
+                "Views reference undefined CSS variables: " + string.Join(", ", undefinedVars));
             // Script handles / file names are not CSS classes.
             used.Remove("twf-core");
             used.Remove("twf-industrial-ui");
@@ -2618,6 +2649,203 @@ namespace TWF.Tests
             string branding = File.ReadAllText(Path.Combine(webRoot, "Content", "AriaBranding.cs"));
             Assert(branding.Contains("ARIA") && branding.Contains("آریا"),
                 "AriaBranding must register the product under the ARIA (آریا) name.");
+        }
+
+        // =====================================================================
+        // SCHEMA GUARD / ENGINE PIN TESTS (item 1 + item 2 of the delivery)
+        // =====================================================================
+
+        /// <summary>
+        /// TEST-42 — The schema contract is only useful if it fails for the right
+        /// reasons. This executes the real comparison used in production.
+        /// </summary>
+        private static void TestSchemaGuardEvaluation()
+        {
+            var contract = MyTime3.Security.SchemaGuard.Contract;
+            Assert(contract.Count >= 16,
+                "SchemaGuard must cover at least the 16 contracted tables, found " + contract.Count + ".");
+            foreach (string required in new[]
+            {
+                "Request", "RequestAccept", "Workflow", "DailyLeave", "HourlyLeave", "Record",
+                "OverTime", "Deputy", "PersonnelDeputy", "UserInfo", "Calendar", "LeaveTypes",
+                "UserRules", "DepartmentRules", "Area", "Position"
+            })
+            {
+                Assert(contract.ContainsKey(required), "SchemaGuard contract is missing table '" + required + "'.");
+            }
+
+            // 1. Full contract present -> compatible.
+            var complete = new List<string>();
+            foreach (var entry in contract)
+            {
+                complete.Add(entry.Key);
+                foreach (string column in entry.Value)
+                {
+                    complete.Add(entry.Key + "." + column);
+                }
+            }
+            var ok = MyTime3.Security.SchemaGuard.Evaluate(complete);
+            Assert(ok.WasChecked && ok.IsCompatible && ok.DatabaseReachable && ok.Problems.Count == 0,
+                "A database satisfying the whole contract must be reported compatible.");
+
+            // 2. One table missing -> incompatible, and the message names that table.
+            var missingTable = new List<string>(complete);
+            missingTable.RemoveAll(x => x == "Record" || x.StartsWith("Record.", StringComparison.OrdinalIgnoreCase));
+            var noRecord = MyTime3.Security.SchemaGuard.Evaluate(missingTable);
+            Assert(!noRecord.IsCompatible, "A missing 'Record' table must be flagged.");
+            Assert(noRecord.Problems.Any(p => p.Contains("Record")),
+                "The problem list must name the missing table 'Record'.");
+            Assert(noRecord.Message.Contains("ناسازگار"), "The failure message must stay in Persian for operators.");
+
+            // 3. Table present but a required column missing -> incompatible.
+            var missingColumn = new List<string>(complete);
+            missingColumn.Remove("Request.IsSuspend");
+            var noSuspend = MyTime3.Security.SchemaGuard.Evaluate(missingColumn);
+            Assert(!noSuspend.IsCompatible, "A missing 'Request.IsSuspend' column must be flagged.");
+            Assert(noSuspend.Problems.Count == 1,
+                "Exactly one problem expected for a single missing column, got " + noSuspend.Problems.Count + ".");
+            Assert(noSuspend.Problems[0].Contains("IsSuspend"),
+                "The problem list must name the missing column 'IsSuspend'.");
+
+            // 4. Unreachable database / missing connection string -> reported, never thrown.
+            var unreachable = MyTime3.Security.SchemaGuard.Validate(cs => null, null);
+            Assert(unreachable.WasChecked && !unreachable.IsCompatible && !unreachable.DatabaseReachable,
+                "A missing connection string must produce an 'unreachable' verdict.");
+
+            var thrown = MyTime3.Security.SchemaGuard.Validate(
+                cs => { throw new InvalidOperationException("network down"); }, "Server=nowhere;");
+            Assert(!thrown.IsCompatible && !thrown.DatabaseReachable && thrown.Problems.Count > 0,
+                "A connect failure must be converted into a verdict, not propagated.");
+
+            // 5. Case sensitivity must not create false alarms (SQL Server is CI).
+            var lower = complete.Select(x => x.ToLowerInvariant()).ToList();
+            Assert(MyTime3.Security.SchemaGuard.Evaluate(lower).IsCompatible,
+                "Schema comparison must be case-insensitive like SQL Server's default collation.");
+        }
+
+        /// <summary>
+        /// TEST-43 — The guard is worthless if it is never invoked. These are the
+        /// wiring points that only break at runtime, so they are asserted here.
+        /// </summary>
+        private static void TestSchemaGuardWiring()
+        {
+            string twfRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".."));
+            string webRoot = Path.Combine(twfRoot, "TWF.Web");
+            string viewsRoot = Path.Combine(webRoot, "Views");
+
+            // 1. Startup probe: called once from the application entry point.
+            string app = File.ReadAllText(Path.Combine(webRoot, "MyTime3", "MvcApplication.cs"));
+            Assert(app.Contains("SchemaGuard.EnsureValidated()"),
+                "MvcApplication must probe the schema contract at start-up.");
+            Assert(app.Contains("using MyTime3.Security;"),
+                "MvcApplication must import the schema guard namespace.");
+
+            // 2. Global filter registered so an incompatible schema never renders a 500.
+            string filters = File.ReadAllText(Path.Combine(webRoot, "MyTime3", "FilterConfig.cs"));
+            Assert(filters.Contains("new SchemaGuardFilter()"),
+                "FilterConfig must register SchemaGuardFilter globally.");
+            Assert(filters.Contains("HandleErrorAttribute"),
+                "The original HandleErrorAttribute registration must be preserved.");
+
+            // 3. The filter must not be able to redirect to itself (loop) and must
+            //    not swallow the diagnostics page it redirects to.
+            string filter = File.ReadAllText(Path.Combine(webRoot, "Security", "SchemaGuardFilter.cs"));
+            Assert(filter.Contains("DiagnosticsControllerName"),
+                "SchemaGuardFilter must exempt the diagnostics controller to avoid a redirect loop.");
+
+            // 4. The view the controller renders must exist, otherwise a schema
+            //    problem turns into a missing-view exception - the exact failure
+            //    this feature is meant to prevent.
+            string viewPath = Path.Combine(viewsRoot, "Diagnostics", "Schema.cshtml");
+            Assert(File.Exists(viewPath), "Views/Diagnostics/Schema.cshtml is missing.");
+            string view = File.ReadAllText(viewPath);
+            Assert(view.Contains("@model MyTime3.Security.SchemaCheckResult"),
+                "The diagnostics view must bind to SchemaCheckResult.");
+            Assert(view.Contains("Model.Problems"), "The diagnostics view must list the concrete problems.");
+            Assert(!view.Contains("Exception.StackTrace") && !view.Contains("ex.StackTrace"),
+                "The failure page must never render a stack trace to end users.");
+
+            // 5. Project shape: the new files are compiled and views are published.
+            string csproj = File.ReadAllText(Path.Combine(webRoot, "TWF.Web.csproj"));
+            Assert(csproj.Contains("Security\\*.cs"),
+                "TWF.Web.csproj must compile the whole Security folder (guard + filter).");
+            Assert(csproj.Contains("Views\\**\\*.cshtml"),
+                "TWF.Web.csproj must publish Razor views with the app.");
+        }
+
+        /// <summary>
+        /// TEST-44 — A pin is only real when the build consumes it. Anything that
+        /// still points at the legacy TWF 4.28 binaries is treated as a regression.
+        /// </summary>
+        private static void TestPinnedEngineEnforcement()
+        {
+            string twfRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".."));
+            string repoRoot = Path.GetFullPath(Path.Combine(twfRoot, "..", ".."));
+
+            string pinPath = Path.Combine(twfRoot, "engine", "engine-pin.json");
+            Assert(File.Exists(pinPath), "engine/engine-pin.json is missing; the engine is not pinned.");
+            string pin = File.ReadAllText(pinPath);
+            Assert(pin.Contains("t5web-3.5.7"), "The pin must name the t5web-3.5.7 build.");
+            Assert(pin.Contains("T5V3.DB.dll"), "The pin must record T5V3.DB.dll.");
+            Assert(pin.Contains("T5V3.LeaveCalcs.dll"),
+                "The pin must record T5V3.LeaveCalcs.dll (leave arithmetic must be verifiable).");
+
+            // 1. Every engine reference resolves into the pinned folder.
+            string pinnedFolder = Path.Combine(repoRoot, "T5Web [3.5.7]", "App", "bin");
+            Assert(Directory.Exists(pinnedFolder), "Pinned engine folder 'T5Web [3.5.7]/App/bin' is missing.");
+
+            foreach (string project in new[] { "TD5", "TWF.Application", "TWF.Infrastructure", "TWF.Web" })
+            {
+                string csprojPath = Path.Combine(twfRoot, project, project + ".csproj");
+                if (!File.Exists(csprojPath))
+                {
+                    continue;
+                }
+                string csproj = File.ReadAllText(csprojPath);
+                Assert(!csproj.Contains("TWF 4.28\\App\\bin"),
+                    project + ".csproj still references the legacy TWF 4.28 engine binaries.");
+                foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(
+                    csproj, @"<HintPath>([^<]+)</HintPath>"))
+                {
+                    string hint = m.Groups[1].Value.Replace("/", "\\");
+                    Assert(hint.Contains("T5Web [3.5.7]\\App\\bin", StringComparison.OrdinalIgnoreCase),
+                        project + ".csproj has a HintPath outside the pinned engine: " + m.Groups[1].Value);
+                    Assert(!hint.Contains("TWF 4.28", StringComparison.OrdinalIgnoreCase),
+                        project + ".csproj still points at legacy binaries: " + m.Groups[1].Value);
+                }
+            }
+
+            // 2. The build script compiles against the pin, not a hard-coded legacy path.
+            string build = File.ReadAllText(Path.Combine(twfRoot, "build-and-test.sh"));
+            Assert(build.Contains("engine-pin.json"),
+                "build-and-test.sh must derive the engine folder from engine-pin.json.");
+            Assert(!build.Contains("BIN_DIR=\"$REPO_ROOT/TWF 4.28/App/bin\""),
+                "build-and-test.sh must not hard-code the legacy TWF 4.28 binary folder.");
+        }
+
+        /// <summary>
+        /// TEST-45 — Self-diagnosis endpoints must stay reachable while the database
+        /// is broken, and must not require a login (an operator with a broken
+        /// database cannot authenticate).
+        /// </summary>
+        private static void TestDiagnosticsEndpoints()
+        {
+            string twfRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".."));
+            string webRoot = Path.Combine(twfRoot, "TWF.Web");
+            string controllerPath = Path.Combine(webRoot, "Controllers", "DiagnosticsController.cs");
+            Assert(File.Exists(controllerPath), "Controllers/DiagnosticsController.cs is missing.");
+            string controller = File.ReadAllText(controllerPath);
+
+            Assert(controller.Contains("[AllowAnonymous]"),
+                "DiagnosticsController must be anonymous: login itself depends on the database.");
+            foreach (string action in new[] { "ActionResult Schema()", "ActionResult Recheck()", "JsonResult Health()" })
+            {
+                Assert(controller.Contains(action), "DiagnosticsController must expose '" + action + "'.");
+            }
+            Assert(controller.Contains("SchemaGuard.EnsureValidated(force: true)"),
+                "Recheck must force a fresh probe instead of returning the cached verdict.");
+            Assert(controller.Contains("JsonRequestBehavior.AllowGet"),
+                "Health must be callable by a monitoring GET.");
         }
 }
 }

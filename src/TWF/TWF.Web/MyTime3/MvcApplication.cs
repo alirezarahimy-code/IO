@@ -6,6 +6,7 @@ using System.Web.Optimization;
 using System.Web.Routing;
 using MyTime3.Controllers;
 using MyTime3.Lock;
+using MyTime3.Security;
 using TD5;
 
 namespace MyTime3
@@ -30,6 +31,10 @@ namespace MyTime3
             Init.Start(
                 ConnectionStringResolver.PersonnelRequired,
                 ConnectionStringResolver.T5Required);
+
+            // Schema contract probe. Never throws: an incompatible or unreachable
+            // database is reported through /Diagnostics/Schema instead of a 500 page.
+            SchemaGuard.EnsureValidated();
         }
     }
 }

@@ -22,10 +22,10 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Dapper">
-      <HintPath>..\..\..\TWF 4.28\App\bin\Dapper.dll</HintPath>
+      <HintPath>..\..\..\T5Web [3.5.7]\App\bin\Dapper.dll</HintPath>
     </Reference>
     <Reference Include="T5V3.Model">
-      <HintPath>..\..\..\TWF 4.28\App\bin\T5V3.Model.dll</HintPath>
+      <HintPath>..\..\..\T5Web [3.5.7]\App\bin\T5V3.Model.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

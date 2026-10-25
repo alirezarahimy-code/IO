@@ -1,0 +1,48 @@
+{
+  "pinned_build": "t5web-3.5.7",
+  "pinned_from": "T5Web [3.5.7]/App/bin",
+  "reason": "Only engine build whose public API covers every type/member Aria calls. Verified by tools/analyze-engine.py: the desktop 3.9.2 build removed Personnel TitleChartDA.GetAllGuardAccess / TitlesChart.GuardAccess, which LeavesReportController and T5V3BackendAdapter depend on.",
+  "verify_command": "python3 tools/verify-engine-pin.py --check",
+  "assemblies": {
+    "T5V3.DB.dll": {
+      "file": "T5V3.DB.dll",
+      "size": 428544,
+      "md5": "019400eb8810011d0ec607412542f4bf"
+    },
+    "T5V3.Model.dll": {
+      "file": "T5V3.Model.dll",
+      "size": 104960,
+      "md5": "c38addbd29460c4273638e407f8194df"
+    },
+    "T5V3.Attendance.dll": {
+      "file": "T5V3.Attendance.dll",
+      "size": 84992,
+      "md5": "693ffed2e86663e2a588b9758c92ef54"
+    },
+    "T5V3.LeaveCalcs.dll": {
+      "file": "T5V3.LeaveCalcs.dll",
+      "size": 13824,
+      "md5": "562f1a101fa1f6bbfaf34435457b636a"
+    },
+    "T5V3.Misc.dll": {
+      "file": "T5V3.Misc.dll",
+      "size": 46080,
+      "md5": "d1afcc03cba944c7d4fb7a1b876d3f44"
+    },
+    "T5V3.Report.dll": {
+      "file": "T5V3.Report.dll",
+      "size": 207872,
+      "md5": "5d36d0e21834b50b7a6efc548d561807"
+    },
+    "T5V3.ReportGenerator.dll": {
+      "file": "T5V3.ReportGenerator.dll",
+      "size": 123904,
+      "md5": "a1822d7efb062289027604ad3b94ae59"
+    },
+    "Personnel.dll": {
+      "file": "Personnel.dll",
+      "size": 937472,
+      "md5": "abbb8ef5058a01d87b21bf39ff31f170"
+    }
+  }
+}

@@ -41,31 +41,31 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Mvc">
-      <HintPath>..\..\TWF 4.28\App\bin\System.Web.Mvc.dll</HintPath>
+      <HintPath>..\..\T5Web [3.5.7]\App\bin\System.Web.Mvc.dll</HintPath>
     </Reference>
     <Reference Include="Personnel">
-      <HintPath>..\..\TWF 4.28\App\bin\Personnel.dll</HintPath>
+      <HintPath>..\..\T5Web [3.5.7]\App\bin\Personnel.dll</HintPath>
     </Reference>
     <Reference Include="T5V3.DB">
-      <HintPath>..\..\TWF 4.28\App\bin\T5V3.DB.dll</HintPath>
+      <HintPath>..\..\T5Web [3.5.7]\App\bin\T5V3.DB.dll</HintPath>
     </Reference>
     <Reference Include="T5V3.Model">
-      <HintPath>..\..\TWF 4.28\App\bin\T5V3.Model.dll</HintPath>
+      <HintPath>..\..\T5Web [3.5.7]\App\bin\T5V3.Model.dll</HintPath>
     </Reference>
     <Reference Include="T5V3.Attendance">
-      <HintPath>..\..\TWF 4.28\App\bin\T5V3.Attendance.dll</HintPath>
+      <HintPath>..\..\T5Web [3.5.7]\App\bin\T5V3.Attendance.dll</HintPath>
     </Reference>
     <Reference Include="T5V3.LeaveCalcs">
-      <HintPath>..\..\TWF 4.28\App\bin\T5V3.LeaveCalcs.dll</HintPath>
+      <HintPath>..\..\T5Web [3.5.7]\App\bin\T5V3.LeaveCalcs.dll</HintPath>
     </Reference>
     <Reference Include="T5V3.Report">
-      <HintPath>..\..\TWF 4.28\App\bin\T5V3.Report.dll</HintPath>
+      <HintPath>..\..\T5Web [3.5.7]\App\bin\T5V3.Report.dll</HintPath>
     </Reference>
     <Reference Include="T5V3.ReportGenerator">
-      <HintPath>..\..\TWF 4.28\App\bin\T5V3.ReportGenerator.dll</HintPath>
+      <HintPath>..\..\T5Web [3.5.7]\App\bin\T5V3.ReportGenerator.dll</HintPath>
     </Reference>
     <Reference Include="T5V3.Misc">
-      <HintPath>..\..\TWF 4.28\App\bin\T5V3.Misc.dll</HintPath>
+      <HintPath>..\..\T5Web [3.5.7]\App\bin\T5V3.Misc.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -87,8 +87,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Security\SessionAuthManager.cs" />
-    <Compile Include="Security\TwfAuthorizeAttribute.cs" />
+    <Compile Include="Security\*.cs" />
     <Compile Include="Helpers\GlobalHelper.cs" />
     <Compile Include="Lock\*.cs" />
     <Compile Include="Authorization\*.cs" />
@@ -98,6 +97,19 @@
     <Compile Include="Models\*.cs" />
     <Compile Include="Controllers\*.cs" />
     <Compile Include="Views\Report\Report.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Razor views and offline static assets must be published with the app. -->
+    <Content Include="Views\**\*.cshtml" />
+    <Content Include="Content\**\*.css" />
+    <Content Include="Content\**\*.woff2" />
+    <Content Include="Content\**\*.woff" />
+    <Content Include="Content\**\*.ttf" />
+    <Content Include="Content\**\*.svg" />
+    <Content Include="Content\**\*.png" />
+    <Content Include="Scripts\**\*.js" />
+    <Content Include="Web.config" />
+    <Content Include="Global.asax" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
