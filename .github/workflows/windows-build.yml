@@ -601,7 +601,7 @@ jobs:
           $failed = $false
           $reports = @()
           foreach ($catalog in @('ReportT5V3', 'Personnel')) {
-            $out = (sqlcmd -S $env:T5_SERVER -E -b -h -1 -W -d $catalog -v Login='IIS APPPOOL\T5WebAdmin' -i ./src/T5Web/db/verify-grants.sql 2>&1) -join "`n"
+            $out = (sqlcmd -S $env:T5_SERVER -E -b -h -1 -W -d $catalog -v 'Login="IIS APPPOOL\T5WebAdmin"' -i ./src/T5Web/db/verify-grants.sql 2>&1) -join "`n"
             $code = $LASTEXITCODE
             Write-Host "--- $catalog"
             $out -split "`n" | ForEach-Object { Write-Host ("  " + $_) }
