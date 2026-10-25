@@ -132,12 +132,40 @@ def parameter_type(name):
     return "nvarchar(400)"
 
 
+# Dapper turns `IN @Ids` into `IN (@p1, @p2, ...)` before the statement reaches the
+# engine, so the literal text is *not* valid T-SQL even though the call is. Compiling
+# the text as-is reported four good statements as failures (Msg 102). The runner
+# emulates the expansion: a table variable stands in for the list.
+LIST_PATTERN = re.compile(r"(?i)\bIN\s+@([A-Za-z_][A-Za-z0-9_]*)")
+
+
+def list_parameters(statement):
+    """{name: sqltype} for every parameter used as `IN @name`."""
+    found = {}
+    for name in LIST_PATTERN.findall(statement):
+        found.setdefault(name, parameter_type(name))
+    return found
+
+
+def expand_lists(statement):
+    """Emulate Dapper: `IN @Ids` -> `IN (SELECT [value] FROM @Ids)`."""
+    return LIST_PATTERN.sub(
+        lambda match: "IN (SELECT [value] FROM @%s)" % match.group(1), statement)
+
+
 def declare_block(statement):
     names = []
     for name in re.findall(r"@([A-Za-z_][A-Za-z0-9_]*)", statement):
         if name.lower() not in [n.lower() for n in names]:
             names.append(name)
-    return "\n".join("DECLARE @%s %s = NULL;" % (n, parameter_type(n)) for n in names)
+    lists = list_parameters(statement)
+    lines = []
+    for name in names:
+        if name in lists:
+            lines.append("DECLARE @%s TABLE ([value] %s);" % (name, lists[name]))
+        else:
+            lines.append("DECLARE @%s %s = NULL;" % (name, parameter_type(name)))
+    return "\n".join(lines)
 
 
 def build_batches(statements):
@@ -147,7 +175,7 @@ def build_batches(statements):
         declares = declare_block(statement)
         if declares:
             body.append(declares)
-        body.append(statement.rstrip().rstrip(";") + ";")
+        body.append(expand_lists(statement).rstrip().rstrip(";") + ";")
         body.append("SET NOEXEC OFF;")
         batches.append(("\n".join(body), origin))
     return batches
@@ -195,6 +223,10 @@ def dry_run(statements):
 def gate(statements):
     """Offline gate: the extractor still finds the SQL it is supposed to find."""
     problems = []
+    # Dapper expands `IN @Ids` before the engine sees it; if this emulation is dropped,
+    # every such statement is reported as a syntax error on the next real run.
+    if expand_lists("SELECT 1 WHERE [X] IN @Ids") != "SELECT 1 WHERE [X] IN (SELECT [value] FROM @Ids)":
+        problems.append("the Dapper list expansion (IN @Ids) no longer works")
     if len(statements) < 80:
         problems.append("only %d statement(s) extracted; the data layer has more, so the extractor rotted"
                         % len(statements))

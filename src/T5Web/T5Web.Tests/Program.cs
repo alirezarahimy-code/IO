@@ -2842,6 +2842,13 @@ namespace T5Web.Tests
                 "statements assembled at run time must be skipped explicitly, not counted as failures.");
             Assert(runner.Contains("DECLARE @"),
                 "Dapper parameters have to be declared or SQL Server cannot compile the statement.");
+            Assert(runner.Contains("expand_lists"),
+                "Dapper turns `IN @Ids` into a list before the engine sees it; without that "
+                + "emulation four good statements are reported as syntax errors.");
+            Assert(TypedHasColumn("Workflow", "WorkflowType"),
+                "Workflow.WorkflowType is used by the workflow screen; the model must carry it.");
+            Assert(TypedHasColumn("Request", "WofkflowType"),
+                "Request.WofkflowType (the vendor's spelling) is used by the workflow screen.");
 
             // The model must cover every table the modules write to; without it the
             // synthetic schema would silently miss a table and the smoke run would pass.
@@ -2938,6 +2945,13 @@ namespace T5Web.Tests
                 Assert(!typed["UserShift"].ContainsKey("EndDate"),
                     "UserShift.EndDate does not exist; the real column is ToDate.");
             }
+        }
+
+        /// <summary>True when engine/column-types.json records the column for the table.</summary>
+        private static bool TypedHasColumn(string table, string column)
+        {
+            Dictionary<string, Dictionary<string, string>> typed = TypedColumns();
+            return typed.ContainsKey(table) && typed[table].ContainsKey(column);
         }
 
         private static void TestNoLockDependency()

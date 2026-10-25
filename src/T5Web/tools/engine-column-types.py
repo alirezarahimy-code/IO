@@ -263,6 +263,36 @@ def orm_sql_type(clr):
     return CLR_TO_SQL[base], (nullable or not value_type)
 
 
+# Columns the engine ORM does not expose as a property but the table really has, proven
+# by two independent sources: the shared schema manifest (src/TWF/db/schema-manifest.json,
+# built from vendor DDL + ORM metadata + the legacy data layer) and the portal's own SQL,
+# which the engine has been running in production for years. Without them the synthetic
+# schema cannot compile `WHERE w.[WorkflowType] = @WorkflowType`, and the Windows CI
+# reported exactly that (Msg 207, Invalid column name 'WorkflowType').
+#
+# The type is what the SQL compares against - an int parameter in both cases - and
+# db/verify.sql asks the real server whether the column is there before anything is
+# installed. A guess would be appended here silently; this table is the opposite: a
+# named, reviewable exception with its evidence written down.
+EXTRA_COLUMNS = {
+    "Workflow": {
+        "WorkflowType": {
+            "type": "int", "length": None, "nullable": False, "identity": False,
+            "source": "manifest:TWF/db/schema-manifest.json + sql:SqlAdminRepository",
+            "evidence": "manifest",
+        },
+    },
+    "Request": {
+        # The typo is the vendor's: the column is spelled "WofkflowType" in the engine.
+        "WofkflowType": {
+            "type": "int", "length": None, "nullable": False, "identity": False,
+            "source": "manifest:TWF/db/schema-manifest.json + sql:SqlAdminRepository",
+            "evidence": "manifest",
+        },
+    },
+}
+
+
 def merge(ddl, orm):
     tables = {}
     unmodelled = []
@@ -296,6 +326,8 @@ def merge(ddl, orm):
                     "evidence": "orm",
                     "clr": clr,
                 }
+        for column, info in EXTRA_COLUMNS.get(table, {}).items():
+            columns.setdefault(column, dict(info))
         if columns:
             sources = sorted({c["source"] for c in columns.values()})
             tables[table] = {"sources": sources, "columns": dict(sorted(columns.items()))}

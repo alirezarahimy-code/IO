@@ -3243,9 +3243,18 @@
           "nullable": false,
           "source": "orm:T5V3.Model.dll",
           "type": "datetime"
+        },
+        "WofkflowType": {
+          "evidence": "manifest",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "manifest:TWF/db/schema-manifest.json + sql:SqlAdminRepository",
+          "type": "int"
         }
       },
       "sources": [
+        "manifest:TWF/db/schema-manifest.json + sql:SqlAdminRepository",
         "orm:T5V3.Model.dll"
       ]
     },
@@ -5769,9 +5778,18 @@
           "nullable": false,
           "source": "orm:T5V3.Model.dll",
           "type": "int"
+        },
+        "WorkflowType": {
+          "evidence": "manifest",
+          "identity": false,
+          "length": null,
+          "nullable": false,
+          "source": "manifest:TWF/db/schema-manifest.json + sql:SqlAdminRepository",
+          "type": "int"
         }
       },
       "sources": [
+        "manifest:TWF/db/schema-manifest.json + sql:SqlAdminRepository",
         "orm:T5V3.Model.dll"
       ]
     },

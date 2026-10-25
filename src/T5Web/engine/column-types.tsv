@@ -339,6 +339,7 @@ Request	RecordTime	datetime	orm
 Request	RequestID	bigint	orm
 Request	RequesterName	nvarchar	orm
 Request	ToTime	datetime	orm
+Request	WofkflowType	int	manifest
 RequestAccept	AcceptDate	datetime	orm
 RequestAccept	AccepterBadgeNumber	bigint	orm
 RequestAccept	AccepterTitleID	int	orm
@@ -612,6 +613,7 @@ Workflow	AccepterTitleID	int	orm
 Workflow	LeaveTypeID	int	orm
 Workflow	OrderIndex	int	orm
 Workflow	TitleID	int	orm
+Workflow	WorkflowType	int	manifest
 YearRemain	BadgeNumber	bigint	orm
 YearRemain	DailyValue	float	orm
 YearRemain	LeaveTypeID	int	orm

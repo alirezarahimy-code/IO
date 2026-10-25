@@ -173,6 +173,29 @@ def build(database_names=None, include_portal=False):
     return "\n".join(lines) + "\n"
 
 
+MANIFEST = os.path.join(ROOT, "..", "TWF", "db", "schema-manifest.json")
+
+
+def manifest_columns():
+    """{table: set(columns)} from the shared schema manifest (the 129-table ground truth).
+
+    Used only for one thing: a column whose type was never proven by DDL or by the ORM
+    entity may still exist in the engine. Those are the curated exceptions in
+    tools/engine-column-types.py, and the manifest is what makes the claim checkable
+    instead of decorative.
+    """
+    try:
+        with open(MANIFEST, encoding="utf-8") as handle:
+            tables = json.load(handle)["tables"]
+    except (OSError, KeyError, ValueError):
+        return None
+    columns = {}
+    for name, detail in tables.items():
+        listed = detail if isinstance(detail, list) else detail.get("columns", [])
+        columns[name] = set(listed)
+    return columns
+
+
 def check():
     """Gate: the model is complete enough to execute against, and the output is valid."""
     problems = []
@@ -195,11 +218,19 @@ def check():
             recorded = (detail.get("type") or "").strip().lower()
             if recorded not in TYPE_MAP:
                 problems.append("%s.%s has unmapped type %r" % (table, column, recorded))
-            if detail.get("evidence") not in ("ddl", "orm", "orm-rename"):
-                # "orm-rename" is recorded upstream as "orm" + rename note; be permissive
-                # only for the values the model actually uses.
-                if detail.get("evidence") not in ("inferred",):
-                    problems.append("%s.%s has no evidence for its type" % (table, column))
+            evidence = detail.get("evidence")
+            if evidence == "manifest":
+                # Not a free pass: the column has to be listed for this table in the
+                # shared manifest, which is the 129-table ground truth. A typo here
+                # would otherwise become a table that exists only in the fixture.
+                if manifest_columns() is None:
+                    problems.append("%s.%s claims manifest evidence, but %s is unreadable"
+                                    % (table, column, os.path.relpath(MANIFEST, ROOT)))
+                elif column not in manifest_columns().get(table, set()):
+                    problems.append("%s.%s claims manifest evidence, but the manifest does "
+                                    "not list that column" % (table, column))
+            elif evidence not in ("ddl", "orm", "orm-rename", "inferred"):
+                problems.append("%s.%s has no evidence for its type" % (table, column))
 
     t5 = build()
     generated = set()
