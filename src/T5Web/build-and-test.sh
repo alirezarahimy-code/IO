@@ -41,6 +41,9 @@ python3 "$SCRIPT_DIR/tools/engine-relations.py" --check
 # Type checking is impossible here (no compiler, no .NET Framework) and is done by the
 # Windows CI job instead - see docs/14.
 python3 "$SCRIPT_DIR/tools/csharp-parse-gate.py"
+# Usings: a type that is used needs its namespace imported. Three CI rounds went to
+# CS0103/CS0246 errors that this finds in a second.
+python3 "$SCRIPT_DIR/tools/using-gate.py"
 # Build inputs: every .csproj parses as XML and declares Debug/Release|AnyCPU. The
 # Windows CI found four projects with no configuration at all, and then a project file
 # that a text substitution had turned into broken XML (BUG-32).
