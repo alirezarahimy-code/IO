@@ -35,6 +35,9 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Web" />
+    <!-- ViewBag is `dynamic`: without this the compiler cannot resolve the binder
+         (CS0656 Missing compiler required member CSharpArgumentInfo.Create). -->
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Web.Mvc">
       <!-- Same pinned engine folder as ARIA; nothing is copied from the legacy tree. -->
       <HintPath>..\..\..\T5Web [3.5.7]\App\bin\System.Web.Mvc.dll</HintPath>
