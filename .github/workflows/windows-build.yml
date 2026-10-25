@@ -1,12 +1,16 @@
 name: windows-build
 
-# The rewrite targets .NET Framework 4.7.2 + IIS + SQL Server, and none of that
-# exists on the Linux machine where the code is written. This workflow is the
-# Windows machine: it compiles with MSBuild, runs the 34-test suite, and proves
-# the database scripts against a real SQL Server instance.
+# The rewrite targets .NET Framework 4.7.2 + IIS + SQL Server, and none of that exists
+# on the Linux machine where the code is written. This workflow is that Windows machine:
+# it compiles with MSBuild, runs the 35-test suite, and proves the database scripts
+# against a real SQL Server engine (Express LocalDB, which the runner image already has).
 #
-# It is deliberately push-triggered: a red run here is the same signal a red
-# build on the customer's server would give, only earlier.
+# It is deliberately push-triggered: a red run here is the same signal a red build on
+# the customer's server would give, only earlier.
+#
+# Note on diagnostics: job logs live in Azure blob storage, which an offline review
+# environment cannot read. Every step therefore re-prints a failing output as an
+# `::error::` annotation, which is readable through the API (gh run view).
 
 on:
   push:
@@ -25,42 +29,59 @@ concurrency:
 
 jobs:
   build-and-test:
-    name: MSBuild + 34 tests
+    name: MSBuild + tests
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
       - name: Show toolchain
         shell: pwsh
         run: |
-          Write-Host "MSBuild: $((Get-Command msbuild).Source)"
+          $msbuild = (Get-Command msbuild -ErrorAction SilentlyContinue).Source
+          $sqlcmd  = (Get-Command sqlcmd  -ErrorAction SilentlyContinue).Source
+          Write-Host "MSBuild : $msbuild"
+          Write-Host "sqlcmd  : $sqlcmd"
+          Write-Host "python  : $((Get-Command python -ErrorAction SilentlyContinue).Source)"
+          if (-not $msbuild) { Write-Host '::error::MSBuild is not on PATH' ; exit 1 }
           msbuild -version
-          Write-Host "sqlcmd : $((Get-Command sqlcmd -ErrorAction SilentlyContinue).Source)"
 
-      # The static gates run on Linux too, but running them here proves they do
-      # not depend on the developer machine. dnfile is needed for the engine
-      # metadata gates; without it build-schema-manifest --check reports STALE.
+      # The static gates run on Linux too; running them here proves they do not depend on
+      # the developer machine. dnfile is needed by the engine-metadata gates.
       - name: Static gates
         shell: pwsh
         run: |
           python -m pip install --disable-pip-version-check --quiet dnfile
           bash src/T5Web/build-and-test.sh --gates
+          if ($LASTEXITCODE -ne 0) { throw "static gates failed with $LASTEXITCODE" }
 
-      - name: Restore and build (Release)
+      - name: Build (Release)
         shell: pwsh
         run: |
-          msbuild src/T5Web/T5Web.sln /p:Configuration=Release /m /v:minimal /nologo
-          if ($LASTEXITCODE -ne 0) { throw "MSBuild failed with $LASTEXITCODE" }
+          $out = msbuild src/T5Web/T5Web.sln /p:Configuration=Release /m /v:minimal /nologo 2>&1
+          $out | Write-Host
+          if ($LASTEXITCODE -ne 0) {
+            $errors = $out | Select-String -Pattern ': error ' | Select-Object -First 25
+            foreach ($line in $errors) { Write-Host "::error::$line" }
+            throw "MSBuild failed with $LASTEXITCODE"
+          }
 
       - name: Run the suite
         shell: pwsh
         run: |
           $exe = Get-ChildItem -Recurse -Filter T5Web.Tests.exe | Select-Object -First 1
-          if (-not $exe) { throw 'T5Web.Tests.exe was not produced' }
+          if (-not $exe) { Write-Host '::error::T5Web.Tests.exe was not produced'; exit 1 }
           Write-Host "running $($exe.FullName)"
-          & $exe.FullName
-          if ($LASTEXITCODE -ne 0) { throw "test suite failed with $LASTEXITCODE" }
+          $out = & $exe.FullName 2>&1
+          $out | Write-Host
+          if ($LASTEXITCODE -ne 0) {
+            ($out | Select-String -Pattern 'FAIL|Failure|Expected|Unhandled' | Select-Object -First 20) |
+              ForEach-Object { Write-Host "::error::$_" }
+            throw "test suite failed with exit code $LASTEXITCODE"
+          }
 
       - name: Upload build output
         if: always()
@@ -77,70 +98,91 @@ jobs:
     name: SQL Server scripts
     runs-on: windows-latest
     timeout-minutes: 30
+    env:
+      T5_SERVER: '(localdb)\T5Web'
     steps:
       - uses: actions/checkout@v4
 
-      # SQL Server Express LocalDB ships with the runner image. It is a real SQL
-      # Server engine: T-SQL, cross-database queries, IDENTITY, collations.
       - name: Start LocalDB
         shell: pwsh
         run: |
           sqllocaldb create T5Web -s
           sqllocaldb info T5Web
-          $instance = "(localdb)\T5Web"
-          sqlcmd -S $instance -E -Q "SELECT @@VERSION" -h -1 -W
+          sqlcmd -S "(localdb)\T5Web" -E -Q "SELECT @@VERSION" -h -1 -W
+          if ($LASTEXITCODE -ne 0) { throw "LocalDB did not start" }
 
-      # An empty engine schema would make every script here meaningless, so the
-      # fixture is generated from engine/column-types.json - the same model the
-      # build gates use to prove every column name in the C# code.
+      # An empty engine schema would make every script here meaningless, so the fixture is
+      # generated from engine/column-types.json - the same model the build gates use.
       - name: Build the synthetic engine schema
         shell: pwsh
         run: |
-          python -m pip install --disable-pip-version-check --quiet dnfile
-          python src/T5Web/tools/synthetic-schema.py --sql > $env:TEMP\synthetic.sql
-          $env:T5_DB = 'ReportT5V3'
-          sqlcmd -S '(localdb)\T5Web' -E -b -i $env:TEMP\synthetic.sql -d master
+          python src/T5Web/tools/synthetic-schema.py --check
+          python src/T5Web/tools/synthetic-schema.py --sql > synthetic.sql
+          sqlcmd -S "(localdb)\T5Web" -E -b -i synthetic.sql -d master -f 65001
           if ($LASTEXITCODE -ne 0) { throw "synthetic schema failed with $LASTEXITCODE" }
 
       - name: Portal objects and the least-privilege login
         shell: pwsh
         run: |
-          sqlcmd -S '(localdb)\T5Web' -E -b -i src/T5Web/db/01-t5web-objects.sql -d ReportT5V3
-          if ($LASTEXITCODE -ne 0) { throw "01-t5web-objects.sql failed" }
-          sqlcmd -S '(localdb)\T5Web' -E -b -i src/T5Web/db/02-t5web-sql-login.sql -d ReportT5V3
-          if ($LASTEXITCODE -ne 0) { throw "02-t5web-sql-login.sql failed" }
+          function Invoke-SqlScript([string]$path, [string]$database) {
+            Write-Host "--- $path"
+            $out = sqlcmd -S "(localdb)\T5Web" -E -i $path -d $database -f 65001 2>&1
+            $code = $LASTEXITCODE
+            $out | Write-Host
+            if ($code -ne 0) {
+              foreach ($line in ($out | Select-Object -First 20)) { Write-Host "::error::${path}: $_" }
+              throw "$path failed with $code"
+            }
+          }
+          Invoke-SqlScript 'src/T5Web/db/01-t5web-objects.sql' 'ReportT5V3'
+          Invoke-SqlScript 'src/T5Web/db/02-t5web-sql-login.sql'  'ReportT5V3'
           # Second run must be a no-op: both scripts are documented as idempotent.
-          sqlcmd -S '(localdb)\T5Web' -E -b -i src/T5Web/db/01-t5web-objects.sql -d ReportT5V3
+          Invoke-SqlScript 'src/T5Web/db/01-t5web-objects.sql' 'ReportT5V3'
 
       - name: verify.sql must report no MISSING
         shell: pwsh
         run: |
-          $out = sqlcmd -S '(localdb)\T5Web' -E -b -i src/T5Web/db/verify.sql -d ReportT5V3 -h -1 -W
+          $out = sqlcmd -S "(localdb)\T5Web" -E -i src/T5Web/db/verify.sql -d ReportT5V3 -h -1 -W -f 65001 2>&1
           $out | Write-Host
           $missing = $out | Select-String -Pattern 'MISSING'
-          if ($missing) { throw "verify.sql reports $($missing.Count) MISSING object(s)" }
+          if ($missing) {
+            foreach ($line in ($missing | Select-Object -First 25)) { Write-Host "::error::verify: $line" }
+            throw "verify.sql reports $($missing.Count) MISSING object(s)"
+          }
 
       - name: 03-relations.sql must report no VIOLATION
         shell: pwsh
         run: |
-          sqlcmd -S '(localdb)\T5Web' -E -b -Q "DBCC CHECKIDENT ('dbo.UserInfo', RESEED, 0)" | Out-Null
-          $out = sqlcmd -S '(localdb)\T5Web' -E -b -i src/T5Web/db/03-relations.sql -d ReportT5V3 -h -1 -W
+          $out = sqlcmd -S "(localdb)\T5Web" -E -i src/T5Web/db/03-relations.sql -d ReportT5V3 -h -1 -W -f 65001 2>&1
           $out | Write-Host
           $bad = $out | Select-String -Pattern 'VIOLATION'
-          if ($bad) { throw "03-relations.sql reports $($bad.Count) violation(s)" }
+          if ($bad) {
+            foreach ($line in ($bad | Select-Object -First 25)) { Write-Host "::error::relations: $line" }
+            throw "03-relations.sql reports $($bad.Count) violation(s)"
+          }
 
       - name: Migration fingerprint round trip
         shell: pwsh
         run: |
-          python -m pip install --disable-pip-version-check --quiet dnfile
-          python src/T5Web/tools/migration-fingerprint.py --sql > $env:TEMP\fp.sql
-          sqlcmd -S '(localdb)\T5Web' -E -i $env:TEMP\fp.sql -h -1 -W -s '' |
-            Out-File -FilePath $env:TEMP\fp-a.txt -Encoding utf8
-          sqlcmd -S '(localdb)\T5Web' -E -i $env:TEMP\fp.sql -h -1 -W -s '' |
-            Out-File -FilePath $env:TEMP\fp-b.txt -Encoding utf8
-          python src/T5Web/tools/migration-fingerprint.py --compare $env:TEMP\fp-a.txt $env:TEMP\fp-b.txt
+          python src/T5Web/tools/migration-fingerprint.py --sql > fingerprint.sql
+          sqlcmd -S "(localdb)\T5Web" -E -i fingerprint.sql -h -1 -W -s '' 2>&1 | Select-Object -First 5 | Write-Host
+          sqlcmd -S "(localdb)\T5Web" -E -i fingerprint.sql -h -1 -W -s '' | Out-File fingerprint-a.txt -Encoding utf8
+          sqlcmd -S "(localdb)\T5Web" -E -i fingerprint.sql -h -1 -W -s '' | Out-File fingerprint-b.txt -Encoding utf8
+          $out = python src/T5Web/tools/migration-fingerprint.py --compare fingerprint-a.txt fingerprint-b.txt 2>&1
+          $out | Write-Host
+          if ($LASTEXITCODE -ne 0) {
+            foreach ($line in $out) { Write-Host "::error::fingerprint: $line" }
+            throw 'the fingerprint comparison failed'
+          }
 
       - name: Portal SQL statements against the real engine
         shell: pwsh
         run: |
-          python src/T5Web/tools/sql-smoke.py --server '(localdb)\T5Web' --database ReportT5V3
+          $out = python src/T5Web/tools/sql-smoke.py --server '(localdb)\T5Web' -d ReportT5V3 2>&1
+          $out | Write-Host
+          if ($LASTEXITCODE -ne 0) {
+            foreach ($line in ($out | Select-String -Pattern 'FAIL|Msg \d+|Invalid' | Select-Object -First 25)) {
+              Write-Host "::error::smoke: $line"
+            }
+            throw 'SQL smoke failed'
+          }
