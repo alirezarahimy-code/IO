@@ -3187,6 +3187,18 @@ namespace T5Web.Tests
                 Assert(File.Exists(hint), "the pinned build should ship " + assembly + ".dll");
             }
 
+            // Everything the site's own configuration names must be referenced by the
+            // *site*: a clean server has no GAC copy, and relying on the copy that a
+            // project reference makes left bin\EntityFramework.SqlServer.dll missing.
+            string site = File.ReadAllText(Path.Combine(T5WebRoot, "T5Web.Web", "T5Web.Web.csproj"));
+            foreach (string named in new[] { "System.Web.Mvc", "System.Web.WebPages", "System.Web.Razor",
+                                             "EntityFramework", "EntityFramework.SqlServer" })
+            {
+                Assert(site.Contains("Include=\"" + named + "\""),
+                    "T5Web.Web does not reference " + named + ", but the site's config names it and IIS "
+                    + "has no copy of its own (0-publish.ps1 refuses such a folder).");
+            }
+
             string data = File.ReadAllText(Path.Combine(T5WebRoot, "T5Web.Data", "T5Web.Data.csproj"));
             foreach (string assembly in new[] { "EntityFramework", "EntityFramework.SqlServer" })
             {

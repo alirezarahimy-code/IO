@@ -59,6 +59,19 @@
       <HintPath>..\..\..\T5Web [3.5.7]\App\bin\System.Web.Razor.dll</HintPath>
       <Private>true</Private>
     </Reference>
+    <!-- Referenced by the *site*, not only by the data layer: these two are named in
+         Web.config (the EF provider) and loaded by the engine's context, and a clean
+         server has no copy anywhere else. Relying on the copy that a project reference
+         makes was not enough - bin\EntityFramework.SqlServer.dll was still missing and
+         0-publish.ps1 caught it. -->
+    <Reference Include="EntityFramework">
+      <HintPath>..\..\..\T5Web [3.5.7]\App\bin\EntityFramework.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer">
+      <HintPath>..\..\..\T5Web [3.5.7]\App\bin\EntityFramework.SqlServer.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
     <Reference Include="Dapper">
       <HintPath>..\..\..\T5Web [3.5.7]\App\bin\Dapper.dll</HintPath>
       <Private>true</Private>
