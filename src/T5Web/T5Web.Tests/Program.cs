@@ -584,7 +584,11 @@ namespace T5Web.Tests
             Assert(script.Contains("verify-engine-pin.py"), "the build must verify the engine pin.");
             Assert(script.Contains("build-schema-manifest.py"), "the build must verify the schema manifest is current.");
             Assert(script.Contains("verify-sql-schema.py"), "the build must verify SQL identifiers.");
-            Assert(script.Contains("T5Web [3.5.7]"), "the build must reference the pinned engine folder.");
+            // The pinned engine folder is referenced by the project files now, not by the
+            // script: MSBuild resolves the HintPaths (T35 checks they exist on disk).
+            string dataProject = Read("T5Web.Data", "T5Web.Data.csproj");
+            Assert(dataProject.Contains("T5Web [3.5.7]"),
+                "a project must reference the pinned engine folder.");
             Assert(script.Contains("T5Web.Tests"), "the build must compile the portal test suite.");
 
             string pin = File.ReadAllText(Path.Combine(RepoRoot, "src", "TWF", "engine", "engine-pin.json"));
