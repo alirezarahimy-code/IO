@@ -66,6 +66,7 @@ namespace T5Web.Tests
             RunTest("T36: two catalogs (verify.sql names them, the login exists in both, grants match the modules)", TestTwoCatalogInstall);
             RunTest("T37: what only a real IIS can show (x86 engine, 32-bit pool, no duplicate config keys)", TestWebHostSettings);
             RunTest("T38: the grants are valid T-SQL and the job that runs them reads the exit code", TestGrantStatementsExecute);
+            RunTest("T39: the engine is Database First, so it gets an entity connection string", TestEngineConnectionString);
 
             Console.WriteLine("----------------------------------------------------------------------");
             Console.WriteLine($"  Summary: {_passed} Passed, {_failed} Failed");
@@ -3079,6 +3080,55 @@ namespace T5Web.Tests
             Assert(verify.Contains("t5web_app"),
                 "verify.sql must ask for the append-only policy on the role [t5web_app]; asking for a "
                 + "DENY addressed to one login reports MISSING on a correct install.");
+        }
+
+        /// <summary>
+        /// T39 - the engine needs an *entity* connection string (BUG-37).
+        ///
+        /// PersonnelSystem is a Database First EF context. Given the plain ADO.NET string
+        /// the portal uses for its own queries, EF falls back to Code First and answers
+        /// "The context is being used in Code First mode with code that was generated from
+        /// an EDMX file" - which is what every organisation screen did on the first real
+        /// install. The desktop application never noticed because its Web.config carried
+        /// the metadata=... form; the portal stored only the provider part.
+        /// </summary>
+        private static void TestEngineConnectionString()
+        {
+            const string provider = "data source=.;initial catalog=Personnel;integrated security=True";
+            string built = T5Web.Data.Engine.PersonnelEngineDirectory.BuildEntityConnectionString(provider);
+
+            Assert(built.StartsWith("metadata=res://*/", StringComparison.Ordinal),
+                "the engine connection string must start with metadata=res://*/ or EF treats the "
+                + "context as Code First (BUG-37). Built: " + built);
+            Assert(built.Contains(".csdl") && built.Contains(".ssdl") && built.Contains(".msl"),
+                "the entity connection string must name the three EDMX artefacts. Built: " + built);
+            Assert(built.Contains("provider=System.Data.SqlClient"),
+                "the entity connection string must name the provider. Built: " + built);
+            Assert(built.Contains("provider connection string=\"" + provider + "\""),
+                "the portal's own connection string must be carried inside the entity string, quoted. Built: " + built);
+
+            // Discovered from the assembly, not copied from it: a rebuilt engine may name its
+            // model resources differently.
+            string[] modelResources = typeof(Personnel.PersonnelSystem).Assembly.GetManifestResourceNames()
+                .Where(r => r.EndsWith(".csdl", StringComparison.OrdinalIgnoreCase)).ToArray();
+            Assert(modelResources.Length > 0, "the pinned Personnel.dll carries no .csdl, so the engine cannot be used at all.");
+            Assert(built.Contains(modelResources[0]), "the connection string must use the resource name the assembly actually has.");
+
+            // A missing model must be a readable failure, not an EF error three layers down.
+            bool threw = false;
+            try
+            {
+                T5Web.Data.Engine.PersonnelEngineDirectory.BuildEntityConnectionString(provider, typeof(T5Web.Tests.Program).Assembly);
+            }
+            catch (T5Web.Data.Engine.EngineAccessException)
+            {
+                threw = true;
+            }
+            Assert(threw, "an assembly with no EDMX model must raise EngineAccessException, not a NullReferenceException.");
+
+            string directory = File.ReadAllText(Path.Combine(T5WebRoot, "T5Web.Data", "Engine", "PersonnelEngineDirectory.cs"));
+            Assert(!directory.Contains("new PersonnelSystem(_connectionString())") && !directory.Contains("new PersonnelSystem(connectionString)"),
+                "the engine must never be handed the raw provider connection string (BUG-37).");
         }
 
         private static void TestNoLockDependency()

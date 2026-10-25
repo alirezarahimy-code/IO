@@ -458,9 +458,19 @@ jobs:
               $failure = $_.Exception.Message
             }
             $visited++
-            $plain = (($body -replace '(?s)<script.*?</script>', ' ') -replace '<[^>]+>', ' ') -replace '\s+', ' '
+            # The yellow screen puts its stylesheet and scripts before the message, so
+            # strip those first: a "Compilation Error" that quotes only CSS is useless.
+            $plain = $body -replace '(?s)<script.*?</script>', ' ' -replace '(?s)<style.*?</style>', ' '
+            $plain = ($plain -replace '<[^>]+>', ' ') -replace '&nbsp;', ' '
+            $plain = ($plain -replace '\s+', ' ').Trim()
             if ($code -ne 200) {
-              $detail = if ($plain.Length -gt 0) { $plain.Substring(0, [Math]::Min(300, $plain.Length)) } else { $failure }
+              # Keep the sentences that name the cause, not the boilerplate around them.
+              $key = @()
+              foreach ($needle in 'error CS', 'Compilation Error', 'Parser Error', 'Description:', 'Exception', 'Line ') {
+                $at = $plain.IndexOf($needle)
+                if ($at -ge 0) { $key += $plain.Substring($at, [Math]::Min(240, $plain.Length - $at)) }
+              }
+              $detail = if ($key.Count -gt 0) { ($key -join ' || ') } elseif ($plain.Length -gt 0) { $plain.Substring(0, [Math]::Min(240, $plain.Length)) } else { $failure }
               $failures += ("{0,-14} {1,3}  {2}" -f $name, $code, $detail)
               continue
             }

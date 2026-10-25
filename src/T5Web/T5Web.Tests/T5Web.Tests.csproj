@@ -16,6 +16,12 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <!-- T39 asks the pinned engine assembly for the names of its EDMX resources: the
+         connection string is built from what the assembly has, not from a constant. -->
+    <Reference Include="Personnel">
+      <HintPath>..\..\..\T5Web [3.5.7]\App\bin\Personnel.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\T5Web.Domain\T5Web.Domain.csproj">

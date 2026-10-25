@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Personnel;
 using Personnel.Model;
 using T5Web.Domain.Models;
@@ -66,7 +67,68 @@ namespace T5Web.Data.Engine
             {
                 throw new EngineAccessException("connection", null);
             }
-            return new PersonnelSystem(connectionString);
+            return new PersonnelSystem(BuildEntityConnectionString(connectionString));
+        }
+
+        /// <summary>
+        /// The engine is a Database First Entity Framework model, so PersonnelSystem
+        /// needs an *entity* connection string - the one that points at the .csdl/.ssdl/
+        /// .msl resources - and not the plain ADO.NET string the portal itself uses.
+        ///
+        /// Handing it the ADO string is what broke the first real install: EF decided it
+        /// was "Code First" and answered, on every screen that reads the organisation,
+        /// "The context is being used in Code First mode with code that was generated from
+        /// an EDMX file" (BUG-37). The desktop application worked because its Web.config
+        /// carried the metadata=... form; the portal stored only the provider part.
+        ///
+        /// The model resource names are read from the assembly instead of being copied
+        /// from it: the pinned build calls them DB.PersonnelMdl.*, and a rebuilt engine
+        /// may not. A missing resource is a plain EngineAccessException, not an EF error
+        /// three layers down.
+        /// </summary>
+        public static string BuildEntityConnectionString(string providerConnectionString)
+        {
+            return BuildEntityConnectionString(providerConnectionString, typeof(PersonnelSystem).Assembly);
+        }
+
+        public static string BuildEntityConnectionString(string providerConnectionString, Assembly engineAssembly)
+        {
+            if (string.IsNullOrWhiteSpace(providerConnectionString))
+            {
+                throw new EngineAccessException("connection", null);
+            }
+            if (engineAssembly == null)
+            {
+                throw new ArgumentNullException(nameof(engineAssembly));
+            }
+
+            string[] resources = engineAssembly.GetManifestResourceNames();
+            string csdl = FindModelResource(resources, ".csdl");
+            string ssdl = FindModelResource(resources, ".ssdl");
+            string msl = FindModelResource(resources, ".msl");
+            if (csdl == null || ssdl == null || msl == null)
+            {
+                throw new EngineAccessException(
+                    "model",
+                    new InvalidOperationException(
+                        "The engine assembly has no EDMX model (csdl/ssdl/msl). Expected the pinned " +
+                        "Personnel.dll from engine/engine-pin.json; found " +
+                        (resources.Length == 0 ? "no resources" : string.Join(", ", resources.Where(r => r.EndsWith(".csdl") || r.EndsWith(".ssdl") || r.EndsWith(".msl")).ToArray())) + "."));
+            }
+
+            // res://*/Name tells EF to look for that suffix in any loaded assembly, which
+            // is where Personnel.dll ends up: the folder IIS runs from.
+            return "metadata=res://*/" + csdl + "|res://*/" + ssdl + "|res://*/" + msl +
+                   ";provider=System.Data.SqlClient;provider connection string=\"" +
+                   providerConnectionString + "\"";
+        }
+
+        private static string FindModelResource(string[] resources, string suffix)
+        {
+            return resources
+                .Where(r => r.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(r => r.Length)
+                .FirstOrDefault();
         }
 
         public IReadOnlyList<DepartmentNode> GetDepartments()
