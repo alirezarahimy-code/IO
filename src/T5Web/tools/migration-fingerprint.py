@@ -148,7 +148,7 @@ def build_sql(include_portal=False, t5_db=None, personnel_db=None):
 def parse(text):
     """Fingerprint text -> {'meta': {k: v}, 'table': {}, 'identity': {}}."""
     meta, rows, seeds = {}, {}, {}
-    for raw in text.splitlines():
+    for raw in text.replace("\ufeff", "").splitlines():
         line = raw.strip()
         if not line or line.startswith("/*") or line.startswith("--") or line.startswith("*"):
             continue
@@ -288,9 +288,11 @@ def main(argv):
         if len(rest) != 2:
             print("usage: --compare SOURCE.txt TARGET.txt [--strict-identity] [--strict-meta]")
             return 2
-        with open(rest[0], encoding="utf-8") as handle:
+        # utf-8-sig: PowerShell's Out-File writes a BOM, and a BOM in front of the
+        # first line was enough to make every table line unreadable once.
+        with open(rest[0], encoding="utf-8-sig") as handle:
             source_text = handle.read()
-        with open(rest[1], encoding="utf-8") as handle:
+        with open(rest[1], encoding="utf-8-sig") as handle:
             target_text = handle.read()
         errors, warnings = compare(source_text, target_text,
                                    "--strict-identity" in args, "--strict-meta" in args)

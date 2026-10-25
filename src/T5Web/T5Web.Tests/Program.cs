@@ -2870,8 +2870,22 @@ namespace T5Web.Tests
             Assert(yaml.Contains("workflow_dispatch"),
                 "the Windows workflow must be startable by hand as well as on push.");
 
+            // MSBuild refuses a project with no Release OutputPath, and a text-level edit
+            // to a .csproj can silently break the XML (BUG-32). Both are cheap to prove.
+            foreach (string project in new[] { "T5Web.Domain", "T5Web.Application", "T5Web.Data", "T5Web.Tests", "T5Web.Web" })
+            {
+                string csproj = Path.Combine(T5WebRoot, project, project + ".csproj");
+                Assert(File.Exists(csproj), "missing project file " + csproj + ".");
+                var document = new System.Xml.XmlDocument();
+                document.Load(csproj);
+                string xml = File.ReadAllText(csproj);
+                Assert(xml.Contains("'Release|AnyCPU'"), project + " has no Release|AnyCPU configuration.");
+                Assert(xml.Contains("<OutputPath>"), project + " has no OutputPath, so MSBuild cannot place the output.");
+            }
+
             string build = File.ReadAllText(Path.Combine(T5WebRoot, "build-and-test.sh"));
-            foreach (string tool in new[] { "csharp-parse-gate.py", "synthetic-schema.py", "sql-smoke.py" })
+            foreach (string tool in new[] { "csharp-parse-gate.py", "synthetic-schema.py", "sql-smoke.py",
+                                            "project-file-gate.py", "sql-grant-gate.py" })
             {
                 Assert(build.Contains(tool), tool + " is not a build gate.");
             }

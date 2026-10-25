@@ -41,6 +41,10 @@ python3 "$SCRIPT_DIR/tools/engine-relations.py" --check
 # Type checking is impossible here (no compiler, no .NET Framework) and is done by the
 # Windows CI job instead - see docs/14.
 python3 "$SCRIPT_DIR/tools/csharp-parse-gate.py"
+# Build inputs: every .csproj parses as XML and declares Debug/Release|AnyCPU. The
+# Windows CI found four projects with no configuration at all, and then a project file
+# that a text substitution had turned into broken XML (BUG-32).
+python3 "$SCRIPT_DIR/tools/project-file-gate.py"
 # SQL executable against the model: the synthetic schema stands in for the vendor
 # install, and the smoke tool must still extract the statements it compiles (T35).
 python3 "$SCRIPT_DIR/tools/synthetic-schema.py" --check

@@ -97,6 +97,8 @@ gh run watch <run-id>
 | ۱ | `Show toolchain` شکست | `msbuild` روی `windows-latest` روی `PATH` نیست | `microsoft/setup-msbuild@v2` |
 | ۲ | `error : The BaseOutputPath/OutputPath property is not set … Configuration='Release'` | هیچ `.csproj`ای بلوک `Debug`/`Release` نداشت؛ `build-and-test.sh` همیشه `csc` را مستقیم صدا می‌زد | تنظیمات هر دو پیکربندی + `<Private>true</Private>` برای `Dapper`/`System.Web.Mvc` (`BUG-32`) |
 | ۳ | `verify: Department.DepartmentName column MISSING` | `verify.sql` با `OBJECT_ID(N'dbo.…')` فقط کاتالوگ جاری را می‌دید | پرسش با نام کاتالوگ + `USE [Personnel]` در `db/02` + گیت `sql-grant-gate.py` (`BUG-33`) |
+| ۴ | همان خطای `OutputPath` تکرار شد | اصلاح اجرا ۲ با جابه‌جایی متنی روی `.csproj` نوشته شده بود و تگ `</Project>`ِ داخل `<Project>{guid}</Project>` را گرفته بود؛ XML خراب شد | اصلاح ساختاری + گیت `tools/project-file-gate.py` که هر پنج `.csproj` را XML-پارس می‌کند (`BUG-32`) |
+| ۴ | `fingerprint: target fingerprint has no table lines` | `sqlcmd … -s ''` در PowerShell آرگومان خالی می‌گیرد و هیچ سطری چاپ نمی‌شد؛ خروجی هم با BOM نوشته می‌شد | ورودی خالی حذف شد، `Set-Content -Encoding ascii`، ابزار با `utf-8-sig` می‌خواند، و گام CI حالا خودش «کمتر از ۸۰ سطر جدول» را خطا می‌داند |
 
 درس عملی: **گیت استاتیک، اجرا نیست.** هر سه عیب از آن دسته‌ای بودند که متن درست به نظر
 می‌رسد و فقط در موتور/کامپایلر خطا می‌دهند. این همان چیزی است که `docs/12` دربارهٔ پشتیبان و
