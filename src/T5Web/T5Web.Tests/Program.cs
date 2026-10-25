@@ -2842,6 +2842,9 @@ namespace T5Web.Tests
                 "statements assembled at run time must be skipped explicitly, not counted as failures.");
             Assert(runner.Contains("DECLARE @"),
                 "Dapper parameters have to be declared or SQL Server cannot compile the statement.");
+            Assert(runner.Contains("declarable_type"),
+                "parameter types must come from how a parameter is used; a name-only guess "
+                + "made @PendingOnly a datetime and failed a correct statement.");
             Assert(runner.Contains("expand_lists"),
                 "Dapper turns `IN @Ids` into a list before the engine sees it; without that "
                 + "emulation four good statements are reported as syntax errors.");

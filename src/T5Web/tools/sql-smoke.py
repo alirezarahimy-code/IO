@@ -153,6 +153,26 @@ def expand_lists(statement):
         lambda match: "IN (SELECT [value] FROM @%s)" % match.group(1), statement)
 
 
+# A name-only guess is not enough: `@PendingOnly` contains "end" and became a
+# datetime, so `@PendingOnly = 0` failed with "Operand type clash: date is
+# incompatible with int"; `@FromYear` contains "from", so `N'...' + @FromYear`
+# failed with "nvarchar and datetime are incompatible in the add operator". Both
+# statements are correct C#, and both were reported as failures by this runner.
+# How a parameter is *used* is stronger evidence than how it is spelled.
+STRING_CONCAT = r"(?i)(N'[^']*'\s*\+\s*@{n}\b|@{n}\s*\+\s*N'[^']*')"
+NUMERIC_COMPARE = r"(?i)(@{n}\s*(?:=|<>|!=|>=|<=|>|<)\s*-?\d+\b|-?\d+\b\s*(?:=|<>|!=|>=|<=|>|<)\s*@{n}\b)"
+TOP_CALL = r"(?i)\bTOP\s*\(\s*@{n}\b"
+
+
+def declarable_type(name, statement):
+    """SQL type to declare for a Dapper parameter, from its use first, its name second."""
+    escaped = re.escape(name)
+    for pattern in (STRING_CONCAT, NUMERIC_COMPARE, TOP_CALL):
+        if re.search(pattern.replace("{n}", escaped), statement):
+            return "nvarchar(400)" if pattern is STRING_CONCAT else "int"
+    return parameter_type(name)
+
+
 def declare_block(statement):
     names = []
     for name in re.findall(r"@([A-Za-z_][A-Za-z0-9_]*)", statement):
@@ -164,7 +184,7 @@ def declare_block(statement):
         if name in lists:
             lines.append("DECLARE @%s TABLE ([value] %s);" % (name, lists[name]))
         else:
-            lines.append("DECLARE @%s %s = NULL;" % (name, parameter_type(name)))
+            lines.append("DECLARE @%s %s = NULL;" % (name, declarable_type(name, statement)))
     return "\n".join(lines)
 
 
