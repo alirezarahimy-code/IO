@@ -723,9 +723,476 @@ modules.Add(new ModuleDescriptor
                 Fields = new List<ModuleField>
                 {
                     Key("ID", "شناسه", FieldKind.Number, "orm"),
-                    // The ORM exposes Description as nvarchar without a declared length, so the
-                    // portal caps input at a value the engine itself accepts everywhere.
-                    Text("Description", "شرح", 250, "orm", required: true)
+                    // The database column is LeaveDescriptions; the engine's ORM property is
+                    // Description. T16 accepts this only as a proved rename (orm-rename:).
+                    Text("LeaveDescriptions", "شرح", 250, "orm-rename:Description", required: true)
+                }
+            });
+
+            // ------------------------------------------------------------------
+            // Wave 2 and 3 of docs/11: the remaining tables of the two catalogs the
+            // portal is allowed to touch. Every field below is a column that exists in
+            // db/schema-manifest.json *and* carries a type in engine/column-types.json;
+            // T16 re-derives both facts on every build.
+            // ------------------------------------------------------------------
+
+            modules.Add(new ModuleDescriptor
+            {
+                Code = "position",
+                TitleFa = "سِمَت‌های سازمانی",
+                GroupFa = "سازمان",
+                Table = "Position",
+                Catalog = "t5",
+                OrderBy = "PositionName",
+                LabelColumn = "PositionName",
+                ViewFeature = AdminFeature.TitlesView,
+                EditFeature = AdminFeature.TitlesEdit,
+                AllowCreate = true,
+                AllowDelete = true,
+                NoteFa = "پایهٔ سِمَت (دسکتاپ: frmPosition). شناسه را اپراتور تعیین می‌کند.",
+                Fields = new List<ModuleField>
+                {
+                    Key("PositionID", "شناسه", FieldKind.Number, "orm"),
+                    Text("PositionName", "نام سِمَت", 100, "orm", required: true)
+                }
+            });
+
+            modules.Add(new ModuleDescriptor
+            {
+                Code = "positionstep",
+                TitleFa = "مراحل سِمَت",
+                GroupFa = "سازمان",
+                Table = "PositionStep",
+                Catalog = "t5",
+                OrderBy = "OperationIndex",
+                ViewFeature = AdminFeature.TitlesView,
+                EditFeature = AdminFeature.TitlesEdit,
+                AllowCreate = true,
+                AllowDelete = true,
+                NoteFa = "مراحل گردش هر سِمَت: چه مدرکی لازم است و آیا عکس یا موقعیت هم گرفته شود.",
+                Fields = new List<ModuleField>
+                {
+                    Key("PositionID", "سِمَت", FieldKind.Number, "orm"),
+                    // Column OperationIndex, ORM property OrderIndex: a proved rename.
+                    Key("OperationIndex", "ترتیب مرحله", FieldKind.Number, "orm-rename:OrderIndex"),
+                    Text("OperationName", "نام مرحله", 100, "orm"),
+                    Flag("Required", "الزامی", "orm"),
+                    Flag("Photo", "عکس لازم است", "orm"),
+                    Flag("Location", "موقعیت لازم است", "orm"),
+                    Flag("Descriptions", "توضیح لازم است", "orm")
+                }
+            });
+
+            modules.Add(new ModuleDescriptor
+            {
+                Code = "userposition",
+                TitleFa = "سِمَت هر پرسنل",
+                GroupFa = "سازمان",
+                Table = "UserPositionData",
+                Catalog = "t5",
+                OrderBy = "ID",
+                ViewFeature = AdminFeature.TitlesView,
+                EditFeature = AdminFeature.TitlesEdit,
+                AllowCreate = true,
+                AllowDelete = true,
+                NoteFa = "انتساب سِمَت به پرسنل؛ هر انتساب یک زمان ایجاد دارد.",
+                Fields = new List<ModuleField>
+                {
+                    Key("ID", "شناسه", FieldKind.Number, "orm"),
+                    Number("BadgeNumber", "شماره پرسنلی", "orm", required: true),
+                    Number("PositionID", "سِمَت", "orm", required: true),
+                    Date("CreateTime", "زمان انتساب", "orm")
+                }
+            });
+
+            modules.Add(new ModuleDescriptor
+            {
+                Code = "userinfotitles",
+                TitleFa = "سابقه عنوان شغلی",
+                GroupFa = "سازمان",
+                Table = "UserInfoTitles",
+                Catalog = "personnel",
+                OrderBy = "ID",
+                ViewFeature = AdminFeature.TitlesView,
+                EditFeature = AdminFeature.TitlesEdit,
+                AllowCreate = true,
+                AllowDelete = true,
+                NoteFa = "عنوان هر پرسنل در یک بازه؛ عنوان جاری از همین جدول خوانده می‌شود.",
+                Fields = new List<ModuleField>
+                {
+                    Key("ID", "شناسه", FieldKind.Number, "ddl"),
+                    Number("BadgeNumber", "شماره پرسنلی", "ddl", required: true),
+                    Number("TitleChartID", "عنوان", "ddl", required: true),
+                    Date("FromDate", "از تاریخ", "ddl"),
+                    Date("ToDate", "تا تاریخ", "ddl")
+                }
+            });
+
+            modules.Add(new ModuleDescriptor
+            {
+                Code = "personneldeputy",
+                TitleFa = "جانشین فردی",
+                GroupFa = "سازمان",
+                Table = "PersonnelDeputy",
+                Catalog = "t5",
+                OrderBy = "BadgeNumber",
+                ViewFeature = AdminFeature.TitlesView,
+                EditFeature = AdminFeature.TitlesEdit,
+                AllowCreate = true,
+                AllowDelete = true,
+                NoteFa = "جانشین در سطح «فرد» (نه عنوان). جدول فقط دو ستون دارد؛ سطر افزوده یا حذف می‌شود.",
+                Fields = new List<ModuleField>
+                {
+                    Key("BadgeNumber", "شماره پرسنلی", FieldKind.Number, "orm"),
+                    Key("DeputyBadgeNumber", "شماره جانشین", FieldKind.Number, "orm")
+                }
+            });
+
+            modules.Add(new ModuleDescriptor
+            {
+                Code = "userinfomanager",
+                TitleFa = "مدیر هر پرسنل",
+                GroupFa = "سازمان",
+                Table = "UserInfoManager",
+                Catalog = "t5",
+                OrderBy = "ID",
+                ViewFeature = AdminFeature.TitlesView,
+                EditFeature = AdminFeature.TitlesEdit,
+                AllowCreate = true,
+                AllowDelete = true,
+                Fields = new List<ModuleField>
+                {
+                    Key("ID", "شناسه", FieldKind.Number, "orm"),
+                    Number("ManagerBadgeNumber", "شماره مدیر", "orm", required: true),
+                    Number("PersonnelBadgeNumber", "شماره پرسنل", "orm", required: true),
+                    Flag("Access", "دسترسی تأیید دارد", "orm")
+                }
+            });
+
+            modules.Add(new ModuleDescriptor
+            {
+                Code = "userpermission",
+                TitleFa = "دسترسی موتور به پرسنل",
+                GroupFa = "دسترسی",
+                Table = "UserPermission",
+                Catalog = "t5",
+                OrderBy = "BadgeNumber",
+                ViewFeature = AdminFeature.AccessView,
+                EditFeature = AdminFeature.AccessEdit,
+                AllowCreate = true,
+                AllowDelete = true,
+                NoteFa = "سطح دسترسی نسخه دسکتاپ (نه دسترسی پورتال). دسترسی پورتال در «سطوح دسترسی» است.",
+                Fields = new List<ModuleField>
+                {
+                    Key("BadgeNumber", "شماره پرسنلی", FieldKind.Number, "orm"),
+                    Key("AccessType", "نوع دسترسی", FieldKind.Number, "orm"),
+                    Number("AccessLevel", "سطح", "orm", required: true)
+                }
+            });
+
+            modules.Add(new ModuleDescriptor
+            {
+                Code = "reportaccess",
+                TitleFa = "دسترسی گزارش به عنوان",
+                GroupFa = "دسترسی",
+                Table = "ReportAccess",
+                Catalog = "t5",
+                OrderBy = "ReportID",
+                ViewFeature = AdminFeature.AccessView,
+                EditFeature = AdminFeature.AccessEdit,
+                AllowCreate = true,
+                AllowDelete = true,
+                NoteFa = "کدام عنوان شغلی کدام گزارش دسکتاپ را می‌بیند؛ کلید ترکیبی دو ستونی.",
+                Fields = new List<ModuleField>
+                {
+                    Key("ReportID", "گزارش", FieldKind.Number, "orm"),
+                    Key("TitleID", "عنوان", FieldKind.Number, "orm")
+                }
+            });
+
+            modules.Add(new ModuleDescriptor
+            {
+                Code = "allowvalue",
+                TitleFa = "مقدار مجاز فردی",
+                GroupFa = "قواعد",
+                Table = "AllowValue",
+                Catalog = "t5",
+                OrderBy = "ForDate",
+                ViewFeature = AdminFeature.RulesView,
+                EditFeature = AdminFeature.RulesEdit,
+                AllowCreate = true,
+                AllowDelete = true,
+                NoteFa = "سقف مجاز یک نفر برای یک روز مشخص (مثلاً اضافه‌کاری)؛ موتور در محاسبه از آن استفاده می‌کند.",
+                Fields = new List<ModuleField>
+                {
+                    Key("BadgeNumber", "شماره پرسنلی", FieldKind.Number, "orm"),
+                    Key("ForDate", "تاریخ", FieldKind.Date, "orm"),
+                    Number("AllowValueType", "نوع مقدار", "orm", required: true),
+                    Number("AllowValue1", "مقدار", "orm")
+                }
+            });
+
+            modules.Add(new ModuleDescriptor
+            {
+                Code = "card",
+                TitleFa = "پنجره مجاز کارت",
+                GroupFa = "تردد",
+                Table = "Card",
+                Catalog = "t5",
+                OrderBy = "CardBadgeNumber",
+                ViewFeature = AdminFeature.RecordsView,
+                EditFeature = AdminFeature.RecordsEdit,
+                ReadOnly = true,
+                NoteFa = "پنجره اعتبار کارت هر پرسنل روی هر دستگاه. فقط خواندنی: این جدول ورودی دستگاه است.",
+                Fields = new List<ModuleField>
+                {
+                    Key("CardBadgeNumber", "شماره کارت", FieldKind.Number, "ddl"),
+                    Number("MachineNumber", "دستگاه", "ddl"),
+                    Number("LeaveTypeID", "نوع مرخصی", "orm"),
+                    Number("StateKey", "کلید وضعیت", "ddl"),
+                    Number("ValidSecs", "اعتبار (ثانیه)", "ddl"),
+                    Flag("OnlyFirst", "فقط اولین تردد", "ddl")
+                }
+            });
+
+            modules.Add(new ModuleDescriptor
+            {
+                Code = "area",
+                TitleFa = "محدوده مجاز تردد",
+                GroupFa = "دستگاه‌ها",
+                Table = "Area",
+                Catalog = "t5",
+                OrderBy = "AreaID",
+                ViewFeature = AdminFeature.DeviceView,
+                EditFeature = AdminFeature.DeviceEdit,
+                AllowCreate = true,
+                AllowDelete = true,
+                NoteFa = "هر محدوده (ژئوفنس) به یک پرسنل و یک مدیر تعلق دارد.",
+                Fields = new List<ModuleField>
+                {
+                    Key("AreaID", "شناسه محدوده", FieldKind.Number, "orm"),
+                    Number("UserID", "شماره پرسنل", "orm", required: true),
+                    Number("ManagerID", "شماره مدیر", "orm"),
+                    Number("ValidType", "نوع اعتبار", "orm")
+                }
+            });
+
+            modules.Add(new ModuleDescriptor
+            {
+                Code = "areapoint",
+                TitleFa = "رأس‌های محدوده",
+                GroupFa = "دستگاه‌ها",
+                Table = "AreaPoint",
+                Catalog = "t5",
+                OrderBy = "AreaID",
+                ViewFeature = AdminFeature.DeviceView,
+                EditFeature = AdminFeature.DeviceEdit,
+                AllowCreate = true,
+                AllowDelete = true,
+                NoteFa = "هر سطر یک رأس چندضلعی محدوده؛ ترتیب رأس‌ها با PointIndex است.",
+                Fields = new List<ModuleField>
+                {
+                    Key("AreaID", "شناسه محدوده", FieldKind.Number, "orm"),
+                    Key("PointIndex", "ترتیب رأس", FieldKind.Number, "orm"),
+                    Number("Latitude", "عرض جغرافیایی", "orm", required: true),
+                    Number("Longitude", "طول جغرافیایی", "orm", required: true)
+                }
+            });
+
+            modules.Add(new ModuleDescriptor
+            {
+                Code = "downloadtime",
+                TitleFa = "زمان‌بندی دانلود",
+                GroupFa = "دستگاه‌ها",
+                Table = "DownloadTime",
+                Catalog = "t5",
+                OrderBy = "ID",
+                ViewFeature = AdminFeature.DeviceView,
+                EditFeature = AdminFeature.DeviceEdit,
+                ReadOnly = true,
+                NoteFa = "زمان‌هایی که سرویس دسکتاپ برای دانلود از دستگاه ثبت کرده است (فقط خواندنی).",
+                Fields = new List<ModuleField>
+                {
+                    Key("ID", "شناسه", FieldKind.Number, "orm"),
+                    Date("DownloadTime1", "زمان دانلود", "orm")
+                }
+            });
+
+            modules.Add(new ModuleDescriptor
+            {
+                Code = "downloadtimedevice",
+                TitleFa = "دستگاه‌های هر زمان‌بندی",
+                GroupFa = "دستگاه‌ها",
+                Table = "DownloadTimeDevice",
+                Catalog = "t5",
+                OrderBy = "DownloadTimeID",
+                ViewFeature = AdminFeature.DeviceView,
+                EditFeature = AdminFeature.DeviceEdit,
+                ReadOnly = true,
+                Fields = new List<ModuleField>
+                {
+                    Key("DownloadTimeID", "زمان‌بندی", FieldKind.Number, "orm"),
+                    Key("MachineNumber", "دستگاه", FieldKind.Number, "orm")
+                }
+            });
+
+            modules.Add(new ModuleDescriptor
+            {
+                Code = "deviceprops",
+                TitleFa = "نسخه‌های دستگاه",
+                GroupFa = "دستگاه‌ها",
+                Table = "DeviceProps",
+                Catalog = "personnel",
+                OrderBy = "Id",
+                ViewFeature = AdminFeature.DeviceView,
+                EditFeature = AdminFeature.DeviceEdit,
+                ReadOnly = true,
+                NoteFa = "نسخه firmware و توانایی‌های هر دستگاه، همان‌طور که خود دستگاه گزارش کرده است.",
+                Fields = new List<ModuleField>
+                {
+                    Key("Id", "شناسه", FieldKind.Number, "ddl"),
+                    Text("SerialNumber", "شماره سریال", 50, "ddl"),
+                    Text("FingerVersion", "نسخه اثر انگشت", 50, "ddl"),
+                    Text("FaceVersion", "نسخه چهره", 50, "ddl"),
+                    Text("PalmVersion", "نسخه کف دست", 50, "ddl"),
+                    Flag("IsFinger", "اثر انگشت دارد", "ddl"),
+                    Flag("IsFace", "چهره دارد", "ddl"),
+                    Flag("IsPalm", "کف دست دارد", "ddl")
+                }
+            });
+
+            modules.Add(new ModuleDescriptor
+            {
+                Code = "deviceconnectionstate",
+                TitleFa = "وضعیت اتصال دستگاه",
+                GroupFa = "دستگاه‌ها",
+                Table = "DeviceConnectionState",
+                Catalog = "personnel",
+                OrderBy = "Id",
+                ViewFeature = AdminFeature.DeviceView,
+                EditFeature = AdminFeature.DeviceEdit,
+                ReadOnly = true,
+                Fields = new List<ModuleField>
+                {
+                    Key("Id", "شناسه", FieldKind.Number, "ddl"),
+                    Text("DeviceSerialNumber", "شماره سریال", 50, "ddl"),
+                    Flag("ConnectDLL", "اتصال DLL", "ddl"),
+                    Flag("Ping", "پاسخ ping", "ddl"),
+                    Flag("Push", "push فعال", "ddl"),
+                    Flag("HasPush", "push پشتیبانی می‌شود", "ddl")
+                }
+            });
+
+            modules.Add(new ModuleDescriptor
+            {
+                Code = "devicebiotypes",
+                TitleFa = "انواع بیومتریک دستگاه",
+                GroupFa = "دستگاه‌ها",
+                Table = "DeviceBioTypes",
+                Catalog = "personnel",
+                OrderBy = "Id",
+                ViewFeature = AdminFeature.DeviceView,
+                EditFeature = AdminFeature.DeviceEdit,
+                ReadOnly = true,
+                Fields = new List<ModuleField>
+                {
+                    Key("Id", "شناسه", FieldKind.Number, "ddl"),
+                    Text("MachineSerialNumber", "سریال دستگاه", 50, "ddl"),
+                    Text("BioType", "نوع بیومتریک", 50, "ddl"),
+                    Text("Version", "نسخه", 50, "ddl")
+                }
+            });
+
+            modules.Add(new ModuleDescriptor
+            {
+                Code = "managerdevice",
+                TitleFa = "دستگاه‌های هر مدیر",
+                GroupFa = "دستگاه‌ها",
+                Table = "ManagerDevice",
+                Catalog = "personnel",
+                OrderBy = "ManagerID",
+                ViewFeature = AdminFeature.DeviceView,
+                EditFeature = AdminFeature.DeviceEdit,
+                AllowCreate = true,
+                AllowDelete = true,
+                NoteFa = "کدام مدیر کدام دستگاه را می‌بیند؛ کلید ترکیبی دو ستونی.",
+                Fields = new List<ModuleField>
+                {
+                    Key("ManagerID", "شماره مدیر", FieldKind.Number, "ddl"),
+                    Key("DeviceNumber", "شماره دستگاه", FieldKind.Number, "ddl")
+                }
+            });
+
+            modules.Add(new ModuleDescriptor
+            {
+                Code = "vaccinelog",
+                TitleFa = "سابقه واکسیناسیون",
+                GroupFa = "پرونده پرسنل",
+                Table = "VaccineLog",
+                Catalog = "personnel",
+                OrderBy = "VaccineDate",
+                ViewFeature = AdminFeature.PersonnelView,
+                EditFeature = AdminFeature.PersonnelEdit,
+                AllowCreate = true,
+                AllowDelete = true,
+                NoteFa = "ثبت واکسن هر نفر با شماره ملی (نه شماره پرسنلی)؛ این جدول کلید پرسنلی ندارد.",
+                Fields = new List<ModuleField>
+                {
+                    Key("Id", "شناسه", FieldKind.Number, "ddl", identity: true),
+                    Text("NationalId", "شماره ملی", 50, "ddl", required: true),
+                    Text("FirstName", "نام", 50, "ddl"),
+                    Text("LastName", "نام خانوادگی", 50, "ddl"),
+                    Text("VaccineTitle", "نام واکسن", 50, "ddl"),
+                    Date("VaccineDate", "تاریخ واکسن", "ddl"),
+                    Text("BatchNumber", "شماره بچ", 50, "ddl"),
+                    Text("Country", "کشور سازنده", 50, "ddl"),
+                    Number("VaccineId", "شناسه واکسن", "ddl")
+                }
+            });
+
+            modules.Add(new ModuleDescriptor
+            {
+                Code = "vaccinationdetails",
+                TitleFa = "تنظیمات استعلام واکسن",
+                GroupFa = "پرونده پرسنل",
+                Table = "UserInfoVaccinationDetails",
+                Catalog = "personnel",
+                OrderBy = "Id",
+                ViewFeature = AdminFeature.PersonnelView,
+                EditFeature = AdminFeature.PersonnelEdit,
+                AllowCreate = true,
+                AllowDelete = true,
+                NoteFa = "کلید استعلام واکسن هر شماره ملی. پورتال این داده را فقط نگه می‌دارد و هیچ فراخوانی شبکه‌ای انجام نمی‌دهد.",
+                Fields = new List<ModuleField>
+                {
+                    Key("Id", "شناسه", FieldKind.Number, "ddl", identity: true),
+                    Text("NationalId", "شماره ملی", 50, "ddl", required: true),
+                    Text("Pin", "کد استعلام", 100, "ddl"),
+                    Text("VaccinationAPICheckString", "رشته بررسی", 100, "ddl")
+                }
+            });
+
+            modules.Add(new ModuleDescriptor
+            {
+                Code = "userbiodata",
+                TitleFa = "داده بیومتریک پرسنل",
+                GroupFa = "پرونده پرسنل",
+                Table = "UserBioData",
+                Catalog = "personnel",
+                OrderBy = "Id",
+                ViewFeature = AdminFeature.PersonnelView,
+                EditFeature = AdminFeature.PersonnelEdit,
+                ReadOnly = true,
+                NoteFa = "الگوهای بیومتریک ثبت‌شده. فقط خواندنی: نوشتن این ردیف‌ها باید از خود دستگاه انجام شود.",
+                Fields = new List<ModuleField>
+                {
+                    Key("Id", "شناسه", FieldKind.Number, "ddl", identity: true),
+                    Text("BioType", "نوع بیومتریک", 50, "ddl"),
+                    Text("Type", "قالب", 50, "ddl"),
+                    Text("No", "شماره الگو", 50, "ddl"),
+                    Text("Pin", "شناسه دستگاه", 20, "ddl"),
+                    Text("Version", "نسخه", 50, "ddl"),
+                    Show("Content", "محتوا", FieldKind.Text)
                 }
             });
 

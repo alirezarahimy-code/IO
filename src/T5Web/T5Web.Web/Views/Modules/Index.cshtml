@@ -71,7 +71,11 @@
                             @if (Model.CanEdit)
                             {
                                 <td class="nowrap">
-                                    <a href="@Url.Action("Edit", "Modules", new { code = descriptor.Code, key = key })" class="btn btn--ghost">ویرایش</a>
+                                    @* Keys-only link tables have nothing to edit, but they can still be deleted. *@
+                                    @if (Model.CanUpdate)
+                                    {
+                                        <a href="@Url.Action("Edit", "Modules", new { code = descriptor.Code, key = key })" class="btn btn--ghost">ویرایش</a>
+                                    }
                                     @if (descriptor.AllowDelete)
                                     {
                                         <form method="post" action="@Url.Action("Delete", "Modules", new { code = descriptor.Code })" class="inline" data-confirm="true">

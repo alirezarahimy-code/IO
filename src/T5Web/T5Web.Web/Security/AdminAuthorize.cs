@@ -283,6 +283,8 @@ namespace T5Web.Web.Security
         private static IReportStore _reports;
         private static IPhotoStore _photos;
         private static IEntitlementStore _entitlements;
+        private static ILogStore _logs;
+        private static IIntegrityStore _integrity;
 
         /// <summary>
         /// Wires the process-wide services. The module store is optional: a deployment
@@ -323,7 +325,7 @@ namespace T5Web.Web.Security
                                      IScheduleStore scheduleStore, IReportStore reportStore)
         {
             Configure(repository, moduleStore, attendanceStore, leaveStore, scheduleStore, reportStore,
-                      null, null);
+                      null, null, null, null);
         }
 
         /// <summary>
@@ -334,8 +336,8 @@ namespace T5Web.Web.Security
         public static void Configure(IAdminRepository repository, IModuleStore moduleStore,
                                      IAttendanceStore attendanceStore, ILeaveStore leaveStore,
                                      IScheduleStore scheduleStore, IReportStore reportStore,
-                                     IPhotoStore photoStore,
-                                     IEntitlementStore entitlementStore)
+                                     IPhotoStore photoStore, IEntitlementStore entitlementStore,
+                                     ILogStore logStore, IIntegrityStore integrityStore)
         {
             if (repository == null)
             {
@@ -356,6 +358,8 @@ namespace T5Web.Web.Security
                 _reports = reportStore;
                 _photos = photoStore;
                 _entitlements = entitlementStore;
+                _logs = logStore;
+                _integrity = integrityStore;
             }
         }
 
@@ -426,6 +430,18 @@ namespace T5Web.Web.Security
             get { lock (SyncRoot) { return _entitlements; } }
         }
 
+        /// <summary>The three logs the portal may read (docs/11 §2).</summary>
+        public static ILogStore Logs
+        {
+            get { lock (SyncRoot) { return _logs; } }
+        }
+
+        /// <summary>Data-health checks over the engine's logical relations (docs/11 §3).</summary>
+        public static IIntegrityStore Integrity
+        {
+            get { lock (SyncRoot) { return _integrity; } }
+        }
+
         /// <summary>Menu entries the current operator can actually open.</summary>
         public static IReadOnlyList<MenuEntry> MenuFor(AdminSession session)
         {
@@ -451,9 +467,11 @@ namespace T5Web.Web.Security
             Add(menu, session, AdminFeature.AccessView, "سطوح دسترسی", "Access", "Index");
             Add(menu, session, AdminFeature.WorkflowView, "گردش کار", "Workflow", "Index");
             Add(menu, session, AdminFeature.LogView, "رخدادها", "Audit", "Index");
+            Add(menu, session, AdminFeature.LogView, "لاگ سامانه", "Logs", "Index");
             if (session.IsPortalAdmin)
             {
                 menu.Add(new MenuEntry { Title = "پایش سامانه", Controller = "Diagnostics", Action = "Index" });
+                menu.Add(new MenuEntry { Title = "سلامت داده", Controller = "Integrity", Action = "Index" });
             }
             return menu;
         }

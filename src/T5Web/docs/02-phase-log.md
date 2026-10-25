@@ -123,8 +123,8 @@
 
 | مورد | خروجی |
 | :-- | :-- |
-| B | چارچوب ماژول عمومی: `ModuleRegistry` (۳۰ ماژول / ۱۵۶ فیلد) + `SqlModuleStore` + `InMemoryModuleStore` + `ModuleService`؛ هر ستون با شاهد `ddl`/`orm`/`orm-rename:*` و `T16` |
-| B | `tools/engine-column-types.py` — نوع ستون‌ها از DDL و ORM استخراج و در `engine/column-types.tsv` قفل می‌شود (۴۶ جدول / ۴۶۰ ستون / ۰ بدون نوع) |
+| B | چارچوب ماژول عمومی: `ModuleRegistry` (۳۰ ماژول / ۱۵۶ فیلد در پایان فاز ۵؛ امروز ۵۱ / ۲۴۷) + `SqlModuleStore` + `InMemoryModuleStore` + `ModuleService`؛ هر ستون با شاهد `ddl`/`orm`/`orm-rename:*` و `T16` |
+| B | `tools/engine-column-types.py` — نوع ستون‌ها از DDL و ORM استخراج و در `engine/column-types.tsv` قفل می‌شود (۴۶ جدول / ۴۶۰ ستون / ۰ بدون نوع؛ امروز ۷۵ / ۶۱۶ — `docs/11`) |
 | C | `SqlAttendanceStore` + `SqlLeaveStore` + `SqlScheduleStore` و نسخه‌های درون‌حافظه‌ای؛ ۵ کنترلر: تردد، درخواست، مرخصی، شیفت، قواعد |
 | C | `RuleResolutionService` — اولویت سه‌لایه صریح (پرسنل ← واحد ← عمومی) و تضاد هم‌لایه به‌عنوان خطای مسدودکننده |
 | C | گارد زنجیره تأیید (`BUG-21`) و گارد هم‌پوشانی شیفت داخل تراکنش (`BUG-22`) |
@@ -182,6 +182,18 @@
 
 هیچ کنشی «بی‌تصمیم» نمانده است: گیت `legacy-coverage.py --check` و آزمون `T27` هر دو
 همین را در هر بیلد می‌سنجند و اگر روزی سطر‌شان حذف شود، بیلد شکست می‌خورد.
+
+### ۶-ح. موج ۲ و ۳ شکاف T5V3 (فاز ۷)
+
+۲۱ ماژول عمومی تازه (`position`…`userbiodata`)، خوانندهٔ سه لاگ (`LogsController` با
+منابع `SystemLog`/`OperationLog`/`DownloadRecordsLog`)، و صفحهٔ «سلامت داده»
+(`IntegrityController` با هفت بررسی رابطهٔ منطقی) اضافه شد. فهرست نوع ستون‌ها از ۴۶ به
+۷۵ جدول رسید و `T32` کل این سطح را می‌سنجد.
+
+**باگی که همین موج پیدا و رفع کرد:** عنوان فارسی `AdminFeature.PersonnelPhoto` دو بار در
+دیکشنری `TitlesFa` آمده بود؛ چون دیکشنری در سازندهٔ ثابت ساخته می‌شود، اولین استفاده
+`ArgumentException` می‌داد و کل کنسول از کار می‌افتاد. `T32` حالا یگانگی کلیدها و وجود
+عنوان برای همهٔ اعضای `AdminFeature` را می‌سنجد.
 
 ### ۶-ز. موج ۱ شکاف T5V3 (فاز ۶)
 

@@ -78,7 +78,10 @@ namespace T5Web.Web
                     // Weekly work hours ([TimeTable]) belong to the device service database
                     // and are deliberately *not* wired here - see docs/10 §5.
                     new SqlPhotoStore(personnelFactory, personnel),
-                    new SqlEntitlementStore(t5, personnelFactory));
+                    new SqlEntitlementStore(t5, personnelFactory),
+                    // Wave 2/3 (docs/11): the readable logs and the data-health checks.
+                    new SqlLogStore(t5, personnelFactory, personnel),
+                    new SqlIntegrityStore(t5, personnelFactory));
             }
             catch (Exception ex)
             {

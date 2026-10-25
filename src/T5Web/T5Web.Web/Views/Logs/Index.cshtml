@@ -1,0 +1,107 @@
+@model T5Web.Web.Controllers.LogsIndexModel
+@using T5Web.Domain.Models
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<form method="get" action="@Url.Action("Index", "Logs")" class="toolbar">
+    <div class="field">
+        <label for="source">منبع</label>
+        <select id="source" name="source" data-autosubmit="true">
+            @foreach (var item in Model.Sources)
+            {
+                bool selected = string.Equals(item.Code, Model.SourceCode, StringComparison.OrdinalIgnoreCase);
+                <option value="@item.Code" selected="@(selected ? "selected" : null)">@item.TitleFa</option>
+            }
+        </select>
+    </div>
+    <div class="field">
+        <label for="from">از تاریخ</label>
+        <input type="date" id="from" name="from" value="@Model.FromIso" />
+    </div>
+    <div class="field">
+        <label for="to">تا تاریخ</label>
+        <input type="date" id="to" name="to" value="@Model.ToIso" />
+    </div>
+    <div class="field">
+        <label for="badge">شماره پرسنلی</label>
+        <input type="number" id="badge" name="badge" value="@Model.Badge" min="1" />
+    </div>
+    <div class="field">
+        <label for="term">جست‌وجو</label>
+        <input type="search" id="term" name="term" value="@Model.Term" placeholder="شرح، رایانه یا نوع عملیات" />
+    </div>
+    <button type="submit" class="btn btn--primary">اعمال</button>
+</form>
+
+<div class="panel">
+    <div class="panel__head">
+        <h2>@(Model.Selected == null ? "لاگ" : Model.Selected.TitleFa)</h2>
+        <span class="muted u-sm">
+            @Model.Rows.Count سطر · @Model.Days روز ·
+            جدول <span class="mono">@(Model.Selected == null ? "—" : Model.Selected.Table)</span> ·
+            کاتالوگ <span class="mono">@(Model.Selected == null ? "—" : Model.Selected.Catalog)</span>
+        </span>
+    </div>
+    @if (Model.Selected != null && !string.IsNullOrEmpty(Model.Selected.NoteFa))
+    {
+        <div class="panel__body muted u-sm">@Model.Selected.NoteFa</div>
+    }
+    @if (Model.Rows.Count == 0)
+    {
+        <div class="empty">در این بازه سطری ثبت نشده است. بازه لاگ حداکثر ۶۲ روز است.</div>
+    }
+    else
+    {
+        <div class="u-scroll-x">
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th class="nowrap">زمان</th>
+                        <th>پرسنل</th>
+                        <th>دستگاه</th>
+                        <th>نوع</th>
+                        <th>جزئیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.Rows)
+                    {
+                        <tr>
+                            <td class="nowrap mono">@row.TimeFa</td>
+                            <td>
+                                @if (row.BadgeNumber > 0)
+                                {
+                                    <span class="mono">@row.BadgeNumber</span>
+                                    if (!string.IsNullOrWhiteSpace(row.PersonName))
+                                    {
+                                        <span> · @row.PersonName</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="muted">—</span>
+                                }
+                            </td>
+                            <td>
+                                @if (row.MachineNumber > 0)
+                                {
+                                    <span class="mono">@row.MachineNumber</span>
+                                    if (!string.IsNullOrWhiteSpace(row.MachineName))
+                                    {
+                                        <span> · @row.MachineName</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="muted">—</span>
+                                }
+                            </td>
+                            <td>@row.KindFa</td>
+                            <td class="u-sm">@row.Detail</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

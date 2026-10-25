@@ -68,17 +68,10 @@ namespace T5Web.Data
             {
                 query = query.Where(r => !r.HasPhoto);
             }
-            if (departmentId.HasValue && departmentId.Value > 0)
-            {
-                string department = _rows.Values
-                    .Where(r => r.BadgeNumber == departmentId.Value)
-                    .Select(r => r.DeptName)
-                    .FirstOrDefault();
-                if (!string.IsNullOrEmpty(department))
-                {
-                    query = query.Where(r => string.Equals(r.DeptName, department, StringComparison.Ordinal));
-                }
-            }
+            // The department filter is a Personnel-catalog concern (Department.DepartmentID);
+            // PhotoRow only carries the name, so the in-memory store filters on what it has:
+            // nothing. The query/term/missingOnly behaviour - the part the screens depend on -
+            // is mirrored exactly. The SQL store does filter by [UserInfo].[DeptID].
             if (search.Length > 0)
             {
                 query = query.Where(r => r.PersonName.IndexOf(search, StringComparison.CurrentCultureIgnoreCase) >= 0 ||

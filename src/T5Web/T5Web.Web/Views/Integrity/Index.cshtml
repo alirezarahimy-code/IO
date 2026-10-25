@@ -1,0 +1,79 @@
+@model T5Web.Web.Controllers.IntegrityIndexModel
+@using T5Web.Domain.Models
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="kpis">
+    <div class="kpi">
+        <div class="kpi__label">بررسی‌ها</div>
+        <div class="kpi__value">@Model.Checks.Count</div>
+        <div class="kpi__note">رابطه‌های منطقیِ بدون کلید خارجی</div>
+    </div>
+    <div class="kpi">
+        <div class="kpi__label">بررسی‌های دارای مشکل</div>
+        <div class="kpi__value">@Model.FailedChecks</div>
+        <div class="kpi__note">@(Model.Healthy ? "همه سالم" : "نیازمند بررسی")</div>
+    </div>
+    <div class="kpi">
+        <div class="kpi__label">سطرهای یتیم</div>
+        <div class="kpi__value">@Model.OrphanRows</div>
+        <div class="kpi__note">اشاره به ردیفی که وجود ندارد</div>
+    </div>
+</div>
+
+<div class="panel">
+    <div class="panel__head">
+        <h2>سلامت داده</h2>
+        <span class="muted u-sm">
+            موتور T5 کلید خارجی ندارد و ۳۱ رابطه بین دو کاتالوگ است، پس SQL Server نمی‌تواند آن‌ها را تضمین کند.
+            این صفحه همان رابطه‌ها را می‌شمارد؛ چیزی را تغییر نمی‌دهد.
+        </span>
+    </div>
+    @if (Model.Checks.Count == 0)
+    {
+        <div class="empty">بررسی‌ای تنظیم نشده یا اجرا نشد.</div>
+    }
+    else
+    {
+        <div class="u-scroll-x">
+            <table class="grid">
+                <thead>
+                    <tr>
+                        <th>بررسی</th>
+                        <th>رابطه</th>
+                        <th class="num">تعداد</th>
+                        <th>نمونه</th>
+                        <th>وضعیت</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var check in Model.Checks)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@check.TitleFa</strong>
+                                @if (!string.IsNullOrWhiteSpace(check.NoteFa))
+                                {
+                                    <div class="muted u-xs">@check.NoteFa</div>
+                                }
+                            </td>
+                            <td class="mono u-xs">@check.Reference</td>
+                            <td class="num">@check.Count</td>
+                            <td class="mono u-xs">@check.SamplesFa</td>
+                            <td>
+                                @if (check.Passed)
+                                {
+                                    <span class="tag tag--ok">@check.StatusFa</span>
+                                }
+                                else
+                                {
+                                    <span class="tag tag--bad">@check.StatusFa</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

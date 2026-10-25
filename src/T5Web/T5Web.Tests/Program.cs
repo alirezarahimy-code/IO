@@ -59,6 +59,7 @@ namespace T5Web.Tests
             RunTest("T29: legacy surface (views, first-party assemblies, every appSettings key)", TestLegacySurface);
             RunTest("T30: product identity (آریا ادمین / ARIA-ADMIN registered everywhere)", TestProductIdentity);
             RunTest("T31: wave-1 T5V3 gaps (photos, entitlements, leave descriptions, leaves report)", TestWaveOneGaps);
+            RunTest("T32: waves 2-3 (organisation, access, devices, logs, data health) + feature catalogue", TestWavesTwoAndThree);
 
             Console.WriteLine("----------------------------------------------------------------------");
             Console.WriteLine($"  Summary: {_passed} Passed, {_failed} Failed");
@@ -774,6 +775,177 @@ namespace T5Web.Tests
                 tables[cells[0]][cells[1]] = cells[2];
             }
             return tables;
+        }
+
+        /// <summary>
+        /// T32 - waves 2 and 3 (docs/11).
+        ///
+        /// Three things are guarded here:
+        ///   * the module catalogue really grew, and every read-only module is read-only in
+        ///     both directions (no create, no delete) - a log screen that can be edited is
+        ///     not a log;
+        ///   * the feature catalogue has one title per capability (a duplicate key in the
+        ///     static dictionary throws on first use and takes the whole console down -
+        ///     this assertion exists because that bug existed);
+        ///   * the log reader and the health page keep their contract: no POST, gated,
+        ///     and the in-memory stores behave like the SQL ones.
+        /// </summary>
+        private static void TestWavesTwoAndThree()
+        {
+            // ---- 1. the module catalogue ---------------------------------------------
+            var modules = ModuleRegistry.All();
+            Assert(modules.Count >= 50, "expected at least fifty modules after waves 2-3, found " + modules.Count);
+            Assert(modules.Select(m => m.Code).Distinct(StringComparer.OrdinalIgnoreCase).Count() == modules.Count,
+                "two modules share the same code.");
+
+            foreach (string code in new[]
+                     {
+                         "position", "positionstep", "userposition", "userinfotitles", "personneldeputy",
+                         "userinfomanager", "userpermission", "reportaccess", "allowvalue", "card", "area",
+                         "areapoint", "downloadtime", "downloadtimedevice", "deviceprops",
+                         "deviceconnectionstate", "devicebiotypes", "managerdevice", "vaccinelog",
+                         "vaccinationdetails", "userbiodata"
+                     })
+            {
+                Assert(modules.Any(m => string.Equals(m.Code, code, StringComparison.OrdinalIgnoreCase)),
+                    "module '" + code + "' from docs/11 is missing.");
+            }
+
+            foreach (ModuleDescriptor readOnly in modules.Where(m => m.ReadOnly))
+            {
+                Assert(!readOnly.AllowCreate && !readOnly.AllowDelete,
+                    "read-only module '" + readOnly.Code + "' still allows create/delete.");
+            }
+            foreach (ModuleDescriptor module in modules)
+            {
+                foreach (ModuleField field in module.Fields.Where(f => f.DisplayOnly))
+                {
+                    Assert(field.TypeEvidence == "display",
+                        module.Code + "." + field.Column + " is display-only without the display marker.");
+                }
+            }
+
+            // ---- 2. the feature catalogue --------------------------------------------
+            string features = Read("T5Web.Domain", "AdminFeature.cs");
+            // Only the AdminFeature enum: AccessLevel below it also has "Name = value," members.
+            int enumStart = features.IndexOf("public enum AdminFeature", StringComparison.Ordinal);
+            Assert(enumStart > 0, "AdminFeature enum is missing.");
+            int enumEnd = features.IndexOf('}', features.IndexOf('{', enumStart));
+            Assert(enumEnd > enumStart, "AdminFeature enum has no closing brace.");
+            string enumBody = features.Substring(enumStart, enumEnd - enumStart);
+            var declared = Regex.Matches(enumBody, @"^\s+(\w+)\s*=\s*(\d+),", RegexOptions.Multiline)
+                .Cast<Match>()
+                .Select(m => m.Groups[1].Value)
+                .ToList();
+            Assert(declared.Count >= 25, "the feature enum shrank to " + declared.Count + " members.");
+
+            var titled = Regex.Matches(features, @"\{\s*AdminFeature\.(\w+)\s*,")
+                .Cast<Match>()
+                .Select(m => m.Groups[1].Value)
+                .ToList();
+            var duplicates = titled.GroupBy(t => t).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
+            Assert(duplicates.Count == 0,
+                "AdminFeatures.TitlesFa has duplicate keys (a static initializer crash): " + string.Join(", ", duplicates));
+            var missing = declared.Where(name => !titled.Contains(name)).ToList();
+            Assert(missing.Count == 0, "these features have no Persian title: " + string.Join(", ", missing));
+
+            // ---- 3. the log reader ----------------------------------------------------
+            var logs = new InMemoryLogStore()
+                .Source("system", "رخدادهای سامانه", "SystemLog", "t5")
+                .Source("operation", "عملیات دستگاه", "OperationLog", "personnel")
+                .Add("system", new DateTime(2026, 10, 20), 0, 0, "رخداد 1", "شیفت ویرایش شد")
+                .Add("system", new DateTime(2026, 10, 21), 0, 0, "رخداد 1", "پارامتر ویرایش شد")
+                .Add("operation", new DateTime(2026, 10, 21), 1001, 3, "دانلود", "اثر انگشت");
+
+            Assert(logs.Sources().Count == 2, "log sources are not exposed.");
+            IReadOnlyList<LogEntryRow> window = logs.Search("system",
+                new DateTime(2026, 10, 1), new DateTime(2026, 10, 31), null, null, 100);
+            Assert(window.Count == 2, "the window filter returned " + window.Count + " rows.");
+            Assert(window[0].Time.Value.Date == new DateTime(2026, 10, 21),
+                "logs must be returned newest first.");
+            Assert(logs.Search("system", new DateTime(2026, 10, 21), new DateTime(2026, 10, 21), null, null, 100).Count == 1,
+                "a single-day window must return that day only.");
+            Assert(logs.Search("operation", new DateTime(2026, 10, 1), new DateTime(2026, 10, 31), 1001, null, 100).Count == 1,
+                "the badge filter did not apply.");
+            Assert(logs.Search("operation", new DateTime(2026, 10, 1), new DateTime(2026, 10, 31), null, "اثر", 100).Count == 1,
+                "the term filter did not apply.");
+            Assert(logs.Search(null, new DateTime(2026, 10, 1), new DateTime(2026, 10, 31), null, null, 2).Count == 2,
+                "the take cap did not apply.");
+
+            // The SQL reader must publish its sources without touching a database, and each
+            // source must name a real table in the right catalog.
+            var sqlLogs = new SqlLogStore(() => null, () => null);
+            Dictionary<string, string> catalogs = TableCatalogs();
+            Dictionary<string, HashSet<string>> manifest = ManifestColumns();
+            foreach (LogSourceDescriptor source in sqlLogs.Sources())
+            {
+                Assert(manifest.ContainsKey(source.Table), "log source " + source.Code + " names a table not in the manifest.");
+                Assert(catalogs.ContainsKey(source.Table), "log source " + source.Code + " names a table with no catalog.");
+                Assert(string.Equals(catalogs[source.Table], source.Catalog, StringComparison.OrdinalIgnoreCase),
+                    "log source " + source.Code + " claims catalog " + source.Catalog +
+                    " but " + source.Table + " lives in " + catalogs[source.Table] + ".");
+                Assert(source.Catalog == "t5" || source.Catalog == "personnel",
+                    "the portal never opens the device catalog; source " + source.Code + " points at " + source.Catalog + ".");
+            }
+
+            string logsController = Read("T5Web.Web", "Controllers", "LogsController.cs");
+            Assert(logsController.Contains("[AdminGate(AdminFeature.LogView"), "the log reader must be gated on LogView.");
+            Assert(!logsController.Contains("[HttpPost]"), "a log reader must never accept a POST.");
+            Assert(File.Exists(Path.Combine(T5WebRoot, "T5Web.Web", "Views", "Logs", "Index.cshtml")),
+                "missing view: Views/Logs/Index.cshtml");
+
+            // ---- 4. data health -------------------------------------------------------
+            string integrity = Read("T5Web.Data", "SqlIntegrityStore.cs");
+            foreach (string code in new[]
+                     {
+                         "leaves-leavetype", "yearremain-leavetype", "daily-leaf-description",
+                         "request-leavetype", "emptypeleave-emptype", "workflow-title", "usershift-badge"
+                     })
+            {
+                Assert(integrity.Contains(code), "the integrity store lost the check '" + code + "'.");
+            }
+            Assert(!integrity.Contains("RecordsLog") && !integrity.Contains("CommandLog"),
+                "the integrity store must not reach into the device catalog.");
+
+            var health = new InMemoryIntegrityStore()
+                .Check("usershift-badge", "شیفت پرسنل ناموجود", "UserShift → UserInfo", 3, "10", "11", "12")
+                .Check("workflow-title", "گردش کار با عنوان ناموجود", "Workflow → TitlesChart", 0)
+                .Run();
+            Assert(health.Count == 2, "the integrity store returned " + health.Count + " checks.");
+            IntegrityCheckRow failing = health.First(c => c.Code == "usershift-badge");
+            Assert(!failing.Passed && failing.StatusFa == "یافت شد", "a check with orphans must read as failing.");
+            Assert(failing.SamplesFa.Contains("10"), "a failing check must show its sample keys.");
+            IntegrityCheckRow passing = health.First(c => c.Code == "workflow-title");
+            Assert(passing.Passed && passing.StatusFa == "سالم", "a clean check must read as healthy.");
+            Assert(passing.SamplesFa == "—", "a clean check must not invent samples.");
+
+            string integrityController = Read("T5Web.Web", "Controllers", "IntegrityController.cs");
+            Assert(integrityController.Contains("[AdminGate(AdminFeature.PortalAdmin"),
+                "data health is an administrator screen.");
+            Assert(!integrityController.Contains("[HttpPost]"), "the health page is read-only.");
+            Assert(File.Exists(Path.Combine(T5WebRoot, "T5Web.Web", "Views", "Integrity", "Index.cshtml")),
+                "missing view: Views/Integrity/Index.cshtml");
+
+            // ---- 4b. the rail item must open a module, not a 404 ---------------------
+            string modulesController = Read("T5Web.Web", "Controllers", "ModulesController.cs");
+            Assert(modulesController.Contains("FirstVisible()"),
+                "Modules/Index must fall back to the first visible module when no code is given " +
+                "(the rail links to it without a code).");
+            Assert(modulesController.Contains("CanUpdate"),
+                "keys-only link tables must hide the edit button instead of offering it.");
+
+            // ---- 5. wiring and documentation -----------------------------------------
+            string startup = Read("T5Web.Web", "MvcApplication.cs");
+            foreach (string store in new[] { "SqlLogStore", "SqlIntegrityStore" })
+            {
+                Assert(startup.Contains(store), store + " is not wired in MvcApplication.");
+            }
+
+            string doc = Read("docs", "11-waves-two-three.md");
+            foreach (string term in new[] { "EditedValue", "Template", "TimeTable", "LogsController", "IntegrityController" })
+            {
+                Assert(doc.Contains(term), "docs/11 must explain the decision about '" + term + "'.");
+            }
         }
 
         /// <summary>
@@ -1871,7 +2043,7 @@ namespace T5Web.Tests
             // The method is ARIA's: five numbered build phases, each ending in a compiled,
             // tested deliverable (phase 5 is broken into sub-phases B..F), plus the
             // numbered delivery waves that follow it (phase 6 = wave 1 of docs/10).
-            var expectedPhases = new[] { "1", "2", "3", "4", "5", "6" };
+            var expectedPhases = new[] { "1", "2", "3", "4", "5", "6", "7" };
             foreach (string phase in expectedPhases)
             {
                 Assert(rows.ContainsKey(phase), "phase-status.csv is missing phase " + phase + ".");
@@ -1934,7 +2106,7 @@ namespace T5Web.Tests
             // 4. Every phase in the tracker has a section in the plan document, and the
             //    five execution sub-phases of phase 5 are each planned.
             string plan = File.ReadAllText(Path.Combine(docs, "06-phase-plan.md"));
-            var persianDigits = new[] { "۱", "۲", "۳", "۴", "۵", "۶" };
+            var persianDigits = new[] { "۱", "۲", "۳", "۴", "۵", "۶", "۷" };
             foreach (string phase in expectedPhases)
             {
                 // The document is Persian, so the heading uses Persian numerals while the

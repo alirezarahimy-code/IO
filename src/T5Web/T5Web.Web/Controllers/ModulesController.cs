@@ -22,17 +22,26 @@ namespace T5Web.Web.Controllers
     ///     the parameters screen by guessing ?code=parameter).
     /// </summary>
     [AdminGate(AdminFeature.BaseDataView, AdminFeature.LeaveView, AdminFeature.RulesView,
-               AdminFeature.DeviceView, AdminFeature.TitlesView, AdminFeature.GateView)]
+               AdminFeature.DeviceView, AdminFeature.TitlesView, AdminFeature.GateView,
+               // Wave 2/3 (docs/11): employment-type entitlements, personnel files and the
+               // engine's own access tables also live on this screen. The class-level gate
+               // stays coarse on purpose - every action re-checks the module's own feature.
+               AdminFeature.PersonnelView, AdminFeature.AccessView)]
     public sealed class ModulesController : PortalController
     {
         private const int PageSize = 50;
 
         public ActionResult Index(string code, string term, int page = 1)
         {
-            ModuleDescriptor descriptor = Resolve(code);
+            // No code means "the rail item was clicked": open the first module this
+            // operator may actually see. A wrong *explicit* code still 404s, so a stale
+            // bookmark can never silently show a different table (docs/11).
+            ModuleDescriptor descriptor = string.IsNullOrWhiteSpace(code) ? FirstVisible() : Resolve(code);
             if (descriptor == null)
             {
-                return HttpNotFound("ماژول خواسته‌شده وجود ندارد.");
+                return string.IsNullOrWhiteSpace(code)
+                    ? Denied(AdminFeature.BaseDataView)
+                    : HttpNotFound("ماژول خواسته‌شده وجود ندارد.");
             }
             if (!CanView(descriptor))
             {
@@ -49,7 +58,8 @@ namespace T5Web.Web.Controllers
                 Descriptor = descriptor,
                 Page = PortalServices.Modules.Page(descriptor, term, page, PageSize),
                 Groups = ModulesFor(descriptor),
-                CanEdit = !descriptor.ReadOnly && CurrentSession != null && CurrentSession.CanEdit(descriptor.EditFeature)
+                CanEdit = !descriptor.ReadOnly && CurrentSession != null && CurrentSession.CanEdit(descriptor.EditFeature),
+                CanUpdate = descriptor.CanUpdate
             };
             ViewBag.Title = descriptor.TitleFa;
             return View(model);
@@ -76,6 +86,11 @@ namespace T5Web.Web.Controllers
             if (isNew && !descriptor.AllowCreate)
             {
                 return HttpNotFound("افزودن سطر جدید در این ماژول مجاز نیست.");
+            }
+            if (!isNew && !descriptor.CanUpdate)
+            {
+                // Keys-only link tables: the row *is* its key, so there is nothing to edit.
+                return HttpNotFound("این ماژول ستون قابل ویرایش ندارد؛ سطر را حذف و دوباره اضافه کنید.");
             }
             if (!isNew && !(CurrentSession != null && CurrentSession.CanEdit(descriptor.EditFeature)))
             {
@@ -231,6 +246,19 @@ namespace T5Web.Web.Controllers
         /// Resolves a module and honours its kill switch: a disabled module behaves like
         /// a missing one, so no action can be reached by guessing the code.
         /// </summary>
+        /// <summary>The first module of the registry whose feature this session may read.</summary>
+        private ModuleDescriptor FirstVisible()
+        {
+            foreach (ModuleDescriptor candidate in ModuleRegistry.All())
+            {
+                if (ModuleSwitch.IsEnabled(candidate.Code) && CanView(candidate))
+                {
+                    return candidate;
+                }
+            }
+            return null;
+        }
+
         private static ModuleDescriptor Resolve(string code)
         {
             ModuleDescriptor descriptor = ModuleRegistry.Find(code);
@@ -304,6 +332,9 @@ namespace T5Web.Web.Controllers
         public ModulePage Page { get; set; }
         public IReadOnlyList<ModuleDescriptor> Groups { get; set; }
         public bool CanEdit { get; set; }
+
+        /// <summary>False for keys-only link tables: they are added and deleted, not edited.</summary>
+        public bool CanUpdate { get; set; }
     }
 
     /// <summary>Model of the module edit screen.</summary>

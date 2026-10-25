@@ -118,6 +118,18 @@ namespace T5Web.Domain.Models
             get { return Fields.Where(f => !f.IsKey && !f.DisplayOnly); }
         }
 
+        /// <summary>
+        /// True when the screen can update an existing row.
+        ///
+        /// A link table such as [PersonnelDeputy] or [ReportAccess] has no column besides
+        /// its key, so "editing" one means deleting it and adding another. The button is
+        /// hidden instead of offered and then refused by the store.
+        /// </summary>
+        public bool CanUpdate
+        {
+            get { return Editable.Any(); }
+        }
+
         /// <summary>Fields the operator can actually type into (the form is built from this).</summary>
         public IEnumerable<ModuleField> Inputs
         {

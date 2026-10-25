@@ -49,7 +49,13 @@ TABLES = [
     "Dashboard", "DashboardItem", "PushCommand", "DeviceMessage", "DeviceMessagePersonnel",
     "DownloadRecordsLog", "UserDeviceValid", "UserDeviceUpload", "DeviceOperationLog",
     "CustomWorkflow", "Option", "TimeTable", "AccessGroup", "UserInfo", "Device", "Department",
+    "Position", "PositionStep", "PositionStepData", "UserPositionData", "PersonnelDeputy",
+    "UserInfoManager", "ReportAccess", "UserPermission", "AllowValue", "EditedValue", "AppRule",
+    "Area", "AreaPoint", "DownloadTime", "DownloadTimeDevice", "SystemLog", "Card", "Workflow",
+    "VaccineLog", "UserInfoVaccinationDetails", "Template", "UserBioData", "Ghadir1", "OperationLog",
+    "DeviceProps", "DeviceConnectionState", "DeviceBioTypes", "ManagerDevice", "UserInfoTitles",
 ]
+
 
 CREATE_RE = re.compile(r"(?is)CREATE\s+TABLE\s+\[dbo\]\.\[(\w+)\]\s*\((.*?)\n\)\s*;?")
 COLUMN_RE = re.compile(
