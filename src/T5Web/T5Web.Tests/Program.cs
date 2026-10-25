@@ -1993,6 +1993,11 @@ namespace T5Web.Tests
                 "an unknown value must disable the feature, not pick a transport.");
             Assert(DeviceTransport.Parse("queue").IsConfigured, "queue is a transport the operator asserts.");
 
+            // Re-issue a valid command: the refusals above cleared `issued` on purpose, and
+            // the ticket below needs a real catalogue entry.
+            Assert(service.Validate("sync-users", device, link5, out issued).Succeeded,
+                "a valid command must still be accepted once a transport is configured.");
+
             // BUG-26: the screen claimed the command was queued while nothing was written.
             // The queue is the transport now, so it must actually accept and return a ticket.
             InMemoryAdminRepository repository = new InMemoryAdminRepository()
@@ -3491,11 +3496,44 @@ namespace T5Web.Tests
                     continue;
                 }
                 string text = File.ReadAllText(file);
-                foreach (string banned in new[] { "TINYLib", "HardwareLock", "LicenceKey", "HttpClient", "WebRequest" })
+                // One deliberate exception: the device link posts to a *configured* LAN
+                // endpoint, which is what the legacy console did (docs/15). It is allowed
+                // only in the file below, and the URL may only come from configuration -
+                // both are asserted right after the loop.
+                bool deviceLink = Path.GetFileName(file) == "DeviceController.cs";
+                var banned = deviceLink
+                    ? new[] { "TINYLib", "HardwareLock", "LicenceKey" }
+                    : new[] { "TINYLib", "HardwareLock", "LicenceKey", "HttpClient", "WebRequest" };
+                foreach (string word in banned)
                 {
-                    Assert(text.IndexOf(banned, StringComparison.Ordinal) < 0,
-                        Path.GetFileName(file) + " references '" + banned + "' (licence/lock/outbound call must not exist).");
+                    Assert(text.IndexOf(word, StringComparison.Ordinal) < 0,
+                        Path.GetFileName(file) + " references '" + word + "' (licence/lock/outbound call must not exist).");
                 }
+            }
+
+            // The one exception, with its leash (docs/15): the device screen may make an
+            // outbound call only through DeviceTransport, and DeviceTransport may know only
+            // one literal endpoint - the loopback the legacy console already used. Anything
+            // else would be an outbound dependency the offline promise forbids.
+            string device = File.ReadAllText(
+                Path.Combine(T5WebRoot, "T5Web.Web", "Controllers", "DeviceController.cs"));
+            Assert(device.Contains("DeviceTransport.Parse("),
+                "the device screen must take its endpoint from configuration, never from a literal.");
+            Assert(device.IndexOf("15222", StringComparison.Ordinal) < 0,
+                "DeviceController must not hard-code the device service port; it belongs in DeviceTransport.");
+
+            string transport = File.ReadAllText(
+                Path.Combine(T5WebRoot, "T5Web.Application", "Services", "DeviceTransport.cs"));
+            foreach (Match host in Regex.Matches(transport, "https?://[^\"\s]+"))
+            {
+                // Two shapes are allowed: the bare scheme literals used to validate what an
+                // operator typed ("http://"), and the loopback default. Nothing else - the
+                // device endpoint is configuration, never a site baked into the code.
+                string value = host.Value;
+                bool allowed = value.Equals("http://", StringComparison.Ordinal) ||
+                               value.Equals("https://", StringComparison.Ordinal) ||
+                               value.StartsWith("http://127.0.0.1", StringComparison.Ordinal);
+                Assert(allowed, "DeviceTransport may not carry an outbound URL of its own; found " + value);
             }
         }
     }
