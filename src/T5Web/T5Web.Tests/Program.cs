@@ -3524,7 +3524,7 @@ namespace T5Web.Tests
 
             string transport = File.ReadAllText(
                 Path.Combine(T5WebRoot, "T5Web.Application", "Services", "DeviceTransport.cs"));
-            foreach (Match host in Regex.Matches(transport, "https?://[^\"\s]+"))
+            foreach (Match host in Regex.Matches(transport, "https?://[^\"\\s]+"))
             {
                 // Two shapes are allowed: the bare scheme literals used to validate what an
                 // operator typed ("http://"), and the loopback default. Nothing else - the
