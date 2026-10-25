@@ -318,7 +318,7 @@ jobs:
           $output = @()
           $scriptExit = 0
           try {
-            $output = & .\deploy\4-verify-install.ps1 -BaseUrl http://localhost:8080 2>&1
+            $output = & ./src/T5Web/deploy/4-verify-install.ps1 -BaseUrl http://localhost:8080 2>&1
             $scriptExit = $LASTEXITCODE
           } catch {
             # The shell sets $ErrorActionPreference = 'Stop', so the first error the
