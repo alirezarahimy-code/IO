@@ -163,8 +163,11 @@ namespace MyTime3.Controllers
                 }
                 else
                 {
-                    string authCookieVal = Request != null && Request.Cookies != null && Request.Cookies.Get("mytimeauth") != null
-                        ? Request.Cookies.Get("mytimeauth").Value
+                    // Cookie name comes from a single source (LoginManager) so an app-scoped
+                    // rename cannot silently desynchronize report downloads from the session.
+                    string authCookieVal = Request != null && Request.Cookies != null
+                        && Request.Cookies.Get(LoginManager.AuthCookieName) != null
+                        ? Request.Cookies.Get(LoginManager.AuthCookieName).Value
                         : "";
                     string requestData = Request != null && Request.Params != null ? Request.Params.ToString() : "";
                     dt = GetData(authCookieVal, requestData);
