@@ -163,6 +163,22 @@ def check_files_exist():
             problems.append("db/%s is missing but the deploy kit runs it" % required)
     if not os.path.exists(os.path.join(ROOT, "tools", "migration-fingerprint.py")):
         problems.append("tools/migration-fingerprint.py is missing but the verifier runs it")
+    # The app pool runs as IIS APPPOOL\<pool>, so it needs its own Windows login in
+    # both catalogs; docs/13 section 6 tells the installer to run this file.
+    app_pool = os.path.join(ROOT, "db", "04-grant-app-pool-login.sql")
+    if not os.path.exists(app_pool):
+        problems.append("db/04-grant-app-pool-login.sql is missing, so the pool identity has no grant")
+    else:
+        with open(app_pool, encoding="utf-8") as handle:
+            grants = handle.read()
+        if grants.count("ALTER ROLE [t5web_app] ADD MEMBER") < 2:
+            problems.append("db/04-grant-app-pool-login.sql must join the role in both catalogs")
+        if "FROM WINDOWS" not in grants:
+            problems.append("db/04-grant-app-pool-login.sql must create a Windows login, not a SQL login")
+        for table in ("GRANT SELECT, INSERT, UPDATE, DELETE ON", "OBJECT::dbo."):
+            if table in grants:
+                problems.append("db/04-grant-app-pool-login.sql repeats the privilege list; "
+                                "the role in db/02 owns it")
     if not os.path.exists(os.path.join(ROOT, "T5Web.Web", "Web.config")):
         problems.append("T5Web.Web/Web.config is missing")
     else:

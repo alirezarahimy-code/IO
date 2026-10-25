@@ -171,17 +171,19 @@ An attempt was made to load a program with an incorrect format.
 
 ## ۶. دو کار که اسکریپت عمداً انجام نمی‌دهد
 
-**الف) نگاشت هویت pool به لاگین SQL.** اگر `t5web_admin` را ساخته‌اید و می‌خواهید پورتال با آن
-وصل شود، به‌جای پسورد در `Web.config`، لاگین ویندوزی بسازید:
+**الف) نگاشت هویت pool به لاگین SQL.** اسکریپت‌های ۱ تا ۳ به SQL دست نمی‌زنند، چون آن‌ها ممکن است روی
+سرور دیگری باشند و اجرایشان به sysadmin نیاز دارد. اتصال پورتال `integrated security=True` است، پس SQL Server هویت **app pool** را می‌بیند، نه شما را.
+بدون این گام هر صفحه با `Login failed for user 'IIS APPPOOL\T5WebAdmin'` می‌افتد:
 
-```sql
-USE [master];
-CREATE LOGIN [IIS APPPOOL\T5WebAdmin] FROM WINDOWS;
-USE [ReportT5V3];
-CREATE USER  [IIS APPPOOL\T5WebAdmin] FOR LOGIN [IIS APPPOOL\T5WebAdmin];
-ALTER ROLE db_datareader ADD MEMBER [IIS APPPOOL\T5WebAdmin];
--- و همان GRANT های db\02-t5web-sql-login.sql روی چهار جدول موتور + سه جدول پورتال
+```powershell
+sqlcmd -S 'SRV-SQL01\T5' -E -b -i db\04-grant-app-pool-login.sql `
+       -v AppPoolLogin="IIS APPPOOL\T5WebAdmin"
 ```
+
+این فایل عمداً فهرست دسترسی‌ها را تکرار **نمی‌کند**: هویت pool را عضو همان نقشی می‌کند که
+`db\02` ساخته و پر کرده است (`t5web_app` در هر دو کاتالوگ). نسخهٔ دومِ آن فهرست، همان جایی است که یک
+صفحه برای یک هویت باز و برای هویت دیگر بسته می‌شود. اگر `-PoolName` را در گام ۳ عوض کرده‌اید، همین
+مقدار را اینجا هم بدهید — اسکریپت نام را حدس نمی‌زند.
 
 **ب) `UserInfo.WebUser`.** هیچ اسکریپتی این ستون را عوض نمی‌کند؛ مال موتور است. اولین Administrator
 را با نسخهٔ دسکتاپ (یا یک `UPDATE` با تأیید صریح مدیر داده) تعیین کنید، بعد `/Access` را پر کنید.

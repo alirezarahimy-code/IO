@@ -104,6 +104,63 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
+      # The site needs a database before it can be opened, not just a padlock. This
+      # builds one on the LocalDB instance the runner image already has: the synthetic
+      # engine schema (generated from the model, never hand-written), the portal's own
+      # objects, the least-privilege role, the app pool's Windows login, and a fixture
+      # account so a real Windows user can sign in and every feature is granted.
+      # tools/ci-fixture-gate.py keeps the fixture in step with AdminFeature.
+      - name: Prepare the database (schema, role, pool login, fixture)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          function Fail([string]$message) {
+            Write-Host "::error::$message"
+            exit 1
+          }
+
+          # LocalDB is owned by the account that creates it, and the app pool is a
+          # different account, so the instance has to be *shared* to be reachable by
+          # IIS at all. Share name, not instance name, is what the app connects to.
+          $instance = 'T5Web'
+          $shared = 'T5WebShared'
+          sqllocaldb create $instance 2>&1 | Write-Host
+          sqllocaldb stop $instance 2>&1 | Out-Null
+          sqllocaldb share $instance $shared 2>&1 | Write-Host
+          if ($LASTEXITCODE -ne 0) { Fail "could not share the LocalDB instance as $shared - the app pool cannot reach a private instance" }
+          sqllocaldb start $instance 2>&1 | Write-Host
+          if ($LASTEXITCODE -ne 0) { Fail "the LocalDB instance would not start" }
+
+          $server = "(localdb)\.\$shared"
+          "T5_SERVER=$server" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $probe = sqlcmd -S $server -E -b -h -1 -W -Q "SELECT @@VERSION" 2>&1
+          $probe | Write-Host
+          if ($LASTEXITCODE -ne 0) { Fail "the shared instance does not answer" }
+
+          function Run-Script([string]$path, [string]$database, [string[]]$variables = @()) {
+            Write-Host "--- $path"
+            $args = @('-S', $server, '-E', '-b', '-i', $path, '-d', $database, '-f', '65001') + $variables
+            $out = & sqlcmd $args 2>&1
+            $code = $LASTEXITCODE
+            $out | Write-Host
+            if ($code -ne 0) { Fail "$path failed with $code" }
+          }
+
+          python src/T5Web/tools/synthetic-schema.py --sql > synthetic.sql
+          if ($LASTEXITCODE -ne 0) { Fail 'synthetic-schema.py failed' }
+          Run-Script 'synthetic.sql' 'master'
+          Run-Script 'src/T5Web/db/01-t5web-objects.sql' 'ReportT5V3'
+          Run-Script 'src/T5Web/db/02-t5web-sql-login.sql' 'ReportT5V3'
+          # The pool identity joins the role db/02 filled - the portal connects as
+          # IIS APPPOOL\<pool>, not as t5web_admin, and not as the runner.
+          Run-Script 'src/T5Web/db/04-grant-app-pool-login.sql' 'master' @('-v', 'AppPoolLogin=IIS APPPOOL\T5WebAdmin')
+          # A Windows account the run can actually sign in as, plus a permission row for
+          # every feature (tools/ci-fixture-gate.py holds this list to AdminFeature.cs).
+          Run-Script 'src/T5Web/tools/ci-seed.sql' 'ReportT5V3' @('-v', "Who=$env:USERNAME")
+
+          $check = sqlcmd -S $server -E -h -1 -W -Q "SET NOCOUNT ON; SELECT COUNT(*) FROM [Personnel].sys.database_principals WHERE name = N'1001'" 2>&1
+          Write-Host "fixture check: $check"
+
       # This job installs the product the way the customer will: publish a folder,
       # enable the IIS roles, create the pool and the site, then ask IIS itself
       # whether an anonymous request is refused. It is the deployment kit executed,
@@ -152,8 +209,10 @@ jobs:
         shell: powershell
         run: |
           try {
+            # The shared instance, because the site runs as IIS APPPOOL\T5WebAdmin and a
+            # private LocalDB instance belongs to the account that created it.
             ./src/T5Web/deploy/3-deploy-portal.ps1 -SitePath $env:publish -Port 8080 `
-                -DataSource '(localdb)\T5Web' -Mode coexist
+                -DataSource $env:T5_SERVER -Mode coexist
           } catch {
             Write-Host ("::error::3-deploy-portal.ps1: " + ($_.Exception.Message -replace "`r?`n", ' | '))
             exit 1
@@ -348,6 +407,108 @@ jobs:
           if ($failed) { exit 1 }
           Write-Host '  PASS: the acceptance checklist runs and its IIS checks pass'
           exit 0
+
+      # Everything above this line proves the door is locked. This proves what is
+      # behind it: one authenticated request per controller, with a real database, so a
+      # view that throws, a column that does not exist, or a query that reads the wrong
+      # catalog fails here instead of at the customer's first click.
+      - name: Open every screen as a signed-in administrator
+        shell: pwsh
+        run: |
+          $root = 'http://localhost:8080'
+          $failure = ''
+          $visited = 0
+          $failures = @()
+
+          # Enumerated from source, so a new controller is covered without anyone
+          # remembering to add it here.
+          $controllers = Get-ChildItem 'src/T5Web/T5Web.Web/Controllers' -Filter *.cs |
+            ForEach-Object { $_.BaseName -replace 'Controller$', '' } |
+            Where-Object { $_ -notin @('Home', 'Account') } |
+            Sort-Object -Unique
+
+          foreach ($name in $controllers) {
+            $url = "$root/$name"
+            try {
+              $response = Invoke-WebRequest -Uri $url -UseDefaultCredentials -UseBasicParsing `
+                  -MaximumRedirection 0 -SkipHttpErrorCheck -AllowUnencryptedAuthentication -ErrorAction Stop
+              $code = [int]$response.StatusCode
+              $body = [string]$response.Content
+            } catch {
+              $code = 0
+              $body = ''
+              $failure = $_.Exception.Message
+            }
+            $visited++
+            $plain = (($body -replace '(?s)<script.*?</script>', ' ') -replace '<[^>]+>', ' ') -replace '\s+', ' '
+            if ($code -ne 200) {
+              $detail = if ($plain.Length -gt 0) { $plain.Substring(0, [Math]::Min(300, $plain.Length)) } else { $failure }
+              $failures += ("{0,-14} {1,3}  {2}" -f $name, $code, $detail)
+              continue
+            }
+            # A 200 with the "no access" page means the fixture, not the screen, is wrong.
+            if ($body -match 'دسترسی ندارید|NoAccess') { $failures += ("{0,-14} 200  the no-access page instead of the screen" -f $name) }
+          }
+
+          if ($failures.Count -gt 0) {
+            foreach ($line in $failures) { Write-Host "::error::screen $line" }
+            exit 1
+          }
+          Write-Host "  PASS: $visited screens answered 200 for a signed-in administrator"
+
+          # The screens answered, but did they read the database? The fixture row has a
+          # name nobody else could produce, so finding it proves the whole path:
+          # IIS -> ASP.NET -> Dapper -> [Personnel] -> the view.
+          $searched = Invoke-WebRequest -Uri "$root/Personnel?term=آزمون" -UseDefaultCredentials `
+              -UseBasicParsing -SkipHttpErrorCheck -AllowUnencryptedAuthentication
+          if ([string]$searched.Content -notmatch 'نصب') {
+            $plain = (([string]$searched.Content -replace '<[^>]+>', ' ') -replace '\s+', ' ')
+            Write-Host ("::error::the personnel screen did not show the fixture row: " + $plain.Substring(0, [Math]::Min(400, $plain.Length)))
+            exit 1
+          }
+          Write-Host '  PASS: the personnel screen reads the Personnel catalog'
+
+          # Diagnostics prints the connection state; "برقرار" is the reachable badge.
+          $diagnostics = Invoke-WebRequest -Uri "$root/Diagnostics" -UseDefaultCredentials `
+              -UseBasicParsing -SkipHttpErrorCheck -AllowUnencryptedAuthentication
+          if ([string]$diagnostics.Content -notmatch 'برقرار') {
+            $plain = (([string]$diagnostics.Content -replace '<[^>]+>', ' ') -replace '\s+', ' ')
+            Write-Host ("::error::the diagnostics page does not report a live connection: " + $plain.Substring(0, [Math]::Min(400, $plain.Length)))
+            exit 1
+          }
+          Write-Host '  PASS: the diagnostics page reports a live database connection'
+
+      # The pool identity is what SQL Server sees, so its rights are the ones that
+      # matter. Asked of SQL Server itself, in the pool's own security context.
+      - name: The pool identity is least-privileged
+        shell: pwsh
+        run: |
+          $probe = @"
+          SET NOCOUNT ON;
+          BEGIN TRY
+              EXECUTE AS LOGIN = N'IIS APPPOOL\T5WebAdmin';
+              SELECT CONCAT(
+                  'can_read=',        HAS_PERMS_BY_NAME(DB_NAME(), 'DATABASE', 'SELECT'),
+                  '|can_create_ddl=', HAS_PERMS_BY_NAME(NULL, NULL, 'CREATE TABLE'),
+                  '|can_audit_upd=',  HAS_PERMS_BY_NAME(N'dbo.T5WebAudit', 'OBJECT', 'UPDATE'),
+                  '|can_write_acc=',  HAS_PERMS_BY_NAME(N'dbo.T5WebAccess', 'OBJECT', 'INSERT'));
+              REVERT;
+          END TRY
+          BEGIN CATCH
+              SELECT CONCAT('error=', ERROR_MESSAGE());
+          END CATCH;
+          "@
+          $out = (sqlcmd -S $env:T5_SERVER -E -h -1 -W -Q $probe 2>&1) -join ' '
+          Write-Host "  $out"
+          $failed = $false
+          foreach ($expectation in @('can_read=1', 'can_create_ddl=0', 'can_audit_upd=0', 'can_write_acc=1')) {
+            if ($out -notmatch [regex]::Escape($expectation)) {
+              Write-Host "::error::the pool identity fails '$expectation' - the role grants are wrong (db/02, db/04)"
+              $failed = $true
+            }
+          }
+          if ($failed) { exit 1 }
+          Write-Host '  PASS: the pool identity can read, cannot change the schema, and cannot rewrite the audit trail'
 
       - name: Show the IIS log tail on failure
         if: failure()

@@ -62,6 +62,9 @@ python3 "$SCRIPT_DIR/tools/sql-grant-gate.py"
 # Deployment kit: the Windows install scripts must parse, stay idempotent, keep passwords
 # out of the repository and reference files that exist (docs/13).
 python3 "$SCRIPT_DIR/tools/deploy-kit-gate.py"
+# Fixture: tools/ci-seed.sql must cover every AdminFeature and every NOT NULL column of
+# [UserInfo], or a screen answers 403 on the runner and the sweep passes without it.
+python3 "$SCRIPT_DIR/tools/ci-fixture-gate.py"
 # Migration gate: the fingerprint script must cover every t5/personnel table exactly once,
 # guard a table that an older install lacks, and its comparison logic must be tested (T33).
 python3 "$SCRIPT_DIR/tools/migration-fingerprint.py" --check
