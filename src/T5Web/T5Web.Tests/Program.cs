@@ -57,6 +57,7 @@ namespace T5Web.Tests
             RunTest("T27: 343/343 action coverage (every action decided, every target real)", TestActionCoverage);
             RunTest("T28: database model (catalogs, keys, relations, one catalog per statement)", TestDatabaseModel);
             RunTest("T29: legacy surface (views, first-party assemblies, every appSettings key)", TestLegacySurface);
+            RunTest("T30: product identity (آریا ادمین / ARIA-ADMIN registered everywhere)", TestProductIdentity);
 
             Console.WriteLine("----------------------------------------------------------------------");
             Console.WriteLine($"  Summary: {_passed} Passed, {_failed} Failed");
@@ -2070,6 +2071,93 @@ namespace T5Web.Tests
                 "the legacy configuration must still name both catalogs.");
             Assert(decomposition.Contains("`t5ConnectionString`") && decomposition.Contains("`personnelConnectionString`"),
                 "docs/03 must record the legacy connection-string names, not the portal's names.");
+        }
+
+        /// <summary>
+        /// T30 - the product identity. The rewrite is registered as «آریا ادمین» /
+        /// ARIA-ADMIN v5.0, the same way the TWF rewrite is registered as «آریا». A name
+        /// that lives in ten places drifts, so this test reads the single constant file
+        /// (T5Web.Web/Content/AriaAdminBranding.cs) and holds it against every place the
+        /// operator can see the product: the console layout, Web.config, the ten offline
+        /// preview pages and the documents. It also fails if the pre-registration label
+        /// survives anywhere in the UI.
+        ///
+        /// The constants are read as text on purpose: the test project references Domain,
+        /// Application and Data, not the web assembly, so no System.Web is dragged into
+        /// the offline test host.
+        /// </summary>
+        private static void TestProductIdentity()
+        {
+            string brandPath = Path.Combine(T5WebRoot, "T5Web.Web", "Content", "AriaAdminBranding.cs");
+            Assert(File.Exists(brandPath), "the product identity file is missing: T5Web.Web/Content/AriaAdminBranding.cs");
+            string brand = File.ReadAllText(brandPath);
+            foreach (string constant in new[]
+                     {
+                         "public const string ProductName = \"آریا ادمین\";",
+                         "public const string ProductCode = \"ARIA-ADMIN\";",
+                         "public const string Version = \"5.0\";",
+                         "public const string FullVersion = \"Aria Admin v5.0\";"
+                     })
+            {
+                Assert(brand.Contains(constant), "the product identity lost a constant: " + constant);
+            }
+            Assert(brand.Contains("T5V3Web.dll"),
+                "the brand must name the legacy product it replaces, for the operator.");
+            Assert(brand.Contains("pageTitle + \" · \" + ProductName"),
+                "the window title must be built as 'page · product'.");
+
+            // A constant that the project does not compile is not a constant: the web
+            // project lists its folders explicitly, so Content must stay in the list.
+            string project = File.ReadAllText(Path.Combine(T5WebRoot, "T5Web.Web", "T5Web.Web.csproj"));
+            Assert(project.Contains("Content\\*.cs"),
+                "T5Web.Web.csproj must compile Content\\*.cs, otherwise the brand is not built.");
+
+            // 1. The console layout reads the brand from that file and no longer carries the
+            //    pre-registration label.
+            string layout = File.ReadAllText(Path.Combine(T5WebRoot, "T5Web.Web", "Views", "Shared", "_Layout.cshtml"));
+            Assert(layout.Contains("AriaAdminBranding.ProductName"), "the layout must print the registered product name.");
+            Assert(layout.Contains("AriaAdminBranding.WindowTitle"), "the layout must build the tab title from the brand.");
+            Assert(!layout.Contains("T5Web Admin"),
+                "the layout still shows the pre-registration label 'T5Web Admin'.");
+
+            // 2. Configuration carries the same identity, so an operator reading Web.config
+            //    sees the product they installed.
+            string config = File.ReadAllText(Path.Combine(T5WebRoot, "T5Web.Web", "Web.config"));
+            Assert(config.Contains("<add key=\"PortalName\" value=\"آریا ادمین\" />"),
+                "Web.config PortalName must be the registered name.");
+            Assert(config.Contains("PortalProductCode") && config.Contains("ARIA-ADMIN"),
+                "Web.config must carry the product code.");
+
+            // 3. Nothing in the views may still call the product by its old label.
+            foreach (string view in Directory.GetFiles(Path.Combine(T5WebRoot, "T5Web.Web", "Views"), "*.cshtml",
+                         SearchOption.AllDirectories))
+            {
+                string text = File.ReadAllText(view);
+                Assert(!text.Contains("کنسول مدیریت T5Web"),
+                    Path.GetFileName(view) + " still prints the pre-registration product label.");
+            }
+
+            // 4. All ten offline preview pages show the registered brand.
+            string[] pages = Directory.GetFiles(Path.Combine(T5WebRoot, "preview"), "*.html");
+            Assert(pages.Length >= 10, "the preview must keep its ten pages, found " + pages.Length + ".");
+            foreach (string page in pages)
+            {
+                string html = File.ReadAllText(page);
+                Assert(html.Contains("آریا ادمین"),
+                    Path.GetFileName(page) + " does not show the registered product name.");
+                Assert(!html.Contains("T5Web Admin"),
+                    Path.GetFileName(page) + " still shows the pre-registration label 'T5Web Admin'.");
+            }
+
+            // 5. The documents name the product they describe.
+            string readme = File.ReadAllText(Path.Combine(T5WebRoot, "README.md"));
+            Assert(readme.Contains("آریا ادمین") && readme.Contains("ARIA-ADMIN"),
+                "README must state the registered name and code.");
+            foreach (string doc in new[] { "01-rewrite-principles.md", "02-phase-log.md", "08-runbook.md" })
+            {
+                string text = File.ReadAllText(Path.Combine(T5WebRoot, "docs", doc));
+                Assert(text.Contains("آریا ادمین"), "docs/" + doc + " must name the product.");
+            }
         }
 
         /// <summary>

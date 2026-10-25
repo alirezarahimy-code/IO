@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Web.Mvc;
 using T5Web.Domain;
+using T5Web.Web.Content;
 using T5Web.Web.Security;
 
 namespace T5Web.Web.Controllers
@@ -23,7 +24,8 @@ namespace T5Web.Web.Controllers
             ViewBag.Counts = reachable
                 ? PortalServices.Repository.GetTableCounts()
                 : new Dictionary<string, int>();
-            ViewBag.ProductVersion = typeof(DiagnosticsController).Assembly.GetName().Version.ToString();
+            ViewBag.ProductVersion = AriaAdminBranding.FullVersion + " (" +
+                typeof(DiagnosticsController).Assembly.GetName().Version + ")";
             ViewBag.MachineName = Environment.MachineName;
             ViewBag.ServerTime = DateTime.Now;
             ViewBag.EntryAssembly = typeof(DiagnosticsController).Assembly.GetName().Name;

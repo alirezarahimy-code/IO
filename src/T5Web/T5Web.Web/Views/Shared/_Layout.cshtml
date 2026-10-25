@@ -1,4 +1,5 @@
 @using T5Web.Domain
+@using T5Web.Web.Content
 @using T5Web.Web.Security
 @{
     var session = AdminIdentity.Current;
@@ -16,15 +17,16 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>@title · T5Web Admin</title>
+    <title>@AriaAdminBranding.WindowTitle(title)</title>
     <link rel="stylesheet" href="@Url.Content("~/Content/t5web-admin.css")" />
 </head>
 <body>
 <div class="shell">
     <nav class="rail">
         <div class="rail__brand">
-            <b>کنسول مدیریت T5Web</b>
-            <span>ADMIN CONSOLE · v5</span>
+            <b>@AriaAdminBranding.ProductName</b>
+            <span>@AriaAdminBranding.ProductCode · v@(AriaAdminBranding.Version)</span>
+            <span>@AriaAdminBranding.Tagline</span>
         </div>
         @foreach (var item in menu)
         {

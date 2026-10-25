@@ -58,6 +58,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Content\*.cs" />
     <Compile Include="Controllers\*.cs" />
     <Compile Include="Security\*.cs" />
     <Compile Include="MvcApplication.cs" />
