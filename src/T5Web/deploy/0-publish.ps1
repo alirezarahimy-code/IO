@@ -83,9 +83,19 @@ if ($Build) {
     }
 }
 
-$binSource = Join-Path $webRoot ("bin\" + $Configuration)
-if (-not (Test-Path $binSource)) {
-    throw "No build output at $binSource. Run with -Build, or build the solution first."
+# A web application project writes into bin\ (that is where IIS looks), so the
+# assemblies may be there directly or under bin\<Configuration> - accept both, but
+# never guess silently: the chosen folder is printed.
+$binCandidates = @((Join-Path $webRoot ("bin\" + $Configuration)), (Join-Path $webRoot 'bin'))
+$binSource = $binCandidates | Where-Object { Test-Path (Join-Path $_ 'T5Web.Admin.dll') } | Select-Object -First 1
+if (-not $binSource) {
+    foreach ($candidate in $binCandidates) {
+        if (Test-Path $candidate) { $binSource = $candidate; break }
+    }
+}
+if (-not $binSource) {
+    throw ("No build output under {0}. Run with -Build, or build the solution first." -f
+           (Join-Path $webRoot 'bin'))
 }
 
 # ------------------------------------------------------------------ layout
@@ -154,7 +164,7 @@ if ($leaks.Count -gt 0) {
              ForEach-Object { $_.FullName }) -join ', '))
 }
 
-foreach ($required in @('Web.config', 'bin\T5Web.Web.dll', 'Views')) {
+foreach ($required in @('Web.config', 'bin\T5Web.Admin.dll', 'Views')) {
     if (-not (Test-Path (Join-Path $OutputPath $required))) {
         throw "the published folder is missing $required."
     }

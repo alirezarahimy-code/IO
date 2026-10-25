@@ -125,7 +125,7 @@ def check_secrets(name, text):
 def check_references(name, text):
     problems = []
     wants = {
-        "0-publish.ps1": ["Web.config", "Views", "T5Web.Web.dll", "MSBuild"],
+        "0-publish.ps1": ["Web.config", "Views", "T5Web.Admin.dll", "MSBuild"],
         "2-install-sqlserver.ps1": ["01-t5web-objects.sql", "02-t5web-sql-login.sql"],
         "3-deploy-portal.ps1": ["Web.config", "T5CnnStr", "PersonnelCnnStr", "T5WebMode", "T5WebLegacyUrl"],
         "4-verify-install.ps1": ["verify.sql", "03-relations.sql", "migration-fingerprint.py"],
@@ -141,7 +141,7 @@ def check_references(name, text):
     if name == "0-publish.ps1":
         # A published folder that still contains source is the failure this script
         # exists to prevent; the check has to stay in the script, not in the reviewer.
-        for guard in ("Remove-Item", "bin\\T5Web.Web.dll"):
+        for guard in ("Remove-Item", "bin\\T5Web.Admin.dll"):
             if guard not in text:
                 problems.append("%s: does not verify %s" % (name, guard))
     if name == "4-verify-install.ps1":
