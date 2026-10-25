@@ -144,6 +144,11 @@ def check_references(name, text):
         for guard in ("Remove-Item", "bin\\T5Web.Admin.dll"):
             if guard not in text:
                 problems.append("%s: does not verify %s" % (name, guard))
+    if name == "3-deploy-portal.ps1":
+        # The pinned engine is x86 (PE header of Personnel.dll). A 64-bit pool turns
+        # that into "incorrect format" and a 500 on every URL, static files included.
+        if "enable32BitAppOnWin64" not in text:
+            problems.append("%s: never enables 32-bit mode, but the engine is x86 only" % name)
     if name == "4-verify-install.ps1":
         for header in ("Content-Security-Policy", "unsafe-inline"):
             if header not in text:

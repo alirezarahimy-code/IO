@@ -177,6 +177,7 @@ jobs:
             'startMode'             = [string]$pool.startMode
             'idleTimeout'           = ([TimeSpan]$pool.processModel.idleTimeout).ToString()
             'recyclingPeriodic'     = ([TimeSpan]$pool.recycling.periodicRestart.time).ToString()
+            'enable32BitAppOnWin64' = [string][bool]$pool.enable32BitAppOnWin64
           }
           $expected = [ordered]@{
             'managedRuntimeVersion' = 'v4.0'
@@ -184,6 +185,7 @@ jobs:
             'startMode'             = 'AlwaysRunning'
             'idleTimeout'           = '00:00:00'
             'recyclingPeriodic'     = '00:00:00'
+            'enable32BitAppOnWin64' = 'True'
           }
           $failed = $false
           foreach ($key in $expected.Keys) {

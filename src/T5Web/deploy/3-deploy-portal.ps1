@@ -92,6 +92,13 @@ Set-ItemProperty "IIS:\AppPools\$PoolName" startMode 'AlwaysRunning'
 Set-ItemProperty "IIS:\AppPools\$PoolName" processModel.idleTimeout ([TimeSpan]::Zero)
 Set-ItemProperty "IIS:\AppPools\$PoolName" processModel.loadUserProfile $true
 Set-ItemProperty "IIS:\AppPools\$PoolName" recycling.periodicRestart.time ([TimeSpan]::Zero)
+# The pinned engine is 32-bit only: the PE headers of Personnel.dll, T5V3.DB.dll,
+# T5V3.Model.dll and Dapper.dll in "T5Web [3.5.7]\App\bin" say x86. A 64-bit worker
+# process refuses to load them ("Could not load file or assembly 'Personnel' ... an
+# attempt was made to load a program with an incorrect format") and every request
+# answers 500 - a static .css file included, because the failure is at assembly load.
+# Found the hard way in CI (docs/14). Do not remove this line.
+Set-ItemProperty "IIS:\AppPools\$PoolName" enable32BitAppOnWin64 $true
 
 # --------------------------------------------------------------- site
 $binding = "*:${Port}:"

@@ -110,7 +110,7 @@ Get-ChildItem          # 0-publish.ps1  1-install-iis.ps1  2-install-sqlserver.p
 
 | کار | تنظیم | دلیل |
 | :-- | :-- | :-- |
-| App pool | `.NET CLR v4.0`, Integrated, `AlwaysRunning`, `idleTimeout=0`, `loadUserProfile=true` | اولین درخواست بعد از recycle نباید کند باشد؛ `loadUserProfile` برای پروفایل IIS لازم است |
+| App pool | `.NET CLR v4.0`, Integrated, `AlwaysRunning`, `idleTimeout=0`, `loadUserProfile=true`, **`enable32BitAppOnWin64=true`** | سطر آخر اجباری است: موتور پین‌شده x86 است (بخش ۴-الف) |
 | هویت pool | `ApplicationPoolIdentity` | هیچ پسورد دومِنی ذخیره نمی‌شود |
 | احراز هویت سایت | Windows on / Anonymous off (به‌علاوهٔ `<deny users="?" />` در `Web.config`) | دو لایهٔ مستقل |
 | ACL | `IIS AppPool\<pool>` فقط `(RX)` روی پوشهٔ سایت | پورتال نباید بتواند کنار `Web.config` بنویسد |
@@ -121,6 +121,29 @@ Get-ChildItem          # 0-publish.ps1  1-install-iis.ps1  2-install-sqlserver.p
 
 انتظار: `Web.config patched: source=…, mode=coexist` و آدرس نهایی
 `http://localhost:8080/`.
+
+---
+
+## ۴-الف. چرا app pool باید ۳۲-بیتی باشد
+
+اسمبلی‌های موتور پین‌شده — `Personnel.dll`، `T5V3.DB.dll`، `T5V3.Model.dll` و `Dapper.dll` در
+`T5Web [3.5.7]\App\bin` — با هدر PE نوع **x86** ساخته شده‌اند. پروسهٔ کارگر ۶۴-بیتی نمی‌تواند آن‌ها را
+بار کند و نتیجه‌اش این است:
+
+```
+Could not load file or assembly 'Personnel' or one of its dependencies.
+An attempt was made to load a program with an incorrect format.
+```
+
+و چون خطا در **بارگذاری اسمبلی** رخ می‌دهد، نه در اجرای اکشن، حتی یک فایل ایستا مثل
+`/Content/t5web-admin.css` هم `500` می‌دهد. این را در CI روی IIS واقعی دیدیم (`docs/14`)، نه در بیلد.
+
+بنابراین `3-deploy-portal.ps1` همیشه `enable32BitAppOnWin64 = true` را ست می‌کند، `4-verify-install.ps1`
+آن را به‌عنوان بررسی `bitness` می‌خواند، و gate استقرار اجازه نمی‌دهد این خط از اسکریپت حذف شود.
+
+اسمبلی‌های خود پورتال `AnyCPU` هستند، پس ۳۲-بیتی‌شدن pool هیچ هزینه‌ای برایشان ندارد؛ تنها محدودیت
+حافظهٔ پروسهٔ ۳۲-بیتی است که برای چند صد کاربر همکار کافی است. اگر روزی موتور ۶۴-بیتی شد، فقط همین
+یک تنظیم برمی‌گردد.
 
 ---
 
@@ -181,10 +204,11 @@ ALTER ROLE db_datareader ADD MEMBER [IIS APPPOOL\T5WebAdmin];
 اگر دسترسی به یک ویندوز واقعی بدهید (RDP/runner)، همان چهار اسکریپت را خودم اجرا و خروجی را
 گزارش می‌کنم. بدون آن، صادقانه‌ترین کار همین است: کیت آماده، گیت‌شده، و منتظر یک اجرا.
 
-**راه میان‌بر:** پیش از هر چیز، مسیر CI را ببینید — `docs/14-windows-ci.md`. همان workflow روی یک
-ویندوز واقعی (`windows-latest`) کامپایل می‌کند، ۳۵ آزمون را اجرا می‌کند و `db/*.sql` را روی SQL Server
-Express LocalDB می‌دواند. IIS و Windows Authentication در CI نیستند، ولی «کد می‌سازد و آزمون‌ها سبزند»
-و «اسکریپت‌های پایگاه‌داده کار می‌کنند» از همان‌جا اثبات می‌شود؛ بعد این سند برای IIS می‌ماند.
+**راه میان‌بر:** پیش از هر چیز، مسیر CI را ببینید — `docs/14-windows-ci.md`. سه job روی ویندوز واقعی
+(`windows-latest`) اجرا می‌شوند: کامپایل و آزمون‌ها، `db/*.sql` روی SQL Server Express LocalDB، و
+**`iis-install`** که همین پنج اسکریپت را پشت‌سرهم اجرا می‌کند: publish، نصب IIS، استقرار سایت، سپس
+ادعاهای app pool (از جمله ۳۲-بیتی بودن)، `401` برای درخواست ناشناس و `200` + CSP برای کاربر ویندوزی.
+یعنی این سند دیگر «دستورِ آزمون‌نشده» نیست؛ هر خطی که در CI سبز است، روی یک IIS واقعی هم اجرا شده.
 
 ---
 
@@ -193,6 +217,8 @@ Express LocalDB می‌دواند. IIS و Windows Authentication در CI نیس�
 | نشانه | علت رایج | درمان |
 | :-- | :-- | :-- |
 | `HTTP Error 500.19` | نقش `ASPNET45` نصب نیست یا `configSource` اشتباه | `.\1-install-iis.ps1` را دوباره بزنید؛ `%windir%\System32\inetsrv\appcmd list config` |
+| `500` روی *همهٔ* آدرس‌ها، حتی `.css` · متن: `Could not load file or assembly … incorrect format` | app pool ۶۴-بیتی است و موتور x86 | `.\3-deploy-portal.ps1` را دوباره بزنید؛ باید `enable32BitAppOnWin64=true` را ست کند (بخش ۴-الف) |
+| `500.19` · `Cannot add duplicate collection entry … fileExtension` | یک قاعدهٔ `requestFiltering` دو بار تعریف شده | `Web.config` نسخهٔ فعلی را بگذارید: هر extension اول `<remove>` و بعد `<add>` می‌شود |
 | `HTTP Error 500.21` | `ManagedPipelineMode` روی Classic است | `3-deploy-portal.ps1` را دوباره اجرا کنید (Integrated را ست می‌کند) |
 | `HTTP Error 401.2` با مرورگر دامنه | `Negotiate` در providers نیست | در `3` تنظیم شده؛ `appcmd set config /section:windowsAuthentication` را چک کنید |
 | ۵۰۳ و «رشته اتصال تنظیم نشده» | `T5CnnStr` خالی است | `3` را با `-DataSource` درست اجرا کنید |

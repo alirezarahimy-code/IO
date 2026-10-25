@@ -4,14 +4,15 @@
     The acceptance checklist as code. Prints PASS/FAIL and exits with the number of failures.
 
 .DESCRIPTION
-    Six checks, in the order a broken installation reveals itself:
+    Seven checks, in the order a broken installation reveals itself:
 
       1. schema     - every object and column the code names exists on the server (db\verify.sql)
       2. relations  - the data satisfies the relations the code assumes (db\03-relations.sql)
       3. fingerprint- this server matches the source it was moved from (optional -Baseline)
-      4. auth       - an anonymous request is refused (401) and a Windows request succeeds (200)
-      5. leastpriv  - the portal login can read but cannot create a table
-      6. headers    - the documented CSP and hardening headers are really sent
+      4. bitness    - the app pool is 32-bit, because the pinned engine is x86 only
+      5. auth       - an anonymous request is refused (401) and a Windows request succeeds (200)
+      6. leastpriv  - the portal login can read but cannot create a table
+      7. headers    - the documented CSP and hardening headers are really sent
 
     It never writes: db\03-relations.sql is read-only by design, and the fingerprint
     script only counts rows. Running this against production is safe.
@@ -142,6 +143,26 @@ if ($sqlcmd) {
     }
 } else {
     Write-Warning 'database checks skipped (no sqlcmd).'
+}
+
+# 4. bitness ---------------------------------------------------------------
+# The engine assemblies are x86 (see 3-deploy-portal.ps1). One 64-bit worker pool
+# and the site answers 500 for everything, so check the setting, not the symptom.
+$iisModule = Get-Module -ListAvailable -Name WebAdministration | Select-Object -First 1
+if ($iisModule) {
+    Import-Module WebAdministration -ErrorAction SilentlyContinue
+}
+if (Get-PSDrive -Name IIS -ErrorAction SilentlyContinue) {
+    try {
+        $site = Get-Website -Name 'T5WebAdmin' -ErrorAction Stop
+        $pool = Get-Item ("IIS:\AppPools\" + $site.applicationPool) -ErrorAction Stop
+        $is32 = [bool]$pool.enable32BitAppOnWin64
+        Report 'bitness' $is32 ("app pool {0} enable32BitAppOnWin64 = {1}" -f $site.applicationPool, $is32)
+    } catch {
+        Report 'bitness' $false ("could not read the app pool: {0}" -f $_.Exception.Message)
+    }
+} else {
+    Write-Host '  SKIP  bitness       (no IIS: drive - run this in Windows PowerShell 5.1 on the web server)' -ForegroundColor DarkYellow
 }
 
 # 4. authentication -------------------------------------------------------
