@@ -24,6 +24,7 @@ the properties MSBuild needs for both configurations.
     python3 tools/project-file-gate.py
 """
 import os
+import re
 import sys
 import xml.etree.ElementTree as ET
 
@@ -74,8 +75,19 @@ def main():
             problems.append("%s declares %d OutputPath value(s); both configurations need one"
                             % (relative, output_paths))
 
-        # A project that never imports the C# targets compiles nothing at all.
         text = open(path, encoding="utf-8").read()
+
+        # Every HintPath must resolve: the first real MSBuild run failed with
+        # "The type or namespace name 'Dapper' could not be found" because all six
+        # HintPaths were one directory short (..\.. instead of ..\..\..). The file is
+        # there; only MSBuild noticed it was looking elsewhere.
+        for hint in re.findall(r"<HintPath>(.*?)</HintPath>", text):
+            resolved = os.path.normpath(os.path.join(os.path.dirname(path), hint.replace("\\", os.path.sep)))
+            if not os.path.exists(resolved):
+                problems.append("%s references %s, which does not exist (resolved to %s)"
+                                % (relative, hint, resolved))
+
+        # A project that never imports the C# targets compiles nothing at all.
         if "Microsoft.CSharp.targets" not in text and "Microsoft.WebApplication.targets" not in text:
             problems.append("%s imports neither Microsoft.CSharp.targets nor "
                             "Microsoft.WebApplication.targets" % relative)

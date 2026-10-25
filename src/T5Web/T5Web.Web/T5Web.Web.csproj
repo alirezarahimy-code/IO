@@ -37,11 +37,11 @@
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Mvc">
       <!-- Same pinned engine folder as ARIA; nothing is copied from the legacy tree. -->
-      <HintPath>..\..\T5Web [3.5.7]\App\bin\System.Web.Mvc.dll</HintPath>
+      <HintPath>..\..\..\T5Web [3.5.7]\App\bin\System.Web.Mvc.dll</HintPath>
       <Private>true</Private>
     </Reference>
     <Reference Include="Dapper">
-      <HintPath>..\..\T5Web [3.5.7]\App\bin\Dapper.dll</HintPath>
+      <HintPath>..\..\..\T5Web [3.5.7]\App\bin\Dapper.dll</HintPath>
       <Private>true</Private>
     </Reference>
   </ItemGroup>
