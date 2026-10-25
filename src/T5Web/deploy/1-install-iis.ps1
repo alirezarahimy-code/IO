@@ -62,6 +62,14 @@ foreach ($name in $features) {
 
 Import-Module WebAdministration -ErrorAction Stop
 
+# The IIS: drive is created by the WebAdministration provider, which only exists in
+# Windows PowerShell 5.1. Running this script from PowerShell 7 gives a much less
+# helpful "Cannot find drive. A drive with the name 'IIS' does not exist." further
+# down, so say it here instead.
+if (-not (Get-PSDrive -Name IIS -ErrorAction SilentlyContinue)) {
+    throw 'The IIS: drive is missing. Run this script in Windows PowerShell 5.1 (powershell.exe), not PowerShell 7 (pwsh).'
+}
+
 # Anonymous out, Windows in - at the server level, so a new site cannot forget it.
 Set-WebConfigurationProperty -Filter '/system.webServer/security/authentication/anonymousAuthentication' `
     -Name enabled -Value $false -PSPath 'IIS:\' -ErrorAction SilentlyContinue

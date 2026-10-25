@@ -44,6 +44,14 @@ $ErrorActionPreference = 'Stop'
 
 Import-Module WebAdministration -ErrorAction Stop
 
+# The IIS: drive is created by the WebAdministration provider, which only exists in
+# Windows PowerShell 5.1. Running this script from PowerShell 7 gives a much less
+# helpful "Cannot find drive. A drive with the name 'IIS' does not exist." further
+# down, so say it here instead.
+if (-not (Get-PSDrive -Name IIS -ErrorAction SilentlyContinue)) {
+    throw 'The IIS: drive is missing. Run this script in Windows PowerShell 5.1 (powershell.exe), not PowerShell 7 (pwsh).'
+}
+
 $repoRoot = Split-Path -Parent $PSScriptRoot
 if (-not $SitePath) { $SitePath = Join-Path $repoRoot 'T5Web.Web' }
 if (-not (Test-Path (Join-Path $SitePath 'Web.config'))) {

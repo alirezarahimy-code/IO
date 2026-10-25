@@ -109,7 +109,7 @@ jobs:
       # whether an anonymous request is refused. It is the deployment kit executed,
       # not described.
       - name: Publish the console
-        shell: pwsh
+        shell: powershell
         run: |
           $out = Join-Path $env:RUNNER_TEMP 'T5WebAdmin'
           # A throw inside the script is the interesting message; without this the step
@@ -128,7 +128,7 @@ jobs:
           Get-ChildItem $out | Select-Object Name, Length | Format-Table | Out-String | Write-Host
 
       - name: Install IIS (deploy/1-install-iis.ps1)
-        shell: pwsh
+        shell: powershell
         run: |
           try {
             ./src/T5Web/deploy/1-install-iis.ps1 -NoRebootPrompt
@@ -149,7 +149,7 @@ jobs:
           }
 
       - name: Deploy the site (deploy/3-deploy-portal.ps1)
-        shell: pwsh
+        shell: powershell
         run: |
           try {
             ./src/T5Web/deploy/3-deploy-portal.ps1 -SitePath $env:publish -Port 8080 `
