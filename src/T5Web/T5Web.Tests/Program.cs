@@ -2884,6 +2884,7 @@ namespace T5Web.Tests
             Assert(File.Exists(workflow), "missing .github/workflows/windows-build.yml (docs/14).");
             string yaml = File.ReadAllText(workflow);
             foreach (string required in new[] { "windows-latest", "msbuild", "T5Web.Tests.exe",
+                                                "0-publish.ps1", "1-install-iis.ps1", "3-deploy-portal.ps1",
                                                 "synthetic-schema.py", "sql-smoke.py", "verify.sql",
                                                 "03-relations.sql", "migration-fingerprint.py" })
             {

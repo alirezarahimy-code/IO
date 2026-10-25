@@ -1,6 +1,6 @@
 # ۱۳ — نصب IIS و SQL Server و راه‌اندازی «آریا ادمین»
 
-این سند دقیقاً همان کاری را می‌گوید که یک نصب واقعی روی ویندوز لازم دارد: چهار اسکریپت،
+این سند دقیقاً همان کاری را می‌گوید که یک نصب واقعی روی ویندوز لازم دارد: پنج اسکریپت،
 به ترتیب، و یک چک‌لیست پذیرش که خودش PASS/FAIL می‌دهد.
 
 > **یک شفاف‌سازی لازم:** محیطی که این بازنویسی در آن نوشته شده، لینوکس (Debian 12) است و
@@ -27,7 +27,7 @@
 
 ```powershell
 cd D:\IO\src\T5Web\deploy
-Get-ChildItem          # 1-install-iis.ps1  2-install-sqlserver.ps1  3-deploy-portal.ps1  4-verify-install.ps1
+Get-ChildItem          # 0-publish.ps1  1-install-iis.ps1  2-install-sqlserver.ps1  3-deploy-portal.ps1  4-verify-install.ps1
 ```
 
 ---
@@ -82,13 +82,30 @@ Get-ChildItem          # 1-install-iis.ps1  2-install-sqlserver.ps1  3-deploy-po
 
 ---
 
+## ۳.۵. گام ۲.۵ — ساخت پوشهٔ قابل‌استقرار
+
+پوشهٔ سورس، پوشهٔ سایت نیست: `.cs` و `obj\` و `bin\Release\` را نباید سرو کند.
+`0-publish.ps1` همان کاری را می‌کند که یک publish واقعی می‌کند، بدون نیاز به Web Deploy
+(که روی سرورهای بدون اینترنت نصب نیست):
+
+```powershell
+.\0-publish.ps1 -OutputPath C:\inetpub\T5WebAdmin -Build
+```
+
+خروجی: `Web.config`، `Global.asax`، `Views\`، `Content\` و `bin\` با اسمبلی‌ها.
+اسکریپت در پایان **رد می‌کند** اگر در پوشهٔ منتشرشده `.cs`، `.csproj` یا `obj` مانده باشد —
+سورس روی وب‌سرور یعنی سورس در دسترس.
+
+---
+
 ## ۴. گام ۳ — استقرار خود پورتال
 
 ```powershell
-.\3-deploy-portal.ps1 -DataSource 'SRV-SQL01\T5' -Mode coexist -Port 8080
+.\3-deploy-portal.ps1 -SitePath C:\inetpub\T5WebAdmin -DataSource 'SRV-SQL01\T5' -Mode coexist -Port 8080
 
-# با بیلد روی همان سرور
-.\3-deploy-portal.ps1 -DataSource 'SRV-SQL01\T5' -Mode coexist -Port 8080 -Build
+# اگر پوشهٔ سایت را جدا ساخته‌اید و می‌خواهید بیلد هم همین‌جا انجام شود
+.\0-publish.ps1 -OutputPath C:\inetpub\T5WebAdmin -Build
+.\3-deploy-portal.ps1 -SitePath C:\inetpub\T5WebAdmin -DataSource 'SRV-SQL01\T5' -Mode coexist -Port 8080
 ```
 
 | کار | تنظیم | دلیل |

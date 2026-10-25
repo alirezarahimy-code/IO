@@ -94,6 +94,156 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
 
+  iis-install:
+    name: IIS + the published console
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      # This job installs the product the way the customer will: publish a folder,
+      # enable the IIS roles, create the pool and the site, then ask IIS itself
+      # whether an anonymous request is refused. It is the deployment kit executed,
+      # not described.
+      - name: Publish the console
+        shell: pwsh
+        run: |
+          $out = Join-Path $env:RUNNER_TEMP 'T5WebAdmin'
+          ./src/T5Web/deploy/0-publish.ps1 -OutputPath $out -Build
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host '::error::0-publish.ps1 failed'
+            exit 1
+          }
+          "publish=$out" | Out-File -FilePath $env:GITHUB_ENV -Append
+          Get-ChildItem $out | Select-Object Name, Length | Format-Table | Out-String | Write-Host
+
+      - name: Install IIS (deploy/1-install-iis.ps1)
+        shell: pwsh
+        run: |
+          ./src/T5Web/deploy/1-install-iis.ps1 -NoRebootPrompt
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::1-install-iis.ps1 failed with $LASTEXITCODE"
+            exit 1
+          }
+          # A feature that is enabled but whose service never started looks identical
+          # to a working install until the first request.
+          foreach ($service in 'W3SVC', 'WAS') {
+            $state = (Get-Service $service -ErrorAction SilentlyContinue).Status
+            Write-Host "$service = $state"
+            if ($state -ne 'Running') { Write-Host "::error::$service is not running"; exit 1 }
+          }
+
+      - name: Deploy the site (deploy/3-deploy-portal.ps1)
+        shell: pwsh
+        run: |
+          ./src/T5Web/deploy/3-deploy-portal.ps1 -SitePath $env:publish -Port 8080 `
+              -DataSource '(localdb)\T5Web' -Mode coexist
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "::error::3-deploy-portal.ps1 failed with $LASTEXITCODE"
+            exit 1
+          }
+
+      - name: The app pool is the one the runbook describes
+        shell: pwsh
+        run: |
+          Import-Module WebAdministration
+          $pool = Get-Item 'IIS:\AppPools\T5WebAdmin'
+          $checks = @{
+            managedRuntimeVersion = 'v4.0'
+            managedPipelineMode   = 'Integrated'
+            startMode             = 'AlwaysRunning'
+            'processModel.idleTimeout' = '00:00:00'
+          }
+          foreach ($key in $checks.Keys) {
+            if ($key -eq 'managedRuntimeVersion' -or $key -eq 'managedPipelineMode' -or $key -eq 'startMode') {
+              $actual = $pool.$key
+            } else {
+              $actual = $pool.processModel.idleTimeout.ToString()
+            }
+            Write-Host "  $key = $actual"
+            if ("$actual" -ne "$($checks[$key])") {
+              Write-Host ("::error::app pool {0} is {1}, expected {2}" -f $key, $actual, $checks[$key])
+              exit 1
+            }
+          }
+          $anonymous = (Get-WebConfigurationProperty -Filter '/system.webServer/security/authentication/anonymousAuthentication' `
+                          -Name enabled -PSPath 'IIS:\Sites\T5WebAdmin').Value
+          $windows = (Get-WebConfigurationProperty -Filter '/system.webServer/security/authentication/windowsAuthentication' `
+                        -Name enabled -PSPath 'IIS:\Sites\T5WebAdmin').Value
+          Write-Host "  anonymous=$anonymous windows=$windows"
+          if ($anonymous -ne $false) { Write-Host '::error::anonymous authentication is enabled on the site'; exit 1 }
+          if ($windows -ne $true)   { Write-Host '::error::windows authentication is disabled on the site'; exit 1 }
+
+      - name: Anonymous request is refused with 401
+        shell: pwsh
+        run: |
+          $url = 'http://localhost:8080/Content/t5web-admin.css'
+          for ($i = 0; $i -lt 10; $i++) {
+            try {
+              $response = Invoke-WebRequest -Uri $url -UseBasicParsing -MaximumRedirection 0 -ErrorAction Stop
+              $code = [int]$response.StatusCode
+            } catch {
+              $code = [int]$_.Exception.Response.StatusCode
+            }
+            Write-Host "  attempt $($i + 1): $code"
+            if ($code -ne 0 -and $code -ne 500) { break }
+            Start-Sleep -Seconds 3
+          }
+          if ($code -ne 401) {
+            Write-Host "::error::anonymous request returned $code, expected 401 (Windows authentication)"
+            exit 1
+          }
+          Write-Host '  PASS: anonymous is refused before MVC runs'
+
+      - name: The console answers a Windows user
+        shell: pwsh
+        run: |
+          # Negoiate with the runner's own account. A 200 or a 302 proves IIS handed the
+          # request to ASP.NET; a 401 would mean the site still refuses authenticated users.
+          $url = 'http://localhost:8080/Content/t5web-admin.css'
+          try {
+            $response = Invoke-WebRequest -Uri $url -UseDefaultCredentials -UseBasicParsing -MaximumRedirection 0 -ErrorAction Stop
+            $code = [int]$response.StatusCode
+            $headers = $response.Headers
+          } catch {
+            $code = [int]$_.Exception.Response.StatusCode
+            $headers = @{}
+          }
+          Write-Host "  status $code"
+          if ($code -ne 200) {
+            Write-Host "::error::authenticated request returned $code, expected 200"
+            exit 1
+          }
+          $csp = $headers['Content-Security-Policy']
+          if (-not $csp) {
+            Write-Host "::error::the site sends no Content-Security-Policy header"
+            exit 1
+          }
+          Write-Host "  CSP: $csp"
+          if ($csp -match 'unsafe-inline') {
+            Write-Host '::error::the CSP allows unsafe-inline'
+            exit 1
+          }
+          Write-Host '  PASS: authenticated request served, CSP present and strict'
+
+      - name: Show the IIS log tail on failure
+        if: failure()
+        shell: pwsh
+        run: |
+          $log = Join-Path $env:SystemDrive 'inetpub\logs\LogFiles'
+          if (Test-Path $log) {
+            Get-ChildItem $log -Recurse -Filter *.log |
+              Sort-Object LastWriteTime -Descending | Select-Object -First 1 |
+              ForEach-Object { Get-Content $_.FullName -Tail 40 | ForEach-Object { Write-Host "::error::iis| $_" } }
+          }
+          foreach ($eventLog in 'System', 'Application') {
+            Get-EventLog -LogName $eventLog -Newest 10 -EntryType Error -ErrorAction SilentlyContinue |
+              ForEach-Object { Write-Host ("::error::{0}| {1}" -f $eventLog, $_.Message.Split("`n")[0]) }
+          }
+
   database:
     name: SQL Server scripts
     runs-on: windows-latest
