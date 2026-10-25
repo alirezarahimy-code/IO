@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Spike: does the portal's core compile on .NET 8 unchanged?
+
+    The rewrite targets .NET Framework 4.7.2 because - as we believed - it loads the
+    engine's own assemblies (Personnel.dll, T5V3.DB.dll), which are .NET Framework and
+    x86. An audit of every `using` in the three lower layers found the opposite:
+
+        Domain, Application, Data            49 files
+        of which touch the engine             1 file   (Data/Engine/PersonnelEngineDirectory.cs)
+        of which touch System.Web             0 files
+        of which touch System.Configuration   0 files
+        of which touch System.Drawing/Registry/DllImport  0 files
+
+    So the coupling to .NET Framework is *one class*, not an architecture. This project
+    compiles those three layers against net8.0 with nothing but Dapper, with the single
+    engine-coupled file excluded. If it builds, the port is a question of the web layer
+    and of replacing that one class - not of rewriting the data access.
+
+    It references the real sources by path on purpose: a copy would drift, and a copy
+    that compiles proves nothing about the code we ship.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <!-- The Framework build uses 7.3; keeping it here proves the same source under the
+         same language version, so a C# 12-only construct cannot sneak in unnoticed. -->
+    <LangVersion>7.3</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <AssemblyName>T5Web.Core.Net8</AssemblyName>
+    <RootNamespace>T5Web</RootNamespace>
+    <!-- Warnings are not the question this spike answers; errors are. -->
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <NoWarn>$(NoWarn);CS1591;CS0169;CS0649;CS0414</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="../../T5Web.Domain/**/*.cs" Exclude="../../T5Web.Domain/obj/**;../../T5Web.Domain/bin/**" />
+    <Compile Include="../../T5Web.Application/**/*.cs" Exclude="../../T5Web.Application/obj/**;../../T5Web.Application/bin/**" />
+    <Compile Include="../../T5Web.Data/**/*.cs"
+             Exclude="../../T5Web.Data/obj/**;../../T5Web.Data/bin/**;../../T5Web.Data/Engine/PersonnelEngineDirectory.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.35" />
+  </ItemGroup>
+
+</Project>

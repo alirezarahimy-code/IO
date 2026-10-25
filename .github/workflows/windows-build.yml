@@ -2,8 +2,10 @@ name: windows-build
 
 # The rewrite targets .NET Framework 4.7.2 + IIS + SQL Server, and none of that exists
 # on the Linux machine where the code is written. This workflow is that Windows machine:
-# it compiles with MSBuild, runs the 35-test suite, and proves the database scripts
+# it compiles with MSBuild, runs the 43-test suite, and proves the database scripts
 # against a real SQL Server engine (Express LocalDB, which the runner image already has).
+# A fourth job asks a different question - does the core compile on .NET 8? - and answers
+# it with a compiler instead of an opinion.
 #
 # It is deliberately push-triggered: a red run here is the same signal a red build on
 # the customer's server would give, only earlier.
@@ -816,3 +818,72 @@ jobs:
             }
             throw 'SQL smoke failed'
           }
+
+  # The question "can this move to .NET 8?" is not answered by an opinion. It is
+  # answered by compiling the three lower layers against net8.0 and counting what
+  # breaks. Runs on Linux on purpose: if the core needs Windows APIs, the port is
+  # bigger than it looks, and this job says so before anyone plans a sprint around it.
+  net8-spike:
+    name: Portability - the core on .NET 8
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      # The claim under test, measured rather than remembered.
+      - name: Count what couples the core to .NET Framework
+        shell: bash
+        run: |
+          set -eu
+          core=$(find src/T5Web/T5Web.Domain src/T5Web/T5Web.Application src/T5Web/T5Web.Data -name '*.cs' -not -path '*/obj/*' | wc -l)
+          engine=$(grep -rl --include='*.cs' -E '^using (Personnel|T5V3)\.' src/T5Web/T5Web.Domain src/T5Web/T5Web.Application src/T5Web/T5Web.Data | wc -l)
+          web=$(grep -rl --include='*.cs' '^using System\.Web' src/T5Web/T5Web.Domain src/T5Web/T5Web.Application src/T5Web/T5Web.Data | wc -l)
+          config=$(grep -rl --include='*.cs' 'System\.Configuration' src/T5Web/T5Web.Domain src/T5Web/T5Web.Application src/T5Web/T5Web.Data | wc -l)
+          echo "  core files            : $core"
+          echo "  use the engine (x86)  : $engine"
+          echo "  use System.Web        : $web"
+          echo "  use System.Configuration : $config"
+          echo "::notice::NET8 coupling | core files $core | engine-coupled $engine | System.Web $web | System.Configuration $config"
+          if [ "$engine" -ne 1 ]; then
+            echo "::error::exactly one core file is expected to need the engine; found $engine. The net8 build below excludes that file by name, so a second one would be silently dropped."
+            exit 1
+          fi
+          if [ "$web" -ne 0 ] || [ "$config" -ne 0 ]; then
+            echo "::error::the core must stay free of System.Web and System.Configuration, or a .NET 8 port inherits the whole web stack"
+            exit 1
+          fi
+
+      - name: Build the core for net8.0
+        shell: bash
+        run: |
+          set -o pipefail
+          # Every error, then the counts: "how far from compiling" should be a number.
+          dotnet build src/T5Web/spike/net8/Net8Spike.csproj -c Release -v minimal 2>&1 | tee build.log
+          status=${PIPESTATUS[0]}
+          errors=$(grep -cE ': error ' build.log || true)
+          warnings=$(grep -cE ': warning ' build.log || true)
+          echo "::notice::NET8 build | errors $errors | warnings $warnings"
+          if [ "$status" -ne 0 ]; then
+            echo "::error::the core does not compile on .NET 8 yet: $errors error(s). See docs/16-net8-feasibility.md."
+            grep -E ': error ' build.log | sort -u | head -20
+            exit 1
+          fi
+          echo "  PASS: Domain, Application and Data compile as net8.0 with Dapper only"
+
+      - name: Report the porting surface that remains
+        shell: bash
+        run: |
+          set -eu
+          views=$(find src/T5Web/T5Web.Web -name '*.cshtml' | wc -l)
+          controllers=$(find src/T5Web/T5Web.Web -name '*Controller.cs' | wc -l)
+          systemweb=$(grep -rl --include='*.cs' '^using System\.Web' src/T5Web/T5Web.Web | wc -l)
+          cs=$(find src/T5Web/T5Web.Web -name '*.cs' -not -path '*/obj/*' | wc -l)
+          echo "  web .cs files         : $cs"
+          echo "  of which System.Web   : $systemweb"
+          echo "  controllers           : $controllers"
+          echo "  Razor views           : $views"
+          echo "::notice::NET8 web surface | controllers $controllers | views $views | System.Web files $systemweb/$cs"
