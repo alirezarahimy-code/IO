@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>پرسنل · T5Web Admin</title>
+    <link rel="stylesheet" href="../T5Web.Web/Content/t5web-admin.css" />
+    <script src="../T5Web.Web/Content/t5web-admin.js" defer></script>
+</head>
+<body>
+<div class="shell">
+    <nav class="rail">
+        <div class="rail__brand">
+            <b>کنسول مدیریت T5Web</b>
+            <span>ADMIN CONSOLE · v5</span>
+        </div>
+        <a href="dashboard.html">داشبورد</a>
+        <a href="personnel.html" class="is-active">پرسنل</a>
+        <a href="department.html">چارت سازمانی</a>
+        <a href="devices.html">دستگاه‌ها</a>
+        <a href="access.html">دسترسی‌ها</a>
+        <a href="diagnostics.html">پایش و رخدادها</a>
+        <div class="rail__foot">
+            <div>مریم کاظمی</div>
+            <div class="mono">1001</div>
+            <div class="u-mt6">ورود با حساب ویندوز</div>
+        </div>
+    </nav>
+
+    <div class="main">
+        <header class="topbar">
+            <h1>پرسنل</h1>
+            <div class="who"><b>مریم کاظمی</b><span> · مدیر فناوری اطلاعات</span></div>
+        </header>
+
+        <main class="content">
+            <form class="toolbar" method="get" action="personnel.html">
+                <div class="field">
+                    <label for="term">جست‌وجو</label>
+                    <input type="text" id="term" name="term" placeholder="نام، شماره پرسنلی یا کد ملی" />
+                </div>
+                <div class="field">
+                    <label for="departmentId">واحد سازمانی</label>
+                    <select id="departmentId" name="departmentId" data-autosubmit="true">
+                        <option value="">همه واحدها</option>
+                        <option value="10" selected>ستاد</option>
+                        <option value="11">فناوری اطلاعات</option>
+                        <option value="12">مالی</option>
+                        <option value="20">کارگاه تولید</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="includeFormer">پرسنل پایان‌یافته</label>
+                    <select id="includeFormer" name="includeFormer" data-autosubmit="true">
+                        <option value="false" selected>نمایش داده نشود</option>
+                        <option value="true">نمایش داده شود</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn--primary">اعمال</button>
+            </form>
+
+            <div class="panel">
+                <div class="panel__head">
+                    <h2>فهرست پرسنل (۶ سطر)</h2>
+                    <span class="muted u-sm">مرتب‌سازی: شماره پرسنلی · صفحه ۱ از ۲۱۴</span>
+                </div>
+                <div class="u-scroll-x">
+                    <table class="grid">
+                        <thead>
+                            <tr>
+                                <th class="num">شماره</th>
+                                <th>نام و نام خانوادگی</th>
+                                <th>واحد</th>
+                                <th>نوع استخدام</th>
+                                <th class="num">کد ملی</th>
+                                <th>تلفن</th>
+                                <th>استخدام</th>
+                                <th>پرچم‌ها</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="num">1001</td>
+                                <td>مریم کاظمی</td>
+                                <td>فناوری اطلاعات</td>
+                                <td>رسمی</td>
+                                <td class="num">0079xxxx42</td>
+                                <td class="mono">021-8877-1201</td>
+                                <td class="num">1389/04/12</td>
+                                <td class="nowrap"><span class="tag tag--ok">کاربر وب</span> <span class="tag tag--mute">فعال</span></td>
+                                <td><a href="#" class="btn btn--ghost">ویرایش</a></td>
+                            </tr>
+                            <tr>
+                                <td class="num">1002</td>
+                                <td>حسین رستمی</td>
+                                <td>فناوری اطلاعات</td>
+                                <td>پیمانی</td>
+                                <td class="num">0451xxxx17</td>
+                                <td class="mono">021-8877-1202</td>
+                                <td class="num">1395/09/01</td>
+                                <td class="nowrap"><span class="tag tag--mute">کاربر وب</span> <span class="tag tag--mute">فعال</span></td>
+                                <td><a href="#" class="btn btn--ghost">ویرایش</a></td>
+                            </tr>
+                            <tr>
+                                <td class="num">1017</td>
+                                <td>زهرا امینی</td>
+                                <td>مالی</td>
+                                <td>رسمی</td>
+                                <td class="num">0091xxxx03</td>
+                                <td class="mono">021-8877-1240</td>
+                                <td class="num">1391/02/18</td>
+                                <td class="nowrap"><span class="tag tag--mute">بدون دسترسی وب</span></td>
+                                <td><a href="#" class="btn btn--ghost">ویرایش</a></td>
+                            </tr>
+                            <tr>
+                                <td class="num">1042</td>
+                                <td>علی مقدم</td>
+                                <td>کارگاه تولید</td>
+                                <td>قراردادی</td>
+                                <td class="num">2130xxxx58</td>
+                                <td class="mono">0912-114-8830</td>
+                                <td class="num">1401/07/05</td>
+                                <td class="nowrap"><span class="tag tag--mute">بدون دسترسی وب</span></td>
+                                <td><a href="#" class="btn btn--ghost">ویرایش</a></td>
+                            </tr>
+                            <tr>
+                                <td class="num">1103</td>
+                                <td>سمیرا نوری</td>
+                                <td>ستاد</td>
+                                <td>رسمی</td>
+                                <td class="num">0088xxxx91</td>
+                                <td class="mono">021-8877-1100</td>
+                                <td class="num">1387/11/22</td>
+                                <td class="nowrap"><span class="tag tag--ok">کاربر وب</span> <span class="tag tag--mute">فعال</span></td>
+                                <td><a href="#" class="btn btn--ghost">ویرایش</a></td>
+                            </tr>
+                            <tr>
+                                <td class="num">1188</td>
+                                <td>بهنام صادقی</td>
+                                <td>مالی</td>
+                                <td>پیمانی</td>
+                                <td class="num">0062xxxx74</td>
+                                <td class="mono">021-8877-1255</td>
+                                <td class="num">1393/03/09</td>
+                                <td class="nowrap"><span class="tag tag--bad">پایان‌یافته</span></td>
+                                <td><a href="#" class="btn btn--ghost">ویرایش</a></td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr><td colspan="9">ویرایش فیلدهای حساس (عکس، اثر انگشت، رمز دستگاه) در پورتال انجام نمی‌شود.</td></tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

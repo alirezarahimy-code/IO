@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>دسترسی‌ها · T5Web Admin</title>
+    <link rel="stylesheet" href="../T5Web.Web/Content/t5web-admin.css" />
+    <script src="../T5Web.Web/Content/t5web-admin.js" defer></script>
+</head>
+<body>
+<div class="shell">
+    <nav class="rail">
+        <div class="rail__brand">
+            <b>کنسول مدیریت T5Web</b>
+            <span>ADMIN CONSOLE · v5</span>
+        </div>
+        <a href="dashboard.html">داشبورد</a>
+        <a href="personnel.html">پرسنل</a>
+        <a href="department.html">چارت سازمانی</a>
+        <a href="devices.html">دستگاه‌ها</a>
+        <a href="access.html" class="is-active">دسترسی‌ها</a>
+        <a href="diagnostics.html">پایش و رخدادها</a>
+        <div class="rail__foot">
+            <div>مریم کاظمی</div>
+            <div class="mono">1001</div>
+            <div class="u-mt6">ورود با حساب ویندوز</div>
+        </div>
+    </nav>
+
+    <div class="main">
+        <header class="topbar">
+            <h1>دسترسی‌ها</h1>
+            <div class="who"><b>مریم کاظمی</b><span> · مدیر فناوری اطلاعات</span></div>
+        </header>
+
+        <main class="content">
+            <div class="notice notice--info">
+                کاربر جاری: <b>مریم کاظمی</b> (۱۰۰۱) — «ممنوع» همیشه برنده است و پیش‌فرض هر قابلیت، ممنوع.
+                <span class="muted u-sm">ممنوع پیش‌فرض است و ذخیره نمی‌شود</span>
+            </div>
+
+            <div class="panel u-mt14">
+                <div class="panel__head">
+                    <h2>ماتریس دسترسی</h2>
+                    <span class="muted u-sm">۹ کاربر وب · ۴۶ سطر دسترسی</span>
+                </div>
+                <div class="panel__body u-scroll-x">
+                    <table class="matrix">
+                        <thead>
+                            <tr>
+                                <th class="u-w240">قابلیت</th>
+                                <th class="u-w180">ماژول</th>
+                                <th class="u-w180">سطح</th>
+                                <th>آخرین تغییر</th>
+                                <th>یادداشت</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>مشاهده داشبورد</td>
+                                <td class="muted">داشبورد</td>
+                                <td><select data-autosubmit="true" data-level="2"><option data-level="0">ممنوع</option><option data-level="1">فقط خواندن</option><option data-level="2" selected>اجازه</option></select></td>
+                                <td class="mono">1404/07/28 · m.kazemi</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>مشاهده پرسنل</td>
+                                <td class="muted">پرسنل</td>
+                                <td><select data-autosubmit="true" data-level="2"><option data-level="0">ممنوع</option><option data-level="1">فقط خواندن</option><option data-level="2" selected>اجازه</option></select></td>
+                                <td class="mono">1404/07/28 · m.kazemi</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>ویرایش پرسنل</td>
+                                <td class="muted">پرسنل</td>
+                                <td><select data-autosubmit="true" data-level="1"><option data-level="0">ممنوع</option><option data-level="1" selected>فقط خواندن</option><option data-level="2">اجازه</option></select></td>
+                                <td class="mono">1404/07/28 · m.kazemi</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>چارت سازمانی</td>
+                                <td class="muted">سازمان</td>
+                                <td><select data-autosubmit="true" data-level="1"><option data-level="0">ممنوع</option><option data-level="1" selected>فقط خواندن</option><option data-level="2">اجازه</option></select></td>
+                                <td class="mono">1404/07/28 · m.kazemi</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>ویرایش چارت</td>
+                                <td class="muted">سازمان</td>
+                                <td><select data-autosubmit="true" data-level="2"><option data-level="0">ممنوع</option><option data-level="1">فقط خواندن</option><option data-level="2" selected>اجازه</option></select></td>
+                                <td class="mono">1404/07/28 · m.kazemi</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>مدیریت دستگاه</td>
+                                <td class="muted">دستگاه</td>
+                                <td><select data-autosubmit="true" data-level="0"><option data-level="0" selected>ممنوع</option><option data-level="1">فقط خواندن</option><option data-level="2">اجازه</option></select></td>
+                                <td class="mono">1404/07/28 · m.kazemi</td>
+                                <td><span class="tag tag--mute">بدون سابقه</span></td>
+                            </tr>
+                            <tr>
+                                <td>عملیات دستگاه</td>
+                                <td class="muted">دستگاه</td>
+                                <td><select data-autosubmit="true" data-level="1"><option data-level="0">ممنوع</option><option data-level="1" selected>فقط خواندن</option><option data-level="2">اجازه</option></select></td>
+                                <td class="mono">1404/07/28 · m.kazemi</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>ماتریس دسترسی</td>
+                                <td class="muted">امنیت</td>
+                                <td><select data-autosubmit="true" data-level="0"><option data-level="0" selected>ممنوع</option><option data-level="1">فقط خواندن</option><option data-level="2">اجازه</option></select></td>
+                                <td class="mono">1404/07/28 · m.kazemi</td>
+                                <td><span class="tag tag--mute">بدون سابقه</span></td>
+                            </tr>
+                            <tr>
+                                <td>مشاهده رخدادها</td>
+                                <td class="muted">امنیت</td>
+                                <td><select data-autosubmit="true" data-level="2"><option data-level="0">ممنوع</option><option data-level="1">فقط خواندن</option><option data-level="2" selected>اجازه</option></select></td>
+                                <td class="mono">1404/07/28 · m.kazemi</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td>گردش کار</td>
+                                <td class="muted">قواعد</td>
+                                <td><select data-autosubmit="true" data-level="1"><option data-level="0">ممنوع</option><option data-level="1" selected>فقط خواندن</option><option data-level="2">اجازه</option></select></td>
+                                <td class="mono">1404/07/28 · m.kazemi</td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr><td colspan="5">آخرین ادمین پورتال را نمی‌توان غیرفعال کرد؛ آزمون <span class="mono">T03</span> نگهبان این قاعده است.</td></tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

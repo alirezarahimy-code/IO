@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>پایش و رخدادها · T5Web Admin</title>
+    <link rel="stylesheet" href="../T5Web.Web/Content/t5web-admin.css" />
+    <script src="../T5Web.Web/Content/t5web-admin.js" defer></script>
+</head>
+<body>
+<div class="shell">
+    <nav class="rail">
+        <div class="rail__brand">
+            <b>کنسول مدیریت T5Web</b>
+            <span>ADMIN CONSOLE · v5</span>
+        </div>
+        <a href="dashboard.html">داشبورد</a>
+        <a href="personnel.html">پرسنل</a>
+        <a href="department.html">چارت سازمانی</a>
+        <a href="devices.html">دستگاه‌ها</a>
+        <a href="access.html">دسترسی‌ها</a>
+        <a href="diagnostics.html" class="is-active">پایش و رخدادها</a>
+        <div class="rail__foot">
+            <div>مریم کاظمی</div>
+            <div class="mono">1001</div>
+            <div class="u-mt6">ورود با حساب ویندوز</div>
+        </div>
+    </nav>
+
+    <div class="main">
+        <header class="topbar">
+            <h1>پایش و رخدادها</h1>
+            <div class="who"><b>مریم کاظمی</b><span> · مدیر فناوری اطلاعات</span></div>
+        </header>
+
+        <main class="content">
+            <div class="panel">
+                <div class="panel__head"><h2>وضعیت سامانه</h2></div>
+                <table class="grid">
+                    <thead><tr><th>مورد</th><th>مقدار</th><th>وضعیت</th></tr></thead>
+                    <tbody>
+                        <tr><td>نسخه موتور قفل‌شده</td><td class="mono">t5web-3.5.7</td><td><span class="tag tag--ok">مطابق</span></td></tr>
+                        <tr><td>فهرست اسکیما</td><td class="mono">129 tables · 1008 columns</td><td><span class="tag tag--ok">به‌روز</span></td></tr>
+                        <tr><td>دایرکتوری موتور</td><td class="mono">Personnel.DB.DepartmentDA / TitleChartDA / EmpTypeDA / DeviceDA</td><td><span class="tag tag--ok">فعال</span></td></tr>
+                        <tr><td>پایگاه‌داده</td><td class="mono">ReportT5V3 / Personnel</td><td><span class="tag tag--ok">متصل</span></td></tr>
+                        <tr><td>احراز هویت</td><td>Windows / Negotiate</td><td><span class="tag tag--ok">فعال</span></td></tr>
+                        <tr><td>تماس بیرونی</td><td class="mono">0 request</td><td><span class="tag tag--ok">صفر</span></td></tr>
+                        <tr><td>قفل سخت‌افزاری</td><td class="mono">TINYLib · —</td><td><span class="tag tag--mute">حذف‌شده (Zero-Lock)</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="panel">
+                <div class="panel__head"><h2>گیت‌های بیلد</h2></div>
+                <table class="grid">
+                    <thead><tr><th class="num">#</th><th>گیت</th><th>ابزار</th><th>نتیجه</th></tr></thead>
+                    <tbody>
+                        <tr><td class="num">1</td><td>قفل نسخه موتور</td><td class="mono">verify-engine-pin.py --check</td><td><span class="tag tag--ok">سبز</span></td></tr>
+                        <tr><td class="num">2</td><td>فهرست اسکیما</td><td class="mono">build-schema-manifest.py --check</td><td><span class="tag tag--ok">سبز</span></td></tr>
+                        <tr><td class="num">3</td><td>انطباق SQL</td><td class="mono">verify-sql-schema.py</td><td><span class="tag tag--ok">سبز</span></td></tr>
+                        <tr><td class="num">4</td><td>بازبینی C#</td><td class="mono">lint-csharp.py</td><td><span class="tag tag--ok">سبز</span></td></tr>
+                        <tr><td class="num">5</td><td>قرارداد مدل موتور</td><td class="mono">engine-model-contract.py --check</td><td><span class="tag tag--ok">سبز</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="panel">
+                <div class="panel__head"><h2>رخدادها</h2></div>
+                <table class="grid">
+                    <thead><tr><th class="num">شناسه</th><th>زمان</th><th>کاربر</th><th>اقدام</th><th>هش (۶ نویسه)</th></tr></thead>
+                    <tbody>
+                        <tr><td class="num">914</td><td class="num">1404/08/03 08:41</td><td>m.kazemi</td><td>ویرایش پرسنل</td><td class="mono">9f2c41</td></tr>
+                        <tr><td class="num">913</td><td class="num">1404/08/03 08:33</td><td>m.kazemi</td><td>تغییر سطح دسترسی</td><td class="mono">5be0d7</td></tr>
+                        <tr><td class="num">912</td><td class="num">1404/08/02 17:05</td><td>h.rostami</td><td>ویرایش دستگاه</td><td class="mono">c31a08</td></tr>
+                    </tbody>
+                    <tfoot><tr><td colspan="5">زنجیره هش: هر سطر هش سطر قبلی را در خود دارد؛ تغییر یک سطر، همه سطرهای بعدی را نامعتبر می‌کند.</td></tr></tfoot>
+                </table>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

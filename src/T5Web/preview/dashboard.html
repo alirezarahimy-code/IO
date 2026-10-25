@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>داشبورد عملیاتی · T5Web Admin</title>
+    <link rel="stylesheet" href="../T5Web.Web/Content/t5web-admin.css" />
+    <script src="../T5Web.Web/Content/t5web-admin.js" defer></script>
+</head>
+<body>
+<div class="shell">
+    <nav class="rail">
+        <div class="rail__brand">
+            <b>کنسول مدیریت T5Web</b>
+            <span>ADMIN CONSOLE · v5</span>
+        </div>
+        <a href="dashboard.html" class="is-active">داشبورد</a>
+        <a href="personnel.html">پرسنل</a>
+        <a href="department.html">چارت سازمانی</a>
+        <a href="devices.html">دستگاه‌ها</a>
+        <a href="access.html">دسترسی‌ها</a>
+        <a href="diagnostics.html">پایش و رخدادها</a>
+        <div class="rail__foot">
+            <div>مریم کاظمی</div>
+            <div class="mono">1001</div>
+            <div class="u-mt6">ورود با حساب ویندوز</div>
+        </div>
+    </nav>
+
+    <div class="main">
+        <header class="topbar">
+            <h1>داشبورد عملیاتی</h1>
+            <div class="who"><b>مریم کاظمی</b><span> · مدیر فناوری اطلاعات</span></div>
+        </header>
+
+        <main class="content">
+            <div class="notice notice--info">
+                پیش‌نمایش ثابت — داده‌های این صفحه نمونه است و از هیچ پایگاه‌داده‌ای خوانده نمی‌شود.
+                همین فایل CSS و JS را خود پورتال سرو می‌کند.
+            </div>
+
+            <div class="kpis u-mt14">
+                <div class="kpi">
+                    <div class="kpi__label">پرسنل ثبت‌شده</div>
+                    <div class="kpi__value">1,284</div>
+                    <div class="kpi__note">از این تعداد ۳۱ نفر پایان‌یافته</div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi__label">واحد سازمانی</div>
+                    <div class="kpi__value">27</div>
+                    <div class="kpi__note">عمق چارت: ۴ سطح</div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi__label">دستگاه‌ها</div>
+                    <div class="kpi__value">12</div>
+                    <div class="kpi__note"><span class="tag tag--warn">1 دستگاه بدون تردد بیش از ۲۴ ساعت</span></div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi__label">مراحل گردش کار</div>
+                    <div class="kpi__value">19</div>
+                    <div class="kpi__note">در ۵ نوع درخواست</div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi__label">سطرهای دسترسی</div>
+                    <div class="kpi__value">46</div>
+                    <div class="kpi__note">۹ کاربر وب فعال</div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel__head">
+                    <h2>وضعیت دستگاه‌ها</h2>
+                    <a href="devices.html" class="btn btn--ghost">همه دستگاه‌ها</a>
+                </div>
+                <table class="grid">
+                    <thead>
+                        <tr>
+                            <th class="num">شماره</th>
+                            <th>نام دستگاه</th>
+                            <th>درب</th>
+                            <th>اتصال</th>
+                            <th>آخرین تردد</th>
+                            <th>وضعیت</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="num">1</td>
+                            <td>ورودی اصلی</td>
+                            <td>درب شمالی</td>
+                            <td class="mono">192.168.10.201:4370</td>
+                            <td class="num">1404/08/03 07:12</td>
+                            <td><span class="tag tag--ok"><span class="dot dot--ok"></span>سالم</span></td>
+                        </tr>
+                        <tr>
+                            <td class="num">2</td>
+                            <td>ورودی کارگاه</td>
+                            <td>درب جنوبی</td>
+                            <td class="mono">192.168.10.202:4370</td>
+                            <td class="num">1404/08/03 07:04</td>
+                            <td><span class="tag tag--ok"><span class="dot dot--ok"></span>سالم</span></td>
+                        </tr>
+                        <tr>
+                            <td class="num">7</td>
+                            <td>انبار قطعات</td>
+                            <td>انبار مرکزی</td>
+                            <td class="mono">COM3 · 57600</td>
+                            <td class="num">1404/08/01 16:40</td>
+                            <td><span class="tag tag--warn"><span class="dot dot--warn"></span>بدون تردد</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="panel">
+                <div class="panel__head">
+                    <h2>آخرین رخدادهای پورتال</h2>
+                    <a href="diagnostics.html" class="btn btn--ghost">همه رخدادها</a>
+                </div>
+                <table class="grid">
+                    <thead>
+                        <tr>
+                            <th class="num">شناسه</th>
+                            <th>زمان</th>
+                            <th>کاربر</th>
+                            <th>اقدام</th>
+                            <th>موضوع</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="num">914</td><td class="num">1404/08/03 08:41</td><td>m.kazemi</td><td>ویرایش پرسنل</td><td class="mono">UserInfo#1187</td></tr>
+                        <tr><td class="num">913</td><td class="num">1404/08/03 08:33</td><td>m.kazemi</td><td>تغییر سطح دسترسی</td><td class="mono">T5WebAccess#46</td></tr>
+                        <tr><td class="num">912</td><td class="num">1404/08/02 17:05</td><td>h.rostami</td><td>ویرایش دستگاه</td><td class="mono">Device#7</td></tr>
+                    </tbody>
+                    <tfoot>
+                        <tr><td colspan="5">زنجیره هش سالم است تا رخداد ۹۱۴.</td></tr>
+                    </tfoot>
+                </table>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

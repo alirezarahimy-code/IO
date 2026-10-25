@@ -4,6 +4,7 @@ using System.Data;
 using System.Globalization;
 using System.Linq;
 using Dapper;
+using T5Web.Data.Engine;
 using T5Web.Domain;
 using T5Web.Domain.Interfaces;
 using T5Web.Domain.Models;
@@ -27,14 +28,29 @@ namespace T5Web.Data
     public sealed class SqlAdminRepository : IAdminRepository
     {
         private readonly Func<IDbConnection> _connectionFactory;
+        private readonly IEngineDirectory _engine;
 
-        public SqlAdminRepository(Func<IDbConnection> connectionFactory)
+        /// <param name="connectionFactory">Opens the shared T5 connection.</param>
+        /// <param name="engine">
+        /// Organisational master data source. When supplied (the production path), the
+        /// four read paths below delegate to the engine's own DA layer; when null, the
+        /// SQL fallback is used. See Engine/PersonnelEngineDirectory.cs for why reads
+        /// delegate and writes do not.
+        /// </param>
+        public SqlAdminRepository(Func<IDbConnection> connectionFactory, IEngineDirectory engine = null)
         {
             if (connectionFactory == null)
             {
                 throw new ArgumentNullException(nameof(connectionFactory));
             }
             _connectionFactory = connectionFactory;
+            _engine = engine;
+        }
+
+        /// <summary>True when reads are served by the engine's data-access layer.</summary>
+        public bool UsesEngineDirectory
+        {
+            get { return _engine != null; }
         }
 
         private IDbConnection Open()
@@ -112,6 +128,20 @@ WHERE (@BadgeNumber <= 0 OR p.[BadgeNumber] = @BadgeNumber);";
 
         public IReadOnlyList<DepartmentNode> GetDepartments()
         {
+            if (_engine != null)
+            {
+                // Member counts are a portal concern, so they are added here instead of
+                // asking the engine DA to count rows it does not model.
+                IReadOnlyList<DepartmentNode> engineRows = _engine.GetDepartments();
+                var counts = CountMembersByDepartment();
+                foreach (DepartmentNode node in engineRows)
+                {
+                    int count;
+                    node.MemberCount = counts.TryGetValue(node.DepartmentId, out count) ? count : 0;
+                }
+                return engineRows;
+            }
+
             const string sql = @"
 SELECT d.[DepartmentID] AS DepartmentId,
        d.[UpperDeptID] AS UpperDeptId,
@@ -128,6 +158,11 @@ ORDER BY d.[DepartmentName];";
 
         public IReadOnlyList<TitleNode> GetTitles()
         {
+            if (_engine != null)
+            {
+                return _engine.GetTitles();
+            }
+
             const string sql = @"
 SELECT t.[TitleID] AS TitleId,
        t.[UpperTitleID] AS UpperTitleId,
@@ -161,6 +196,11 @@ ORDER BY g.[GateName];";
 
         public IReadOnlyList<KeyValuePair<int, string>> GetEmpTypes()
         {
+            if (_engine != null)
+            {
+                return _engine.GetEmpTypes();
+            }
+
             const string sql = @"
 SELECT e.[EmpTypeID] AS EmpTypeId, ISNULL(e.[EmpTypeName], N'') AS EmpTypeName
 FROM [EmpType] e
@@ -193,6 +233,26 @@ UPDATE [Department] SET [UpperDeptID] = @NewParentId WHERE [DepartmentID] = @Dep
             {
                 return OperationResult.Fail("جابه‌جایی واحد ناموفق بود: " + ex.Message);
             }
+        }
+
+        private Dictionary<int, int> CountMembersByDepartment()
+        {
+            const string sql = @"
+SELECT [DeptID] AS DeptId, COUNT(1) AS MemberCount
+FROM [UserInfo]
+GROUP BY [DeptID];";
+
+            using (IDbConnection connection = Open())
+            {
+                return connection.Query<DeptCountRecord>(sql)
+                    .ToDictionary(r => r.DeptId, r => r.MemberCount);
+            }
+        }
+
+        private sealed class DeptCountRecord
+        {
+            public int DeptId { get; set; }
+            public int MemberCount { get; set; }
         }
 
         // --------------------------------------------------------------- personnel
@@ -314,6 +374,16 @@ WHERE [BadgeNumber] = @BadgeNumber;";
 
         public IReadOnlyList<DeviceRow> GetDevices(int? gateId)
         {
+            if (_engine != null)
+            {
+                IReadOnlyList<DeviceRow> all = _engine.GetDevices();
+                if (!gateId.HasValue || gateId.Value <= 0)
+                {
+                    return all;
+                }
+                return all.Where(d => d.GateId == gateId.Value).ToList();
+            }
+
             const string sql = @"
 SELECT d.[MachineNumber] AS MachineNumber,
        d.[MachineName] AS MachineName,

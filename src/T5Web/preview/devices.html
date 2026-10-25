@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>دستگاه‌ها · T5Web Admin</title>
+    <link rel="stylesheet" href="../T5Web.Web/Content/t5web-admin.css" />
+    <script src="../T5Web.Web/Content/t5web-admin.js" defer></script>
+</head>
+<body>
+<div class="shell">
+    <nav class="rail">
+        <div class="rail__brand">
+            <b>کنسول مدیریت T5Web</b>
+            <span>ADMIN CONSOLE · v5</span>
+        </div>
+        <a href="dashboard.html">داشبورد</a>
+        <a href="personnel.html">پرسنل</a>
+        <a href="department.html">چارت سازمانی</a>
+        <a href="devices.html" class="is-active">دستگاه‌ها</a>
+        <a href="access.html">دسترسی‌ها</a>
+        <a href="diagnostics.html">پایش و رخدادها</a>
+        <div class="rail__foot">
+            <div>مریم کاظمی</div>
+            <div class="mono">1001</div>
+            <div class="u-mt6">ورود با حساب ویندوز</div>
+        </div>
+    </nav>
+
+    <div class="main">
+        <header class="topbar">
+            <h1>دستگاه‌ها</h1>
+            <div class="who"><b>مریم کاظمی</b><span> · مدیر فناوری اطلاعات</span></div>
+        </header>
+
+        <main class="content">
+            <div class="kpis">
+                <div class="kpi"><div class="kpi__label">دستگاه</div><div class="kpi__value">12</div></div>
+                <div class="kpi"><div class="kpi__label">درب</div><div class="kpi__value">5</div></div>
+                <div class="kpi"><div class="kpi__label">بدون تردد</div><div class="kpi__value">1</div></div>
+                <div class="kpi"><div class="kpi__label">آخرین همگام‌سازی</div><div class="kpi__value">07:12</div></div>
+            </div>
+
+            <div class="panel">
+                <div class="panel__head">
+                    <h2>دستگاه‌ها</h2>
+                    <a href="#new" class="btn btn--ghost">افزودن دستگاه</a>
+                </div>
+                <div class="u-scroll-x">
+                    <table class="grid">
+                        <thead>
+                            <tr>
+                                <th class="num">شماره</th>
+                                <th>نام</th>
+                                <th>درب</th>
+                                <th>اتصال</th>
+                                <th>آدرس</th>
+                                <th class="num">آخرین تردد</th>
+                                <th>وضعیت</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td class="num">1</td><td>ورودی اصلی</td><td>درب شمالی</td><td>شبکه (TCP)</td><td class="mono">192.168.10.201:4370</td><td class="num">1404/08/03 07:12</td><td><span class="tag tag--ok">سالم</span></td></tr>
+                            <tr><td class="num">2</td><td>ورودی کارگاه</td><td>درب جنوبی</td><td>شبکه (TCP)</td><td class="mono">192.168.10.202:4370</td><td class="num">1404/08/03 07:04</td><td><span class="tag tag--ok">سالم</span></td></tr>
+                            <tr><td class="num">3</td><td>درب اداری</td><td>درب شمالی</td><td>شبکه (TCP)</td><td class="mono">192.168.10.203:4370</td><td class="num">1404/08/03 06:58</td><td><span class="tag tag--ok">سالم</span></td></tr>
+                            <tr><td class="num">7</td><td>انبار قطعات</td><td>انبار مرکزی</td><td>سریال (RS-232)</td><td class="mono">COM3 · 57600</td><td class="num">1404/08/01 16:40</td><td><span class="tag tag--warn">بدون تردد</span></td></tr>
+                            <tr><td class="num">9</td><td>درب اضطراری</td><td>درب شرقی</td><td>شبکه (TCP)</td><td class="mono">192.168.10.209:4370</td><td class="num">1404/08/02 22:31</td><td><span class="tag tag--mute">غیرفعال</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel__head"><h2>پیکربندی دستگاه</h2></div>
+                <div class="panel__body">
+                    <form class="form-grid" method="post" action="#" data-confirm="true">
+                        <div class="field">
+                            <label for="machineNumber">شماره دستگاه</label>
+                            <input type="number" id="machineNumber" value="1" readonly />
+                        </div>
+                        <div class="field">
+                            <label for="machineName">نام دستگاه</label>
+                            <input type="text" id="machineName" value="ورودی اصلی" />
+                        </div>
+                        <div class="field">
+                            <label for="gate">درب</label>
+                            <select id="gate"><option selected>درب شمالی</option><option>درب جنوبی</option><option>انبار مرکزی</option></select>
+                        </div>
+                        <div class="field">
+                            <label for="conn">نوع اتصال</label>
+                            <select id="conn" data-autosubmit="true"><option selected>شبکه (TCP)</option><option>سریال (RS-232)</option><option>USB</option></select>
+                        </div>
+                        <div class="field">
+                            <label for="ip">نشانی IP</label>
+                            <input type="text" id="ip" value="192.168.10.201" />
+                        </div>
+                        <div class="field">
+                            <label for="port">درگاه</label>
+                            <input type="number" id="port" value="4370" />
+                        </div>
+                        <div class="field">
+                            <span class="check"><input type="checkbox" id="push" checked /> <label for="push">ارسال خودکار تردد (Push)</label></span>
+                        </div>
+                        <div class="u-row">
+                            <button type="submit" class="btn btn--primary">ذخیره</button>
+                            <a href="diagnostics.html" class="btn">آزمون اتصال</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

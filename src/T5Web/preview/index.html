@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>پیش‌نمایش T5Web Admin</title>
+    <link rel="stylesheet" href="../T5Web.Web/Content/t5web-admin.css" />
+    <script src="../T5Web.Web/Content/t5web-admin.js" defer></script>
+</head>
+<body>
+<div class="shell">
+    <nav class="rail">
+        <div class="rail__brand">
+            <b>کنسول مدیریت T5Web</b>
+            <span>ADMIN CONSOLE · v5</span>
+        </div>
+        <a href="index.html" class="is-active">راهنمای پیش‌نمایش</a>
+        <a href="dashboard.html">داشبورد</a>
+        <a href="personnel.html">پرسنل</a>
+        <a href="department.html">چارت سازمانی</a>
+        <a href="devices.html">دستگاه‌ها</a>
+        <a href="access.html">دسترسی‌ها</a>
+        <a href="diagnostics.html">پایش و رخدادها</a>
+        <div class="rail__foot">
+            <div>پیش‌نمایش آفلاین</div>
+            <div class="mono">static · no DB</div>
+        </div>
+    </nav>
+
+    <div class="main">
+        <header class="topbar">
+            <h1>پیش‌نمایش بازنویسی پورتال T5Web</h1>
+            <div class="who"><b>فاز ۱ تا ۴</b><span> · ۶ صفحه</span></div>
+        </header>
+
+        <main class="content">
+            <div class="notice notice--info">
+                این پیش‌نمایش از همان <span class="mono">t5web-admin.css</span> و
+                <span class="mono">t5web-admin.js</span> خودِ پورتال استفاده می‌کند و هیچ داده‌ای
+                از پایگاه‌داده نمی‌خواند. هدف: بازبینی ظاهر و چیدمان پیش از بیلد .NET روی ویندوز.
+            </div>
+
+            <div class="kpis u-mt14">
+                <div class="kpi"><div class="kpi__label">فاز انجام‌شده</div><div class="kpi__value">4 / 5</div><div class="kpi__note">فاز ۵ در جریان</div></div>
+                <div class="kpi"><div class="kpi__label">کنترلر قدیمی پوشش‌داده‌شده</div><div class="kpi__value">64 / 64</div><div class="kpi__note">۱۲ پیاده‌شده · ۴۳ برنامه‌ریزی‌شده · ۹ حذف مستند</div></div>
+                <div class="kpi"><div class="kpi__label">آزمون</div><div class="kpi__value">14</div><div class="kpi__note">T01 … T14</div></div>
+                <div class="kpi"><div class="kpi__label">عیب ثبت‌شده</div><div class="kpi__value">17</div><div class="kpi__note">هر عیب یک آزمون رگرسیون</div></div>
+                <div class="kpi"><div class="kpi__label">منبع بیرونی در UI</div><div class="kpi__value">0</div><div class="kpi__note">بدون CDN، فونت وب، آیکون‌فونت</div></div>
+            </div>
+
+            <div class="panel">
+                <div class="panel__head"><h2>صفحه‌های پیش‌نمایش</h2></div>
+                <table class="grid">
+                    <thead><tr><th>صفحه</th><th>نمای متناظر در پورتال</th><th>آنچه نشان می‌دهد</th></tr></thead>
+                    <tbody>
+                        <tr><td><a href="dashboard.html">داشبورد</a></td><td class="mono">Views/Dashboard/Index.cshtml</td><td>شمارش‌های عملیاتی، وضعیت دستگاه‌ها، آخرین رخدادها</td></tr>
+                        <tr><td><a href="personnel.html">پرسنل</a></td><td class="mono">Views/Personnel/Index.cshtml</td><td>نوار جست‌وجو، جدول فشرده، پرچم‌های وضعیت</td></tr>
+                        <tr><td><a href="department.html">چارت سازمانی</a></td><td class="mono">Views/Department/Index.cshtml</td><td>درخت تورفته، انتقال واحد با فرم درون‌خطی</td></tr>
+                        <tr><td><a href="devices.html">دستگاه‌ها</a></td><td class="mono">Views/Device/Index.cshtml · Edit.cshtml</td><td>فهرست دستگاه و پیکربندی اتصال</td></tr>
+                        <tr><td><a href="access.html">دسترسی‌ها</a></td><td class="mono">Views/Access/Index.cshtml</td><td>ماتریس قابلیت/سطح با رنگ‌بندی معنا‌دار</td></tr>
+                        <tr><td><a href="diagnostics.html">پایش</a></td><td class="mono">Views/Diagnostics/Index.cshtml</td><td>وضعیت موتور، گیت‌های بیلد، زنجیره حسابرسی</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="panel">
+                <div class="panel__head"><h2>قرارداد ظاهری (چکیده)</h2></div>
+                <div class="panel__body">
+                    <ul class="tree">
+                        <li><div class="tree__row"><span class="tree__name">پالت</span><span class="tree__meta">paper #f4f2ec · steel #26333f · teal #0f7a76</span></div></li>
+                        <li><div class="tree__row"><span class="tree__name">تایپوگرافی</span><span class="tree__meta">پشته فونت سیستم · ارقام جدولی در ستون‌های عددی</span></div></li>
+                        <li><div class="tree__row"><span class="tree__name">تراکم</span><span class="tree__meta">۱۴px پایه · خطوط مویی · بدون سایه روی داده</span></div></li>
+                        <li><div class="tree__row"><span class="tree__name">رنگ</span><span class="tree__meta">فقط برای وضعیت (سبز/کهربایی/آجری)، نه تزئین</span></div></li>
+                        <li><div class="tree__row"><span class="tree__name">اسکریپت</span><span class="tree__meta">یک فایل، دو رفتار: data-autosubmit و data-confirm</span></div></li>
+                        <li><div class="tree__row"><span class="tree__name">CSP</span><span class="tree__meta">default-src 'self' · بدون unsafe-inline (نه اسکریپت، نه استایل)</span></div></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel__head"><h2>چگونه اجرا می‌شود</h2></div>
+                <div class="panel__body">
+                    <p class="muted u-xs">از ریشه <span class="mono">src/T5Web</span>:</p>
+                    <p><code class="mono">python3 preview/server.py</code> → <span class="mono">0.0.0.0:8090/preview/</span></p>
+                    <p class="muted u-xs">سرور، ریشه را خود <span class="mono">src/T5Web</span> می‌گیرد تا CSS/JS از پورتال واقعی سرو شود؛ هیچ فایلی کپی نمی‌شود.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

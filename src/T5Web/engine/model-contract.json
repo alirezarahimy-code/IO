@@ -1,0 +1,67 @@
+{
+  "description": "Engine model members consumed by the T5Web portal. Generated from the pinned engine build; do not edit by hand. Used by T14 to catch a property name that does not exist in the engine model (a class of bug that only fails at runtime).",
+  "generated_by": "tools/engine-model-contract.py",
+  "engine_build": "t5web-3.5.7",
+  "assembly": "Personnel.dll",
+  "types": {
+    "Department": {
+      "used_by": "T5Web.Data/Engine/PersonnelEngineDirectory.cs (GetDepartments)",
+      "members": [
+        "DepartmentID",
+        "Name",
+        "UpperDeptID"
+      ]
+    },
+    "Device": {
+      "used_by": "T5Web.Data/Engine/PersonnelEngineDirectory.cs (GetDevices)",
+      "members": [
+        "BaudRate",
+        "Code",
+        "CommPassword",
+        "ConnectionType",
+        "ErrorDelaySecs",
+        "GateID",
+        "GateName",
+        "IP",
+        "LastStamp",
+        "MachineName",
+        "MachineNumber",
+        "OperationLogStamp",
+        "PWType",
+        "PhotoStamp",
+        "Port",
+        "Push",
+        "RS485Number",
+        "RequestDelaySecs",
+        "SerialNumber",
+        "SerialPort",
+        "TemplateStamp",
+        "ToString",
+        "UserInfoStamp"
+      ]
+    },
+    "EmpType": {
+      "used_by": "T5Web.Data/Engine/PersonnelEngineDirectory.cs (GetEmpTypes)",
+      "members": [
+        "EmpTypeID",
+        "EmpTypeName",
+        "ToString"
+      ]
+    },
+    "TitleChart": {
+      "used_by": "T5Web.Data/Engine/PersonnelEngineDirectory.cs (GetTitles)",
+      "members": [
+        "Address",
+        "Certs",
+        "DeputyTitleIDs",
+        "DisplayName",
+        "Duties",
+        "EmailAddress",
+        "Observer",
+        "TitleID",
+        "TitleName",
+        "UpperTitleID"
+      ]
+    }
+  }
+}

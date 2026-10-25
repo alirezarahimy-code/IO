@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>چارت سازمانی · T5Web Admin</title>
+    <link rel="stylesheet" href="../T5Web.Web/Content/t5web-admin.css" />
+    <script src="../T5Web.Web/Content/t5web-admin.js" defer></script>
+</head>
+<body>
+<div class="shell">
+    <nav class="rail">
+        <div class="rail__brand">
+            <b>کنسول مدیریت T5Web</b>
+            <span>ADMIN CONSOLE · v5</span>
+        </div>
+        <a href="dashboard.html">داشبورد</a>
+        <a href="personnel.html">پرسنل</a>
+        <a href="department.html" class="is-active">چارت سازمانی</a>
+        <a href="devices.html">دستگاه‌ها</a>
+        <a href="access.html">دسترسی‌ها</a>
+        <a href="diagnostics.html">پایش و رخدادها</a>
+        <div class="rail__foot">
+            <div>مریم کاظمی</div>
+            <div class="mono">1001</div>
+            <div class="u-mt6">ورود با حساب ویندوز</div>
+        </div>
+    </nav>
+
+    <div class="main">
+        <header class="topbar">
+            <h1>چارت سازمانی</h1>
+            <div class="who"><b>مریم کاظمی</b><span> · مدیر فناوری اطلاعات</span></div>
+        </header>
+
+        <main class="content">
+            <div class="panel">
+                <div class="panel__head">
+                    <h2>ساختار واحدها</h2>
+                    <span class="muted u-sm">عمق ۴ · مجموع اعضا ۱٬۲۸۴</span>
+                </div>
+                <div class="panel__body">
+                    <ul class="tree">
+                        <li>
+                            <div class="tree__row">
+                                <span class="tree__name">ستاد</span>
+                                <span class="tree__meta">۱۰ · ۱۲۱ عضو</span>
+                                <form class="move-form" method="post" action="#" data-confirm="true">
+                                    <input class="move-form__input" type="number" name="upperDeptId" aria-label="شناسه واحد بالادست" />
+                                    <button type="submit" class="btn btn--ghost">انتقال</button>
+                                </form>
+                            </div>
+                            <ul>
+                                <li>
+                                    <div class="tree__row">
+                                        <span class="tree__name">فناوری اطلاعات</span>
+                                        <span class="tree__meta">۱۱ · ۱۴ عضو</span>
+                                        <form class="move-form" method="post" action="#" data-confirm="true">
+                                            <input class="move-form__input" type="number" name="upperDeptId" aria-label="شناسه واحد بالادست" />
+                                            <button type="submit" class="btn btn--ghost">انتقال</button>
+                                        </form>
+                                    </div>
+                                    <ul>
+                                        <li>
+                                            <div class="tree__row">
+                                                <span class="tree__name">شبکه و زیرساخت</span>
+                                                <span class="tree__meta">۱۳ · ۵ عضو</span>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="tree__row">
+                                                <span class="tree__name">نرم‌افزار</span>
+                                                <span class="tree__meta">۱۴ · ۶ عضو</span>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </li>
+                                <li>
+                                    <div class="tree__row">
+                                        <span class="tree__name">مالی</span>
+                                        <span class="tree__meta">۱۲ · ۹ عضو</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+                        <li>
+                            <div class="tree__row">
+                                <span class="tree__name">کارگاه تولید</span>
+                                <span class="tree__meta">۲۰ · ۳۸۵ عضو</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel__head"><h2>واحد جدید</h2></div>
+                <div class="panel__body">
+                    <form class="form-grid" method="post" action="#" data-confirm="true">
+                        <div class="field">
+                            <label for="deptName">نام واحد</label>
+                            <input type="text" id="deptName" name="name" />
+                        </div>
+                        <div class="field">
+                            <label for="upperDept">واحد بالادست</label>
+                            <select id="upperDept" name="upperDeptId">
+                                <option value="0">— بدون والد (ریشه) —</option>
+                                <option value="10">ستاد</option>
+                                <option value="11">فناوری اطلاعات</option>
+                                <option value="12">مالی</option>
+                                <option value="20">کارگاه تولید</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label for="deptCode">کد واحد</label>
+                            <input type="text" id="deptCode" name="code" />
+                        </div>
+                        <div class="field">
+                            <span class="check"><input type="checkbox" id="isActive" checked /> <label for="isActive">واحد فعال است</label></span>
+                        </div>
+                        <div class="u-row">
+                            <button type="submit" class="btn btn--primary">ثبت واحد</button>
+                            <button type="reset" class="btn">پاک کردن</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+</body>
+</html>

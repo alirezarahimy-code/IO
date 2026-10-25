@@ -3,10 +3,10 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     string reason = ViewData["Reason"] as string;
 }
-<div class="gate" style="border-top-color: var(--amber)">
+<div class="gate gate--warn">
     <h1>پورتال پیکربندی نشده است</h1>
     <p>@(string.IsNullOrWhiteSpace(reason) ? "رشته اتصال پایگاه‌داده در Web.config تنظیم نشده است." : reason)</p>
-    <p class="muted" style="font-size:12.5px">
+    <p class="muted u-xs">
         کلید <code>T5CnnStr</code> در <code>appSettings</code> باید به پایگاه‌داده T5 اشاره کند.
         قالب قدیمی Entity Framework نیز پذیرفته می‌شود.
     </p>

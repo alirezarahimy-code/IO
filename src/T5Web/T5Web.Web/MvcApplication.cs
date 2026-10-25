@@ -4,6 +4,7 @@ using System.Data.SqlClient;
 using System.Web.Mvc;
 using System.Web.Routing;
 using T5Web.Data;
+using T5Web.Data.Engine;
 using T5Web.Web.Security;
 
 namespace T5Web.Web
@@ -14,6 +15,13 @@ namespace T5Web.Web
     /// Two things happen here and nowhere else:
     ///   1. the connection to the shared T5 database is built once, from configuration;
     ///   2. the repository the whole portal depends on is created.
+    ///
+    /// The repository is handed the engine directory (Personnel.DB.*DA from the pinned
+    /// build) as its source of organisational master data. If those assemblies are
+    /// missing the portal still starts: the directory is simply absent and reads fall
+    /// back to the SQL path that db/schema-manifest.json verified. Losing the engine is
+    /// a degraded mode, not an outage - but it is never silent, PortalServices exposes
+    /// the mode and the diagnostics page prints it.
     ///
     /// There is no licence check, no machine binding and no outbound call: the portal
     /// runs on an isolated network, and a start-up that phones home would hang there.
@@ -37,7 +45,9 @@ namespace T5Web.Web
                     return;
                 }
 
-                PortalServices.Configure(new SqlAdminRepository(() => new SqlConnection(connectionString)));
+                var engineDirectory = new PersonnelEngineDirectory(() => connectionString);
+                PortalServices.Configure(
+                    new SqlAdminRepository(() => new SqlConnection(connectionString), engineDirectory));
             }
             catch (Exception ex)
             {

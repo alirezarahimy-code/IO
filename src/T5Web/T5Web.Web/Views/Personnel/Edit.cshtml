@@ -66,7 +66,7 @@
                 </div>
             </div>
 
-            <div class="form-grid" style="margin-top:6px">
+            <div class="form-grid u-mt6">
                 <div class="field">
                     <label>تاریخ استخدام (میلادی)</label>
                     <input type="text" name="HiredDateDisplay" value="@(Model.HiredDate.HasValue ? Model.HiredDate.Value.ToString("yyyy-MM-dd") : "")" disabled />
@@ -91,14 +91,14 @@
                 </div>
             </div>
 
-            <div class="notice notice--info" style="margin-top:14px">
+            <div class="notice notice--info u-mt14">
                 تاریخ‌ها فقط خواندنی هستند: تغییر تاریخ استخدام/پایان کار روی محاسبه مانده مرخصی اثر می‌گذارد
                 و باید از ماژول قرارداد و پایان خدمت انجام شود، نه از این فرم.
             </div>
         </div>
     </div>
 
-    <div style="display:flex; gap:10px">
+    <div class="u-row">
         <button type="submit" class="btn btn--primary">ثبت تغییرات</button>
         <a href="@Url.Action("Index", "Personnel")" class="btn">بازگشت</a>
     </div>

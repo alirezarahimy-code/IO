@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using T5Web.Application.Services;
 using T5Web.Data;
+using T5Web.Data.Engine;
 using T5Web.Domain;
 using T5Web.Domain.Models;
 
@@ -39,6 +40,8 @@ namespace T5Web.Tests
             RunTest("T11: Build gates (engine pin, manifest, SQL conformance)", TestBuildGates);
             RunTest("T12: No licence, lock or outbound dependency", TestNoLockDependency);
             RunTest("T13: Phase plan integrity (tracker, deliverables, 64/64 legacy coverage)", TestPhasePlanIntegrity);
+            RunTest("T14: Engine directory contract (model members exist, reads delegate, writes stay in SQL)", TestEngineDirectoryContract);
+            RunTest("T15: Personnel edit reloads stored fields instead of trusting the form", TestPersonnelEditTrust);
 
             Console.WriteLine("----------------------------------------------------------------------");
             Console.WriteLine($"  Summary: {_passed} Passed, {_failed} Failed");
@@ -420,7 +423,8 @@ namespace T5Web.Tests
                             token.StartsWith("kpi__", StringComparison.Ordinal) || token.StartsWith("panel__", StringComparison.Ordinal) ||
                             token.StartsWith("tree__", StringComparison.Ordinal) || token.StartsWith("rail__", StringComparison.Ordinal) ||
                             token.StartsWith("notice--", StringComparison.Ordinal) || token.StartsWith("dot--", StringComparison.Ordinal) ||
-                            token.StartsWith("move-form", StringComparison.Ordinal) || token == "is-active")
+                            token.StartsWith("move-form", StringComparison.Ordinal) || token.StartsWith("u-", StringComparison.Ordinal) ||
+                            token == "is-active")
                         {
                             used.Add(token);
                         }
@@ -429,6 +433,27 @@ namespace T5Web.Tests
             }
             var missing = used.Where(u => !defined.Contains(u)).OrderBy(u => u).ToList();
             Assert(missing.Count == 0, "unstyled classes: " + string.Join(", ", missing));
+
+            // The static preview must be built from the product's own stylesheet and must
+            // never reach for anything the product CSP would block. Otherwise the preview
+            // starts approving a look the real portal cannot reproduce.
+            string previewRoot = Path.Combine(T5WebRoot, "preview");
+            string[] previewPages = Directory.GetFiles(previewRoot, "*.html");
+            Assert(previewPages.Length >= 6, "the preview must cover the main screens, found " + previewPages.Length + " page(s).");
+            foreach (string page in previewPages)
+            {
+                string html = File.ReadAllText(page);
+                string name = Path.GetFileName(page);
+                Assert(html.Contains("../T5Web.Web/Content/t5web-admin.css"),
+                    name + " must load the product stylesheet instead of a copy.");
+                // Only attributes matter: prose may legitimately name a local URL.
+                Assert(!Regex.IsMatch(html, @"(?:src|href)=""(?:https?:)?//"),
+                    name + " references an external resource.");
+                Assert(!Regex.IsMatch(html, @"\sstyle="""), name + " uses an inline style, which the product CSP blocks.");
+                Assert(!Regex.IsMatch(html, @"\son(click|change|submit|load)="""), name + " uses an inline event handler.");
+            }
+            Assert(File.Exists(Path.Combine(previewRoot, "server.py")),
+                "preview/server.py must exist so the preview can be served offline.");
         }
 
         private static void TestRazorHygiene()
@@ -450,6 +475,12 @@ namespace T5Web.Tests
                     name + " sets a boolean HTML attribute without a null/string conditional.");
                 Assert(!Regex.IsMatch(text, @"(selected|checked)=""(True|False)"""),
                     name + " renders a literal True/False boolean attribute.");
+
+                // Inline styles are banned: the CSP is style-src 'self', so an inline
+                // style is silently ignored by the browser (BUG-17). Spacing and sizes
+                // belong in t5web-admin.css utility classes.
+                Assert(!Regex.IsMatch(text, @"\sstyle="""),
+                    name + " uses an inline style attribute, which the CSP blocks (BUG-17).");
 
                 // Every POST form must carry an anti-forgery token.
                 foreach (Match form in Regex.Matches(text, @"<form[^>]*method=""post""[^>]*>(.*?)</form>", RegexOptions.Singleline | RegexOptions.IgnoreCase))
@@ -487,6 +518,204 @@ namespace T5Web.Tests
             string webConfig = Read("T5Web.Web", "Web.config");
             Assert(webConfig.Contains("mode=\"Windows\""), "the portal must use Windows authentication.");
             Assert(webConfig.Contains("Content-Security-Policy"), "the portal must send a CSP header.");
+            // No 'unsafe-inline' for scripts or styles: that is the whole point of banning
+            // inline handlers and inline styles in T10.
+            Match csp = Regex.Match(webConfig, @"Content-Security-Policy"" value=""([^""]+)""");
+            Assert(csp.Success, "the CSP header must be a single value.");
+            Assert(!csp.Groups[1].Value.Contains("unsafe-inline"),
+                "the CSP must not allow 'unsafe-inline'.");
+            Assert(csp.Groups[1].Value.Contains("script-src 'self'") &&
+                   csp.Groups[1].Value.Contains("style-src 'self'"),
+                "the CSP must restrict scripts and styles to 'self'.");
+        }
+
+        /// <summary>
+        /// T14 - the engine directory is the portal's window onto organisational master data.
+        ///
+        /// Three properties are pinned here, all of which otherwise only fail at runtime:
+        ///   1. every engine model member the directory names exists in the pinned build
+        ///      (BUG-01..BUG-07 were exactly this mistake, one layer down);
+        ///   2. a supplied directory really serves the read without touching SQL;
+        ///   3. writes are NOT delegated - the engine's AddNew/Edit/Delete need a
+        ///      process-wide DBManager that a web process must not share.
+        /// </summary>
+        private static void TestEngineDirectoryContract()
+        {
+            string contractText = Read("engine", "model-contract.json");
+            var contract = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+            foreach (Match typeMatch in Regex.Matches(contractText, "\"(\\w+)\": \\{\\s*\"used_by\""))
+            {
+                string typeName = typeMatch.Groups[1].Value;
+                int membersStart = contractText.IndexOf("\"members\"", typeMatch.Index);
+                int membersEnd = contractText.IndexOf("]", membersStart);
+                Assert(membersStart > 0 && membersEnd > membersStart, "malformed members list for " + typeName);
+                var members = Regex.Matches(contractText.Substring(membersStart, membersEnd - membersStart), "\"([A-Za-z_][A-Za-z0-9_]*)\"")
+                    .Cast<Match>()
+                    .Select(m => m.Groups[1].Value)
+                    .Where(value => value != "members")
+                    .ToHashSet(StringComparer.Ordinal);
+                contract[typeName] = members;
+            }
+
+            foreach (string required in new[] { "Department", "TitleChart", "EmpType", "Device" })
+            {
+                Assert(contract.ContainsKey(required), "engine/model-contract.json has no entry for " + required);
+            }
+
+            // Members the directory maps, per engine type. If the engine ever renames one of
+            // these, this assertion is where the build should stop - not an operator's screen.
+            var expected = new Dictionary<string, string[]>
+            {
+                { "Department", new[] { "DepartmentID", "UpperDeptID", "Name" } },
+                { "TitleChart", new[] { "TitleID", "UpperTitleID", "TitleName", "DisplayName", "Observer" } },
+                { "EmpType", new[] { "EmpTypeID", "EmpTypeName" } },
+                { "Device", new[] { "MachineNumber", "MachineName", "GateID", "GateName", "ConnectionType", "IP", "Port", "SerialPort", "BaudRate", "SerialNumber", "Code", "Push", "LastStamp" } }
+            };
+            foreach (var pair in expected)
+            {
+                foreach (string member in pair.Value)
+                {
+                    Assert(contract[pair.Key].Contains(member),
+                        "the pinned engine model " + pair.Key + " has no member " + member + " (BUG-16 class).");
+                }
+            }
+
+            // Member names the directory actually reads must be a subset of the contract.
+            string directory = Read("T5Web.Data", "Engine", "PersonnelEngineDirectory.cs");
+            var allMembers = new HashSet<string>(contract.Values.SelectMany(set => set), StringComparer.Ordinal);
+            var read = Regex.Matches(directory, @"\b(?:d|t|e|node)\.([A-Z][A-Za-z0-9_]*)\b")
+                .Cast<Match>()
+                .Select(m => m.Groups[1].Value)
+                .Where(name => name != "DB" && name != "Value" && name != "HasValue" && name != "GetAll")
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+            Assert(read.Count >= 15, "expected the directory to map the engine model, found only " + read.Count + " reads");
+            foreach (string name in read)
+            {
+                Assert(allMembers.Contains(name),
+                    "PersonnelEngineDirectory reads '" + name + "', which no pinned engine model declares.");
+            }
+
+            // Reads through the directory must not touch SQL: the factory below throws on connect.
+            var engine = new FakeEngineDirectory();
+            var delegating = new SqlAdminRepository(
+                () => { throw new InvalidOperationException("SQL must not be used when a directory is supplied"); },
+                engine);
+            Assert(delegating.UsesEngineDirectory, "the repository must report engine-backed reads.");
+            Assert(delegating.GetTitles().Count == 2, "GetTitles must return the engine's rows.");
+            Assert(delegating.GetEmpTypes().Count == 1, "GetEmpTypes must return the engine's rows.");
+            Assert(delegating.GetDevices(null).Count == 2, "GetDevices must return the engine's rows.");
+            Assert(delegating.GetDevices(7).Count == 1 && delegating.GetDevices(7)[0].GateId == 7,
+                "GetDevices(gateId) must filter the engine's rows instead of re-querying.");
+
+            // Without a directory the SQL path stays available: degraded mode, never silent.
+            Assert(!new SqlAdminRepository(() => { throw new InvalidOperationException("unused"); }).UsesEngineDirectory,
+                "without a directory the repository must report SQL-backed reads.");
+
+            // Writes must never reach the engine DA. Documentation is allowed to explain
+            // why, so comments are stripped before the scan.
+            string directoryCode = string.Join("\n", directory
+                .Split('\n')
+                .Select(line => line.TrimStart())
+                .Where(line => !line.StartsWith("//", StringComparison.Ordinal)));
+            foreach (string forbidden in new[] { "AddNew", "Delete", "CheckForUsed", "UpdateLastPushStamp", "EditPassword" })
+            {
+                Assert(!directoryCode.Contains(forbidden),
+                    "PersonnelEngineDirectory must stay read-only but calls " + forbidden + ".");
+            }
+
+            // The gate that keeps the contract honest must be wired into the build.
+            string build = Read("build-and-test.sh");
+            Assert(build.Contains("engine-model-contract.py") && build.Contains("--check"),
+                "build-and-test.sh must run tools/engine-model-contract.py --check.");
+        }
+
+        private sealed class FakeEngineDirectory : IEngineDirectory
+        {
+            public IReadOnlyList<DepartmentNode> GetDepartments()
+            {
+                return new List<DepartmentNode>
+                {
+                    new DepartmentNode { DepartmentId = 10, DepartmentName = "ستاد" }
+                };
+            }
+
+            public IReadOnlyList<TitleNode> GetTitles()
+            {
+                return new List<TitleNode>
+                {
+                    new TitleNode { TitleId = 1, TitleName = "کارشناس" },
+                    new TitleNode { TitleId = 2, TitleName = "مدیر" }
+                };
+            }
+
+            public IReadOnlyList<KeyValuePair<int, string>> GetEmpTypes()
+            {
+                return new List<KeyValuePair<int, string>>
+                {
+                    new KeyValuePair<int, string>(1, "رسمی")
+                };
+            }
+
+            public IReadOnlyList<DeviceRow> GetDevices()
+            {
+                return new List<DeviceRow>
+                {
+                    new DeviceRow { MachineNumber = 1, GateId = 7, MachineName = "ورودی" },
+                    new DeviceRow { MachineNumber = 2, GateId = 8, MachineName = "انبار" }
+                };
+            }
+        }
+
+        /// <summary>
+        /// T15 - BUG-13. The personnel edit form must not be able to change fields it does
+        /// not own.
+        ///
+        /// A posted HiredDate/FiredDate can arrive blank (culture parsing, a stale tab, a
+        /// crafted request). A blank hire date makes every engine leave balance wrong, and
+        /// nothing about that failure is visible in a build. So the POST action must reload
+        /// the stored row first and copy the owner-only fields from storage.
+        /// </summary>
+        private static void TestPersonnelEditTrust()
+        {
+            string controller = Read("T5Web.Web", "Controllers", "PersonnelController.cs");
+            const string postSignature = "public ActionResult Edit(PersonnelRow row)";
+            Assert(controller.Contains(postSignature), "PersonnelController must bind the edit POST to PersonnelRow.");
+            string post = controller.Substring(controller.IndexOf(postSignature, StringComparison.Ordinal));
+            int nextMethod = post.IndexOf("\n        public ", 1, StringComparison.Ordinal);
+            if (nextMethod > 0)
+            {
+                post = post.Substring(0, nextMethod);
+            }
+
+            // The action reloads from storage before saving.
+            Assert(post.Contains("PortalServices.Personnel.Get("),
+                "PersonnelController.Edit (POST) must reload the stored row before saving (BUG-13).");
+            Assert(post.Contains("HttpNotFound"),
+                "PersonnelController.Edit (POST) must 404 for an unknown badge number instead of inserting.");
+
+            // Fields the form does not own are taken from storage, not from the model binder.
+            foreach (string owned in new[] { "row.HiredDate = stored.HiredDate", "row.FiredDate = stored.FiredDate" })
+            {
+                Assert(post.Contains(owned),
+                    "PersonnelController.Edit (POST) must take '" + owned.Split(' ')[0] + "' from storage (BUG-13).");
+            }
+
+            // And the view must not offer them as editable inputs at all.
+            string view = Read("T5Web.Web", "Views", "Personnel", "Edit.cshtml");
+            foreach (string name in new[] { "HiredDate", "FiredDate" })
+            {
+                bool renamed = Regex.IsMatch(view, name + "Display");
+                Assert(renamed, "Personnel/Edit.cshtml must show " + name + " as " + name + "Display (read-only).");
+            }
+
+            // A read-only display input must not post: either it has no name= or it is disabled.
+            foreach (Match input in Regex.Matches(view, @"<input[^>]*HiredDate[^>]*>"))
+            {
+                string tag = input.Value;
+                Assert(tag.Contains("disabled") || !Regex.IsMatch(tag, @"\sname="),
+                    "the hire-date input must be disabled so it is never posted.");
+            }
         }
 
         /// <summary>
@@ -517,7 +746,9 @@ namespace T5Web.Tests
                 rows[cells[0]] = cells;
             }
 
-            var expectedPhases = new[] { "A", "B", "C", "D", "E", "F" };
+            // The method is ARIA's: five numbered phases, each ending in a compiled,
+            // tested deliverable. Phase 5 is then broken into execution sub-phases B..F.
+            var expectedPhases = new[] { "1", "2", "3", "4", "5" };
             foreach (string phase in expectedPhases)
             {
                 Assert(rows.ContainsKey(phase), "phase-status.csv is missing phase " + phase + ".");
@@ -566,11 +797,53 @@ namespace T5Web.Tests
                 }
             }
 
-            // 4. Every phase in the tracker has a section in the plan document.
+            // 4. Every phase in the tracker has a section in the plan document, and the
+            //    five execution sub-phases of phase 5 are each planned.
             string plan = File.ReadAllText(Path.Combine(docs, "06-phase-plan.md"));
+            var persianDigits = new[] { "۱", "۲", "۳", "۴", "۵" };
             foreach (string phase in expectedPhases)
             {
-                Assert(plan.Contains("فاز " + phase), "docs/06-phase-plan.md has no section for phase " + phase + ".");
+                // The document is Persian, so the heading uses Persian numerals while the
+                // tracker stays ASCII for machine reading.
+                string heading = "## فاز " + persianDigits[int.Parse(phase) - 1];
+                Assert(plan.Contains(heading), "docs/06-phase-plan.md has no section '" + heading + "'.");
+            }
+            foreach (string sub in new[] { "B", "C", "D", "E", "F" })
+            {
+                Assert(plan.Contains("## زیرفاز " + sub), "docs/06-phase-plan.md has no plan for sub-phase " + sub + ".");
+            }
+
+            // 4b. The method document and the bug register are part of the deliverable:
+            //     without them "same method as ARIA" is only an assertion.
+            foreach (string doc in new[] { "01-rewrite-principles.md", "02-phase-log.md", "03-legacy-decomposition.md", "04-bugs.md", "07-method.md" })
+            {
+                Assert(File.Exists(Path.Combine(docs, doc)), "docs/" + doc + " is missing from the method deliverable.");
+            }
+
+            // 4c. Every bug in the register names a regression test, and every test id it
+            //     names actually exists in this file.
+            string bugs = File.ReadAllText(Path.Combine(docs, "04-bugs.md"));
+            var bugRows = bugs.Split('\n')
+                .Where(line => line.StartsWith("| **BUG-", StringComparison.Ordinal))
+                .ToList();
+            Assert(bugRows.Count >= 15, "the bug register must keep every fixed defect, found " + bugRows.Count + ".");
+            foreach (string row in bugRows)
+            {
+                Assert(Regex.IsMatch(row, @"`(T\d\d|TEST-\d\d)`"),
+                    "a bug row names no regression test: " + row.Substring(0, Math.Min(60, row.Length)));
+            }
+            var bugTests = Regex.Matches(bugs, @"`(T\d\d|TEST-\d\d)`")
+                .Cast<Match>()
+                .Select(m => m.Groups[1].Value)
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+            Assert(bugTests.Count >= 6, "the bug register cites too few distinct tests.");
+            string self = File.ReadAllText(Path.Combine(T5WebRoot, "T5Web.Tests", "Program.cs"));
+            // TEST-nn ids belong to the ARIA suite; only T-nn must exist here.
+            foreach (string testId in bugTests.Where(t => Regex.IsMatch(t, @"^T\d\d$")))
+            {
+                Assert(self.Contains("\"" + testId + ":") || self.Contains(testId + "\": ") || self.Contains(testId),
+                    "docs/04-bugs.md cites " + testId + ", which the suite does not define.");
             }
             foreach (string required in new[] { "معیار پذیرش", "گیت خروج", "نفر-روز" })
             {

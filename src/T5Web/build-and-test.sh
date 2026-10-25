@@ -3,8 +3,8 @@
 # T5Web Admin Console — build and verification
 # ----------------------------------------------------------------------------
 # The deployment network is offline, so this script never downloads anything.
-# It runs the same four static gates as the ARIA build (engine pin, schema
-# manifest, SQL conformance, C# lint) and only then compiles.
+# It runs the same static gates as the ARIA build (engine pin, schema manifest,
+# SQL conformance, C# lint) plus the engine model contract, and only then compiles.
 #
 #   ./build-and-test.sh            static gates + compile + run tests
 #   ./build-and-test.sh --gates    static gates only (works without a compiler)
@@ -26,6 +26,9 @@ python3 "$ARIA_TOOLS/verify-engine-pin.py" --check
 python3 "$ARIA_TOOLS/build-schema-manifest.py" --check
 python3 "$ARIA_TOOLS/verify-sql-schema.py"
 python3 "$ARIA_TOOLS/lint-csharp.py"
+# The portal reads organisational data through the engine's DA layer, so the engine
+# model members it names must exist in the pinned build (gate T14, BUG-01..BUG-07).
+python3 "$SCRIPT_DIR/tools/engine-model-contract.py" --check
 
 if [ "$GATES_ONLY" = "true" ]; then
   echo "OK: static gates passed (compiler step skipped)"
@@ -54,6 +57,7 @@ for dll in System System.Core System.Data System.Configuration System.Web; do
   COMMON_REF+=("-r:$dll")
 done
 COMMON_REF+=("-r:$BIN_DIR/System.Web.Mvc.dll" "-r:$BIN_DIR/Dapper.dll")
+ENGINE_REF=("-r:$BIN_DIR/Personnel.dll" "-r:$BIN_DIR/T5V3.DB.dll" "-r:$BIN_DIR/T5V3.Model.dll")
 
 "$CSC" -nologo -target:library -langversion:7.3 -out:"$BUILD_DIR/T5Web.Domain.dll" \
   "${COMMON_REF[@]}" $(find "$SCRIPT_DIR/T5Web.Domain" -name '*.cs' | sort)
@@ -63,7 +67,7 @@ COMMON_REF+=("-r:$BIN_DIR/System.Web.Mvc.dll" "-r:$BIN_DIR/Dapper.dll")
   $(find "$SCRIPT_DIR/T5Web.Application" -name '*.cs' | sort)
 
 "$CSC" -nologo -target:library -langversion:7.3 -out:"$BUILD_DIR/T5Web.Data.dll" \
-  "${COMMON_REF[@]}" -r:"$BUILD_DIR/T5Web.Domain.dll" \
+  "${COMMON_REF[@]}" "${ENGINE_REF[@]}" -r:"$BUILD_DIR/T5Web.Domain.dll" \
   $(find "$SCRIPT_DIR/T5Web.Data" -name '*.cs' | sort)
 
 echo "[3/4] Compiling the portal"
@@ -71,7 +75,7 @@ echo "[3/4] Compiling the portal"
   "${COMMON_REF[@]}" \
   -r:"$BUILD_DIR/T5Web.Domain.dll" \
   -r:"$BUILD_DIR/T5Web.Application.dll" \
-  -r:"$BUILD_DIR/T5Web.Data.dll" \
+  -r:"$BUILD_DIR/T5Web.Data.dll" "${ENGINE_REF[@]}" \
   $(find "$SCRIPT_DIR/T5Web.Web" -name '*.cs' | sort)
 
 echo "[4/4] Compiling and running the verification suite"
@@ -79,7 +83,7 @@ echo "[4/4] Compiling and running the verification suite"
   "${COMMON_REF[@]}" \
   -r:"$BUILD_DIR/T5Web.Domain.dll" \
   -r:"$BUILD_DIR/T5Web.Application.dll" \
-  -r:"$BUILD_DIR/T5Web.Data.dll" \
+  -r:"$BUILD_DIR/T5Web.Data.dll" "${ENGINE_REF[@]}" \
   $(find "$SCRIPT_DIR/T5Web.Tests" -name '*.cs' | sort)
 
 mono "$BUILD_DIR/T5Web.Tests.exe" || "$BUILD_DIR/T5Web.Tests.exe"

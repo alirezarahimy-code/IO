@@ -17,6 +17,21 @@
     <Reference Include="Dapper">
       <HintPath>..\..\T5Web [3.5.7]\App\bin\Dapper.dll</HintPath>
     </Reference>
+    <!-- Pinned engine build (engine/engine-pin.json). Engine/PersonnelEngineDirectory.cs
+         reads organisational master data through these DA types, so the portal never
+         has to re-declare the engine schema in SQL. -->
+    <Reference Include="Personnel">
+      <HintPath>..\..\T5Web [3.5.7]\App\bin\Personnel.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="T5V3.DB">
+      <HintPath>..\..\T5Web [3.5.7]\App\bin\T5V3.DB.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="T5V3.Model">
+      <HintPath>..\..\T5Web [3.5.7]\App\bin\T5V3.Model.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\T5Web.Domain\T5Web.Domain.csproj">

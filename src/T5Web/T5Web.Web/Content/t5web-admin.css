@@ -436,3 +436,18 @@ a:hover { text-decoration: underline; }
     outline-offset: 1px;
     border-color: var(--teal);
 }
+
+/* ------------------------------------------------------------ utilities ----
+   Every spacing/size decision lives here instead of in style="..." attributes.
+   This lets the Content-Security-Policy drop 'unsafe-inline' from style-src,
+   which is what keeps a stray inline style from being silently ignored later.
+   ------------------------------------------------------------------------- */
+.u-sm { font-size: 12px; }
+.u-xs { font-size: 12.5px; }
+.u-mt6 { margin-top: 6px; }
+.u-mt14 { margin-top: 14px; }
+.u-row { display: flex; gap: 10px; align-items: center; }
+.u-w240 { width: 240px; }
+.u-w180 { width: 180px; }
+.u-scroll-x { overflow-x: auto; }
+.gate--warn { border-top-color: var(--amber); }

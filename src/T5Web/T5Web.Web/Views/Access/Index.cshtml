@@ -21,9 +21,9 @@ else
     <div class="panel">
         <div class="panel__head">
             <h2>ماتریس دسترسی · @Model.Selected.FullName (@Model.Selected.BadgeNumber)</h2>
-            <span class="muted" style="font-size:12px">ممنوع پیش‌فرض است و ذخیره نمی‌شود</span>
+            <span class="muted u-sm">ممنوع پیش‌فرض است و ذخیره نمی‌شود</span>
         </div>
-        <div class="panel__body" style="overflow-x:auto">
+        <div class="panel__body u-scroll-x">
             @if (!Model.CanEdit)
             {
                 <div class="notice notice--info">شما فقط اجازه مشاهده این ماتریس را دارید.</div>
@@ -31,8 +31,8 @@ else
             <table class="matrix">
                 <thead>
                     <tr>
-                        <th style="width:240px">قابلیت</th>
-                        <th style="width:180px">سطح</th>
+                        <th class="u-w240">قابلیت</th>
+                        <th class="u-w180">سطح</th>
                     </tr>
                 </thead>
                 <tbody>
