@@ -839,10 +839,13 @@ jobs:
         shell: bash
         run: |
           set -eu
-          core=$(find src/T5Web/T5Web.Domain src/T5Web/T5Web.Application src/T5Web/T5Web.Data -name '*.cs' -not -path '*/obj/*' | wc -l)
-          engine=$(grep -rl --include='*.cs' -E '^using (Personnel|T5V3)\.' src/T5Web/T5Web.Domain src/T5Web/T5Web.Application src/T5Web/T5Web.Data | wc -l)
-          web=$(grep -rl --include='*.cs' '^using System\.Web' src/T5Web/T5Web.Domain src/T5Web/T5Web.Application src/T5Web/T5Web.Data | wc -l)
-          config=$(grep -rl --include='*.cs' 'System\.Configuration' src/T5Web/T5Web.Domain src/T5Web/T5Web.Application src/T5Web/T5Web.Data | wc -l)
+          # GitHub's bash runs with -e -o pipefail, so a grep that finds nothing (exit 1)
+          # would abort the step before it can report. Each count therefore tolerates it.
+          count() { { "$@" || true; } | wc -l; }
+          core=$(count find src/T5Web/T5Web.Domain src/T5Web/T5Web.Application src/T5Web/T5Web.Data -name '*.cs' -not -path '*/obj/*')
+          engine=$(count grep -rl --include='*.cs' -E '^using (Personnel|T5V3)\.' src/T5Web/T5Web.Domain src/T5Web/T5Web.Application src/T5Web/T5Web.Data)
+          web=$(count grep -rl --include='*.cs' '^using System\.Web' src/T5Web/T5Web.Domain src/T5Web/T5Web.Application src/T5Web/T5Web.Data)
+          config=$(count grep -rl --include='*.cs' 'System\.Configuration' src/T5Web/T5Web.Domain src/T5Web/T5Web.Application src/T5Web/T5Web.Data)
           echo "  core files            : $core"
           echo "  use the engine (x86)  : $engine"
           echo "  use System.Web        : $web"
@@ -878,10 +881,11 @@ jobs:
         shell: bash
         run: |
           set -eu
-          views=$(find src/T5Web/T5Web.Web -name '*.cshtml' | wc -l)
-          controllers=$(find src/T5Web/T5Web.Web -name '*Controller.cs' | wc -l)
-          systemweb=$(grep -rl --include='*.cs' '^using System\.Web' src/T5Web/T5Web.Web | wc -l)
-          cs=$(find src/T5Web/T5Web.Web -name '*.cs' -not -path '*/obj/*' | wc -l)
+          count() { { "$@" || true; } | wc -l; }
+          views=$(count find src/T5Web/T5Web.Web -name '*.cshtml')
+          controllers=$(count find src/T5Web/T5Web.Web -name '*Controller.cs')
+          systemweb=$(count grep -rl --include='*.cs' '^using System\.Web' src/T5Web/T5Web.Web)
+          cs=$(count find src/T5Web/T5Web.Web -name '*.cs' -not -path '*/obj/*')
           echo "  web .cs files         : $cs"
           echo "  of which System.Web   : $systemweb"
           echo "  controllers           : $controllers"
