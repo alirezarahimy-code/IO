@@ -2943,8 +2943,15 @@ namespace T5Web.Tests
                 Assert(login.Contains("USE " + database + ";"),
                     "the portal login is not created in " + database + " - the other catalog stays unreachable.");
             }
-            Assert(login.Contains("DENY UPDATE, DELETE ON OBJECT::dbo.T5WebAudit"),
-                "the audit trail must stay append-only for the portal login itself.");
+            // The privileges live on the role [t5web_app] (db/02), and both identities -
+            // the SQL login and the app pool's Windows account - are members of it, so
+            // the DENY is written once, against the role. A DENY addressed to one login
+            // would leave the other identity free to rewrite the audit trail.
+            Assert(login.Contains("DENY UPDATE, DELETE ON OBJECT::[dbo].[T5WebAudit] TO [t5web_app]"),
+                "the audit trail must stay append-only, and the DENY must target the role the "
+                + "portal actually runs as (t5web_app), not one of its members.");
+            Assert(login.Contains("ALTER ROLE [t5web_app] ADD MEMBER [t5web_admin]"),
+                "db/02 must make the portal login a member of [t5web_app], or it inherits nothing.");
 
             // The grant list is derived from what the modules write; the gate is the proof.
             string gate = File.ReadAllText(Path.Combine(T5WebRoot, "tools", "sql-grant-gate.py"));

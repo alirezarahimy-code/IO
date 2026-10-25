@@ -158,7 +158,10 @@ jobs:
           Run-Script 'src/T5Web/db/02-t5web-sql-login.sql' 'ReportT5V3'
           # The pool identity joins the role db/02 filled - the portal connects as
           # IIS APPPOOL\<pool>, not as t5web_admin, and not as the runner.
-          Run-Script 'src/T5Web/db/04-grant-app-pool-login.sql' 'master' @('-v', 'AppPoolLogin=IIS APPPOOL\T5WebAdmin')
+          # sqlcmd wants the value quoted *inside* the argument when it contains a
+          # space: -v 'Name="IIS APPPOOL\X"'. Without the quotes it answers
+          # "Invalid argument" and the grants are silently not applied.
+          Run-Script 'src/T5Web/db/04-grant-app-pool-login.sql' 'master' @('-v', 'AppPoolLogin="IIS APPPOOL\T5WebAdmin"')
           # A Windows account the run can actually sign in as, plus a permission row for
           # every feature (tools/ci-fixture-gate.py holds this list to AdminFeature.cs).
           Run-Script 'src/T5Web/tools/ci-seed.sql' 'ReportT5V3' @('-v', "Who=$env:USERNAME")
