@@ -63,6 +63,21 @@ function Invoke-Script([string]$path, [string]$database) {
 # 1. schema ---------------------------------------------------------------
 if ($sqlcmd) {
     $verify = Join-Path $repoRoot 'db\verify.sql'
+
+    # verify.sql hard-codes the two catalog names it checks, because T-SQL cannot read
+    # our parameters. If this server uses other names, the parameter must be changed in
+    # both places - so say so here instead of reporting 40 tables MISSING.
+    $text = Get-Content -Raw -LiteralPath $verify
+    foreach ($pair in @(@('T5', $T5Database), @('Personnel', $PersonnelDatabase))) {
+        $declared = [regex]::Match($text, "DECLARE\s+@$($pair[0])\s+sysname\s*=\s*N'([^']+)'")
+        if (-not $declared.Success) {
+            Report 'schema' $false ("db\verify.sql has no DECLARE @" + $pair[0] + " default")
+        } elseif ($declared.Groups[1].Value -ne $pair[1]) {
+            Report 'schema' $false ("db\verify.sql checks catalog '" + $declared.Groups[1].Value +
+                "' but -" + $pair[0] + "Database is '" + $pair[1] + "'; align the two first")
+        }
+    }
+
     $result = Invoke-Script $verify $T5Database
     $missing = @($result.Lines | Where-Object { $_ -match 'MISSING' })
     if ($result.Code -ne 0) {

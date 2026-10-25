@@ -45,6 +45,9 @@ python3 "$SCRIPT_DIR/tools/csharp-parse-gate.py"
 # install, and the smoke tool must still extract the statements it compiles (T35).
 python3 "$SCRIPT_DIR/tools/synthetic-schema.py" --check
 python3 "$SCRIPT_DIR/tools/sql-smoke.py" --check
+# Grants: the least-privilege login must be allowed to write exactly the tables the
+# generic modules write, in the catalog that owns them (BUG found by CI on Windows).
+python3 "$SCRIPT_DIR/tools/sql-grant-gate.py"
 # Deployment kit: the Windows install scripts must parse, stay idempotent, keep passwords
 # out of the repository and reference files that exist (docs/13).
 python3 "$SCRIPT_DIR/tools/deploy-kit-gate.py"

@@ -63,6 +63,7 @@ namespace T5Web.Tests
             RunTest("T33: data migration (no schema drift, fingerprint covers the model, gates documented)", TestDataMigration);
             RunTest("T34: install kit (IIS + SQL scripts, idempotent, no secrets, documented order)", TestInstallKit);
             RunTest("T35: executable SQL (synthetic schema from the model, smoke extractor, CI wiring)", TestExecutableSql);
+            RunTest("T36: two catalogs (verify.sql names them, the login exists in both, grants match the modules)", TestTwoCatalogInstall);
 
             Console.WriteLine("----------------------------------------------------------------------");
             Console.WriteLine($"  Summary: {_passed} Passed, {_failed} Failed");
@@ -2873,6 +2874,55 @@ namespace T5Web.Tests
             foreach (string tool in new[] { "csharp-parse-gate.py", "synthetic-schema.py", "sql-smoke.py" })
             {
                 Assert(build.Contains(tool), tool + " is not a build gate.");
+            }
+        }
+
+        /// <summary>
+        /// T36 - the install really spans two catalogs (docs/09, docs/12).
+        /// The first Windows run of the suite failed exactly here: verify.sql asked
+        /// OBJECT_ID(N'dbo.Department') while Department lives in [Personnel], and the
+        /// portal login was only created in [ReportT5V3], so every personnel screen
+        /// would have failed at run time with "the server principal is not able to
+        /// access the database". Both defects were invisible to a text-only review.
+        /// </summary>
+        private static void TestTwoCatalogInstall()
+        {
+            string verify = File.ReadAllText(Path.Combine(T5WebRoot, "db", "verify.sql"));
+            Assert(verify.Contains("@T5") && verify.Contains("@Personnel"),
+                "verify.sql must name both catalogs; a bare OBJECT_ID() only ever answers for the current database.");
+            Assert(verify.Contains("DB_ID(@Personnel)"),
+                "verify.sql must fail loudly when the personnel catalog is missing, not report every table MISSING.");
+            Assert(verify.Contains("QUOTENAME(@Personnel)"),
+                "verify.sql must qualify personnel objects with their own catalog.");
+            Assert(!verify.Contains("LeaveTypes"),
+                "the engine table is LeaveType; LeaveTypes would always report MISSING.");
+
+            string login = File.ReadAllText(Path.Combine(T5WebRoot, "db", "02-t5web-sql-login.sql"));
+            foreach (string database in new[] { "[ReportT5V3]", "[Personnel]" })
+            {
+                Assert(login.Contains("USE " + database + ";"),
+                    "the portal login is not created in " + database + " - the other catalog stays unreachable.");
+            }
+            Assert(login.Contains("DENY UPDATE, DELETE ON OBJECT::dbo.T5WebAudit"),
+                "the audit trail must stay append-only for the portal login itself.");
+
+            // The grant list is derived from what the modules write; the gate is the proof.
+            string gate = File.ReadAllText(Path.Combine(T5WebRoot, "tools", "sql-grant-gate.py"));
+            Assert(gate.Contains("ModuleRegistry.cs"),
+                "the grant gate must read the writable tables from ModuleRegistry.cs, not from a copy.");
+            Assert(File.ReadAllText(Path.Combine(T5WebRoot, "build-and-test.sh")).Contains("sql-grant-gate.py"),
+                "sql-grant-gate.py is not a build gate.");
+
+            // Every column check must be traceable to the model, otherwise the list rots.
+            Dictionary<string, Dictionary<string, string>> typed = TypedColumns();
+            foreach (string table in new[] { "UserShift", "Record", "Request", "LeaveType" })
+            {
+                Assert(typed.ContainsKey(table), "engine/column-types.json has no " + table + ".");
+            }
+            if (typed.ContainsKey("UserShift"))
+            {
+                Assert(!typed["UserShift"].ContainsKey("EndDate"),
+                    "UserShift.EndDate does not exist; the real column is ToDate.");
             }
         }
 

@@ -205,14 +205,31 @@ IDENTITY**، و **collation/سازگاری/نسخهٔ SQL**. جدولی که د�
 | گیت | فرمان | معیار قبولی |
 | :-- | :-- | :-- |
 | ۱ | `python3 tools/migration-fingerprint.py --compare source-before.txt target-after.txt` | `OK: fingerprints match` |
-| ۲ | `sqlcmd -i db/verify.sql` | هیچ `MISSING` |
+| ۲ | `sqlcmd -i db/verify.sql` | هیچ `MISSING` (هر دو کاتالوگ، به شرط آن‌که `DECLARE @T5/@Personnel` در بالای فایل با نام واقعی کاتالوگ‌ها یکی باشد) |
 | ۳ | `sqlcmd -i db/03-relations.sql` | هیچ `VIOLATION` |
 | ۴ | `/Integrity` در پورتال | همان ۷ بررسی، بدون سطر «یافت شد» |
 | ۵ | `/Diagnostics` | اتصال هر دو کاتالوگ، حالت هم‌زیستی، شمارش جدول‌ها ≠ `-1` |
-| ۶ | `./build-and-test.sh --gates` روی نسخهٔ نصب‌شده | ۸ گیت سبز |
+| ۶ | `./build-and-test.sh --gates` روی نسخهٔ نصب‌شده | ۱۴ گیت سبز |
 
 تفاوت بین گیت ۱ و گیت ۳: گیت ۱ می‌گوید «همان داده است»، گیت ۳ می‌گوید «داده سالم است».
 هر دو لازم‌اند؛ یکی بدون دیگری چیزی را ثابت نمی‌کند.
+
+---
+
+## ۵.۱ دو کاتالوگ: درسی که CI ویندوزی داد
+
+اولین اجرای واقعی اسکریپت‌ها روی SQL Server (نه خواندنِ آن‌ها) سه اشکال را نشان داد که
+هیچ بازبینی متنی نمی‌دید:
+
+| اشکال | نشانه روی سرور | اصلاح |
+| :-- | :-- | :-- |
+| `verify.sql` با `OBJECT_ID(N'dbo.Department')` می‌پرسید | `Department.DepartmentName MISSING` درحالی‌که جدول در `Personnel` بود | هر بررسی کاتالوگ خودش را می‌نامد (`QUOTENAME(@Personnel)`)، ستون `Catalog` هم چاپ می‌شود |
+| نام جدول `LeaveTypes` نوشته شده بود | همیشه `MISSING`؛ جدول واقعی `LeaveType` است | از `engine/column-types.json` اصلاح شد |
+| کاربر `t5web_admin` فقط در `ReportT5V3` ساخته می‌شد | هر صفحهٔ پرسنلی با «server principal is not able to access the database» می‌افتاد | `02` یک بخش `USE [Personnel]` هم دارد |
+
+و یک گیت تازه (`tools/sql-grant-gate.py`) طوری که دیگر تکرار نشود: فهرست جدول‌هایی که
+لاگین پورتال اجازهٔ نوشتن دارد، از `ModuleRegistry.cs` خوانده و با `GRANT`های `db/02`
+مقایسه می‌شود — اگر ماژولی اضافه شود و اجازه‌اش نه، بیلد قرمز می‌شود، نه صفحهٔ کاربر.
 
 ---
 

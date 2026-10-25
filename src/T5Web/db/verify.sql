@@ -49,7 +49,7 @@ SELECT @T5, v.ObjectName, N'table',
        CASE WHEN OBJECT_ID(QUOTENAME(@T5) + N'.dbo.' + v.ObjectName, N'U') IS NULL
             THEN N'MISSING' ELSE N'OK' END
 FROM (VALUES
-    (N'Workflow'), (N'LeaveTypes'), (N'Request'), (N'RequestAccept'),
+    (N'Workflow'), (N'LeaveType'), (N'Request'), (N'RequestAccept'),
     (N'Record'), (N'HourlyLeave'), (N'UserShift'), (N'SystemLog')
 ) AS v(ObjectName);
 
@@ -68,14 +68,26 @@ SELECT @Personnel, v.ObjectName + N'.' + v.ColumnName, N'column',
        CASE WHEN COL_LENGTH(QUOTENAME(@Personnel) + N'.dbo.' + v.ObjectName, v.ColumnName) IS NULL
             THEN N'MISSING' ELSE N'OK' END
 FROM (VALUES
-    (N'UserInfo', N'BadgeNumber'), (N'UserInfo', N'DeptID'), (N'UserInfo', N'NationalNo'),
-    (N'UserInfo', N'UserName'), (N'UserInfo', N'Password'), (N'UserInfo', N'WebUser'),
-    (N'UserInfo', N'FirstName'), (N'UserInfo', N'LastName'), (N'UserInfo', N'HiredDate'),
-    (N'UserInfo', N'FiredDate'), (N'UserInfo', N'EmployeeNumber'),
-    (N'UserInfoTitles', N'TitleChartID'), (N'UserInfoTitles', N'BadgeNumber'),
-    (N'TitlesChart', N'TitleID'), (N'TitlesChart', N'TitleName'),
-    (N'Department', N'DepartmentID'), (N'Department', N'DepartmentName'), (N'Department', N'UpperDeptID'),
-    (N'Device', N'MachineNumber'), (N'Device', N'IP'), (N'Device', N'MachineName')
+    (N'UserInfo', N'BadgeNumber'),
+    (N'UserInfo', N'DeptID'),
+    (N'UserInfo', N'NationalNo'),
+    (N'UserInfo', N'UserName'),
+    (N'UserInfo', N'Password'),
+    (N'UserInfo', N'WebUser'),
+    (N'UserInfo', N'FirstName'),
+    (N'UserInfo', N'LastName'),
+    (N'UserInfo', N'HiredDate'),
+    (N'UserInfo', N'FiredDate'),
+    (N'UserInfoTitles', N'TitleChartID'),
+    (N'UserInfoTitles', N'BadgeNumber'),
+    (N'TitlesChart', N'TitleID'),
+    (N'TitlesChart', N'TitleName'),
+    (N'Department', N'DepartmentID'),
+    (N'Department', N'DepartmentName'),
+    (N'Department', N'UpperDeptID'),
+    (N'Device', N'MachineNumber'),
+    (N'Device', N'IP'),
+    (N'Device', N'MachineName')
 ) AS v(ObjectName, ColumnName);
 
 INSERT INTO @results (Catalog, ObjectName, Kind, Status)
@@ -83,13 +95,43 @@ SELECT @T5, v.ObjectName + N'.' + v.ColumnName, N'column',
        CASE WHEN COL_LENGTH(QUOTENAME(@T5) + N'.dbo.' + v.ObjectName, v.ColumnName) IS NULL
             THEN N'MISSING' ELSE N'OK' END
 FROM (VALUES
-    (N'Workflow', N'OrderIndex'), (N'Workflow', N'AccepterTitleID'), (N'Workflow', N'TitleChartID'),
-    (N'Record', N'BadgeNumber'), (N'Record', N'RecordDate'),
-    (N'Request', N'BadgeNumber'), (N'Request', N'RequestAccept'),
-    (N'T5WebAccess', N'Feature'), (N'T5WebAccess', N'Level'),
-    (N'T5WebAudit', N'Hash'), (N'T5WebAudit', N'PreviousHash'),
-    (N'T5WebDeviceCommand', N'MachineNumber'), (N'T5WebDeviceCommand', N'Command'), (N'T5WebDeviceCommand', N'Status'),
-    (N'UserShift', N'BadgeNumber'), (N'UserShift', N'FromDate'), (N'UserShift', N'EndDate')
+    (N'Workflow', N'OrderIndex'),
+    (N'Workflow', N'AccepterTitleID'),
+    (N'Workflow', N'TitleID'),
+    (N'Record', N'BadgeNumber'),
+    (N'Record', N'CheckTime'),
+    (N'Record', N'MachineNumber'),
+    (N'Record', N'IsValid'),
+    (N'Request', N'BadgeNumber'),
+    (N'Request', N'ForDate'),
+    (N'Request', N'LeaveID'),
+    (N'LeaveType', N'LeaveTypeID'),
+    (N'LeaveType', N'LeaveName'),
+    (N'UserShift', N'BadgeNumber'),
+    (N'UserShift', N'FromDate'),
+    (N'UserShift', N'ToDate'),
+    (N'UserShift', N'ShiftID'),
+    (N'SystemLog', N'ID'),
+    (N'SystemLog', N'EventTime'),
+    (N'SystemLog', N'EventID'),
+    (N'SystemLog', N'Descriptions')
+) AS v(ObjectName, ColumnName);
+
+/* ---------- portal columns (defined by db/01, so proven by that DDL) ---------- */
+INSERT INTO @results (Catalog, ObjectName, Kind, Status)
+SELECT @T5, v.ObjectName + N'.' + v.ColumnName, N'column',
+       CASE WHEN COL_LENGTH(QUOTENAME(@T5) + N'.dbo.' + v.ObjectName, v.ColumnName) IS NULL
+            THEN N'MISSING' ELSE N'OK' END
+FROM (VALUES
+    (N'T5WebAccess', N'Feature'),
+    (N'T5WebAccess', N'Level'),
+    (N'T5WebAccess', N'BadgeNumber'),
+    (N'T5WebAudit', N'Hash'),
+    (N'T5WebAudit', N'PreviousHash'),
+    (N'T5WebAudit', N'UtcTime'),
+    (N'T5WebDeviceCommand', N'MachineNumber'),
+    (N'T5WebDeviceCommand', N'Command'),
+    (N'T5WebDeviceCommand', N'Status')
 ) AS v(ObjectName, ColumnName);
 
 /* ---------- the portal login ---------- */
