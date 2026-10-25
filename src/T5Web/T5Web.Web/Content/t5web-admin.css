@@ -555,3 +555,29 @@ a:hover { text-decoration: underline; }
     .sheet { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
     .sheet__card { break-inside: avoid; page-break-inside: avoid; }
 }
+
+/* ---- device transport notice (docs/15-device-integration.md) ----
+   Off is not an error, it is the truth: no device link is configured, so the command
+   buttons are absent rather than present and useless. */
+
+.transport {
+    padding: 9px 14px;
+    font-size: 12.5px;
+    line-height: 1.8;
+    border-bottom: 1px solid var(--rule);
+    background: #f6f5f0;
+    color: var(--ink-soft);
+}
+
+.transport--off {
+    color: #7a5a12;
+    background: var(--amber-soft);
+    border-bottom-color: #efd9b4;
+}
+
+.transport code {
+    font-family: var(--mono, monospace);
+    font-size: 12px;
+    direction: ltr;
+    unicode-bidi: embed;
+}

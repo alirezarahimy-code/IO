@@ -6,6 +6,8 @@
     var gates = ViewBag.Gates as IReadOnlyList<T5Web.Domain.Models.GateRow>;
     bool canSync = ViewBag.CanSync != null && (bool)ViewBag.CanSync;
     var commands = ViewBag.Commands as IReadOnlyList<DeviceCommand>;
+    var transport = ViewBag.Transport as DeviceTransport;
+    bool canSend = transport != null && transport.IsConfigured;
     var queue = ViewBag.Queue as IReadOnlyList<T5Web.Domain.Models.DeviceCommandTicket>;
 }
 <div class="panel">
@@ -14,6 +16,14 @@
         @if (gates != null)
         {
             <span class="muted u-sm">@gates.Count درب تعریف‌شده</span>
+        }
+    </div>
+    <div class="transport @(canSend ? "transport--on" : "transport--off")">
+        @(transport == null ? "ارتباط با دستگاه تنظیم نشده است." : transport.DescribeFa)
+        @if (!canSend)
+        {
+            <span class="muted u-sm">برای فعال‌کردن، کلید <code>T5WebDeviceTransport</code> را در Web.config ست کنید
+            (<code>link5:legacy</code> یا <code>link5:http://server:15222/Device/</code>).</span>
         }
     </div>
     @if (Model.Count == 0)
@@ -53,7 +63,7 @@
                     {
                         <td class="nowrap">
                             <a class="btn btn--ghost" href="@Url.Action("Edit", "Device", new { id = device.MachineNumber })">تنظیمات</a>
-                            @if (canSync && commands != null && commands.Count > 0)
+                            @if (canSync && canSend && commands != null && commands.Count > 0)
                             {
                                 <form method="post" action="@Url.Action("Command", "Device")" class="inline" data-confirm="true">
                                     @Html.AntiForgeryToken()

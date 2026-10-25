@@ -19,9 +19,10 @@ namespace T5Web.Web.Controllers
             ViewBag.GateId = gateId;
             ViewBag.CanEdit = CurrentSession != null && CurrentSession.CanEdit(AdminFeature.DeviceEdit);
             ViewBag.CanSync = CurrentSession != null && CurrentSession.CanEdit(AdminFeature.DeviceSync);
+            ViewBag.Transport = Transport();
             ViewBag.Commands = new DeviceCommandService().Available();
-            // The queue is the transport: the portal records the intent, the desktop agent
-            // drains it. Showing it here is what makes the button honest.
+            // The queue is a record of intent. It is only a *transport* when an agent
+            // outside this repository drains it, which is what T5WebDeviceTransport says.
             ViewBag.Queue = PortalServices.Repository.GetDeviceCommands(20);
             return View(devices);
         }
@@ -73,7 +74,8 @@ namespace T5Web.Web.Controllers
             DeviceRow device = Find(devices, machineNumber);
 
             DeviceCommand issued;
-            OperationResult result = new DeviceCommandService().Validate(command, device, out issued);
+            DeviceTransport transport = Transport();
+            OperationResult result = new DeviceCommandService().Validate(command, device, transport, out issued);
             if (!result.Succeeded)
             {
                 TempData["Flash"] = result.Message;
@@ -98,11 +100,54 @@ namespace T5Web.Web.Controllers
                 return RedirectToAction("Index");
             }
 
+            // Dispatch, when this installation has somewhere to dispatch to. The queue row
+            // stays either way: it is the record of what was asked for, and a failed send
+            // must not vanish.
+            string dispatch = transport.Kind == DeviceTransportKind.Link5
+                ? Send(transport.CommandUrl(issued.Code) + "?machineNumber=" + device.MachineNumber)
+                : transport.Kind == DeviceTransportKind.Queue
+                    ? "در صف؛ عامل خارجی آن را برمی‌دارد"
+                    : "بدون ارسال";
+
             Audit(AdminFeature.DeviceSync, "دستور دستگاه", device.MachineName + " (#" + device.MachineNumber + ")",
-                "ticket=" + ticket.Id + "; command=" + issued.Code + "; note=" + issued.NoteFa);
-            TempData["Flash"] = "دستور «" + issued.TitleFa + "» برای دستگاه " + device.MachineName +
-                                " در صف ثبت شد (شماره " + ticket.Id + ")؛ سرویس دستگاه آن را برمی‌دارد.";
+                "ticket=" + ticket.Id + "; command=" + issued.Code + "; transport=" + transport.Raw +
+                "; dispatch=" + dispatch + "; note=" + issued.NoteFa);
+
+            TempData["Flash"] = transport.Kind == DeviceTransportKind.Link5 && !dispatch.StartsWith("OK", StringComparison.Ordinal)
+                ? "دستور «" + issued.TitleFa + "» در صف ثبت شد (شماره " + ticket.Id + ") ولی ارسال به سرویس دستگاه ناموفق بود: " + dispatch
+                : "دستور «" + issued.TitleFa + "» برای دستگاه " + device.MachineName +
+                  " ثبت شد (شماره " + ticket.Id + ")؛ " + dispatch + ".";
             return RedirectToAction("Index");
+        }
+
+        /// <summary>The configured device link, read per request so an operator can fix it live.</summary>
+        private static DeviceTransport Transport()
+        {
+            return DeviceTransport.Parse(
+                System.Configuration.ConfigurationManager.AppSettings[DeviceTransport.Key]);
+        }
+
+        /// <summary>
+        /// Posts one catalogued operation to the device service, exactly as the legacy
+        /// console did, and returns a line for the audit and the flash message.
+        /// </summary>
+        private static string Send(string url)
+        {
+            try
+            {
+                var request = (System.Net.HttpWebRequest)System.Net.WebRequest.Create(url);
+                request.Method = "GET";
+                request.Timeout = 15000;
+                request.Proxy = null;
+                using (var response = (System.Net.HttpWebResponse)request.GetResponse())
+                {
+                    return "OK " + (int)response.StatusCode;
+                }
+            }
+            catch (Exception ex)
+            {
+                return "خطا: " + ex.Message;
+            }
         }
 
         private static DeviceRow Find(IReadOnlyList<DeviceRow> rows, int machineNumber)

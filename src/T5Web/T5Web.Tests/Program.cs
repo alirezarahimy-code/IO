@@ -70,6 +70,7 @@ namespace T5Web.Tests
             RunTest("T40: a Razor page can only work with Views/Web.config and a registered EF provider", TestViewHostConfiguration);
             RunTest("T41: every view parses (IIS is not the first thing that should read them)", TestViewsParse);
             RunTest("T42: every table the portal writes is writable by the portal's role", TestGrantsCoverWrites);
+            RunTest("T43: a device command has a real destination, or no button at all", TestDeviceTransport);
 
             Console.WriteLine("----------------------------------------------------------------------");
             Console.WriteLine($"  Summary: {_passed} Passed, {_failed} Failed");
@@ -1964,17 +1965,33 @@ namespace T5Web.Tests
 
             var device = new DeviceRow { MachineNumber = 1, MachineName = "درب اصلی", ConnectionType = 0, Ip = "192.168.1.20", Port = 4370 };
             DeviceCommand issued;
-            Assert(service.Validate("sync-users", device, out issued).Succeeded, "a catalogued command must be accepted.");
+            DeviceTransport link5 = DeviceTransport.Parse("link5:legacy");
+            Assert(service.Validate("sync-users", device, link5, out issued).Succeeded, "a catalogued command must be accepted.");
             Assert(issued != null && !issued.FetchesData, "sync-users must not be marked as a data fetch.");
 
-            Assert(!service.Validate("reboot-now", device, out issued).Succeeded, "an uncatalogued command must be refused.");
-            Assert(!service.Validate("change-lock", device, out issued).Succeeded, "a lock command must be refused.");
-            Assert(!service.Validate("", device, out issued).Succeeded, "an empty command must be refused.");
-            Assert(!service.Validate("sync-time", null, out issued).Succeeded, "a missing device must be refused.");
+            Assert(!service.Validate("reboot-now", device, link5, out issued).Succeeded, "an uncatalogued command must be refused.");
+            Assert(!service.Validate("change-lock", device, link5, out issued).Succeeded, "a lock command must be refused.");
+            Assert(!service.Validate("", device, link5, out issued).Succeeded, "an empty command must be refused.");
+            Assert(!service.Validate("sync-time", null, link5, out issued).Succeeded, "a missing device must be refused.");
 
             var unconfigured = new DeviceRow { MachineNumber = 2, ConnectionType = 0, Ip = "0.0.0.0" };
-            Assert(!service.Validate("sync-time", unconfigured, out issued).Succeeded,
+            Assert(!service.Validate("sync-time", unconfigured, link5, out issued).Succeeded,
                 "a network device without an address must be refused.");
+
+            // BUG-44: the screen queued a command and nothing drained the queue, while the
+            // legacy console posted it to Link5. Now the transport is configuration, and an
+            // installation without one refuses instead of pretending.
+            DeviceTransport none = DeviceTransport.Parse(null);
+            Assert(!none.IsConfigured, "an unset device transport must be unconfigured.");
+            Assert(!service.Validate("sync-users", device, none, out issued).Succeeded,
+                "with no transport configured a command must be refused, not queued into a void.");
+            Assert(!service.Validate("sync-users", device, null, out issued).Succeeded,
+                "a null transport must be refused.");
+            Assert(DeviceTransport.Parse("link5:").Kind == DeviceTransportKind.None,
+                "link5 without a usable base URL is not a transport.");
+            Assert(DeviceTransport.Parse("typo").Kind == DeviceTransportKind.None,
+                "an unknown value must disable the feature, not pick a transport.");
+            Assert(DeviceTransport.Parse("queue").IsConfigured, "queue is a transport the operator asserts.");
 
             // BUG-26: the screen claimed the command was queued while nothing was written.
             // The queue is the transport now, so it must actually accept and return a ticket.
@@ -3387,6 +3404,76 @@ namespace T5Web.Tests
 
             Assert(problems.Count == 0,
                 "db/02 does not match what the portal writes (BUG-43): " + string.Join(" | ", problems.Take(6)));
+        }
+
+        /// <summary>
+        /// T43 - the command screen must not be decorative (BUG-44).
+        ///
+        /// The legacy console reached the devices through Link5's HTTP operations
+        /// (Link5ServiceURL = http://127.0.0.1:15222/Device/). The rewrite kept the button
+        /// and dropped the wire: it wrote a row into [T5WebDeviceCommand] and told the
+        /// operator the device would collect it, while nothing in the deployment ever read
+        /// that table. Every screen in CI still returned 200, because rendering a button is
+        /// not performing an action.
+        ///
+        /// The rule this test enforces: a catalogued command either maps to a real operation
+        /// of a configured transport, or the installation refuses it and the screen hides it.
+        /// </summary>
+        private static void TestDeviceTransport()
+        {
+            var service = new DeviceCommandService();
+            var codes = new List<string>();
+            foreach (DeviceCommand command in service.Available())
+            {
+                codes.Add(command.Code);
+                string operation = DeviceTransport.LegacyOperation(command.Code);
+                Assert(!string.IsNullOrEmpty(operation),
+                    "command '" + command.Code + "' maps to no Link5 operation, so nothing can carry it out");
+                Assert(operation.IndexOf("lock", StringComparison.OrdinalIgnoreCase) < 0 &&
+                       operation.IndexOf("usb", StringComparison.OrdinalIgnoreCase) < 0,
+                    "command '" + command.Code + "' would reach a lock or USB operation: " + operation);
+            }
+            Assert(codes.Count >= 5, "the device catalogue lost commands: " + codes.Count);
+
+            // These names were read out of the legacy console's own assembly; if the mapping
+            // drifts, the command silently addresses an endpoint that does not exist.
+            var expected = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "sync-users", "uploadUsers" },
+                { "pull-users", "downloadUsers" },
+                { "pull-punches", "downloadrecords" },
+                { "sync-time", "timesyncdata" },
+                { "clear-punches", "deleteallrecords" }
+            };
+            foreach (var pair in expected)
+            {
+                Assert(string.Equals(DeviceTransport.LegacyOperation(pair.Key), pair.Value, StringComparison.Ordinal),
+                    pair.Key + " must address '" + pair.Value + "', not '" + DeviceTransport.LegacyOperation(pair.Key) + "'");
+            }
+
+            // The URL the portal would actually call.
+            DeviceTransport link5 = DeviceTransport.Parse("link5:legacy");
+            Assert(link5.Kind == DeviceTransportKind.Link5, "link5:legacy must be a configured Link5 transport.");
+            Assert(link5.CommandUrl("pull-punches").EndsWith("/Device/downloadrecords", StringComparison.Ordinal),
+                "the command URL must extend the configured base: " + link5.CommandUrl("pull-punches"));
+            Assert(DeviceTransport.Parse("link5:http://10.0.0.5:15222/Device").CommandUrl("sync-time")
+                       .EndsWith("/Device/timesyncdata", StringComparison.Ordinal),
+                "a base URL without a trailing slash must still produce one path segment more");
+
+            // Deployment side: the default must be honest, and the screen must honour it.
+            string config = File.ReadAllText(Path.Combine(T5WebRoot, "T5Web.Web", "Web.config"));
+            Assert(config.Contains(DeviceTransport.Key),
+                "Web.config must document " + DeviceTransport.Key + ", or an operator cannot enable the feature");
+            Match configured = Regex.Match(config,
+                "<add key=\"" + DeviceTransport.Key + "\" value=\"([^\"]*)\"");
+            Assert(configured.Success, "Web.config must set a value for " + DeviceTransport.Key + ".");
+            Assert(configured.Groups[1].Value.Trim().Equals("none", StringComparison.OrdinalIgnoreCase),
+                "the shipped default must be 'none': an unconfigured install may not claim a device link");
+
+            string view = File.ReadAllText(Path.Combine(T5WebRoot, "T5Web.Web", "Views", "Device", "Index.cshtml"));
+            Assert(view.Contains("canSend"), "the device screen must hide commands when no transport is configured.");
+            Assert(File.Exists(Path.Combine(T5WebRoot, "docs", "15-device-integration.md")),
+                "docs/15-device-integration.md must explain the three ways to reach a device.");
         }
 
         private static void TestNoLockDependency()

@@ -79,9 +79,19 @@ namespace T5Web.Application.Services
         /// Validates a command request. The caller must have <see cref="AdminFeature.DeviceSync"/>;
         /// this method only enforces the shape of the request so the tests can assert it.
         /// </summary>
-        public OperationResult Validate(string code, DeviceRow device, out DeviceCommand command)
+        /// <param name="transport">
+        /// Where the command would go. Null or unconfigured means this installation has no
+        /// device link at all, and the request is refused: the legacy console could reach
+        /// Link5, the rewrite cannot invent that reach (BUG-44).
+        /// </param>
+        public OperationResult Validate(string code, DeviceRow device, DeviceTransport transport, out DeviceCommand command)
         {
             command = null;
+            if (transport == null || !transport.IsConfigured)
+            {
+                return OperationResult.Fail("ارتباط با دستگاه در این نصب تنظیم نشده است؛ دستور ثبت نشد. " +
+                                             "راهنما: docs/15-device-integration.md");
+            }
             if (device == null)
             {
                 return OperationResult.Fail("دستگاه انتخاب نشده است.");
