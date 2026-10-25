@@ -134,7 +134,10 @@ gh run watch <run-id>
 | ۱۰ | `Could not load file or assembly 'Personnel' … incorrect format` | اسمبلی‌های موتور **x86** هستند و app pool ۶۴-بیتی بود؛ حتی `.css` هم ۵۰۰ می‌داد | `enable32BitAppOnWin64 = true` در `3`، بررسی `bitness` در `4`، ادعا در CI (`BUG-34`) |
 | ۱۱ | `authenticated request returned 0` | PowerShell 7 با `-UseDefaultCredentials` روی `http` مقدار ۰ برمی‌گرداند و دلیل را در پیام استثنا می‌گذارد | چاپ `$_.Exception.Message` + رویدادهای `Application`/`System` |
 | ۱۲ | `cannot protect plain text secrets sent over unencrypted connections` | **خودِ PowerShell 7** اجازهٔ فرستادن اعتبارنامه روی `http` را نمی‌دهد | `-AllowUnencryptedAuthentication` (در `4` فقط برای ۶+) |
-| ۱۳ | **سبز** | — | هر سه job سبز: `MSBuild + tests`, `SQL Server scripts`, `IIS + the published console` |
+| ۱۴ | `the term '.\deploy\4-verify-install.ps1' is not recognized` | مسیر نسبی از ریشهٔ مخزن غلط بود | `./src/T5Web/deploy/4-verify-install.ps1` |
+| ۱۵ | گام با کد ۱ شکست، بدون پیام | `powershell` در Actions مقدار `$LASTEXITCODE` را به‌عنوان کد گام برمی‌گرداند و `4` با «تعداد FAIL» خارج می‌شود (بررسی‌های پایگاه‌داده در این job کاتالوگ ندارند) | صفر کردن صریح `$LASTEXITCODE` و `exit 0` |
+| ۱۶ | `did not pass 'bitness' ->` با متن خالی | `Write-Host` در PowerShell ۵ به جریان **information** می‌نویسد؛ `2>&1` آن را نمی‌گیرد | `*>&1` |
+| ۱۷ | **سبز** | — | هر سه job سبز، و `4-verify-install.ps1` هم واقعاً اجرا می‌شود (بررسی‌های `bitness` و `auth-anonymous`) |
 
 درس: **اجرا کردن، عیب‌هایی می‌دهد که بازبینی هرگز نمی‌دهد** — ۵۰۰.۱۹ و `BadImageFormat` هر دو
 از آن دسته‌اند که فقط یک IIS واقعی نشانشان می‌دهد.
