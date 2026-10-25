@@ -175,6 +175,33 @@ gh run watch <run-id>
 
 ---
 
+## ۵.۴ نسخه‌ها، از زبان ماشینی که اجرا می‌کند
+
+هر ادعای «روی چه نسخه‌ای اثبات شد» از خود runner می‌آید و به‌شکل `::notice::` منتشر
+می‌شود (گزارش job log از بیرون قابل خواندن نیست). خروجی آخرین اجرای سبز:
+
+```
+VERSIONS build | OS 10.0.26100 | .NET Framework 4.8.1 (release 533509) | target 4.7.2 | C# 7.3 | MSBuild 18.11.1.51303
+VERSIONS sql   | 2025 | product=17.0.4025.3 | edition=Express (64-bit) | major=17 | compat=170
+VERSIONS iis   | Windows Server 2025 | IIS 10.0 | app pool managedRuntime=v4.0 enable32Bit=True | .NET release 533509
+NET8 coupling  | core files 49 | engine-coupled 1 | System.Web 0 | System.Configuration 0
+NET8 build     | errors 0 | warnings 0
+NET8 web surface | controllers 21 | views 34 | System.Web files 23/27
+```
+
+و یک نکتهٔ صادقانه: **کفِ ۲۰۱۶ در runbook** (`docs/08`) با همین job **آزمون** می‌شود
+(اگر `ProductMajorVersion < 13` باشد، job قرمز می‌شود) ولی **اثبات نشده** — تنها موتوری
+که در دسترس است ۲۰۲۵ است. گرامر T-SQL ما محافظه‌کارانه است (`CONCAT`، `MERGE`،
+`HAS_PERMS_BY_NAME`؛ بدون `STRING_AGG`/`OPENJSON`/`IIF`)، ولی «باید کار کند» ≠ «کار کرد».
+
+### job چهارم: `net8-spike` (فقط اندازه‌گیری)
+
+`Portability - the core on .NET 8` روی `ubuntu-latest` اجرا می‌شود و سه لایهٔ پایین را
+با `net8.0` کامپایل می‌کند (روی لینوکس، عمداً: اگر هسته به API ویندوز نیاز داشت، همان‌جا
+لو می‌رود). نتیجه و تفسیرش در `docs/16-net8-feasibility.md`.
+
+---
+
 ## ۶. نکتهٔ هزینه و نگهداشت
 
 * runner ویندوز در گیت‌هاب برای مخزن عمومی رایگان است؛ برای خصوصی، دقیقه‌ها از سهمیه کم می‌شود
