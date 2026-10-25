@@ -144,10 +144,12 @@ jobs:
             $code = $LASTEXITCODE
             $out | Write-Host
             if ($code -ne 0) {
-              # sqlcmd's own message names the line and the object; without it the step
-              # only reports "failed with 1" and the reason stays in the unreadable log.
-              foreach ($line in ($out | Select-Object -Last 12)) { Write-Host "::error::${path}: $line" }
-              Fail "$path failed with $code"
+              # One annotation carrying everything sqlcmd said. The job log is not
+              # retrievable from outside, so this annotation is the whole diagnosis; the
+              # previous version kept the last 12 lines, which were blank.
+              $all = (($out | ForEach-Object { "$_" }) -join ' / ')
+              if ($all.Length -gt 900) { $all = $all.Substring($all.Length - 900) }
+              Fail "$path exited $code; sqlcmd said: $all"
             }
           }
 
@@ -597,21 +599,28 @@ jobs:
         shell: pwsh
         run: |
           $failed = $false
+          $reports = @()
           foreach ($catalog in @('ReportT5V3', 'Personnel')) {
-            $out = (sqlcmd -S $env:T5_SERVER -E -b -h -1 -W -d $catalog `
-                     -v Login='IIS APPPOOL\T5WebAdmin' `
-                     -i ./src/T5Web/db/verify-grants.sql 2>&1) -join "`n"
+            $out = (sqlcmd -S $env:T5_SERVER -E -b -h -1 -W -d $catalog -v Login='IIS APPPOOL\T5WebAdmin' -i ./src/T5Web/db/verify-grants.sql 2>&1) -join "`n"
+            $code = $LASTEXITCODE
             Write-Host "--- $catalog"
             $out -split "`n" | ForEach-Object { Write-Host ("  " + $_) }
-            if ($LASTEXITCODE -ne 0) {
+            if ($code -ne 0) {
               # Name the checks that failed: an annotation is the only part of this log
               # the run page shows, so "the grants are wrong" alone is not an answer.
-              $bad = ($out -split "`n" | Where-Object { $_ -match '^(FAIL|Msg |The login)' } | ForEach-Object { $_.Trim() }) -join ' ; '
-              Write-Host "::error::the pool identity fails a permission check in $catalog - the grants are wrong (db/02, db/04): $bad"
+              $bad = ($out -split "`n" | Where-Object { $_ -match 'FAIL|Msg |error' } | ForEach-Object { $_.Trim() }) -join ' ; '
+              if (-not $bad) { $bad = ($out -replace '\s+', ' ').Trim() }
+              if ($bad.Length -gt 900) { $bad = $bad.Substring(0, 900) }
+              $reports += "$catalog (exited $code): $bad"
               $failed = $true
             }
           }
-          if ($failed) { exit 1 }
+          if ($failed) {
+            Write-Host ("::error::the pool identity does not hold the permissions the screens need - " +
+                        "the grants are wrong (db/02, db/04): " + ($reports -join ' || '))
+            exit 1
+          }
+          Write-Host '  PASS: the pool identity holds exactly the permissions the screens need'
 
       - name: Show the IIS log tail on failure
         if: failure()
