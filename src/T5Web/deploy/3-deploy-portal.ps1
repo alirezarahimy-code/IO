@@ -52,13 +52,19 @@ if (-not (Test-Path (Join-Path $SitePath 'Web.config'))) {
 
 # --------------------------------------------------------------- build (optional)
 if ($Build) {
-    $solution = Join-Path $repoRoot 'T5Web.sln'
-    $msbuild = @(
-        "$env:ProgramFiles\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe",
-        "$env:ProgramFiles\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe",
-        "$env:ProgramFiles (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe",
-        "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe"
-    ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+    # Same discovery as 0-publish.ps1: vswhere first, because the .NET Framework
+    # MSBuild's csc.exe rejects <LangVersion>7.3</LangVersion> (CS1617).
+    $msbuild = $null
+    $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+    if (Test-Path $vswhere) {
+        $found = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild `
+                    -find 'MSBuild\**\Bin\MSBuild.exe' 2>$null | Select-Object -First 1
+        if ($found -and (Test-Path $found)) { $msbuild = $found }
+    }
+    if (-not $msbuild) {
+        $onPath = Get-Command msbuild -ErrorAction SilentlyContinue
+        if ($onPath) { $msbuild = $onPath.Source }
+    }
     if (-not $msbuild) { throw 'MSBuild not found. Install the .NET Framework 4.7.2 targeting pack / Build Tools, or build the solution first and omit -Build.' }
     Write-Host ("  building {0}" -f $solution)
     & $msbuild $solution /p:Configuration=Release /m /v:minimal

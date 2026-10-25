@@ -42,20 +42,34 @@ if (-not (Test-Path (Join-Path $webRoot 'Web.config'))) {
 
 # ------------------------------------------------------------------ build
 if ($Build) {
-    $msbuild = @(
-        "$env:ProgramFiles\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe",
-        "$env:ProgramFiles\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe",
-        "$env:ProgramFiles\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe",
-        "$env:ProgramFiles (x86)\Microsoft Visual Studio\2019\BuildTools\MSBuild\Current\Bin\MSBuild.exe",
-        "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe"
-    ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+    # Four candidate locations in a fixed order would be a guess, and guessing wrong is
+    # how this script first failed on CI: the .NET Framework MSBuild at
+    # %WINDIR%\Microsoft.NET\Framework64\v4.0.30319 answered, and its csc.exe rejected
+    # <LangVersion>7.3</LangVersion> with CS1617. Ask vswhere for the newest real
+    # installation instead, and only fall back to the framework build with a warning.
+    $msbuild = $null
+    $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+    if (Test-Path $vswhere) {
+        $found = & $vswhere -latest -products * -requires Microsoft.Component.MSBuild `
+                    -find 'MSBuild\**\Bin\MSBuild.exe' 2>$null | Select-Object -First 1
+        if ($found -and (Test-Path $found)) { $msbuild = $found }
+    }
     if (-not $msbuild) {
         $onPath = Get-Command msbuild -ErrorAction SilentlyContinue
         if ($onPath) { $msbuild = $onPath.Source }
     }
     if (-not $msbuild) {
+        $framework = "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe"
+        if (Test-Path $framework) {
+            $msbuild = $framework
+            Write-Warning ("using the .NET Framework MSBuild at {0}; it cannot compile " -f $framework +
+                           'LangVersion 7.3. Install Build Tools or the VS IDE for a real build.')
+        }
+    }
+    if (-not $msbuild) {
         throw 'MSBuild not found. Install the .NET Framework 4.7.2 targeting pack or Build Tools, or build first and omit -Build.'
     }
+    Write-Host ("  msbuild  {0}" -f $msbuild)
     Write-Host ("  building {0} ({1})" -f $solution, $Configuration)
     # Capture the compiler's own words: "MSBuild failed with exit code 1" is not a
     # diagnosis, and the caller may only be able to show one line of the exception.

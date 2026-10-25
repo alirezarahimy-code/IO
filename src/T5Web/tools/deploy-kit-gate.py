@@ -133,6 +133,11 @@ def check_references(name, text):
     for needle in wants.get(name, []):
         if needle not in text:
             problems.append("%s: never mentions %s" % (name, needle))
+    if name in ("0-publish.ps1", "3-deploy-portal.ps1") and "-Build" in text:
+        # The .NET Framework MSBuild's csc.exe rejects LangVersion 7.3 (CS1617); a
+        # guessed path to it cost one CI run. Ask vswhere for the real installation.
+        if "vswhere" not in text:
+            problems.append("%s builds the solution but never asks vswhere for MSBuild" % name)
     if name == "0-publish.ps1":
         # A published folder that still contains source is the failure this script
         # exists to prevent; the check has to stay in the script, not in the reviewer.
