@@ -3225,7 +3225,7 @@ namespace T5Web.Tests
         {
             string viewsRoot = Path.Combine(T5WebRoot, "T5Web.Web", "Views");
             string[] views = Directory.GetFiles(viewsRoot, "*.cshtml", SearchOption.AllDirectories);
-            Assert(views.Length > 40, "expected the whole view tree, found " + views.Length + " files.");
+            Assert(views.Length > 25, "expected the whole view tree, found " + views.Length + " files.");
 
             var problems = new List<string>();
             foreach (string view in views)

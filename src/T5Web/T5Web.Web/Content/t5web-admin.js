@@ -1,4 +1,4 @@
-/* ===========================================================================
+﻿/* ===========================================================================
    T5Web Admin — the only script in the portal.
    Loaded as a same-origin file so the Content-Security-Policy can stay
    "script-src 'self'" (no inline handlers, no external file).

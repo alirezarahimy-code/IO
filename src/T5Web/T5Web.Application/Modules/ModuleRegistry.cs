@@ -423,6 +423,11 @@ modules.Add(new ModuleDescriptor
                 EditFeature = AdminFeature.RulesEdit,
                 AllowCreate = true,
                 AllowDelete = true,
+                // No "rule type" column on purpose: the two ORMs in the pinned build disagree
+                // about its name ([UserRule].RuleType in T5V3.DB's EntityClasses,
+                // RuleTypeName in T5V3.Model), and neither is DDL evidence. A display field
+                // that names a column which may not exist is "Invalid column name" at the
+                // first click, so the type is shown on the Rules screen instead (BUG-40).
                 NoteFa = "بازه‌های زمانی یک پرسنل نباید هم‌پوشانی داشته باشند؛ کنترل در RulesController انجام می‌شود.",
                 Fields = new List<ModuleField>
                 {
@@ -430,11 +435,7 @@ modules.Add(new ModuleDescriptor
                     Number("BadgeNumber", "شماره پرسنلی", "orm", required: true),
                     Number("RuleID", "قاعده", "orm", required: true),
                     Date("FromDate", "از تاریخ", "orm", required: true),
-                    Date("ToDate", "تا تاریخ", "orm"),
-                    // The engine's [UserRule] carries the *name* of the rule type, not an
-                    // id: RuleTypeName. Asking for RuleType is "Invalid column name" the
-                    // moment the screen runs (BUG-40).
-                    Show("RuleTypeName", "نوع قاعده", FieldKind.Text)
+                    Date("ToDate", "تا تاریخ", "orm")
                 }
             });
 

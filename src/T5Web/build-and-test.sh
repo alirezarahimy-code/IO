@@ -63,6 +63,9 @@ python3 "$SCRIPT_DIR/tools/sql-grant-gate.py" --self-test
 # Deployment kit: the Windows install scripts must parse, stay idempotent, keep passwords
 # out of the repository and reference files that exist (docs/13).
 python3 "$SCRIPT_DIR/tools/deploy-kit-gate.py"
+# Encoding: a Persian .cshtml without a UTF-8 BOM is compiled by IIS in the machine's
+# ANSI code page, which turns a quote character into a syntax error (BUG-42).
+python3 "$SCRIPT_DIR/tools/text-encoding-gate.py"
 # Module fields: every column a generic screen names must exist in the engine model. A
 # field that does not is "Invalid column name" on one screen at the first click; the
 # statement is assembled from the descriptor, so nothing else can see it (BUG-40).
