@@ -190,6 +190,33 @@ namespace T5Web.Domain.Models
             return this[column];
         }
 
+        /// <summary>
+        /// Raw value as text, for building the key path in a URL. Culture-independent and
+        /// slash-free on purpose: a date rendered with the ambient culture would put "/"
+        /// inside the key and split it into two, and the row could never be opened again.
+        /// </summary>
+        public string GetText(string column)
+        {
+            object value = this[column];
+            if (value == null || value == DBNull.Value)
+            {
+                return string.Empty;
+            }
+            if (value is DateTime)
+            {
+                return ((DateTime)value).ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+            }
+            if (value is TimeSpan)
+            {
+                return ((TimeSpan)value).ToString(@"hh\:mm", CultureInfo.InvariantCulture);
+            }
+            if (value is IFormattable)
+            {
+                return ((IFormattable)value).ToString(null, CultureInfo.InvariantCulture);
+            }
+            return value.ToString();
+        }
+
         /// <summary>Value formatted for display: never throws, never shows a CLR type name.</summary>
         public string Display(string column, FieldKind kind)
         {
