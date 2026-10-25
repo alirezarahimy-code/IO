@@ -24,8 +24,7 @@
   <ItemGroup>
     <Compile Include="**\*.cs" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -40,12 +39,6 @@
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <!-- Fallback that cannot be conditioned away: whatever the solution passes as
-       Configuration/Platform, the output directory is defined. MSBuild refused the
-       conditioned groups above with "OutputPath is not set ... Configuration='Release'
-       Platform='AnyCPU'", so the build no longer depends on the condition matching. -->
-  <PropertyGroup>
-    <OutputPath Condition=" '$(OutputPath)' == '' ">bin\$(Configuration)\</OutputPath>
-    <BaseOutputPath Condition=" '$(BaseOutputPath)' == '' ">bin\</BaseOutputPath>
-  </PropertyGroup>
+
+<Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

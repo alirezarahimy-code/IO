@@ -10,6 +10,13 @@ file exists:
   * The fix for that was written with a text substitution, which matched the closing tag
     of the `<Project>{guid}</Project>` element inside a `ProjectReference` and produced a
     malformed XML file that `csc` never read. It took another CI run to find.
+  * The next fix put the Debug/Release groups *after* the Microsoft.CSharp.targets
+    import. MSBuild records `_OutputPathWasMissing` at the moment it imports
+    Microsoft.Common.targets, so a later property group sets OutputPath but the flag is
+    already true and the build still fails with "OutputPath is not set". Evaluating the
+    project with the MSBuild API proved it: OutputPath=bin\Debug\ and
+    _OutputPathWasMissing=true in the same evaluation. Hence the ordering check below -
+    it is not style, it is semantics.
 
 So: parse every project file as XML (a text-level edit cannot survive this), and require
 the properties MSBuild needs for both configurations.
@@ -72,6 +79,18 @@ def main():
         if "Microsoft.CSharp.targets" not in text and "Microsoft.WebApplication.targets" not in text:
             problems.append("%s imports neither Microsoft.CSharp.targets nor "
                             "Microsoft.WebApplication.targets" % relative)
+
+        # The configurations must come BEFORE the import: Microsoft.Common.targets sets
+        # _OutputPathWasMissing at import time, so a group after it is too late even
+        # though every value looks right when the project is evaluated by hand.
+        import_at = min([text.find(marker) for marker in
+                         ("Microsoft.CSharp.targets", "Microsoft.WebApplication.targets")
+                         if text.find(marker) != -1] or [len(text)])
+        first_group = text.find("'$(Configuration)|$(Platform)'")
+        if first_group == -1 or first_group > import_at:
+            problems.append("%s declares Configuration|Platform output paths after the "
+                            "targets import; MSBuild has already decided OutputPath is "
+                            "missing by then" % relative)
 
     if not found:
         problems.append("no .csproj found under %s" % ROOT)
