@@ -69,6 +69,7 @@ namespace T5Web.Tests
             RunTest("T39: the engine is Database First, so it gets an entity connection string", TestEngineConnectionString);
             RunTest("T40: a Razor page can only work with Views/Web.config and a registered EF provider", TestViewHostConfiguration);
             RunTest("T41: every view parses (IIS is not the first thing that should read them)", TestViewsParse);
+            RunTest("T42: every table the portal writes is writable by the portal's role", TestGrantsCoverWrites);
 
             Console.WriteLine("----------------------------------------------------------------------");
             Console.WriteLine($"  Summary: {_passed} Passed, {_failed} Failed");
@@ -3288,6 +3289,104 @@ namespace T5Web.Tests
             Assert(problems.Count == 0,
                 "views that Razor cannot parse (IIS answers 500 Parser Error for each): " +
                 string.Join(" | ", problems.Take(6)));
+        }
+
+        /// <summary>
+        /// T42 - a screen that renders is not a screen that saves (BUG-43).
+        ///
+        /// db/02 grants table by table. Four of the write statements the data layer runs
+        /// - the personnel, department and device updates in [Personnel], and the
+        /// attendance, request and entitlement writes in [ReportT5V3] - had no grant, so
+        /// those screens loaded and every save died on
+        /// "The UPDATE permission was denied on the object 'UserInfo'".
+        ///
+        /// The check is two-way: a write with no grant fails, and a verb db/02 expressly
+        /// DENYs while the code still runs it fails too.
+        /// </summary>
+        private static void TestGrantsCoverWrites()
+        {
+            // 1. What the data layer writes.
+            var writes = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+            foreach (string file in Directory.GetFiles(Path.Combine(T5WebRoot, "T5Web.Data"), "Sql*.cs"))
+            {
+                string text = File.ReadAllText(file);
+                foreach (Match m in Regex.Matches(text,
+                    @"\b(INSERT\s+INTO|UPDATE|DELETE\s+FROM)\s+\[?([A-Za-z0-9_]+)\]?", RegexOptions.IgnoreCase))
+                {
+                    string table = m.Groups[2].Value;
+                    if (table.Equals("SET", StringComparison.OrdinalIgnoreCase)) { continue; }
+                    string verb = Regex.Match(m.Groups[1].Value, "^[A-Za-z]+").Value.ToUpperInvariant();
+                    if (!writes.ContainsKey(table)) { writes[table] = new HashSet<string>(StringComparer.OrdinalIgnoreCase); }
+                    writes[table].Add(verb);
+                }
+            }
+            Assert(writes.Count >= 10, "only " + writes.Count + " written tables were found in T5Web.Data; the scan is broken.");
+
+            // 2. What db/02 grants, per catalog.
+            string script = File.ReadAllText(Path.Combine(T5WebRoot, "db", "02-t5web-sql-login.sql"));
+            var allowed = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+            var refused = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+            string catalog = null;
+            foreach (string raw in script.Split('\n'))
+            {
+                string line = raw.Trim();
+                Match use = Regex.Match(line, @"^USE\s+\[(\w+)\];", RegexOptions.IgnoreCase);
+                if (use.Success) { catalog = use.Groups[1].Value; continue; }
+                Match grant = Regex.Match(line,
+                    @"^(GRANT|DENY)\s+([A-Z, ]+?)\s+ON\s+OBJECT::\[dbo\]\.\[(\w+)\]\s+TO\s+\[t5web_app\]",
+                    RegexOptions.IgnoreCase);
+                if (!grant.Success || catalog == null) { continue; }
+                string key = catalog + "." + grant.Groups[3].Value;
+                var target = grant.Groups[1].Value.Equals("DENY", StringComparison.OrdinalIgnoreCase) ? refused : allowed;
+                if (!target.ContainsKey(key)) { target[key] = new HashSet<string>(StringComparer.OrdinalIgnoreCase); }
+                foreach (string verb in grant.Groups[2].Value.Split(','))
+                {
+                    target[key].Add(verb.Trim().ToUpperInvariant());
+                }
+            }
+            Assert(allowed.Count >= 30, "db/02 grants were parsed for only " + allowed.Count + " tables; the parser is broken.");
+
+            // 3. Table -> catalog, the same source the SQL smoke test uses.
+            Dictionary<string, string> tableCatalogs = TableCatalogs();
+            var catalogNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "t5", "ReportT5V3" }, { "portal", "ReportT5V3" }, { "personnel", "Personnel" }
+            };
+
+            var problems = new List<string>();
+            foreach (var pair in writes)
+            {
+                string key;
+                if (tableCatalogs.ContainsKey(pair.Key))
+                {
+                    string shortName = tableCatalogs[pair.Key];
+                    if (!catalogNames.ContainsKey(shortName)) { continue; } // device catalog: not the portal's
+                    key = catalogNames[shortName] + "." + pair.Key;
+                }
+                else if (pair.Key.StartsWith("T5Web", StringComparison.OrdinalIgnoreCase))
+                {
+                    key = "ReportT5V3." + pair.Key; // the portal's own tables live beside the engine's
+                }
+                else
+                {
+                    problems.Add(pair.Key + " is written but no catalog owns it in engine/relations.json");
+                    continue;
+                }
+
+                foreach (string verb in pair.Value)
+                {
+                    if (refused.ContainsKey(key) && refused[key].Contains(verb))
+                    {
+                        problems.Add(verb + " on " + key + " is expressly denied but the data layer runs it");
+                        continue;
+                    }
+                    if (allowed.ContainsKey(key) && allowed[key].Contains(verb)) { continue; }
+                    problems.Add(verb + " on " + key + " has no grant: the screen renders, the save is refused");
+                }
+            }
+
+            Assert(problems.Count == 0,
+                "db/02 does not match what the portal writes (BUG-43): " + string.Join(" | ", problems.Take(6)));
         }
 
         private static void TestNoLockDependency()

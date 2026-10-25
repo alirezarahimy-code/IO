@@ -58,7 +58,9 @@
 
 | **BUG-42** | فایل‌های `.cshtml` بدون BOM و `globalization` تنظیم‌نشده | `T5Web.Web/Views/**`، `Web.config` | Razor روی سرور فایل را با BOM می‌شناسد؛ بدون آن IIS کدپیج ANSI ماشین (Windows-1252) را به کار می‌برد، دو بایت `»` به `Â»` تبدیل می‌شود و همان کاراکتر داخل عبارت C# می‌افتد: `CS1061: 'ImportPreviewModel' does not contain a definition for 'FileNameÂ'`. یعنی یک گیومهٔ فارسی، خطای کامپایل یک صفحه می‌شود — و متن همهٔ صفحه‌های دیگر هم بی‌صدا خراب می‌شود. حالا ۳۶ فایل BOM دارند، `Web.config` صریحاً `fileEncoding="utf-8"` را ست می‌کند و `text-encoding-gate.py` هر فایل متنی غیر-ASCII بدون BOM را رد می‌کند | `T41`، `text-encoding-gate.py` |
 
-**آمار:** ۴۲ عیب ثبت‌شده · ۴۱ آزمون در `T5Web.Tests` · ۰ عیب باز بدون آزمون.
+| **BUG-43** | گرنت‌های `db/02` نوشتن‌های واقعی پنل را پوشش نمی‌دادند | `db/02-t5web-sql-login.sql` | سیزده فعل نوشتنی که لایهٔ داده واقعاً اجرا می‌کند بی‌گرنت بودند: `UPDATE` روی `Personnel.dbo.UserInfo`/`Department`/`Device` و `INSERT/UPDATE` روی `Record`، `UPDATE` روی `Request`، `INSERT` روی `RequestAccept`، `INSERT/DELETE` روی `Workflow` و `EmpTypeLeave`، `INSERT` روی `T5WebDeviceCommand`. یعنی صفحه‌ها باز می‌شدند و اولین «ذخیره» با `The UPDATE permission was denied` می‌مرد — هیچ‌چیز این را نمی‌دید چون چک‌لیست فقط صفحه را *می‌خواند*. حالا هر فعل دقیقاً همان‌قدر که لازم است گرنت دارد، `DELETE` روی `Record`/`Request` و `UserInfo` عمداً `DENY` است، و سه چیز این را نگه می‌دارد: `T42` (گرنت در برابر کد)، `db/verify-grants.sql` روی سرور داخل `EXECUTE AS LOGIN`، و گام CI که یک «ذخیره» واقعی را از مسیر MVC انجام می‌دهد و ردیف را برمی‌گرداند | `T42`، `db/verify-grants.sql`، `db-grant-gate.py` |
+
+**آمار:** ۴۳ عیب ثبت‌شده · ۴۲ آزمون در `T5Web.Tests` · ۰ عیب باز بدون آزمون.
 
 ## چگونه یک عیب جدید اضافه می‌شود
 

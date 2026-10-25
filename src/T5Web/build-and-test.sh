@@ -70,6 +70,9 @@ python3 "$SCRIPT_DIR/tools/text-encoding-gate.py"
 # field that does not is "Invalid column name" on one screen at the first click; the
 # statement is assembled from the descriptor, so nothing else can see it (BUG-40).
 python3 "$SCRIPT_DIR/tools/module-field-gate.py"
+# Grants: every table the data layer writes must be writable by the portal's role in
+# the catalog that owns it, or the screen renders and saving fails (BUG-43).
+python3 "$SCRIPT_DIR/tools/db-grant-gate.py"
 # Fixture: tools/ci-seed.sql must cover every AdminFeature and every NOT NULL column of
 # [UserInfo], or a screen answers 403 on the runner and the sweep passes without it.
 python3 "$SCRIPT_DIR/tools/ci-fixture-gate.py"

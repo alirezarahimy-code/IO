@@ -1,4 +1,4 @@
-/* =====================================================================
+﻿/* =====================================================================
    T5Web Admin Portal — least-privilege SQL login
    ---------------------------------------------------------------------
    The portal runs under its own login. It is NOT db_owner: the engine owns
@@ -11,11 +11,16 @@
 
    The role may:
      * read every table (the admin screens show engine data);
-     * write only the four engine tables an administrator is responsible for
-       (UserInfo, Device, Workflow, Gate) plus its own two tables.
+     * write the tables the screens actually write, and only with the verbs they
+       use: personnel, departments and devices in [Personnel]; attendance records,
+       requests, acceptances, workflows and leave entitlements in [ReportT5V3];
+     * append to its own audit table and its own device queue.
 
-   Anything else — DDL, truncating [Record], editing [Request] — is refused by
-   SQL Server, not by an if-statement in C#.
+   Anything else — DDL, deleting a person, deleting an attendance record, rewriting
+   the audit trail — is refused by SQL Server, not by an if-statement in C#.
+   tools/db-grant-gate.py reads the write statements out of T5Web.Data and fails the
+   build when one of them has no grant here: a screen that renders is not a screen
+   that saves (BUG-43).
 
    Change the password before running in production:
      ALTER LOGIN [t5web_admin] WITH PASSWORD = N'<strong password>';
@@ -116,6 +121,30 @@ GO
 
 GRANT SELECT, INSERT, UPDATE ON OBJECT::[dbo].[T5WebAccess] TO [t5web_app];
 GRANT SELECT, INSERT           ON OBJECT::[dbo].[T5WebAudit]  TO [t5web_app];
+/* The device queue: the portal appends a ticket and never rewrites one. */
+GRANT SELECT, INSERT           ON OBJECT::[dbo].[T5WebDeviceCommand] TO [t5web_app];
+GO
+
+/* =====================================================================
+   The engine tables the attendance, request and leave screens write.
+   These were missing until a gate asked the question - every one of those
+   screens rendered, and every save would have failed with
+     The UPDATE permission was denied on the object 'Record', database 'ReportT5V3'
+   Verbs are the ones the data layer uses, not "everything": the portal edits a
+   record and can never delete one, and can only insert a request acceptance.
+   ===================================================================== */
+GRANT INSERT, UPDATE ON OBJECT::[dbo].[Record]        TO [t5web_app];
+GRANT UPDATE         ON OBJECT::[dbo].[Request]       TO [t5web_app];
+GRANT INSERT         ON OBJECT::[dbo].[RequestAccept] TO [t5web_app];
+GRANT INSERT, DELETE ON OBJECT::[dbo].[Workflow]      TO [t5web_app];
+GRANT INSERT, DELETE ON OBJECT::[dbo].[EmpTypeLeave]  TO [t5web_app];
+GO
+
+/* Attendance and requests are the engine's history. Editing is the administrator's
+   job; erasing is not, and the refusal is the database's, not the screen's. */
+DENY DELETE ON OBJECT::[dbo].[Record]        TO [t5web_app];
+DENY DELETE ON OBJECT::[dbo].[Request]       TO [t5web_app];
+DENY DELETE ON OBJECT::[dbo].[RequestAccept] TO [t5web_app];
 GO
 
 /* The audit trail is append-only: even the portal login cannot rewrite history. */
@@ -183,6 +212,18 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON OBJECT::[dbo].[UserInfoVaccinationDetail
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON
     OBJECT::[dbo].[VaccineLog] TO [t5web_app];
+GO
+
+/* The three tables the personnel, department-chart and device screens update.
+   The screens rendered fine without these grants; clicking save did not. */
+GRANT UPDATE ON OBJECT::[dbo].[Department] TO [t5web_app];
+GRANT UPDATE ON OBJECT::[dbo].[Device]     TO [t5web_app];
+GRANT UPDATE ON OBJECT::[dbo].[UserInfo]   TO [t5web_app];
+GO
+
+/* A person is never deleted from the portal: the engine's own client owns that,
+   and a deleted row would take the attendance history with it. */
+DENY DELETE ON OBJECT::[dbo].[UserInfo] TO [t5web_app];
 GO
 
 PRINT N't5web_admin created with least-privilege grants. Change its password now.';
