@@ -69,14 +69,18 @@ SELECT CONCAT(CASE WHEN want = got THEN 'PASS ' ELSE 'FAIL ' END,
 FROM @result
 ORDER BY CASE WHEN want = got THEN 1 ELSE 0 END, tbl, verb;
 
-DECLARE @failed int = (SELECT COUNT(1) FROM @result WHERE want <> got);
+DECLARE @failed int;
+SELECT @failed = COUNT(1) FROM @result WHERE want <> got;
 IF @failed > 0
 BEGIN
     DECLARE @msg nvarchar(200) = CONCAT(N'$(Login) fails ', @failed,
-        N' permission checks in ', DB_NAME(), N': the screens will render and then refuse to save.');
+        N' permission checks in ', DB_NAME(), N': the screens render and then refuse to save.');
     RAISERROR (@msg, 16, 1);
 END
 ELSE
 BEGIN
-    PRINT CONCAT(N'PASS  ', DB_NAME(), N': ', (SELECT COUNT(1) FROM @result), N' permission checks on $(Login)');
+    DECLARE @passed int;
+    SELECT @passed = COUNT(1) FROM @result;
+    DECLARE @ok nvarchar(200) = CONCAT(N'PASS  ', DB_NAME(), N': ', @passed, N' permission checks on $(Login)');
+    PRINT @ok;
 END
