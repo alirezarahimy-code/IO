@@ -114,12 +114,26 @@ foreach ($file in $files) {
         Write-Host ("  {0}" -f $file)
     }
 }
+# Source files are copied out, not in: Content\ holds AriaAdminBranding.cs, which is
+# compiled (T30) and must not reach the server. The check below is the proof, this is
+# the policy - and Web.config denies those extensions as a third layer.
+$skipSource = { param($file) $file.Extension -in @('.cs', '.csproj', '.sln', '.user', '.pdb') }
 foreach ($folder in $folders) {
     $source = Join-Path $webRoot $folder
-    if (Test-Path $source) {
-        Copy-Item -LiteralPath $source -Destination $OutputPath -Recurse -Force
-        Write-Host ("  {0}\" -f $folder)
-    }
+    if (-not (Test-Path $source)) { continue }
+    $target = Join-Path $OutputPath $folder
+    New-Item -ItemType Directory -Path $target -Force | Out-Null
+    Get-ChildItem -LiteralPath $source -Recurse -File |
+        Where-Object { -not (& $skipSource $_) } |
+        ForEach-Object {
+            $relative = $_.FullName.Substring($source.Length).TrimStart('\')
+            $destination = Join-Path $target $relative
+            $parent = Split-Path -Parent $destination
+            if (-not (Test-Path $parent)) { New-Item -ItemType Directory -Path $parent -Force | Out-Null }
+            Copy-Item -LiteralPath $_.FullName -Destination $destination -Force
+        }
+    $kept = @(Get-ChildItem -LiteralPath $target -Recurse -File).Count
+    Write-Host ("  {0}\ : {1} file(s)" -f $folder, $kept)
 }
 
 $binOut = Join-Path $OutputPath 'bin'
