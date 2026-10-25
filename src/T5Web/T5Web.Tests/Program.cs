@@ -109,17 +109,23 @@ namespace T5Web.Tests
         {
             get
             {
+                // The exe runs from T5Web.Tests\bin\Release, so the repository is four
+                // levels up - but this must also work from bin\Debug and from anywhere a
+                // Release build happens to be copied. Look for the solution's own layout
+                // (src\T5Web\T5Web.Web) rather than for a directory named "T5Web": that
+                // name matches src\T5Web first and yields src\src\T5Web, which is how the
+                // first Windows run of the suite failed T08 and T09 on a path.
                 string dir = AppDomain.CurrentDomain.BaseDirectory;
-                // bin/Debug -> T5Web.Tests -> T5Web -> src -> repo
-                for (int i = 0; i < 5 && dir != null; i++)
+                for (int i = 0; i < 6 && dir != null; i++)
                 {
-                    dir = Path.GetFullPath(Path.Combine(dir, ".."));
-                    if (Directory.Exists(Path.Combine(dir, "T5Web")))
+                    if (Directory.Exists(Path.Combine(dir, "src", "T5Web", "T5Web.Web")))
                     {
                         return dir;
                     }
+                    dir = Path.GetFullPath(Path.Combine(dir, ".."));
                 }
-                return Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", ".."));
+                throw new InvalidOperationException(
+                    "cannot find the repository root from " + AppDomain.CurrentDomain.BaseDirectory);
             }
         }
 
