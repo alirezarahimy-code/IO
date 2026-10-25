@@ -3238,7 +3238,7 @@ namespace T5Web.Tests
                 {
                     using (var reader = new StreamReader(view))
                     {
-                        System.Web.Razor.Generator.GeneratorResults results = engine.GenerateCode(
+                        System.Web.Razor.GeneratorResults results = engine.GenerateCode(
                             reader,
                             className: "Generated" + views.Length,
                             rootNamespace: "T5Web.Views",

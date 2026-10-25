@@ -316,11 +316,14 @@ EXTRA_COLUMNS = {
     "LeaveDescription": {
         "LeaveDescriptions": {"type": "nvarchar", "length": 250, "nullable": True},
     },
+    # Both are part of their table's primary key (engine/relations.json), so they are
+    # NOT NULL: a nullable key column makes the synthetic schema fail with
+    # "Cannot define PRIMARY KEY constraint on nullable column".
     "PositionStep": {
-        "OperationIndex": {"type": "int", "nullable": True},
+        "OperationIndex": {"type": "int", "nullable": False},
     },
     "TempSchedule": {
-        "ScheduleID": {"type": "int", "nullable": True},
+        "ScheduleID": {"type": "int", "nullable": False},
     },
 }
 

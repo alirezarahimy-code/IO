@@ -2694,7 +2694,7 @@
           "evidence": "manifest",
           "identity": false,
           "length": null,
-          "nullable": true,
+          "nullable": false,
           "source": "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
           "type": "int"
         },
@@ -4357,7 +4357,7 @@
           "evidence": "manifest",
           "identity": false,
           "length": null,
-          "nullable": true,
+          "nullable": false,
           "source": "manifest:TWF/db/schema-manifest.json + sql:T5Web.Data",
           "type": "int"
         }
