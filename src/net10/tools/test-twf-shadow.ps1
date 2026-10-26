@@ -1,7 +1,9 @@
-# Compile every tracked TWF source on a Windows runner, without editing src/TWF/.
-# Raw TWF.sln cannot build: missing Web references (CI 40395889978). This diagnostic
-# build copies its sources/projects, adds only explicit *build metadata*, then runs
-# the real 47-test suite against the original source tree. It is NOT the raw build.
+# Diagnostic TWF test on a Windows runner, without editing src/TWF/.
+# Raw MSBuild fails missing project refs (CI 40395889978). An exact-source shadow
+# also fails: inherited HttpApplication.Init collides with TD5.Init (40396626924).
+# -DiagnosticPatch changes *one* compiler-only qualification IN THE TEMP COPY;
+# its tests are not a passing raw/identical-source baseline.
+param([switch]$DiagnosticPatch)
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '../../..')).Path
 $source = Join-Path $root 'src/TWF'
@@ -17,11 +19,12 @@ if (-not (Test-Path -LiteralPath $captcha)) { throw 'Original TWF CaptchaMvc is 
 
 $addReferences = @{
     'TWF.Web' = @('System.Data', 'System.Configuration', 'System.Drawing', 'System.Xml',
-                  'System.Web.Routing', 'System.Web.Http', 'System.Web.Optimization',
-                  'Dapper', 'CaptchaMvc')
+                  'System.Web.Routing', 'System.Web.Http', 'System.Web.Http.WebHost',
+                  'System.Web.Optimization', 'Microsoft.CSharp', 'Dapper', 'CaptchaMvc')
     'TWF.Tests' = @('System.Web', 'System.Web.Routing', 'System.Web.Mvc', 'T5V3.Model')
 }
-$fromPinned = @('System.Web.Http', 'System.Web.Optimization', 'Dapper',
+$fromPinned = @('System.Web.Http', 'System.Web.Http.WebHost',
+                'System.Web.Optimization', 'Dapper',
                 'System.Web.Mvc', 'T5V3.Model')
 $namespace = 'http://schemas.microsoft.com/developer/msbuild/2003'
 foreach ($name in @('TWF.Web', 'TWF.Tests')) {
@@ -86,6 +89,20 @@ $compile.SetAttribute('Include', 'Adapters\T5V3BackendAdapter.cs')
 $infra.Save($infraPath)
 Write-Host 'SHADOW ONLY: TWF.Infrastructure includes existing T5V3BackendAdapter.cs'
 
-Write-Host 'Original src/TWF project/source bytes were not changed. Shadow build is not the raw baseline.'
+if ($DiagnosticPatch) {
+    # C# name lookup binds unqualified Init in HttpApplication subclass to its
+    # inherited method, not to TD5.Init. This is an explicit, single-line
+    # DIAGNOSTIC source change in the disposable copy, not a TWF rewrite fix.
+    $mvcPath = Join-Path $shadow 'TWF.Web/MyTime3/MvcApplication.cs'
+    $mvcSource = [System.IO.File]::ReadAllText($mvcPath)
+    $needle = '            Init.Start('
+    if ([regex]::Matches($mvcSource, [regex]::Escape($needle)).Count -ne 1) {
+        throw 'TD5.Init diagnostic correction no longer applies exactly once'
+    }
+    $mvcSource = $mvcSource.Replace($needle, '            TD5.Init.Start(')
+    [System.IO.File]::WriteAllText($mvcPath, $mvcSource, [System.Text.UTF8Encoding]::new($false))
+    Write-Host '::warning::TEMP SOURCE PATCH: MvcApplication.cs Init.Start -> TD5.Init.Start. No source-parity claim.'
+}
+Write-Host 'Tracked src/TWF source and project bytes were not changed. This is a diagnostic test, not a baseline pass.'
 & (Join-Path $PSScriptRoot 'test-twf-baseline.ps1') -SolutionRoot $shadow
 exit $LASTEXITCODE

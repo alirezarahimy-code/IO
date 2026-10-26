@@ -946,11 +946,11 @@ jobs:
           echo "  Razor views           : $views"
           echo "::notice::NET8 web surface | controllers $controllers | views $views | System.Web files $systemweb/$cs"
 
-  twf-framework-source-probe:
-    # Raw TWF.sln failed on 40395889978 because Web lacks explicit references.
-    # Do not call this the raw baseline: only project metadata is completed on a
-    # temporary copy. All source files, checks, and 47 tests stay enabled.
-    name: TWF Framework shadow metadata + all 47 tests
+  twf-framework-diagnostic:
+    # Raw TWF.sln fails missing references (40395889978); an unchanged-source
+    # shadow fails unqualified Init (40396626924). CI tests a temp copy with
+    # exactly ONE explicitly recorded qualification; NEVER call this raw parity.
+    name: TWF Framework diagnostic shadow + 47 tests (not raw baseline)
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
@@ -958,4 +958,4 @@ jobs:
       - uses: microsoft/setup-msbuild@v2
       - name: Compile complete TWF sources using an isolated metadata shadow
         shell: pwsh
-        run: ./src/net10/tools/test-twf-shadow.ps1
+        run: ./src/net10/tools/test-twf-shadow.ps1 -DiagnosticPatch
