@@ -4,7 +4,7 @@
 
 | Step | State / next executable action |
 | --- | --- |
-| Phase 0: real inventory & references | IN-PROGRESS: toolchain recorded in BUILD_INFO.md, existing CI scope recorded in TEST_LOG.md; Windows baseline for TWF remains unproved. |
+| Phase 0: real inventory & references | IN-PROGRESS: toolchain recorded in BUILD_INFO.md, existing CI scope recorded in TEST_LOG.md; Raw Windows TWF MSBuild failed at `40395889978` (missing project references). Temporary metadata-shadow build and all 47 tests are pending; do not claim raw build passed. |
 | Phase 1: member and legacy ledger | TODO: generate with Roslyn + supplementary Razor/config/SQL/DLL extractors, freeze baseline; do not mark a member TESTED by counting filenames. |
 | Phase 2: deterministic golden tests | TODO: measure actual Framework HTTP/status/auth/HTML and calculation outputs; synthetic fixture only. |
 | Phase 3: independent products | TODO: `src/net10/AriaAdmin/` first, `src/net10/Aria/` second; avoid an MVC 5 shim masquerading as ASP.NET Core. |

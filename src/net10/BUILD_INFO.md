@@ -33,3 +33,9 @@ The `TWF 4.28` attendance and leave-calculation binaries are byte-identical to t
 | `T5V3.9.2/T5V3.exe` | `e4f3cf6fae9ccc2fbbb16df546b960fb1db729378bec6f03cc4e04d13bb6a84f` | desktop `T5V3` 3.9.2.0, `32BITREQUIRED`, supplementary only |
 
 SHA-256 via `hashlib.sha256(Path(...).read_bytes()).hexdigest()` and metadata via `dnfile==0.17.0` (local analysis environment; not a new application dependency). MSBuild baseline warns about x86 references with an AnyCPU project; this does not make a 64-bit Core host compatible with those DLLs.
+
+## TWF raw solution versus diagnostic source build
+
+Windows [CI 40395889978](https://github.com/alirezarahimy-code/IO/actions/runs/40395889978) ran raw `TWF.sln` in Release using a pinned assembly search path: **FAIL** (CS0234/CS0246). TWF.Web.csproj lacks at least `System.Data`, `Dapper`, `System.Web.Http`, `System.Web.Optimization`; its engine HintPaths are too shallow by one `..`. The raw solution must not be described as compiling. Architecture warnings (MSB3270, x86 engines vs AnyCPU project) are real; they are not equivalent to compiler errors.
+
+`src/net10/tools/test-twf-shadow.ps1` is an *additional* experiment: copy `src/TWF/` to Windows runner temp, explicitly add missing Framework and pinned non-engine reference metadata (and the original TWF CaptchaMvc library), include the existing but unlisted adapter source, then compile the copied solution and execute all 47 tests from an output under the actual source root. It never edits the tracked baseline. The source bytes and test logic are identical, but **the project metadata differs**. Any pass proves a source/test baseline only, not a passing raw project or a Core web app. Record its actual run result before using it as evidence.

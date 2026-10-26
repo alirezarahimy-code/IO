@@ -1,8 +1,10 @@
-# TWF baseline proof on a real Windows runner. Does not edit the reference source.
-# The old solution's web/infrastructure HintPaths are one directory too shallow;
-# ReferencePath points MSBuild to the exact pinned binary folder without mutating them.
+# Real Windows source build/test probe. Without -SolutionRoot this is the RAW
+# TWF.sln build (known to fail from missing project references). With it, build
+# an explicitly normalized metadata shadow; never confuse the two outcomes.
+param([string]$SolutionRoot = '')
 $ErrorActionPreference = 'Stop'
 $root = (Resolve-Path (Join-Path $PSScriptRoot '../../..')).Path
+if (-not $SolutionRoot) { $SolutionRoot = Join-Path $root 'src/TWF' }
 $msbuild = (Get-Command msbuild -ErrorAction SilentlyContinue).Source
 if (-not $msbuild) { Write-Host '::error::MSBuild is not installed'; exit 2 }
 $pinned = Join-Path $root 'T5Web [3.5.7]/App/bin'
@@ -12,10 +14,10 @@ if (-not (Test-Path -LiteralPath (Join-Path $pinned 'Personnel.dll'))) {
 }
 $output = Join-Path $root 'src/TWF/build'
 New-Item -ItemType Directory -Force -Path $output | Out-Null
-Write-Host "TWF baseline: MSBuild=$msbuild | pinned=$pinned | output=$output"
+Write-Host "TWF source probe: solution=$SolutionRoot | MSBuild=$msbuild | pinned=$pinned | output=$output"
 Write-Host 'TWF baseline: 47 registered TEST-01...TEST-47, no test or warning is skipped.'
 $argsList = @(
-    (Join-Path $root 'src/TWF/TWF.sln'),
+    (Join-Path $SolutionRoot 'TWF.sln'),
     '/p:Configuration=Release',
     "/p:ReferencePath=$pinned",
     "/p:OutDir=$output/",
@@ -50,4 +52,4 @@ if ($testCode -ne 0 -or !(($testOutput -join "`n") -match 'Summary:\s+47 Passed,
     Write-Host "::error::TWF Framework tests failed (code $testCode); no baseline equivalence claim."
     exit 1
 }
-Write-Host '::notice::TWF FRAMEWORK baseline | Release MSBuild succeeded | 47 Passed, 0 Failed | real Windows runner'
+Write-Host "::notice::TWF FRAMEWORK source probe | solution=$SolutionRoot | Release MSBuild succeeded | 47 Passed, 0 Failed | real Windows runner"
