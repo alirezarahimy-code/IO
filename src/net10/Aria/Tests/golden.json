@@ -7,6 +7,8 @@
   "jalaliDateTime": "1405/08/02 14:30",
   "durationMinutes": 8730,
   "durationText": "145:30",
+  "dailyLeaveLimitLabel": "حداکثر مجاز مرخصی دریافت شده است",
+  "remainLeaveErrorLabel": "مانده مرخصی شما به پایان رسیده است",
   "licenseMode": "ZeroLock-Unrestricted",
   "cookieName": "mytimeauth",
   "displayName": "مریم آزمایشی",

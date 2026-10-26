@@ -26,5 +26,8 @@
              Link="LegacyApplication/Security/SessionManager.cs" />
     <Compile Include="../../../TWF/TWF.Infrastructure/Licensing/UnrestrictedLicenseService.cs"
              Link="LegacyInfrastructure/Licensing/UnrestrictedLicenseService.cs" />
+    <!-- Owned two-label PORT shim: the full generated rewrite resource contains
+         unverified historical product/version banners, so do not import it. -->
+    <Compile Include="Localization/PersianString.cs" />
   </ItemGroup>
 </Project>

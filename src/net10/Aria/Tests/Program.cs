@@ -8,6 +8,7 @@ using TWF.Domain.Interfaces;
 using TWF.Domain.Models;
 using TWF.Domain.ValueObjects;
 using TWF.Infrastructure.Licensing;
+using TWF.Infrastructure.Localization;
 
 namespace Aria.Core.Tests;
 
@@ -123,8 +124,16 @@ internal static class Program
             // No adapter implementation is registered here; no native engine call was attempted.
         });
 
+        Run("AR-CORE-11: only audited Persian leave denial labels are imported", () =>
+        {
+            Equal(Text(golden, "dailyLeaveLimitLabel"), PersianString.DailyLeaveLimit, "leave limit text");
+            Equal(Text(golden, "remainLeaveErrorLabel"), PersianString.RemainLeaveError, "balance denial text");
+            Require(typeof(PersianString).GetProperty("bode5Copy1") == null,
+                "do not expose an unverified version banner in the new core");
+        });
+
         Console.WriteLine($"Summary: {_passed} Passed, {_failed} Failed (net10.0 Aria portable synthetic only)");
-        return _passed == 10 && _failed == 0 ? 0 : 1;
+        return _passed == 11 && _failed == 0 ? 0 : 1;
     }
 
     private static string Text(JsonElement source, string key) => source.GetProperty(key).GetString()
