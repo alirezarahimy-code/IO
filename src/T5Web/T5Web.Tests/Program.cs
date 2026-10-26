@@ -3527,7 +3527,7 @@ namespace T5Web.Tests
             // 3. The switch: default sql, engine still reachable, a typo is not "auto".
             Assert(EngineDirectory.Key == "T5WebEngineDirectory", "the appSetting name is part of the deployment contract.");
             string config = File.ReadAllText(Path.Combine(T5WebRoot, "T5Web.Web", "Web.config"));
-            Match value = Regex.Match(config, "<add key=\"T5WebEngineDirectory\" value=\"([^\"]*)\"");
+            Match value = Regex.Match(config, @"<add key=""T5WebEngineDirectory"" value=""([^""]*)""");
             Assert(value.Success, "Web.config must set T5WebEngineDirectory.");
             Assert(value.Groups[1].Value.Trim().Equals("sql", StringComparison.OrdinalIgnoreCase),
                 "the shipped default must be 'sql': an installation with only a database must work.");
@@ -3568,12 +3568,17 @@ namespace T5Web.Tests
             string path = Path.Combine(T5WebRoot, "engine", "column-types.json");
             Assert(File.Exists(path), "engine/column-types.json is missing; run tools/engine-column-types.py --write.");
             string json = File.ReadAllText(path);
+
+            // Verbatim patterns: doubling the quotes is the only escaping involved, which is
+            // what keeps a regex readable (and a raw "\s" out of a normal string literal).
+            const string tablePattern = @"""(\w+)""\s*:\s*\{\s*""columns""\s*:\s*\{(.*?)\}\s*,\s*""sources""";
+            const string columnPattern = @"""(\w+)""\s*:\s*\{";
+
             var tables = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
-            foreach (Match table in Regex.Matches(json, "\"(\w+)\"\s*:\s*\{\s*\"columns\"\s*:\s*\{(.*?)\}\s*,\s*\"sources\"",
-                         RegexOptions.Singleline))
+            foreach (Match table in Regex.Matches(json, tablePattern, RegexOptions.Singleline))
             {
                 var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                foreach (Match column in Regex.Matches(table.Groups[2].Value, "\"(\w+)\"\s*:\s*\{"))
+                foreach (Match column in Regex.Matches(table.Groups[2].Value, columnPattern))
                 {
                     columns.Add(column.Groups[1].Value);
                 }
