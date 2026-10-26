@@ -35,16 +35,26 @@ foreach ($service in @('W3SVC', 'WAS')) {
     Notice ("{0}={1} (observed only)" -f $service, $(if ($entry) { $entry.Status } else { 'not installed' }))
 }
 
-# ANCM V2's 64-bit binary is a necessary IIS Hosting Bundle component, not a
-# proof of correct app-pool config, Windows auth, Razor routes or HTTP startup.
-$ancm64 = Join-Path $env:ProgramFiles 'IIS\Asp.Net Core Module\V2\aspnetcorev2.dll'
-if (Test-Path -LiteralPath $ancm64 -PathType Leaf) {
-    $version = (Get-Item -LiteralPath $ancm64).VersionInfo.FileVersion
-    Notice "ANCM_V2_64=$version (file only; IIS integration NOT RUN)"
+# ANCM V2 has multiple conventional file locations across Windows images.
+# Search only documented local paths and *read* IIS module registration; an SDK
+# runtime or a file alone is not an IIS Hosting Bundle/deployment proof.
+$ancmCandidates = @(
+    (Join-Path $env:ProgramFiles 'IIS\Asp.Net Core Module\V2\aspnetcorev2.dll'),
+    (Join-Path $env:windir 'System32\inetsrv\aspnetcorev2.dll')
+)
+$ancm64 = @($ancmCandidates | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1)
+$configPath = Join-Path $env:windir 'System32\inetsrv\config\applicationHost.config'
+$ancmRegistered = (Test-Path -LiteralPath $configPath -PathType Leaf) -and
+    [bool](Select-String -LiteralPath $configPath -Pattern 'AspNetCoreModuleV2' -Quiet -ErrorAction SilentlyContinue)
+Notice ("ANCM_V2_registered={0} (configuration read-only)" -f $ancmRegistered)
+if ($ancm64.Count -gt 0) {
+    $version = (Get-Item -LiteralPath $ancm64[0]).VersionInfo.FileVersion
+    Notice "ANCM_V2_64=$version at $($ancm64[0]) (file only; IIS integration NOT RUN)"
 } else {
-    $missing.Add('64-bit IIS ASP.NET Core Module V2 / Hosting Bundle (local binary)')
-    Notice 'ANCM_V2_64=not found; no bundle downloaded or installed'
+    $missing.Add('64-bit IIS ASP.NET Core Module V2 / Hosting Bundle (both conventional file paths absent)')
+    Notice 'ANCM_V2_64=not found in standard 64-bit paths; no bundle downloaded or installed'
 }
+if (-not $ancmRegistered) { $missing.Add('AspNetCoreModuleV2 IIS module registration') }
 
 # Read-only executable discovery is not a database probe or provider pin.
 $sqlcmd = Get-Command sqlcmd -ErrorAction SilentlyContinue
