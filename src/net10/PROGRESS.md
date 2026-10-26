@@ -7,7 +7,7 @@
 | Phase 0: real inventory & references | PARTIALLY BLOCKED: raw TWF build failed `40395889978`; identical-source shadow failed `40396626924`; patched-copy diagnostic built Web but TWF.Tests failed to compile `40396901909` on real Framework (facade-only test APIs). **Zero** real TWF tests executed. Existing T5Web Framework CI passed at source SHA `ebd8dff`; see TEST_LOG. |
 | Phase 1: member and legacy ledger | INVENTORY FROZEN (not behaviourally done): CI `40398533166` generated/validated 9,837 rows using local SDK 10.0.112 and pushed commit `1c755b1` on this branch only. Local `ledger-check.py --inventory` passed; `--release` intentionally failed (6,805 TODO and 2 restricted-data BLOCKED). Per-row destinations and test evidence remain open. Do not mark a member TESTED by counting filenames. |
 | Phase 2: deterministic golden tests | TODO: measure actual Framework HTTP/status/auth/HTML and calculation outputs; synthetic fixture only. |
-| Phase 3: independent products | TODO: `src/net10/AriaAdmin/` first, `src/net10/Aria/` second; avoid an MVC 5 shim masquerading as ASP.NET Core. |
+| Phase 3: independent products | IN-PROGRESS slice AA-Core-01: `src/net10/AriaAdmin/Core` source-links 25 current Domain/Application C# files under **net10.0** and has 9 fixed synthetic golden assertions in `Tests`. Linux/Windows offline CI has not yet run this new slice. It is NOT an ASP.NET Core/IIS web host. Aria has not started. |
 | Phase 4: integration/security/load/IIS | TODO: user role matrix, synthetic DB and attendance workflow, 100 users, rollback; Link5 live NEEDS-HARDWARE. |
 | Release gate | NOT PASSED. There are no executable `net10.0` web apps or full parity/CI proofs yet. |
 

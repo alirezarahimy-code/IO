@@ -1,0 +1,13 @@
+{
+  "fixture": "aria-admin-core-synthetic-01",
+  "origin": "src/T5Web/T5Web.Tests/Program.cs T01 T02 T03 T06 (synthetic-only rewrite assertions)",
+  "jalaliNowruz": "1403/01/01",
+  "jalaliAutumn": "1405/08/03",
+  "emptyDate": "—",
+  "normalizedName": "علی کاظمی",
+  "departmentRoots": 2,
+  "departmentMaxDepth": 2,
+  "permissionDenied": 0,
+  "readOnlyLevel": 1,
+  "reportEngineMarker": "engine"
+}

@@ -1,0 +1,80 @@
+name: net10-products
+
+# Each product/slice owns its tests. A portable-core check is NOT an IIS/web gate.
+on:
+  push:
+    branches: [arena/a4df3135-io]
+    paths:
+      - 'src/net10/AriaAdmin/**'
+      - 'src/net10/Aria/**'
+      - 'src/net10/nuget.offline.config'
+      - '.github/workflows/net10-products.yml'
+  pull_request:
+    paths:
+      - 'src/net10/AriaAdmin/**'
+      - 'src/net10/Aria/**'
+      - '.github/workflows/net10-products.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: net10-products-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  aria-admin-core:
+    name: Aria Admin core net10.0 + 9 synthetics (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build actual Domain/Application sources offline and run deterministic executable
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v dotnet >/dev/null || ! dotnet --list-sdks | grep -Eq '^10\.0\.[0-9]+'; then
+            echo '::error::NEEDS-INFRA: no preinstalled .NET 10 SDK; no download fallback.'
+            exit 2
+          fi
+          sdk=$(dotnet --list-sdks | grep '^10\.0\.' | head -n 1)
+          echo "::notice::ARIA_ADMIN CORE | local SDK $sdk | net10.0 | no NuGet sources | $RUNNER_OS"
+          sources=$(find src/T5Web/T5Web.Domain src/T5Web/T5Web.Application \
+            -name '*.cs' -not -path '*/obj/*' -not -path '*/bin/*' | wc -l)
+          if [ "$sources" -ne 25 ]; then
+            echo "::error::Core source inventory changed: expected 25, found $sources. Review the linked source manifest."
+            exit 1
+          fi
+          if grep -REl '^using (System\.Web|Personnel\.|T5V3\.)' \
+            src/T5Web/T5Web.Domain src/T5Web/T5Web.Application --include='*.cs'; then
+            echo '::error::Native/Framework dependency entered the linked portable core.'
+            exit 1
+          fi
+          logdir=$(mktemp -d)
+          diagnose() {
+            local label="$1"; shift
+            local output="$logdir/ariaadmin-core-$label.log"
+            set +e
+            "$@" >"$output" 2>&1
+            local code=$?
+            set -e
+            cat "$output"
+            if [ "$code" -ne 0 ]; then
+              { grep -Ei '(^|: )error |NU[0-9]{4}|Exception|\[FAIL\]|Unable to' "$output" || true; } | head -30 |
+                while IFS= read -r line; do echo "::error::ARIA_ADMIN CORE $label: $line"; done
+              echo "::error::ARIA_ADMIN CORE $label failed ($code); no net10 parity claim."
+              exit "$code"
+            fi
+          }
+          project=src/net10/AriaAdmin/Tests/AriaAdmin.Core.Tests.csproj
+          diagnose restore dotnet restore "$project" --configfile src/net10/nuget.offline.config -v minimal
+          diagnose core-build dotnet build src/net10/AriaAdmin/Core/AriaAdmin.Core.csproj -c Release --no-restore -v minimal
+          diagnose tests-build dotnet build "$project" -c Release --no-restore -v minimal
+          diagnose synthetics dotnet run --project "$project" -c Release --no-build --no-restore
+          if ! grep -q 'Summary: 9 Passed, 0 Failed' "$logdir/ariaadmin-core-synthetics.log"; then
+            echo '::error::Aria Admin core executable did not report all nine checks.'
+            exit 1
+          fi
+          echo "::notice::ARIA_ADMIN CORE net10.0 | 25 real linked sources | 9/9 pure synthetic tests | $RUNNER_OS | no web/IIS/SQL claim"
