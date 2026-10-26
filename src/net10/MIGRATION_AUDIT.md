@@ -23,3 +23,7 @@ The source C#/Razor inventories are still being generated; counts below are meas
 | Core assets / deploy | Offline bundled RTL CSS/JS/fonts; ANCM v2 + IIS No Managed Code, 64-bit web, split agent; synthetic CI smoke and reversible deployment. No production stop/deletion/deployment is authorised. |
 
 The 343 original T5Web actions have existing `src/T5Web/docs/legacy-actions.csv` decisions: 178 `new`, 78 `module`, 87 `drop`. These are decisions, **not** 256 behaviourally verified actions. A legacy-action and view ledger and semantic route matrix must validate each mapping; a `drop` is not automatically an approved .NET 10 N-A. Desktop T5V3 binary hashes differ from the pinned Web 3.5.7 engine; signature equality is not calculation equivalence.
+
+## New Phase-0 finding: TWF build/test baseline cannot be reported green
+
+Raw Windows MSBuild was blocked by missing Web project references (`40395889978`). Adding reference metadata to a disposable copy exposed a real source error (`Init.Start` resolves to inherited `HttpApplication.Init`, `40396626924`). A diagnostic copy with an *explicit single-line qualification* built the web DLL but the 47-test project failed on fake-facade-only `HttpContext()` and writable `UserHostAddress` APIs plus unavailable Framework `string.Contains(value, StringComparison)` (`40396901909`). This is an evidence gap, not permission to declare the rewrite equivalent. The originals and rewrites remain byte-for-byte unchanged. New acceptance tests cannot inherit a passing-framework claim from this suite.

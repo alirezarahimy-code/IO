@@ -4,8 +4,8 @@
 
 | Step | State / next executable action |
 | --- | --- |
-| Phase 0: real inventory & references | IN-PROGRESS: toolchain recorded in BUILD_INFO.md, existing CI scope recorded in TEST_LOG.md; Raw Windows TWF MSBuild failed at `40395889978` (missing project references). Identical-source shadow also failed at `40396626924` (missing binder/WebHost and unqualified `TD5.Init` compile error). A **patched temporary-copy diagnostic** and 47 tests are pending; raw/identical-source baseline remains BLOCKED and cannot be claimed passing. |
-| Phase 1: member and legacy ledger | TODO: generate with Roslyn + supplementary Razor/config/SQL/DLL extractors, freeze baseline; do not mark a member TESTED by counting filenames. |
+| Phase 0: real inventory & references | PARTIALLY BLOCKED: raw TWF build failed `40395889978`; identical-source shadow failed `40396626924`; patched-copy diagnostic built Web but TWF.Tests failed to compile `40396901909` on real Framework (facade-only test APIs). **Zero** real TWF tests executed. Existing T5Web Framework CI passed at source SHA `ebd8dff`; see TEST_LOG. |
+| Phase 1: member and legacy ledger | IN-PROGRESS: SDK-provided Roslyn generator and independent Razor/config/SQL/PE metadata readers are under CI; freeze the generated artifact after checking source counts. Do not mark a member TESTED by counting filenames. |
 | Phase 2: deterministic golden tests | TODO: measure actual Framework HTTP/status/auth/HTML and calculation outputs; synthetic fixture only. |
 | Phase 3: independent products | TODO: `src/net10/AriaAdmin/` first, `src/net10/Aria/` second; avoid an MVC 5 shim masquerading as ASP.NET Core. |
 | Phase 4: integration/security/load/IIS | TODO: user role matrix, synthetic DB and attendance workflow, 100 users, rollback; Link5 live NEEDS-HARDWARE. |
