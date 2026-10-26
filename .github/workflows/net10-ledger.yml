@@ -24,6 +24,9 @@ concurrency:
 jobs:
   net10-ledger:
     name: Roslyn inventory (preinstalled .NET 10, offline restore)
+    # Write is used only by the guarded, first-successful-push CSV freeze step.
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -81,3 +84,32 @@ jobs:
           path: ${{ runner.temp }}/LEDGER.csv
           if-no-files-found: error
           retention-days: 7
+
+      - name: Freeze verified ledger on the fixed branch (no force push)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/arena/a4df3135-io'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f src/net10/LEDGER.csv ]; then
+            echo '::notice::Frozen LEDGER.csv already exists; inventory step compared all IDs and source hashes.'
+            exit 0
+          fi
+          if [ "$(git branch --show-current)" != 'arena/a4df3135-io' ]; then
+            echo '::error::Refusing to commit inventory outside the fixed Arena branch.'
+            exit 1
+          fi
+          size=$(wc -c < "$RUNNER_TEMP/LEDGER.csv")
+          rows=$(wc -l < "$RUNNER_TEMP/LEDGER.csv")
+          if [ "$size" -gt 8388608 ]; then
+            echo "::error::Ledger is $size bytes, above the 8 MiB reviewed Git budget."
+            exit 1
+          fi
+          echo "::notice::Roslyn ledger freeze | bytes=$size | rows=$rows | read-only references unchanged"
+          cp "$RUNNER_TEMP/LEDGER.csv" src/net10/LEDGER.csv
+          python3 src/net10/tools/ledger-check.py --inventory src/net10/LEDGER.csv
+          git add src/net10/LEDGER.csv
+          git diff --cached --check
+          git -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m 'chore(net10): freeze Roslyn source ledger from verified CI'
+          git push origin arena/a4df3135-io
