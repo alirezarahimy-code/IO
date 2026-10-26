@@ -9,8 +9,8 @@ name: windows-build
 #
 # The separate net10-products CI owns new Aria/AriaAdmin code. This legacy workflow
 # installs IIS and starts/stops an ephemeral SQL LocalDB instance: do NOT run those
-# mutating legacy steps in response to src/net10-only changes. Manual dispatch
-# remains available only when its operational permissions have been reviewed.
+# mutating legacy steps automatically, not even for legacy source pushes. Both
+# mutation jobs require a manual-dispatch boolean permission (default false).
 #
 # Note on diagnostics: job logs live in Azure blob storage, which an offline review
 # environment cannot read. Every step therefore re-prints a failing output as an
@@ -29,6 +29,12 @@ on:
       - 'src/TWF/**'
       - 'docs/**'
   workflow_dispatch:
+    inputs:
+      authorize_legacy_iis_localdb_mutation:
+        description: 'Explicit permission to install IIS and create/stop/start a disposable LocalDB instance on this Windows runner only'
+        type: boolean
+        required: true
+        default: false
 
 concurrency:
   group: windows-build-${{ github.ref }}
@@ -118,7 +124,8 @@ jobs:
           if-no-files-found: warn
 
   iis-install:
-    name: IIS + the published console
+    name: IIS + the published console (MANUAL PERMISSION ONLY)
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.authorize_legacy_iis_localdb_mutation == true }}
     runs-on: windows-latest
     timeout-minutes: 40
     steps:
@@ -687,7 +694,8 @@ jobs:
           }
 
   database:
-    name: SQL Server scripts
+    name: SQL Server scripts (MANUAL PERMISSION ONLY)
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.authorize_legacy_iis_localdb_mutation == true }}
     runs-on: windows-latest
     timeout-minutes: 30
     env:
