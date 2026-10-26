@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>Aria.Core</AssemblyName>
+    <RootNamespace>Aria.Core</RootNamespace>
+    <!-- Transitional read-only C# 7.3 source links; don't combine 7.3 with Nullable=annotations. -->
+    <LangVersion>7.3</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Only this product's portable rewrite sources. The Windows/x86 native engine
+         and SQL implementation are NOT referenced/loaded in this library. The
+         IT5BackendAdapter contract is a boundary, NOT a working implementation. -->
+    <Compile Include="../../../TWF/TWF.Domain/**/*.cs"
+             Exclude="../../../TWF/TWF.Domain/obj/**;../../../TWF/TWF.Domain/bin/**"
+             Link="LegacyDomain/%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="../../../TWF/TWF.Application/Leaves/LeaveBalanceService.cs"
+             Link="LegacyApplication/Leaves/LeaveBalanceService.cs" />
+    <Compile Include="../../../TWF/TWF.Application/Organization/T5OrganizationAccessService.cs"
+             Link="LegacyApplication/Organization/T5OrganizationAccessService.cs" />
+    <Compile Include="../../../TWF/TWF.Application/Security/SessionManager.cs"
+             Link="LegacyApplication/Security/SessionManager.cs" />
+    <Compile Include="../../../TWF/TWF.Infrastructure/Licensing/UnrestrictedLicenseService.cs"
+             Link="LegacyInfrastructure/Licensing/UnrestrictedLicenseService.cs" />
+  </ItemGroup>
+</Project>

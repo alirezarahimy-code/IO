@@ -137,3 +137,80 @@ jobs:
             exit 1
           fi
           echo "::notice::ARIA_ADMIN WEB net10.0 | Razor compiled/published | 12/12 synthetic loopback HTTP | $RUNNER_OS | NOT IIS/SQL/original parity"
+
+  aria-core:
+    name: Aria core net10.0 + 10 synthetics (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build portable TWF rewrite core offline and run synthetic fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v dotnet >/dev/null || ! dotnet --list-sdks | grep -Eq '^10\.0\.[0-9]+'; then
+            echo '::error::NEEDS-INFRA: .NET 10 SDK/ref packs not preinstalled; no download fallback.'
+            exit 2
+          fi
+          sdk=$(dotnet --list-sdks | grep '^10\.0\.' | head -n 1)
+          echo "::notice::ARIA CORE | preinstalled $sdk | 19 linked portable sources | offline NuGet | $RUNNER_OS"
+          sources=$(find src/TWF/TWF.Domain -name '*.cs' -not -path '*/obj/*' -not -path '*/bin/*' | wc -l)
+          if [ "$sources" -ne 15 ]; then
+            echo "::error::Aria Domain source inventory changed: expected 15, found $sources. Review linked manifest."
+            exit 1
+          fi
+          for file in \
+            src/TWF/TWF.Application/Leaves/LeaveBalanceService.cs \
+            src/TWF/TWF.Application/Organization/T5OrganizationAccessService.cs \
+            src/TWF/TWF.Application/Security/SessionManager.cs \
+            src/TWF/TWF.Infrastructure/Licensing/UnrestrictedLicenseService.cs; do
+            if [ ! -f "$file" ]; then
+              echo "::error::Missing pinned Aria portable source: $file"
+              exit 1
+            fi
+            if grep -En '^using (System\.Web|T5V3\.|Personnel\.|TD5\.)|\[DllImport\(' "$file"; then
+              echo "::error::Framework/native source entered Aria Core manifest: $file"
+              exit 1
+            fi
+          done
+          if grep -REn '^using (System\.Web|T5V3\.|Personnel\.|TD5\.)|\[DllImport\(' \
+              src/TWF/TWF.Domain --include='*.cs'; then
+            echo '::error::Framework/native source entered Aria Domain.'
+            exit 1
+          fi
+          if grep -E '<(PackageReference|Reference[[:space:]>])' \
+              src/net10/Aria/Core/Aria.Core.csproj; then
+            echo '::error::New Aria Core cannot load the original x86 engine or remote packages.'
+            exit 1
+          fi
+          logdir=$(mktemp -d)
+          diagnose() {
+            local label="$1"; shift
+            local output="$logdir/aria-core-$label.log"
+            set +e
+            "$@" >"$output" 2>&1
+            local code=$?
+            set -e
+            cat "$output"
+            if [ "$code" -ne 0 ]; then
+              { grep -Ei '(^|: )error |NU[0-9]{4}|Exception|\[FAIL\]|Unable to' "$output" || true; } | head -35 |
+                while IFS= read -r line; do echo "::error::ARIA CORE $label: $line"; done
+              echo "::error::ARIA CORE $label failed ($code); no original/web parity claim."
+              exit "$code"
+            fi
+          }
+          tests=src/net10/Aria/Tests/Aria.Core.Tests.csproj
+          core=src/net10/Aria/Core/Aria.Core.csproj
+          diagnose restore dotnet restore "$tests" --configfile src/net10/nuget.offline.config -v minimal
+          diagnose core-build dotnet build "$core" -c Release --no-restore -v minimal
+          diagnose tests-build dotnet build "$tests" -c Release --no-restore -v minimal
+          diagnose synthetics dotnet run --project "$tests" -c Release --no-build --no-restore
+          if ! grep -q 'Summary: 10 Passed, 0 Failed' "$logdir/aria-core-synthetics.log"; then
+            echo '::error::Aria Core synthetic suite did not report all ten cases.'
+            exit 1
+          fi
+          echo "::notice::ARIA CORE net10.0 | 19 linked TWF sources | 10/10 synthetic tests | $RUNNER_OS | NOT native engine/SQL/web/original parity"

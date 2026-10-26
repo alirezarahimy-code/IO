@@ -1,0 +1,15 @@
+{
+  "fixture": "aria-core-synthetic-01",
+  "origin": "src/TWF/TWF.Tests/Program.cs TEST-01, TEST-04, TEST-05; manually fixed synthetic assertions, NOT outputs from TWF 4.28 binaries",
+  "leapEsfandDays": 30,
+  "ordinaryEsfandDays": 29,
+  "persianYear1400Start": "2021-03-21",
+  "jalaliDateTime": "1405/08/02 14:30",
+  "durationMinutes": 8730,
+  "durationText": "145:30",
+  "licenseMode": "ZeroLock-Unrestricted",
+  "cookieName": "mytimeauth",
+  "displayName": "مریم آزمایشی",
+  "requestStateWaiting": 3,
+  "requestStateFirstAccept": 4
+}
