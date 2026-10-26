@@ -48,7 +48,9 @@ jobs:
           }
           $exe = Join-Path $env:RUNNER_TEMP 'AriaAdminOriginalPureProbe.exe'
           $source = Join-Path $env:GITHUB_WORKSPACE 'src\net10\tools\AriaAdminOriginalGolden\Program.cs'
-          $build = & $compiler '/nologo' '/target:exe' ("/out:" + $exe) $source 2>&1
+          # The pinned ORIGINAL T5V3Web.dll has CLR 32BITREQUIRED. Only this
+          # disposable original-binary probe is x86; net10 products stay AnyCPU.
+          $build = & $compiler '/nologo' '/target:exe' '/platform:x86' ("/out:" + $exe) $source 2>&1
           $code = $LASTEXITCODE
           $build | Write-Host
           if ($code -ne 0 -or -not (Test-Path -LiteralPath $exe -PathType Leaf)) {
