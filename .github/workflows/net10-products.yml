@@ -216,7 +216,7 @@ jobs:
           echo "::notice::ARIA CORE net10.0 | 19 linked TWF sources + 2 owned shims | 11/11 synthetics + 1 pinned original formatter fixture | $RUNNER_OS | binary-to-port same-run parity checked only by separate Windows original-golden workflow; NOT native engine/SQL/web parity"
 
   aria-web:
-    name: Aria Core Razor net10.0 + 12 HTTP synthetics (${{ matrix.os }})
+    name: Aria Core Razor net10.0 + 13 HTTP/security synthetics (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     strategy:
@@ -278,8 +278,8 @@ jobs:
           fi
           diagnose http dotnet run --project "$tests" -c Release --no-build --no-restore -- \
             "$GITHUB_WORKSPACE/src/net10/Aria/Web"
-          if ! grep -q 'Summary: 12 Passed, 0 Failed' "$logdir/aria-web-http.log"; then
-            echo '::error::Aria HTTP suite did not complete all twelve tests.'
+          if ! grep -q 'Summary: 13 Passed, 0 Failed' "$logdir/aria-web-http.log"; then
+            echo '::error::Aria HTTP suite did not complete all 13 tests.'
             exit 1
           fi
-          echo "::notice::ARIA WEB net10.0 | Razor compiled/published | 12/12 synthetic loopback HTTP | $RUNNER_OS | NOT original token/SQL/native engine/IIS parity"
+          echo "::notice::ARIA WEB net10.0 | Razor compiled/published | 13/13 synthetic loopback HTTP incl 100 distinct-identity denial burst | $RUNNER_OS | NOT 100 operational users, original token/SQL/native engine/IIS parity"

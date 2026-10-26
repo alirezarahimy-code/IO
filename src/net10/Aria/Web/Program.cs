@@ -84,8 +84,10 @@ internal static class Program
                 return;
             }
             var identity = decision.Identity;
+            // Zero is never a valid personnel identity. Even a verifier that
+            // mistakenly marks such a payload Verified must fail closed.
             if (decision.Decision != SessionDecision.Verified || identity == null ||
-                identity.BadgeNumber < 0 || identity.ExpiresAtUtc <=
+                identity.BadgeNumber <= 0 || identity.ExpiresAtUtc <=
                     context.RequestServices.GetRequiredService<TimeProvider>().GetUtcNow().UtcDateTime)
             {
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;

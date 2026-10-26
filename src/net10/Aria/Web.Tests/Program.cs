@@ -156,10 +156,35 @@ internal static class Program
                 });
                 await Task.WhenAll(tasks);
             });
+            await Check("AR-WEB-13: 100 distinct synthetic identities burst with zero-badge denial", async () =>
+            {
+                var start = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                string[] modes = ["valid", "zero", "disabled", "expired", "error"];
+                Task[] requests = Enumerable.Range(0, 100).Select(async i =>
+                {
+                    await start.Task;
+                    string mode = modes[i % modes.Length];
+                    string identity = $"synthetic-load-{mode}-{i:D3}";
+                    using var response = await Send(client, "/Home/Index", identity);
+                    Equal(mode is "valid" or "error" ? HttpStatusCode.ServiceUnavailable : HttpStatusCode.Forbidden,
+                        response.StatusCode, "burst " + i + " " + mode);
+                    Require(!response.Headers.TryGetValues("Set-Cookie", out _), "burst must not issue cookies");
+                    Require(response.Headers.TryGetValues("Cache-Control", out var cache) && cache.Contains("no-store"),
+                        "burst response must not be cached");
+                    string body = await response.Content.ReadAsStringAsync();
+                    Require(!body.Contains("synthetic-load-", StringComparison.Ordinal) &&
+                        !body.Contains("CI_EXCEPTION_MARKER", StringComparison.Ordinal),
+                        "burst response must not disclose an identity/error");
+                }).ToArray();
+                start.SetResult(true); // release all 100 test-only requests at once
+                await Task.WhenAll(requests);
+                // This is a fail-closed Kestrel security burst, NOT 100 active users,
+                // original sessions, a report workload, IIS/SQL load or a latency SLA.
+            });
         }
 
         Console.WriteLine($"Summary: {_passed} Passed, {_failed} Failed (net10.0 Aria Kestrel/Razor synthetic only)");
-        return _passed == 12 && _failed == 0 ? 0 : 1;
+        return _passed == 13 && _failed == 0 ? 0 : 1;
     }
 
     private static async Task<HttpClient> Start(WebApplication app)
@@ -215,6 +240,21 @@ internal sealed class TestSessionVerifier : IAriaSessionVerifier
         if (user.Length == 0) return Task.FromResult(SessionResolution.Anonymous());
         if (user is "synthetic-disabled" or "synthetic-unknown")
             return Task.FromResult(SessionResolution.Denied());
+        if (user.StartsWith("synthetic-load-", StringComparison.Ordinal))
+        {
+            string[] parts = user.Split('-');
+            if (parts.Length != 4 || !int.TryParse(parts[3], out int seed) || seed is < 0 or >= 100)
+                return Task.FromResult(SessionResolution.Denied());
+            string mode = parts[2];
+            if (mode == "error") throw new InvalidOperationException("CI_EXCEPTION_MARKER");
+            if (mode == "disabled" || mode is not ("valid" or "zero" or "expired"))
+                return Task.FromResult(SessionResolution.Denied());
+            var session = new UserSessionIdentity(mode == "zero" ? 0 : 1_000 + seed,
+                $"synthetic-{seed:D3}", "کاربر", "آزمایشی", "user", 11, "سمت آزمایشی",
+                0, "", 10, "واحد آزمایشی", false, false, FixedNow.AddMinutes(-5),
+                mode == "expired" ? FixedNow.AddMinutes(-1) : FixedNow.AddHours(2));
+            return Task.FromResult(SessionResolution.Verified(session));
+        }
         if (user is "synthetic-valid" or "synthetic-expired")
         {
             DateTime expires = user == "synthetic-expired" ? FixedNow.AddMinutes(-1) : FixedNow.AddHours(2);
