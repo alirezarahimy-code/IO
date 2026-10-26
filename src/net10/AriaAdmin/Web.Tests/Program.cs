@@ -138,10 +138,35 @@ internal static class Program
                 });
                 await Task.WhenAll(tasks);
             });
+            await Check("AA-WEB-13: 100 distinct test-only principals retain PortalAdmin denial", async () =>
+            {
+                var start = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                string[] modes = ["admin", "viewer", "disabled", "zero", "error"];
+                Task[] requests = Enumerable.Range(0, 100).Select(async i =>
+                {
+                    await start.Task;
+                    string mode = modes[i % modes.Length];
+                    string identity = $"synthetic-load-{mode}-{i:D3}";
+                    using var response = await Send(client, "/Diagnostics/Index", identity);
+                    Equal(mode is "admin" or "error" ? HttpStatusCode.ServiceUnavailable : HttpStatusCode.Forbidden,
+                        response.StatusCode, "synthetic principal " + i + " " + mode);
+                    Require(!response.Headers.TryGetValues("Set-Cookie", out _), "no test session cookie");
+                    Require(response.Headers.TryGetValues("Cache-Control", out var cache) && cache.Contains("no-store"),
+                        "no cache of access decisions");
+                    string body = await response.Content.ReadAsStringAsync();
+                    Require(!body.Contains("synthetic-load-", StringComparison.Ordinal) &&
+                        !body.Contains("CI_EXCEPTION_MARKER", StringComparison.Ordinal),
+                        "no identity/exception disclosure");
+                }).ToArray();
+                start.SetResult(true);
+                await Task.WhenAll(requests);
+                // 100 negative-security requests, NOT 100 operational Windows users,
+                // actual reports, an IIS/SQL load test or a latency/throughput SLA.
+            });
         }
 
         Console.WriteLine($"Summary: {_passed} Passed, {_failed} Failed (net10.0 HTTP/Razor synthetic only)");
-        return _failed == 0 && _passed == 12 ? 0 : 1;
+        return _failed == 0 && _passed == 13 ? 0 : 1;
     }
 
     private static async Task<HttpClient> Start(WebApplication app)
@@ -192,6 +217,23 @@ internal sealed class SyntheticDirectory : IAdminDirectory
     public Task<DirectoryResolution> ResolveAsync(string windowsName, CancellationToken cancellationToken)
     {
         if (windowsName == "synthetic-error") throw new InvalidOperationException("CI_EXCEPTION_MARKER");
+        if (windowsName.StartsWith("synthetic-load-", StringComparison.Ordinal))
+        {
+            string[] parts = windowsName.Split('-');
+            if (parts.Length != 4 || !int.TryParse(parts[3], out int seed) || seed is < 0 or >= 100)
+                return Task.FromResult(DirectoryResolution.Denied());
+            string mode = parts[2];
+            if (mode == "error") throw new InvalidOperationException("CI_EXCEPTION_MARKER");
+            if (mode == "disabled" || mode is not ("admin" or "viewer" or "zero"))
+                return Task.FromResult(DirectoryResolution.Denied());
+            var session = new AdminSession {
+                BadgeNumber = mode == "zero" ? 0 : 1_000 + seed,
+                DisplayName = $"کاربر ساختگی {seed:D3}"
+            };
+            session.Grant(AdminFeature.PersonnelView, AccessLevel.ReadOnly);
+            if (mode is "admin" or "zero") session.Grant(AdminFeature.PortalAdmin, AccessLevel.Allow);
+            return Task.FromResult(DirectoryResolution.Allowed(session));
+        }
         if (windowsName is "synthetic-disabled" or "synthetic-unknown")
             return Task.FromResult(DirectoryResolution.Denied());
         if (windowsName is "synthetic-admin" or "synthetic-viewer")

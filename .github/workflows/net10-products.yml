@@ -80,7 +80,7 @@ jobs:
           echo "::notice::ARIA_ADMIN CORE net10.0 | 25 real linked sources + 1 owned report-time adapter | 9/9 synthetics + 1 original-binary-format fixture | $RUNNER_OS | same-run comparison only in separate Windows golden job; no web/IIS/SQL claim"
 
   aria-admin-web:
-    name: Aria Admin Core Razor net10.0 + 12 HTTP synthetics (${{ matrix.os }})
+    name: Aria Admin Core Razor net10.0 + 13 HTTP/security synthetics (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     strategy:
@@ -132,11 +132,11 @@ jobs:
           fi
           diagnose http dotnet run --project "$tests" -c Release --no-build --no-restore -- \
             "$GITHUB_WORKSPACE/src/net10/AriaAdmin/Web"
-          if ! grep -q 'Summary: 12 Passed, 0 Failed' "$logdir/web-http.log"; then
-            echo '::error::HTTP suite did not complete all twelve checks.'
+          if ! grep -q 'Summary: 13 Passed, 0 Failed' "$logdir/web-http.log"; then
+            echo '::error::Admin HTTP suite did not complete all 13 checks.'
             exit 1
           fi
-          echo "::notice::ARIA_ADMIN WEB net10.0 | Razor compiled/published | 12/12 synthetic loopback HTTP | $RUNNER_OS | NOT IIS/SQL/original parity"
+          echo "::notice::ARIA_ADMIN WEB net10.0 | Razor compiled/published | 13/13 synthetic loopback HTTP incl 100 test-only-principal denial burst | $RUNNER_OS | NOT 100 operational Windows users, IIS/SQL/original parity"
 
   aria-core:
     name: Aria core net10.0 + 11 synthetics + 1 pinned original formatter fixture (${{ matrix.os }})
