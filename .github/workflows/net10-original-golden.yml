@@ -1,0 +1,64 @@
+name: net10-original-golden
+
+# Read-only original-program evidence. Compiles a tiny disposable .NET Framework
+# probe into RUNNER_TEMP and invokes ONLY pure time helpers from TWF 4.28 MyTime3.
+# Neither application, IIS, LocalDB, native engines, licenses nor keys are started.
+on:
+  push:
+    branches: [arena/a4df3135-io]
+    paths:
+      - 'src/net10/tools/AriaOriginalGolden/**'
+      - '.github/workflows/net10-original-golden.yml'
+  pull_request:
+    paths:
+      - 'src/net10/tools/AriaOriginalGolden/**'
+      - '.github/workflows/net10-original-golden.yml'
+  workflow_dispatch:
+
+jobs:
+  original-aria-pure:
+    name: Original TWF 4.28 binary pure-time golden (Windows, NO services)
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile temporary Framework probe and invoke pinned original binary with synthetic input
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $original = Join-Path $env:GITHUB_WORKSPACE 'TWF 4.28\App\bin\MyTime3.dll'
+          $expected = 'edba04ccafb9f111870f9050f86e9059e92389188bbd3115678afb21691ddd6b'
+          if (-not (Test-Path -LiteralPath $original -PathType Leaf)) {
+            Write-Host '::error::NEEDS-INFRA: original TWF 4.28 MyTime3.dll unavailable.'
+            exit 2
+          }
+          $hash = (Get-FileHash -LiteralPath $original -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($hash -ne $expected) {
+            Write-Host "::error::Original MyTime3.dll SHA drift: $hash; refuse binary comparison."
+            exit 1
+          }
+          Write-Host "::notice::ARIA ORIGINAL | MyTime3.dll SHA-256 $hash | read-only | pure fixed inputs"
+          $compiler = Join-Path $env:WINDIR 'Microsoft.NET\Framework\v4.0.30319\csc.exe'
+          if (-not (Test-Path -LiteralPath $compiler -PathType Leaf)) {
+            Write-Host '::error::NEEDS-INFRA: preinstalled .NET Framework C# compiler unavailable; no download fallback.'
+            exit 2
+          }
+          $probe = Join-Path $env:RUNNER_TEMP 'AriaOriginalMiscProbe.exe'
+          $source = Join-Path $env:GITHUB_WORKSPACE 'src\net10\tools\AriaOriginalGolden\Program.cs'
+          $build = & $compiler '/nologo' '/target:exe' ("/out:" + $probe) $source 2>&1
+          $buildCode = $LASTEXITCODE
+          $build | Write-Host
+          if ($buildCode -ne 0 -or -not (Test-Path -LiteralPath $probe -PathType Leaf)) {
+            foreach ($line in @($build | Select-Object -First 20)) { Write-Host "::error::Original probe build: $line" }
+            exit 1
+          }
+          $out = & $probe $original 2>&1
+          $result = $LASTEXITCODE
+          $out | Write-Host
+          if ($result -ne 0 -or -not ($out | Select-String -Quiet 'Summary: 4 Passed, 0 Failed')) {
+            foreach ($line in @($out | Select-Object -Last 25)) { Write-Host "::error::Original golden: $line" }
+            Write-Host '::error::No original-binary golden may be accepted from this run.'
+            exit 1
+          }
+          foreach ($line in $out) { Write-Host "::notice::ARIA ORIGINAL GOLDEN | $line" }
+          Write-Host '::notice::ARIA ORIGINAL GOLDEN | 4/4 pure time cases only; NOT IIS/SQL/cookies/engine/port parity'
