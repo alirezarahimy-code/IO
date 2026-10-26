@@ -1,0 +1,20 @@
+{
+  "stage": "pre-port: .NET Framework 4.7.2, MVC 5 + Web API 2",
+  "note": "Lowered in the same commit that removes coupling; see docs/18-three-system-upgrade-plan.md.",
+  "budget": {
+    "webFiles": 95,
+    "systemWebFiles": 44,
+    "controllers": 30,
+    "views": 74,
+    "engineFiles": 36,
+    "engineCallSites": 401,
+    "configurationManager": 4,
+    "drawingFiles": 3,
+    "webApiFiles": 2,
+    "virtualPathFiles": 2,
+    "httpContextCurrent": 4,
+    "actionResult": 94,
+    "viewBag": 116,
+    "antiForgery": 0
+  }
+}

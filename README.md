@@ -7,9 +7,14 @@
 | سامانه حضور و غیاب و کارتابل | **آریا** | `ARIA` v5.0 | `src/TWF/` | `TWF 4.28` (`MyTime3.dll` + `TD5.dll`) |
 | کنسول مدیریت سازمانی | **آریا ادمین** | `ARIA-ADMIN` v5.0 | `src/T5Web/` | `T5Web [3.5.7]` (`T5V3Web.dll`) |
 
-هر دو روی `SQL Server` و `ASP.NET MVC 5 / .NET Framework` اجرا می‌شوند، ۱۰۰٪ آفلاین هستند،
-هیچ قفل/لایسنسی ندارند، و موتور T5 را در همان بیلد قفل‌شده مصرف می‌کنند
-(`src/TWF/engine/engine-pin.json`).
+هر دو روی `SQL Server` و `ASP.NET MVC 5 / .NET Framework` اجرا می‌شوند، ۱۰۰٪ آفلاین هستند و
+هیچ قفل/لایسنسی ندارند. آریا ادمین از این پس **بدون اسمبلی موتور** هم اجرا می‌شود
+(`T5WebEngineDirectory=sql`)؛ آریا هنوز موتور پین‌شده را مصرف می‌کند
+(`src/TWF/engine/engine-pin.json`) — دلیل و مسیر حذف آن در `docs/18`.
 
 * ممیزی مقایسه‌ای دو بازنویسی با منابع: `docs/rewrite-audit-aria-vs-t5web.md`
+* **برنامهٔ ارتقای نسخه (هر سه سامانه، با عدد و گِیت): `docs/18-three-system-upgrade-plan.md`**
 * آریا: `src/TWF/README-ARIA.md` · آریا ادمین: `src/T5Web/README.md`
+
+سامانهٔ سوم، `Link5 v4.0.4`، **باینری و بی‌سورس** است (بررسی: `docs/link5-analysis.md`)؛
+نسخهٔ آن بالا نمی‌رود و در برنامهٔ ارتقا فقط «قرارداد + تثبیت» دارد.
