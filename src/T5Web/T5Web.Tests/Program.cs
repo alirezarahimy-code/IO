@@ -71,6 +71,7 @@ namespace T5Web.Tests
             RunTest("T41: every view parses (IIS is not the first thing that should read them)", TestViewsParse);
             RunTest("T42: every table the portal writes is writable by the portal's role", TestGrantsCoverWrites);
             RunTest("T43: a device command has a real destination, or no button at all", TestDeviceTransport);
+            RunTest("T44: the portal can run without the engine's assemblies", TestEngineDirectorySwitch);
 
             Console.WriteLine("----------------------------------------------------------------------");
             Console.WriteLine($"  Summary: {_passed} Passed, {_failed} Failed");
@@ -3479,6 +3480,107 @@ namespace T5Web.Tests
             Assert(view.Contains("canSend"), "the device screen must hide commands when no transport is configured.");
             Assert(File.Exists(Path.Combine(T5WebRoot, "docs", "15-device-integration.md")),
                 "docs/15-device-integration.md must explain the three ways to reach a device.");
+        }
+
+        /// <summary>
+        /// T44 - the portal must not need the engine's assemblies to run.
+        ///
+        /// docs/16 measured the coupling: of 49 files in Domain/Application/Data, exactly one
+        /// touched Personnel.dll / T5V3.dll, and that one file is what forced a 32-bit app
+        /// pool, an engine folder on the web server, and .NET Framework itself. A SQL reader
+        /// now answers the same four reads, chosen by one appSetting.
+        ///
+        /// This test keeps the choice honest: default sql, engine still available for the
+        /// cut-over comparison, and no other file quietly taking a dependency.
+        /// </summary>
+        private static void TestEngineDirectorySwitch()
+        {
+            // 1. The SQL reader covers the same contract, from the same columns.
+            string sqlReader = File.ReadAllText(
+                Path.Combine(T5WebRoot, "T5Web.Data", "Engine", "SqlEngineDirectory.cs"));
+            foreach (string table in new[] { "[Department]", "[TitlesChart]", "[EmpType]", "[Device]" })
+            {
+                Assert(sqlReader.Contains("FROM " + table),
+                    "SqlEngineDirectory must read " + table + " itself; the engine path is no longer required.");
+            }
+            Assert(sqlReader.Contains("_personnelFactory()"),
+                "the SQL reader must open the Personnel catalog, not the engine catalog (BUG-01…07).");
+
+            // 2. Every column it reads must exist in the generated model.
+            var model = EngineColumnTypes();
+            foreach (var pair in new Dictionary<string, string[]>
+            {
+                { "Department", new[] { "DepartmentID", "UpperDeptID", "DepartmentName", "Name" } },
+                { "TitlesChart", new[] { "TitleID", "UpperTitleID", "TitleName", "DisplayName", "Observer" } },
+                { "EmpType", new[] { "EmpTypeID", "EmpTypeName" } },
+                { "Device", new[] { "MachineNumber", "MachineName", "GateID", "GateName", "ConnectionType", "IP", "Port", "SerialPort", "BaudRate", "SerialNo", "SerialNumber", "Code", "Push", "LastStamp" } }
+            })
+            {
+                Assert(model.ContainsKey(pair.Key), "engine/column-types.json has no table " + pair.Key + ".");
+                foreach (string column in pair.Value)
+                {
+                    Assert(model[pair.Key].Contains(column),
+                        "SqlEngineDirectory reads " + pair.Key + "." + column + ", which the engine model does not declare.");
+                }
+            }
+
+            // 3. The switch: default sql, engine still reachable, a typo is not "auto".
+            Assert(EngineDirectory.Key == "T5WebEngineDirectory", "the appSetting name is part of the deployment contract.");
+            string config = File.ReadAllText(Path.Combine(T5WebRoot, "T5Web.Web", "Web.config"));
+            Match value = Regex.Match(config, "<add key=\"T5WebEngineDirectory\" value=\"([^\"]*)\"");
+            Assert(value.Success, "Web.config must set T5WebEngineDirectory.");
+            Assert(value.Groups[1].Value.Trim().Equals("sql", StringComparison.OrdinalIgnoreCase),
+                "the shipped default must be 'sql': an installation with only a database must work.");
+
+            var connection = new Func<string>(() => "Data Source=.;Initial Catalog=Personnel;Integrated Security=True");
+            Assert(EngineDirectory.Create("sql", connection) is SqlEngineDirectory, "'sql' must select the SQL reader.");
+            Assert(EngineDirectory.Create(null, connection) is SqlEngineDirectory, "an unset value must select the SQL reader.");
+            Assert(EngineDirectory.Create("typo", connection) is SqlEngineDirectory,
+                "an unknown value must fall back to sql, never silently to the engine.");
+            Assert(EngineDirectory.Create("engine", connection) is PersonnelEngineDirectory,
+                "'engine' must still be available: the cut-over compares the two readers.");
+
+            // 4. Nothing outside the two engine files may reference the engine.
+            var offenders = new List<string>();
+            foreach (string file in Directory.GetFiles(Path.Combine(T5WebRoot, "T5Web.Data"), "*.cs", SearchOption.AllDirectories)
+                         .Concat(Directory.GetFiles(Path.Combine(T5WebRoot, "T5Web.Application"), "*.cs", SearchOption.AllDirectories))
+                         .Concat(Directory.GetFiles(Path.Combine(T5WebRoot, "T5Web.Domain"), "*.cs", SearchOption.AllDirectories)))
+            {
+                if (file.Contains(Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar)) { continue; }
+                string text = File.ReadAllText(file);
+                if (Regex.IsMatch(text, "^using (Personnel|T5V3)\." ) &&
+                    !file.EndsWith("PersonnelEngineDirectory.cs", StringComparison.Ordinal))
+                {
+                    offenders.Add(Path.GetFileName(file));
+                }
+            }
+            Assert(offenders.Count == 0,
+                "these files still depend on the engine assemblies: " + string.Join(", ", offenders));
+
+            // 5. The portable build exists and covers both LTS targets.
+            string spike = File.ReadAllText(Path.Combine(T5WebRoot, "spike", "net8", "Net8Spike.csproj"));
+            Assert(spike.Contains("net10.0"), "the portability spike must target net10.0, not only net8.0.");
+        }
+
+        /// <summary>table -> column names, from engine/column-types.json (the generated model).</summary>
+        private static Dictionary<string, HashSet<string>> EngineColumnTypes()
+        {
+            string path = Path.Combine(T5WebRoot, "engine", "column-types.json");
+            Assert(File.Exists(path), "engine/column-types.json is missing; run tools/engine-column-types.py --write.");
+            string json = File.ReadAllText(path);
+            var tables = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+            foreach (Match table in Regex.Matches(json, "\"(\w+)\"\s*:\s*\{\s*\"columns\"\s*:\s*\{(.*?)\}\s*,\s*\"sources\"",
+                         RegexOptions.Singleline))
+            {
+                var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                foreach (Match column in Regex.Matches(table.Groups[2].Value, "\"(\w+)\"\s*:\s*\{"))
+                {
+                    columns.Add(column.Groups[1].Value);
+                }
+                tables[table.Groups[1].Value] = columns;
+            }
+            Assert(tables.Count >= 50, "column-types parsing found only " + tables.Count + " tables.");
+            return tables;
         }
 
         private static void TestNoLockDependency()

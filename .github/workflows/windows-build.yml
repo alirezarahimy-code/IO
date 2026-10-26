@@ -832,7 +832,10 @@ jobs:
 
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          # Both, because the question is about .NET 10 and the fallback target is .NET 8.
+          dotnet-version: |
+            8.0.x
+            10.0.x
 
       # The claim under test, measured rather than remembered.
       - name: Count what couples the core to .NET Framework
@@ -851,8 +854,22 @@ jobs:
           echo "  use System.Web        : $web"
           echo "  use System.Configuration : $config"
           echo "::notice::NET8 coupling | core files $core | engine-coupled $engine | System.Web $web | System.Configuration $config"
-          if [ "$engine" -ne 1 ]; then
-            echo "::error::exactly one core file is expected to need the engine; found $engine. The net8 build below excludes that file by name, so a second one would be silently dropped."
+          # One file may still reference the engine: PersonnelEngineDirectory, kept so an
+          # installation can compare the two readers during cut-over. It is excluded from
+          # the net8/net10 build by name. A second one would be silently dropped, so say so.
+          if [ "$engine" -gt 1 ]; then
+            echo "::error::at most one core file may use the engine (PersonnelEngineDirectory.cs); found $engine. The portable build excludes that file by name, so an extra one would vanish unnoticed."
+            exit 1
+          fi
+          grep -rl --include='*.cs' -E '^using (Personnel|T5V3)\.' src/T5Web/T5Web.Domain src/T5Web/T5Web.Application src/T5Web/T5Web.Data > engine-uses.txt || true
+          if [ -s engine-uses.txt ] && ! grep -qx 'src/T5Web/T5Web.Data/Engine/PersonnelEngineDirectory.cs' engine-uses.txt; then
+            echo "::error::the engine is used somewhere other than PersonnelEngineDirectory.cs:"
+            cat engine-uses.txt
+            exit 1
+          fi
+          # The portal must run on SQL by default; the engine is opt-in for cut-over only.
+          if ! grep -rq 'EngineDirectory.Create(.*T5WebEngineDirectory' src/T5Web/T5Web.Web/MvcApplication.cs; then
+            echo "::error::MvcApplication must choose the directory reader from T5WebEngineDirectory, so a deployment can run without the engine assemblies"
             exit 1
           fi
           if [ "$web" -ne 0 ] || [ "$config" -ne 0 ]; then
@@ -860,22 +877,26 @@ jobs:
             exit 1
           fi
 
-      - name: Build the core for net8.0
+      - name: Build the core for net8.0 and net10.0
         shell: bash
         run: |
           set -o pipefail
-          # Every error, then the counts: "how far from compiling" should be a number.
-          dotnet build src/T5Web/spike/net8/Net8Spike.csproj -c Release -v minimal 2>&1 | tee build.log
-          status=${PIPESTATUS[0]}
-          errors=$(grep -cE ': error ' build.log || true)
-          warnings=$(grep -cE ': warning ' build.log || true)
-          echo "::notice::NET8 build | errors $errors | warnings $warnings"
-          if [ "$status" -ne 0 ]; then
-            echo "::error::the core does not compile on .NET 8 yet: $errors error(s). See docs/16-net8-feasibility.md."
-            grep -E ': error ' build.log | sort -u | head -20
-            exit 1
-          fi
-          echo "  PASS: Domain, Application and Data compile as net8.0 with Dapper only"
+          dotnet --list-sdks
+          for tfm in net8.0 net10.0; do
+            echo "--- $tfm"
+            # Every error, then the counts: "how far from compiling" should be a number.
+            dotnet build src/T5Web/spike/net8/Net8Spike.csproj -c Release -f "$tfm" -v minimal 2>&1 | tee "build-$tfm.log"
+            status=${PIPESTATUS[0]}
+            errors=$(grep -cE ': error ' "build-$tfm.log" || true)
+            warnings=$(grep -cE ': warning ' "build-$tfm.log" || true)
+            echo "::notice::$tfm build | errors $errors | warnings $warnings"
+            if [ "$status" -ne 0 ]; then
+              echo "::error::the core does not compile on $tfm yet: $errors error(s). See docs/16-net8-feasibility.md."
+              grep -E ': error ' "build-$tfm.log" | sort -u | head -20
+              exit 1
+            fi
+            echo "  PASS: Domain, Application and Data compile as $tfm with Dapper only"
+          done
 
       - name: Report the porting surface that remains
         shell: bash

@@ -22,7 +22,10 @@
     that compiles proves nothing about the code we ship.
   -->
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <!-- Two targets on purpose: net8.0 is the floor an LTS deployment may already run,
+         net10.0 is what the question asked for. If a layer compiled on one and not the
+         other, that difference is the answer to "how far are we from .NET 10?". -->
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <!-- The Framework build uses 7.3; keeping it here proves the same source under the
          same language version, so a C# 12-only construct cannot sneak in unnoticed. -->
     <LangVersion>7.3</LangVersion>

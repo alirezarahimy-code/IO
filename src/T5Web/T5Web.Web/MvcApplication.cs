@@ -59,12 +59,25 @@ namespace T5Web.Web
                 Func<IDbConnection> personnelFactory = () => new SqlConnection(personnelConnection);
                 var personnel = new PersonnelDirectory(personnelFactory);
 
-                // PersonnelSystem (Personnel.dll) is the engine's *people* layer, exactly like
-                // the legacy appSettings.personnelConnectionString: departments, titles,
-                // employment types, devices and gates all live in the Personnel catalog
-                // (engine/relations.json). Pointing it at T5CnnStr would make every directory
-                // call fail with "Invalid object name 'UserInfos'" on a split deployment.
-                var engineDirectory = new PersonnelEngineDirectory(() => personnelConnection);
+                // Departments, titles, employment types and devices all live in the
+                // Personnel catalog (engine/relations.json); pointing these reads at
+                // T5CnnStr would fail with "Invalid object name 'UserInfos'" on a split
+                // deployment.
+                //
+                // Which reader is used is now a deployment decision, because it decides the
+                // platform: the engine path loads Personnel.dll, a .NET Framework x86 EF6
+                // assembly, and that is the only reason this portal needs a 32-bit app pool,
+                // the engine folder on the server, and .NET Framework at all (docs/16).
+                //
+                //   T5WebEngineDirectory = sql     (default) Dapper, four SELECTs
+                //                        engine    the pinned engine's DA layer
+                //                        auto      engine when loadable, otherwise sql
+                //
+                // `engine` stays available for the cut-over window: both readers return the
+                // same shape, so the screens can be compared before the assembly goes away.
+                var engineDirectory = EngineDirectory.Create(
+                    ConfigurationManager.AppSettings["T5WebEngineDirectory"],
+                    () => personnelConnection);
                 var admin = new SqlAdminRepository(t5, engineDirectory, personnelFactory);
                 var attendance = new SqlAttendanceStore(t5, personnel);
                 var leave = new SqlLeaveStore(t5, personnel);
