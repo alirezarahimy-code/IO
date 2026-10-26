@@ -6,7 +6,7 @@ $root = (Resolve-Path (Join-Path $PSScriptRoot '../../..')).Path
 $msbuild = (Get-Command msbuild -ErrorAction SilentlyContinue).Source
 if (-not $msbuild) { Write-Host '::error::MSBuild is not installed'; exit 2 }
 $pinned = Join-Path $root 'T5Web [3.5.7]/App/bin'
-if (-not (Test-Path (Join-Path $pinned 'Personnel.dll'))) {
+if (-not (Test-Path -LiteralPath (Join-Path $pinned 'Personnel.dll'))) {
     Write-Host "::error::TWF pinned engine is missing: $pinned"
     exit 2
 }
