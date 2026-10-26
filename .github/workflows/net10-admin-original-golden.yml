@@ -8,10 +8,14 @@ on:
     branches: [arena/a4df3135-io]
     paths:
       - 'src/net10/tools/AriaAdminOriginalGolden/**'
+      - 'src/net10/AriaAdmin/Core/**'
+      - 'src/net10/AriaAdmin/Tests/**'
       - '.github/workflows/net10-admin-original-golden.yml'
   pull_request:
     paths:
       - 'src/net10/tools/AriaAdminOriginalGolden/**'
+      - 'src/net10/AriaAdmin/Core/**'
+      - 'src/net10/AriaAdmin/Tests/**'
       - '.github/workflows/net10-admin-original-golden.yml'
   workflow_dispatch:
 
@@ -57,13 +61,40 @@ jobs:
             foreach ($line in @($build | Select-Object -First 20)) { Write-Host "::error::Admin golden probe build: $line" }
             exit 1
           }
-          $out = & $exe $original 2>&1
+          $fixture = Join-Path $env:RUNNER_TEMP 'AriaAdminReportTime.golden'
+          $out = & $exe $original $fixture 2>&1
           $code = $LASTEXITCODE
           $out | Write-Host
-          if ($code -ne 0 -or -not ($out | Select-String -Quiet 'Summary: 12 Passed, 0 Failed')) {
+          if ($code -ne 0 -or -not ($out | Select-String -Quiet 'Summary: 12 Passed, 0 Failed') -or
+              -not (Test-Path -LiteralPath $fixture -PathType Leaf)) {
             foreach ($line in @($out | Select-Object -Last 30)) { Write-Host "::error::Admin golden probe: $line" }
             Write-Host '::error::No original Admin golden may be accepted from this run.'
             exit 1
           }
           foreach ($line in $out) { Write-Host "::notice::ARIA ADMIN ORIGINAL GOLDEN | $line" }
-          Write-Host '::notice::ARIA ADMIN ORIGINAL GOLDEN | 12/12 pure original samples only; NOT a route, SQL, IIS, report, device or net10 parity test'
+          Write-Host '::notice::ARIA ADMIN ORIGINAL GOLDEN | 12/12 pure original samples, NOT full report/route/SQL/IIS/engine parity'
+          # Run the new Admin Core in its OWN net10.0 process; it does not load
+          # the x86 original DLL. Fixture bytes came from this same original run.
+          if (-not (Get-Command dotnet -ErrorAction SilentlyContinue) -or
+              -not (& dotnet --list-sdks | Select-String -Quiet '^10\.0\.')) {
+            Write-Host '::error::NEEDS-INFRA: preinstalled .NET 10 SDK unavailable; no online install.'
+            exit 2
+          }
+          $tests = Join-Path $env:GITHUB_WORKSPACE 'src\net10\AriaAdmin\Tests\AriaAdmin.Core.Tests.csproj'
+          $core = Join-Path $env:GITHUB_WORKSPACE 'src\net10\AriaAdmin\Core\AriaAdmin.Core.csproj'
+          $config = Join-Path $env:GITHUB_WORKSPACE 'src\net10\nuget.offline.config'
+          & dotnet restore $tests --configfile $config -v minimal
+          if ($LASTEXITCODE -ne 0) { throw 'Admin offline test restore failed' }
+          & dotnet build $core -c Release --no-restore -v minimal
+          if ($LASTEXITCODE -ne 0) { throw 'Admin portable core build failed' }
+          & dotnet build $tests -c Release --no-restore -v minimal
+          if ($LASTEXITCODE -ne 0) { throw 'Admin portable core tests build failed' }
+          $portOutput = & dotnet run --project $tests -c Release --no-build --no-restore -- '--original-report-fixture' $fixture 2>&1
+          $portCode = $LASTEXITCODE
+          $portOutput | Write-Host
+          if ($portCode -ne 0 -or -not ($portOutput | Select-String -Quiet 'Summary: 10 Passed, 0 Failed')) {
+            foreach ($line in @($portOutput | Select-Object -Last 35)) { Write-Host "::error::ADMIN PORT: $line" }
+            Write-Host '::error::Same-run original Admin binary to net10 pure formatter NOT PROVEN.'
+            exit 1
+          }
+          Write-Host '::notice::ARIA ADMIN PURE REPORT FORMAT PARITY | Windows original T5V3Web.dll vs Admin net10.0 adapter, 4 fixed inputs x 3 original methods + 9 independent core checks; NO actual report/route/SQL/IIS'

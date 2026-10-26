@@ -20,5 +20,7 @@
     <Compile Include="../../../T5Web/T5Web.Application/**/*.cs"
              Exclude="../../../T5Web/T5Web.Application/obj/**;../../../T5Web/T5Web.Application/bin/**"
              Link="LegacyApplication/%(RecursiveDir)%(Filename)%(Extension)" />
+    <!-- Owned pure original-Admin report display adapter; no other product link. -->
+    <Compile Include="Compatibility/OriginalReportTime.cs" />
   </ItemGroup>
 </Project>

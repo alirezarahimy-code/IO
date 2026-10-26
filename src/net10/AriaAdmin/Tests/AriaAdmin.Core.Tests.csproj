@@ -9,5 +9,8 @@
   <ItemGroup>
     <ProjectReference Include="../Core/AriaAdmin.Core.csproj" />
     <None Include="golden.json" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Recorded from original Admin T5V3Web.dll CI 40405131266; same-run
+         Windows workflow generates its own independent original output. -->
+    <None Include="original-report-time-golden.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

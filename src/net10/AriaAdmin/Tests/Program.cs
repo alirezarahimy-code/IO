@@ -1,21 +1,29 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using AriaAdmin.Core.Compatibility;
 using T5Web.Application.Services;
 using T5Web.Domain;
 using T5Web.Domain.Models;
 
 namespace AriaAdmin.Core.Tests;
 
-// No runner/NuGet/SQL/real users. These *same-source* synthetic assertions cover
-// lower-layer behaviour only; they are not original-web parity or authorization HTTP.
+// No original assembly, native engine, SQL or real users are loaded by these tests.
+// Checks 01-09 cover rewrite-derived synthetics. Check 10 compares a narrow
+// formatter to pinned T5Web [3.5.7] original outputs (same-run on Windows).
+// Neither suite proves original routes, reports or HTTP authorization.
 internal static class Program
 {
     private static int _passed;
     private static int _failed;
 
-    private static int Main()
+    private static int Main(string[] args)
     {
+        if (args.Length is not 0 && (args.Length != 2 || args[0] != "--original-report-fixture"))
+        {
+            Console.Error.WriteLine("Usage: AriaAdmin.Core.Tests [--original-report-fixture <runner-temp-file>]");
+            return 2;
+        }
         Console.OutputEncoding = Encoding.UTF8;
         CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("fa-IR");
         CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("fa-IR");
@@ -103,9 +111,34 @@ internal static class Program
                 "not a raw-punch calculation substitute");
             Require(ReportCatalog.Find("unknown-report") == null, "unknown report refused");
         });
+        Run("AA-CORE-10: original T5Web 3.5.7 report formatter, four fixed outputs", () =>
+        {
+            string path = args.Length == 2 ? args[1] :
+                Path.Combine(AppContext.BaseDirectory, "original-report-time-golden.txt");
+            var rows = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (string line in File.ReadAllLines(path, Encoding.UTF8))
+            {
+                int separator = line.IndexOf('=');
+                Require(separator > 0 && rows.TryAdd(line[..separator], line[(separator + 1)..]),
+                    "invalid or duplicate original report fixture key");
+            }
+            Require(rows.Count == 5, "unexpected original Admin fixture size");
+            Equal("96c71335ca080f4fa568e65f81957590ffdb953a9fe133ed0000b416afc7e755",
+                rows["source_sha256"], "original T5V3Web.dll SHA-256");
+            Equal(rows["special_8h5m"], OriginalReportTime.Format(new TimeSpan(8, 5, 0), @"hhh\:mm"),
+                "special short time");
+            Equal(rows["special_145h30m"], OriginalReportTime.Format(new TimeSpan(145, 30, 0), @"hhh\:mm"),
+                "special cumulative time");
+            Equal(rows["special_zero"], OriginalReportTime.Format(TimeSpan.Zero, @"hhh\:mm"),
+                "original empty zero result");
+            Equal(rows["standard_8h5m"], OriginalReportTime.Format(new TimeSpan(8, 5, 0), @"hh\:mm"),
+                "standard short time");
+            // These tests do not instantiate a report controller or process an
+            // actual request. No Admin report or permissions have been ported.
+        });
 
-        Console.WriteLine($"Summary: {_passed} Passed, {_failed} Failed (net10.0 linked Domain/Application only)");
-        return _failed == 0 && _passed == 9 ? 0 : 1;
+        Console.WriteLine($"Summary: {_passed} Passed, {_failed} Failed (net10.0 Admin core; 9 synthetics + 1 original-report-format fixture)");
+        return _failed == 0 && _passed == 10 ? 0 : 1;
     }
 
     private static List<DepartmentNode> SyntheticDepartments() =>
