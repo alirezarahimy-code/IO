@@ -75,9 +75,13 @@ namespace T5Web.Web
                 //
                 // `engine` stays available for the cut-over window: both readers return the
                 // same shape, so the screens can be compared before the assembly goes away.
+                // Both readers are handed over as factories so the data layer never names
+                // the engine class or SqlConnection - that is what lets the same Data code
+                // compile for net8.0/net10.0 (spike/net8, docs/16 §5).
                 var engineDirectory = EngineDirectory.Create(
-                    ConfigurationManager.AppSettings["T5WebEngineDirectory"],
-                    () => personnelConnection);
+                    ConfigurationManager.AppSettings[EngineDirectory.Key],
+                    () => new SqlConnection(personnelConnection),
+                    () => new PersonnelEngineDirectory(() => personnelConnection));
                 var admin = new SqlAdminRepository(t5, engineDirectory, personnelFactory);
                 var attendance = new SqlAttendanceStore(t5, personnel);
                 var leave = new SqlLeaveStore(t5, personnel);

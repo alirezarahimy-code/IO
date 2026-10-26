@@ -869,7 +869,7 @@ jobs:
           fi
           # The portal must run on SQL by default; the engine is opt-in for cut-over only.
           # -z: the call is split over three lines, and a line-based grep cannot see that.
-          if ! tr '\n' ' ' < src/T5Web/T5Web.Web/MvcApplication.cs | grep -q 'EngineDirectory.Create(.*T5WebEngineDirectory'; then
+          if ! tr '\n' ' ' < src/T5Web/T5Web.Web/MvcApplication.cs | grep -q 'EngineDirectory.Create(.*EngineDirectory.Key'; then
             echo "::error::MvcApplication must choose the directory reader from T5WebEngineDirectory, so a deployment can run without the engine assemblies"
             exit 1
           fi

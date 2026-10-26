@@ -3532,13 +3532,27 @@ namespace T5Web.Tests
             Assert(value.Groups[1].Value.Trim().Equals("sql", StringComparison.OrdinalIgnoreCase),
                 "the shipped default must be 'sql': an installation with only a database must work.");
 
-            var connection = new Func<string>(() => "Data Source=.;Initial Catalog=Personnel;Integrated Security=True");
-            Assert(EngineDirectory.Create("sql", connection) is SqlEngineDirectory, "'sql' must select the SQL reader.");
-            Assert(EngineDirectory.Create(null, connection) is SqlEngineDirectory, "an unset value must select the SQL reader.");
-            Assert(EngineDirectory.Create("typo", connection) is SqlEngineDirectory,
+            // A factory that would throw if anything tried to open a connection: choosing a
+            // reader must never touch the database.
+            Func<System.Data.IDbConnection> never = () => { throw new InvalidOperationException("opened"); };
+            var engineSentinel = new EngineDirectorySentinel();
+            Func<IEngineDirectory> engine = () => engineSentinel;
+
+            Assert(EngineDirectory.Create("sql", never, engine) is SqlEngineDirectory, "'sql' must select the SQL reader.");
+            Assert(EngineDirectory.Create(null, never, engine) is SqlEngineDirectory, "an unset value must select the SQL reader.");
+            Assert(EngineDirectory.Create("typo", never, engine) is SqlEngineDirectory,
                 "an unknown value must fall back to sql, never silently to the engine.");
-            Assert(EngineDirectory.Create("engine", connection) is PersonnelEngineDirectory,
+            Assert(EngineDirectory.Create("SQL ", never, engine) is SqlEngineDirectory, "the value is trimmed and case-insensitive.");
+            Assert(ReferenceEquals(EngineDirectory.Create("engine", never, engine), engineSentinel),
                 "'engine' must still be available: the cut-over compares the two readers.");
+
+            // A build with no engine reference (the .NET 8/10 one) must say so, not pretend.
+            bool threw = false;
+            try { EngineDirectory.Create("engine", never, null); }
+            catch (InvalidOperationException) { threw = true; }
+            Assert(threw, "asking for 'engine' in a build without it must fail loudly, not fall back to sql.");
+            Assert(EngineDirectory.Create("auto", never, null) is SqlEngineDirectory,
+                "'auto' without an engine reference must choose sql.");
 
             // 4. Nothing outside the two engine files may reference the engine.
             var offenders = new List<string>();
@@ -3548,7 +3562,7 @@ namespace T5Web.Tests
             {
                 if (file.Contains(Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar)) { continue; }
                 string text = File.ReadAllText(file);
-                if (Regex.IsMatch(text, "^using (Personnel|T5V3)\." ) &&
+                if (Regex.IsMatch(text, @"^using (Personnel|T5V3)\.") &&
                     !file.EndsWith("PersonnelEngineDirectory.cs", StringComparison.Ordinal))
                 {
                     offenders.Add(Path.GetFileName(file));
@@ -3560,6 +3574,15 @@ namespace T5Web.Tests
             // 5. The portable build exists and covers both LTS targets.
             string spike = File.ReadAllText(Path.Combine(T5WebRoot, "spike", "net8", "Net8Spike.csproj"));
             Assert(spike.Contains("net10.0"), "the portability spike must target net10.0, not only net8.0.");
+        }
+
+        /// <summary>Stands in for the engine reader in T44; identity is the assertion.</summary>
+        private sealed class EngineDirectorySentinel : IEngineDirectory
+        {
+            public IReadOnlyList<DepartmentNode> GetDepartments() { throw new NotSupportedException(); }
+            public IReadOnlyList<TitleNode> GetTitles() { throw new NotSupportedException(); }
+            public IReadOnlyList<KeyValuePair<int, string>> GetEmpTypes() { throw new NotSupportedException(); }
+            public IReadOnlyList<DeviceRow> GetDevices() { throw new NotSupportedException(); }
         }
 
         /// <summary>table -> column names, from engine/column-types.json (the generated model).</summary>

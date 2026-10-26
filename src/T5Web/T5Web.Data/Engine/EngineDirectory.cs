@@ -1,6 +1,5 @@
 using System;
 using System.Data;
-using System.Data.SqlClient;
 
 namespace T5Web.Data.Engine
 {
@@ -14,6 +13,12 @@ namespace T5Web.Data.Engine
     ///                          engine   the pinned engine's EF6 DA layer (x86, Framework)
     ///                          auto     engine if the assembly loads, otherwise sql
     ///
+    /// Both implementations arrive as factories rather than being constructed here. That is
+    /// not ceremony: `PersonnelEngineDirectory` and `System.Data.SqlClient` are exactly the
+    /// two things a .NET 8/10 build cannot carry, so this file must not name them or the
+    /// portable build would fail here too (CI proves it - spike/net8 targets net8.0 and
+    /// net10.0 with this file compiled in).
+    ///
     /// A typo is not "auto": an unreadable value falls back to `sql` and says nothing,
     /// because `auto` would hide a configuration mistake behind a working screen.
     /// </summary>
@@ -21,27 +26,50 @@ namespace T5Web.Data.Engine
     {
         public const string Key = "T5WebEngineDirectory";
 
-        public static IEngineDirectory Create(string mode, Func<string> personnelConnectionString)
+        /// <param name="mode">The appSetting value. Null, empty or unknown means `sql`.</param>
+        /// <param name="personnelFactory">Opens the Personnel catalog. Never called here.</param>
+        /// <param name="engineFactory">
+        /// Creates the engine-backed reader, or null when the hosting project has no engine
+        /// reference at all (the .NET 8/10 build). Supplying it is what keeps `engine` and
+        /// `auto` available on .NET Framework for the cut-over comparison.
+        /// </param>
+        public static IEngineDirectory Create(
+            string mode,
+            Func<IDbConnection> personnelFactory,
+            Func<IEngineDirectory> engineFactory)
         {
-            if (personnelConnectionString == null)
+            if (personnelFactory == null)
             {
-                throw new ArgumentNullException(nameof(personnelConnectionString));
+                throw new ArgumentNullException(nameof(personnelFactory));
             }
 
             string value = (mode ?? string.Empty).Trim().ToLowerInvariant();
             switch (value)
             {
                 case "engine":
-                    return new PersonnelEngineDirectory(personnelConnectionString);
+                    if (engineFactory == null)
+                    {
+                        // Loud, because this is a deployment that asked for the engine and
+                        // got a build without it. Silently serving sql here would hide a
+                        // misconfiguration behind screens that still look right.
+                        throw new InvalidOperationException(
+                            "T5WebEngineDirectory=engine was requested, but this build carries no engine " +
+                            "reference. Use 'sql', or deploy the .NET Framework build that has it.");
+                    }
+                    return engineFactory();
+
                 case "auto":
                     // Probing by type load, not by file existence: a 64-bit app pool can see
                     // Personnel.dll on disk and still be unable to load it, and that failure
                     // belongs to the engine path, not to this switch.
-                    return CanLoadEngine()
-                        ? (IEngineDirectory)new PersonnelEngineDirectory(personnelConnectionString)
-                        : new SqlEngineDirectory(() => new SqlConnection(personnelConnectionString()));
+                    if (engineFactory != null && CanLoadEngine())
+                    {
+                        return engineFactory();
+                    }
+                    return new SqlEngineDirectory(personnelFactory);
+
                 default:
-                    return new SqlEngineDirectory(() => new SqlConnection(personnelConnectionString()));
+                    return new SqlEngineDirectory(personnelFactory);
             }
         }
 
@@ -53,6 +81,8 @@ namespace T5Web.Data.Engine
         {
             try
             {
+                // The assembly name, not a type from it: naming the type would add a compile
+                // reference and defeat the point of this probe.
                 Type probe = Type.GetType("Personnel.PersonnelSystem, Personnel", throwOnError: false);
                 return probe != null;
             }
