@@ -17,7 +17,7 @@ This records observations, not a successful .NET 10 release. The existing MVC 5 
 
 Build/publish information for the **Aria Admin Core/minimal Web host and Aria portable Core** is now scoped below; Aria **web** Release build/publish is now scoped in CI below; Debug builds, destination Hosting Bundle, SQL client/provider and customer offline installation are **pending**. CI used SDK-provided reference packs plus `src/net10/nuget.offline.config` with `<clear/>` package sources and **no extra NuGet packages**; this does not prove a deployable offline installer or pin any future SQL provider. `NEEDS-INFRA`: no local .NET 10 SDK, IIS Hosting Bundle or validated offline destination feed. Windows CI proves a scoped build, not an offline install at the destination.
 
-The `TWF 4.28` attendance and leave-calculation binaries are byte-identical to the T5Web 3.5.7 pinned binaries used by the current TWF rewrite (`src/TWF/engine/engine-pin.json`); the T5V3 3.9.2 desktop binaries differ and cannot be substituted on signature matching alone. No numeric end-to-end equivalence was claimed.
+Each new product is checked against **its own** original program only: Aria against `TWF 4.28` and Aria Admin against `T5Web [3.5.7]`. `T5V3.9.2` is a supplementary Admin desktop/data/engine reference, not a substitute for its web original. No original attendance/leave numerical end-to-end equivalence was claimed for either product.
 
 Additional immutable source/project SHA-256: `src/TWF/TWF.sln` = `5579ca4c700b1a956bb796cf5d488552cfdb262b5d117410a95a5c2f915c31f5`; `src/TWF/TWF.Web/TWF.Web.csproj` = `57ecd2a9642d61265703c5ac9e3cfe648bec892e69832ca4b108d30ac1f23d4e`; `src/T5Web/T5Web.sln` = `c48f2fe1366d78eef41b2c746ff28f8614425f9d9f9652d3805f5bf6fcea1055`; `src/T5Web/T5Web.Web/T5Web.Web.csproj` = `f65ce3d2e869a32caeb6ded518f500d249bb556f1089806041d76257e1642826`. These hashes are of unchanged source files; the temporary shadow has a different project hash by design.
 
@@ -27,8 +27,10 @@ Additional immutable source/project SHA-256: `src/TWF/TWF.sln` = `5579ca4c700b1a
 | --- | --- | --- |
 | `TWF 4.28/App/bin/MyTime3.dll` | `edba04ccafb9f111870f9050f86e9059e92389188bbd3115678afb21691ddd6b` | assembly `MyTime3` 4.27.0.0, IL-only; folder label 4.28 is **not** its assembly version |
 | `TWF 4.28/App/bin/TD5.dll` | `3ddbe0f47de8938d1c8c53c407e4f0626dd24f928bcef2e54a7bdc75aab17fa4` | `TD5` 1.0.0.0, IL-only |
-| `TWF 4.28/App/bin/T5V3.Attendance.dll` and `T5Web [3.5.7]/App/bin/T5V3.Attendance.dll` | `2a2abd09745ec0a80dff0343b0e1f97e1ed52b8806f2ec61e64da1aa8100d3b7` | `T5V3.Attendance` 1.0.0.0, `32BITREQUIRED` |
-| `TWF 4.28/App/bin/T5V3.LeaveCalcs.dll` and `T5Web [3.5.7]/App/bin/T5V3.LeaveCalcs.dll` | `bf193062cc8cc312e1fb703a3bba180e53d6d4e30057c3b1715df4d007d830f6` | `T5V3.LeaveCalcs` 1.0.0.0, `32BITREQUIRED` |
+| `TWF 4.28/App/bin/T5V3.Attendance.dll` (Aria reference) | `2a2abd09745ec0a80dff0343b0e1f97e1ed52b8806f2ec61e64da1aa8100d3b7` | `T5V3.Attendance` 1.0.0.0, `32BITREQUIRED` |
+| `T5Web [3.5.7]/App/bin/T5V3.Attendance.dll` (Admin reference) | `2a2abd09745ec0a80dff0343b0e1f97e1ed52b8806f2ec61e64da1aa8100d3b7` | `T5V3.Attendance` 1.0.0.0, `32BITREQUIRED` |
+| `TWF 4.28/App/bin/T5V3.LeaveCalcs.dll` (Aria reference) | `bf193062cc8cc312e1fb703a3bba180e53d6d4e30057c3b1715df4d007d830f6` | `T5V3.LeaveCalcs` 1.0.0.0, `32BITREQUIRED` |
+| `T5Web [3.5.7]/App/bin/T5V3.LeaveCalcs.dll` (Admin reference) | `bf193062cc8cc312e1fb703a3bba180e53d6d4e30057c3b1715df4d007d830f6` | `T5V3.LeaveCalcs` 1.0.0.0, `32BITREQUIRED` |
 | `T5Web [3.5.7]/App/bin/T5V3Web.dll` | `96c71335ca080f4fa568e65f81957590ffdb953a9fe133ed0000b416afc7e755` | `T5V3Web` 3.5.7.0, `32BITREQUIRED` |
 | `T5Web [3.5.7]/App/bin/Dapper.dll` | `9027cd678ac8ff74f2321516528992d1883887ed749e8f6ecad7276dd55cef31` | `Dapper` 2.0.0.0, IL-only (version alone does not establish package version or net10 compatibility) |
 | `T5Web [3.5.7]/App/bin/Personnel.dll` | `c35950d10a42e36b6383f9a0c0a5a2c7f7bea10770686ed5a6f18bc9d519fcd7` | `Personnel` 1.4.0.0, `32BITREQUIRED` |
