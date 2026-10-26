@@ -1,0 +1,67 @@
+name: net10-admin-original-golden
+
+# Aria Admin versus its own T5Web [3.5.7] reference ONLY. Binary executes
+# three pure static formatting methods in a disposable Windows Framework probe.
+# No IIS, SQL, local database, product startup, native engine or machine changes.
+on:
+  push:
+    branches: [arena/a4df3135-io]
+    paths:
+      - 'src/net10/tools/AriaAdminOriginalGolden/**'
+      - '.github/workflows/net10-admin-original-golden.yml'
+  pull_request:
+    paths:
+      - 'src/net10/tools/AriaAdminOriginalGolden/**'
+      - '.github/workflows/net10-admin-original-golden.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  original-admin-pure:
+    name: Original T5Web 3.5.7 binary pure-time golden (Windows, NO services)
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile disposable Framework probe and invoke only pinned original static formatter
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $original = Join-Path $env:GITHUB_WORKSPACE 'T5Web [3.5.7]\App\bin\T5V3Web.dll'
+          $expected = '96c71335ca080f4fa568e65f81957590ffdb953a9fe133ed0000b416afc7e755'
+          if (-not (Test-Path -LiteralPath $original -PathType Leaf)) {
+            Write-Host '::error::NEEDS-INFRA: original Admin binary unavailable; no download fallback.'
+            exit 2
+          }
+          $hash = (Get-FileHash -LiteralPath $original -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($hash -ne $expected) {
+            Write-Host "::error::Original Admin T5V3Web.dll SHA drift: $hash; reject comparison."
+            exit 1
+          }
+          Write-Host "::notice::ARIA ADMIN ORIGINAL | T5V3Web.dll SHA-256 $hash | static pure method inputs only"
+          $compiler = Join-Path $env:WINDIR 'Microsoft.NET\Framework\v4.0.30319\csc.exe'
+          if (-not (Test-Path -LiteralPath $compiler -PathType Leaf)) {
+            Write-Host '::error::NEEDS-INFRA: preinstalled Framework compiler unavailable; no download fallback.'
+            exit 2
+          }
+          $exe = Join-Path $env:RUNNER_TEMP 'AriaAdminOriginalPureProbe.exe'
+          $source = Join-Path $env:GITHUB_WORKSPACE 'src\net10\tools\AriaAdminOriginalGolden\Program.cs'
+          $build = & $compiler '/nologo' '/target:exe' ("/out:" + $exe) $source 2>&1
+          $code = $LASTEXITCODE
+          $build | Write-Host
+          if ($code -ne 0 -or -not (Test-Path -LiteralPath $exe -PathType Leaf)) {
+            foreach ($line in @($build | Select-Object -First 20)) { Write-Host "::error::Admin golden probe build: $line" }
+            exit 1
+          }
+          $out = & $exe $original 2>&1
+          $code = $LASTEXITCODE
+          $out | Write-Host
+          if ($code -ne 0 -or -not ($out | Select-String -Quiet 'Summary: 12 Passed, 0 Failed')) {
+            foreach ($line in @($out | Select-Object -Last 30)) { Write-Host "::error::Admin golden probe: $line" }
+            Write-Host '::error::No original Admin golden may be accepted from this run.'
+            exit 1
+          }
+          foreach ($line in $out) { Write-Host "::notice::ARIA ADMIN ORIGINAL GOLDEN | $line" }
+          Write-Host '::notice::ARIA ADMIN ORIGINAL GOLDEN | 12/12 pure original samples only; NOT a route, SQL, IIS, report, device or net10 parity test'
