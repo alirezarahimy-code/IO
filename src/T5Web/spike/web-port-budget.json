@@ -1,0 +1,15 @@
+{
+  "stage": "pre-port: .NET Framework 4.8.1, MVC 5",
+  "note": "Lowered in the same commit that removes coupling; see docs/17-net10-path.md.",
+  "budget": {
+    "webFiles": 27,
+    "systemWebFiles": 23,
+    "controllers": 22,
+    "views": 34,
+    "httpContextCurrent": 2,
+    "configurationManager": 4,
+    "actionResult": 64,
+    "viewBag": 56,
+    "antiForgery": 18
+  }
+}

@@ -878,6 +878,18 @@ jobs:
             exit 1
           fi
 
+      - name: The distance to ASP.NET Core must only shrink
+        shell: bash
+        run: |
+          python3 src/T5Web/tools/web-port-budget.py --check
+      # Every file that still needs System.Web, so the port work list is a fact and not
+      # a memory. Only printed; the budget step above is what fails.
+      - name: What still couples the web layer
+        if: always()
+        shell: bash
+        run: |
+          python3 src/T5Web/tools/web-port-budget.py --list
+
       - name: Build the core for net8.0 and net10.0
         shell: bash
         run: |

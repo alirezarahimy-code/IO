@@ -197,8 +197,22 @@ NET8 web surface | controllers 21 | views 34 | System.Web files 23/27
 ### job چهارم: `net8-spike` (فقط اندازه‌گیری)
 
 `Portability - the core on .NET 8` روی `ubuntu-latest` اجرا می‌شود و سه لایهٔ پایین را
-با `net8.0` کامپایل می‌کند (روی لینوکس، عمداً: اگر هسته به API ویندوز نیاز داشت، همان‌جا
-لو می‌رود). نتیجه و تفسیرش در `docs/16-net8-feasibility.md`.
+با **`net8.0` و `net10.0`** کامپایل می‌کند (روی لینوکس، عمداً: اگر هسته به API ویندوز
+نیاز داشت، همان‌جا لو می‌رود). نتیجه و تفسیرش در `docs/16-net8-feasibility.md` و
+`docs/17-net10-path.md`.
+
+سه گام این job به‌ترتیب:
+
+1. **شمارش کوپلینگ** — تعداد فایل‌های هسته، فایل‌های موتوروابسته، و `System.Web` /
+   `System.Configuration`. اگر بیش از یک فایل به موتور وصل شود، یا اگر
+   `MvcApplication` خوانندهٔ فهرست را از `T5WebEngineDirectory` انتخاب نکند، job قرمز
+   می‌شود (یعنی «بدون موتور اجرا می‌شود» ادعا نیست، شرط است).
+2. **قفلِ رشدِ لایهٔ وب** — `tools/web-port-budget.py --check`: اگر شمارنده‌های
+   `System.Web` / `HttpContext.Current` / `ConfigurationManager` / … از بودجهٔ
+   `spike/web-port-budget.json` بیشتر شوند، job قرمز می‌شود. کاهش با
+   `--write` در همان کامیت ثبت می‌شود. جزئیات: `docs/17-net10-path.md` §۲.
+3. **کامپایل هر دو هدف** — `dotnet build` برای `net8.0` و `net10.0`، هر کدام با
+   annotation جدا: `net8.0 build | errors N | warnings N`.
 
 ---
 
