@@ -1,0 +1,26 @@
+name: net10-infra-readonly
+
+# Read-only inventory; this is NOT an IIS or SQL integration test. No package,
+# Windows feature, service, database, site, pool, key or production data is changed.
+on:
+  push:
+    branches: [arena/a4df3135-io]
+    paths:
+      - 'src/net10/tools/probe-windows-infra.ps1'
+      - '.github/workflows/net10-infra-readonly.yml'
+  pull_request:
+    paths:
+      - 'src/net10/tools/probe-windows-infra.ps1'
+      - '.github/workflows/net10-infra-readonly.yml'
+  workflow_dispatch:
+
+jobs:
+  windows-readonly-inventory:
+    name: Windows SDK/IIS/ANCM/SQL tooling inventory (NO install/deploy)
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Observe versions and report missing prerequisites without mutating software
+        shell: pwsh
+        run: ./src/net10/tools/probe-windows-infra.ps1
