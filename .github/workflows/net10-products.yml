@@ -78,3 +78,62 @@ jobs:
             exit 1
           fi
           echo "::notice::ARIA_ADMIN CORE net10.0 | 25 real linked sources | 9/9 pure synthetic tests | $RUNNER_OS | no web/IIS/SQL claim"
+
+  aria-admin-web:
+    name: Aria Admin Core Razor net10.0 + 12 HTTP synthetics (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Offline build, Razor compilation, publish and loopback HTTP security matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v dotnet >/dev/null || ! dotnet --list-sdks | grep -Eq '^10\.0\.[0-9]+'; then
+            echo '::error::NEEDS-INFRA: .NET 10 SDK/ref packs not preinstalled; no online restore fallback.'
+            exit 2
+          fi
+          sdk=$(dotnet --list-sdks | grep '^10\.0\.' | head -n 1)
+          echo "::notice::ARIA_ADMIN CORE WEB | preinstalled $sdk | RazorBuild=true | offline NuGet | $RUNNER_OS"
+          if grep -R 'X-Synthetic-Identity' src/net10/AriaAdmin/Web/ --include='*.cs'; then
+            echo '::error::Test header leaked into publishable production Web code.'
+            exit 1
+          fi
+          logdir=$(mktemp -d)
+          diagnose() {
+            local label="$1"; shift
+            local output="$logdir/web-$label.log"
+            set +e
+            "$@" >"$output" 2>&1
+            local code=$?
+            set -e
+            cat "$output"
+            if [ "$code" -ne 0 ]; then
+              { grep -Ei '(^|: )error |NU[0-9]{4}|Exception|\[FAIL\]|Unable to' "$output" || true; } | head -35 |
+                while IFS= read -r line; do echo "::error::ARIA_ADMIN WEB $label: $line"; done
+              echo "::error::ARIA_ADMIN WEB $label failed ($code); no web parity claim."
+              exit "$code"
+            fi
+          }
+          web=src/net10/AriaAdmin/Web/AriaAdmin.Web.csproj
+          tests=src/net10/AriaAdmin/Web.Tests/AriaAdmin.Web.Tests.csproj
+          diagnose restore dotnet restore "$tests" --configfile src/net10/nuget.offline.config -v minimal
+          diagnose web-build dotnet build "$web" -c Release --no-restore -v minimal
+          diagnose tests-build dotnet build "$tests" -c Release --no-restore -v minimal
+          diagnose publish dotnet publish "$web" -c Release --no-restore -o "$logdir/published" -v minimal
+          if [ ! -f "$logdir/published/AriaAdmin.Web.dll" ] ||
+             [ ! -f "$logdir/published/wwwroot/assets/admin.css" ]; then
+            echo '::error::Core publish missing host or offline stylesheet.'
+            exit 1
+          fi
+          diagnose http dotnet run --project "$tests" -c Release --no-build --no-restore -- \
+            "$GITHUB_WORKSPACE/src/net10/AriaAdmin/Web"
+          if ! grep -q 'Summary: 12 Passed, 0 Failed' "$logdir/web-http.log"; then
+            echo '::error::HTTP suite did not complete all twelve checks.'
+            exit 1
+          fi
+          echo "::notice::ARIA_ADMIN WEB net10.0 | Razor compiled/published | 12/12 synthetic loopback HTTP | $RUNNER_OS | NOT IIS/SQL/original parity"
