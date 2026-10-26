@@ -89,9 +89,11 @@ internal static class Program
             {
                 using var home = await Send(client, "/Home/Index", "synthetic-admin");
                 Equal(HttpStatusCode.Redirect, home.StatusCode, "Home redirect");
-                Require(home.Headers.Location?.ToString().Contains("Dashboard", StringComparison.OrdinalIgnoreCase) == true,
-                    "Dashboard target");
-                using var dashboard = await Send(client, "/Dashboard/Index", "synthetic-admin");
+                // MVC may shorten Dashboard/Index to "/" because both are route defaults.
+                // Follow the actual local redirect rather than requiring a textual path.
+                var redirect = home.Headers.Location ?? throw new InvalidOperationException("missing MVC redirect");
+                Require(!redirect.IsAbsoluteUri, "redirect must stay on this host");
+                using var dashboard = await Send(client, redirect.OriginalString, "synthetic-admin");
                 Equal(HttpStatusCode.ServiceUnavailable, dashboard.StatusCode, "no fake operational dashboard");
                 string body = await dashboard.Content.ReadAsStringAsync();
                 Require(body.Contains("در دسترس نیست", StringComparison.Ordinal) &&
