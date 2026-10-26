@@ -1,0 +1,12 @@
+# Assumptions and non-negotiable safety boundaries
+
+| ID | Decision | Reason | Risk / evidence still required |
+| --- | --- | --- | --- |
+| A-01 | New Git locations are `src/net10/Aria/` and `src/net10/AriaAdmin/` on **only** `arena/a4df3135-io`. `net10.0` names the target framework, not an invented product release. | The requested location must not overwrite the two existing rewrites or create another branch/repository. | New apps are not operational until their own CI/IIS gates pass. |
+| A-02 | Start code from the present rewrites; compare the TWF result to `TWF 4.28` and the Aria Admin result to `T5Web [3.5.7]`, with T5V3 3.9.2 as a supplementary desktop/domain reference. | Original T5Web/T5V3 ship as binaries, not buildable C# web source. | The 87 intentionally dropped T5Web actions and 3 raw-punch report shells require explicit functional decisions; a compile alone cannot certify legacy feature parity. |
+| A-03 | Default TWF calculation boundary is an internal Windows/.NET Framework worker, separate from the .NET 10 web process. | The existing pinned engine is Framework/x86 and must not be loaded into a 64-bit Core web host. | This is **not** a port of the calculation engine to .NET 10; its protocol, consistency, version, permissions, security, and rollback must be tested. Never add a license/dongle check. |
+| A-04 | CI synthetic data are not a customer installation. No real credentials, SQL connection, Windows service changes, or destructive production operation are assumed. | User explicitly forbids live data and stopping/deleting installed software without separate permission. | Customer SQL 2016/domain/IIS/Link5 hardware behaviour remains unproved until separately authorised and available. |
+| A-05 | Preserve existing behaviour first; security-critical changes must be isolated, tested and listed in `BEHAVIOR_CHANGES.md`. | TWF currently has no antiforgery protection and a hardcoded fallback auth secret; silently carrying either into a release is unsafe. | Port baseline comparison and release security gate are separate; no claim of release readiness until both pass. |
+| A-06 | Roslyn extracts C# declarations; additional scanners extract Views/config/SQL/dependencies and vendor metadata. | Roslyn does not parse Razor, XML, SQL, or binary-only originals. | Document any non-extractable behaviour as TODO/BLOCKED; a member count is not a behaviour proof. |
+
+Do not ask the user to run commands. Continue independent safe work when something is BLOCKED, but do not claim a complete migration or bypass its acceptance gate.

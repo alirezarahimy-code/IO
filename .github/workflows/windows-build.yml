@@ -2,10 +2,10 @@ name: windows-build
 
 # The rewrite targets .NET Framework 4.7.2 + IIS + SQL Server, and none of that exists
 # on the Linux machine where the code is written. This workflow is that Windows machine:
-# it compiles with MSBuild, runs the 43-test suite, and proves the database scripts
+# it compiles with MSBuild, runs the T5Web suite, and proves the database scripts
 # against a real SQL Server engine (Express LocalDB, which the runner image already has).
-# A fourth job asks a different question - does the core compile on .NET 8? - and answers
-# it with a compiler instead of an opinion.
+# Another job asks a different question - does the core compile on .NET 8/10? - and answers
+# it with a compiler instead of an opinion. A fifth job independently builds/tests TWF.
 #
 # It is deliberately push-triggered: a red run here is the same signal a red build on
 # the customer's server would give, only earlier.
@@ -20,12 +20,14 @@ on:
     paths:
       - 'src/T5Web/**'
       - 'src/TWF/**'
+      - 'src/net10/**'
       - 'docs/**'
       - '.github/workflows/windows-build.yml'
   pull_request:
     paths:
       - 'src/T5Web/**'
       - 'src/TWF/**'
+      - 'src/net10/**'
       - 'docs/**'
   workflow_dispatch:
 
@@ -943,3 +945,14 @@ jobs:
           echo "  controllers           : $controllers"
           echo "  Razor views           : $views"
           echo "::notice::NET8 web surface | controllers $controllers | views $views | System.Web files $systemweb/$cs"
+
+  twf-framework-baseline:
+    name: TWF Framework baseline (Windows, all 47 tests)
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: microsoft/setup-msbuild@v2
+      - name: Compile untouched TWF solution and execute registered tests
+        shell: pwsh
+        run: ./src/net10/tools/test-twf-baseline.ps1

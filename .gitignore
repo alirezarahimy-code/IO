@@ -11,5 +11,6 @@ Thumbs.db
 .DS_Store
 
 # Python scratch
+.venv/
 __pycache__/
 *.pyc
