@@ -1,0 +1,83 @@
+name: net10-ledger
+
+# Independent from long-running Windows IIS/SQL jobs: never report their build
+# as evidence of Roslyn inventory. No SDK download, no NuGet network sources.
+on:
+  push:
+    branches: [arena/a4df3135-io]
+    paths:
+      - 'src/net10/tools/LedgerGenerator/**'
+      - 'src/net10/tools/ledger-check.py'
+      - 'src/net10/nuget.offline.config'
+      - 'src/net10/LEDGER.csv'
+      - '.github/workflows/net10-ledger.yml'
+  pull_request:
+    paths:
+      - 'src/net10/**'
+      - '.github/workflows/net10-ledger.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: net10-ledger-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  net10-ledger:
+    name: Roslyn inventory (preinstalled .NET 10, offline restore)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require local SDK and compile Roslyn inventory without package sources
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v dotnet >/dev/null || ! dotnet --list-sdks | grep -Eq '^10\.0\.[0-9]+'; then
+            echo '::error::NEEDS-INFRA: no preinstalled .NET 10 SDK on this runner (no download fallback).'
+            exit 2
+          fi
+          sdk=$(dotnet --list-sdks | grep '^10\.0\.' | head -n 1)
+          echo "::notice::NET10 inventory toolchain | $sdk | SDK-provided Roslyn | offline NuGet config"
+          diagnose() {
+            local label="$1"; shift
+            local logfile="$RUNNER_TEMP/ledger-$label.log"
+            set +e
+            "$@" >"$logfile" 2>&1
+            local code=$?
+            set -e
+            cat "$logfile"
+            if [ "$code" -ne 0 ]; then
+              { grep -Ei '(^|: )error |NU[0-9]{4}|Exception|Unable to' "$logfile" || true; } | head -35 |
+                while IFS= read -r line; do echo "::error::ledger $label: $line"; done
+              echo "::error::ledger $label failed ($code); no compiler/coverage proof."
+              exit "$code"
+            fi
+          }
+          diagnose restore dotnet restore src/net10/tools/LedgerGenerator/LedgerGenerator.csproj \
+            --configfile src/net10/nuget.offline.config -v minimal
+          diagnose build dotnet build src/net10/tools/LedgerGenerator/LedgerGenerator.csproj \
+            -c Release --no-restore -v minimal
+      - name: Generate and validate source, view, config, SQL and DLL inventory
+        shell: bash
+        run: |
+          set -euo pipefail
+          set +e
+          dotnet run --project src/net10/tools/LedgerGenerator/LedgerGenerator.csproj \
+            --no-build --no-restore -c Release -- "$GITHUB_WORKSPACE" "$RUNNER_TEMP/LEDGER.csv" \
+            >"$RUNNER_TEMP/ledger-generate.log" 2>&1
+          result=$?
+          set -e
+          cat "$RUNNER_TEMP/ledger-generate.log"
+          if [ "$result" -ne 0 ]; then
+            tail -n 30 "$RUNNER_TEMP/ledger-generate.log" |
+              while IFS= read -r line; do echo "::error::Roslyn generator: $line"; done
+            exit "$result"
+          fi
+          python3 src/net10/tools/ledger-check.py --inventory "$RUNNER_TEMP/LEDGER.csv"
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: roslyn-ledger
+          path: ${{ runner.temp }}/LEDGER.csv
+          if-no-files-found: error
+          retention-days: 7
