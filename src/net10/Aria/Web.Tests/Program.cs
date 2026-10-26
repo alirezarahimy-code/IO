@@ -1,0 +1,228 @@
+using System.Net;
+using Aria.Web.Security;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using TWF.Domain.Models;
+using WebHost = Aria.Web.Program;
+
+namespace Aria.Web.Tests;
+
+// Standalone Kestrel/Razor probe. The synthetic verifier and clock are compiled
+// ONLY here, never into the published Web binary or any appsettings/HTTP flag.
+internal static class Program
+{
+    private static int _passed;
+    private static int _failed;
+    private static readonly DateTime FixedNow = new(2026, 10, 24, 10, 0, 0, DateTimeKind.Utc);
+
+    private static async Task<int> Main(string[] args)
+    {
+        if (args.Length != 1 || !File.Exists(Path.Combine(args[0], "Aria.Web.csproj")))
+            throw new ArgumentException("Pass the local Aria/Web directory (synthetic only).");
+        string webRoot = Path.GetFullPath(args[0]);
+
+        await using (var production = WebHost.CreateApp(Array.Empty<string>(), contentRoot: webRoot))
+        {
+            using var client = await Start(production);
+            await Check("AR-WEB-01: liveness is not DB/session readiness", async () =>
+            {
+                using var response = await Send(client, "/health/live");
+                Equal(HttpStatusCode.OK, response.StatusCode, "live process");
+                string body = await response.Content.ReadAsStringAsync();
+                Require(body.Contains("alive", StringComparison.Ordinal) &&
+                    !body.Contains("databaseReachable", StringComparison.OrdinalIgnoreCase), "no readiness claim");
+            });
+            await Check("AR-WEB-02: spoofed identity header and cookie cannot bypass production", async () =>
+            {
+                using var response = await Send(client, "/Home/Index", "synthetic-valid", "mytimeauth=not-a-valid-token");
+                Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode, "no legacy verifier/key");
+                string body = await response.Content.ReadAsStringAsync();
+                Require(body.Contains("تأیید ایمن نشست", StringComparison.Ordinal) &&
+                    !body.Contains("not-a-valid-token", StringComparison.Ordinal) &&
+                    !body.Contains("System.Exception", StringComparison.Ordinal), "safe fail-closed response");
+                Require(!response.Headers.TryGetValues("Set-Cookie", out _), "no invented session cookie");
+            });
+            await Check("AR-WEB-03: compiled RTL Razor login notice never collects a password", async () =>
+            {
+                using var response = await Send(client, "/Login/Login");
+                Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode, "login disabled");
+                string html = await response.Content.ReadAsStringAsync();
+                Require(html.Contains("lang=\"fa\"", StringComparison.Ordinal) &&
+                    html.Contains("dir=\"rtl\"", StringComparison.Ordinal) &&
+                    html.Contains("ورود موقتاً در دسترس نیست", StringComparison.Ordinal), "Persian RTL Razor");
+                Require(html.Contains("/assets/aria.css", StringComparison.Ordinal) &&
+                    !html.Contains("<form", StringComparison.OrdinalIgnoreCase) &&
+                    !html.Contains("type=\"password\"", StringComparison.OrdinalIgnoreCase) &&
+                    !html.Contains("https://", StringComparison.OrdinalIgnoreCase) &&
+                    !html.Contains("v5.0", StringComparison.OrdinalIgnoreCase), "no credential form/CDN/version claim");
+                Require(response.Headers.TryGetValues("Content-Security-Policy", out var csp) &&
+                    csp.Any(x => x.Contains("default-src 'self'", StringComparison.Ordinal)), "CSP self only");
+                Require(!response.Headers.TryGetValues("Set-Cookie", out _), "no cookie issued");
+            });
+            await Check("AR-WEB-04: original-product rewrite stylesheet is local and offline", async () =>
+            {
+                using var response = await Send(client, "/assets/aria.css");
+                Equal(HttpStatusCode.OK, response.StatusCode, "local CSS");
+                Require(response.Content.Headers.ContentType?.MediaType == "text/css", "CSS content type");
+                string css = await response.Content.ReadAsStringAsync();
+                Require(css.Contains("--twf-bg-canvas", StringComparison.Ordinal) &&
+                    !css.Contains("url(http", StringComparison.OrdinalIgnoreCase), "no remote CSS fetch");
+            });
+            await Check("AR-WEB-05: public schema/health never pretend a DB probe succeeded", async () =>
+            {
+                using var schema = await Send(client, "/Diagnostics/Schema");
+                Equal(HttpStatusCode.ServiceUnavailable, schema.StatusCode, "schema not measured");
+                string html = await schema.Content.ReadAsStringAsync();
+                Require(html.Contains("بررسی پایگاه‌داده در دسترس نیست", StringComparison.Ordinal) &&
+                    !html.Contains("Initial Catalog", StringComparison.Ordinal), "no DB config leak");
+                using var health = await Send(client, "/Diagnostics/Health");
+                Equal(HttpStatusCode.ServiceUnavailable, health.StatusCode, "no false green health");
+                string json = await health.Content.ReadAsStringAsync();
+                Require(json.Contains("unavailable", StringComparison.Ordinal) &&
+                    !json.Contains("true", StringComparison.OrdinalIgnoreCase), "unknown DB state not success");
+            });
+            await Check("AR-WEB-06: no login POST/credential collector or session emission", async () =>
+            {
+                using var response = await client.PostAsync("/Login/Login", content: null);
+                Require(response.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.MethodNotAllowed,
+                    "unimplemented login POST must not dispatch");
+                Require(!response.Headers.TryGetValues("Set-Cookie", out _), "no login session");
+            });
+        }
+
+        await using (var synthetic = WebHost.CreateApp(Array.Empty<string>(), services =>
+        {
+            services.AddSingleton<IAriaSessionVerifier, TestSessionVerifier>();
+            services.AddSingleton<TimeProvider>(new FixedClock(FixedNow));
+        }, webRoot))
+        {
+            using var client = await Start(synthetic);
+            await Check("AR-WEB-07: anonymous root redirects only to local login notice", async () =>
+            {
+                using var home = await Send(client, "/");
+                Equal(HttpStatusCode.Redirect, home.StatusCode, "anonymous root");
+                var location = home.Headers.Location ?? throw new InvalidOperationException("missing redirect");
+                Require(!location.IsAbsoluteUri && location.OriginalString == "/Login/Login", "fixed local target");
+                using var notice = await Send(client, location.OriginalString);
+                Equal(HttpStatusCode.ServiceUnavailable, notice.StatusCode, "no dummy login success");
+            });
+            await Check("AR-WEB-08: verified synthetic session cannot fabricate a dashboard", async () =>
+            {
+                using var response = await Send(client, "/Home/Index?sort=-1&g=true", "synthetic-valid");
+                Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode, "no engine/SQL-backed home data");
+                string body = await response.Content.ReadAsStringAsync();
+                Require(body.Contains("داشبورد آریا", StringComparison.Ordinal) &&
+                    !body.Contains("System.Exception", StringComparison.Ordinal), "safe notice only");
+            });
+            await Check("AR-WEB-09: denied, expired or invalid sessions never enter Home", async () =>
+            {
+                foreach (string identity in new[] { "synthetic-disabled", "synthetic-expired", "synthetic-unknown" })
+                {
+                    using var response = await Send(client, "/Home/Index", identity);
+                    Equal(HttpStatusCode.Forbidden, response.StatusCode, identity);
+                }
+            });
+            await Check("AR-WEB-10: verifier exception fails closed without disclosure", async () =>
+            {
+                using var response = await Send(client, "/Home/Index", "synthetic-error");
+                Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode, "backend verifier error");
+                Require(!(await response.Content.ReadAsStringAsync()).Contains("CI_EXCEPTION_MARKER", StringComparison.Ordinal),
+                    "no stack/secret leak");
+            });
+            await Check("AR-WEB-11: no unported POST, recheck or catch-all action", async () =>
+            {
+                using var post = new HttpRequestMessage(HttpMethod.Post, "/Home/Index");
+                post.Headers.TryAddWithoutValidation("X-Synthetic-Session", "synthetic-valid");
+                using var posted = await client.SendAsync(post);
+                Require(posted.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.MethodNotAllowed,
+                    "no state-changing Home POST");
+                using var recheck = await Send(client, "/Diagnostics/Recheck", "synthetic-valid");
+                Equal(HttpStatusCode.NotFound, recheck.StatusCode, "no public DB recheck side effect");
+                using var missing = await Send(client, "/invented-controller/Index", "synthetic-valid");
+                Equal(HttpStatusCode.NotFound, missing.StatusCode, "no fake catch-all success");
+            });
+            await Check("AR-WEB-12: 40 overlapping requests keep decision request-scoped", async () =>
+            {
+                var tasks = Enumerable.Range(0, 40).Select(async i =>
+                {
+                    bool valid = i % 2 == 0;
+                    using var response = await Send(client, "/Home/Index",
+                        valid ? "synthetic-valid" : "synthetic-disabled");
+                    Equal(valid ? HttpStatusCode.ServiceUnavailable : HttpStatusCode.Forbidden,
+                        response.StatusCode, "overlap " + i);
+                });
+                await Task.WhenAll(tasks);
+            });
+        }
+
+        Console.WriteLine($"Summary: {_passed} Passed, {_failed} Failed (net10.0 Aria Kestrel/Razor synthetic only)");
+        return _passed == 12 && _failed == 0 ? 0 : 1;
+    }
+
+    private static async Task<HttpClient> Start(WebApplication app)
+    {
+        app.Urls.Add("http://127.0.0.1:0");
+        await app.StartAsync();
+        string url = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()?
+            .Addresses.Single(x => x.StartsWith("http://127.0.0.1:", StringComparison.Ordinal))
+            ?? throw new InvalidOperationException("Kestrel did not bind a synthetic loopback port");
+        return new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })
+        {
+            BaseAddress = new Uri(url), Timeout = TimeSpan.FromSeconds(15)
+        };
+    }
+    private static Task<HttpResponseMessage> Send(HttpClient client, string path, string? user = null,
+        string? cookie = null)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, path);
+        if (user != null) request.Headers.TryAddWithoutValidation("X-Synthetic-Session", user);
+        if (cookie != null) request.Headers.TryAddWithoutValidation("Cookie", cookie);
+        return client.SendAsync(request);
+    }
+    private static async Task Check(string name, Func<Task> test)
+    {
+        try { await test(); _passed++; Console.WriteLine("[PASS] " + name); }
+        catch (Exception ex) { _failed++; Console.WriteLine("[FAIL] " + name + ": " + ex.Message); }
+    }
+    private static void Equal<T>(T expected, T actual, string what) where T : notnull
+    {
+        if (!EqualityComparer<T>.Default.Equals(expected, actual))
+            throw new InvalidOperationException($"{what}: expected {expected}, got {actual}");
+    }
+    private static void Require(bool condition, string what)
+    {
+        if (!condition) throw new InvalidOperationException(what);
+    }
+}
+
+internal sealed class FixedClock(DateTime utc) : TimeProvider
+{
+    public override DateTimeOffset GetUtcNow() => new(utc);
+}
+
+internal sealed class TestSessionVerifier : IAriaSessionVerifier
+{
+    private static readonly DateTime FixedNow = new(2026, 10, 24, 10, 0, 0, DateTimeKind.Utc);
+
+    public Task<SessionResolution> VerifyAsync(HttpContext context, CancellationToken cancellationToken)
+    {
+        string user = context.Request.Headers.TryGetValue("X-Synthetic-Session", out var identity)
+            ? identity.ToString() : string.Empty;
+        if (user == "synthetic-error") throw new InvalidOperationException("CI_EXCEPTION_MARKER");
+        if (user.Length == 0) return Task.FromResult(SessionResolution.Anonymous());
+        if (user is "synthetic-disabled" or "synthetic-unknown")
+            return Task.FromResult(SessionResolution.Denied());
+        if (user is "synthetic-valid" or "synthetic-expired")
+        {
+            DateTime expires = user == "synthetic-expired" ? FixedNow.AddMinutes(-1) : FixedNow.AddHours(2);
+            var session = new UserSessionIdentity(1001, "synthetic-user", "مریم", "آزمایشی", "user",
+                11, "سمت آزمایشی", 0, "", 10, "واحد آزمایشی", false, false,
+                FixedNow.AddMinutes(-5), expires);
+            return Task.FromResult(SessionResolution.Verified(session));
+        }
+        return Task.FromResult(SessionResolution.Denied());
+    }
+}

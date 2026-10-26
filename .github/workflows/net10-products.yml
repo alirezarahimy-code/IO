@@ -214,3 +214,72 @@ jobs:
             exit 1
           fi
           echo "::notice::ARIA CORE net10.0 | 19 linked TWF sources + 1 label shim | 11/11 synthetic tests | $RUNNER_OS | NOT native engine/SQL/web/original parity"
+
+  aria-web:
+    name: Aria Core Razor net10.0 + 12 HTTP synthetics (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Offline build and publish Aria MVC/Razor with fail-closed Kestrel HTTP checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v dotnet >/dev/null || ! dotnet --list-sdks | grep -Eq '^10\.0\.[0-9]+'; then
+            echo '::error::NEEDS-INFRA: .NET 10 SDK/ref packs not preinstalled; no online restore fallback.'
+            exit 2
+          fi
+          sdk=$(dotnet --list-sdks | grep '^10\.0\.' | head -n 1)
+          echo "::notice::ARIA CORE WEB | preinstalled $sdk | RazorBuild=true | offline NuGet | $RUNNER_OS"
+          if grep -R 'X-Synthetic-Session' src/net10/Aria/Web/ --include='*.cs'; then
+            echo '::error::Synthetic authentication header entered publishable Aria Web code.'
+            exit 1
+          fi
+          if [ "$(find src/net10/Aria/Web/wwwroot -type f | wc -l)" -ne 1 ] ||
+             ! cmp -s src/TWF/TWF.Web/Content/twf-industrial-ui.css \
+                      src/net10/Aria/Web/wwwroot/assets/aria.css; then
+            echo '::error::Expected only the audited local Aria stylesheet copied from its own rewrite.'
+            exit 1
+          fi
+          if grep -Ei 'https?://|@import|url\(' src/net10/Aria/Web/wwwroot/assets/aria.css; then
+            echo '::error::Aria stylesheet must not fetch online UI assets.'
+            exit 1
+          fi
+          logdir=$(mktemp -d)
+          diagnose() {
+            local label="$1"; shift
+            local output="$logdir/aria-web-$label.log"
+            set +e
+            "$@" >"$output" 2>&1
+            local code=$?
+            set -e
+            cat "$output"
+            if [ "$code" -ne 0 ]; then
+              { grep -Ei '(^|: )error |NU[0-9]{4}|Exception|\[FAIL\]|Unable to' "$output" || true; } | head -35 |
+                while IFS= read -r line; do echo "::error::ARIA WEB $label: $line"; done
+              echo "::error::ARIA WEB $label failed ($code); no original/IIS parity claim."
+              exit "$code"
+            fi
+          }
+          web=src/net10/Aria/Web/Aria.Web.csproj
+          tests=src/net10/Aria/Web.Tests/Aria.Web.Tests.csproj
+          diagnose restore dotnet restore "$tests" --configfile src/net10/nuget.offline.config -v minimal
+          diagnose web-build dotnet build "$web" -c Release --no-restore -v minimal
+          diagnose tests-build dotnet build "$tests" -c Release --no-restore -v minimal
+          diagnose publish dotnet publish "$web" -c Release --no-restore -o "$logdir/published" -v minimal
+          if [ ! -f "$logdir/published/Aria.Web.dll" ] ||
+             [ ! -f "$logdir/published/wwwroot/assets/aria.css" ]; then
+            echo '::error::Aria publish missing Core MVC host or offline stylesheet.'
+            exit 1
+          fi
+          diagnose http dotnet run --project "$tests" -c Release --no-build --no-restore -- \
+            "$GITHUB_WORKSPACE/src/net10/Aria/Web"
+          if ! grep -q 'Summary: 12 Passed, 0 Failed' "$logdir/aria-web-http.log"; then
+            echo '::error::Aria HTTP suite did not complete all twelve tests.'
+            exit 1
+          fi
+          echo "::notice::ARIA WEB net10.0 | Razor compiled/published | 12/12 synthetic loopback HTTP | $RUNNER_OS | NOT original token/SQL/native engine/IIS parity"
