@@ -16,7 +16,7 @@ $captcha = Join-Path $root 'TWF 4.28/App/bin/CaptchaMvc.dll'
 if (-not (Test-Path -LiteralPath $captcha)) { throw 'Original TWF CaptchaMvc is missing' }
 
 $addReferences = @{
-    'TWF.Web' = @('System.Data', 'System.Configuration', 'System.Drawing',
+    'TWF.Web' = @('System.Data', 'System.Configuration', 'System.Drawing', 'System.Xml',
                   'System.Web.Routing', 'System.Web.Http', 'System.Web.Optimization',
                   'Dapper', 'CaptchaMvc')
     'TWF.Tests' = @('System.Web', 'System.Web.Routing', 'System.Web.Mvc', 'T5V3.Model')
@@ -59,6 +59,14 @@ foreach ($name in @('TWF.Web', 'TWF.Tests')) {
         [void]$refGroup.AppendChild($ref)
         [void]$xml.DocumentElement.AppendChild($refGroup)
         Write-Host 'SHADOW ONLY: TWF.Tests adds direct TD5 project reference'
+        # These tests directly use T5V3.Model and T5V3.Attendance, which carry
+        # CLR 32BITREQUIRED. Only the *test executable* needs an x86 process.
+        $propertyGroup = $xml.CreateElement('PropertyGroup', $namespace)
+        $platformTarget = $xml.CreateElement('PlatformTarget', $namespace)
+        $platformTarget.InnerText = 'x86'
+        [void]$propertyGroup.AppendChild($platformTarget)
+        [void]$xml.DocumentElement.AppendChild($propertyGroup)
+        Write-Host 'SHADOW ONLY: TWF.Tests test host targets x86 (genuinely x86 engine dependent)'
     }
     $xml.Save($projectPath)
 }

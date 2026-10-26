@@ -19,6 +19,8 @@ Build information for **each new** .NET 10 app (SDK versions, offline feed hashe
 
 The `TWF 4.28` attendance and leave-calculation binaries are byte-identical to the T5Web 3.5.7 pinned binaries used by the current TWF rewrite (`src/TWF/engine/engine-pin.json`); the T5V3 3.9.2 desktop binaries differ and cannot be substituted on signature matching alone. No numeric end-to-end equivalence was claimed.
 
+Additional immutable source/project SHA-256: `src/TWF/TWF.sln` = `5579ca4c700b1a956bb796cf5d488552cfdb262b5d117410a95a5c2f915c31f5`; `src/TWF/TWF.Web/TWF.Web.csproj` = `57ecd2a9642d61265703c5ac9e3cfe648bec892e69832ca4b108d30ac1f23d4e`; `src/T5Web/T5Web.sln` = `c48f2fe1366d78eef41b2c746ff28f8614425f9d9f9652d3805f5bf6fcea1055`; `src/T5Web/T5Web.Web/T5Web.Web.csproj` = `f65ce3d2e869a32caeb6ded518f500d249bb556f1089806041d76257e1642826`. These hashes are of unchanged source files; the temporary shadow has a different project hash by design.
+
 ## SHA-256 of binary reference inputs (computed locally, no modification)
 
 | Binary | SHA-256 | CLI metadata / architecture |
@@ -39,3 +41,5 @@ SHA-256 via `hashlib.sha256(Path(...).read_bytes()).hexdigest()` and metadata vi
 Windows [CI 40395889978](https://github.com/alirezarahimy-code/IO/actions/runs/40395889978) ran raw `TWF.sln` in Release using a pinned assembly search path: **FAIL** (CS0234/CS0246). TWF.Web.csproj lacks at least `System.Data`, `Dapper`, `System.Web.Http`, `System.Web.Optimization`; its engine HintPaths are too shallow by one `..`. The raw solution must not be described as compiling. Architecture warnings (MSB3270, x86 engines vs AnyCPU project) are real; they are not equivalent to compiler errors.
 
 `src/net10/tools/test-twf-shadow.ps1` is an *additional* experiment: copy `src/TWF/` to Windows runner temp, explicitly add missing Framework and pinned non-engine reference metadata (and the original TWF CaptchaMvc library), include the existing but unlisted adapter source, then compile the copied solution and execute all 47 tests from an output under the actual source root. It never edits the tracked baseline. The source bytes and test logic are identical, but **the project metadata differs**. Any pass proves a source/test baseline only, not a passing raw project or a Core web app. Record its actual run result before using it as evidence.
+
+The first shadow build ([CI 40396358663](https://github.com/alirezarahimy-code/IO/actions/runs/40396358663)) still failed before tests: the Web project is missing `System.Xml` for `System.Xml.Serialization`. In the next shadow iteration the **test executable only** is marked x86 because it directly loads the `32BITREQUIRED` engine model; the web and portable domains are not assigned x86 by default. No part of this output establishes Razor compilation.

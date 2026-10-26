@@ -5,7 +5,7 @@ The source C#/Razor inventories are still being generated; counts below are meas
 | System | Measured current surface | Blocker / proposed boundary |
 | --- | --- | --- |
 | Aria Admin | 27 web C# files, 23 using `System.Web`, 22 controller types, 34 `.cshtml` views, 2 `HttpContext.Current`, 4 config-manager sites; 250 port coupling points. | Core MVC routing/filter/context/view rewrite. The other 51 lower-layer files compile on net10.0 in the existing spike *without* `PersonnelEngineDirectory.cs`. |
-| Aria | 95 web C# files, 44 using `System.Web`, 30 controllers, 74 views, 401 direct engine calls in 36 files; 905 port coupling points. | Core MVC and Web API 2, 60 `HttpContextBase` occurrences, 33 `LoginManager` calls, `[ThreadStatic]` across requests/async, 3 `System.Drawing` files, 2 VirtualPath files, native/Framework engine boundary. No Windows CI baseline. |
+| Aria | 95 web C# files, 44 using `System.Web`, 30 controllers, 74 views, 401 direct engine calls in 36 files; 905 port coupling points. | Core MVC and Web API 2; **current Web sources** have 27 `HttpContextBase` occurrences in 9 files, 14 `LoginManager` occurrences in 7 files, and 5 `[ThreadStatic]` occurrences in 2 files (literal counts; not route counts). 3 `System.Drawing` files and VirtualPath features need separate handling; native/Framework engine boundary. Raw Windows MSBuild failed at 40395889978. |
 
 ## Technology-specific disposition, to be validated with routes/tests
 
