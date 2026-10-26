@@ -220,9 +220,9 @@ internal static class Program
                 case ConversionOperatorDeclarationSyntax op:
                     kind = "OPERATOR"; signature = FullName(op, op.ImplicitOrExplicitKeyword.Text + " operator " + op.Type) + Parameters(op.ParameterList); break;
                 case InvocationExpressionSyntax invocation when invocation.Expression.ToString() == "RunTest":
-                    if (invocation.ArgumentList.Arguments.FirstOrDefault()?.Expression is LiteralExpressionSyntax literal)
+                    if (invocation.ArgumentList.Arguments.FirstOrDefault()?.Expression is LiteralExpressionSyntax testLiteral)
                     {
-                        string testName = literal.Token.ValueText;
+                        string testName = testLiteral.Token.ValueText;
                         if (Regex.IsMatch(testName, @"^(TEST-\d+|T\d+):?", RegexOptions.CultureInvariant))
                             Add(system, "TEST_CASE", path, testName, sha, Line(tree, invocation), status,
                                 "Registered executable test; pass/fail tracked separately");
