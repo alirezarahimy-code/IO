@@ -27,7 +27,11 @@ $log = & $msbuild @argsList 2>&1 | ForEach-Object { "$_" }
 $code = $LASTEXITCODE
 $log | ForEach-Object { Write-Host $_ }
 if ($code -ne 0) {
-    ($log | Select-String -Pattern ' : error |: error |MSB[0-9]+|CS[0-9]+' | Select-Object -First 18) |
+    # MSB3270 is a *warning* about x86 vendor references. Do not annotate the
+    # first 18 warnings as errors and hide the real compiler diagnostics.
+    $errors = @($log | Select-String -Pattern '(^|\s)error\s+[A-Z]+[0-9]+|:\s*error\s+')
+    if ($errors.Count -eq 0) { $errors = @($log | Select-Object -Last 30) }
+    ($errors | Select-Object -First 35) |
         ForEach-Object { Write-Host "::error::TWF baseline: $_" }
     Write-Host "::error::TWF Framework build failed (code $code); no test or port-readiness claim."
     exit 1
