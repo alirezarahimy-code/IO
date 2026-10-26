@@ -29,5 +29,7 @@
     <!-- Owned two-label PORT shim: the full generated rewrite resource contains
          unverified historical product/version banners, so do not import it. -->
     <Compile Include="Localization/PersianString.cs" />
+    <!-- Owned, narrow original-binary golden adapter; no rewrite source is edited. -->
+    <Compile Include="Compatibility/OriginalMiscTime.cs" />
   </ItemGroup>
 </Project>

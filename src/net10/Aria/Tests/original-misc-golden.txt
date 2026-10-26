@@ -1,0 +1,4 @@
+source_sha256=edba04ccafb9f111870f9050f86e9059e92389188bbd3115678afb21691ddd6b
+format_8h5m=8:5
+format_145h30m=145:30
+format_zero=0:0

@@ -139,7 +139,7 @@ jobs:
           echo "::notice::ARIA_ADMIN WEB net10.0 | Razor compiled/published | 12/12 synthetic loopback HTTP | $RUNNER_OS | NOT IIS/SQL/original parity"
 
   aria-core:
-    name: Aria core net10.0 + 11 synthetics (${{ matrix.os }})
+    name: Aria core net10.0 + 11 synthetics + 1 pinned original formatter fixture (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     strategy:
@@ -157,7 +157,7 @@ jobs:
             exit 2
           fi
           sdk=$(dotnet --list-sdks | grep '^10\.0\.' | head -n 1)
-          echo "::notice::ARIA CORE | preinstalled $sdk | 19 linked sources + 1 audited label shim | offline NuGet | $RUNNER_OS"
+          echo "::notice::ARIA CORE | preinstalled $sdk | 19 linked sources + 2 owned shims (labels + original time format) | offline NuGet | $RUNNER_OS"
           sources=$(find src/TWF/TWF.Domain -name '*.cs' -not -path '*/obj/*' -not -path '*/bin/*' | wc -l)
           if [ "$sources" -ne 15 ]; then
             echo "::error::Aria Domain source inventory changed: expected 15, found $sources. Review linked manifest."
@@ -209,11 +209,11 @@ jobs:
           diagnose core-build dotnet build "$core" -c Release --no-restore -v minimal
           diagnose tests-build dotnet build "$tests" -c Release --no-restore -v minimal
           diagnose synthetics dotnet run --project "$tests" -c Release --no-build --no-restore
-          if ! grep -q 'Summary: 11 Passed, 0 Failed' "$logdir/aria-core-synthetics.log"; then
-            echo '::error::Aria Core synthetic suite did not report all eleven cases.'
+          if ! grep -q 'Summary: 12 Passed, 0 Failed' "$logdir/aria-core-synthetics.log"; then
+            echo '::error::Aria Core test suite did not report all 12 cases (11 synthetic + one original formatter fixture).'
             exit 1
           fi
-          echo "::notice::ARIA CORE net10.0 | 19 linked TWF sources + 1 label shim | 11/11 synthetic tests | $RUNNER_OS | NOT native engine/SQL/web/original parity"
+          echo "::notice::ARIA CORE net10.0 | 19 linked TWF sources + 2 owned shims | 11/11 synthetics + 1 pinned original formatter fixture | $RUNNER_OS | binary-to-port same-run parity checked only by separate Windows original-golden workflow; NOT native engine/SQL/web parity"
 
   aria-web:
     name: Aria Core Razor net10.0 + 12 HTTP synthetics (${{ matrix.os }})
