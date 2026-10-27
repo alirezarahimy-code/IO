@@ -106,7 +106,7 @@ jobs:
           if ($LASTEXITCODE -ne 0 -or !(Test-Path $fixture)) { Write-Host '::error::Original RequestDA methods failed'; exit 1 }
           $observed = Get-Content $fixture -Raw | ConvertFrom-Json
           if ($observed.scope -ne 'ORIGINAL_ARIA_REQUEST_LOCALDB_SYNTHETIC_ONLY' -or
-              @($observed.all).Count -ne 4 -or @($observed.absent).Count -ne 0) {
+              @($observed.all_false).Count -ne 4 -or @($observed.absent).Count -ne 0) {
             Write-Host '::error::Original Aria RequestDA fixture incomplete'; exit 1
           }
           Write-Host '::notice::Original TWF 4.28 RequestDA.GetAll ran in Framework x86 against 5 entirely synthetic rows in a new PRIVATE LocalDB 2025 database; NO original HTTP, production database/config, SQL Server 2016, net10 SQL provider, attendance/request save or verified user admission.'

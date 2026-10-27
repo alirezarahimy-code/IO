@@ -84,33 +84,40 @@ internal static class OriginalAriaRequestQuery
                 if (property == null) throw new InvalidOperationException("Original RequestDA absent");
                 object dao = property.GetValue(manager, null);
                 Type da = dao.GetType();
-                MethodInfo getAll = da.GetMethod("GetAll", new[] { typeof(long) });
+                // The single-argument overload is GetAll(bool IsSuspend), NOT
+                // GetAll(long badge). It reads ACROSS all badges. Never use
+                // that overload as evidence of per-person authorization.
+                MethodInfo getAllFlag = da.GetMethod("GetAll", new[] { typeof(bool) });
                 MethodInfo getFlag = da.GetMethod("GetAll", new[] { typeof(long), typeof(bool) });
                 MethodInfo getRange = da.GetMethod("GetAll", new[] { typeof(long), typeof(DateTime), typeof(DateTime) });
-                if (getAll == null || getFlag == null || getRange == null)
+                if (getAllFlag == null || getFlag == null || getRange == null)
                     throw new InvalidOperationException("Original RequestDA.GetAll overload drift");
                 stage = "reading only five synthetic Request rows through original DA";
                 DateTime day = new DateTime(2026, 10, 27);
-                long[] all = Ids(dao, getAll, new object[] { 900101L });
-                long[] empty = Ids(dao, getAll, new object[] { 900999L });
+                long[] allFalse = Ids(dao, getAllFlag, new object[] { false });
+                long[] allTrue = Ids(dao, getAllFlag, new object[] { true });
+                long[] empty = Ids(dao, getRange, new object[] { 900999L, day, day.AddDays(1) });
                 long[] range = Ids(dao, getRange, new object[] { 900101L, day, day.AddDays(1) });
                 long[] exact = Ids(dao, getRange, new object[] { 900101L, day, day });
                 long[] flagFalse = Ids(dao, getFlag, new object[] { 900101L, false });
                 long[] flagTrue = Ids(dao, getFlag, new object[] { 900101L, true });
-                if (!all.SequenceEqual(new long[] { 810001, 810002, 810003, 810004 }) ||
-                    empty.Length != 0 ||
-                    range.Any(id => !all.Contains(id)) || exact.Any(id => !all.Contains(id)) ||
-                    flagFalse.Any(id => !all.Contains(id)) || flagTrue.Any(id => !all.Contains(id)))
-                    throw new InvalidOperationException("Original RequestDA synthetic badge boundary changed");
-                string json = "{\"source_sha256\":\"d8f0570b39635e21b883257cf4d6bba1d6011002921ba5227dcd9cdf567b1faf\",\"scope\":\"ORIGINAL_ARIA_REQUEST_LOCALDB_SYNTHETIC_ONLY\",\"all\":" + Json(all) +
-                    ",\"absent\":" + Json(empty) + ",\"range_inclusive_probe\":" + Json(range) +
+                if (!allFalse.SequenceEqual(new long[] { 810001, 810003, 810004, 810005 }) ||
+                    !allTrue.SequenceEqual(new long[] { 810002 }) || empty.Length != 0 ||
+                    range.Any(id => !allFalse.Contains(id) && !allTrue.Contains(id)) ||
+                    exact.Any(id => !allFalse.Contains(id) && !allTrue.Contains(id)) ||
+                    flagFalse.Any(id => !allFalse.Contains(id)) ||
+                    flagTrue.Any(id => !allTrue.Contains(id)))
+                    throw new InvalidOperationException("Original RequestDA synthetic boundary changed");
+                string json = "{\"source_sha256\":\"d8f0570b39635e21b883257cf4d6bba1d6011002921ba5227dcd9cdf567b1faf\",\"scope\":\"ORIGINAL_ARIA_REQUEST_LOCALDB_SYNTHETIC_ONLY\",\"all_false\":" + Json(allFalse) +
+                    ",\"all_true\":" + Json(allTrue) + ",\"absent\":" + Json(empty) +
+                    ",\"range_inclusive_probe\":" + Json(range) +
                     ",\"exact_midnight\":" + Json(exact) + ",\"flag_false\":" + Json(flagFalse) +
                     ",\"flag_true\":" + Json(flagTrue) + "}\n";
                 File.WriteAllText(args[3], json);
-                Console.WriteLine("::notice::Original Aria synthetic RequestDA.GetAll IDs: all=" + Json(all) +
-                                  "; absent=" + Json(empty) + "; range=" + Json(range) +
-                                  "; exact=" + Json(exact) + "; false=" + Json(flagFalse) +
-                                  "; true=" + Json(flagTrue));
+                Console.WriteLine("::notice::Original Aria synthetic RequestDA.GetAll IDs: global_false=" + Json(allFalse) +
+                                  "; global_true=" + Json(allTrue) + "; absent=" + Json(empty) +
+                                  "; range=" + Json(range) + "; exact=" + Json(exact) +
+                                  "; badge_false=" + Json(flagFalse) + "; badge_true=" + Json(flagTrue));
                 Console.WriteLine("PASS: pinned original TWF RequestDA only on private LocalDB, no new SQL provider or HTTP");
                 return 0;
             }
