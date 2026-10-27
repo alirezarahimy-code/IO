@@ -234,7 +234,8 @@ internal static class Program
             delegate(string key) { return key == "mytimeauth"; }))
             throw new InvalidOperationException("AR-ORIG-SESSION-15: no response expiry cookie.");
         HttpCookie responseCookie = withCookie.Response.Cookies.Get("mytimeauth");
-        if (responseCookie == null || responseCookie.Expires > DateTime.Now.AddHours(-23) ||
+        if (responseCookie == null || responseCookie.Expires < DateTime.Now.AddHours(-25) ||
+            responseCookie.Expires > DateTime.Now.AddHours(-23) ||
             (string)_getRole.Invoke(null, new object[] { withCookie }) != "user")
             throw new InvalidOperationException("AR-ORIG-SESSION-15: logout cookie expiry/request state differs.");
         // Request.Cookies still contains the same submitted token in this
