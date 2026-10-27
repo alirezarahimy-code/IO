@@ -240,8 +240,9 @@ jobs:
           fi
           sdk=$(dotnet --list-sdks | grep '^10\.0\.' | head -n 1)
           echo "::notice::ARIA CORE WEB | preinstalled $sdk | RazorBuild=true | offline NuGet | $RUNNER_OS"
-          if grep -RE 'X-(Synthetic-Session|Aria-Profile-Test)' src/net10/Aria/Web/ --include='*.cs'; then
-            echo '::error::Synthetic authentication header entered publishable Aria Web code.'
+          if grep -RE 'X-(Synthetic-Session|Aria-Profile-Test)|test-only/session|SyntheticIdentityProbeController' \
+              src/net10/Aria/Web/ --include='*.cs'; then
+            echo '::error::Synthetic authentication or inspection route entered publishable Aria Web code.'
             exit 1
           fi
           if ! grep -Fq 'AddSingleton<IAriaSessionVerifier, UnavailableLegacySessionVerifier>()' src/net10/Aria/Web/Program.cs ||

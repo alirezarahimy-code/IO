@@ -1,6 +1,8 @@
 using System.Net;
+using System.Text.Json;
 using Aria.Web.Security;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Http;
@@ -97,6 +99,8 @@ internal static class Program
         {
             services.AddSingleton<IAriaSessionVerifier, TestSessionVerifier>();
             services.AddSingleton<IAriaPersonnelDirectory, TestPersonnelDirectory>();
+            services.AddControllersWithViews()
+                .AddApplicationPart(typeof(SyntheticIdentityProbeController).Assembly);
             services.AddSingleton<TimeProvider>(new FixedClock(FixedNow));
         }, webRoot))
         {
@@ -211,7 +215,7 @@ internal static class Program
                         "no identity or driver leak");
                 }
             });
-            await Check("AR-WEB-16: session role/title claims cannot become permissions", () =>
+            await Check("AR-WEB-16: session role/title claims cannot become permissions", async () =>
             {
                 var forged = new UserSessionIdentity(1001, "synthetic-user", "Forged", "Manager",
                     "user", 999, "خارج از سامانه", 999, "خارج از سامانه", 99, "خارج از سامانه",
@@ -231,7 +235,22 @@ internal static class Program
                     throw new InvalidOperationException("mismatched person was accepted");
                 }
                 catch (ArgumentException) { /* expected */ }
-                return Task.CompletedTask;
+
+                // This route exists ONLY in Web.Tests. Verify that the actual
+                // Kestrel middleware installs the stripped identity per request.
+                using var response = await Send(client, "/test-only/session", "synthetic-forged-claims");
+                Equal(HttpStatusCode.OK, response.StatusCode, "test-only identity inspection route");
+                using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                var delivered = json.RootElement;
+                Require(delivered.GetProperty("badgeNumber").GetInt64() == 1001 &&
+                    delivered.GetProperty("role").GetString() == "user" &&
+                    delivered.GetProperty("titleId").GetInt32() == 0 &&
+                    delivered.GetProperty("departmentId").GetInt32() == 0 &&
+                    !delivered.GetProperty("observer").GetBoolean() &&
+                    !delivered.GetProperty("topLevelManager").GetBoolean() &&
+                    delivered.GetProperty("firstName").GetString() == "", "forged claims stripped on real HTTP");
+                Require(!response.Headers.TryGetValues("Set-Cookie", out _),
+                    "test-only HTTP must not create an auth cookie");
             });
         }
 
@@ -292,6 +311,14 @@ internal sealed class TestSessionVerifier : IAriaSessionVerifier
         if (user.Length == 0) return Task.FromResult(SessionResolution.Anonymous());
         if (user is "synthetic-disabled" or "synthetic-unknown")
             return Task.FromResult(SessionResolution.Denied());
+        if (user == "synthetic-forged-claims")
+        {
+            var session = new UserSessionIdentity(1001, user, "Forged", "Manager", "user",
+                999, "Spoofed title", 999, "Spoofed upper title", 99, "Spoofed department",
+                true, true, FixedNow.AddMinutes(-5), FixedNow.AddHours(2));
+            return Task.FromResult(SessionResolution.Verified(
+                new VerifiedAriaAccount(user, 1001), session));
+        }
         if (user is "synthetic-revoked" or "synthetic-profile-error" or
             "synthetic-profile-mismatch" or "synthetic-admin-role")
         {
@@ -364,5 +391,30 @@ internal sealed class TestPersonnelDirectory : IAriaPersonnelDirectory
             _ => PersonnelResolution.Active(account)
         };
         return Task.FromResult(result);
+    }
+}
+
+// Not referenced by the publishable Aria.Web assembly. Explicitly added to
+// the test host's MVC ApplicationParts only; it can inspect synthetic identity
+// after middleware without inventing a production route or real session.
+[ApiController]
+[Route("test-only/session")]
+public sealed class SyntheticIdentityProbeController : ControllerBase
+{
+    [HttpGet]
+    public IActionResult Get()
+    {
+        var identity = AriaRequestIdentity.Get(HttpContext);
+        if (identity == null) return StatusCode(StatusCodes.Status403Forbidden);
+        return Ok(new
+        {
+            identity.BadgeNumber,
+            identity.Role,
+            identity.TitleId,
+            identity.DepartmentId,
+            Observer = identity.IsObserver,
+            TopLevelManager = identity.IsTopLevelManager,
+            identity.FirstName
+        });
     }
 }
