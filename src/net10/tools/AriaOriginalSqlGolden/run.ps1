@@ -35,10 +35,18 @@ $exe = Join-Path $RunnerTemp 'AriaOriginalSqlGolden.exe'
 $phase = 'compiling x86 original golden harness'
 & $csc /nologo /platform:x86 /target:exe "/out:$exe" (Join-Path $tool 'Program.cs')
 if ($LASTEXITCODE -ne 0) { throw 'Failed to compile original x86 golden harness' }
+$rolesExe = Join-Path $RunnerTemp 'AriaOriginalRolesGolden.exe'
+& $csc /nologo /platform:x86 /target:exe "/out:$rolesExe" (Join-Path $tool 'RolesProgram.cs')
+if ($LASTEXITCODE -ne 0) { throw 'Failed to compile original x86 manager harness' }
 $sql = Join-Path $RunnerTemp 'aria-golden-only.sql'
 $phase = 'generating original-model synthetic SQL only'
 & python (Join-Path $tool 'make_fixture.py') (Join-Path $OriginalBin 'Personnel.dll') $database $sql
 if ($LASTEXITCODE -ne 0) { throw 'Refused unpinned or incomplete original user fixture' }
+$rolesDb = "AriaGoldenT5_$RunId"
+$rolesSql = Join-Path $RunnerTemp 'aria-golden-t5-roles-only.sql'
+$phase = 'generating original-model synthetic T5 permissions'
+& python (Join-Path $tool 'make_roles.py') (Join-Path $OriginalBin 'T5V3.DB.dll') $rolesDb $rolesSql
+if ($LASTEXITCODE -ne 0) { throw 'Refused unpinned or incomplete original T5 fixture' }
 $localdbExe = if ($localdb -is [System.Management.Automation.CommandInfo]) { $localdb.Source } else { $localdb.FullName }
 # We create and start our own uniquely named instance. We do not touch an existing one.
 $phase = 'creating private CI-owned LocalDB instance'
@@ -71,18 +79,20 @@ try {
             if ($attempt -eq 2 -or $errorCause -isnot [System.Data.SqlClient.SqlException]) { throw }
         }
     }
-    $text = [System.IO.File]::ReadAllText($sql)
-    $batches = [System.Text.RegularExpressions.Regex]::Split($text, '(?im)^\s*GO\s*$')
-    $phase = 'executing generated synthetic SQL batches'
-    foreach ($batch in $batches) {
-        if ([string]::IsNullOrWhiteSpace($batch)) { continue }
-        $command = $connection.CreateCommand()
-        try {
-            $command.CommandText = $batch
-            $command.CommandTimeout = 30
-            $null = $command.ExecuteNonQuery()
-        } finally {
-            $command.Dispose()
+    foreach ($fixture in @($sql, $rolesSql)) {
+        $text = [System.IO.File]::ReadAllText($fixture)
+        $batches = [System.Text.RegularExpressions.Regex]::Split($text, '(?im)^\s*GO\s*$')
+        $phase = 'executing generated synthetic SQL batches'
+        foreach ($batch in $batches) {
+            if ([string]::IsNullOrWhiteSpace($batch)) { continue }
+            $command = $connection.CreateCommand()
+            try {
+                $command.CommandText = $batch
+                $command.CommandTimeout = 30
+                $null = $command.ExecuteNonQuery()
+            } finally {
+                $command.Dispose()
+            }
         }
     }
 } catch {
@@ -99,4 +109,7 @@ try {
 $phase = 'executing original x86 CheckUserPass on synthetic data'
 & $exe $OriginalBin $instance $database
 if ($LASTEXITCODE -ne 0) { throw 'Original CheckUserPass runtime golden FAILED (see sanitized stage/type above)' }
-Write-Host 'Fixture remained private to this ephemeral CI runner; no installed/shared SQL service was stopped.'
+$phase = 'executing original Aria T5 main-manager decision on synthetic data'
+& $rolesExe $OriginalBin $instance $rolesDb
+if ($LASTEXITCODE -ne 0) { throw 'Original IsAnyMainManager runtime golden FAILED (see sanitized stage/type above)' }
+Write-Host 'Both fixtures remained private to this ephemeral CI runner; no installed/shared SQL service was stopped.'

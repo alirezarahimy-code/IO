@@ -1,4 +1,4 @@
-name: TWF 4.28 isolated original password golden (LocalDB only)
+name: TWF 4.28 isolated original password/manager golden (LocalDB only)
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Execute pinned original x86 CheckUserPass on disposable synthetic LocalDB fixture
+      - name: Execute original x86 credential and manager decisions on two disposable LocalDB catalogs
         shell: powershell
         run: |
           & ./src/net10/tools/AriaOriginalSqlGolden/run.ps1 `
