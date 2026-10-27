@@ -56,7 +56,7 @@ jobs:
           $output = & $probe $original 2>&1
           $code = $LASTEXITCODE
           $output | Write-Host
-          if ($code -ne 0 -or -not ($output | Select-String -Quiet 'Summary: 15 Passed, 0 Failed')) {
+          if ($code -ne 0 -or -not ($output | Select-String -Quiet 'Summary: 16 Passed, 0 Failed')) {
             # GitHub surfaces only a bounded number of check annotations. Emit
             # failures before PASS lines; never annotate synthetic cookie bytes.
             Write-Host '::error::No original logout golden can be accepted from this run.'
@@ -65,4 +65,4 @@ jobs:
             }
             exit 1
           }
-          Write-Host '::notice::TWF 4.28 original-binary 15/15 in-memory cookie/logout/route/attribute cases. Logout response expiry does NOT prove browser deletion or server revocation. Original default route, unauthorized redirect and three Login credential POST entry points observed; the new host MUST NOT enable credential endpoints without a validated shared-account verifier. NOT original HTTP/SQL/IIS parity or deployment.'
+          Write-Host '::notice::TWF 4.28 original-binary 16/16 in-memory cookie/logout/replay/route/attribute cases. After response cookie expiry, the same synthetic value manually resubmitted to a fresh original filter still passes; NOT browser behavior or an original HTTP/action/DB golden. The new host rejects all old DES cookies and MUST NOT enable login/logout until same-account verification plus revocable fresh sessions are proven. NOT SQL/IIS parity or deployment.'

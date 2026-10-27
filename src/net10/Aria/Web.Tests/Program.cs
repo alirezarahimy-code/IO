@@ -95,10 +95,11 @@ internal static class Program
             });
         }
 
+        var testPersonnel = new TestPersonnelDirectory();
         await using (var synthetic = WebHost.CreateApp(Array.Empty<string>(), services =>
         {
             services.AddSingleton<IAriaSessionVerifier, TestSessionVerifier>();
-            services.AddSingleton<IAriaPersonnelDirectory, TestPersonnelDirectory>();
+            services.AddSingleton<IAriaPersonnelDirectory>(testPersonnel);
             services.AddControllersWithViews()
                 .AddApplicationPart(typeof(SyntheticIdentityProbeController).Assembly);
             services.AddSingleton<TimeProvider>(new FixedClock(FixedNow));
@@ -219,7 +220,7 @@ internal static class Program
             {
                 var forged = new UserSessionIdentity(1001, "synthetic-user", "Forged", "Manager",
                     "user", 999, "خارج از سامانه", 999, "خارج از سامانه", 99, "خارج از سامانه",
-                    true, true, FixedNow.AddMinutes(-5), FixedNow.AddHours(2));
+                    true, true, FixedNow.AddMinutes(-5), FixedNow.AddMinutes(10));
                 var rechecked = new VerifiedAriaAccount("synthetic-user", 1001);
                 var safe = AriaRequestIdentity.LeastPrivilege(rechecked, forged);
                 Require(safe.BadgeNumber == 1001 && safe.UserName == rechecked.AccountName &&
@@ -303,10 +304,39 @@ internal static class Program
                         "no old token echoed");
                 }
             });
+            await Check("AR-WEB-19: UTC-only short synthetic session cannot outlive policy cap", async () =>
+            {
+                // Only in this test executable: the production verifier is
+                // Unavailable and does NOT issue or parse any fresh/legacy cookie.
+                int before = testPersonnel.Calls;
+                foreach (string mode in new[] { "old-issued", "long-expiry",
+                    "unspecified-issue", "local-expiry", "min-issued", "max-expiry",
+                    "over-cap-tick" })
+                {
+                    string user = "synthetic-time-" + mode;
+                    using var response = await Send(client, "/Home/Index", user);
+                    Equal(HttpStatusCode.Forbidden, response.StatusCode, mode);
+                    Require(!response.Headers.TryGetValues("Set-Cookie", out _) &&
+                        response.Headers.TryGetValues("Cache-Control", out var cache) &&
+                        cache.Contains("no-store"), "invalid session never issues a cookie or cacheable response");
+                }
+                Require(testPersonnel.Calls == before,
+                    "invalid timestamps must be rejected BEFORE Personnel is consulted");
+                foreach (string mode in new[] { "within-cap", "at-cap" })
+                {
+                    using var response = await Send(client, "/Home/Index", "synthetic-time-" + mode);
+                    Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode,
+                        "test-only in-window identity reaches no-data dashboard, not a fake success");
+                    Require(!response.Headers.TryGetValues("Set-Cookie", out _),
+                        "no fresh session even at the tested boundary");
+                }
+                Require(testPersonnel.Calls == before + 2,
+                    "in-window test-only sessions still require a fresh Personnel check");
+            });
         }
 
         Console.WriteLine($"Summary: {_passed} Passed, {_failed} Failed (net10.0 Aria Kestrel/Razor synthetic only)");
-        return _passed == 18 && _failed == 0 ? 0 : 1;
+        return _passed == 19 && _failed == 0 ? 0 : 1;
     }
 
     private static async Task<HttpClient> Start(WebApplication app)
@@ -366,7 +396,7 @@ internal sealed class TestSessionVerifier : IAriaSessionVerifier
         {
             var session = new UserSessionIdentity(1001, user, "Forged", "Manager", "user",
                 999, "Spoofed title", 999, "Spoofed upper title", 99, "Spoofed department",
-                true, true, FixedNow.AddMinutes(-5), FixedNow.AddHours(2));
+                true, true, FixedNow.AddMinutes(-5), FixedNow.AddMinutes(10));
             return Task.FromResult(SessionResolution.Verified(
                 new VerifiedAriaAccount(user, 1001), session));
         }
@@ -376,7 +406,7 @@ internal sealed class TestSessionVerifier : IAriaSessionVerifier
             var session = new UserSessionIdentity(1001, user, "کاربر", "آزمایشی",
                 user == "synthetic-admin-role" ? "admin" : "user",
                 11, "سمت آزمایشی", 0, "", 10, "واحد آزمایشی", false, false,
-                FixedNow.AddMinutes(-5), FixedNow.AddHours(2));
+                FixedNow.AddMinutes(-5), FixedNow.AddMinutes(10));
             return Task.FromResult(SessionResolution.Verified(
                 new VerifiedAriaAccount(user, 1001), session));
         }
@@ -386,7 +416,7 @@ internal sealed class TestSessionVerifier : IAriaSessionVerifier
             var session = new UserSessionIdentity(1001, "synthetic-user", "مریم", "آزمایشی", "user",
                 11, "سمت آزمایشی", 0, "", 10, "واحد آزمایشی", false, false,
                 user == "synthetic-future-issued" ? FixedNow.AddMinutes(5) : FixedNow.AddMinutes(-5),
-                FixedNow.AddHours(2));
+                FixedNow.AddMinutes(10));
             var account = user switch
             {
                 "synthetic-other-badge" => new VerifiedAriaAccount("synthetic-user", 1002),
@@ -396,6 +426,42 @@ internal sealed class TestSessionVerifier : IAriaSessionVerifier
                 _ => new VerifiedAriaAccount("synthetic-user", 1001)
             };
             return Task.FromResult(new SessionResolution(SessionDecision.Verified, account, session));
+        }
+        if (user.StartsWith("synthetic-time-", StringComparison.Ordinal))
+        {
+            // Fixed fake verifier, never present in the publishable Web.
+            // These values are deliberately adversarial hydrated sessions,
+            // NOT cookies issued by a working same-password login.
+            if (user is not ("synthetic-time-old-issued" or "synthetic-time-long-expiry" or
+                "synthetic-time-unspecified-issue" or "synthetic-time-local-expiry" or
+                "synthetic-time-min-issued" or "synthetic-time-max-expiry" or
+                "synthetic-time-over-cap-tick" or "synthetic-time-within-cap" or
+                "synthetic-time-at-cap"))
+                return Task.FromResult(SessionResolution.Denied());
+            DateTime issued = user switch
+            {
+                "synthetic-time-old-issued" => FixedNow.AddMinutes(-25),
+                "synthetic-time-unspecified-issue" =>
+                    DateTime.SpecifyKind(FixedNow.AddMinutes(-5), DateTimeKind.Unspecified),
+                "synthetic-time-min-issued" => DateTime.SpecifyKind(DateTime.MinValue, DateTimeKind.Utc),
+                "synthetic-time-over-cap-tick" => FixedNow.AddMinutes(-10).AddTicks(-1),
+                "synthetic-time-at-cap" => FixedNow.AddMinutes(-10),
+                "synthetic-time-within-cap" => FixedNow.AddMinutes(-9),
+                _ => FixedNow.AddMinutes(-5)
+            };
+            DateTime expires = user switch
+            {
+                "synthetic-time-old-issued" => FixedNow.AddMinutes(1),
+                "synthetic-time-long-expiry" => FixedNow.AddMinutes(30),
+                "synthetic-time-local-expiry" =>
+                    DateTime.SpecifyKind(FixedNow.AddMinutes(10), DateTimeKind.Local),
+                "synthetic-time-max-expiry" => DateTime.SpecifyKind(DateTime.MaxValue, DateTimeKind.Utc),
+                _ => FixedNow.AddMinutes(10)
+            };
+            var session = new UserSessionIdentity(1001, "synthetic-user", "", "", "user",
+                0, "", 0, "", 0, "", false, false, issued, expires);
+            return Task.FromResult(SessionResolution.Verified(
+                new VerifiedAriaAccount("synthetic-user", 1001), session));
         }
         if (user.StartsWith("synthetic-load-", StringComparison.Ordinal))
         {
@@ -409,13 +475,13 @@ internal sealed class TestSessionVerifier : IAriaSessionVerifier
             var session = new UserSessionIdentity(mode == "zero" ? 0 : 1_000 + seed,
                 $"synthetic-{seed:D3}", "کاربر", "آزمایشی", "user", 11, "سمت آزمایشی",
                 0, "", 10, "واحد آزمایشی", false, false, FixedNow.AddMinutes(-5),
-                mode == "expired" ? FixedNow.AddMinutes(-1) : FixedNow.AddHours(2));
+                mode == "expired" ? FixedNow.AddMinutes(-1) : FixedNow.AddMinutes(10));
             return Task.FromResult(SessionResolution.Verified(
                 new VerifiedAriaAccount(session.UserName, session.BadgeNumber), session));
         }
         if (user is "synthetic-valid" or "synthetic-expired")
         {
-            DateTime expires = user == "synthetic-expired" ? FixedNow.AddMinutes(-1) : FixedNow.AddHours(2);
+            DateTime expires = user == "synthetic-expired" ? FixedNow.AddMinutes(-1) : FixedNow.AddMinutes(10);
             var session = new UserSessionIdentity(1001, "synthetic-user", "مریم", "آزمایشی", "user",
                 11, "سمت آزمایشی", 0, "", 10, "واحد آزمایشی", false, false,
                 FixedNow.AddMinutes(-5), expires);
@@ -430,9 +496,13 @@ internal sealed class TestSessionVerifier : IAriaSessionVerifier
 // registers UnavailablePersonnelDirectory and has no test header/identity path.
 internal sealed class TestPersonnelDirectory : IAriaPersonnelDirectory
 {
+    private int _calls;
+    public int Calls => Volatile.Read(ref _calls);
+
     public Task<PersonnelResolution> RecheckAsync(VerifiedAriaAccount account,
         CancellationToken cancellationToken)
     {
+        Interlocked.Increment(ref _calls);
         PersonnelResolution result = account.AccountName switch
         {
             "synthetic-revoked" => PersonnelResolution.Denied(),

@@ -12,6 +12,8 @@ using System.Web.Routing;
 // action-attribute checks below are in-memory metadata, NOT HTTP execution.
 // Logout is invoked on synthetic HttpContextWrapper only; browser behavior and
 // server-side session revocation are not inferred from response cookie expiry.
+// A separate replay case resubmits ONLY our synthetic value to the original
+// filter in a fresh in-memory request; it cannot prove full HTTP/DB behavior.
 internal static class Program
 {
     private static int _passed;
@@ -91,7 +93,7 @@ internal static class Program
         CheckOriginalLogout();
 
         Console.WriteLine("Summary: " + _passed + " Passed, 0 Failed (original TWF 4.28 binary; in-memory cookie/route metadata only)");
-        return _passed == 15 ? 0 : 1;
+        return _passed == 16 ? 0 : 1;
     }
 
     private static MethodInfo Required(Type type, string name, BindingFlags flags, Type[] arguments)
@@ -242,5 +244,15 @@ internal static class Program
         // in-memory request. Browser deletion and server revocation are NOT proved.
         _passed++;
         Console.WriteLine("[ORIGINAL-PASS] AR-ORIG-SESSION-15 response cookie expires; request token remains readable");
+
+        // A client can manually resubmit a value even when a browser would
+        // discard the expired response cookie. Use only this freshly generated
+        // test token, never print or persist it. No actual browser is involved.
+        HttpCookie sent = withCookie.Request.Cookies.Get("mytimeauth");
+        if (sent == null || string.IsNullOrEmpty(sent.Value))
+            throw new InvalidOperationException("AR-ORIG-SESSION-16: synthetic request token missing.");
+        HttpContextBase replay = Context(sent.Value);
+        Check("AR-ORIG-SESSION-16 resubmitted synthetic token passes original filter after logout",
+            replay, "user", "4242", false, true, false);
     }
 }

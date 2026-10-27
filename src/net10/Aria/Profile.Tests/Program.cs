@@ -231,7 +231,7 @@ internal sealed class ProfileTestSessionVerifier : IAriaSessionVerifier
         var now = DateTime.UtcNow;
         var session = new UserSessionIdentity(badge, login, "کاربر", "آزمایشی",
             requested == "fixture-admin-role" ? "admin" : "user", 11, "سمت آزمایشی", 0, "",
-            10, "واحد آزمایشی", false, false, now.AddMinutes(-5), now.AddHours(2));
+            10, "واحد آزمایشی", false, false, now.AddMinutes(-5), now.AddMinutes(10));
         return Task.FromResult(SessionResolution.Verified(new VerifiedAriaAccount(login, badge), session));
     }
 }

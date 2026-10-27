@@ -4,6 +4,13 @@ namespace Aria.Web;
 
 internal static class Program
 {
+    // Temporary fail-closed upper bound, NOT an observed operational login TTL:
+    // TWF 4.28's shipped Web.config says CookiesTime=20 minutes, but its
+    // server-side legacy filter admits a manually resubmitted token for 8 hours
+    // and the settings DB may override the cookie value. Never carry either
+    // untrusted legacy value into a fresh session without a login/SQL golden.
+    private static readonly TimeSpan MaximumUnprovenSessionLifetime = TimeSpan.FromMinutes(20);
+
     private static async Task Main(string[] args) => await CreateApp(args).RunAsync();
 
     // The injectable boundary is internal, exposed only to a separately compiled
@@ -95,7 +102,11 @@ internal static class Program
                 account.BadgeNumber <= 0 || identity.BadgeNumber != account.BadgeNumber ||
                 string.IsNullOrWhiteSpace(account.AccountName) ||
                 !string.Equals(account.AccountName, identity.UserName, StringComparison.OrdinalIgnoreCase) ||
-                identity.IssuedAtUtc > now || identity.ExpiresAtUtc <= now)
+                identity.IssuedAtUtc.Kind != DateTimeKind.Utc ||
+                identity.ExpiresAtUtc.Kind != DateTimeKind.Utc ||
+                identity.IssuedAtUtc > now || identity.ExpiresAtUtc <= now ||
+                identity.ExpiresAtUtc <= identity.IssuedAtUtc ||
+                identity.ExpiresAtUtc - identity.IssuedAtUtc > MaximumUnprovenSessionLifetime)
             {
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 return;
