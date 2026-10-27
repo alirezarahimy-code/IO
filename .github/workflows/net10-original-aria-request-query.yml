@@ -5,6 +5,9 @@ on:
     branches: [arena/a4df3135-io]
     paths:
       - 'src/net10/tools/AriaOriginalRequestQuery/**'
+      - 'src/net10/Aria/Request.Tests/**'
+      - 'src/net10/Aria/Web/Data/ReadOnlyAriaRequestDirectory.cs'
+      - 'src/net10/nuget.offline.config'
       - 'TWF 4.28/App/bin/T5V3.DB.dll'
       - '.github/workflows/net10-original-aria-request-query.yml'
   workflow_dispatch:
@@ -109,4 +112,27 @@ jobs:
               @($observed.all_false).Count -ne 4 -or @($observed.absent).Count -ne 0) {
             Write-Host '::error::Original Aria RequestDA fixture incomplete'; exit 1
           }
-          Write-Host '::notice::Original TWF 4.28 RequestDA.GetAll ran in Framework x86 against 5 entirely synthetic rows in a new PRIVATE LocalDB 2025 database; NO original HTTP, production database/config, SQL Server 2016, net10 SQL provider, attendance/request save or verified user admission.'
+          Write-Host '::notice::Original TWF 4.28 RequestDA.GetAll ran in Framework x86 against 5 entirely synthetic rows in a new PRIVATE LocalDB 2025 database. The global bool overload includes foreign badges; range end is inclusive. NO original HTTP, production database/config, SQL Server 2016, net10 SQL provider, attendance/request save or verified user admission.'
+      - name: Same-run net10 snapshot filter contrast (fake reader only; no net10 SQL)
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (!(Get-Command dotnet -ErrorAction SilentlyContinue) -or
+              !(@(dotnet --list-sdks | Where-Object { $_ -match '^10\.0\.[0-9]+ ' }).Count -gt 0)) {
+            Write-Host '::error::NEEDS-INFRA: preinstalled .NET 10 SDK absent'; exit 2
+          }
+          $project = Join-Path $env:GITHUB_WORKSPACE 'src/net10/Aria/Request.Tests/Aria.Request.Tests.csproj'
+          $config = Join-Path $env:GITHUB_WORKSPACE 'src/net10/nuget.offline.config'
+          $fixture = Join-Path $env:RUNNER_TEMP 'aria-original-request-private.json'
+          if (!(Test-Path $fixture)) { Write-Host '::error::Missing same-run original RequestDA fixture'; exit 1 }
+          & dotnet restore $project --configfile $config -v minimal
+          if ($LASTEXITCODE -ne 0) { Write-Host '::error::Offline request test restore failed'; exit 1 }
+          & dotnet build $project -c Release --no-restore -v minimal
+          if ($LASTEXITCODE -ne 0) { Write-Host '::error::Request test build failed'; exit 1 }
+          $output = @(& dotnet run --project $project -c Release --no-build --no-restore -- --original-request-runtime $fixture)
+          $code = $LASTEXITCODE
+          $output | Write-Host
+          if ($code -ne 0 -or !($output | Select-String -Quiet 'Summary: 7 Passed, 0 Failed')) {
+            Write-Host '::error::Original RequestDA vs conservative fake-reader filter contrast failed'; exit 1
+          }
+          Write-Host '::notice::Same-run TWF 4.28 original RequestDA on private LocalDB vs net10 read-only UNWIRED 7/7 fake/header contrast. The destination has NOT executed its SQL, original POST/HTTP/workflow or SQL2016/provider; original global bool overload must never be used for per-user authorization.'

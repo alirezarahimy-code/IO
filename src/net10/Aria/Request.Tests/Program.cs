@@ -6,12 +6,15 @@ using Aria.Web.Security;
 // Snapshot-only on portable runners. Windows x86 golden also regenerates the
 // selected TWF 4.28 T5V3.DB.dll EDMX contract IN THIS RUN. No query is executed
 // against a database; all results below are tiny fabricated DataTable rows.
-if (args.Length > 1 || (args.Length == 1 && !File.Exists(args[0])))
-    throw new ArgumentException("Pass zero args (original metadata snapshot) or same-run EDMX fixture.");
-using var snapshotDocument = JsonDocument.Parse(File.ReadAllText(
-    Path.Combine(AppContext.BaseDirectory, "original-request-schema.fixture.json")));
-using var fixtureDocument = JsonDocument.Parse(File.ReadAllText(args.Length == 1
-    ? args[0] : Path.Combine(AppContext.BaseDirectory, "original-request-schema.fixture.json")));
+bool originalRuntime = args.Length == 2 && args[0] == "--original-request-runtime" &&
+    File.Exists(args[1]);
+bool originalSchema = args.Length == 1 && File.Exists(args[0]);
+if (args.Length != 0 && !originalSchema && !originalRuntime)
+    throw new ArgumentException("Pass no args, same-run original EDMX, or --original-request-runtime <CI temp file>.");
+string schemaSnapshot = Path.Combine(AppContext.BaseDirectory, "original-request-schema.fixture.json");
+using var snapshotDocument = JsonDocument.Parse(File.ReadAllText(schemaSnapshot));
+using var fixtureDocument = JsonDocument.Parse(File.ReadAllText(
+    originalSchema ? args[0] : schemaSnapshot));
 var original = fixtureDocument.RootElement;
 var snapshot = snapshotDocument.RootElement;
 const string sha = "d8f0570b39635e21b883257cf4d6bba1d6011002921ba5227dcd9cdf567b1faf";
@@ -191,7 +194,49 @@ Run("AR-REQUEST-06: provider errors are unavailable; caller cancellation propaga
     }
     catch (OperationCanceledException) { Require(opened == 0); }
 });
+if (originalRuntime)
+{
+    // The other project in this same Windows CI job executed TWF 4.28's
+    // original RequestDA.GetAll on five synthetic LocalDB rows. The NEW host
+    // STILL has no SQL provider. These assertions explicitly document where
+    // our conservative badge/day boundary diverges from the original.
+    using var executed = JsonDocument.Parse(File.ReadAllText(args[1]));
+    JsonElement runtime = executed.RootElement;
+    Run("AR-REQUEST-07: executable original filters vs unwired port-only bounds", () =>
+    {
+        Require(runtime.GetProperty("source_sha256").GetString() == sha &&
+            runtime.GetProperty("scope").GetString() ==
+                "ORIGINAL_ARIA_REQUEST_LOCALDB_SYNTHETIC_ONLY");
+        static bool EqualIds(JsonElement element, params long[] expected) =>
+            element.ValueKind == JsonValueKind.Array &&
+            element.EnumerateArray().Select(x => x.GetInt64()).SequenceEqual(expected);
+        Require(EqualIds(runtime.GetProperty("all_false"), 810001, 810003, 810004, 810005) &&
+            EqualIds(runtime.GetProperty("all_true"), 810002) &&
+            EqualIds(runtime.GetProperty("absent")) &&
+            EqualIds(runtime.GetProperty("range_inclusive_probe"), 810001, 810002, 810003) &&
+            EqualIds(runtime.GetProperty("exact_midnight"), 810001) &&
+            EqualIds(runtime.GetProperty("flag_false"), 810001, 810003, 810004) &&
+            EqualIds(runtime.GetProperty("flag_true"), 810002));
+        string sql = ReadOnlyAriaRequestDirectory.RequestSql;
+        Require(sql.Contains("[BadgeNumber] = @BadgeNumber", StringComparison.Ordinal) &&
+            sql.Contains("[ForDate] < @DayEnd", StringComparison.Ordinal) &&
+            !sql.Contains("[IsSuspend] = @", StringComparison.Ordinal) &&
+            !sql.Contains("[ImageData]", StringComparison.Ordinal));
+        // Fake reader is deliberately supplied *filtered* rows: it NEVER
+        // executes the SQL or proves day-filter parity. It must retain both
+        // raw suspension values so callers cannot mistake them for approvals.
+        var scoped = Rows((810001, 900101, 0, day, day, day, false, false),
+            (810002, 900101, 0, day.AddHours(12), day, day, true, true));
+        var originalBadgeFixture = new VerifiedAriaAccount("fixture-request", 900101);
+        var output = new ReadOnlyAriaRequestDirectory(() => new TableConnection("T5", scoped))
+            .ListDayAsync(originalBadgeFixture, day, CancellationToken.None).GetAwaiter().GetResult();
+        Require(output.State == AriaRequestSnapshotState.Available &&
+            output.Headers.Select(row => row.RequestId).SequenceEqual(new long[] { 810001, 810002 }) &&
+            !output.Headers[0].IsSuspend && output.Headers[1].IsSuspend);
+    });
+}
 Console.WriteLine($"Summary: {passed} Passed, {failed} Failed; " +
-    $"{(args.Length == 1 ? "same-run original EDMX" : "tracked original EDMX snapshot")} + synthetic fake ADO; " +
-    "NO SQL Server/driver, original RequestDA/GetAll, HTTP or request write");
-return failed == 0 && passed == 6 ? 0 : 1;
+    $"{(originalRuntime ? "SAME-RUN original RequestDA LocalDB and fake port contrast" :
+        originalSchema ? "same-run original EDMX" : "tracked original EDMX snapshot")} + synthetic fake ADO; " +
+    "NO net10 SQL Server/driver, original HTTP or request write");
+return failed == 0 && passed == (originalRuntime ? 7 : 6) ? 0 : 1;
