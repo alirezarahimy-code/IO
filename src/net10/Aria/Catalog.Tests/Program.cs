@@ -99,10 +99,29 @@ await Run("AR-CAT-07: 100 overlapping synthetic probes use fresh connections", a
 {
     var personnel = new ConcurrentBag<StubConnection>();
     var t5 = new ConcurrentBag<StubConnection>();
+    var release = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+    var allEntered = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+    var entered = 0;
     var probe = new DualCatalogConnectionProbe(
-        () => { var conn = new StubConnection("Personnel"); personnel.Add(conn); return conn; },
+        () =>
+        {
+            var conn = new StubConnection("Personnel", beforeOpen: async token =>
+            {
+                if (Interlocked.Increment(ref entered) == 100) allEntered.TrySetResult(true);
+                await release.Task.WaitAsync(token);
+            });
+            personnel.Add(conn);
+            return conn;
+        },
         () => { var conn = new StubConnection("T5"); t5.Add(conn); return conn; });
-    var results = await Task.WhenAll(Enumerable.Range(0, 100).Select(_ => probe.CheckAsync(CancellationToken.None)));
+    var tasks = Enumerable.Range(0, 100).Select(_ => probe.CheckAsync(CancellationToken.None)).ToArray();
+    try
+    {
+        await allEntered.Task.WaitAsync(TimeSpan.FromSeconds(10));
+        Require(personnel.Count == 100 && t5.IsEmpty, "all 100 must be in-flight before any enters T5");
+    }
+    finally { release.TrySetResult(true); }
+    var results = await Task.WhenAll(tasks);
     Require(results.Length == 100 && results.All(item => item.IsHealthy), "all synthetic probes must open both catalogs");
     Require(personnel.Count == 100 && t5.Count == 100 && personnel.All(c => c.WasDisposed) && t5.All(c => c.WasDisposed), "no shared/leaked connection");
 });
@@ -116,13 +135,16 @@ internal sealed class StubConnection : DbConnection
     private readonly Exception? _failure;
     private readonly bool _staysClosed;
     private readonly Action? _onOpen;
+    private readonly Func<CancellationToken, Task>? _beforeOpen;
 
-    public StubConnection(string database, Exception? failure = null, bool staysClosed = false, Action? onOpen = null)
+    public StubConnection(string database, Exception? failure = null, bool staysClosed = false,
+        Action? onOpen = null, Func<CancellationToken, Task>? beforeOpen = null)
     {
         Database = database;
         _failure = failure;
         _staysClosed = staysClosed;
         _onOpen = onOpen;
+        _beforeOpen = beforeOpen;
     }
 
     public bool WasOpened { get; private set; }
@@ -134,14 +156,14 @@ internal sealed class StubConnection : DbConnection
     public override string ServerVersion => "synthetic";
     public override ConnectionState State => _state;
 
-    public override Task OpenAsync(CancellationToken cancellationToken)
+    public override async Task OpenAsync(CancellationToken cancellationToken)
     {
         WasOpened = true;
         _onOpen?.Invoke();
+        if (_beforeOpen != null) await _beforeOpen(cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
         if (_failure != null) throw _failure;
         if (!_staysClosed) _state = ConnectionState.Open;
-        return Task.CompletedTask;
     }
 
     public override void Open() => OpenAsync(CancellationToken.None).GetAwaiter().GetResult();
