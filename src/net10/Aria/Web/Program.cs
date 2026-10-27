@@ -20,6 +20,7 @@ internal static class Program
         var builder = WebApplication.CreateBuilder(options);
         builder.Services.AddControllersWithViews().AddApplicationPart(typeof(Program).Assembly);
         builder.Services.AddSingleton<IAriaSessionVerifier, UnavailableLegacySessionVerifier>();
+        builder.Services.AddSingleton<IAriaPersonnelDirectory, UnavailablePersonnelDirectory>();
         builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
         testOverrides?.Invoke(builder.Services);
 
@@ -95,6 +96,44 @@ internal static class Program
                 string.IsNullOrWhiteSpace(account.AccountName) ||
                 !string.Equals(account.AccountName, identity.UserName, StringComparison.OrdinalIgnoreCase) ||
                 identity.IssuedAtUtc > now || identity.ExpiresAtUtc <= now)
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return;
+            }
+
+            // The linked rewrite's IsAdmin can become true from a name/role
+            // alone. Normal Personnel eligibility does not prove T5 manager rights.
+            if (identity.IsAdmin)
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return;
+            }
+
+            PersonnelResolution current;
+            try
+            {
+                current = await context.RequestServices.GetRequiredService<IAriaPersonnelDirectory>()
+                    .RecheckAsync(account, context.RequestAborted);
+            }
+            catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception)
+            {
+                current = PersonnelResolution.Unavailable();
+            }
+            if (current == null || current.State == PersonnelState.Unavailable)
+            {
+                context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+                context.Response.ContentType = "text/plain; charset=utf-8";
+                await context.Response.WriteAsync("بازبینی وضعیت پرسنلی هنوز فراهم نیست.");
+                return;
+            }
+            if (current.State != PersonnelState.Active || current.Person == null ||
+                current.Person.BadgeNumber != account.BadgeNumber ||
+                !string.Equals(current.Person.AccountName, account.AccountName,
+                    StringComparison.OrdinalIgnoreCase))
             {
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 return;

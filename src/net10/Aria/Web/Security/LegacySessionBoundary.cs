@@ -38,6 +38,33 @@ internal sealed class UnavailableLegacySessionVerifier : IAriaSessionVerifier
         Task.FromResult(SessionResolution.Unavailable());
 }
 
+// Password/cookie verification and current Personnel eligibility are separate
+// gates. A verified cookie must not keep working after an employee is disabled.
+// The original TWF 4.28 account/permission semantics still need their own golden.
+public enum PersonnelState { Unavailable, Denied, Active }
+
+public sealed record PersonnelResolution(PersonnelState State, VerifiedAriaAccount? Person)
+{
+    public static PersonnelResolution Unavailable() => new(PersonnelState.Unavailable, null);
+    public static PersonnelResolution Denied() => new(PersonnelState.Denied, null);
+    public static PersonnelResolution Active(VerifiedAriaAccount person) =>
+        new(PersonnelState.Active, person);
+}
+
+public interface IAriaPersonnelDirectory
+{
+    Task<PersonnelResolution> RecheckAsync(VerifiedAriaAccount verifiedAccount,
+        CancellationToken cancellationToken);
+}
+
+// Until a local approved provider, isolated schema and original Aria eligibility
+// golden exist, production never accepts a session based on stale/unread state.
+internal sealed class UnavailablePersonnelDirectory : IAriaPersonnelDirectory
+{
+    public Task<PersonnelResolution> RecheckAsync(VerifiedAriaAccount verifiedAccount,
+        CancellationToken cancellationToken) => Task.FromResult(PersonnelResolution.Unavailable());
+}
+
 public static class AriaRequestIdentity
 {
     private static readonly object Key = new();

@@ -96,6 +96,7 @@ internal static class Program
         await using (var synthetic = WebHost.CreateApp(Array.Empty<string>(), services =>
         {
             services.AddSingleton<IAriaSessionVerifier, TestSessionVerifier>();
+            services.AddSingleton<IAriaPersonnelDirectory, TestPersonnelDirectory>();
             services.AddSingleton<TimeProvider>(new FixedClock(FixedNow));
         }, webRoot))
         {
@@ -191,10 +192,29 @@ internal static class Program
                     Require(!response.Headers.TryGetValues("Set-Cookie", out _), "no cookie from inconsistent identity");
                 }
             });
+            await Check("AR-WEB-15: personnel recheck can revoke or fail closed", async () =>
+            {
+                foreach (var (name, expected) in new[]
+                {
+                    ("synthetic-revoked", HttpStatusCode.Forbidden),
+                    ("synthetic-profile-error", HttpStatusCode.ServiceUnavailable),
+                    ("synthetic-profile-mismatch", HttpStatusCode.Forbidden),
+                    ("synthetic-admin-role", HttpStatusCode.Forbidden)
+                })
+                {
+                    using var response = await Send(client, "/Home/Index", name);
+                    Equal(expected, response.StatusCode, name);
+                    Require(!response.Headers.TryGetValues("Set-Cookie", out _), "no cookie for invalid profile");
+                    string body = await response.Content.ReadAsStringAsync();
+                    Require(!body.Contains(name, StringComparison.Ordinal) &&
+                        !body.Contains("PRIVATE_CONNECTION_MARKER", StringComparison.Ordinal),
+                        "no identity or driver leak");
+                }
+            });
         }
 
         Console.WriteLine($"Summary: {_passed} Passed, {_failed} Failed (net10.0 Aria Kestrel/Razor synthetic only)");
-        return _passed == 14 && _failed == 0 ? 0 : 1;
+        return _passed == 15 && _failed == 0 ? 0 : 1;
     }
 
     private static async Task<HttpClient> Start(WebApplication app)
@@ -250,6 +270,16 @@ internal sealed class TestSessionVerifier : IAriaSessionVerifier
         if (user.Length == 0) return Task.FromResult(SessionResolution.Anonymous());
         if (user is "synthetic-disabled" or "synthetic-unknown")
             return Task.FromResult(SessionResolution.Denied());
+        if (user is "synthetic-revoked" or "synthetic-profile-error" or
+            "synthetic-profile-mismatch" or "synthetic-admin-role")
+        {
+            var session = new UserSessionIdentity(1001, user, "کاربر", "آزمایشی",
+                user == "synthetic-admin-role" ? "admin" : "user",
+                11, "سمت آزمایشی", 0, "", 10, "واحد آزمایشی", false, false,
+                FixedNow.AddMinutes(-5), FixedNow.AddHours(2));
+            return Task.FromResult(SessionResolution.Verified(
+                new VerifiedAriaAccount(user, 1001), session));
+        }
         if (user is "synthetic-other-badge" or "synthetic-other-name" or
             "synthetic-empty-account" or "synthetic-missing-account" or "synthetic-future-issued")
         {
@@ -293,5 +323,24 @@ internal sealed class TestSessionVerifier : IAriaSessionVerifier
                 new VerifiedAriaAccount(session.UserName, session.BadgeNumber), session));
         }
         return Task.FromResult(SessionResolution.Denied());
+    }
+}
+
+// Only this executable registers a synthetic status source. Published Web still
+// registers UnavailablePersonnelDirectory and has no test header/identity path.
+internal sealed class TestPersonnelDirectory : IAriaPersonnelDirectory
+{
+    public Task<PersonnelResolution> RecheckAsync(VerifiedAriaAccount account,
+        CancellationToken cancellationToken)
+    {
+        PersonnelResolution result = account.AccountName switch
+        {
+            "synthetic-revoked" => PersonnelResolution.Denied(),
+            "synthetic-profile-error" => PersonnelResolution.Unavailable(),
+            "synthetic-profile-mismatch" => PersonnelResolution.Active(
+                new VerifiedAriaAccount(account.AccountName, account.BadgeNumber + 1)),
+            _ => PersonnelResolution.Active(account)
+        };
+        return Task.FromResult(result);
     }
 }

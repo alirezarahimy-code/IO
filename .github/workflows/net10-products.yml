@@ -221,7 +221,7 @@ jobs:
           echo "::notice::ARIA CORE net10.0 | 19 linked TWF sources + 3 owned files | 11/11 synthetics + 2 pinned pure-time groups incl safe parser subset | $RUNNER_OS | binary-to-port same-run check only in separate Windows original-golden workflow; NOT native engine/SQL/web parity"
 
   aria-web:
-    name: Aria Core Razor net10.0 + 14 HTTP/security synthetics (${{ matrix.os }})
+    name: Aria Core Razor net10.0 + 15 HTTP/security synthetics (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     strategy:
@@ -240,8 +240,13 @@ jobs:
           fi
           sdk=$(dotnet --list-sdks | grep '^10\.0\.' | head -n 1)
           echo "::notice::ARIA CORE WEB | preinstalled $sdk | RazorBuild=true | offline NuGet | $RUNNER_OS"
-          if grep -R 'X-Synthetic-Session' src/net10/Aria/Web/ --include='*.cs'; then
+          if grep -RE 'X-(Synthetic-Session|Aria-Profile-Test)' src/net10/Aria/Web/ --include='*.cs'; then
             echo '::error::Synthetic authentication header entered publishable Aria Web code.'
+            exit 1
+          fi
+          if ! grep -Fq 'AddSingleton<IAriaSessionVerifier, UnavailableLegacySessionVerifier>()' src/net10/Aria/Web/Program.cs ||
+             ! grep -Fq 'AddSingleton<IAriaPersonnelDirectory, UnavailablePersonnelDirectory>()' src/net10/Aria/Web/Program.cs; then
+            echo '::error::Aria production must keep both credential and Personnel eligibility gates fail-closed.'
             exit 1
           fi
           if [ "$(find src/net10/Aria/Web/wwwroot -type f | wc -l)" -ne 1 ] ||
@@ -283,11 +288,11 @@ jobs:
           fi
           diagnose http dotnet run --project "$tests" -c Release --no-build --no-restore -- \
             "$GITHUB_WORKSPACE/src/net10/Aria/Web"
-          if ! grep -q 'Summary: 14 Passed, 0 Failed' "$logdir/aria-web-http.log"; then
-            echo '::error::Aria HTTP suite did not complete all 14 tests.'
+          if ! grep -q 'Summary: 15 Passed, 0 Failed' "$logdir/aria-web-http.log"; then
+            echo '::error::Aria HTTP suite did not complete all 15 tests.'
             exit 1
           fi
-          echo "::notice::ARIA WEB net10.0 | Razor compiled/published | 14/14 synthetic loopback HTTP incl 100 distinct-identity denial burst and account/session binding | $RUNNER_OS | NOT 100 operational users, original login/SQL/native engine/IIS parity"
+          echo "::notice::ARIA WEB net10.0 | Razor compiled/published | 15/15 synthetic loopback HTTP incl 100 distinct-identity denial burst and active Personnel recheck | $RUNNER_OS | NOT 100 operational users, original login/SQL/native engine/IIS parity"
 
   aria-catalog-boundary:
     name: Aria Personnel/T5 provider-neutral boundary net10.0 + 7 synthetics (${{ matrix.os }})
@@ -394,3 +399,59 @@ jobs:
             exit 1
           fi
           echo "::notice::ADMIN directory net10.0 | two ADO.NET DataTable doubles | 10/10 synthetic cases incl test-only Kestrel HTTP badge binding | $RUNNER_OS | production still 503; NO provider/SQL Server/shared-password/original parity"
+
+  aria-personnel-profile:
+    name: Aria Personnel profile net10.0 + 7 ADO.NET + 1 HTTP synthetics (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Offline build and test Aria-only active Personnel recheck (no provider)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v dotnet >/dev/null || ! dotnet --list-sdks | grep -Eq '^10\.0\.[0-9]+'; then
+            echo '::error::NEEDS-INFRA: preinstalled .NET 10 SDK is required; no download fallback.'
+            exit 2
+          fi
+          if grep -E '<(PackageReference|Reference[[:space:]>])' src/net10/Aria/Profile.Tests/Aria.Profile.Tests.csproj; then
+            echo '::error::Aria profile test must not add a SQL provider or remote dependency.'
+            exit 1
+          fi
+          if ! grep -Fq 'AddSingleton<IAriaPersonnelDirectory, UnavailablePersonnelDirectory>()' src/net10/Aria/Web/Program.cs ||
+             ! grep -Fq 'AddSingleton<IAriaSessionVerifier, UnavailableLegacySessionVerifier>()' src/net10/Aria/Web/Program.cs; then
+            echo '::error::Do not activate unverified shared login or Personnel adapter in production.'
+            exit 1
+          fi
+          logdir=$(mktemp -d)
+          diagnose() {
+            local label="$1"; shift
+            local output="$logdir/aria-profile-$label.log"
+            set +e
+            "$@" >"$output" 2>&1
+            local code=$?
+            set -e
+            cat "$output"
+            if [ "$code" -ne 0 ]; then
+              { grep -Ei '(^|: )error |NU[0-9]{4}|Exception|\[FAIL\]|Unable to' "$output" || true; } | head -35 |
+                while IFS= read -r line; do echo "::error::ARIA PROFILE $label: $line"; done
+              echo "::error::ARIA PROFILE $label failed ($code); no SQL/original auth claim."
+              exit "$code"
+            fi
+          }
+          web=src/net10/Aria/Web/Aria.Web.csproj
+          tests=src/net10/Aria/Profile.Tests/Aria.Profile.Tests.csproj
+          diagnose restore dotnet restore "$tests" --configfile src/net10/nuget.offline.config -v minimal
+          diagnose web-build dotnet build "$web" -c Release --no-restore -v minimal
+          diagnose tests-build dotnet build "$tests" -c Release --no-restore -v minimal
+          diagnose synthetics dotnet run --project "$tests" -c Release --no-build --no-restore -- \
+            "$GITHUB_WORKSPACE/src/net10/Aria/Web"
+          if ! grep -q 'Summary: 8 Passed, 0 Failed' "$logdir/aria-profile-synthetics.log"; then
+            echo '::error::Aria Personnel suite did not complete 7 direct + 1 test-only Kestrel cases.'
+            exit 1
+          fi
+          echo "::notice::ARIA profile net10.0 | 8/8 fake Personnel ADO.NET/Kestrel cases | $RUNNER_OS | production still 503; no real shared password, SQL 2016, manager rights or original HTTP parity"
