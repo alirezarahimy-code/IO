@@ -31,9 +31,14 @@ internal static class Program
         Assembly original = Assembly.LoadFrom(args[0]);
         if (original.GetName().Name != "Personnel")
             throw new InvalidOperationException("Expected original TWF 4.28 Personnel.dll.");
-        Type userInfos = original.GetType("Personnel.DB.UserInfos", true);
-        MethodInfo[] candidates = userInfos.GetMethods(BindingFlags.Public | BindingFlags.NonPublic |
-            BindingFlags.Instance | BindingFlags.Static).Where(m => m.Name == "CheckUserPass").ToArray();
+        // `personnelSystem.DB.UserInfos` in the original C# is a PROPERTY CHAIN,
+        // not a promised fully qualified type name. Discover the actual type
+        // and overload from this DLL's metadata, never from the current rewrite.
+        Type[] types;
+        try { types = original.GetTypes(); }
+        catch (ReflectionTypeLoadException e) { types = e.Types.Where(t => t != null).ToArray(); }
+        MethodInfo[] candidates = types.SelectMany(t => t.GetMethods(BindingFlags.Public | BindingFlags.NonPublic |
+            BindingFlags.Instance | BindingFlags.Static).Where(m => m.Name == "CheckUserPass")).ToArray();
         foreach (MethodInfo candidate in candidates)
             Console.WriteLine("OVERLOAD " + SafeName(candidate) + "(" +
                 string.Join(",", candidate.GetParameters().Select(p => p.ParameterType.Name).ToArray()) +
@@ -43,7 +48,7 @@ internal static class Program
             ParameterInfo[] p = m.GetParameters();
             return p.Length == 3 && p[0].ParameterType == typeof(string) &&
                 p[1].ParameterType == typeof(string) && p[2].ParameterType == typeof(bool) &&
-                m.ReturnType == typeof(long);
+                (m.ReturnType == typeof(long) || m.ReturnType == typeof(int));
         });
         var visited = new HashSet<string>(StringComparer.Ordinal);
         var pending = new Queue<Tuple<MethodBase, int>>();
