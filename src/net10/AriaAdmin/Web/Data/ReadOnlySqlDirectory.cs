@@ -36,16 +36,19 @@ internal sealed class ReadOnlySqlDirectory : IAdminDirectory
         _t5Factory = t5Factory ?? throw new ArgumentNullException(nameof(t5Factory));
     }
 
-    public async Task<DirectoryResolution> ResolveAsync(string verifiedAccountName, CancellationToken cancellationToken)
+    public async Task<DirectoryResolution> ResolveAsync(VerifiedAccount verifiedAccount, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string login = Normalize(verifiedAccountName);
+        if (verifiedAccount is null || verifiedAccount.BadgeNumber <= 0)
+            return DirectoryResolution.Denied();
+        string login = Normalize(verifiedAccount.AccountName);
         if (login.Length == 0) return DirectoryResolution.Denied();
 
         try
         {
             Person? person = await FindPersonAsync(login, cancellationToken);
-            if (person is null || person.BadgeNumber <= 0 || !person.IsWebUser || person.IsFormer)
+            if (person is null || person.BadgeNumber != verifiedAccount.BadgeNumber ||
+                !person.IsWebUser || person.IsFormer)
                 return DirectoryResolution.Denied();
 
             var session = new AdminSession

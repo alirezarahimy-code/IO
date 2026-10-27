@@ -73,7 +73,7 @@ await Run("AA-DIR-01: Personnel/T5 read-only commands bind separate values and c
         Grant(101, AdminFeature.PersonnelView, AccessLevel.ReadOnly),
         Grant(101, AdminFeature.PortalAdmin, AccessLevel.Allow)));
     var directory = new ReadOnlySqlDirectory(() => p, () => t);
-    var result = await directory.ResolveAsync(@"TESTDOM\fixture-user", CancellationToken.None);
+    var result = await directory.ResolveAsync(new VerifiedAccount(@"TESTDOM\fixture-user", 101), CancellationToken.None);
     Require(result.State == DirectoryState.Allowed && result.Session?.BadgeNumber == 101 &&
         result.Session.LevelOf(AdminFeature.PortalAdmin) == AccessLevel.Allow, "verified current-rewrite grant expected");
     Require(p.Database == "Personnel" && t.Database == "T5" && p.WasDisposed && t.WasDisposed &&
@@ -104,7 +104,7 @@ await Run("AA-DIR-02: disabled, former, zero and duplicate users are denied befo
         var t5Opened = 0;
         var directory = new ReadOnlySqlDirectory(() => p,
             () => { t5Opened++; return new TableConnection("T5", Permissions()); });
-        var result = await directory.ResolveAsync("fixture-user", CancellationToken.None);
+        var result = await directory.ResolveAsync(new VerifiedAccount("fixture-user", 101), CancellationToken.None);
         Require(result.State == DirectoryState.Denied && result.Session == null && t5Opened == 0 && p.WasDisposed,
             "unqualified/ambiguous identity must not read permissions");
     }
@@ -122,7 +122,7 @@ await Run("AA-DIR-03: absent or Deny-winning permissions cannot admit an operato
         var directory = new ReadOnlySqlDirectory(
             () => new TableConnection("Personnel", People((101, true, false))),
             () => new TableConnection("T5", permissions));
-        var result = await directory.ResolveAsync("fixture-user", CancellationToken.None);
+        var result = await directory.ResolveAsync(new VerifiedAccount("fixture-user", 101), CancellationToken.None);
         Require(result.State == DirectoryState.Denied && result.Session == null, "deny or empty must not become an authenticated session");
     }
 });
@@ -139,7 +139,7 @@ await Run("AA-DIR-04: unknown or cross-user permissions fail unavailable, not al
         var directory = new ReadOnlySqlDirectory(
             () => new TableConnection("Personnel", People((101, true, false))),
             () => new TableConnection("T5", permissions));
-        var result = await directory.ResolveAsync("fixture-user", CancellationToken.None);
+        var result = await directory.ResolveAsync(new VerifiedAccount("fixture-user", 101), CancellationToken.None);
         Require(result.State == DirectoryState.Unavailable && result.Session == null, "corrupt schema/permission cannot be coerced into success");
     }
 });
@@ -151,14 +151,14 @@ await Run("AA-DIR-05: missing factories and provider/read failures do not disclo
     var p = new TableConnection("Personnel", People((101, true, false)))
         { OpenFailure = new InvalidOperationException("PRIVATE_CONNECTION_MARKER") };
     var unavailable = await new ReadOnlySqlDirectory(() => p, () => throw new Exception("T5 should not open"))
-        .ResolveAsync("fixture-user", CancellationToken.None);
+        .ResolveAsync(new VerifiedAccount("fixture-user", 101), CancellationToken.None);
     Require(unavailable.State == DirectoryState.Unavailable && unavailable.Session == null && p.WasDisposed &&
         !unavailable.ToString().Contains("PRIVATE_CONNECTION_MARKER"), "provider exception must not leak");
     var t = new TableConnection("T5", Permissions(Grant(101, AdminFeature.PortalAdmin, AccessLevel.Allow)))
         { ReadFailure = new InvalidOperationException("PRIVATE_CONNECTION_MARKER") };
     unavailable = await new ReadOnlySqlDirectory(
         () => new TableConnection("Personnel", People((101, true, false))), () => t)
-        .ResolveAsync("fixture-user", CancellationToken.None);
+        .ResolveAsync(new VerifiedAccount("fixture-user", 101), CancellationToken.None);
     Require(unavailable.State == DirectoryState.Unavailable && unavailable.Session == null && t.WasDisposed &&
         !unavailable.ToString().Contains("PRIVATE_CONNECTION_MARKER"), "read failure must not grant or disclose");
 });
@@ -171,7 +171,7 @@ await Run("AA-DIR-06: request cancellation propagates and disposes the person co
     var t5Calls = 0;
     var directory = new ReadOnlySqlDirectory(() => p,
         () => { t5Calls++; return new TableConnection("T5", Permissions()); });
-    try { _ = await directory.ResolveAsync("fixture-user", cancel.Token); throw new Exception("cancellation swallowed"); }
+    try { _ = await directory.ResolveAsync(new VerifiedAccount("fixture-user", 101), cancel.Token); throw new Exception("cancellation swallowed"); }
     catch (OperationCanceledException) when (cancel.IsCancellationRequested) { /* expected */ }
     Require(p.WasDisposed && t5Calls == 0, "do not open T5 on cancelled request");
 });
@@ -184,13 +184,13 @@ await Run("AA-DIR-07: legacy name shapes and bound adversarial account never bec
         var denied = await new ReadOnlySqlDirectory(
             () => { personCalls++; return new TableConnection("Personnel", People()); },
             () => new TableConnection("T5", Permissions()))
-            .ResolveAsync(name, CancellationToken.None);
+            .ResolveAsync(new VerifiedAccount(name, 101), CancellationToken.None);
         Require(denied.State == DirectoryState.Denied && personCalls == 0, "reject malformed identity before DB");
     }
     var pUpn = new TableConnection("Personnel", People((101, true, false)));
     var upnDirectory = new ReadOnlySqlDirectory(() => pUpn,
         () => new TableConnection("T5", Permissions(Grant(101, AdminFeature.PersonnelView, AccessLevel.ReadOnly))));
-    var upn = await upnDirectory.ResolveAsync("fixture-user@testdom", CancellationToken.None);
+    var upn = await upnDirectory.ResolveAsync(new VerifiedAccount("fixture-user@testdom", 101), CancellationToken.None);
     Require(upn.State == DirectoryState.Allowed &&
         pUpn.Commands.Single().Parameters["@UserName"].Value is string boundUpn && boundUpn == "fixture-user",
         "well-formed UPN must bind only its local name (current T5Web rewrite rule)");
@@ -199,7 +199,7 @@ await Run("AA-DIR-07: legacy name shapes and bound adversarial account never bec
     var p = new TableConnection("Personnel", People((101, true, false)));
     var directory = new ReadOnlySqlDirectory(() => p,
         () => new TableConnection("T5", Permissions(Grant(101, AdminFeature.PersonnelView, AccessLevel.ReadOnly))));
-    var allowed = await directory.ResolveAsync(adversarial, CancellationToken.None);
+    var allowed = await directory.ResolveAsync(new VerifiedAccount(adversarial, 101), CancellationToken.None);
     Require(allowed.State == DirectoryState.Allowed && allowed.Session?.BadgeNumber == 101,
         "fixed fake rows make this a binding test ONLY, not a real identity check");
     Require(!p.Commands.Single().CommandText.Contains(adversarial) &&
@@ -230,9 +230,13 @@ await Run("AA-DIR-08: test-only SQL seam reaches HTTP gate but never fake operat
         !diagnostics.Headers.TryGetValues("Set-Cookie", out _), "no cache or synthetic session cookie");
     using var dashboard = await SendTestIdentity(client, "/Dashboard/Index", @"TESTDOM\fixture-user");
     Require(dashboard.StatusCode == HttpStatusCode.ServiceUnavailable, "authorized shell still has no operational dashboard");
-    Require(personnel.Count == 2 && t5.Count == 2 &&
+    using var foreign = await SendTestIdentity(client, "/Diagnostics/Index", "fixture-foreign");
+    Require(foreign.StatusCode == HttpStatusCode.Forbidden, "badge 102 cannot use same-name row for badge 101");
+    using var zero = await SendTestIdentity(client, "/Diagnostics/Index", "fixture-zero");
+    Require(zero.StatusCode == HttpStatusCode.Forbidden, "badge zero is rejected before querying Personnel");
+    Require(personnel.Count == 3 && t5.Count == 2 &&
         personnel.All(connection => connection.WasDisposed) && t5.All(connection => connection.WasDisposed),
-        "two HTTP requests must not share or leak fake DB connections");
+        "each HTTP lookup must use fresh closed connections and never consult T5 on badge mismatch");
 });
 
 await Run("AA-DIR-09: test-only SQL seam denies disabled and fails closed on driver errors", async () =>
@@ -271,6 +275,22 @@ await Run("AA-DIR-09: test-only SQL seam denies disabled and fails closed on dri
     }
 });
 
+await Run("AA-DIR-10: matching name cannot override verified badge before T5", async () =>
+{
+    var personnelReads = 0;
+    var t5Reads = 0;
+    var directory = new ReadOnlySqlDirectory(
+        () => { personnelReads++; return new TableConnection("Personnel", People((101, true, false))); },
+        () => { t5Reads++; return new TableConnection("T5", Permissions(Grant(101, AdminFeature.PortalAdmin, AccessLevel.Allow))); });
+    var wrongBadge = await directory.ResolveAsync(new VerifiedAccount("fixture-user", 102), CancellationToken.None);
+    Require(wrongBadge.State == DirectoryState.Denied && wrongBadge.Session == null &&
+        personnelReads == 1 && t5Reads == 0, "matching account name cannot borrow badge 101's rights");
+    var zero = await directory.ResolveAsync(new VerifiedAccount("fixture-user", 0), CancellationToken.None);
+    var malformed = await directory.ResolveAsync(new VerifiedAccount("", 101), CancellationToken.None);
+    Require(zero.State == DirectoryState.Denied && malformed.State == DirectoryState.Denied &&
+        personnelReads == 1 && t5Reads == 0, "invalid verified identity must not open either catalog");
+});
+
 Console.WriteLine($"Summary: {passed} Passed, {failed} Failed");
 return failed == 0 ? 0 : 1;
 
@@ -278,9 +298,13 @@ return failed == 0 ? 0 : 1;
 // UnavailableSharedAccountSource + UnavailableAdminDirectory (no test header path).
 internal sealed class DirectoryTestIdentitySource : IAdminIdentitySource
 {
-    public Task<AccountResolution> ResolveAsync(HttpContext context, CancellationToken cancellationToken) =>
-        Task.FromResult(context.Request.Headers.TryGetValue("X-Directory-Test-Identity", out var value) &&
-            !string.IsNullOrWhiteSpace(value.ToString())
-                ? AccountResolution.Verified(value.ToString())
-                : AccountResolution.Anonymous());
+    public Task<AccountResolution> ResolveAsync(HttpContext context, CancellationToken cancellationToken)
+    {
+        if (!context.Request.Headers.TryGetValue("X-Directory-Test-Identity", out var value) ||
+            string.IsNullOrWhiteSpace(value.ToString()))
+            return Task.FromResult(AccountResolution.Anonymous());
+        string name = value.ToString();
+        long badge = name == "fixture-foreign" ? 102 : name == "fixture-zero" ? 0 : 101;
+        return Task.FromResult(AccountResolution.Verified(name, badge));
+    }
 }

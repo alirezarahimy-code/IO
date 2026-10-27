@@ -164,13 +164,24 @@ internal static class Program
                 }).ToArray();
                 start.SetResult(true);
                 await Task.WhenAll(requests);
-                // 100 negative-security requests, NOT 100 operational Windows users,
+                // 100 negative-security requests, NOT 100 operational users,
                 // actual reports, an IIS/SQL load test or a latency/throughput SLA.
+            });
+            await Check("AA-WEB-14: verified badge cannot borrow another person's Admin rights", async () =>
+            {
+                using var foreign = await Send(client, "/Diagnostics/Index", "synthetic-mismatch");
+                Equal(HttpStatusCode.Forbidden, foreign.StatusCode, "account badge 1001 must not use granted badge 2002");
+                Require(!foreign.Headers.TryGetValues("Set-Cookie", out _), "never issue cookie on identity mismatch");
+                using var zero = await Send(client, "/Diagnostics/Index", "synthetic-zero-badge");
+                Equal(HttpStatusCode.Forbidden, zero.StatusCode, "zero verified badge must be denied before directory");
+                string body = await zero.Content.ReadAsStringAsync();
+                Require(!body.Contains("DIRECTORY_MUST_NOT_SEE_ZERO_BADGE", StringComparison.Ordinal),
+                    "invalid badge must not reach permission directory");
             });
         }
 
         Console.WriteLine($"Summary: {_passed} Passed, {_failed} Failed (net10.0 HTTP/Razor synthetic only)");
-        return _failed == 0 && _passed == 13 ? 0 : 1;
+        return _failed == 0 && _passed == 14 ? 0 : 1;
     }
 
     private static async Task<HttpClient> Start(WebApplication app)
@@ -211,17 +222,37 @@ internal static class Program
 // These classes are compiled ONLY into AriaAdmin.Web.Tests, never into Web/publish.
 internal sealed class HeaderIdentitySource : IAdminIdentitySource
 {
-    public Task<AccountResolution> ResolveAsync(HttpContext context, CancellationToken cancellationToken) =>
-        Task.FromResult(context.Request.Headers.TryGetValue("X-Synthetic-Identity", out var identity) &&
-            !string.IsNullOrWhiteSpace(identity.ToString())
-                ? AccountResolution.Verified(identity.ToString())
-                : AccountResolution.Anonymous());
+    public Task<AccountResolution> ResolveAsync(HttpContext context, CancellationToken cancellationToken)
+    {
+        if (!context.Request.Headers.TryGetValue("X-Synthetic-Identity", out var value) ||
+            string.IsNullOrWhiteSpace(value.ToString()))
+            return Task.FromResult(AccountResolution.Anonymous());
+        string name = value.ToString();
+        long badge = 1001; // fixed synthetic shared-account badge; never a credential.
+        if (name.StartsWith("synthetic-load-", StringComparison.Ordinal))
+        {
+            int dash = name.LastIndexOf('-');
+            if (dash > 0 && int.TryParse(name.AsSpan(dash + 1), out int seed))
+                badge = 1000L + seed;
+        }
+        if (name == "synthetic-zero-badge") badge = 0;
+        return Task.FromResult(AccountResolution.Verified(name, badge));
+    }
 }
 
 internal sealed class SyntheticDirectory : IAdminDirectory
 {
-    public Task<DirectoryResolution> ResolveAsync(string verifiedAccountName, CancellationToken cancellationToken)
+    public Task<DirectoryResolution> ResolveAsync(VerifiedAccount verifiedAccount, CancellationToken cancellationToken)
     {
+        string verifiedAccountName = verifiedAccount.AccountName;
+        if (verifiedAccountName == "synthetic-zero-badge")
+            throw new InvalidOperationException("DIRECTORY_MUST_NOT_SEE_ZERO_BADGE");
+        if (verifiedAccountName == "synthetic-mismatch")
+        {
+            var foreign = new AdminSession { BadgeNumber = 2002, DisplayName = "اپراتور آزمایشی دوم" };
+            foreign.Grant(AdminFeature.PortalAdmin, AccessLevel.Allow);
+            return Task.FromResult(DirectoryResolution.Allowed(foreign));
+        }
         if (verifiedAccountName == "synthetic-error") throw new InvalidOperationException("CI_EXCEPTION_MARKER");
         if (verifiedAccountName.StartsWith("synthetic-load-", StringComparison.Ordinal))
         {

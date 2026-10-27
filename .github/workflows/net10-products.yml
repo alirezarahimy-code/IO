@@ -80,7 +80,7 @@ jobs:
           echo "::notice::ARIA_ADMIN CORE net10.0 | 25 real linked sources + 1 owned report-time adapter | 9/9 synthetics + 1 original-binary-format fixture | $RUNNER_OS | same-run comparison only in separate Windows golden job; no web/IIS/SQL claim"
 
   aria-admin-web:
-    name: Aria Admin Core Razor net10.0 + 13 HTTP/security synthetics (${{ matrix.os }})
+    name: Aria Admin Core Razor net10.0 + 14 HTTP/security synthetics (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     strategy:
@@ -137,11 +137,11 @@ jobs:
           fi
           diagnose http dotnet run --project "$tests" -c Release --no-build --no-restore -- \
             "$GITHUB_WORKSPACE/src/net10/AriaAdmin/Web"
-          if ! grep -q 'Summary: 13 Passed, 0 Failed' "$logdir/web-http.log"; then
-            echo '::error::Admin HTTP suite did not complete all 13 checks.'
+          if ! grep -q 'Summary: 14 Passed, 0 Failed' "$logdir/web-http.log"; then
+            echo '::error::Admin HTTP suite did not complete all 14 checks.'
             exit 1
           fi
-          echo "::notice::ARIA_ADMIN WEB net10.0 | Razor compiled/published | 13/13 synthetic loopback HTTP incl 100 test-only-principal denial burst | $RUNNER_OS | NOT 100 operational Windows users, IIS/SQL/original parity"
+          echo "::notice::ARIA_ADMIN WEB net10.0 | Razor compiled/published | 14/14 synthetic loopback HTTP incl 100 test-only-principal denial burst and badge mismatch denial | $RUNNER_OS | NOT 100 operational users, shared-password/IIS/SQL/original parity"
 
   aria-core:
     name: Aria core net10.0 + 11 synthetics + 1 pinned original formatter fixture (${{ matrix.os }})
@@ -340,7 +340,7 @@ jobs:
           echo "::notice::ARIA catalog net10.0 | two fake ADO.NET catalogs | 7/7 synthetic cases incl 100 overlapping probes | $RUNNER_OS | NO SQL provider/connection/schema/real load or original parity"
 
   aria-admin-directory-boundary:
-    name: Aria Admin two-catalog directory net10.0 + 7 ADO.NET + 2 HTTP synthetics (${{ matrix.os }})
+    name: Aria Admin two-catalog directory net10.0 + 8 ADO.NET + 2 HTTP synthetics (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     strategy:
@@ -389,8 +389,8 @@ jobs:
           diagnose tests-build dotnet build "$tests" -c Release --no-restore -v minimal
           diagnose synthetics dotnet run --project "$tests" -c Release --no-build --no-restore -- \
             "$GITHUB_WORKSPACE/src/net10/AriaAdmin/Web"
-          if ! grep -q 'Summary: 9 Passed, 0 Failed' "$logdir/admin-directory-synthetics.log"; then
-            echo '::error::Admin directory suite did not complete all nine synthetic cases (seven direct + two Kestrel).'
+          if ! grep -q 'Summary: 10 Passed, 0 Failed' "$logdir/admin-directory-synthetics.log"; then
+            echo '::error::Admin directory suite did not complete all ten synthetic cases (eight direct + two Kestrel).'
             exit 1
           fi
-          echo "::notice::ADMIN directory net10.0 | two ADO.NET DataTable doubles | 9/9 synthetic cases incl two test-only Kestrel HTTP flows | $RUNNER_OS | production still 503; NO provider/SQL Server/actual Windows auth/original parity"
+          echo "::notice::ADMIN directory net10.0 | two ADO.NET DataTable doubles | 10/10 synthetic cases incl test-only Kestrel HTTP badge binding | $RUNNER_OS | production still 503; NO provider/SQL Server/shared-password/original parity"

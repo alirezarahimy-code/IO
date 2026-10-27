@@ -9,11 +9,17 @@ namespace AriaAdmin.Web.Security;
 // yet, so the publishable implementation always reports Unavailable.
 public enum AccountState { Unavailable, Anonymous, Verified }
 
-public sealed record AccountResolution(AccountState State, string? AccountName)
+// The Personnel badge comes from a successful verification of the ONE shared
+// account. A name alone must never authorize access to another person's badge.
+// This is not a credential or a verification implementation.
+public sealed record VerifiedAccount(string AccountName, long BadgeNumber);
+
+public sealed record AccountResolution(AccountState State, VerifiedAccount? Account)
 {
     public static AccountResolution Unavailable() => new(AccountState.Unavailable, null);
     public static AccountResolution Anonymous() => new(AccountState.Anonymous, null);
-    public static AccountResolution Verified(string accountName) => new(AccountState.Verified, accountName);
+    public static AccountResolution Verified(string accountName, long badgeNumber) =>
+        new(AccountState.Verified, new VerifiedAccount(accountName, badgeNumber));
 }
 
 public interface IAdminIdentitySource
@@ -38,16 +44,16 @@ public sealed record DirectoryResolution(DirectoryState State, AdminSession? Ses
 
 public interface IAdminDirectory
 {
-    // The name may ONLY be obtained after the shared-account verifier succeeds.
+    // Name AND badge must come from the same verified shared-account result.
     // This directory checks roles/availability; it does not verify a password.
-    Task<DirectoryResolution> ResolveAsync(string verifiedAccountName, CancellationToken cancellationToken);
+    Task<DirectoryResolution> ResolveAsync(VerifiedAccount verifiedAccount, CancellationToken cancellationToken);
 }
 
 // No SQL provider or verified shared-account login contract has been approved
 // yet. Production cannot infer a user's permissions from an unverified name.
 internal sealed class UnavailableAdminDirectory : IAdminDirectory
 {
-    public Task<DirectoryResolution> ResolveAsync(string verifiedAccountName, CancellationToken cancellationToken) =>
+    public Task<DirectoryResolution> ResolveAsync(VerifiedAccount verifiedAccount, CancellationToken cancellationToken) =>
         Task.FromResult(DirectoryResolution.Unavailable());
 }
 

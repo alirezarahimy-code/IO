@@ -83,7 +83,9 @@ internal static class Program
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
                 return;
             }
-            if (account.State != AccountState.Verified || string.IsNullOrWhiteSpace(account.AccountName))
+            VerifiedAccount? verified = account.Account;
+            if (account.State != AccountState.Verified || verified == null ||
+                string.IsNullOrWhiteSpace(verified.AccountName) || verified.BadgeNumber <= 0)
             {
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 return;
@@ -93,7 +95,7 @@ internal static class Program
             try
             {
                 decision = await context.RequestServices.GetRequiredService<IAdminDirectory>()
-                    .ResolveAsync(account.AccountName, context.RequestAborted);
+                    .ResolveAsync(verified, context.RequestAborted);
             }
             catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
             {
@@ -112,7 +114,7 @@ internal static class Program
                 return;
             }
             if (decision.State != DirectoryState.Allowed || decision.Session == null ||
-                decision.Session.BadgeNumber <= 0 || decision.Session.Levels.Count == 0)
+                decision.Session.BadgeNumber != verified.BadgeNumber || decision.Session.Levels.Count == 0)
             {
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 return;
