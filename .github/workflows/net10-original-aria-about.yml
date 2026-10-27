@@ -1,0 +1,88 @@
+name: net10-original-aria-about
+
+# ONE actual public, read-only net10 page compared to public textual labels
+# extracted in the SAME run from its own SHA-pinned TWF 4.28 original DLL.
+# Not an original HTTP/HTML/layout, IIS, auth, SQL or report parity claim.
+on:
+  push:
+    branches: [arena/a4df3135-io]
+    paths:
+      - 'src/net10/tools/AriaOriginalAboutGolden/**'
+      - 'src/net10/Aria/Web/Content/OriginalAboutContent.cs'
+      - 'src/net10/Aria/Web/Views/Home/About.cshtml'
+      - 'src/net10/Aria/Web.Tests/Program.cs'
+      - '.github/workflows/net10-original-aria-about.yml'
+  pull_request:
+    paths:
+      - 'src/net10/tools/AriaOriginalAboutGolden/**'
+      - 'src/net10/Aria/Web/Content/OriginalAboutContent.cs'
+      - 'src/net10/Aria/Web/Views/Home/About.cshtml'
+      - 'src/net10/Aria/Web.Tests/Program.cs'
+      - '.github/workflows/net10-original-aria-about.yml'
+  workflow_dispatch:
+
+jobs:
+  original-aria-about:
+    name: Original About labels to real net10 Razor GET (Windows, offline)
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract seven public TWF 4.28 labels and compare real net10 HTTP output
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $original = Join-Path $env:GITHUB_WORKSPACE 'TWF 4.28\App\bin\MyTime3.dll'
+          $expected = 'edba04ccafb9f111870f9050f86e9059e92389188bbd3115678afb21691ddd6b'
+          if (-not (Test-Path -LiteralPath $original -PathType Leaf) -or
+              (Get-FileHash -LiteralPath $original -Algorithm SHA256).Hash.ToLowerInvariant() -ne $expected) {
+            Write-Host '::error::NEEDS-INFRA: pinned original TWF 4.28 DLL is missing or changed.'
+            exit 2
+          }
+          $compiler = Join-Path $env:WINDIR 'Microsoft.NET\Framework\v4.0.30319\csc.exe'
+          if (-not (Test-Path -LiteralPath $compiler -PathType Leaf) -or
+              -not (Get-Command dotnet -ErrorAction SilentlyContinue) -or
+              -not (& dotnet --list-sdks | Select-String -Quiet '^10\.0\.')) {
+            Write-Host '::error::NEEDS-INFRA: preinstalled Framework compiler or .NET 10 SDK unavailable.'
+            exit 2
+          }
+          $probe = Join-Path $env:RUNNER_TEMP 'OriginalAriaAbout.exe'
+          $src = Join-Path $env:GITHUB_WORKSPACE 'src\net10\tools\AriaOriginalAboutGolden\Program.cs'
+          $build = & $compiler '/nologo' '/target:exe' ("/out:" + $probe) $src 2>&1
+          $build | Write-Host
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $probe)) {
+            Write-Host '::error::Original public-label probe did not compile.'
+            exit 1
+          }
+          $fixture = Join-Path $env:RUNNER_TEMP 'OriginalAriaAbout.golden'
+          $result = & $probe $original $fixture 2>&1
+          $probeExit = $LASTEXITCODE
+          $result | Write-Host
+          if ($probeExit -ne 0 -or -not ($result | Select-String -Quiet 'Summary: 7 Passed, 0 Failed') -or
+              -not (Test-Path -LiteralPath $fixture)) {
+            Write-Host '::error::No same-run original About resource golden is available.'
+            exit 1
+          }
+          $config = Join-Path $env:GITHUB_WORKSPACE 'src\net10\nuget.offline.config'
+          $webDir = Join-Path $env:GITHUB_WORKSPACE 'src\net10\Aria\Web'
+          $web = Join-Path $webDir 'Aria.Web.csproj'
+          $tests = Join-Path $env:GITHUB_WORKSPACE 'src\net10\Aria\Web.Tests\Aria.Web.Tests.csproj'
+          & dotnet restore $tests --configfile $config -v minimal
+          if ($LASTEXITCODE -ne 0) { throw 'Offline Web.Tests restore failed' }
+          & dotnet build $tests -c Release --no-restore -v minimal
+          if ($LASTEXITCODE -ne 0) { throw 'Razor Web.Tests build failed' }
+          $publish = Join-Path $env:RUNNER_TEMP 'AriaAboutPublish'
+          & dotnet publish $web -c Release --no-restore -o $publish -v minimal
+          if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath (Join-Path $publish 'Aria.Web.dll'))) {
+            throw 'Offline Aria Web publish failed'
+          }
+          $http = & dotnet run --project $tests -c Release --no-build --no-restore -- $webDir '--about-original-fixture' $fixture 2>&1
+          $httpExit = $LASTEXITCODE
+          $http | Write-Host
+          if ($httpExit -ne 0 -or
+              -not ($http | Select-String -Quiet 'Summary: 20 Passed, 0 Failed') -or
+              -not ($http | Select-String -Quiet '\[ORIGINAL-COMPARED\] 7 public About labels')) {
+            Write-Host '::error::New public About GET did not match pinned original labels; NO full-HTML parity claimed.'
+            exit 1
+          }
+          Write-Host '::notice::ARIA ABOUT | original DLL 7/7 public labels -> same-run real net10 Kestrel/Razor GET with 20/20 Web checks. Original HTML/layout/MyBanner, password, SQL, IIS, load and release parity NOT tested.'

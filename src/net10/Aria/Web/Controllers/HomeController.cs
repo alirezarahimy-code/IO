@@ -8,6 +8,12 @@ namespace Aria.Web.Controllers;
 // Do not turn an invented dashboard into an HTTP 200 while those are absent.
 public sealed class HomeController : Controller
 {
+    // Original TWF 4.28 About is a public action with no method-level
+    // authorization. Only its DB-independent text is ported; new UI intentionally
+    // avoids the original shared layout's DB calls and historical version banner.
+    [HttpGet]
+    public IActionResult About() => View();
+
     [HttpGet]
     public IActionResult Index(int sort = -1, bool g = true)
     {

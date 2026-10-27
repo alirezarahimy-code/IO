@@ -55,6 +55,7 @@ internal static class Program
             string? path = context.Request.Path.Value;
             if (string.Equals(path, "/health/live", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(path, "/Login/Login", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(path, "/Home/About", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(path, "/Diagnostics/Health", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(path, "/Diagnostics/Schema", StringComparison.OrdinalIgnoreCase))
             {

@@ -1,5 +1,7 @@
 using System.Net;
+using System.Text;
 using System.Text.Json;
+using Aria.Web.Content;
 using Aria.Web.Security;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
@@ -22,9 +24,12 @@ internal static class Program
 
     private static async Task<int> Main(string[] args)
     {
-        if (args.Length != 1 || !File.Exists(Path.Combine(args[0], "Aria.Web.csproj")))
-            throw new ArgumentException("Pass the local Aria/Web directory (synthetic only).");
+        if ((args.Length != 1 && (args.Length != 3 || args[1] != "--about-original-fixture")) ||
+            !File.Exists(Path.Combine(args[0], "Aria.Web.csproj")) ||
+            (args.Length == 3 && !File.Exists(args[2])))
+            throw new ArgumentException("Pass Aria/Web and optionally a same-run original About fixture.");
         string webRoot = Path.GetFullPath(args[0]);
+        string? originalAboutFixture = args.Length == 3 ? args[2] : null;
 
         await using (var production = WebHost.CreateApp(Array.Empty<string>(), contentRoot: webRoot))
         {
@@ -56,6 +61,7 @@ internal static class Program
                     html.Contains("dir=\"rtl\"", StringComparison.Ordinal) &&
                     html.Contains("ورود موقتاً در دسترس نیست", StringComparison.Ordinal), "Persian RTL Razor");
                 Require(html.Contains("/assets/aria.css", StringComparison.Ordinal) &&
+                    html.Contains("href=\"/Home/About\"", StringComparison.Ordinal) &&
                     !html.Contains("<form", StringComparison.OrdinalIgnoreCase) &&
                     !html.Contains("type=\"password\"", StringComparison.OrdinalIgnoreCase) &&
                     !html.Contains("https://", StringComparison.OrdinalIgnoreCase) &&
@@ -92,6 +98,34 @@ internal static class Program
                 Require(response.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.MethodNotAllowed,
                     "unimplemented login POST must not dispatch");
                 Require(!response.Headers.TryGetValues("Set-Cookie", out _), "no login session");
+            });
+            await Check("AR-WEB-20: original Aria About labels have a real offline public GET", async () =>
+            {
+                using var response = await Send(client, "/Home/About");
+                Equal(HttpStatusCode.OK, response.StatusCode, "read-only public About action");
+                Require(response.Content.Headers.ContentType?.MediaType == "text/html", "compiled About Razor");
+                string html = await response.Content.ReadAsStringAsync();
+                string renderedText = WebUtility.HtmlDecode(html);
+                foreach (string label in OriginalAboutContent.Labels.Values)
+                    Require(renderedText.Contains(label.Trim(), StringComparison.Ordinal),
+                        "owned About label missing from rendered page");
+                Require(html.Contains("lang=\"fa\"", StringComparison.Ordinal) &&
+                    html.Contains("dir=\"rtl\"", StringComparison.Ordinal) &&
+                    html.Contains("/assets/aria.css", StringComparison.Ordinal) &&
+                    !html.Contains("<form", StringComparison.OrdinalIgnoreCase) &&
+                    !html.Contains("MyBanner", StringComparison.OrdinalIgnoreCase) &&
+                    !html.Contains("V4.1", StringComparison.OrdinalIgnoreCase) &&
+                    !html.Contains("https://", StringComparison.OrdinalIgnoreCase),
+                    "About is offline, encoded Razor text; no version banner or login/DB shortcut");
+                Require(!response.Headers.TryGetValues("Set-Cookie", out _) &&
+                    response.Headers.TryGetValues("Cache-Control", out var cache) &&
+                    cache.Contains("no-store"), "no session cookie or cached dynamic response");
+                if (originalAboutFixture != null)
+                    AssertOriginalAboutFixture(originalAboutFixture);
+                using var post = await client.PostAsync("/Home/About", null);
+                Require(post.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.MethodNotAllowed,
+                    "the new About action must not dispatch a POST");
+                Require(!post.Headers.TryGetValues("Set-Cookie", out _), "no cookie from About POST");
             });
         }
 
@@ -335,8 +369,30 @@ internal static class Program
             });
         }
 
-        Console.WriteLine($"Summary: {_passed} Passed, {_failed} Failed (net10.0 Aria Kestrel/Razor synthetic only)");
-        return _passed == 19 && _failed == 0 ? 0 : 1;
+        Console.WriteLine($"Summary: {_passed} Passed, {_failed} Failed (net10.0 Aria Kestrel/Razor; original About labels only when same-run fixture supplied)");
+        return _passed == 20 && _failed == 0 ? 0 : 1;
+    }
+
+    private static void AssertOriginalAboutFixture(string path)
+    {
+        string[] lines = File.ReadAllLines(path);
+        Require(lines.Length == OriginalAboutContent.Labels.Count + 1 &&
+            lines[0] == "source_sha256=edba04ccafb9f111870f9050f86e9059e92389188bbd3115678afb21691ddd6b",
+            "About fixture must come from the pinned original binary in this Windows run");
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (string line in lines.Skip(1))
+        {
+            int equals = line.IndexOf('=');
+            Require(equals > 0, "invalid original About fixture entry");
+            string key = line[..equals];
+            Require(seen.Add(key), "duplicate original About label");
+            Require(OriginalAboutContent.Labels.TryGetValue(key, out string? expected),
+                "unknown original About label");
+            string actual = Encoding.UTF8.GetString(Convert.FromBase64String(line[(equals + 1)..]));
+            Require(string.Equals(expected, actual, StringComparison.Ordinal),
+                "original About resource differs from owned net10 label: " + key);
+        }
+        Console.WriteLine("[ORIGINAL-COMPARED] 7 public About labels from same-run TWF 4.28 DLL (NOT original HTML/IIS parity)");
     }
 
     private static async Task<HttpClient> Start(WebApplication app)
