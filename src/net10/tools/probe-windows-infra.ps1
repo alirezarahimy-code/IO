@@ -81,16 +81,19 @@ $sdkPath = if ($dotnetRoot) { Join-Path $dotnetRoot 'sdk' } else { $null }
 $sdk10Dirs = if ($sdkPath -and (Test-Path -LiteralPath $sdkPath)) {
     @(Get-ChildItem -LiteralPath $sdkPath -Directory | Where-Object { $_.Name -like '10.0.*' })
 } else { @() }
+$providerCandidates = [System.Collections.Generic.List[string]]::new()
 foreach ($name in @('Microsoft.Data.SqlClient.dll', 'System.Data.SqlClient.dll', 'System.Data.Odbc.dll')) {
     $found = @($sdk10Dirs | ForEach-Object {
         Get-ChildItem -LiteralPath $_.FullName -Filter $name -File -Recurse -ErrorAction SilentlyContinue
     } | Select-Object -First 3)
-    Notice ("installed SDK10 {0} candidates={1} (file discovery only)" -f $name,
-        $(if ($found.Count -gt 0) { ($found.FullName -join ' / ') } else { 'none' }))
+    $providerCandidates.Add(("{0}={1}" -f $name,
+        $(if ($found.Count -gt 0) { ($found.FullName -join ' / ') } else { 'none' })))
 }
 $cache = Join-Path $env:USERPROFILE '.nuget\packages\microsoft.data.sqlclient'
-Notice ("local Microsoft.Data.SqlClient NuGet cache={0} (discovery only)" -f
-    $(if (Test-Path -LiteralPath $cache -PathType Container) { 'directory exists; pin and audit before any use' } else { 'none' }))
+$providerCandidates.Add(("local NuGet cache={0}" -f
+    $(if (Test-Path -LiteralPath $cache -PathType Container) { 'directory exists; pin and audit before any use' } else { 'none' })))
+Notice ("installed SDK10/local provider candidates: {0} (file discovery ONLY)" -f
+    ($providerCandidates -join ' | '))
 Needs 'No SQL Server 2016 two-catalog synthetic integration, tested net10 SQL provider from an approved local feed, or real application-pool rights were demonstrated. SQL gate NOT RUN.'
 Needs 'No original TWF 4.28/T5Web 3.5.7 routes, IIS app, Windows-auth principal, offline Hosting Bundle install, rollback or 100-user operational load was executed.'
 
