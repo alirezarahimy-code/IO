@@ -57,8 +57,12 @@ jobs:
           $code = $LASTEXITCODE
           $output | Write-Host
           if ($code -ne 0 -or -not ($output | Select-String -Quiet 'Summary: 15 Passed, 0 Failed')) {
-            foreach ($line in @($output | Select-Object -Last 25)) { Write-Host "::error::Aria original-session probe: $line" }
-            Write-Host '::error::No session/role golden can be accepted from this run.'
+            # GitHub surfaces only a bounded number of check annotations. Emit
+            # failures before PASS lines; never annotate synthetic cookie bytes.
+            Write-Host '::error::No original logout golden can be accepted from this run.'
+            foreach ($line in @($output | Where-Object { $_ -notmatch '\[ORIGINAL-PASS\]' } | Select-Object -Last 6)) {
+              Write-Host "::error::Aria original-session probe failure: $line"
+            }
             exit 1
           }
           Write-Host '::notice::TWF 4.28 original-binary 15/15 in-memory cookie/logout/route/attribute cases. Logout response expiry does NOT prove browser deletion or server revocation. Original default route, unauthorized redirect and three Login credential POST entry points observed; the new host MUST NOT enable credential endpoints without a validated shared-account verifier. NOT original HTTP/SQL/IIS parity or deployment.'
