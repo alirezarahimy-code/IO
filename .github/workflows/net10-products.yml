@@ -221,7 +221,7 @@ jobs:
           echo "::notice::ARIA CORE net10.0 | 19 linked TWF sources + 4 owned files | 11/11 synthetics + 2 pinned pure-time groups + 1 rewrite-derived date/day smoke group | $RUNNER_OS | binary-to-port time/date/day same-run check only in separate Windows original-golden workflow; NOT native engine/SQL/web parity"
 
   aria-web:
-    name: Aria Core Razor net10.0 + 21 HTTP/security and offline About asset checks (${{ matrix.os }})
+    name: Aria Core Razor net10.0 + 22 HTTP/security and public About route checks (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     strategy:
@@ -293,11 +293,11 @@ jobs:
           fi
           diagnose http dotnet run --project "$tests" -c Release --no-build --no-restore -- \
             "$GITHUB_WORKSPACE/src/net10/Aria/Web"
-          if ! grep -q 'Summary: 21 Passed, 0 Failed' "$logdir/aria-web-http.log"; then
-            echo '::error::Aria HTTP suite did not complete all 21 tests.'
+          if ! grep -q 'Summary: 22 Passed, 0 Failed' "$logdir/aria-web-http.log"; then
+            echo '::error::Aria HTTP suite did not complete all 22 tests.'
             exit 1
           fi
-          echo "::notice::ARIA WEB net10.0 | Razor compiled/published | 21/21 Kestrel checks incl public About GET and SHA-pinned offline vendor images | $RUNNER_OS | original text/pixel SAME-RUN golden is separate Windows job; no original full HTML/password/SQL/engine/IIS parity"
+          echo "::notice::ARIA WEB net10.0 | Razor compiled/published | 22/22 Kestrel checks incl public About GET, pinned images and bounded original MyBanner(2/3) URLs | $RUNNER_OS | original text/pixel SAME-RUN golden is separate Windows job; no original full HTML/password/SQL/engine/IIS parity"
 
   aria-catalog-boundary:
     name: Aria Personnel/T5 provider-neutral boundary net10.0 + 7 synthetics (${{ matrix.os }})

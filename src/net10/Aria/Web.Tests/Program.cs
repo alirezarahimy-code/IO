@@ -113,10 +113,10 @@ internal static class Program
                 Require(html.Contains("lang=\"fa\"", StringComparison.Ordinal) &&
                     html.Contains("dir=\"rtl\"", StringComparison.Ordinal) &&
                     html.Contains("/assets/aria.css", StringComparison.Ordinal) &&
-                    html.Contains("/assets/aria-about-arm.png", StringComparison.Ordinal) &&
-                    html.Contains("/assets/aria-about-logo.png", StringComparison.Ordinal) &&
+                    html.Contains("/Home/MyBanner?index=2", StringComparison.Ordinal) &&
+                    html.Contains("/Home/MyBanner?index=3", StringComparison.Ordinal) &&
                     !html.Contains("<form", StringComparison.OrdinalIgnoreCase) &&
-                    !html.Contains("MyBanner", StringComparison.OrdinalIgnoreCase) &&
+                    !html.Contains("LogoPath", StringComparison.OrdinalIgnoreCase) &&
                     !html.Contains("V4.1", StringComparison.OrdinalIgnoreCase) &&
                     !html.Contains("https://", StringComparison.OrdinalIgnoreCase),
                     "About is offline, encoded Razor text; no version banner or login/DB shortcut");
@@ -148,6 +148,33 @@ internal static class Program
                             0x0d, 0x0a, 0x1a, 0x0a }),
                         "response bytes must be exactly the audited original-vendor offline asset");
                 }
+            });
+            await Check("AR-WEB-22: original About image URLs serve only cases 2/3", async () =>
+            {
+                foreach (var (index, sha) in new[]
+                {
+                    (2, "ca5e231a2b88d60a6140cf66b47d436cad10e58ad0547bd8cfdc9beccf580d20"),
+                    (3, "bb2d2c1ebc50f02c1aae57a4e50a3f4b8d1b00641b5d1ea4660a95ffce72572e")
+                })
+                {
+                    using var response = await Send(client, "/Home/MyBanner?index=" + index);
+                    Equal(HttpStatusCode.OK, response.StatusCode, "original public image URL " + index);
+                    byte[] content = await response.Content.ReadAsByteArrayAsync();
+                    Require(response.Content.Headers.ContentType?.MediaType == "image/png" &&
+                        Convert.ToHexString(SHA256.HashData(content)).ToLowerInvariant() == sha &&
+                        !response.Headers.TryGetValues("Set-Cookie", out _) &&
+                        response.Headers.TryGetValues("Cache-Control", out var cache) && cache.Contains("no-store"),
+                        "only owned offline image bytes, no customer logo, identity or session");
+                }
+                foreach (string index in new[] { "0", "1", "4", "-1", "invalid" })
+                {
+                    using var response = await Send(client, "/Home/MyBanner?index=" + index);
+                    Equal(HttpStatusCode.NotFound, response.StatusCode,
+                        "unverified/customer LogoPath index must not be served");
+                }
+                using var post = await client.PostAsync("/Home/MyBanner?index=2", null);
+                Require(post.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.MethodNotAllowed,
+                    "new public image route never accepts POST");
             });
         }
 
@@ -392,7 +419,7 @@ internal static class Program
         }
 
         Console.WriteLine($"Summary: {_passed} Passed, {_failed} Failed (net10.0 Aria Kestrel/Razor; original About labels only when same-run fixture supplied)");
-        return _passed == 21 && _failed == 0 ? 0 : 1;
+        return _passed == 22 && _failed == 0 ? 0 : 1;
     }
 
     private static void AssertOriginalAboutFixture(string path)

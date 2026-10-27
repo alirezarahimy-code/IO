@@ -50,7 +50,7 @@ jobs:
           }
           $probe = Join-Path $env:RUNNER_TEMP 'OriginalAriaAbout.exe'
           $src = Join-Path $env:GITHUB_WORKSPACE 'src\net10\tools\AriaOriginalAboutGolden\Program.cs'
-          $build = & $compiler '/nologo' '/target:exe' '/r:System.Drawing.dll' ("/out:" + $probe) $src 2>&1
+          $build = & $compiler '/nologo' '/platform:x86' '/target:exe' '/r:System.Drawing.dll' ("/out:" + $probe) $src 2>&1
           $build | Write-Host
           if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $probe)) {
             Write-Host '::error::Original public-label probe did not compile.'
@@ -62,7 +62,7 @@ jobs:
           $result = & $probe $original $fixture $arm $logo 2>&1
           $probeExit = $LASTEXITCODE
           $result | Write-Host
-          if ($probeExit -ne 0 -or -not ($result | Select-String -Quiet 'Summary: 9 Passed, 0 Failed') -or
+          if ($probeExit -ne 0 -or -not ($result | Select-String -Quiet 'Summary: 11 Passed, 0 Failed') -or
               -not (Test-Path -LiteralPath $fixture)) {
             Write-Host '::error::No same-run original About resource golden is available.'
             exit 1
@@ -84,9 +84,9 @@ jobs:
           $httpExit = $LASTEXITCODE
           $http | Write-Host
           if ($httpExit -ne 0 -or
-              -not ($http | Select-String -Quiet 'Summary: 21 Passed, 0 Failed') -or
+              -not ($http | Select-String -Quiet 'Summary: 22 Passed, 0 Failed') -or
               -not ($http | Select-String -Quiet '\[ORIGINAL-COMPARED\] 7 public About labels')) {
             Write-Host '::error::New public About GET did not match pinned original labels; NO full-HTML parity claimed.'
             exit 1
           }
-          Write-Host '::notice::ARIA ABOUT | original DLL 7/7 public labels + 2/2 public vendor image pixel sets -> same-run real net10 Kestrel/Razor GET/assets with 21/21 Web checks. Original HTML/layout/MyBanner action/customer LogoPath, password, SQL, IIS, load and release parity NOT tested.'
+          Write-Host '::notice::ARIA ABOUT | original DLL 7 public labels + 2 vendor image resources + 2 direct MyBanner action results (11/11) -> same-run real net10 Kestrel/Razor GET/assets with 22/22 Web checks. Original HTTP/layout/customer LogoPath, password, SQL, IIS, load and release parity NOT tested.'

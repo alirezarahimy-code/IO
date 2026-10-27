@@ -53,14 +53,14 @@ internal static class Program
             Console.WriteLine("[ORIGINAL-PASS] public About resource " + key);
         }
         File.WriteAllLines(args[1], lines.ToArray(), new UTF8Encoding(false));
-        CheckImage(original, "Arm", args[2], 295, 55);
-        CheckImage(original, "logo1", args[3], 994, 720);
-        Console.WriteLine("Summary: 9 Passed, 0 Failed (seven original About labels, two vendor image pixel sets; no original HTTP)");
+        CheckImage(original, "Arm", args[2], 2, 295, 55);
+        CheckImage(original, "logo1", args[3], 3, 994, 720);
+        Console.WriteLine("Summary: 11 Passed, 0 Failed (seven About labels, two image resources and two original MyBanner(2/3) action results; no original HTTP)");
         return 0;
     }
 
     private static void CheckImage(Assembly original, string key, string copiedAsset,
-        int expectedWidth, int expectedHeight)
+        int index, int expectedWidth, int expectedHeight)
     {
         Type images = original.GetType("MyTime3.Content.ImagesResource", true);
         PropertyInfo property = images.GetProperty(key, BindingFlags.Public | BindingFlags.Static);
@@ -77,8 +77,55 @@ internal static class Program
                 for (int x = 0; x < expectedWidth; x++)
                     if (originalImage.GetPixel(x, y).ToArgb() != servedImage.GetPixel(x, y).ToArgb())
                         throw new InvalidOperationException("Original-vs-offline image pixel mismatch: " + key);
+            Console.WriteLine("[ORIGINAL-PASS] public vendor image pixels " + key +
+                " (copied asset, not customer LogoPath)");
+
+            // Call ONLY the public original image action for these two fixed
+            // vendor-resource indices, NOT the customer LogoPath case (1).
+            // This is a Framework action-result golden, NOT an HTTP/IIS test.
+            byte[] response = InvokeOriginalBanner(original, index);
+            using (var stream = new MemoryStream(response, false))
+            using (var actionImage = new Bitmap(stream))
+            {
+                if (actionImage.Width != expectedWidth || actionImage.Height != expectedHeight)
+                    throw new InvalidOperationException("Original MyBanner dimension drift: " + index);
+                for (int y = 0; y < expectedHeight; y++)
+                    for (int x = 0; x < expectedWidth; x++)
+                        if (actionImage.GetPixel(x, y).ToArgb() != servedImage.GetPixel(x, y).ToArgb())
+                            throw new InvalidOperationException("Original-action-vs-net10 image pixel mismatch: " + index);
+            }
+            Console.WriteLine("[ORIGINAL-PASS] public MyBanner(" + index +
+                ") returned image/png with matching pixels (action result, no HTTP)");
         }
-        Console.WriteLine("[ORIGINAL-PASS] public vendor image pixels " + key +
-            " (copied asset, not customer LogoPath)");
+    }
+
+    private static byte[] InvokeOriginalBanner(Assembly original, int index)
+    {
+        if (index != 2 && index != 3)
+            throw new ArgumentOutOfRangeException("index", "Never access the customer's LogoPath");
+        Type controllerType = original.GetType("MyTime3.Controllers.HomeController", true);
+        MethodInfo banner = controllerType.GetMethod("MyBanner", new Type[] { typeof(int) });
+        if (banner == null || !banner.IsPublic)
+            throw new MissingMethodException(controllerType.FullName, "MyBanner");
+        object controller = Activator.CreateInstance(controllerType);
+        try
+        {
+            object result = banner.Invoke(controller, new object[] { index });
+            PropertyInfo bytesProperty = result.GetType().GetProperty("FileContents");
+            PropertyInfo mimeProperty = result.GetType().GetProperty("ContentType");
+            if (bytesProperty == null || mimeProperty == null ||
+                (string)mimeProperty.GetValue(result, null) != "image/png")
+                throw new InvalidOperationException("Original public image action did not return PNG.");
+            byte[] content = bytesProperty.GetValue(result, null) as byte[];
+            if (content == null || content.Length < 100 || content.Length > 250000 ||
+                content[0] != 0x89 || content[1] != 0x50 || content[2] != 0x4e || content[3] != 0x47)
+                throw new InvalidOperationException("Unexpected original public image action payload.");
+            return content;
+        }
+        finally
+        {
+            IDisposable cleanup = controller as IDisposable;
+            if (cleanup != null) cleanup.Dispose();
+        }
     }
 }
