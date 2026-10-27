@@ -59,7 +59,7 @@ internal static class OriginalAttendanceInterval
                 object second = constructor.Invoke(new object[] { sample.C, sample.D });
                 bool value = (bool)intersects.Invoke(null, new object[] { first, second });
                 results.Add("\"" + sample.Name + "\":" + (value ? "true" : "false"));
-                Console.WriteLine("::notice::Original Aria attendance overlap " + sample.Name + "=" + value);
+                Console.WriteLine("[ORIGINAL] Aria attendance overlap " + sample.Name + "=" + value);
                 if ((sample.Name == "overlap" || sample.Name == "same" ||
                      sample.Name == "contained" || sample.Name == "overnight") && !value)
                     throw new InvalidOperationException("Original positive interval case changed");
@@ -82,7 +82,7 @@ internal static class OriginalAttendanceInterval
                 object boundary = constructor.Invoke(new object[] { sample.From, sample.To });
                 bool value = (bool)isIn.Invoke(boundary, new object[] { sample.Moment });
                 containsResults.Add("\"" + sample.Name + "\":" + (value ? "true" : "false"));
-                Console.WriteLine("::notice::Original Aria attendance IsIn " + sample.Name + "=" + value);
+                Console.WriteLine("[ORIGINAL] Aria attendance IsIn " + sample.Name + "=" + value);
                 if (value != sample.Expected)
                     throw new InvalidOperationException("Original time containment case changed");
             }

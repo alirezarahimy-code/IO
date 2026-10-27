@@ -222,11 +222,11 @@ jobs:
           diagnose attendance-restore dotnet restore "$attendance" --configfile src/net10/nuget.offline.config -v minimal
           diagnose attendance-build dotnet build "$attendance" -c Release --no-restore -v minimal
           diagnose attendance-snapshot dotnet run --project "$attendance" -c Release --no-build --no-restore
-          if ! grep -q 'Summary: 11 Passed, 0 Failed' "$logdir/aria-core-attendance-snapshot.log"; then
-            echo '::error::Aria pure interval snapshot check did not report all 11 bounded tests.'
+          if ! grep -q 'Summary: 18 Passed, 0 Failed' "$logdir/aria-core-attendance-snapshot.log"; then
+            echo '::error::Aria pure interval snapshot check did not report all 18 bounded tests.'
             exit 1
           fi
-          echo "::notice::ARIA CORE net10.0 | 19 linked TWF sources + 5 owned files | 14/14 prior core cases + 11/11 original-derived fixed interval SNAPSHOT/port-only safety cases | $RUNNER_OS | same-run attendance original is separately executed in Windows x86 golden CI; NOT native attendance engine, SQL, web or IIS parity"
+          echo "::notice::ARIA CORE net10.0 | 19 linked TWF sources + 5 owned files | 14/14 prior core cases + 18/18 original-derived fixed intersection/IsIn SNAPSHOT and port-only guards | $RUNNER_OS | same-run attendance original is separately executed in Windows x86 golden CI; NOT native attendance engine, SQL, web or IIS parity"
 
   aria-web:
     name: Aria Core Razor net10.0 + 22 HTTP/security and public About route checks (${{ matrix.os }})

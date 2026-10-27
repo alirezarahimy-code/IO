@@ -28,5 +28,20 @@ namespace Aria.Core.Compatibility
                     "interval");
             return firstStart <= secondEnd && secondStart <= firstEnd;
         }
+
+        /// <summary>
+        /// Closed point containment for the seven original-pinned bounded
+        /// samples, including start/end and a zero-length point. This does not
+        /// normalize overnight or calendar dates and is NOT a leave decision.
+        /// </summary>
+        public static bool IsIn(DateTime start, DateTime end, DateTime moment)
+        {
+            if (end < start)
+                throw new ArgumentOutOfRangeException("interval", "Start must not exceed end.");
+            if (start.Kind != end.Kind || start.Kind != moment.Kind)
+                throw new ArgumentException("All timestamps must use the same clock kind.",
+                    "interval");
+            return moment >= start && moment <= end;
+        }
     }
 }

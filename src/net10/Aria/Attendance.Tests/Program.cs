@@ -2,9 +2,10 @@ using System.Text.Json;
 using Aria.Core.Compatibility;
 
 // Never synthesize an "original" expected result here. The tracked snapshot
-// contains only the 8 fixed boolean outputs observed in original-binary CI
-// 40516364457. Windows golden re-executes the pinned TWF 4.28 x86 DLL and
-// compares this snapshot + the adapter to its same-run output. Portable tests
+// contains only 8 fixed overlap booleans observed in original-binary CI
+// 40516364457 and 7 IsIn booleans from 40522724756. Windows golden re-executes
+// the pinned TWF 4.28 x86 DLL and compares this snapshot + the adapter to its
+// same-run output. Portable tests
 // use the snapshot alone; they are NOT an executable original parity claim.
 if (args.Length > 1 || (args.Length == 1 && !File.Exists(args[0])))
     throw new ArgumentException("Pass zero args (pinned snapshot), or one same-run original fixture.");
@@ -19,8 +20,12 @@ if (root.GetProperty("source_sha256").GetString() != sha ||
     snapshotDocument.RootElement.GetProperty("scope").GetString() != "SYNTHETIC_PURE_ORIGINAL_X86")
     throw new InvalidOperationException("Refusing a non-pinned/non-synthetic attendance fixture.");
 var observed = root.GetProperty("cases");
-if (observed.ValueKind != JsonValueKind.Object || observed.EnumerateObject().Count() != 8)
-    throw new InvalidOperationException("The original must provide exactly eight fixed cases.");
+var containment = root.GetProperty("contains");
+var savedContainment = snapshotDocument.RootElement.GetProperty("contains");
+if (observed.ValueKind != JsonValueKind.Object || observed.EnumerateObject().Count() != 8 ||
+    containment.ValueKind != JsonValueKind.Object || containment.EnumerateObject().Count() != 7 ||
+    savedContainment.ValueKind != JsonValueKind.Object || savedContainment.EnumerateObject().Count() != 7)
+    throw new InvalidOperationException("The original must provide eight overlaps and seven containment cases.");
 int passed = 0, failed = 0;
 void Run(string name, Action test)
 {
@@ -35,7 +40,7 @@ void Run(string name, Action test)
 }
 void Compare(string name, DateTime a, DateTime b, DateTime c, DateTime d)
 {
-    Run("AR-ATT-" + (passed + failed + 1).ToString("D2") + ": original-derived sample " + name, () =>
+    Run("AR-ATT-" + (passed + failed + 1).ToString("D2") + ": original-derived overlap " + name, () =>
     {
         bool expected = observed.GetProperty(name).GetBoolean();
         bool snapshotValue = snapshotDocument.RootElement.GetProperty("cases")
@@ -43,6 +48,18 @@ void Compare(string name, DateTime a, DateTime b, DateTime c, DateTime d)
         bool actual = OriginalAttendanceInterval.HaveIntersection(a, b, c, d);
         if (snapshotValue != expected || actual != expected)
             throw new InvalidOperationException("Interval golden/snapshot mismatch.");
+    });
+}
+void CompareIsIn(string name, DateTime from, DateTime to, DateTime moment)
+{
+    Run("AR-ATT-" + (passed + failed + 1).ToString("D2") + ": original-derived IsIn " + name, () =>
+    {
+        bool expected = root.GetProperty("contains").GetProperty(name).GetBoolean();
+        bool snapshotValue = snapshotDocument.RootElement.GetProperty("contains")
+            .GetProperty(name).GetBoolean();
+        if (snapshotValue != expected ||
+            OriginalAttendanceInterval.IsIn(from, to, moment) != expected)
+            throw new InvalidOperationException("IsIn golden/snapshot mismatch.");
     });
 }
 DateTime day = new(2026, 10, 27, 0, 0, 0, DateTimeKind.Unspecified);
@@ -56,7 +73,14 @@ Compare("zero_inside", day.AddHours(9), day.AddHours(12), day.AddHours(10), day.
 Compare("zero_touch", day.AddHours(9), day.AddHours(10), day.AddHours(10), day.AddHours(10));
 Compare("overnight", day.AddHours(23.5), next.AddHours(0.5),
     next.AddHours(0.25), next.AddHours(1));
-Run("AR-ATT-09: inverted interval rejected (port-only safety, not original parity)", () =>
+CompareIsIn("before", day.AddHours(9), day.AddHours(10), day.AddHours(9).AddTicks(-1));
+CompareIsIn("start", day.AddHours(9), day.AddHours(10), day.AddHours(9));
+CompareIsIn("inside", day.AddHours(9), day.AddHours(10), day.AddHours(9.5));
+CompareIsIn("end", day.AddHours(9), day.AddHours(10), day.AddHours(10));
+CompareIsIn("after", day.AddHours(9), day.AddHours(10), day.AddHours(10).AddTicks(1));
+CompareIsIn("zero", day.AddHours(10), day.AddHours(10), day.AddHours(10));
+CompareIsIn("overnight", day.AddHours(23.5), next.AddHours(0.5), next.AddHours(0.25));
+Run("AR-ATT-16: inverted interval rejected (port-only safety, not original parity)", () =>
 {
     try
     {
@@ -66,7 +90,7 @@ Run("AR-ATT-09: inverted interval rejected (port-only safety, not original parit
     }
     catch (ArgumentOutOfRangeException) { }
 });
-Run("AR-ATT-10: mixed clock kinds rejected (port-only safety, not original parity)", () =>
+Run("AR-ATT-17: mixed clock kinds rejected (port-only safety, not original parity)", () =>
 {
     try
     {
@@ -77,7 +101,7 @@ Run("AR-ATT-10: mixed clock kinds rejected (port-only safety, not original parit
     }
     catch (ArgumentException) { }
 });
-Run("AR-ATT-11: valid interval symmetry (port-only property, not original parity)", () =>
+Run("AR-ATT-18: valid interval symmetry (port-only property, not original parity)", () =>
 {
     bool left = OriginalAttendanceInterval.HaveIntersection(day, day.AddHours(10),
         day.AddHours(10), day.AddHours(11));
@@ -86,6 +110,6 @@ Run("AR-ATT-11: valid interval symmetry (port-only property, not original parity
     if (left != right) throw new InvalidOperationException("Asymmetric closed intervals.");
 });
 Console.WriteLine($"Summary: {passed} Passed, {failed} Failed; " +
-    $"{(args.Length == 1 ? "same-run original" : "tracked original-derived snapshot")} 8 bounded pure samples, " +
-    "port-only safety 3; no attendance workflow parity");
-return failed == 0 && passed == 11 ? 0 : 1;
+    $"{(args.Length == 1 ? "same-run original" : "tracked original-derived snapshot")} " +
+    "8 overlaps + 7 IsIn cases, port-only safety 3; no attendance workflow parity");
+return failed == 0 && passed == 18 ? 0 : 1;

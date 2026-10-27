@@ -10,5 +10,14 @@
     "zero_inside": true,
     "zero_touch": true,
     "overnight": true
+  },
+  "contains": {
+    "before": false,
+    "start": true,
+    "inside": true,
+    "end": true,
+    "after": false,
+    "zero": true,
+    "overnight": true
   }
 }

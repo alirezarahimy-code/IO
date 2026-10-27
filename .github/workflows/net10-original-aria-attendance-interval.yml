@@ -70,7 +70,7 @@ jobs:
           $output = @(& dotnet run --project $tests -c Release --no-build --no-restore -- $fixture)
           $code = $LASTEXITCODE
           $output | Write-Host
-          if ($code -ne 0 -or !($output | Select-String -Quiet 'Summary: 11 Passed, 0 Failed')) {
+          if ($code -ne 0 -or !($output | Select-String -Quiet 'Summary: 18 Passed, 0 Failed')) {
             Write-Host '::error::Bounded TWF 4.28 attendance interval golden mismatch; no leave/duty workflow parity.'; exit 1
           }
-          Write-Host '::notice::Same-run SHA-pinned TWF original x86 8/8 intersections PLUS 7/7 IsIn observations (IsIn port pending); net10 C# 7.3 intersection adapter 11/11 (3 port-only safety). NO request persistence, attendance engine, SQL Server 2016, original HTTP, IIS or 100-user load.'
+          Write-Host '::notice::Same-run SHA-pinned TWF original x86 8/8 intersections + 7/7 IsIn; net10 C# 7.3 adapter 18/18 (3 port-only safety). NO request persistence, attendance engine, SQL Server 2016, original HTTP, IIS or 100-user load.'
