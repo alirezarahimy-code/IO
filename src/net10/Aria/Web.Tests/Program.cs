@@ -282,10 +282,31 @@ internal static class Program
                         "no fixture credential echo");
                 }
             });
+            await Check("AR-WEB-18: no fake logout or legacy-cookie continuation", async () =>
+            {
+                // Logout must eventually revoke a fresh session, not just return
+                // success or expire an unauthenticated legacy DES cookie. Until
+                // approved, NO logout endpoint is published in the new host.
+                foreach (HttpMethod method in new[] { HttpMethod.Get, HttpMethod.Post })
+                {
+                    using var request = new HttpRequestMessage(method, "/Login/Logout");
+                    request.Headers.TryAddWithoutValidation("X-Synthetic-Session", "synthetic-valid");
+                    request.Headers.TryAddWithoutValidation("Cookie", "mytimeauth=FIXED_INVALID_LEGACY_FIXTURE");
+                    using var response = await client.SendAsync(request);
+                    Require(response.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.MethodNotAllowed,
+                        method + " must not pretend to sign out");
+                    Require(!response.Headers.TryGetValues("Set-Cookie", out _) &&
+                        response.Headers.TryGetValues("Cache-Control", out var cache) &&
+                        cache.Contains("no-store"), "no fake session expiry or cacheable response");
+                    string body = await response.Content.ReadAsStringAsync();
+                    Require(!body.Contains("FIXED_INVALID_LEGACY_FIXTURE", StringComparison.Ordinal),
+                        "no old token echoed");
+                }
+            });
         }
 
         Console.WriteLine($"Summary: {_passed} Passed, {_failed} Failed (net10.0 Aria Kestrel/Razor synthetic only)");
-        return _passed == 17 && _failed == 0 ? 0 : 1;
+        return _passed == 18 && _failed == 0 ? 0 : 1;
     }
 
     private static async Task<HttpClient> Start(WebApplication app)

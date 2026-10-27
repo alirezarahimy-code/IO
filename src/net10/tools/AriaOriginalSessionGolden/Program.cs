@@ -10,11 +10,14 @@ using System.Web.Routing;
 // never prints their values, reuses a real cookie, calls Login, SQL or Settings,
 // starts IIS, or copies original encryption into the net10 product. Route and
 // action-attribute checks below are in-memory metadata, NOT HTTP execution.
+// Logout is invoked on synthetic HttpContextWrapper only; browser behavior and
+// server-side session revocation are not inferred from response cookie expiry.
 internal static class Program
 {
     private static int _passed;
     private static MethodInfo _encrypt;
     private static MethodInfo _getRole;
+    private static MethodInfo _logout;
     private static MethodInfo _getBadge;
     private static MethodInfo _isExpired;
     private static MethodInfo _authorize;
@@ -43,6 +46,8 @@ internal static class Program
         _encrypt = Required(encryption, "Encrypt", BindingFlags.Public | BindingFlags.Static,
             new Type[] { typeof(string) });
         _getRole = Required(login, "GetRole", BindingFlags.Public | BindingFlags.Static,
+            new Type[] { typeof(HttpContextBase) });
+        _logout = Required(login, "Logout", BindingFlags.Public | BindingFlags.Static,
             new Type[] { typeof(HttpContextBase) });
         _getBadge = Required(login, "GetBadgeNumber", BindingFlags.Public | BindingFlags.Static,
             new Type[] { typeof(HttpContextBase) });
@@ -83,9 +88,10 @@ internal static class Program
         CheckOriginalDefaultRoute(original);
         CheckOriginalLoginMetadata(original);
         CheckOriginalUnauthorizedRedirect();
+        CheckOriginalLogout();
 
         Console.WriteLine("Summary: " + _passed + " Passed, 0 Failed (original TWF 4.28 binary; in-memory cookie/route metadata only)");
-        return _passed == 13 ? 0 : 1;
+        return _passed == 15 ? 0 : 1;
     }
 
     private static MethodInfo Required(Type type, string name, BindingFlags flags, Type[] arguments)
@@ -206,5 +212,28 @@ internal static class Program
             throw new InvalidOperationException("AR-ORIG-ROUTE-13: original redirect target differs.");
         _passed++;
         Console.WriteLine("[ORIGINAL-PASS] AR-ORIG-ROUTE-13 filter redirects unauthorized to local login");
+    }
+
+    private static void CheckOriginalLogout()
+    {
+        // Verify the original only against disposable Framework request/response
+        // objects. No real cookie, password, IIS request or server-side store.
+        HttpContextBase anonymous = Context(null);
+        _logout.Invoke(null, new object[] { anonymous });
+        if (anonymous.Response.Cookies.Get("mytimeauth") != null)
+            throw new InvalidOperationException("AR-ORIG-SESSION-14: absent request cookie caused a logout response cookie.");
+        _passed++;
+        Console.WriteLine("[ORIGINAL-PASS] AR-ORIG-SESSION-14 no request cookie: logout does not emit a cookie");
+
+        HttpContextBase withCookie = Token(DateTime.Now.AddMinutes(-2), "4242", "user");
+        _logout.Invoke(null, new object[] { withCookie });
+        HttpCookie responseCookie = withCookie.Response.Cookies.Get("mytimeauth");
+        if (responseCookie == null || responseCookie.Expires > DateTime.Now.AddHours(-23) ||
+            (string)_getRole.Invoke(null, new object[] { withCookie }) != "user")
+            throw new InvalidOperationException("AR-ORIG-SESSION-15: logout cookie expiry/request state differs.");
+        // Request.Cookies still contains the same submitted token in this
+        // in-memory request. Browser deletion and server revocation are NOT proved.
+        _passed++;
+        Console.WriteLine("[ORIGINAL-PASS] AR-ORIG-SESSION-15 response cookie expires; request token remains readable");
     }
 }
