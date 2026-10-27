@@ -176,7 +176,7 @@ await Run("AA-DIR-06: request cancellation propagates and disposes the person co
     Require(p.WasDisposed && t5Calls == 0, "do not open T5 on cancelled request");
 });
 
-await Run("AA-DIR-07: UPN and bound adversarial login never become SQL text", async () =>
+await Run("AA-DIR-07: legacy name shapes and bound adversarial account never become SQL text", async () =>
 {
     foreach (var name in new[] { @"DOMAIN\", "@domain", "fixture@one@two", "fixture@", "\r\n", "" })
     {
@@ -204,7 +204,7 @@ await Run("AA-DIR-07: UPN and bound adversarial login never become SQL text", as
         "fixed fake rows make this a binding test ONLY, not a real identity check");
     Require(!p.Commands.Single().CommandText.Contains(adversarial) &&
         p.Commands.Single().Parameters["@UserName"].Value is string boundAdversarial && boundAdversarial == adversarial,
-        "SQL command text must never concatenate untrusted Windows identity");
+        "SQL command text must never concatenate an account name");
 });
 
 await Run("AA-DIR-08: test-only SQL seam reaches HTTP gate but never fake operational data", async () =>
@@ -275,10 +275,12 @@ Console.WriteLine($"Summary: {passed} Passed, {failed} Failed");
 return failed == 0 ? 0 : 1;
 
 // This header source is in Directory.Tests ONLY. Published Web DI still uses
-// IisWindowsIdentitySource + UnavailableAdminDirectory (no test header path).
+// UnavailableSharedAccountSource + UnavailableAdminDirectory (no test header path).
 internal sealed class DirectoryTestIdentitySource : IAdminIdentitySource
 {
-    public string? GetWindowsUser(HttpContext context) =>
-        context.Request.Headers.TryGetValue("X-Directory-Test-Identity", out var value)
-            ? value.ToString() : null;
+    public Task<AccountResolution> ResolveAsync(HttpContext context, CancellationToken cancellationToken) =>
+        Task.FromResult(context.Request.Headers.TryGetValue("X-Directory-Test-Identity", out var value) &&
+            !string.IsNullOrWhiteSpace(value.ToString())
+                ? AccountResolution.Verified(value.ToString())
+                : AccountResolution.Anonymous());
 }

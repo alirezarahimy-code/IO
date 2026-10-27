@@ -2,23 +2,29 @@ using T5Web.Domain.Models;
 
 namespace AriaAdmin.Web.Security;
 
-// Only the IIS/Windows principal supplied by the web host is trusted in production.
-// There is deliberately no request-header, password, cookie or environment bypass.
-public interface IAdminIdentitySource
+// Final identity must come from the SAME verified user/account used by the
+// existing system, not a second Admin or Windows password. The source must
+// never treat a request header, raw name or an unverified cookie as proof.
+// The original three-application credential/session contract is not verified
+// yet, so the publishable implementation always reports Unavailable.
+public enum AccountState { Unavailable, Anonymous, Verified }
+
+public sealed record AccountResolution(AccountState State, string? AccountName)
 {
-    string? GetWindowsUser(HttpContext context);
+    public static AccountResolution Unavailable() => new(AccountState.Unavailable, null);
+    public static AccountResolution Anonymous() => new(AccountState.Anonymous, null);
+    public static AccountResolution Verified(string accountName) => new(AccountState.Verified, accountName);
 }
 
-internal sealed class IisWindowsIdentitySource : IAdminIdentitySource
+public interface IAdminIdentitySource
 {
-    public string? GetWindowsUser(HttpContext context)
-    {
-        var identity = context.User.Identity;
-        if (identity?.IsAuthenticated != true || string.IsNullOrWhiteSpace(identity.Name)) return null;
-        // Do not accept Basic/cookie/JWT identities in a Windows-auth-only product.
-        if (identity.AuthenticationType is not ("Negotiate" or "Kerberos" or "NTLM" or "Windows")) return null;
-        return identity.Name;
-    }
+    Task<AccountResolution> ResolveAsync(HttpContext context, CancellationToken cancellationToken);
+}
+
+internal sealed class UnavailableSharedAccountSource : IAdminIdentitySource
+{
+    public Task<AccountResolution> ResolveAsync(HttpContext context, CancellationToken cancellationToken) =>
+        Task.FromResult(AccountResolution.Unavailable());
 }
 
 public enum DirectoryState { Unavailable, Denied, Allowed }
@@ -32,14 +38,16 @@ public sealed record DirectoryResolution(DirectoryState State, AdminSession? Ses
 
 public interface IAdminDirectory
 {
-    Task<DirectoryResolution> ResolveAsync(string windowsName, CancellationToken cancellationToken);
+    // The name may ONLY be obtained after the shared-account verifier succeeds.
+    // This directory checks roles/availability; it does not verify a password.
+    Task<DirectoryResolution> ResolveAsync(string verifiedAccountName, CancellationToken cancellationToken);
 }
 
-// No SQL provider has been approved from an offline local feed yet. Every
-// authenticated production request fails 503 instead of guessing access rights.
+// No SQL provider or verified shared-account login contract has been approved
+// yet. Production cannot infer a user's permissions from an unverified name.
 internal sealed class UnavailableAdminDirectory : IAdminDirectory
 {
-    public Task<DirectoryResolution> ResolveAsync(string windowsName, CancellationToken cancellationToken) =>
+    public Task<DirectoryResolution> ResolveAsync(string verifiedAccountName, CancellationToken cancellationToken) =>
         Task.FromResult(DirectoryResolution.Unavailable());
 }
 

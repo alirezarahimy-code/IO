@@ -99,8 +99,13 @@ jobs:
           fi
           sdk=$(dotnet --list-sdks | grep '^10\.0\.' | head -n 1)
           echo "::notice::ARIA_ADMIN CORE WEB | preinstalled $sdk | RazorBuild=true | offline NuGet | $RUNNER_OS"
-          if grep -R 'X-Synthetic-Identity' src/net10/AriaAdmin/Web/ --include='*.cs'; then
+          if grep -RE 'X-(Synthetic-Identity|Directory-Test-Identity)' src/net10/AriaAdmin/Web/ --include='*.cs'; then
             echo '::error::Test header leaked into publishable production Web code.'
+            exit 1
+          fi
+          if grep -RE 'WWW-Authenticate|IisWindowsIdentitySource|GetWindowsUser' \
+              src/net10/AriaAdmin/Web/ --include='*.cs'; then
+            echo '::error::An unverified Windows-only login or second credential prompt entered Admin Web.'
             exit 1
           fi
           logdir=$(mktemp -d)
@@ -356,8 +361,9 @@ jobs:
             echo '::error::Directory test must use preinstalled framework APIs, not an unapproved SQL provider.'
             exit 1
           fi
-          if ! grep -Fq 'AddSingleton<IAdminDirectory, UnavailableAdminDirectory>()' src/net10/AriaAdmin/Web/Program.cs; then
-            echo '::error::Production Admin directory must stay fail-closed until provider, original auth and SQL gates are authorized.'
+          if ! grep -Fq 'AddSingleton<IAdminDirectory, UnavailableAdminDirectory>()' src/net10/AriaAdmin/Web/Program.cs ||
+             ! grep -Fq 'AddSingleton<IAdminIdentitySource, UnavailableSharedAccountSource>()' src/net10/AriaAdmin/Web/Program.cs; then
+            echo '::error::Production Admin must stay fail-closed until the shared login and original auth/SQL gates are verified.'
             exit 1
           fi
           logdir=$(mktemp -d)

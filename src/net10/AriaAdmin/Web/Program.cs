@@ -19,7 +19,10 @@ internal static class Program
         };
         var builder = WebApplication.CreateBuilder(options);
         builder.Services.AddControllersWithViews().AddApplicationPart(typeof(Program).Assembly);
-        builder.Services.AddSingleton<IAdminIdentitySource, IisWindowsIdentitySource>();
+        // Shared application credentials have not yet been verified against the
+        // original three-application login contract. Never prompt for a separate
+        // Windows/Admin password or infer identity from a request header.
+        builder.Services.AddSingleton<IAdminIdentitySource, UnavailableSharedAccountSource>();
         builder.Services.AddSingleton<IAdminDirectory, UnavailableAdminDirectory>();
         testOverrides?.Invoke(builder.Services);
 
@@ -52,19 +55,45 @@ internal static class Program
                 return;
             }
 
-            string? windowsUser = context.RequestServices
-                .GetRequiredService<IAdminIdentitySource>().GetWindowsUser(context);
-            if (string.IsNullOrWhiteSpace(windowsUser))
+            AccountResolution account;
+            try
             {
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                context.Response.Headers["WWW-Authenticate"] = "Negotiate";
+                account = await context.RequestServices.GetRequiredService<IAdminIdentitySource>()
+                    .ResolveAsync(context, context.RequestAborted);
+            }
+            catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception)
+            {
+                account = AccountResolution.Unavailable();
+            }
+            if (account == null || account.State == AccountState.Unavailable)
+            {
+                context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+                context.Response.ContentType = "text/plain; charset=utf-8";
+                await context.Response.WriteAsync("ورود مشترک سامانه هنوز به‌صورت ایمن فراهم نیست.");
                 return;
             }
+            if (account.State == AccountState.Anonymous)
+            {
+                // A future shared-account verifier can return 401 without asking
+                // the browser for an unrelated Windows/Negotiate credential.
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return;
+            }
+            if (account.State != AccountState.Verified || string.IsNullOrWhiteSpace(account.AccountName))
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return;
+            }
+
             DirectoryResolution decision;
             try
             {
                 decision = await context.RequestServices.GetRequiredService<IAdminDirectory>()
-                    .ResolveAsync(windowsUser, context.RequestAborted);
+                    .ResolveAsync(account.AccountName, context.RequestAborted);
             }
             catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
             {

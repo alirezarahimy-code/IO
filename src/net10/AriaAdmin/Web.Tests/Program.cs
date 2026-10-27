@@ -35,11 +35,14 @@ internal static class Program
                 Require(body.Contains("alive", StringComparison.Ordinal), "health payload");
                 Require(!body.Contains("connection", StringComparison.OrdinalIgnoreCase), "no config disclosure");
             });
-            await Check("AA-WEB-02: spoofed identity header cannot bypass production gate", async () =>
+            await Check("AA-WEB-02: production never requests a second Windows password", async () =>
             {
                 using var response = await Send(client, "/Dashboard/Index", "synthetic-admin");
-                Equal(HttpStatusCode.Unauthorized, response.StatusCode, "prod route must challenge");
-                Require(response.Headers.WwwAuthenticate.Any(x => x.Scheme == "Negotiate"), "Windows challenge");
+                Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode, "unverified shared login must fail closed");
+                Require(!response.Headers.WwwAuthenticate.Any(), "no separate Windows/Negotiate credential challenge");
+                string body = await response.Content.ReadAsStringAsync();
+                Require(body.Contains("ورود مشترک", StringComparison.Ordinal) &&
+                    !body.Contains("synthetic-admin", StringComparison.Ordinal), "no synthetic header bypass or identity disclosure");
             });
             await Check("AA-WEB-03: no-access Core Razor page, UTF-8 RTL, offline assets", async () =>
             {
@@ -75,7 +78,8 @@ internal static class Program
             await Check("AA-WEB-05: anonymous never reaches a controller", async () =>
             {
                 using var response = await Send(client, "/");
-                Equal(HttpStatusCode.Unauthorized, response.StatusCode, "anonymous root");
+                Equal(HttpStatusCode.Unauthorized, response.StatusCode, "anonymous test-only source");
+                Require(!response.Headers.WwwAuthenticate.Any(), "no second Windows password prompt");
             });
             await Check("AA-WEB-06: unknown/disabled identities are forbidden", async () =>
             {
@@ -207,19 +211,21 @@ internal static class Program
 // These classes are compiled ONLY into AriaAdmin.Web.Tests, never into Web/publish.
 internal sealed class HeaderIdentitySource : IAdminIdentitySource
 {
-    public string? GetWindowsUser(HttpContext context) =>
-        context.Request.Headers.TryGetValue("X-Synthetic-Identity", out var identity)
-            ? identity.ToString() : null;
+    public Task<AccountResolution> ResolveAsync(HttpContext context, CancellationToken cancellationToken) =>
+        Task.FromResult(context.Request.Headers.TryGetValue("X-Synthetic-Identity", out var identity) &&
+            !string.IsNullOrWhiteSpace(identity.ToString())
+                ? AccountResolution.Verified(identity.ToString())
+                : AccountResolution.Anonymous());
 }
 
 internal sealed class SyntheticDirectory : IAdminDirectory
 {
-    public Task<DirectoryResolution> ResolveAsync(string windowsName, CancellationToken cancellationToken)
+    public Task<DirectoryResolution> ResolveAsync(string verifiedAccountName, CancellationToken cancellationToken)
     {
-        if (windowsName == "synthetic-error") throw new InvalidOperationException("CI_EXCEPTION_MARKER");
-        if (windowsName.StartsWith("synthetic-load-", StringComparison.Ordinal))
+        if (verifiedAccountName == "synthetic-error") throw new InvalidOperationException("CI_EXCEPTION_MARKER");
+        if (verifiedAccountName.StartsWith("synthetic-load-", StringComparison.Ordinal))
         {
-            string[] parts = windowsName.Split('-');
+            string[] parts = verifiedAccountName.Split('-');
             if (parts.Length != 4 || !int.TryParse(parts[3], out int seed) || seed is < 0 or >= 100)
                 return Task.FromResult(DirectoryResolution.Denied());
             string mode = parts[2];
@@ -234,13 +240,13 @@ internal sealed class SyntheticDirectory : IAdminDirectory
             if (mode is "admin" or "zero") session.Grant(AdminFeature.PortalAdmin, AccessLevel.Allow);
             return Task.FromResult(DirectoryResolution.Allowed(session));
         }
-        if (windowsName is "synthetic-disabled" or "synthetic-unknown")
+        if (verifiedAccountName is "synthetic-disabled" or "synthetic-unknown")
             return Task.FromResult(DirectoryResolution.Denied());
-        if (windowsName is "synthetic-admin" or "synthetic-viewer")
+        if (verifiedAccountName is "synthetic-admin" or "synthetic-viewer")
         {
             var session = new AdminSession { BadgeNumber = 1001, DisplayName = "اپراتور ساختگی" };
             session.Grant(AdminFeature.PersonnelView, AccessLevel.ReadOnly);
-            if (windowsName == "synthetic-admin") session.Grant(AdminFeature.PortalAdmin, AccessLevel.Allow);
+            if (verifiedAccountName == "synthetic-admin") session.Grant(AdminFeature.PortalAdmin, AccessLevel.Allow);
             return Task.FromResult(DirectoryResolution.Allowed(session));
         }
         return Task.FromResult(DirectoryResolution.Denied());

@@ -36,10 +36,10 @@ internal sealed class ReadOnlySqlDirectory : IAdminDirectory
         _t5Factory = t5Factory ?? throw new ArgumentNullException(nameof(t5Factory));
     }
 
-    public async Task<DirectoryResolution> ResolveAsync(string windowsName, CancellationToken cancellationToken)
+    public async Task<DirectoryResolution> ResolveAsync(string verifiedAccountName, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        string login = Normalize(windowsName);
+        string login = Normalize(verifiedAccountName);
         if (login.Length == 0) return DirectoryResolution.Denied();
 
         try
@@ -172,7 +172,7 @@ internal sealed class ReadOnlySqlDirectory : IAdminDirectory
         }
         name = name.Trim();
         // The SQL parameter cannot inject SQL, but a malformed/ambiguous
-        // Windows name is still not a safe organizational identity.
+        // account name is still not a safe organizational identity.
         if (name.Length is 0 or > 128 || name.Any(char.IsControl) ||
             name.Contains('\\') || name.Contains('@') || name.Contains('/')) return "";
         return name;
