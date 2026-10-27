@@ -125,9 +125,11 @@ internal static class OriginalSqlGolden
             while (cause is TargetInvocationException && cause.InnerException != null)
                 cause = cause.InnerException;
             // Exception messages can contain connection details: never print them or a stack trace.
-            Console.Error.WriteLine("FAIL at " + stage + "; exception type: " + cause.GetType().FullName);
+            Console.Error.WriteLine("::error title=Original CheckUserPass fixture::FAIL at " + stage +
+                                    "; exception type: " + cause.GetType().FullName);
             if (cause.GetType().FullName == "System.Data.SqlClient.SqlException")
-                Console.Error.WriteLine("SQL error number: " + cause.GetType().GetProperty("Number").GetValue(cause, null));
+                Console.Error.WriteLine("::error::SQL error number: " +
+                                        cause.GetType().GetProperty("Number").GetValue(cause, null));
             return 1;
         }
     }
