@@ -6,8 +6,9 @@ namespace Aria.Web.Data;
 
 /// <summary>
 /// Aria-only, read-only recheck of a previously VERIFIED shared account in the
-/// Personnel catalog. The current TWF rewrite's UserInfo/WebUser/FiredDate
-/// fields are a starting point, NOT original TWF 4.28 authentication parity.
+/// Personnel catalog. The SHA-pinned original TWF 4.28 Personnel.dll's
+/// embedded EDMX maps these fields to dbo.UserInfo (UserName nvarchar(100));
+/// the recheck's eligibility policy is still NOT original runtime auth parity.
 /// No SQL provider/factory is registered in publishable DI. In particular this
 /// code cannot verify a password or confer a T5 managerial role.
 /// </summary>
@@ -17,7 +18,7 @@ internal sealed class ReadOnlyPersonnelDirectory : IAriaPersonnelDirectory
     // NationalNo or contact data, and never interpolate caller input into SQL.
     internal const string PersonSql = """
         SELECT TOP (2) [BadgeNumber], [UserName], [WebUser], [FiredDate]
-        FROM [UserInfo]
+        FROM [dbo].[UserInfo]
         WHERE [BadgeNumber] = @BadgeNumber AND [UserName] = @UserName;
         """;
 
@@ -34,7 +35,7 @@ internal sealed class ReadOnlyPersonnelDirectory : IAriaPersonnelDirectory
         // reject ambiguous names instead of silently trusting an alias.
         if (verifiedAccount is null || verifiedAccount.BadgeNumber <= 0 ||
             string.IsNullOrWhiteSpace(verifiedAccount.AccountName) ||
-            verifiedAccount.AccountName.Length > 128 ||
+            verifiedAccount.AccountName.Length > 100 ||
             verifiedAccount.AccountName != verifiedAccount.AccountName.Trim() ||
             verifiedAccount.AccountName.Any(char.IsControl))
             return PersonnelResolution.Denied();
@@ -53,7 +54,7 @@ internal sealed class ReadOnlyPersonnelDirectory : IAriaPersonnelDirectory
             var login = command.CreateParameter();
             login.ParameterName = "@UserName";
             login.DbType = DbType.String;
-            login.Size = 128;
+            login.Size = 100;
             login.Value = verifiedAccount.AccountName;
             command.Parameters.Add(login);
             using DbDataReader rows = await command.ExecuteReaderAsync(CommandBehavior.SingleResult,

@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Data;
 using System.Net;
+using System.Text.Json;
 using Aria.Web.Data;
 using Aria.Web.Security;
 using Microsoft.AspNetCore.Builder;
@@ -11,9 +12,12 @@ using Microsoft.Extensions.DependencyInjection;
 using TWF.Domain.Models;
 using WebHost = Aria.Web.Program;
 
-if (args.Length != 1 || !File.Exists(Path.Combine(args[0], "Aria.Web.csproj")))
-    throw new ArgumentException("Pass the local Aria Web directory (synthetic-only tests).");
+if ((args.Length != 1 && (args.Length != 3 || args[1] != "--original-personnel-schema")) ||
+    !File.Exists(Path.Combine(args[0], "Aria.Web.csproj")) ||
+    (args.Length == 3 && !File.Exists(args[2])))
+    throw new ArgumentException("Pass Aria Web and optionally a same-run original EDMX fixture.");
 string webRoot = Path.GetFullPath(args[0]);
+string? originalSchemaFixture = args.Length == 3 ? args[2] : null;
 var passed = 0;
 var failed = 0;
 
@@ -58,6 +62,7 @@ await Run("AR-PROFILE-01: bound Personnel-only SELECT for verified account", asy
         command.Parameters["@BadgeNumber"].DbType == DbType.Int64 &&
         command.Parameters["@BadgeNumber"].Value is long badge && badge == 101 &&
         command.Parameters["@UserName"].DbType == DbType.String &&
+        command.Parameters["@UserName"].Size == 100 &&
         command.Parameters["@UserName"].Value is string login && login == "fixture-user",
         "only a fixed projection and bound account parameters, no credential columns");
 });
@@ -70,7 +75,7 @@ await Run("AR-PROFILE-02: invalid account refuses to open Personnel", async () =
         opened++;
         return new TableConnection("Personnel", People());
     });
-    var names = new[] { "", " ", " fixture-user", "fixture-user\r\n", new string('x', 129) };
+    var names = new[] { "", " ", " fixture-user", "fixture-user\r\n", new string('x', 101) };
     foreach (var name in names)
         Require((await directory.RecheckAsync(new VerifiedAriaAccount(name, 101),
             CancellationToken.None)).State == PersonnelState.Denied, "invalid login: " + name);
@@ -79,6 +84,13 @@ await Run("AR-PROFILE-02: invalid account refuses to open Personnel", async () =
             CancellationToken.None)).State == PersonnelState.Denied, "nonpositive badge");
     Require((await directory.RecheckAsync(null!, CancellationToken.None)).State == PersonnelState.Denied &&
         opened == 0, "bad identity must not create a connection");
+    string maxOriginalName = new('u', 100);
+    var bounded = new TableConnection("Personnel", People((101, maxOriginalName, true, false)));
+    var accepted = await new ReadOnlyPersonnelDirectory(() => bounded)
+        .RecheckAsync(new VerifiedAriaAccount(maxOriginalName, 101), CancellationToken.None);
+    Require(accepted.State == PersonnelState.Active &&
+        bounded.Commands.Single().Parameters["@UserName"].Size == 100,
+        "EDMX nvarchar(100) boundary is accepted without truncating the parameter");
 });
 
 await Run("AR-PROFILE-03: wrong badge/name, absent and duplicate rows are denied", async () =>
@@ -199,8 +211,43 @@ await Run("AR-PROFILE-08: test-only Kestrel rechecks one badge before placeholde
         "only verified non-admin test accounts recheck with fresh closed connections; no session cookie");
 });
 
-Console.WriteLine($"Summary: {passed} Passed, {failed} Failed (Aria-only fake Personnel + Kestrel)");
-return failed == 0 ? 0 : 1;
+if (originalSchemaFixture != null)
+{
+    await Run("AR-PROFILE-09: exact pinned ORIGINAL EDMX username/table contract (metadata only)", async () =>
+    {
+        using var document = JsonDocument.Parse(File.ReadAllText(originalSchemaFixture));
+        var schema = document.RootElement;
+        Require(schema.GetProperty("source_sha256").GetString() ==
+                    "468e43ea66b9c591384ddcd033918e6f563a85b4caa2b6e6c4e8b85a4484050f" &&
+                schema.GetProperty("scope").GetString() ==
+                    "EMBEDDED_EDMX_METADATA_ONLY_NOT_SQL_OR_PASSWORD_GOLDEN" &&
+                schema.GetProperty("provider_metadata").GetString() == "System.Data.SqlClient" &&
+                schema.GetProperty("table").GetString() == "dbo.UserInfo" &&
+                schema.GetProperty("entity_set").GetString() == "UserInfoes" &&
+                schema.GetProperty("columns").GetProperty("UserName")
+                    .GetProperty("max_length").GetInt32() == 100 &&
+                schema.GetProperty("columns").GetProperty("BadgeNumber")
+                    .GetProperty("store_type").GetString() == "bigint" &&
+                schema.GetProperty("columns").GetProperty("WebUser")
+                    .GetProperty("store_type").GetString() == "bit" &&
+                ReadOnlyPersonnelDirectory.PersonSql.Contains("FROM [dbo].[UserInfo]", StringComparison.Ordinal) &&
+                !ReadOnlyPersonnelDirectory.PersonSql.Contains("Password", StringComparison.OrdinalIgnoreCase),
+                "port projection/table must stay within its own original Personnel mapping");
+        string longestUser = new('u', 100);
+        var connection = new TableConnection("Personnel", People((101, longestUser, true, false)));
+        var decision = await new ReadOnlyPersonnelDirectory(() => connection)
+            .RecheckAsync(new VerifiedAriaAccount(longestUser, 101), CancellationToken.None);
+        Require(decision.State == PersonnelState.Active &&
+            connection.Commands.Single().Parameters["@UserName"].Size == 100 &&
+            connection.WasDisposed,
+            "the original nvarchar(100) limit must be applied in compiled net10 code");
+        // This fake reader does not execute a SQL WHERE or check a password;
+        // this test is only a schema-bound adapter constraint.
+    });
+}
+
+Console.WriteLine($"Summary: {passed} Passed, {failed} Failed (Aria fake Personnel + Kestrel; original EDMX only with same-run fixture)");
+return failed == 0 && passed == (originalSchemaFixture is null ? 8 : 9) ? 0 : 1;
 
 static async Task<HttpClient> StartWeb(WebApplication app)
 {

@@ -1,0 +1,52 @@
+name: net10-original-aria-personnel-schema
+
+# Offline, read-only embedded EDMX metadata from Aria's own pinned Personnel.dll.
+# No SQL instance, password/row, original CheckUserPass invocation, IIS or
+# customer config. This is NOT a SQL Server 2016 integration or auth golden.
+on:
+  push:
+    branches: [arena/a4df3135-io]
+    paths:
+      - 'src/net10/tools/AriaOriginalPersonnelSchema/**'
+      - 'src/net10/Aria/Web/Data/ReadOnlyPersonnelDirectory.cs'
+      - 'src/net10/Aria/Profile.Tests/Program.cs'
+      - '.github/workflows/net10-original-aria-personnel-schema.yml'
+  pull_request:
+    paths:
+      - 'src/net10/tools/AriaOriginalPersonnelSchema/**'
+      - 'src/net10/Aria/Web/Data/ReadOnlyPersonnelDirectory.cs'
+      - 'src/net10/Aria/Profile.Tests/Program.cs'
+      - '.github/workflows/net10-original-aria-personnel-schema.yml'
+  workflow_dispatch:
+
+jobs:
+  personnel-edmx:
+    name: Original Aria Personnel EDMX to compiled net10 read-only adapter (NO SQL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read pinned original embedded schema, build and compare in same run
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v python3 >/dev/null || ! command -v dotnet >/dev/null ||
+             ! dotnet --list-sdks | grep -Eq '^10\.0\.[0-9]+'; then
+            echo '::error::NEEDS-INFRA: preinstalled Python stdlib or .NET 10 SDK absent; no download fallback.'
+            exit 2
+          fi
+          tmp=$(mktemp -d)
+          trap 'rm -rf "$tmp"' EXIT
+          original='TWF 4.28/App/bin/Personnel.dll'
+          fixture="$tmp/Personnel.edmx.golden.json"
+          python3 src/net10/tools/AriaOriginalPersonnelSchema/verify.py "$original" "$fixture"
+          test -s "$fixture"
+          project=src/net10/Aria/Profile.Tests/Aria.Profile.Tests.csproj
+          web="$GITHUB_WORKSPACE/src/net10/Aria/Web"
+          dotnet restore "$project" --configfile src/net10/nuget.offline.config -v minimal
+          dotnet build "$project" -c Release --no-restore -v minimal
+          dotnet run --project "$project" -c Release --no-build --no-restore -- \
+            "$web" '--original-personnel-schema' "$fixture" | tee "$tmp/profile.log"
+          grep -q 'Summary: 9 Passed, 0 Failed' "$tmp/profile.log"
+          grep -q 'AR-PROFILE-09: exact pinned ORIGINAL EDMX' "$tmp/profile.log"
+          echo '::notice::ARIA PERSONNEL ORIGINAL EDMX | SHA-pinned TWF 4.28 dbo.UserInfo mapped metadata -> compiled net10 parameter size 100 + quoted dbo table; Profile.Tests 9/9 same-run incl 8 fake ADO/Kestrel checks. NO original password runtime, SQL Server 2016, provider, IIS or release parity.'
