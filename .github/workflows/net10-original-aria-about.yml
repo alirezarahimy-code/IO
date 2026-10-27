@@ -1,7 +1,7 @@
 name: net10-original-aria-about
 
-# ONE actual public, read-only net10 page compared to public textual labels
-# extracted in the SAME run from its own SHA-pinned TWF 4.28 original DLL.
+# ONE actual public, read-only net10 page compared to public text AND
+# vendor image pixels from its own SHA-pinned TWF 4.28 original DLL.
 # Not an original HTTP/HTML/layout, IIS, auth, SQL or report parity claim.
 on:
   push:
@@ -10,6 +10,7 @@ on:
       - 'src/net10/tools/AriaOriginalAboutGolden/**'
       - 'src/net10/Aria/Web/Content/OriginalAboutContent.cs'
       - 'src/net10/Aria/Web/Views/Home/About.cshtml'
+      - 'src/net10/Aria/Web/wwwroot/assets/aria-about-*.png'
       - 'src/net10/Aria/Web.Tests/Program.cs'
       - '.github/workflows/net10-original-aria-about.yml'
   pull_request:
@@ -17,18 +18,19 @@ on:
       - 'src/net10/tools/AriaOriginalAboutGolden/**'
       - 'src/net10/Aria/Web/Content/OriginalAboutContent.cs'
       - 'src/net10/Aria/Web/Views/Home/About.cshtml'
+      - 'src/net10/Aria/Web/wwwroot/assets/aria-about-*.png'
       - 'src/net10/Aria/Web.Tests/Program.cs'
       - '.github/workflows/net10-original-aria-about.yml'
   workflow_dispatch:
 
 jobs:
   original-aria-about:
-    name: Original About labels to real net10 Razor GET (Windows, offline)
+    name: Original About text/images to real net10 Razor GET (Windows, offline)
     runs-on: windows-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: Extract seven public TWF 4.28 labels and compare real net10 HTTP output
+      - name: Compare seven original labels + two vendor image pixel sets to real net10 HTTP
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -48,17 +50,19 @@ jobs:
           }
           $probe = Join-Path $env:RUNNER_TEMP 'OriginalAriaAbout.exe'
           $src = Join-Path $env:GITHUB_WORKSPACE 'src\net10\tools\AriaOriginalAboutGolden\Program.cs'
-          $build = & $compiler '/nologo' '/target:exe' ("/out:" + $probe) $src 2>&1
+          $build = & $compiler '/nologo' '/target:exe' '/r:System.Drawing.dll' ("/out:" + $probe) $src 2>&1
           $build | Write-Host
           if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $probe)) {
             Write-Host '::error::Original public-label probe did not compile.'
             exit 1
           }
           $fixture = Join-Path $env:RUNNER_TEMP 'OriginalAriaAbout.golden'
-          $result = & $probe $original $fixture 2>&1
+          $arm = Join-Path $env:GITHUB_WORKSPACE 'src\net10\Aria\Web\wwwroot\assets\aria-about-arm.png'
+          $logo = Join-Path $env:GITHUB_WORKSPACE 'src\net10\Aria\Web\wwwroot\assets\aria-about-logo.png'
+          $result = & $probe $original $fixture $arm $logo 2>&1
           $probeExit = $LASTEXITCODE
           $result | Write-Host
-          if ($probeExit -ne 0 -or -not ($result | Select-String -Quiet 'Summary: 7 Passed, 0 Failed') -or
+          if ($probeExit -ne 0 -or -not ($result | Select-String -Quiet 'Summary: 9 Passed, 0 Failed') -or
               -not (Test-Path -LiteralPath $fixture)) {
             Write-Host '::error::No same-run original About resource golden is available.'
             exit 1
@@ -80,9 +84,9 @@ jobs:
           $httpExit = $LASTEXITCODE
           $http | Write-Host
           if ($httpExit -ne 0 -or
-              -not ($http | Select-String -Quiet 'Summary: 20 Passed, 0 Failed') -or
+              -not ($http | Select-String -Quiet 'Summary: 21 Passed, 0 Failed') -or
               -not ($http | Select-String -Quiet '\[ORIGINAL-COMPARED\] 7 public About labels')) {
             Write-Host '::error::New public About GET did not match pinned original labels; NO full-HTML parity claimed.'
             exit 1
           }
-          Write-Host '::notice::ARIA ABOUT | original DLL 7/7 public labels -> same-run real net10 Kestrel/Razor GET with 20/20 Web checks. Original HTML/layout/MyBanner, password, SQL, IIS, load and release parity NOT tested.'
+          Write-Host '::notice::ARIA ABOUT | original DLL 7/7 public labels + 2/2 public vendor image pixel sets -> same-run real net10 Kestrel/Razor GET/assets with 21/21 Web checks. Original HTML/layout/MyBanner action/customer LogoPath, password, SQL, IIS, load and release parity NOT tested.'

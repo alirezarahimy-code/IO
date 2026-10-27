@@ -1,4 +1,5 @@
 using System.Net;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using Aria.Web.Content;
@@ -112,6 +113,8 @@ internal static class Program
                 Require(html.Contains("lang=\"fa\"", StringComparison.Ordinal) &&
                     html.Contains("dir=\"rtl\"", StringComparison.Ordinal) &&
                     html.Contains("/assets/aria.css", StringComparison.Ordinal) &&
+                    html.Contains("/assets/aria-about-arm.png", StringComparison.Ordinal) &&
+                    html.Contains("/assets/aria-about-logo.png", StringComparison.Ordinal) &&
                     !html.Contains("<form", StringComparison.OrdinalIgnoreCase) &&
                     !html.Contains("MyBanner", StringComparison.OrdinalIgnoreCase) &&
                     !html.Contains("V4.1", StringComparison.OrdinalIgnoreCase) &&
@@ -126,6 +129,25 @@ internal static class Program
                 Require(post.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.MethodNotAllowed,
                     "the new About action must not dispatch a POST");
                 Require(!post.Headers.TryGetValues("Set-Cookie", out _), "no cookie from About POST");
+            });
+            await Check("AR-WEB-21: public About serves only pinned offline original-vendor images", async () =>
+            {
+                foreach (var (asset, sha) in new[]
+                {
+                    ("aria-about-arm.png", "ca5e231a2b88d60a6140cf66b47d436cad10e58ad0547bd8cfdc9beccf580d20"),
+                    ("aria-about-logo.png", "bb2d2c1ebc50f02c1aae57a4e50a3f4b8d1b00641b5d1ea4660a95ffce72572e")
+                })
+                {
+                    using var response = await Send(client, "/assets/" + asset);
+                    Equal(HttpStatusCode.OK, response.StatusCode, "pinned public About image " + asset);
+                    Require(response.Content.Headers.ContentType?.MediaType == "image/png" &&
+                        !response.Headers.TryGetValues("Set-Cookie", out _), "offline image without identity");
+                    byte[] bytes = await response.Content.ReadAsByteArrayAsync();
+                    Require(Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant() == sha &&
+                        bytes.AsSpan().StartsWith(new byte[] { 0x89, 0x50, 0x4e, 0x47,
+                            0x0d, 0x0a, 0x1a, 0x0a }),
+                        "response bytes must be exactly the audited original-vendor offline asset");
+                }
             });
         }
 
@@ -370,7 +392,7 @@ internal static class Program
         }
 
         Console.WriteLine($"Summary: {_passed} Passed, {_failed} Failed (net10.0 Aria Kestrel/Razor; original About labels only when same-run fixture supplied)");
-        return _passed == 20 && _failed == 0 ? 0 : 1;
+        return _passed == 21 && _failed == 0 ? 0 : 1;
     }
 
     private static void AssertOriginalAboutFixture(string path)

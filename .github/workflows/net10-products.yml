@@ -221,7 +221,7 @@ jobs:
           echo "::notice::ARIA CORE net10.0 | 19 linked TWF sources + 4 owned files | 11/11 synthetics + 2 pinned pure-time groups + 1 rewrite-derived date/day smoke group | $RUNNER_OS | binary-to-port time/date/day same-run check only in separate Windows original-golden workflow; NOT native engine/SQL/web parity"
 
   aria-web:
-    name: Aria Core Razor net10.0 + 20 HTTP/security and public About checks (${{ matrix.os }})
+    name: Aria Core Razor net10.0 + 21 HTTP/security and offline About asset checks (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     strategy:
@@ -250,10 +250,12 @@ jobs:
             echo '::error::Aria production must keep both credential and Personnel eligibility gates fail-closed.'
             exit 1
           fi
-          if [ "$(find src/net10/Aria/Web/wwwroot -type f | wc -l)" -ne 1 ] ||
+          if [ "$(find src/net10/Aria/Web/wwwroot -type f | wc -l)" -ne 3 ] ||
+             [ ! -f src/net10/Aria/Web/wwwroot/assets/aria-about-arm.png ] ||
+             [ ! -f src/net10/Aria/Web/wwwroot/assets/aria-about-logo.png ] ||
              ! cmp -s src/TWF/TWF.Web/Content/twf-industrial-ui.css \
                       src/net10/Aria/Web/wwwroot/assets/aria.css; then
-            echo '::error::Expected only the audited local Aria stylesheet copied from its own rewrite.'
+            echo '::error::Expected only audited local Aria CSS and the two pinned original vendor About images.'
             exit 1
           fi
           if grep -Ei 'https?://|@import|url\(' src/net10/Aria/Web/wwwroot/assets/aria.css; then
@@ -283,17 +285,19 @@ jobs:
           diagnose tests-build dotnet build "$tests" -c Release --no-restore -v minimal
           diagnose publish dotnet publish "$web" -c Release --no-restore -o "$logdir/published" -v minimal
           if [ ! -f "$logdir/published/Aria.Web.dll" ] ||
-             [ ! -f "$logdir/published/wwwroot/assets/aria.css" ]; then
-            echo '::error::Aria publish missing Core MVC host or offline stylesheet.'
+             [ ! -f "$logdir/published/wwwroot/assets/aria.css" ] ||
+             [ ! -f "$logdir/published/wwwroot/assets/aria-about-arm.png" ] ||
+             [ ! -f "$logdir/published/wwwroot/assets/aria-about-logo.png" ]; then
+            echo '::error::Aria publish missing host or pinned offline About assets.'
             exit 1
           fi
           diagnose http dotnet run --project "$tests" -c Release --no-build --no-restore -- \
             "$GITHUB_WORKSPACE/src/net10/Aria/Web"
-          if ! grep -q 'Summary: 20 Passed, 0 Failed' "$logdir/aria-web-http.log"; then
-            echo '::error::Aria HTTP suite did not complete all 20 tests.'
+          if ! grep -q 'Summary: 21 Passed, 0 Failed' "$logdir/aria-web-http.log"; then
+            echo '::error::Aria HTTP suite did not complete all 21 tests.'
             exit 1
           fi
-          echo "::notice::ARIA WEB net10.0 | Razor compiled/published | 20/20 Kestrel checks incl real public static About GET and negative auth/UTC bounds | $RUNNER_OS | original label SAME-RUN golden is separate Windows job; no original full HTML/password/SQL/engine/IIS parity"
+          echo "::notice::ARIA WEB net10.0 | Razor compiled/published | 21/21 Kestrel checks incl public About GET and SHA-pinned offline vendor images | $RUNNER_OS | original text/pixel SAME-RUN golden is separate Windows job; no original full HTML/password/SQL/engine/IIS parity"
 
   aria-catalog-boundary:
     name: Aria Personnel/T5 provider-neutral boundary net10.0 + 7 synthetics (${{ matrix.os }})
