@@ -52,10 +52,25 @@ Write-Host 'Running original Personnel password method on CI-owned synthetic row
 # the fixture, NOT evidence of a net10 SQL provider.
 $server = '(localdb)\' + $instance
 $phase = 'opening private LocalDB for synthetic user fixture'
-$connection = New-Object System.Data.SqlClient.SqlConnection(
-    "Data Source=$server;Initial Catalog=master;Integrated Security=True;Connect Timeout=10")
+$connection = $null
 try {
-    $connection.Open()
+    # LocalDB can finish starting its private process AFTER `sqllocaldb start`
+    # returns. Retry ONLY Open; never repeat a non-idempotent fixture batch.
+    for ($attempt = 0; $attempt -lt 3; $attempt++) {
+        if ($attempt -gt 0) { Start-Sleep -Seconds 3 }
+        $connection = New-Object System.Data.SqlClient.SqlConnection(
+            "Data Source=$server;Initial Catalog=master;Integrated Security=True;Connect Timeout=10")
+        try {
+            $connection.Open()
+            break
+        } catch {
+            $errorCause = $_.Exception
+            while ($errorCause.InnerException) { $errorCause = $errorCause.InnerException }
+            $connection.Dispose()
+            $connection = $null
+            if ($attempt -eq 2 -or $errorCause -isnot [System.Data.SqlClient.SqlException]) { throw }
+        }
+    }
     $text = [System.IO.File]::ReadAllText($sql)
     $batches = [System.Text.RegularExpressions.Regex]::Split($text, '(?im)^\s*GO\s*$')
     $phase = 'executing generated synthetic SQL batches'
@@ -73,12 +88,13 @@ try {
 } catch {
     # Don't emit raw exception text (may expose SQL, a connection string or rows).
     $cause = $_.Exception
+    while ($cause.InnerException) { $cause = $cause.InnerException }
     Write-Host ("::error title=Aria private LocalDB fixture::FAIL at " + $phase +
                 "; exception type: " + $cause.GetType().FullName)
     if ($cause -is [System.Data.SqlClient.SqlException]) { Write-Host ("::error::SQL number: " + $cause.Number) }
     exit 1
 } finally {
-    $connection.Dispose()
+    if ($null -ne $connection) { $connection.Dispose() }
 }
 $phase = 'executing original x86 CheckUserPass on synthetic data'
 & $exe $OriginalBin $instance $database
