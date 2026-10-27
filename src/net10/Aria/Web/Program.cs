@@ -70,7 +70,7 @@ internal static class Program
                 decision = SessionResolution.Unavailable();
             }
 
-            if (decision.Decision == SessionDecision.Unavailable)
+            if (decision == null || decision.Decision == SessionDecision.Unavailable)
             {
                 context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
                 context.Response.ContentType = "text/plain; charset=utf-8";
@@ -83,12 +83,18 @@ internal static class Program
                 context.Response.Redirect("/Login/Login");
                 return;
             }
+            var account = decision.Account;
             var identity = decision.Identity;
-            // Zero is never a valid personnel identity. Even a verifier that
-            // mistakenly marks such a payload Verified must fail closed.
-            if (decision.Decision != SessionDecision.Verified || identity == null ||
-                identity.BadgeNumber <= 0 || identity.ExpiresAtUtc <=
-                    context.RequestServices.GetRequiredService<TimeProvider>().GetUtcNow().UtcDateTime)
+            var now = context.RequestServices.GetRequiredService<TimeProvider>().GetUtcNow().UtcDateTime;
+            // A session hydrated from Personnel/T5 must belong to the SAME
+            // verified account and badge, not merely claim a role or user name.
+            // Normalization and genuine admin rights need Aria's own original
+            // golden and cannot be inferred from the linked rewrite's IsAdmin.
+            if (decision.Decision != SessionDecision.Verified || account == null || identity == null ||
+                account.BadgeNumber <= 0 || identity.BadgeNumber != account.BadgeNumber ||
+                string.IsNullOrWhiteSpace(account.AccountName) ||
+                !string.Equals(account.AccountName, identity.UserName, StringComparison.OrdinalIgnoreCase) ||
+                identity.IssuedAtUtc > now || identity.ExpiresAtUtc <= now)
             {
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 return;

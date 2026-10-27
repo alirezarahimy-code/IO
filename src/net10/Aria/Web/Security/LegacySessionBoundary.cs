@@ -9,12 +9,19 @@ namespace Aria.Web.Security;
 // substitution or hard-coded default master secret is permitted here.
 public enum SessionDecision { Unavailable, Anonymous, Denied, Verified }
 
-public sealed record SessionResolution(SessionDecision Decision, UserSessionIdentity? Identity)
+// The same verified shared account supplies both name and positive personnel
+// badge. A separately hydrated session cannot silently replace either value.
+// No real credential/cookie verifier is registered in the published product.
+public sealed record VerifiedAriaAccount(string AccountName, long BadgeNumber);
+
+public sealed record SessionResolution(SessionDecision Decision, VerifiedAriaAccount? Account,
+    UserSessionIdentity? Identity)
 {
-    public static SessionResolution Unavailable() => new(SessionDecision.Unavailable, null);
-    public static SessionResolution Anonymous() => new(SessionDecision.Anonymous, null);
-    public static SessionResolution Denied() => new(SessionDecision.Denied, null);
-    public static SessionResolution Verified(UserSessionIdentity identity) => new(SessionDecision.Verified, identity);
+    public static SessionResolution Unavailable() => new(SessionDecision.Unavailable, null, null);
+    public static SessionResolution Anonymous() => new(SessionDecision.Anonymous, null, null);
+    public static SessionResolution Denied() => new(SessionDecision.Denied, null, null);
+    public static SessionResolution Verified(VerifiedAriaAccount account, UserSessionIdentity identity) =>
+        new(SessionDecision.Verified, account, identity);
 }
 
 public interface IAriaSessionVerifier

@@ -181,10 +181,20 @@ internal static class Program
                 // This is a fail-closed Kestrel security burst, NOT 100 active users,
                 // original sessions, a report workload, IIS/SQL load or a latency SLA.
             });
+            await Check("AR-WEB-14: verified account must match session name and badge", async () =>
+            {
+                foreach (string name in new[] { "synthetic-other-badge", "synthetic-other-name",
+                    "synthetic-empty-account", "synthetic-missing-account", "synthetic-future-issued" })
+                {
+                    using var response = await Send(client, "/Home/Index", name);
+                    Equal(HttpStatusCode.Forbidden, response.StatusCode, name);
+                    Require(!response.Headers.TryGetValues("Set-Cookie", out _), "no cookie from inconsistent identity");
+                }
+            });
         }
 
         Console.WriteLine($"Summary: {_passed} Passed, {_failed} Failed (net10.0 Aria Kestrel/Razor synthetic only)");
-        return _passed == 13 && _failed == 0 ? 0 : 1;
+        return _passed == 14 && _failed == 0 ? 0 : 1;
     }
 
     private static async Task<HttpClient> Start(WebApplication app)
@@ -240,6 +250,23 @@ internal sealed class TestSessionVerifier : IAriaSessionVerifier
         if (user.Length == 0) return Task.FromResult(SessionResolution.Anonymous());
         if (user is "synthetic-disabled" or "synthetic-unknown")
             return Task.FromResult(SessionResolution.Denied());
+        if (user is "synthetic-other-badge" or "synthetic-other-name" or
+            "synthetic-empty-account" or "synthetic-missing-account" or "synthetic-future-issued")
+        {
+            var session = new UserSessionIdentity(1001, "synthetic-user", "مریم", "آزمایشی", "user",
+                11, "سمت آزمایشی", 0, "", 10, "واحد آزمایشی", false, false,
+                user == "synthetic-future-issued" ? FixedNow.AddMinutes(5) : FixedNow.AddMinutes(-5),
+                FixedNow.AddHours(2));
+            var account = user switch
+            {
+                "synthetic-other-badge" => new VerifiedAriaAccount("synthetic-user", 1002),
+                "synthetic-other-name" => new VerifiedAriaAccount("synthetic-other", 1001),
+                "synthetic-empty-account" => new VerifiedAriaAccount("", 1001),
+                "synthetic-missing-account" => null,
+                _ => new VerifiedAriaAccount("synthetic-user", 1001)
+            };
+            return Task.FromResult(new SessionResolution(SessionDecision.Verified, account, session));
+        }
         if (user.StartsWith("synthetic-load-", StringComparison.Ordinal))
         {
             string[] parts = user.Split('-');
@@ -253,7 +280,8 @@ internal sealed class TestSessionVerifier : IAriaSessionVerifier
                 $"synthetic-{seed:D3}", "کاربر", "آزمایشی", "user", 11, "سمت آزمایشی",
                 0, "", 10, "واحد آزمایشی", false, false, FixedNow.AddMinutes(-5),
                 mode == "expired" ? FixedNow.AddMinutes(-1) : FixedNow.AddHours(2));
-            return Task.FromResult(SessionResolution.Verified(session));
+            return Task.FromResult(SessionResolution.Verified(
+                new VerifiedAriaAccount(session.UserName, session.BadgeNumber), session));
         }
         if (user is "synthetic-valid" or "synthetic-expired")
         {
@@ -261,7 +289,8 @@ internal sealed class TestSessionVerifier : IAriaSessionVerifier
             var session = new UserSessionIdentity(1001, "synthetic-user", "مریم", "آزمایشی", "user",
                 11, "سمت آزمایشی", 0, "", 10, "واحد آزمایشی", false, false,
                 FixedNow.AddMinutes(-5), expires);
-            return Task.FromResult(SessionResolution.Verified(session));
+            return Task.FromResult(SessionResolution.Verified(
+                new VerifiedAriaAccount(session.UserName, session.BadgeNumber), session));
         }
         return Task.FromResult(SessionResolution.Denied());
     }
