@@ -32,6 +32,7 @@
     <!-- Owned, narrow original-binary golden adapters; no rewrite source is edited. -->
     <Compile Include="Compatibility/OriginalMiscTime.cs" />
     <Compile Include="Compatibility/OriginalMiscPersianDate.cs" />
+    <Compile Include="Compatibility/OriginalAttendanceInterval.cs" />
     <!-- Provider-free, fail-closed Personnel/T5 connection seam. No SQL package
          or production factory is registered by the Web host. -->
     <Compile Include="Data/DualCatalogConnectionProbe.cs" />
