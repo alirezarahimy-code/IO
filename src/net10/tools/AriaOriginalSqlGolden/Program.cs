@@ -109,20 +109,24 @@ internal static class OriginalSqlGolden
                 stage = "original CheckUserPass: non-web synthetic account";
                 // Observe the original outcome first; do not infer an exception
                 // merely from the stage of a failed assertion in an earlier run.
-                try
-                {
-                    long disabled = Invoke(users, check, "fixture-aria-disabled", "fixture-aria-disabled-pass", true);
-                    Console.WriteLine("::notice::Original synthetic non-web account accepted=" + (disabled > 0) +
-                                      "; denied=" + (disabled <= 0));
-                }
-                catch (TargetInvocationException error)
-                {
-                    // An exception is a reference observation, not clean denial.
-                    // Only this bounded type is safe to classify without a trace.
-                    if (!(error.InnerException is InvalidOperationException)) throw;
-                    Console.WriteLine("::notice::Original synthetic non-web account threw InvalidOperationException");
-                }
-                Console.WriteLine("PASS: original password outcomes observed; LocalDB ONLY, not SQL2016/net10 login");
+                long disabled = Invoke(users, check, "fixture-aria-disabled", "fixture-aria-disabled-pass", true);
+                Console.WriteLine("::notice::Original synthetic non-web account accepted=" + (disabled == 900104) +
+                                  "; denied=" + (disabled <= 0));
+                // The original TWF login calls with true, yet the pinned runtime
+                // fixture accepted a WebUser=0 row. This finding is a golden,
+                // NOT approval to reproduce the bypass in the new application.
+                if (disabled != 900104)
+                    throw new InvalidOperationException("Original non-web golden drift");
+                stage = "original CheckUserPass: additional reference classifications";
+                long former = Invoke(users, check, "fixture-aria-former", "fixture-aria-former-pass", true);
+                long accountCase = Invoke(users, check, "FIXTURE-ARIA-ACTIVE", "fixture-aria-password", true);
+                long passwordCase = Invoke(users, check, "fixture-aria-active", "FIXTURE-ARIA-PASSWORD", true);
+                long futureUnchecked = Invoke(users, check, "fixture-aria-future", "fixture-aria-future-pass", false);
+                Console.WriteLine("::notice::Additional original synthetic outcomes: formerAccepted=" +
+                    (former == 900105) + " accountCaseFolded=" + (accountCase == 900101) +
+                    " passwordCaseFolded=" + (passwordCase == 900101) +
+                    " futureAcceptedWithFalseFlag=" + (futureUnchecked == 900102));
+                Console.WriteLine("PASS: ten original runtime password cases observed; LocalDB ONLY, not SQL2016/net10 login");
                 return 0;
             }
             finally

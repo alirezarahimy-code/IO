@@ -104,7 +104,10 @@ VALUES
 (900103, N'fixture-aria-expired', N'fixture-aria-expired-pass', 1,
  CONVERT(DATETIME, '20000101', 112), DATEADD(DAY, -2, GETDATE()), NULL),
 (900104, N'fixture-aria-disabled', N'fixture-aria-disabled-pass', 0,
- CONVERT(DATETIME, '20000101', 112), CONVERT(DATETIME, '20500101', 112), NULL);
+ CONVERT(DATETIME, '20000101', 112), CONVERT(DATETIME, '20500101', 112), NULL),
+(900105, N'fixture-aria-former', N'fixture-aria-former-pass', 1,
+ CONVERT(DATETIME, '20000101', 112), CONVERT(DATETIME, '20500101', 112),
+ CONVERT(DATETIME, '20200101', 112));
 GO
 """.format(db=database, columns=",\n".join(columns))
 
