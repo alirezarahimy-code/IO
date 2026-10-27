@@ -129,7 +129,24 @@ internal static class OriginalSqlGolden
                 if (former != 900105 || accountCase != 900101 || passwordCase != 900101 ||
                     futureUnchecked != 900102)
                     throw new InvalidOperationException("Original additional password golden drift");
-                Console.WriteLine("PASS: ten pinned original runtime password cases; LocalDB ONLY, not SQL2016/net10 login");
+                stage = "original UserInfoDA.EditPassword on owned synthetic row";
+                MethodInfo edit = users.GetType().GetMethod("EditPassword", new[] {
+                    typeof(long), typeof(string) });
+                if (edit == null || edit.ReturnType != typeof(bool))
+                    throw new InvalidOperationException("Original shared-password update signature changed");
+                bool changed = (bool)edit.Invoke(users, new object[] { 900101L, "fixture-aria-rotated" });
+                bool oldDenied = Invoke(users, check, "fixture-aria-active", "fixture-aria-password", true) <= 0;
+                bool newAccepted = Invoke(users, check, "fixture-aria-active", "fixture-aria-rotated", true) == 900101;
+                // Compensating write touches ONLY the CI-created synthetic row.
+                // It is NOT a production database rollback exercise.
+                bool restored = (bool)edit.Invoke(users, new object[] { 900101L, "fixture-aria-password" });
+                bool originalRestored = Invoke(users, check, "fixture-aria-active", "fixture-aria-password", true) == 900101;
+                Console.WriteLine("::notice::Original synthetic shared-password update: updated=" + changed +
+                                  "; oldDenied=" + oldDenied + "; newAccepted=" + newAccepted +
+                                  "; syntheticRowRestored=" + (restored && originalRestored));
+                if (!changed || !oldDenied || !newAccepted || !restored || !originalRestored)
+                    throw new InvalidOperationException("Original synthetic password update golden drift");
+                Console.WriteLine("PASS: 10 password cases + synthetic-only edit/revert; LocalDB ONLY, not SQL2016/net10 login");
                 return 0;
             }
             finally
