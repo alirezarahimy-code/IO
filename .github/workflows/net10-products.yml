@@ -333,3 +333,57 @@ jobs:
             exit 1
           fi
           echo "::notice::ARIA catalog net10.0 | two fake ADO.NET catalogs | 7/7 synthetic cases incl 100 overlapping probes | $RUNNER_OS | NO SQL provider/connection/schema/real load or original parity"
+
+  aria-admin-directory-boundary:
+    name: Aria Admin two-catalog read-only directory net10.0 + 7 synthetics (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test parameterized Admin-only ADO.NET directory without provider
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v dotnet >/dev/null || ! dotnet --list-sdks | grep -Eq '^10\.0\.[0-9]+'; then
+            echo '::error::NEEDS-INFRA: .NET 10 SDK/ref packs not preinstalled; no download fallback.'
+            exit 2
+          fi
+          if grep -E '<(PackageReference|Reference[[:space:]>])' src/net10/AriaAdmin/Directory.Tests/AriaAdmin.Directory.Tests.csproj; then
+            echo '::error::Directory test must use preinstalled framework APIs, not an unapproved SQL provider.'
+            exit 1
+          fi
+          if ! grep -Fq 'AddSingleton<IAdminDirectory, UnavailableAdminDirectory>()' src/net10/AriaAdmin/Web/Program.cs; then
+            echo '::error::Production Admin directory must stay fail-closed until provider, original auth and SQL gates are authorized.'
+            exit 1
+          fi
+          logdir=$(mktemp -d)
+          diagnose() {
+            local label="$1"; shift
+            local output="$logdir/admin-directory-$label.log"
+            set +e
+            "$@" >"$output" 2>&1
+            local code=$?
+            set -e
+            cat "$output"
+            if [ "$code" -ne 0 ]; then
+              { grep -Ei '(^|: )error |NU[0-9]{4}|Exception|\[FAIL\]|Unable to' "$output" || true; } | head -35 |
+                while IFS= read -r line; do echo "::error::ADMIN DIRECTORY $label: $line"; done
+              echo "::error::ADMIN DIRECTORY $label failed ($code); no original-authorization/SQL/IIS parity claim."
+              exit "$code"
+            fi
+          }
+          web=src/net10/AriaAdmin/Web/AriaAdmin.Web.csproj
+          tests=src/net10/AriaAdmin/Directory.Tests/AriaAdmin.Directory.Tests.csproj
+          diagnose restore dotnet restore "$tests" --configfile src/net10/nuget.offline.config -v minimal
+          diagnose web-build dotnet build "$web" -c Release --no-restore -v minimal
+          diagnose tests-build dotnet build "$tests" -c Release --no-restore -v minimal
+          diagnose synthetics dotnet run --project "$tests" -c Release --no-build --no-restore
+          if ! grep -q 'Summary: 7 Passed, 0 Failed' "$logdir/admin-directory-synthetics.log"; then
+            echo '::error::Admin directory suite did not complete all seven synthetic cases.'
+            exit 1
+          fi
+          echo "::notice::ADMIN directory net10.0 | two ADO.NET DataTable doubles, parameterized SQL text only | 7/7 synthetic cases | $RUNNER_OS | production still 503; NO provider/SQL Server/actual Windows auth/original parity"
