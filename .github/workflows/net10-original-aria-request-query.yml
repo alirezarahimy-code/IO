@@ -1,0 +1,107 @@
+name: TWF 4.28 original RequestDA synthetic LocalDB golden (not SQL2016)
+
+on:
+  push:
+    branches: [arena/a4df3135-io]
+    paths:
+      - 'src/net10/tools/AriaOriginalRequestQuery/**'
+      - 'TWF 4.28/App/bin/T5V3.DB.dll'
+      - '.github/workflows/net10-original-aria-request-query.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  original-aria-request-query:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Execute original read-only RequestDA on private disposable synthetic T5 database
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $phase = 'initialization'
+          trap {
+            # Never print a driver/config exception or a connection string.
+            $cause = $_.Exception
+            while ($cause.InnerException) { $cause = $cause.InnerException }
+            Write-Host ("::error title=Original Aria private request fixture::FAIL at " + $phase +
+              "; exception type " + $cause.GetType().FullName)
+            if ($cause -is [System.Data.SqlClient.SqlException]) { Write-Host ("::error::SQL number " + $cause.Number) }
+            exit 1
+          }
+          $compiler = Join-Path $env:WINDIR 'Microsoft.NET\Framework\v4.0.30319\csc.exe'
+          if (!(Test-Path $compiler)) { Write-Host '::error::NEEDS-INFRA: Framework x86 compiler missing'; exit 2 }
+          $tool = Join-Path $env:GITHUB_WORKSPACE 'src/net10/tools/AriaOriginalRequestQuery'
+          $bin = Join-Path $env:GITHUB_WORKSPACE 'TWF 4.28/App/bin'
+          $exe = Join-Path $env:RUNNER_TEMP 'AriaOriginalRequestQuery.exe'
+          $sql = Join-Path $env:RUNNER_TEMP 'aria-original-request-private.sql'
+          $fixture = Join-Path $env:RUNNER_TEMP 'aria-original-request-private.json'
+          & $compiler /nologo /platform:x86 /target:exe "/out:$exe" (Join-Path $tool 'Program.cs')
+          if ($LASTEXITCODE -ne 0) { Write-Host '::error::Original RequestDA probe failed to compile'; exit 1 }
+          if ($env:GITHUB_RUN_ID -cnotmatch '^[0-9]{6,20}$') { throw 'Bad CI-owned name' }
+          $instance = "AriaRequest_$env:GITHUB_RUN_ID"
+          $database = "AriaRequestT5_$env:GITHUB_RUN_ID"
+          $phase = 'generating fixed data from SHA-pinned original T5 EDMX'
+          & python (Join-Path $tool 'make_fixture.py') (Join-Path $bin 'T5V3.DB.dll') $database $sql
+          if ($LASTEXITCODE -ne 0 -or !(Test-Path $sql)) { Write-Host '::error::Request original fixture generator failed'; exit 1 }
+          $phase = 'locating installed LocalDB without touching shared instances'
+          $localdb = Get-Command SqlLocalDB.exe -ErrorAction SilentlyContinue
+          if ($null -eq $localdb) {
+            $location = Join-Path $env:ProgramFiles 'Microsoft SQL Server'
+            if (Test-Path $location) {
+              $localdb = Get-ChildItem $location -Filter SqlLocalDB.exe -File -Recurse |
+                Sort-Object FullName -Descending | Select-Object -First 1
+            }
+          }
+          if ($null -eq $localdb) { Write-Host '::error::NEEDS-INFRA: no preinstalled LocalDB for isolated original'; exit 2 }
+          $localdbExe = if ($localdb -is [System.Management.Automation.CommandInfo]) { $localdb.Source } else { $localdb.FullName }
+          $phase = 'creating uniquely named private LocalDB instance'
+          & $localdbExe create $instance
+          if ($LASTEXITCODE -ne 0) { Write-Host '::error::Cannot create PRIVATE CI-only instance'; exit 1 }
+          $phase = 'starting only the newly created private instance'
+          & $localdbExe start $instance
+          if ($LASTEXITCODE -ne 0) { Write-Host '::error::Cannot start PRIVATE CI-only instance'; exit 1 }
+          $server = '(localdb)\' + $instance
+          $connection = $null
+          try {
+            $phase = 'opening only the private LocalDB master'
+            for ($attempt = 0; $attempt -lt 3; $attempt++) {
+              if ($attempt -gt 0) { Start-Sleep -Seconds 3 }
+              $connection = New-Object System.Data.SqlClient.SqlConnection(
+                "Data Source=$server;Initial Catalog=master;Integrated Security=True;Connect Timeout=10")
+              try { $connection.Open(); break }
+              catch {
+                $cause = $_.Exception
+                while ($cause.InnerException) { $cause = $cause.InnerException }
+                $connection.Dispose()
+                $connection = $null
+                if ($attempt -eq 2 -or $cause -isnot [System.Data.SqlClient.SqlException]) { throw }
+              }
+            }
+            $phase = 'creating only the generated private synthetic Request database'
+            $text = [System.IO.File]::ReadAllText($sql)
+            $batches = [System.Text.RegularExpressions.Regex]::Split($text, '(?im)^\s*GO\s*$')
+            foreach ($batch in $batches) {
+              if ([string]::IsNullOrWhiteSpace($batch)) { continue }
+              $command = $connection.CreateCommand()
+              try {
+                $command.CommandText = $batch
+                $command.CommandTimeout = 30
+                $null = $command.ExecuteNonQuery()
+              } finally { $command.Dispose() }
+            }
+          } finally { if ($null -ne $connection) { $connection.Dispose() } }
+          $phase = 'running pinned original read-only RequestDA.GetAll overloads'
+          & $exe $bin $instance $database $fixture
+          if ($LASTEXITCODE -ne 0 -or !(Test-Path $fixture)) { Write-Host '::error::Original RequestDA methods failed'; exit 1 }
+          $observed = Get-Content $fixture -Raw | ConvertFrom-Json
+          if ($observed.scope -ne 'ORIGINAL_ARIA_REQUEST_LOCALDB_SYNTHETIC_ONLY' -or
+              @($observed.all).Count -ne 4 -or @($observed.absent).Count -ne 0) {
+            Write-Host '::error::Original Aria RequestDA fixture incomplete'; exit 1
+          }
+          Write-Host '::notice::Original TWF 4.28 RequestDA.GetAll ran in Framework x86 against 5 entirely synthetic rows in a new PRIVATE LocalDB 2025 database; NO original HTTP, production database/config, SQL Server 2016, net10 SQL provider, attendance/request save or verified user admission.'
