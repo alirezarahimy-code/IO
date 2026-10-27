@@ -44,7 +44,10 @@ internal static class OriginalAriaRequestQuery
         return ids.OrderBy(value => value).ToArray();
     }
 
-    private static string Json(long[] values) => "[" + string.Join(",", values.Select(v => v.ToString()).ToArray()) + "]";
+    private static string Json(long[] values)
+    {
+        return "[" + string.Join(",", values.Select(v => v.ToString()).ToArray()) + "]";
+    }
 
     private static int Main(string[] args)
     {

@@ -41,8 +41,13 @@ jobs:
           $exe = Join-Path $env:RUNNER_TEMP 'AriaOriginalRequestQuery.exe'
           $sql = Join-Path $env:RUNNER_TEMP 'aria-original-request-private.sql'
           $fixture = Join-Path $env:RUNNER_TEMP 'aria-original-request-private.json'
-          & $compiler /nologo /platform:x86 /target:exe "/out:$exe" (Join-Path $tool 'Program.cs')
-          if ($LASTEXITCODE -ne 0) { Write-Host '::error::Original RequestDA probe failed to compile'; exit 1 }
+          $build = @(& $compiler /nologo /platform:x86 /target:exe "/out:$exe" (Join-Path $tool 'Program.cs') 2>&1)
+          if ($LASTEXITCODE -ne 0) {
+            foreach ($line in @($build | Select-Object -First 20)) {
+              Write-Host "::error::Original RequestDA Framework compiler: $line"
+            }
+            Write-Host '::error::Original RequestDA probe failed to compile'; exit 1
+          }
           if ($env:GITHUB_RUN_ID -cnotmatch '^[0-9]{6,20}$') { throw 'Bad CI-owned name' }
           $instance = "AriaRequest_$env:GITHUB_RUN_ID"
           $database = "AriaRequestT5_$env:GITHUB_RUN_ID"
