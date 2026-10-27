@@ -220,13 +220,19 @@ internal static class Program
         // objects. No real cookie, password, IIS request or server-side store.
         HttpContextBase anonymous = Context(null);
         _logout.Invoke(null, new object[] { anonymous });
-        if (anonymous.Response.Cookies.Get("mytimeauth") != null)
+        // ASP.NET's RESPONSE Cookies.Get(name) may auto-create a missing
+        // cookie as a side effect. Inspect the collection keys BEFORE Get.
+        if (Array.Exists(anonymous.Response.Cookies.AllKeys,
+            delegate(string key) { return key == "mytimeauth"; }))
             throw new InvalidOperationException("AR-ORIG-SESSION-14: absent request cookie caused a logout response cookie.");
         _passed++;
         Console.WriteLine("[ORIGINAL-PASS] AR-ORIG-SESSION-14 no request cookie: logout does not emit a cookie");
 
         HttpContextBase withCookie = Token(DateTime.Now.AddMinutes(-2), "4242", "user");
         _logout.Invoke(null, new object[] { withCookie });
+        if (!Array.Exists(withCookie.Response.Cookies.AllKeys,
+            delegate(string key) { return key == "mytimeauth"; }))
+            throw new InvalidOperationException("AR-ORIG-SESSION-15: no response expiry cookie.");
         HttpCookie responseCookie = withCookie.Response.Cookies.Get("mytimeauth");
         if (responseCookie == null || responseCookie.Expires > DateTime.Now.AddHours(-23) ||
             (string)_getRole.Invoke(null, new object[] { withCookie }) != "user")
