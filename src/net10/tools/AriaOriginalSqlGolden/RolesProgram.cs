@@ -91,9 +91,17 @@ internal static class OriginalAriaRoleGolden
                 Console.WriteLine("::notice::Original Aria-packaged IsAnyMainManager synthetic matched type/level pairs=" +
                                   (matches.Count == 0 ? "none" : string.Join(",", matches)) +
                                   "; cases=" + i);
-                if (matches.Count == 0)
-                    throw new InvalidOperationException("No original manager value found in bounded fixture; inspect original enum");
-                Console.WriteLine("PASS: original Aria main-manager decision executed; LocalDB ONLY, no SQL2016/net10 role");
+                if (matches.Count != 1 || matches[0] != "0/1")
+                    throw new InvalidOperationException("Original TWF Aria manager permission matrix drift");
+                stage = "original manager multi-badge and empty decisions";
+                bool mixed = (bool)check.Invoke(dao, new object[] { new List<long> { 910000, 910011 } });
+                bool regular = (bool)check.Invoke(dao, new object[] { new List<long> { 910000, 999999 } });
+                bool empty = (bool)check.Invoke(dao, new object[] { new List<long>() });
+                Console.WriteLine("::notice::Original manager list semantics: mixedManager=" + mixed +
+                                  "; regularDenied=" + !regular + "; emptyDenied=" + !empty);
+                if (!mixed || regular || empty)
+                    throw new InvalidOperationException("Original manager badge-list golden drift");
+                Console.WriteLine("PASS: 81 original Aria role pairs + 4 badge-list outcomes; LocalDB ONLY, no SQL2016/net10 role");
                 return 0;
             }
             finally

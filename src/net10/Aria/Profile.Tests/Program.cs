@@ -12,12 +12,14 @@ using Microsoft.Extensions.DependencyInjection;
 using TWF.Domain.Models;
 using WebHost = Aria.Web.Program;
 
-if ((args.Length != 1 && (args.Length != 3 || args[1] != "--original-personnel-schema")) ||
+if ((args.Length != 1 && (args.Length != 3 ||
+        (args[1] != "--original-personnel-schema" && args[1] != "--original-aria-manager"))) ||
     !File.Exists(Path.Combine(args[0], "Aria.Web.csproj")) ||
     (args.Length == 3 && !File.Exists(args[2])))
-    throw new ArgumentException("Pass Aria Web and optionally a same-run original EDMX fixture.");
+    throw new ArgumentException("Pass Aria Web and optionally a same-run original schema OR manager fixture.");
 string webRoot = Path.GetFullPath(args[0]);
-string? originalSchemaFixture = args.Length == 3 ? args[2] : null;
+string? originalSchemaFixture = args.Length == 3 && args[1] == "--original-personnel-schema" ? args[2] : null;
+string? originalManagerFixture = args.Length == 3 && args[1] == "--original-aria-manager" ? args[2] : null;
 var passed = 0;
 var failed = 0;
 
@@ -43,6 +45,16 @@ static DataTable People(params (long Badge, string Name, bool WebUser, bool Form
         data.Rows.Add(badge, name, webUser,
             former ? (object)new DateTime(2020, 1, 1) : DBNull.Value,
             new DateTime(2000, 1, 1), new DateTime(2050, 1, 1));
+    return data;
+}
+static DataTable Permissions(params (long Badge, int Type, int Level)[] entries)
+{
+    var data = new DataTable();
+    data.Columns.Add("BadgeNumber", typeof(long));
+    data.Columns.Add("AccessType", typeof(int));
+    data.Columns.Add("AccessLevel", typeof(int));
+    foreach (var (badge, type, level) in entries)
+        data.Rows.Add(badge, type, level);
     return data;
 }
 
@@ -248,6 +260,72 @@ await Run("AR-PROFILE-08: test-only Kestrel rechecks one badge before placeholde
         "only verified non-admin test accounts recheck with fresh closed connections; no session cookie");
 });
 
+await Run("AR-ROLE-01: Aria original-pair manager lookup is fixed and badge-bound", async () =>
+{
+    var connection = new TableConnection("T5", Permissions((101, 0, 1)));
+    var result = await new ReadOnlyAriaManagerDirectory(() => connection)
+        .CheckAsync(101, CancellationToken.None);
+    var command = connection.Commands.Single();
+    Require(result == AriaManagerDecision.Manager && connection.WasDisposed && command.WasDisposed &&
+        command.CommandType == CommandType.Text &&
+        command.CommandText == ReadOnlyAriaManagerDirectory.ManagerSql &&
+        command.CommandText.Contains("FROM [dbo].[UserPermission]", StringComparison.Ordinal) &&
+        command.CommandText.Contains("[AccessType] = 0 AND [AccessLevel] = 1", StringComparison.Ordinal) &&
+        !command.CommandText.Contains("Password", StringComparison.OrdinalIgnoreCase) &&
+        command.Parameters.Count == 1 && command.Parameters["@BadgeNumber"].DbType == DbType.Int64 &&
+        command.Parameters["@BadgeNumber"].Value is long badge && badge == 101,
+        "single original-pair role, bounded lookup, no name/credential or second user secret");
+});
+
+await Run("AR-ROLE-02: no manager row is regular; mismatches and duplicates deny", async () =>
+{
+    foreach (var (rows, expected) in new[]
+    {
+        (Permissions(), AriaManagerDecision.Regular),
+        (Permissions((102, 0, 1)), AriaManagerDecision.Denied),
+        (Permissions((101, 0, 0)), AriaManagerDecision.Denied),
+        (Permissions((101, 1, 1)), AriaManagerDecision.Denied),
+        (Permissions((101, 0, 1), (101, 0, 1)), AriaManagerDecision.Denied)
+    })
+    {
+        // The fake does NOT evaluate SQL WHERE; a returned nonmatching row is
+        // suspicious and must fail closed rather than grant manager/regular.
+        var connection = new TableConnection("T5", rows);
+        var decision = await new ReadOnlyAriaManagerDirectory(() => connection)
+            .CheckAsync(101, CancellationToken.None);
+        Require(decision == expected && connection.WasDisposed, "manager matrix/malformed-row guard");
+    }
+});
+
+await Run("AR-ROLE-03: invalid badge cannot initiate a T5 connection", async () =>
+{
+    var calls = 0;
+    var directory = new ReadOnlyAriaManagerDirectory(() =>
+    {
+        calls++;
+        return new TableConnection("T5", Permissions());
+    });
+    Require(await directory.CheckAsync(0, CancellationToken.None) == AriaManagerDecision.Denied &&
+            await directory.CheckAsync(-1, CancellationToken.None) == AriaManagerDecision.Denied &&
+            calls == 0, "never infer managerial rights from zero/negative badges");
+});
+
+await Run("AR-ROLE-04: T5 failure never silently reduces privileged authorization to regular", async () =>
+{
+    var failing = new TableConnection("T5", Permissions((101, 0, 1)))
+        { OpenFailure = new InvalidOperationException("PRIVATE_T5_MARKER") };
+    Require(await new ReadOnlyAriaManagerDirectory(() => failing)
+            .CheckAsync(101, CancellationToken.None) == AriaManagerDecision.Unavailable &&
+        failing.WasDisposed, "broken T5 must not pretend no manager role");
+    var missing = new ReadOnlyAriaManagerDirectory(() => throw new InvalidOperationException("PRIVATE_T5_MARKER"));
+    Require(await missing.CheckAsync(101, CancellationToken.None) == AriaManagerDecision.Unavailable,
+        "factory failure must not grant manager or a regular session");
+    using var cancelled = new CancellationTokenSource();
+    cancelled.Cancel();
+    try { _ = await missing.CheckAsync(101, cancelled.Token); throw new Exception("cancellation swallowed"); }
+    catch (OperationCanceledException) when (cancelled.IsCancellationRequested) { }
+});
+
 if (originalSchemaFixture != null)
 {
     await Run("AR-PROFILE-09: exact pinned ORIGINAL EDMX username/table contract (metadata only)", async () =>
@@ -283,8 +361,30 @@ if (originalSchemaFixture != null)
     });
 }
 
-Console.WriteLine($"Summary: {passed} Passed, {failed} Failed (Aria fake Personnel + Kestrel; original EDMX only with same-run fixture)");
-return failed == 0 && passed == (originalSchemaFixture is null ? 9 : 10) ? 0 : 1;
+if (originalManagerFixture != null)
+{
+    await Run("AR-ROLE-05: same-run pinned ORIGINAL Aria manager pair to compiled adapter", async () =>
+    {
+        using var document = JsonDocument.Parse(File.ReadAllText(originalManagerFixture));
+        var original = document.RootElement;
+        Require(original.GetProperty("source_sha256").GetString() ==
+                    "d8f0570b39635e21b883257cf4d6bba1d6011002921ba5227dcd9cdf567b1faf" &&
+                original.GetProperty("scope").GetString() == "SYNTHETIC_LOCALDB_2025_ONLY" &&
+                original.GetProperty("table").GetString() == "dbo.UserPermission" &&
+                original.GetProperty("access_type").GetInt32() == 0 &&
+                original.GetProperty("access_level").GetInt32() == 1 &&
+                ReadOnlyAriaManagerDirectory.ManagerSql.Contains(
+                    "[AccessType] = 0 AND [AccessLevel] = 1", StringComparison.Ordinal),
+                "same-run original manager matrix 0/1, never Admin original or SQL2016");
+        var connection = new TableConnection("T5", Permissions((910011, 0, 1)));
+        Require(await new ReadOnlyAriaManagerDirectory(() => connection)
+            .CheckAsync(910011, CancellationToken.None) == AriaManagerDecision.Manager &&
+            connection.WasDisposed, "compiled adapter uses original fixture badge (fake reader, not real SQL)");
+    });
+}
+
+Console.WriteLine($"Summary: {passed} Passed, {failed} Failed (Aria fake Personnel/T5 + Kestrel; original fixtures only with same-run flags)");
+return failed == 0 && passed == (originalSchemaFixture is null && originalManagerFixture is null ? 13 : 14) ? 0 : 1;
 
 static async Task<HttpClient> StartWeb(WebApplication app)
 {

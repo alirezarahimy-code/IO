@@ -112,4 +112,20 @@ if ($LASTEXITCODE -ne 0) { throw 'Original CheckUserPass runtime golden FAILED (
 $phase = 'executing original Aria T5 main-manager decision on synthetic data'
 & $rolesExe $OriginalBin $instance $rolesDb
 if ($LASTEXITCODE -ne 0) { throw 'Original IsAnyMainManager runtime golden FAILED (see sanitized stage/type above)' }
+$phase = 'comparing pinned original role pair with compiled net10 Aria adapter (fake reader only)'
+$sdk10 = @(& dotnet --list-sdks | Where-Object { $_ -match '^10\.0\.[0-9]+ ' })
+if ($sdk10.Count -eq 0) { throw 'Preinstalled .NET 10 SDK missing; offline net10 comparison unavailable' }
+$roleFixture = Join-Path $RunnerTemp 'aria-original-role-golden.json'
+$roleJson = '{"source_sha256":"d8f0570b39635e21b883257cf4d6bba1d6011002921ba5227dcd9cdf567b1faf","table":"dbo.UserPermission","access_type":0,"access_level":1,"scope":"SYNTHETIC_LOCALDB_2025_ONLY"}'
+[System.IO.File]::WriteAllText($roleFixture, $roleJson, [System.Text.Encoding]::UTF8)
+$root = (Resolve-Path (Join-Path $tool '..\..')).Path
+$project = Join-Path $root 'Aria\Profile.Tests\Aria.Profile.Tests.csproj'
+$web = Join-Path $root 'Aria\Web'
+$config = Join-Path $root 'nuget.offline.config'
+& dotnet restore $project --configfile $config -v minimal
+if ($LASTEXITCODE -ne 0) { throw 'Offline net10 restore failed' }
+& dotnet build $project -c Release --no-restore -v minimal
+if ($LASTEXITCODE -ne 0) { throw 'Net10 role adapter build failed' }
+& dotnet run --project $project -c Release --no-build --no-restore -- $web --original-aria-manager $roleFixture
+if ($LASTEXITCODE -ne 0) { throw 'Same-run original-role-to-net10 adapter comparison failed' }
 Write-Host 'Both fixtures remained private to this ephemeral CI runner; no installed/shared SQL service was stopped.'
