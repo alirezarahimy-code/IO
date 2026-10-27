@@ -5,6 +5,9 @@ on:
     branches: [arena/a4df3135-io]
     paths:
       - 'src/net10/tools/AriaOriginalSqlGolden/**'
+      - 'src/net10/Aria/Web/Data/ReadOnlyAriaCredentialDirectory.cs'
+      - 'src/net10/Aria/Web/Data/ReadOnlyAriaManagerDirectory.cs'
+      - 'src/net10/Aria/Profile.Tests/Program.cs'
       - '.github/workflows/net10-original-aria-sql-golden.yml'
   workflow_dispatch:
 

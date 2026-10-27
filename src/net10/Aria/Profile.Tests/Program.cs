@@ -326,6 +326,125 @@ await Run("AR-ROLE-04: T5 failure never silently reduces privileged authorizatio
     catch (OperationCanceledException) when (cancelled.IsCancellationRequested) { }
 });
 
+await Run("AR-CRED-01: one synthetic matched Personnel row binds SAME shared account/password", async () =>
+{
+    var connection = new TableConnection("Personnel", People((101, "fixture-user", true, false)));
+    var result = await new ReadOnlyAriaCredentialDirectory(() => connection)
+        .VerifyAsync("fixture-user", "fixture-secret", CancellationToken.None);
+    var command = connection.Commands.Single();
+    Require(result.State == AriaCredentialState.Verified &&
+        result.Account == new VerifiedAriaAccount("fixture-user", 101) &&
+        connection.WasDisposed && command.WasDisposed && command.CommandType == CommandType.Text &&
+        command.CommandText == ReadOnlyAriaCredentialDirectory.CredentialSql &&
+        command.CommandText.Contains("FROM [dbo].[UserInfo]", StringComparison.Ordinal) &&
+        command.CommandText.Contains("[Password] = @Password", StringComparison.Ordinal) &&
+        !command.CommandText.Contains("fixture-secret", StringComparison.Ordinal) &&
+        !command.CommandText.Contains("SELECT *", StringComparison.OrdinalIgnoreCase) &&
+        command.Parameters.Count == 2 &&
+        command.Parameters["@UserName"].Value is string login && login == "fixture-user" &&
+        command.Parameters["@UserName"].Size == 100 &&
+        command.Parameters["@Password"].Value is string secret && secret == "fixture-secret" &&
+        command.Parameters["@Password"].Size == 250,
+        "only bound original Personnel column sizes; NO SQL/real password was checked by fake");
+});
+
+await Run("AR-CRED-02: no matched SQL row and invalid credential inputs deny early", async () =>
+{
+    var empty = new TableConnection("Personnel", People());
+    var missing = await new ReadOnlyAriaCredentialDirectory(() => empty)
+        .VerifyAsync("fixture-user", "fixture-wrong", CancellationToken.None);
+    Require(missing.State == AriaCredentialState.Denied && empty.WasDisposed,
+        "fake empty reader stands for SQL no-match, not actual password validation");
+    var calls = 0;
+    var directory = new ReadOnlyAriaCredentialDirectory(() =>
+    {
+        calls++;
+        return new TableConnection("Personnel", People());
+    });
+    foreach (var (name, password) in new (string?, string?)[]
+    {
+        (null, "fixture"), ("", "fixture"), (" user", "fixture"),
+        ("user\r", "fixture"), (new string('x', 101), "fixture"),
+        ("fixture-user", null), ("fixture-user", ""),
+        ("fixture-user", new string('x', 251)), ("fixture-user", "abc\nxyz")
+    })
+        Require((await directory.VerifyAsync(name, password, CancellationToken.None)).State ==
+            AriaCredentialState.Denied, "bad credential form must not open a database");
+    Require(calls == 0, "no connection for invalid inputs");
+    var max = new TableConnection("Personnel", People((101, new string('n', 100), true, false)));
+    Require((await new ReadOnlyAriaCredentialDirectory(() => max)
+        .VerifyAsync(new string('n', 100), new string('p', 250), CancellationToken.None)).State ==
+        AriaCredentialState.Verified &&
+        max.Commands.Single().Parameters["@Password"].Size == 250,
+        "original EDMX 100/250 maximum accepted without truncation (fake reader only)");
+});
+
+await Run("AR-CRED-03: bad badge, ineligible date, disabled/former and duplicate all deny", async () =>
+{
+    foreach (var table in new[]
+    {
+        People((0, "fixture-user", true, false)),
+        People((101, "fixture-other", true, false)),
+        People((101, "fixture-user", false, false)),
+        People((101, "fixture-user", true, true)),
+        People((101, "fixture-user", true, false), (101, "fixture-user", true, false))
+    })
+    {
+        var connection = new TableConnection("Personnel", table);
+        var result = await new ReadOnlyAriaCredentialDirectory(() => connection)
+            .VerifyAsync("fixture-user", "fixture-secret", CancellationToken.None);
+        Require(result.State == AriaCredentialState.Denied && result.Account == null &&
+            connection.WasDisposed, "malformed/ineligible returned fake row never issues verified badge");
+    }
+    var clock = new ProfileClock(new DateTimeOffset(2026, 10, 27, 12, 0, 0, TimeSpan.Zero));
+    foreach (var (from, to) in new[]
+    {
+        ((object)new DateTime(2026, 11, 1), (object)new DateTime(2050, 1, 1)),
+        ((object)new DateTime(2000, 1, 1), (object)new DateTime(2020, 1, 1)),
+        ((object)DBNull.Value, (object)new DateTime(2050, 1, 1)),
+        ((object)new DateTime(2000, 1, 1), (object)DBNull.Value)
+    })
+    {
+        var data = People((101, "fixture-user", true, false));
+        data.Rows[0]["ValidFrom"] = from;
+        data.Rows[0]["ValidTo"] = to;
+        var result = await new ReadOnlyAriaCredentialDirectory(() =>
+            new TableConnection("Personnel", data), clock)
+            .VerifyAsync("fixture-user", "fixture-secret", CancellationToken.None);
+        Require(result.State == AriaCredentialState.Denied, "date/null status cannot become a new session");
+    }
+});
+
+await Run("AR-CRED-04: credential driver errors and cancellations never leak a secret", async () =>
+{
+    var failing = new TableConnection("Personnel", People((101, "fixture-user", true, false)))
+        { ReadFailure = new InvalidOperationException("PRIVATE_CREDENTIAL_MARKER") };
+    Require((await new ReadOnlyAriaCredentialDirectory(() => failing)
+        .VerifyAsync("fixture-user", "fixture-secret", CancellationToken.None)).State ==
+        AriaCredentialState.Unavailable && failing.WasDisposed, "SQL failure is not bad-password or success");
+    using var cancelled = new CancellationTokenSource();
+    cancelled.Cancel();
+    try {
+        _ = await new ReadOnlyAriaCredentialDirectory(() => throw new Exception("SHOULD_NOT_OPEN"))
+            .VerifyAsync("fixture-user", "fixture-secret", cancelled.Token);
+        throw new Exception("cancellation swallowed");
+    } catch (OperationCanceledException) when (cancelled.IsCancellationRequested) { }
+});
+
+await Run("AR-CRED-05: adversarial password stays a bound parameter, never SQL text", async () =>
+{
+    const string injection = "x'; DROP TABLE [dbo].[UserInfo];--";
+    var connection = new TableConnection("Personnel", People());
+    var result = await new ReadOnlyAriaCredentialDirectory(() => connection)
+        .VerifyAsync("fixture-user", injection, CancellationToken.None);
+    var command = connection.Commands.Single();
+    Require(result.State == AriaCredentialState.Denied &&
+        !command.CommandText.Contains(injection, StringComparison.Ordinal) &&
+        command.Parameters["@Password"].Value is string bound && bound == injection &&
+        connection.WasDisposed,
+        "binding proof only: fake NEVER executed a SQL Server command or verified a password");
+});
+
 if (originalSchemaFixture != null)
 {
     await Run("AR-PROFILE-09: exact pinned ORIGINAL EDMX username/table contract (metadata only)", async () =>
@@ -345,8 +464,12 @@ if (originalSchemaFixture != null)
                     .GetProperty("store_type").GetString() == "bigint" &&
                 schema.GetProperty("columns").GetProperty("WebUser")
                     .GetProperty("store_type").GetString() == "bit" &&
+                schema.GetProperty("columns").GetProperty("Password")
+                    .GetProperty("max_length").GetInt32() == 250 &&
                 ReadOnlyPersonnelDirectory.PersonSql.Contains("FROM [dbo].[UserInfo]", StringComparison.Ordinal) &&
-                !ReadOnlyPersonnelDirectory.PersonSql.Contains("Password", StringComparison.OrdinalIgnoreCase),
+                !ReadOnlyPersonnelDirectory.PersonSql.Contains("Password", StringComparison.OrdinalIgnoreCase) &&
+                ReadOnlyAriaCredentialDirectory.CredentialSql.Contains(
+                    "[Password] = @Password", StringComparison.Ordinal),
                 "port projection/table must stay within its own original Personnel mapping");
         string longestUser = new('u', 100);
         var connection = new TableConnection("Personnel", People((101, longestUser, true, false)));
@@ -384,7 +507,7 @@ if (originalManagerFixture != null)
 }
 
 Console.WriteLine($"Summary: {passed} Passed, {failed} Failed (Aria fake Personnel/T5 + Kestrel; original fixtures only with same-run flags)");
-return failed == 0 && passed == (originalSchemaFixture is null && originalManagerFixture is null ? 13 : 14) ? 0 : 1;
+return failed == 0 && passed == (originalSchemaFixture is null && originalManagerFixture is null ? 18 : 19) ? 0 : 1;
 
 static async Task<HttpClient> StartWeb(WebApplication app)
 {

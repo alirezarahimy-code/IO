@@ -9,12 +9,14 @@ on:
     paths:
       - 'src/net10/tools/AriaOriginalPersonnelSchema/**'
       - 'src/net10/Aria/Web/Data/ReadOnlyPersonnelDirectory.cs'
+      - 'src/net10/Aria/Web/Data/ReadOnlyAriaCredentialDirectory.cs'
       - 'src/net10/Aria/Profile.Tests/Program.cs'
       - '.github/workflows/net10-original-aria-personnel-schema.yml'
   pull_request:
     paths:
       - 'src/net10/tools/AriaOriginalPersonnelSchema/**'
       - 'src/net10/Aria/Web/Data/ReadOnlyPersonnelDirectory.cs'
+      - 'src/net10/Aria/Web/Data/ReadOnlyAriaCredentialDirectory.cs'
       - 'src/net10/Aria/Profile.Tests/Program.cs'
       - '.github/workflows/net10-original-aria-personnel-schema.yml'
   workflow_dispatch:
@@ -47,6 +49,6 @@ jobs:
           dotnet build "$project" -c Release --no-restore -v minimal
           dotnet run --project "$project" -c Release --no-build --no-restore -- \
             "$web" '--original-personnel-schema' "$fixture" | tee "$tmp/profile.log"
-          grep -q 'Summary: 14 Passed, 0 Failed' "$tmp/profile.log"
+          grep -q 'Summary: 19 Passed, 0 Failed' "$tmp/profile.log"
           grep -q 'AR-PROFILE-09: exact pinned ORIGINAL EDMX' "$tmp/profile.log"
-          echo '::notice::ARIA PERSONNEL ORIGINAL EDMX | SHA-pinned TWF 4.28 dbo.UserInfo mapped metadata -> compiled net10 parameter size 100 + quoted dbo table; Profile.Tests 14/14 same-run incl 13 fake Personnel/T5 ADO/Kestrel checks. Original password/manager golden is in a DIFFERENT Windows LocalDB CI; this job proves only original Personnel EDMX, NOT SQL Server 2016 or production auth/provider/IIS.'
+          echo '::notice::ARIA PERSONNEL ORIGINAL EDMX | SHA-pinned TWF 4.28 dbo.UserInfo mapped metadata -> compiled net10 parameter size 100 + quoted dbo table; Profile.Tests 19/19 same-run incl 18 fake Personnel/credential/T5 ADO/Kestrel checks. Original password/manager golden is in a DIFFERENT Windows LocalDB CI; this job proves only original Personnel EDMX, NOT SQL Server 2016 or production auth/provider/IIS.'
