@@ -165,7 +165,11 @@ internal sealed class ReadOnlySqlDirectory : IAdminDirectory
         int slash = name.LastIndexOf('\\');
         if (slash >= 0) name = name[(slash + 1)..];
         int at = name.IndexOf('@');
-        if (at >= 0) name = name[..at];
+        if (at >= 0)
+        {
+            if (at == 0 || at == name.Length - 1 || name.IndexOf('@', at + 1) >= 0) return "";
+            name = name[..at];
+        }
         name = name.Trim();
         // The SQL parameter cannot inject SQL, but a malformed/ambiguous
         // Windows name is still not a safe organizational identity.

@@ -150,7 +150,7 @@ await Run("AA-DIR-06: request cancellation propagates and disposes the person co
 
 await Run("AA-DIR-07: UPN and bound adversarial login never become SQL text", async () =>
 {
-    foreach (var name in new[] { @"DOMAIN\", "@domain", "\r\n", "" })
+    foreach (var name in new[] { @"DOMAIN\", "@domain", "fixture@one@two", "fixture@", "\r\n", "" })
     {
         var personCalls = 0;
         var denied = await new ReadOnlySqlDirectory(
@@ -159,11 +159,19 @@ await Run("AA-DIR-07: UPN and bound adversarial login never become SQL text", as
             .ResolveAsync(name, CancellationToken.None);
         Require(denied.State == DirectoryState.Denied && personCalls == 0, "reject malformed identity before DB");
     }
-    const string adversarial = "fixture'; SELECT @x";
+    var pUpn = new TableConnection("Personnel", People((101, true, false)));
+    var upnDirectory = new ReadOnlySqlDirectory(() => pUpn,
+        () => new TableConnection("T5", Permissions(Grant(101, AdminFeature.PersonnelView, AccessLevel.ReadOnly))));
+    var upn = await upnDirectory.ResolveAsync("fixture-user@testdom", CancellationToken.None);
+    Require(upn.State == DirectoryState.Allowed &&
+        pUpn.Commands.Single().Parameters["@UserName"].Value is string boundUpn && boundUpn == "fixture-user",
+        "well-formed UPN must bind only its local name (current T5Web rewrite rule)");
+
+    const string adversarial = "fixture'; DROP TABLE [UserInfo];--";
     var p = new TableConnection("Personnel", People((101, true, false)));
     var directory = new ReadOnlySqlDirectory(() => p,
         () => new TableConnection("T5", Permissions(Grant(101, AdminFeature.PersonnelView, AccessLevel.ReadOnly))));
-    var allowed = await directory.ResolveAsync(adversarial + "@testdom", CancellationToken.None);
+    var allowed = await directory.ResolveAsync(adversarial, CancellationToken.None);
     Require(allowed.State == DirectoryState.Allowed && allowed.Session?.BadgeNumber == 101,
         "fixed fake rows make this a binding test ONLY, not a real identity check");
     Require(!p.Commands.Single().CommandText.Contains(adversarial) &&
