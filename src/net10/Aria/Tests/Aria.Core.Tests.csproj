@@ -9,8 +9,9 @@
   <ItemGroup>
     <ProjectReference Include="../Core/Aria.Core.csproj" />
     <None Include="golden.json" CopyToOutputDirectory="PreserveNewest" />
-    <!-- Recorded from SHA-pinned original TWF 4.28 binary in CI 40404015969;
-         Windows also regenerates this file dynamically for same-run comparison. -->
+    <!-- Three format outputs recorded from original CI 40404015969; six safe
+         parse inputs verified against the SHA-pinned original in CI 40457189530.
+         Windows regenerates all rows dynamically for same-run comparison. -->
     <None Include="original-misc-golden.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
