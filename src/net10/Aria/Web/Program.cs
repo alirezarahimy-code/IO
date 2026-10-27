@@ -138,7 +138,11 @@ internal static class Program
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 return;
             }
-            AriaRequestIdentity.Set(context, identity); // request-scoped; no ThreadStatic/HttpContext.Current.
+            // Only this least-privileged identity enters application controllers.
+            // Token-supplied titles, department, observer/manager flags and names
+            // must not silently become permissions after a Personnel-only recheck.
+            AriaRequestIdentity.Set(context,
+                AriaRequestIdentity.LeastPrivilege(current.Person, identity));
             await next();
         });
         app.MapGet("/health/live", () => Results.Json(new { status = "alive", product = "آریا" }));

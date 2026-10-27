@@ -211,10 +211,32 @@ internal static class Program
                         "no identity or driver leak");
                 }
             });
+            await Check("AR-WEB-16: session role/title claims cannot become permissions", () =>
+            {
+                var forged = new UserSessionIdentity(1001, "synthetic-user", "Forged", "Manager",
+                    "user", 999, "خارج از سامانه", 999, "خارج از سامانه", 99, "خارج از سامانه",
+                    true, true, FixedNow.AddMinutes(-5), FixedNow.AddHours(2));
+                var rechecked = new VerifiedAriaAccount("synthetic-user", 1001);
+                var safe = AriaRequestIdentity.LeastPrivilege(rechecked, forged);
+                Require(safe.BadgeNumber == 1001 && safe.UserName == rechecked.AccountName &&
+                    safe.Role == "user" && !safe.IsAdmin && !safe.IsObserver &&
+                    !safe.IsTopLevelManager && safe.TitleId == 0 && safe.UpperTitleId == 0 &&
+                    safe.DepartmentId == 0 && safe.FirstName == "" && safe.LastName == "" &&
+                    safe.IssuedAtUtc == forged.IssuedAtUtc && safe.ExpiresAtUtc == forged.ExpiresAtUtc,
+                    "only rechecked name/badge and verified timestamps survive");
+                try
+                {
+                    _ = AriaRequestIdentity.LeastPrivilege(
+                        new VerifiedAriaAccount("synthetic-other", 1001), forged);
+                    throw new InvalidOperationException("mismatched person was accepted");
+                }
+                catch (ArgumentException) { /* expected */ }
+                return Task.CompletedTask;
+            });
         }
 
         Console.WriteLine($"Summary: {_passed} Passed, {_failed} Failed (net10.0 Aria Kestrel/Razor synthetic only)");
-        return _passed == 15 && _failed == 0 ? 0 : 1;
+        return _passed == 16 && _failed == 0 ? 0 : 1;
     }
 
     private static async Task<HttpClient> Start(WebApplication app)

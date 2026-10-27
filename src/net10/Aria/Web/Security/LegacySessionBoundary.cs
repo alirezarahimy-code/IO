@@ -71,4 +71,23 @@ public static class AriaRequestIdentity
     public static UserSessionIdentity? Get(HttpContext context) =>
         context.Items.TryGetValue(Key, out var value) ? value as UserSessionIdentity : null;
     internal static void Set(HttpContext context, UserSessionIdentity identity) => context.Items[Key] = identity;
+
+    // Only the current Personnel row may supply the name/badge. A verified
+    // cookie/session payload does NOT prove a title, department, observer or
+    // management role. Until an original-verified T5/title lookup exists, never
+    // expose those untrusted claims to controllers as application permissions.
+    internal static UserSessionIdentity LeastPrivilege(VerifiedAriaAccount person,
+        UserSessionIdentity untrustedSession)
+    {
+        if (person is null || untrustedSession is null || person.BadgeNumber <= 0 ||
+            person.BadgeNumber != untrustedSession.BadgeNumber ||
+            string.IsNullOrWhiteSpace(person.AccountName) ||
+            !string.Equals(person.AccountName, untrustedSession.UserName,
+                StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException("Session and current account do not match");
+        return new UserSessionIdentity(person.BadgeNumber, person.AccountName,
+            string.Empty, string.Empty, "user", 0, string.Empty, 0, string.Empty,
+            0, string.Empty, false, false,
+            untrustedSession.IssuedAtUtc, untrustedSession.ExpiresAtUtc);
+    }
 }
