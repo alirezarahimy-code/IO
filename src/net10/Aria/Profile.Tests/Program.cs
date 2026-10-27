@@ -5,6 +5,7 @@ using System.Text.Json;
 using Aria.Web.Data;
 using Aria.Web.Security;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.AspNetCore.Http;
@@ -531,6 +532,122 @@ await Run("AR-ADMIT-05: T5 outage/ambiguous manager cannot fall back to regular"
         "never grant a partial account or mistake unavailable T5 for no privilege");
 });
 
+await Run("AR-SESSION-01: fresh protected single-account ticket needs separate registry", async () =>
+{
+    var registry = new SyntheticSessionRegistry();
+    var clock = new SyntheticSessionClock(new DateTimeOffset(2026, 10, 27, 12, 0, 0, TimeSpan.Zero));
+    var manager = new FreshAriaSessionManager(new EphemeralDataProtectionProvider(), registry, clock);
+    string? token = await manager.IssueAsync(new VerifiedAriaAccount("fixture-user", 101), CancellationToken.None);
+    Require(token != null && token.Length < 4096 &&
+        !token.Contains("fixture-user", StringComparison.Ordinal) &&
+        !token.Contains("admin", StringComparison.OrdinalIgnoreCase) && registry.Count == 1,
+        "only a protected, bounded opaque test token; no roles or plaintext account");
+    var verified = await manager.VerifyAsync(token, CancellationToken.None);
+    Require(verified.State == FreshAriaSessionState.Verified &&
+        verified.Account == new VerifiedAriaAccount("fixture-user", 101) &&
+        verified.SessionId is not null,
+        "same synthetic name/badge only after authenticated crypto AND active registry");
+});
+
+await Run("AR-SESSION-02: tamper/legacy/oversize tokens fail before registry", async () =>
+{
+    var registry = new SyntheticSessionRegistry();
+    var manager = new FreshAriaSessionManager(new EphemeralDataProtectionProvider(), registry,
+        new SyntheticSessionClock(new DateTimeOffset(2026, 10, 27, 12, 0, 0, TimeSpan.Zero)));
+    string? token = await manager.IssueAsync(new VerifiedAriaAccount("fixture-user", 101), CancellationToken.None);
+    Require(token != null, "test token setup");
+    string tampered = (token![0] == 'A' ? "B" : "A") + token[1..];
+    foreach (string invalid in new[] { "legacy-mytimeauth-DES", "broken.not-a-ticket", new string('x', 4097), tampered })
+    {
+        var decision = await manager.VerifyAsync(invalid, CancellationToken.None);
+        Require(decision.State == FreshAriaSessionState.Denied && decision.Account == null &&
+            decision.SessionId == null, "never accept legacy/altered/oversized bearer token");
+    }
+    Require(registry.FindCalls == 0, "invalid unprotected bytes never reach persistence");
+});
+
+await Run("AR-SESSION-03: revocation makes manually replayed test token unusable", async () =>
+{
+    var registry = new SyntheticSessionRegistry();
+    var manager = new FreshAriaSessionManager(new EphemeralDataProtectionProvider(), registry,
+        new SyntheticSessionClock(new DateTimeOffset(2026, 10, 27, 12, 0, 0, TimeSpan.Zero)));
+    var account = new VerifiedAriaAccount("fixture-user", 101);
+    string? first = await manager.IssueAsync(account, CancellationToken.None);
+    string? second = await manager.IssueAsync(account, CancellationToken.None);
+    Require(first != null && second != null && first != second, "unique synthetic session IDs");
+    Require(await manager.RevokeAsync(first, CancellationToken.None) == FreshAriaRevokeState.Revoked &&
+        (await manager.VerifyAsync(first, CancellationToken.None)).State == FreshAriaSessionState.Denied &&
+        await manager.RevokeAsync(first, CancellationToken.None) == FreshAriaRevokeState.Invalid &&
+        (await manager.VerifyAsync(second, CancellationToken.None)).State == FreshAriaSessionState.Verified,
+        "store-backed revocation vs original DES cookie replay (test-only, no browser/IIS)");
+});
+
+await Run("AR-SESSION-04: future issue, exact expiry and another key ring cannot verify", async () =>
+{
+    var registry = new SyntheticSessionRegistry();
+    var keys = new EphemeralDataProtectionProvider();
+    var clock = new SyntheticSessionClock(new DateTimeOffset(2026, 10, 27, 12, 0, 0, TimeSpan.Zero));
+    var manager = new FreshAriaSessionManager(keys, registry, clock);
+    string? token = await manager.IssueAsync(new VerifiedAriaAccount("fixture-user", 101), CancellationToken.None);
+    Require(token != null, "session issue fixture");
+    clock.Advance(TimeSpan.FromTicks(-1));
+    Require((await manager.VerifyAsync(token, CancellationToken.None)).State == FreshAriaSessionState.Denied,
+        "future-issued token not valid");
+    clock.Advance(TimeSpan.FromTicks(1));
+    Require((await new FreshAriaSessionManager(new EphemeralDataProtectionProvider(), registry, clock)
+        .VerifyAsync(token, CancellationToken.None)).State == FreshAriaSessionState.Denied,
+        "unknown key ring cannot silently accept old protected ticket");
+    clock.Advance(TimeSpan.FromMinutes(20));
+    Require((await manager.VerifyAsync(token, CancellationToken.None)).State == FreshAriaSessionState.Denied,
+        "exact 20-minute expiry is denied; shorter current session must be tested separately");
+});
+
+await Run("AR-SESSION-05: corrupt identity/storage outage never produces verified access", async () =>
+{
+    var registry = new SyntheticSessionRegistry();
+    var clock = new SyntheticSessionClock(new DateTimeOffset(2026, 10, 27, 12, 0, 0, TimeSpan.Zero));
+    var manager = new FreshAriaSessionManager(new EphemeralDataProtectionProvider(), registry, clock);
+    string? token = await manager.IssueAsync(new VerifiedAriaAccount("fixture-user", 101), CancellationToken.None);
+    var initial = await manager.VerifyAsync(token, CancellationToken.None);
+    Require(initial.SessionId is not null && initial.State == FreshAriaSessionState.Verified,
+        "synthetic store setup");
+    registry.Replace(initial.SessionId!.Value, new VerifiedAriaAccount("fixture-other", 102));
+    Require((await manager.VerifyAsync(token, CancellationToken.None)).State == FreshAriaSessionState.Denied,
+        "wrong current badge/name never inherits a protected ticket");
+    registry.FailFind = true;
+    Require((await manager.VerifyAsync(token, CancellationToken.None)).State == FreshAriaSessionState.Unavailable &&
+        await manager.RevokeAsync(token, CancellationToken.None) == FreshAriaRevokeState.Unavailable,
+        "registry outage is not anonymous, ordinary user or successful logout");
+    registry.FailCreate = true;
+    Require(await manager.IssueAsync(new VerifiedAriaAccount("fixture-user", 101), CancellationToken.None) == null,
+        "no ticket from failed persistent write");
+    using var cancelled = new CancellationTokenSource();
+    cancelled.Cancel();
+    try { _ = await manager.VerifyAsync(token, cancelled.Token); throw new Exception("ignored cancellation"); }
+    catch (OperationCanceledException) when (cancelled.IsCancellationRequested) { }
+});
+
+await Run("AR-SESSION-06: 100 isolated in-memory tickets are NOT operational load", async () =>
+{
+    var registry = new SyntheticSessionRegistry();
+    var manager = new FreshAriaSessionManager(new EphemeralDataProtectionProvider(), registry,
+        new SyntheticSessionClock(new DateTimeOffset(2026, 10, 27, 12, 0, 0, TimeSpan.Zero)));
+    var tasks = Enumerable.Range(1, 100).Select(async number =>
+    {
+        var account = new VerifiedAriaAccount("fixture-" + number, number);
+        string token = await manager.IssueAsync(account, CancellationToken.None)
+            ?? throw new Exception("test-only issue failed");
+        var before = await manager.VerifyAsync(token, CancellationToken.None);
+        var revoked = await manager.RevokeAsync(token, CancellationToken.None);
+        var after = await manager.VerifyAsync(token, CancellationToken.None);
+        return before.State == FreshAriaSessionState.Verified && before.Account == account &&
+            revoked == FreshAriaRevokeState.Revoked && after.State == FreshAriaSessionState.Denied;
+    });
+    bool[] outcomes = await Task.WhenAll(tasks);
+    Require(outcomes.All(value => value) && registry.Count == 100,
+        "100 test-only in-process tokens; NOT 100 IIS users, SQL sessions or operational load");
+});
+
 if (originalSchemaFixture != null)
 {
     await Run("AR-PROFILE-09: exact pinned ORIGINAL EDMX username/table contract (metadata only)", async () =>
@@ -593,7 +710,7 @@ if (originalManagerFixture != null)
 }
 
 Console.WriteLine($"Summary: {passed} Passed, {failed} Failed (Aria fake Personnel/T5 + Kestrel; original fixtures only with same-run flags)");
-return failed == 0 && passed == (originalSchemaFixture is null && originalManagerFixture is null ? 23 : 24) ? 0 : 1;
+return failed == 0 && passed == (originalSchemaFixture is null && originalManagerFixture is null ? 29 : 30) ? 0 : 1;
 
 static async Task<HttpClient> StartWeb(WebApplication app)
 {

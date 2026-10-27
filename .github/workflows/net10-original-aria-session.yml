@@ -8,11 +8,15 @@ on:
     branches: [arena/a4df3135-io]
     paths:
       - 'src/net10/tools/AriaOriginalSessionGolden/**'
+      - 'src/net10/Aria/Web/Security/FreshAriaSessionManager.cs'
+      - 'src/net10/Aria/Profile.Tests/SessionDoubles.cs'
       - 'TWF 4.28/App/bin/MyTime3.dll'
       - '.github/workflows/net10-original-aria-session.yml'
   pull_request:
     paths:
       - 'src/net10/tools/AriaOriginalSessionGolden/**'
+      - 'src/net10/Aria/Web/Security/FreshAriaSessionManager.cs'
+      - 'src/net10/Aria/Profile.Tests/SessionDoubles.cs'
       - 'TWF 4.28/App/bin/MyTime3.dll'
       - '.github/workflows/net10-original-aria-session.yml'
   workflow_dispatch:
@@ -66,3 +70,27 @@ jobs:
             exit 1
           }
           Write-Host '::notice::TWF 4.28 original-binary 16/16 in-memory cookie/logout/replay/route/attribute cases. After response cookie expiry, the same synthetic value manually resubmitted to a fresh original filter still passes; NOT browser behavior or an original HTTP/action/DB golden. The new host rejects all old DES cookies and MUST NOT enable login/logout until same-account verification plus revocable fresh sessions are proven. NOT SQL/IIS parity or deployment.'
+      - name: Compare with offline net10 UNWIRED fresh-session and revocation tests
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not (Get-Command dotnet -ErrorAction SilentlyContinue) -or
+              -not (@(& dotnet --list-sdks | Where-Object { $_ -match '^10\.0\.[0-9]+ ' }).Count -gt 0)) {
+            Write-Host '::error::NEEDS-INFRA: preinstalled .NET 10 SDK absent; no download fallback.'
+            exit 2
+          }
+          $project = Join-Path $env:GITHUB_WORKSPACE 'src/net10/Aria/Profile.Tests/Aria.Profile.Tests.csproj'
+          $config = Join-Path $env:GITHUB_WORKSPACE 'src/net10/nuget.offline.config'
+          $web = Join-Path $env:GITHUB_WORKSPACE 'src/net10/Aria/Web'
+          & dotnet restore $project --configfile $config -v minimal
+          if ($LASTEXITCODE -ne 0) { Write-Host '::error::Offline session test restore failed'; exit 1 }
+          & dotnet build $project -c Release --no-restore -v minimal
+          if ($LASTEXITCODE -ne 0) { Write-Host '::error::Offline session test build failed'; exit 1 }
+          $output = @(& dotnet run --project $project -c Release --no-build --no-restore -- $web)
+          $code = $LASTEXITCODE
+          $output | Write-Host
+          if ($code -ne 0 -or -not ($output | Select-String -Quiet 'Summary: 29 Passed, 0 Failed')) {
+            Write-Host '::error::New UNWIRED fake/ephemeral session tests failed; no operational cookie claim.'
+            exit 1
+          }
+          Write-Host '::notice::Same-run original DES cookie 16/16 (Framework) versus net10 29/29 FAKE profile/in-memory DATA PROTECTION + revocation checks. NO new HTTP cookie issued; no approved persistent key ring/store/SQL/IIS, 100-user operational load or parity.'

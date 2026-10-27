@@ -406,7 +406,7 @@ jobs:
           echo "::notice::ADMIN directory net10.0 | two ADO.NET DataTable doubles | 10/10 synthetic cases incl test-only Kestrel HTTP badge binding | $RUNNER_OS | production still 503; NO provider/SQL Server/shared-password/original parity"
 
   aria-personnel-profile:
-    name: Aria Personnel/credential/T5 admission net10.0 + 22 ADO.NET + 1 HTTP synthetics (${{ matrix.os }})
+    name: Aria identity boundaries net10.0 + 28 synthetic units + 1 HTTP (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     strategy:
@@ -455,8 +455,8 @@ jobs:
           diagnose tests-build dotnet build "$tests" -c Release --no-restore -v minimal
           diagnose synthetics dotnet run --project "$tests" -c Release --no-build --no-restore -- \
             "$GITHUB_WORKSPACE/src/net10/Aria/Web"
-          if ! grep -q 'Summary: 23 Passed, 0 Failed' "$logdir/aria-profile-synthetics.log"; then
-            echo '::error::Aria Personnel/credential/T5 suite did not complete 22 direct + 1 test-only Kestrel cases.'
+          if ! grep -q 'Summary: 29 Passed, 0 Failed' "$logdir/aria-profile-synthetics.log"; then
+            echo '::error::Aria identity suite did not complete 28 direct + 1 test-only Kestrel cases.'
             exit 1
           fi
-          echo "::notice::ARIA profile net10.0 | 23/23 FAKE Personnel/credential/T5 admission ADO.NET/Kestrel cases | $RUNNER_OS | no operational net10 login, SQL 2016, session/manager admission or original HTTP parity"
+          echo "::notice::ARIA identity net10.0 | 29/29 FAKE ADO.NET/Kestrel/in-memory protected session cases | $RUNNER_OS | NO issued HTTP cookie, operational logout/login, SQL 2016, IIS or 100-user load"
