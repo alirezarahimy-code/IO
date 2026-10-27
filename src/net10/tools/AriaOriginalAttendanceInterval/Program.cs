@@ -33,7 +33,10 @@ internal static class OriginalAttendanceInterval
             ConstructorInfo constructor = interval.GetConstructor(new[] { typeof(DateTime), typeof(DateTime) });
             MethodInfo intersects = interval.GetMethod("HaveIntersection", BindingFlags.Public | BindingFlags.Static,
                 null, new[] { interval, interval }, null);
-            if (constructor == null || intersects == null || intersects.ReturnType != typeof(bool))
+            MethodInfo isIn = interval.GetMethod("IsIn", BindingFlags.Public | BindingFlags.Instance,
+                null, new[] { typeof(DateTime) }, null);
+            if (constructor == null || intersects == null || intersects.ReturnType != typeof(bool) ||
+                isIn == null || isIn.ReturnType != typeof(bool))
                 throw new InvalidOperationException("Original interval method signature changed");
             DateTime d = new DateTime(2026, 10, 27, 0, 0, 0, DateTimeKind.Unspecified);
             DateTime next = d.AddDays(1);
@@ -63,10 +66,31 @@ internal static class OriginalAttendanceInterval
                 if (sample.Name == "disjoint" && value)
                     throw new InvalidOperationException("Original disjoint interval case changed");
             }
+            var contains = new[]
+            {
+                new ContainmentSample("before", d.AddHours(9), d.AddHours(10), d.AddHours(9).AddTicks(-1), false),
+                new ContainmentSample("start", d.AddHours(9), d.AddHours(10), d.AddHours(9), true),
+                new ContainmentSample("inside", d.AddHours(9), d.AddHours(10), d.AddHours(9.5), true),
+                new ContainmentSample("end", d.AddHours(9), d.AddHours(10), d.AddHours(10), true),
+                new ContainmentSample("after", d.AddHours(9), d.AddHours(10), d.AddHours(10).AddTicks(1), false),
+                new ContainmentSample("zero", d.AddHours(10), d.AddHours(10), d.AddHours(10), true),
+                new ContainmentSample("overnight", d.AddHours(23.5), next.AddHours(0.5), next.AddHours(0.25), true)
+            };
+            var containsResults = new List<string>();
+            foreach (ContainmentSample sample in contains)
+            {
+                object boundary = constructor.Invoke(new object[] { sample.From, sample.To });
+                bool value = (bool)isIn.Invoke(boundary, new object[] { sample.Moment });
+                containsResults.Add("\"" + sample.Name + "\":" + (value ? "true" : "false"));
+                Console.WriteLine("::notice::Original Aria attendance IsIn " + sample.Name + "=" + value);
+                if (value != sample.Expected)
+                    throw new InvalidOperationException("Original time containment case changed");
+            }
             string json = "{\"source_sha256\":\"" + Expected + "\",\"scope\":\"SYNTHETIC_PURE_ORIGINAL_X86\",\"cases\":{" +
-                string.Join(",", results.ToArray()) + "}}\n";
+                string.Join(",", results.ToArray()) + "},\"contains\":{" +
+                string.Join(",", containsResults.ToArray()) + "}}\n";
             File.WriteAllText(args[1], json);
-            Console.WriteLine("PASS: eight pure attendance interval results from pinned TWF original, no SQL/hardware");
+            Console.WriteLine("PASS: eight overlaps and seven pure IsIn cases from pinned TWF original, no SQL/hardware");
             return 0;
         }
         catch (Exception error)
@@ -86,5 +110,14 @@ internal static class OriginalAttendanceInterval
         public readonly DateTime A, B, C, D;
         public Sample(string name, DateTime a, DateTime b, DateTime c, DateTime d)
         { Name = name; A = a; B = b; C = c; D = d; }
+    }
+
+    private sealed class ContainmentSample
+    {
+        public readonly string Name;
+        public readonly DateTime From, To, Moment;
+        public readonly bool Expected;
+        public ContainmentSample(string name, DateTime from, DateTime to, DateTime moment, bool expected)
+        { Name = name; From = from; To = to; Moment = moment; Expected = expected; }
     }
 }

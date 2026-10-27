@@ -40,13 +40,17 @@ jobs:
           if ($LASTEXITCODE -ne 0 -or !(Test-Path $fixture)) { exit 1 }
           $data = Get-Content $fixture -Raw | ConvertFrom-Json
           if ($data.scope -ne 'SYNTHETIC_PURE_ORIGINAL_X86' -or
-              @($data.cases.PSObject.Properties).Count -ne 8) {
+              @($data.cases.PSObject.Properties).Count -ne 8 -or
+              @($data.contains.PSObject.Properties).Count -ne 7) {
             Write-Host '::error::Original interval fixture incomplete'; exit 1
           }
           $observed = @($data.cases.PSObject.Properties | ForEach-Object {
             '{0}={1}' -f $_.Name, ([string]$_.Value).ToLowerInvariant()
           }) -join ', '
-          Write-Host "::notice::TWF 4.28 original SHA-pinned TimeInterval bounded observations: $observed. No SQL/attendance engine/day calculation/IIS/net10 parity."
+          $boundaries = @($data.contains.PSObject.Properties | ForEach-Object {
+            '{0}={1}' -f $_.Name, ([string]$_.Value).ToLowerInvariant()
+          }) -join ', '
+          Write-Host "::notice::TWF 4.28 original SHA-pinned TimeInterval overlap: $observed; IsIn: $boundaries. No SQL/attendance engine/day calculation/IIS/net10 parity."
       - name: Compare same-run original pure cases to net10 C# 7.3 adapter offline
         shell: powershell
         run: |
@@ -69,4 +73,4 @@ jobs:
           if ($code -ne 0 -or !($output | Select-String -Quiet 'Summary: 11 Passed, 0 Failed')) {
             Write-Host '::error::Bounded TWF 4.28 attendance interval golden mismatch; no leave/duty workflow parity.'; exit 1
           }
-          Write-Host '::notice::Same-run SHA-pinned TWF original x86 8/8 pure intervals versus net10 C# 7.3 adapter 11/11 (3 port-only safety); NO request persistence, attendance engine, SQL Server 2016, original HTTP, IIS or 100-user load.'
+          Write-Host '::notice::Same-run SHA-pinned TWF original x86 8/8 intersections PLUS 7/7 IsIn observations (IsIn port pending); net10 C# 7.3 intersection adapter 11/11 (3 port-only safety). NO request persistence, attendance engine, SQL Server 2016, original HTTP, IIS or 100-user load.'
