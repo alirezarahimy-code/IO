@@ -38,6 +38,10 @@ if ($LASTEXITCODE -ne 0) { throw 'Failed to compile original x86 golden harness'
 $rolesExe = Join-Path $RunnerTemp 'AriaOriginalRolesGolden.exe'
 & $csc /nologo /platform:x86 /target:exe "/out:$rolesExe" (Join-Path $tool 'RolesProgram.cs')
 if ($LASTEXITCODE -ne 0) { throw 'Failed to compile original x86 manager harness' }
+$actionExe = Join-Path $RunnerTemp 'AriaOriginalActionGolden.exe'
+& $csc /nologo /platform:x86 /target:exe /reference:System.Configuration.dll "/out:$actionExe" `
+    (Join-Path $tool 'ActionProgram.cs')
+if ($LASTEXITCODE -ne 0) { throw 'Failed to compile original x86 action harness' }
 $sql = Join-Path $RunnerTemp 'aria-golden-only.sql'
 $phase = 'generating original-model synthetic SQL only'
 & python (Join-Path $tool 'make_fixture.py') (Join-Path $OriginalBin 'Personnel.dll') $database $sql
@@ -112,6 +116,17 @@ if ($LASTEXITCODE -ne 0) { throw 'Original CheckUserPass runtime golden FAILED (
 $phase = 'executing original Aria T5 main-manager decision on synthetic data'
 & $rolesExe $OriginalBin $instance $rolesDb
 if ($LASTEXITCODE -ne 0) { throw 'Original IsAnyMainManager runtime golden FAILED (see sanitized stage/type above)' }
+$phase = 'creating OWNED synthetic executable config for original read-only MVC action'
+$providerConnection = "Data Source=$server;Initial Catalog=$database;Integrated Security=True;Connect Timeout=10;MultipleActiveResultSets=True"
+$entityConnection = 'metadata=res://*/DB.PersonnelMdl.csdl|res://*/DB.PersonnelMdl.ssdl|' + `
+    'res://*/DB.PersonnelMdl.msl;provider=System.Data.SqlClient;provider connection string="' + `
+    $providerConnection + '"'
+$ownedConfig = [xml]'<configuration><appSettings><add key="PersonnelCnnStr" value=""/></appSettings></configuration>'
+$ownedConfig.configuration.appSettings.add.SetAttribute('value', $entityConnection)
+$ownedConfig.Save("$actionExe.config")
+$phase = 'executing original TestUserPass MVC action METHOD on synthetic SQL'
+& $actionExe $OriginalBin $instance $database
+if ($LASTEXITCODE -ne 0) { throw 'Original TestUserPass in-process action method golden FAILED' }
 $phase = 'comparing pinned original role pair with compiled net10 Aria adapter (fake reader only)'
 $sdk10 = @(& dotnet --list-sdks | Where-Object { $_ -match '^10\.0\.[0-9]+ ' })
 if ($sdk10.Count -eq 0) { throw 'Preinstalled .NET 10 SDK missing; offline net10 comparison unavailable' }
