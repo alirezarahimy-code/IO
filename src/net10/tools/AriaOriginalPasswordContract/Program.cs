@@ -117,7 +117,15 @@ internal static class Program
                 default: size = 4; break;
             }
             if (p + size > il.Length) throw new BadImageFormatException("Truncated IL operand.");
-            if ((opcode == OpCodes.Call || opcode == OpCodes.Callvirt || opcode == OpCodes.Newobj) && size == 4)
+            // Delegate targets (`ldftn`) carry the compiler-generated LINQ
+            // predicate; `ldtoken` can identify the property getter used in
+            // expression trees. Resolve METHOD metadata only, never ldstr.
+            bool isMethod = opcode == OpCodes.Call || opcode == OpCodes.Callvirt ||
+                opcode == OpCodes.Newobj || opcode == OpCodes.Ldftn ||
+                opcode == OpCodes.Ldvirtftn;
+            int metadataKind = size == 4 ? (BitConverter.ToInt32(il, p) & unchecked((int)0xff000000)) : 0;
+            if ((isMethod || (opcode == OpCodes.Ldtoken &&
+                    (metadataKind == 0x06000000 || metadataKind == 0x0a000000))) && size == 4)
             {
                 int token = BitConverter.ToInt32(il, p);
                 MethodBase resolved;
