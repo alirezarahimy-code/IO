@@ -157,7 +157,7 @@ jobs:
             exit 2
           fi
           sdk=$(dotnet --list-sdks | grep '^10\.0\.' | head -n 1)
-          echo "::notice::ARIA CORE | preinstalled $sdk | 19 linked sources + 2 owned shims (labels + original time format) | offline NuGet | $RUNNER_OS"
+          echo "::notice::ARIA CORE | preinstalled $sdk | 19 linked sources + 3 owned files (labels, original time format, catalog boundary) | offline NuGet | $RUNNER_OS"
           sources=$(find src/TWF/TWF.Domain -name '*.cs' -not -path '*/obj/*' -not -path '*/bin/*' | wc -l)
           if [ "$sources" -ne 15 ]; then
             echo "::error::Aria Domain source inventory changed: expected 15, found $sources. Review linked manifest."
@@ -213,7 +213,7 @@ jobs:
             echo '::error::Aria Core test suite did not report all 12 cases (11 synthetic + one original formatter fixture).'
             exit 1
           fi
-          echo "::notice::ARIA CORE net10.0 | 19 linked TWF sources + 2 owned shims | 11/11 synthetics + 1 pinned original formatter fixture | $RUNNER_OS | binary-to-port same-run parity checked only by separate Windows original-golden workflow; NOT native engine/SQL/web parity"
+          echo "::notice::ARIA CORE net10.0 | 19 linked TWF sources + 3 owned files | 11/11 synthetics + 1 pinned original formatter fixture | $RUNNER_OS | binary-to-port same-run parity checked only by separate Windows original-golden workflow; NOT native engine/SQL/web parity"
 
   aria-web:
     name: Aria Core Razor net10.0 + 13 HTTP/security synthetics (${{ matrix.os }})
