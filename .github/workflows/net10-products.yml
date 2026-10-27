@@ -144,7 +144,7 @@ jobs:
           echo "::notice::ARIA_ADMIN WEB net10.0 | Razor compiled/published | 14/14 synthetic loopback HTTP incl 100 test-only-principal denial burst and badge mismatch denial | $RUNNER_OS | NOT 100 operational users, shared-password/IIS/SQL/original parity"
 
   aria-core:
-    name: Aria core net10.0 + 11 synthetics + 1 pinned original formatter fixture (${{ matrix.os }})
+    name: Aria core net10.0 + 11 synthetics + 2 pinned original pure-time sample groups (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 25
     strategy:
@@ -214,11 +214,11 @@ jobs:
           diagnose core-build dotnet build "$core" -c Release --no-restore -v minimal
           diagnose tests-build dotnet build "$tests" -c Release --no-restore -v minimal
           diagnose synthetics dotnet run --project "$tests" -c Release --no-build --no-restore
-          if ! grep -q 'Summary: 12 Passed, 0 Failed' "$logdir/aria-core-synthetics.log"; then
-            echo '::error::Aria Core test suite did not report all 12 cases (11 synthetic + one original formatter fixture).'
+          if ! grep -q 'Summary: 13 Passed, 0 Failed' "$logdir/aria-core-synthetics.log"; then
+            echo '::error::Aria Core test suite did not report all 13 cases (11 synthetic + two narrow original time fixtures).'
             exit 1
           fi
-          echo "::notice::ARIA CORE net10.0 | 19 linked TWF sources + 3 owned files | 11/11 synthetics + 1 pinned original formatter fixture | $RUNNER_OS | binary-to-port same-run parity checked only by separate Windows original-golden workflow; NOT native engine/SQL/web parity"
+          echo "::notice::ARIA CORE net10.0 | 19 linked TWF sources + 3 owned files | 11/11 synthetics + 2 pinned pure-time groups incl safe parser subset | $RUNNER_OS | binary-to-port same-run check only in separate Windows original-golden workflow; NOT native engine/SQL/web parity"
 
   aria-web:
     name: Aria Core Razor net10.0 + 14 HTTP/security synthetics (${{ matrix.os }})

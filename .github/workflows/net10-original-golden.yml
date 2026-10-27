@@ -60,14 +60,14 @@ jobs:
           $out = & $probe $original $fixture 2>&1
           $result = $LASTEXITCODE
           $out | Write-Host
-          if ($result -ne 0 -or -not ($out | Select-String -Quiet 'Summary: 4 Passed, 0 Failed') -or
+          if ($result -ne 0 -or -not ($out | Select-String -Quiet 'Summary: 9 Passed, 0 Failed') -or
               -not (Test-Path -LiteralPath $fixture -PathType Leaf)) {
             foreach ($line in @($out | Select-Object -Last 25)) { Write-Host "::error::Original golden: $line" }
             Write-Host '::error::No original-binary golden may be accepted from this run.'
             exit 1
           }
           foreach ($line in $out) { Write-Host "::notice::ARIA ORIGINAL GOLDEN | $line" }
-          Write-Host '::notice::ARIA ORIGINAL GOLDEN | 4/4 pure original cases only; NO IIS/SQL/cookies/engine parity'
+          Write-Host '::notice::ARIA ORIGINAL GOLDEN | 9/9 pure original time cases (3 format + 6 parse) only; NO IIS/SQL/cookies/engine parity'
           # Separate net10.0 Core compile and same-run comparison. No original
           # Framework assembly is ever loaded by the product or its test runner.
           if (-not (Get-Command dotnet -ErrorAction SilentlyContinue) -or
@@ -87,9 +87,9 @@ jobs:
           $portOutput = & dotnet run --project $tests -c Release --no-build --no-restore -- '--original-misc-fixture' $fixture 2>&1
           $portResult = $LASTEXITCODE
           $portOutput | Write-Host
-          if ($portResult -ne 0 -or -not ($portOutput | Select-String -Quiet 'Summary: 12 Passed, 0 Failed')) {
+          if ($portResult -ne 0 -or -not ($portOutput | Select-String -Quiet 'Summary: 13 Passed, 0 Failed')) {
             foreach ($line in @($portOutput | Select-Object -Last 35)) { Write-Host "::error::ARIA PORT: $line" }
             Write-Host '::error::Same-run original-binary-to-net10 parity NOT PROVEN.'
             exit 1
           }
-          Write-Host '::notice::ARIA PURE FORMAT PARITY | Windows original MyTime3.dll vs net10.0 adapter, 3 fixed synthetic inputs + 11 independent core tests; routes/IIS/SQL NOT tested'
+          Write-Host '::notice::ARIA PURE TIME SAMPLES | Windows original MyTime3.dll vs net10.0 adapter, 3 format + 6 safe-subset parse inputs + 11 independent synthetics; invalid original parse behavior intentionally rejected, routes/IIS/SQL NOT tested'
