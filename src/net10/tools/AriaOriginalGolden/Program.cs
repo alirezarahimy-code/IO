@@ -1,10 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
 
 // Diagnostic Windows/.NET Framework-only runner for *original* TWF 4.28/App/bin/MyTime3.dll.
-// Invokes ONLY two pure static MyTime3.Controllers.Misc methods with fixed synthetic
+// Invokes ONLY four pure static MyTime3.Controllers.Misc methods with fixed synthetic
 // inputs. No application startup, lock check, SQL, password, token or hardware.
 // This is not part of a new product or a replacement for the 47 TWF rewrite tests.
 internal static class Program
@@ -19,11 +20,16 @@ internal static class Program
         Type misc = original.GetType("MyTime3.Controllers.Misc", true);
         MethodInfo format = misc.GetMethod("TimeSpanToString", new Type[] { typeof(TimeSpan) });
         MethodInfo parse = misc.GetMethod("StringToTimeSpan", new Type[] { typeof(string) });
-        if (format == null || parse == null || !format.IsStatic || !parse.IsStatic)
+        MethodInfo weekday = misc.GetMethod("DayOfWeekToString", new Type[] { typeof(DayOfWeek) });
+        MethodInfo longDate = misc.GetMethod("ToLongPersianDate", new Type[] { typeof(DateTime) });
+        if (format == null || parse == null || weekday == null || longDate == null ||
+            !format.IsStatic || !parse.IsStatic || !weekday.IsStatic || !longDate.IsStatic)
             throw new InvalidOperationException("Pure original Misc entry points are absent.");
 
-        // Make decimal-hour parsing deterministic across Windows machine locales.
+        // Make decimal-hour parsing and numeric date output deterministic across
+        // Windows machine locales; read Persian labels from the original assembly.
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("fa-IR");
         // These are only fixed, nonnegative samples of the original, not proof
         // that its permissive parser is safe for untrusted overtime POSTs.
         string shortTime = CheckString(format, new TimeSpan(8, 5, 0), "8:5", "AR-ORIG-01 short time (no padding)");
@@ -35,7 +41,7 @@ internal static class Program
         string decimalTicks = CheckParse(parse, "1.5", TimeSpan.FromHours(1.5), "AR-ORIG-07");
         string secondTicks = CheckParse(parse, "00:00:01", TimeSpan.FromSeconds(1), "AR-ORIG-08");
         string trimmedTicks = CheckParse(parse, " 8 : 05 ", new TimeSpan(8, 5, 0), "AR-ORIG-09");
-        File.WriteAllLines(args[1], new string[] {
+        var fixture = new List<string> {
             "source_sha256=edba04ccafb9f111870f9050f86e9059e92389188bbd3115678afb21691ddd6b",
             "format_8h5m=" + shortTime,
             "format_145h30m=" + cumulative,
@@ -46,8 +52,27 @@ internal static class Program
             "parse_decimal_ticks=" + decimalTicks,
             "parse_second_ticks=" + secondTicks,
             "parse_trimmed_ticks=" + trimmedTicks
-        });
-        Console.WriteLine("Summary: 9 Passed, 0 Failed (original TWF 4.28 MyTime3.dll, pure synthetic methods only)");
+        };
+        // Gregorian mid-month inputs cover all 12 Persian month labels, away
+        // from equinox/DST ambiguities. Year-boundary samples are separate.
+        for (int month = 1; month <= 12; month++)
+        {
+            string key = "date_2025_" + month.ToString("00", CultureInfo.InvariantCulture) + "_15";
+            fixture.Add(key + "=" + CheckLabel(longDate, new DateTime(2025, month, 15), key, false));
+        }
+        fixture.Add("date_2021_03_20=" + CheckLabel(longDate,
+            new DateTime(2021, 3, 20), "date_2021_03_20", false));
+        fixture.Add("date_2021_03_21=" + CheckLabel(longDate,
+            new DateTime(2021, 3, 21), "date_2021_03_21", false));
+        for (int day = 0; day <= 6; day++)
+        {
+            string key = "weekday_" + day.ToString(CultureInfo.InvariantCulture);
+            fixture.Add(key + "=" + CheckLabel(weekday, (DayOfWeek)day, key, false));
+        }
+        fixture.Add("weekday_invalid=" + CheckLabel(weekday,
+            (DayOfWeek)99, "weekday_invalid", true));
+        File.WriteAllLines(args[1], fixture.ToArray());
+        Console.WriteLine("Summary: 31 Passed, 0 Failed (original TWF 4.28 MyTime3.dll, four pure synthetic methods only)");
         return 0;
     }
 
@@ -67,5 +92,15 @@ internal static class Program
             throw new InvalidOperationException(name + ": original parser differs for fixed input '" + input + "'");
         Console.WriteLine("[ORIGINAL-PASS] " + name + " = " + actual.ToString("c", CultureInfo.InvariantCulture));
         return actual.Ticks.ToString(CultureInfo.InvariantCulture);
+    }
+
+    private static string CheckLabel(MethodInfo method, object input, string name, bool allowEmpty)
+    {
+        string actual = (string)method.Invoke(null, new object[] { input });
+        if (actual == null || (!allowEmpty && actual.Length == 0) ||
+            (allowEmpty && actual.Length != 0))
+            throw new InvalidOperationException(name + ": original Persian label is missing or unexpected.");
+        Console.WriteLine("[ORIGINAL-PASS] " + name + " = " + actual);
+        return actual;
     }
 }

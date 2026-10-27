@@ -9,9 +9,10 @@
   <ItemGroup>
     <ProjectReference Include="../Core/Aria.Core.csproj" />
     <None Include="golden.json" CopyToOutputDirectory="PreserveNewest" />
-    <!-- Three format outputs recorded from original CI 40404015969; six safe
+    <!-- Three time outputs recorded from original CI 40404015969; six safe
          parse inputs verified against the SHA-pinned original in CI 40457189530.
-         Windows regenerates all rows dynamically for same-run comparison. -->
+         The committed fixture is time-only. Windows regenerates it with 22
+         additional date/day samples for a separate SAME-RUN comparison. -->
     <None Include="original-misc-golden.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
