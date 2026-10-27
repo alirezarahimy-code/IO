@@ -37,9 +37,12 @@ static DataTable People(params (long Badge, string Name, bool WebUser, bool Form
     data.Columns.Add("UserName", typeof(string));
     data.Columns.Add("WebUser", typeof(bool));
     data.Columns.Add("FiredDate", typeof(DateTime));
+    data.Columns.Add("ValidFrom", typeof(DateTime));
+    data.Columns.Add("ValidTo", typeof(DateTime));
     foreach (var (badge, name, webUser, former) in entries)
         data.Rows.Add(badge, name, webUser,
-            former ? (object)new DateTime(2020, 1, 1) : DBNull.Value);
+            former ? (object)new DateTime(2020, 1, 1) : DBNull.Value,
+            new DateTime(2000, 1, 1), new DateTime(2050, 1, 1));
     return data;
 }
 
@@ -120,6 +123,40 @@ await Run("AR-PROFILE-04: disabled and former user cannot reuse a session", asyn
             .RecheckAsync(new VerifiedAriaAccount("fixture-user", 101), CancellationToken.None);
         Require(decision.State == PersonnelState.Denied, "WebUser/FiredDate status must deny");
     }
+});
+
+await Run("AR-PROFILE-10: validity window follows own original true-flag golden; null fails closed", async () =>
+{
+    var now = new DateTime(2026, 10, 27, 12, 0, 0, DateTimeKind.Utc);
+    var clock = new ProfileClock(new DateTimeOffset(now));
+    async Task<PersonnelState> At(DateTime? from, DateTime? until)
+    {
+        var rows = People((101, "fixture-user", true, false));
+        rows.Rows[0]["ValidFrom"] = from.HasValue ? (object)from.Value : DBNull.Value;
+        rows.Rows[0]["ValidTo"] = until.HasValue ? (object)until.Value : DBNull.Value;
+        var connection = new TableConnection("Personnel", rows);
+        var result = await new ReadOnlyPersonnelDirectory(() => connection, clock)
+            .RecheckAsync(new VerifiedAriaAccount("fixture-user", 101), CancellationToken.None);
+        Require(connection.WasDisposed && connection.Commands.Single().WasDisposed,
+            "dated read is bounded and closes the connection");
+        return result.State;
+    }
+    DateTime start = new(2000, 1, 1);
+    DateTime end = new(2050, 1, 1);
+    Require(await At(start, end) == PersonnelState.Active, "unexpired synthetic dates");
+    Require(await At(now.AddDays(1), end) == PersonnelState.Denied, "future-dated account");
+    Require(await At(start, now.AddDays(-1)) == PersonnelState.Denied, "expired account");
+    Require(await At(null, end) == PersonnelState.Denied &&
+            await At(start, null) == PersonnelState.Denied, "unknown dates fail closed");
+    Require(await At(end, start) == PersonnelState.Denied, "inverted window fails closed");
+    Require(await At(now, now) == PersonnelState.Active, "fixed-clock inclusive boundary (not original parity)");
+    var broken = People((101, "fixture-user", true, false));
+    broken.Columns.Remove("ValidFrom");
+    var bad = new TableConnection("Personnel", broken);
+    var unavailable = await new ReadOnlyPersonnelDirectory(() => bad, clock)
+        .RecheckAsync(new VerifiedAriaAccount("fixture-user", 101), CancellationToken.None);
+    Require(unavailable.State == PersonnelState.Unavailable && bad.WasDisposed,
+        "missing SQL column never becomes access");
 });
 
 await Run("AR-PROFILE-05: driver/factory errors never turn into user access", async () =>
@@ -247,7 +284,7 @@ if (originalSchemaFixture != null)
 }
 
 Console.WriteLine($"Summary: {passed} Passed, {failed} Failed (Aria fake Personnel + Kestrel; original EDMX only with same-run fixture)");
-return failed == 0 && passed == (originalSchemaFixture is null ? 8 : 9) ? 0 : 1;
+return failed == 0 && passed == (originalSchemaFixture is null ? 9 : 10) ? 0 : 1;
 
 static async Task<HttpClient> StartWeb(WebApplication app)
 {
@@ -264,6 +301,12 @@ static async Task<HttpResponseMessage> Send(HttpClient client, string path, stri
     using var request = new HttpRequestMessage(HttpMethod.Get, path);
     if (name != null) request.Headers.TryAddWithoutValidation("X-Aria-Profile-Test", name);
     return await client.SendAsync(request);
+}
+
+internal sealed class ProfileClock(DateTimeOffset fixedUtc) : TimeProvider
+{
+    public override DateTimeOffset GetUtcNow() => fixedUtc;
+    public override TimeZoneInfo LocalTimeZone => TimeZoneInfo.Utc;
 }
 
 internal sealed class ProfileTestSessionVerifier : IAriaSessionVerifier

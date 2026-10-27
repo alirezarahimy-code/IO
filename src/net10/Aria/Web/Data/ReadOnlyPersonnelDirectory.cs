@@ -7,8 +7,10 @@ namespace Aria.Web.Data;
 /// <summary>
 /// Aria-only, read-only recheck of a previously VERIFIED shared account in the
 /// Personnel catalog. The SHA-pinned original TWF 4.28 Personnel.dll's
-/// embedded EDMX maps these fields to dbo.UserInfo (UserName nvarchar(100));
-/// the recheck's eligibility policy is still NOT original runtime auth parity.
+/// embedded EDMX maps these fields to dbo.UserInfo (UserName nvarchar(100)).
+/// The isolated original CheckUserPass true-flag golden denies future/expired
+/// dates but actually admits synthetic WebUser=0 and fired rows: refusing those
+/// in this recheck is a documented security divergence, NOT original parity.
 /// No SQL provider/factory is registered in publishable DI. In particular this
 /// code cannot verify a password or confer a T5 managerial role.
 /// </summary>
@@ -17,15 +19,19 @@ internal sealed class ReadOnlyPersonnelDirectory : IAriaPersonnelDirectory
     // Bind both values from the SAME verified account. Never retrieve Password,
     // NationalNo or contact data, and never interpolate caller input into SQL.
     internal const string PersonSql = """
-        SELECT TOP (2) [BadgeNumber], [UserName], [WebUser], [FiredDate]
+        SELECT TOP (2) [BadgeNumber], [UserName], [WebUser], [FiredDate], [ValidFrom], [ValidTo]
         FROM [dbo].[UserInfo]
         WHERE [BadgeNumber] = @BadgeNumber AND [UserName] = @UserName;
         """;
 
     private readonly Func<DbConnection> _personnelFactory;
+    private readonly TimeProvider _clock;
 
-    internal ReadOnlyPersonnelDirectory(Func<DbConnection> personnelFactory) =>
+    internal ReadOnlyPersonnelDirectory(Func<DbConnection> personnelFactory, TimeProvider? clock = null)
+    {
         _personnelFactory = personnelFactory ?? throw new ArgumentNullException(nameof(personnelFactory));
+        _clock = clock ?? TimeProvider.System;
+    }
 
     public async Task<PersonnelResolution> RecheckAsync(
         VerifiedAriaAccount verifiedAccount, CancellationToken cancellationToken)
@@ -69,10 +75,17 @@ internal sealed class ReadOnlyPersonnelDirectory : IAriaPersonnelDirectory
             bool webUser = rows["WebUser"] is bool enabled
                 ? enabled : throw new DataException("Invalid Personnel access flag");
             bool former = !rows.IsDBNull(rows.GetOrdinal("FiredDate"));
+            // The legacy DATETIME values have no timezone. The original uses
+            // server-local time; the destination's business timezone still needs
+            // deployment validation. Null/malformed or inverted ranges deny.
+            DateTime? from = OptionalDate(rows, "ValidFrom");
+            DateTime? until = OptionalDate(rows, "ValidTo");
+            DateTime nowLocal = _clock.GetLocalNow().DateTime;
             bool duplicate = await rows.ReadAsync(cancellationToken);
             if (duplicate || badge != verifiedAccount.BadgeNumber ||
                 !string.Equals(userName, verifiedAccount.AccountName,
-                    StringComparison.OrdinalIgnoreCase) || !webUser || former)
+                    StringComparison.OrdinalIgnoreCase) || !webUser || former ||
+                from is null || until is null || from > nowLocal || until < nowLocal || from > until)
                 return PersonnelResolution.Denied();
             return PersonnelResolution.Active(new VerifiedAriaAccount(userName, badge));
         }
@@ -85,6 +98,14 @@ internal sealed class ReadOnlyPersonnelDirectory : IAriaPersonnelDirectory
             // Driver failures may include server names or connection strings.
             return PersonnelResolution.Unavailable();
         }
+    }
+
+    private static DateTime? OptionalDate(DbDataReader rows, string name)
+    {
+        int index = rows.GetOrdinal(name);
+        if (rows.IsDBNull(index)) return null;
+        return rows.GetValue(index) is DateTime date ? date
+            : throw new DataException("Invalid Personnel validity date");
     }
 
     private static void AddParameter(DbCommand command, string name, DbType type, object value)

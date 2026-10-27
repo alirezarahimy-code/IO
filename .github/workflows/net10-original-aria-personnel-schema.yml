@@ -47,6 +47,6 @@ jobs:
           dotnet build "$project" -c Release --no-restore -v minimal
           dotnet run --project "$project" -c Release --no-build --no-restore -- \
             "$web" '--original-personnel-schema' "$fixture" | tee "$tmp/profile.log"
-          grep -q 'Summary: 9 Passed, 0 Failed' "$tmp/profile.log"
+          grep -q 'Summary: 10 Passed, 0 Failed' "$tmp/profile.log"
           grep -q 'AR-PROFILE-09: exact pinned ORIGINAL EDMX' "$tmp/profile.log"
-          echo '::notice::ARIA PERSONNEL ORIGINAL EDMX | SHA-pinned TWF 4.28 dbo.UserInfo mapped metadata -> compiled net10 parameter size 100 + quoted dbo table; Profile.Tests 9/9 same-run incl 8 fake ADO/Kestrel checks. NO original password runtime, SQL Server 2016, provider, IIS or release parity.'
+          echo '::notice::ARIA PERSONNEL ORIGINAL EDMX | SHA-pinned TWF 4.28 dbo.UserInfo mapped metadata -> compiled net10 parameter size 100 + quoted dbo table; Profile.Tests 10/10 same-run incl 9 fake ADO/Kestrel checks. Separate original password golden uses disposable LocalDB, NOT SQL Server 2016 or production auth; no provider, IIS or release parity.'

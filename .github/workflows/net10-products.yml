@@ -455,8 +455,8 @@ jobs:
           diagnose tests-build dotnet build "$tests" -c Release --no-restore -v minimal
           diagnose synthetics dotnet run --project "$tests" -c Release --no-build --no-restore -- \
             "$GITHUB_WORKSPACE/src/net10/Aria/Web"
-          if ! grep -q 'Summary: 8 Passed, 0 Failed' "$logdir/aria-profile-synthetics.log"; then
-            echo '::error::Aria Personnel suite did not complete 7 direct + 1 test-only Kestrel cases.'
+          if ! grep -q 'Summary: 9 Passed, 0 Failed' "$logdir/aria-profile-synthetics.log"; then
+            echo '::error::Aria Personnel suite did not complete 8 direct + 1 test-only Kestrel cases.'
             exit 1
           fi
-          echo "::notice::ARIA profile net10.0 | 8/8 fake Personnel ADO.NET/Kestrel cases | $RUNNER_OS | production still 503; no real shared password, SQL 2016, manager rights or original HTTP parity"
+          echo "::notice::ARIA profile net10.0 | 9/9 fake Personnel ADO.NET/Kestrel cases incl date-window hardening | $RUNNER_OS | production still 503; no real shared password, SQL 2016, manager rights or original HTTP parity"

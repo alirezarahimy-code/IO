@@ -126,7 +126,10 @@ internal static class OriginalSqlGolden
                     (former == 900105) + " accountCaseFolded=" + (accountCase == 900101) +
                     " passwordCaseFolded=" + (passwordCase == 900101) +
                     " futureAcceptedWithFalseFlag=" + (futureUnchecked == 900102));
-                Console.WriteLine("PASS: ten original runtime password cases observed; LocalDB ONLY, not SQL2016/net10 login");
+                if (former != 900105 || accountCase != 900101 || passwordCase != 900101 ||
+                    futureUnchecked != 900102)
+                    throw new InvalidOperationException("Original additional password golden drift");
+                Console.WriteLine("PASS: ten pinned original runtime password cases; LocalDB ONLY, not SQL2016/net10 login");
                 return 0;
             }
             finally
