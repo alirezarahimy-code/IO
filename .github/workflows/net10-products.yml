@@ -162,7 +162,7 @@ jobs:
             exit 2
           fi
           sdk=$(dotnet --list-sdks | grep '^10\.0\.' | head -n 1)
-          echo "::notice::ARIA CORE | preinstalled $sdk | 19 linked sources + 4 owned files (labels, original time, original Persian date, catalog boundary) | offline NuGet | $RUNNER_OS"
+          echo "::notice::ARIA CORE | preinstalled $sdk | 19 linked sources + 5 owned files (labels, original time/date, bounded attendance interval, catalog boundary) | offline NuGet | $RUNNER_OS"
           sources=$(find src/TWF/TWF.Domain -name '*.cs' -not -path '*/obj/*' -not -path '*/bin/*' | wc -l)
           if [ "$sources" -ne 15 ]; then
             echo "::error::Aria Domain source inventory changed: expected 15, found $sources. Review linked manifest."
@@ -218,7 +218,15 @@ jobs:
             echo '::error::Aria Core test suite did not report all 14 cases (11 synthetic + two time groups + one date/day smoke).'
             exit 1
           fi
-          echo "::notice::ARIA CORE net10.0 | 19 linked TWF sources + 4 owned files | 11/11 synthetics + 2 pinned pure-time groups + 1 rewrite-derived date/day smoke group | $RUNNER_OS | binary-to-port time/date/day same-run check only in separate Windows original-golden workflow; NOT native engine/SQL/web parity"
+          attendance=src/net10/Aria/Attendance.Tests/Aria.Attendance.Tests.csproj
+          diagnose attendance-restore dotnet restore "$attendance" --configfile src/net10/nuget.offline.config -v minimal
+          diagnose attendance-build dotnet build "$attendance" -c Release --no-restore -v minimal
+          diagnose attendance-snapshot dotnet run --project "$attendance" -c Release --no-build --no-restore
+          if ! grep -q 'Summary: 11 Passed, 0 Failed' "$logdir/aria-core-attendance-snapshot.log"; then
+            echo '::error::Aria pure interval snapshot check did not report all 11 bounded tests.'
+            exit 1
+          fi
+          echo "::notice::ARIA CORE net10.0 | 19 linked TWF sources + 5 owned files | 14/14 prior core cases + 11/11 original-derived fixed interval SNAPSHOT/port-only safety cases | $RUNNER_OS | same-run attendance original is separately executed in Windows x86 golden CI; NOT native attendance engine, SQL, web or IIS parity"
 
   aria-web:
     name: Aria Core Razor net10.0 + 22 HTTP/security and public About route checks (${{ matrix.os }})

@@ -1,0 +1,14 @@
+{
+  "source_sha256": "2a2abd09745ec0a80dff0343b0e1f97e1ed52b8806f2ec61e64da1aa8100d3b7",
+  "scope": "SYNTHETIC_PURE_ORIGINAL_X86",
+  "cases": {
+    "overlap": true,
+    "disjoint": false,
+    "touch": true,
+    "same": true,
+    "contained": true,
+    "zero_inside": true,
+    "zero_touch": true,
+    "overnight": true
+  }
+}
