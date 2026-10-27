@@ -31,5 +31,8 @@
     <Compile Include="Localization/PersianString.cs" />
     <!-- Owned, narrow original-binary golden adapter; no rewrite source is edited. -->
     <Compile Include="Compatibility/OriginalMiscTime.cs" />
+    <!-- Provider-free, fail-closed Personnel/T5 connection seam. No SQL package
+         or production factory is registered by the Web host. -->
+    <Compile Include="Data/DualCatalogConnectionProbe.cs" />
   </ItemGroup>
 </Project>

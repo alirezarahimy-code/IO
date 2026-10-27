@@ -283,3 +283,53 @@ jobs:
             exit 1
           fi
           echo "::notice::ARIA WEB net10.0 | Razor compiled/published | 13/13 synthetic loopback HTTP incl 100 distinct-identity denial burst | $RUNNER_OS | NOT 100 operational users, original token/SQL/native engine/IIS parity"
+
+  aria-catalog-boundary:
+    name: Aria Personnel/T5 provider-neutral boundary net10.0 + 7 synthetics (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and test two catalog connection seams without a SQL provider
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v dotnet >/dev/null || ! dotnet --list-sdks | grep -Eq '^10\.0\.[0-9]+'; then
+            echo '::error::NEEDS-INFRA: .NET 10 SDK/ref packs not preinstalled; no download fallback.'
+            exit 2
+          fi
+          if grep -E '<(PackageReference|Reference[[:space:]>])' src/net10/Aria/Catalog.Tests/Aria.Catalog.Tests.csproj; then
+            echo '::error::Catalog boundary test must use preinstalled framework APIs, not a new provider/package.'
+            exit 1
+          fi
+          logdir=$(mktemp -d)
+          diagnose() {
+            local label="$1"; shift
+            local output="$logdir/aria-catalog-$label.log"
+            set +e
+            "$@" >"$output" 2>&1
+            local code=$?
+            set -e
+            cat "$output"
+            if [ "$code" -ne 0 ]; then
+              { grep -Ei '(^|: )error |NU[0-9]{4}|Exception|\[FAIL\]|Unable to' "$output" || true; } | head -35 |
+                while IFS= read -r line; do echo "::error::ARIA CATALOG $label: $line"; done
+              echo "::error::ARIA CATALOG $label failed ($code); no SQL Server/schema/auth parity claim."
+              exit "$code"
+            fi
+          }
+          tests=src/net10/Aria/Catalog.Tests/Aria.Catalog.Tests.csproj
+          core=src/net10/Aria/Core/Aria.Core.csproj
+          diagnose restore dotnet restore "$tests" --configfile src/net10/nuget.offline.config -v minimal
+          diagnose core-build dotnet build "$core" -c Release --no-restore -v minimal
+          diagnose tests-build dotnet build "$tests" -c Release --no-restore -v minimal
+          diagnose synthetics dotnet run --project "$tests" -c Release --no-build --no-restore
+          if ! grep -q 'Summary: 7 Passed, 0 Failed' "$logdir/aria-catalog-synthetics.log"; then
+            echo '::error::Aria catalog suite did not complete all seven synthetic cases.'
+            exit 1
+          fi
+          echo "::notice::ARIA catalog net10.0 | two fake ADO.NET catalogs | 7/7 synthetic cases incl 100 overlapping probes | $RUNNER_OS | NO SQL provider/connection/schema/real load or original parity"
