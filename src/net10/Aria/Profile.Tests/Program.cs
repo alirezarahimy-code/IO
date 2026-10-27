@@ -445,6 +445,92 @@ await Run("AR-CRED-05: adversarial password stays a bound parameter, never SQL t
         "binding proof only: fake NEVER executed a SQL Server command or verified a password");
 });
 
+await Run("AR-ADMIT-01: same synthetic credential/person badge plus original role pair", async () =>
+{
+    var touched = new List<TableConnection>();
+    TableConnection Open(string catalog, DataTable rows)
+    {
+        var connection = new TableConnection(catalog, rows);
+        touched.Add(connection);
+        return connection;
+    }
+    var service = new AriaSharedAccountAdmission(
+        new ReadOnlyAriaCredentialDirectory(() => Open("Personnel", People((101, "fixture-user", true, false)))),
+        new ReadOnlyPersonnelDirectory(() => Open("Personnel", People((101, "fixture-user", true, false)))),
+        new ReadOnlyAriaManagerDirectory(() => Open("T5", Permissions((101, 0, 1)))));
+    var result = await service.AuthenticateAsync("fixture-user", "fixture-secret", CancellationToken.None);
+    Require(result.State == AriaAdmissionState.Verified && result.IsManager &&
+        result.Account == new VerifiedAriaAccount("fixture-user", 101) &&
+        touched.Count == 3 && touched.All(item => item.WasDisposed) &&
+        touched.Select(item => item.Database).SequenceEqual(new[] { "Personnel", "Personnel", "T5" }),
+        "single synthetic shared account; 3 separate closed reads, no cookie or second user password");
+});
+
+await Run("AR-ADMIT-02: same synthetic person without manager row is regular", async () =>
+{
+    var service = new AriaSharedAccountAdmission(
+        new ReadOnlyAriaCredentialDirectory(() =>
+            new TableConnection("Personnel", People((101, "fixture-user", true, false)))),
+        new ReadOnlyPersonnelDirectory(() =>
+            new TableConnection("Personnel", People((101, "fixture-user", true, false)))),
+        new ReadOnlyAriaManagerDirectory(() => new TableConnection("T5", Permissions())));
+    var result = await service.AuthenticateAsync("fixture-user", "fixture-secret", CancellationToken.None);
+    Require(result.State == AriaAdmissionState.Verified && !result.IsManager &&
+        result.Account?.BadgeNumber == 101, "a missing permission row never fabricates manager");
+});
+
+await Run("AR-ADMIT-03: no matched credential row never queries Personnel recheck or T5", async () =>
+{
+    var calls = 0;
+    var service = new AriaSharedAccountAdmission(
+        new ReadOnlyAriaCredentialDirectory(() => new TableConnection("Personnel", People())),
+        new ReadOnlyPersonnelDirectory(() => { calls++; return new TableConnection("Personnel", People()); }),
+        new ReadOnlyAriaManagerDirectory(() => { calls++; return new TableConnection("T5", Permissions()); }));
+    var result = await service.AuthenticateAsync("fixture-user", "fixture-wrong", CancellationToken.None);
+    Require(result.State == AriaAdmissionState.Denied && result.Account == null &&
+        !result.IsManager && calls == 0,
+        "no fake matched SQL row: no role query, no session and no fallback user");
+});
+
+await Run("AR-ADMIT-04: stale/mismatched Personnel badge prevents T5 privilege lookup", async () =>
+{
+    var rolesOpened = 0;
+    var service = new AriaSharedAccountAdmission(
+        new ReadOnlyAriaCredentialDirectory(() =>
+            new TableConnection("Personnel", People((101, "fixture-user", true, false)))),
+        new ReadOnlyPersonnelDirectory(() =>
+            new TableConnection("Personnel", People((102, "fixture-user", true, false)))),
+        new ReadOnlyAriaManagerDirectory(() => {
+            rolesOpened++;
+            return new TableConnection("T5", Permissions((101, 0, 1)));
+        }));
+    var result = await service.AuthenticateAsync("fixture-user", "fixture-secret", CancellationToken.None);
+    Require(result.State == AriaAdmissionState.Denied && !result.IsManager &&
+        result.Account == null && rolesOpened == 0,
+        "another person's T5 manager row must not rescue a changed Personnel badge");
+});
+
+await Run("AR-ADMIT-05: T5 outage/ambiguous manager cannot fall back to regular", async () =>
+{
+    AriaSharedAccountAdmission Create(Func<TableConnection> roleFactory) => new(
+        new ReadOnlyAriaCredentialDirectory(() =>
+            new TableConnection("Personnel", People((101, "fixture-user", true, false)))),
+        new ReadOnlyPersonnelDirectory(() =>
+            new TableConnection("Personnel", People((101, "fixture-user", true, false)))),
+        new ReadOnlyAriaManagerDirectory(roleFactory));
+    var outage = await Create(() => new TableConnection("T5", Permissions())
+        { OpenFailure = new InvalidOperationException("PRIVATE_T5_MARKER") })
+        .AuthenticateAsync("fixture-user", "fixture-secret", CancellationToken.None);
+    var duplicate = await Create(() =>
+        new TableConnection("T5", Permissions((101, 0, 1), (101, 0, 1))))
+        .AuthenticateAsync("fixture-user", "fixture-secret", CancellationToken.None);
+    Require(outage.State == AriaAdmissionState.Unavailable &&
+        duplicate.State == AriaAdmissionState.Denied &&
+        !outage.IsManager && !duplicate.IsManager &&
+        outage.Account == null && duplicate.Account == null,
+        "never grant a partial account or mistake unavailable T5 for no privilege");
+});
+
 if (originalSchemaFixture != null)
 {
     await Run("AR-PROFILE-09: exact pinned ORIGINAL EDMX username/table contract (metadata only)", async () =>
@@ -507,7 +593,7 @@ if (originalManagerFixture != null)
 }
 
 Console.WriteLine($"Summary: {passed} Passed, {failed} Failed (Aria fake Personnel/T5 + Kestrel; original fixtures only with same-run flags)");
-return failed == 0 && passed == (originalSchemaFixture is null && originalManagerFixture is null ? 18 : 19) ? 0 : 1;
+return failed == 0 && passed == (originalSchemaFixture is null && originalManagerFixture is null ? 23 : 24) ? 0 : 1;
 
 static async Task<HttpClient> StartWeb(WebApplication app)
 {
