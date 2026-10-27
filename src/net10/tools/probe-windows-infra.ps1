@@ -62,17 +62,27 @@ $localdb = Get-Command sqllocaldb -ErrorAction SilentlyContinue
 Notice ("sqlcmd={0} | sqllocaldb={1} (paths only; no SQL connection)" -f `
     $(if ($sqlcmd) { $sqlcmd.Source } else { 'not found' }),
     $(if ($localdb) { $localdb.Source } else { 'not found' }))
-# `sqllocaldb versions` reads installed engine registrations only. It does NOT
-# create/start/stop an instance or prove the database is SQL Server 2016.
+# `sqllocaldb versions` and registered SQL Server engine versions read only
+# installed metadata. No instance is created/started/stopped or connected.
+$installedVersions = @()
 if ($localdb) {
     $installedVersions = @(& $localdb.Source versions 2>&1)
-    if ($LASTEXITCODE -eq 0) {
-        Notice ("LocalDB installed versions={0} (registry inventory only; NO instance started)" -f
-            ($installedVersions -join ' / '))
-    } else {
+    if ($LASTEXITCODE -ne 0) {
         Needs 'Cannot enumerate installed LocalDB versions (no instance touched).'
+        $installedVersions = @('unavailable')
     }
 }
+$instanceKey = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\SQL' -ErrorAction SilentlyContinue
+$serverVersions = @()
+if ($instanceKey) {
+    foreach ($property in $instanceKey.PSObject.Properties | Where-Object { $_.Name -notlike 'PS*' }) {
+        $setup = Get-ItemProperty ("HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server\{0}\Setup" -f $property.Value) -ErrorAction SilentlyContinue
+        $serverVersions += $(if ($setup -and $setup.Version) { $setup.Version } else { 'version-unavailable' })
+    }
+}
+Notice ("LocalDB registered={0} | SQL engine registered versions={1} (metadata only; NO instance touched)" -f
+    $(if ($installedVersions.Count) { $installedVersions -join ' / ' } else { 'none' }),
+    $(if ($serverVersions.Count) { $serverVersions -join ' / ' } else { 'none' }))
 # Candidate managed provider files from *already installed* .NET 10 SDK and
 # the runner's LOCAL cache only. A filename is not a verified net10 driver,
 # package source/license, functional SQL connection or redistributable feed.
