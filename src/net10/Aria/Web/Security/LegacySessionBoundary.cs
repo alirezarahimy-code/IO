@@ -2,11 +2,13 @@ using TWF.Domain.Models;
 
 namespace Aria.Web.Security;
 
-// TWF 4.28's "mytimeauth" cookie must be verified against its ORIGINAL format,
-// secret provisioning and Personnel/T5 state before any protected action executes.
-// The current TWF rewrite has *two* incompatible session models (minute-based
-// MVC LoginManager and hour-based Domain SessionManager). No silent Core cookie
-// substitution or hard-coded default master secret is permitted here.
+// TWF 4.28's "mytimeauth" uses fixed DES material with no MAC; original-binary
+// probes show role-only, zero-badge and future-issue acceptance at its filter.
+// DO NOT accept that legacy cookie in net10. A fresh session must follow explicit
+// same-username/password reauthentication with verified Personnel/T5 policy.
+// The TWF rewrite has *two* incompatible session models (minute-based MVC
+// LoginManager and hour-based Domain SessionManager). Do not substitute either
+// Core cookie silently or import a hard-coded fallback master secret.
 public enum SessionDecision { Unavailable, Anonymous, Denied, Verified }
 
 // The same verified shared account supplies both name and positive personnel

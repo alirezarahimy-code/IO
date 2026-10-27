@@ -252,10 +252,40 @@ internal static class Program
                 Require(!response.Headers.TryGetValues("Set-Cookie", out _),
                     "test-only HTTP must not create an auth cookie");
             });
+            await Check("AR-WEB-17: original credential and password-change POST names stay unavailable", async () =>
+            {
+                // TWF 4.28's public Login/TestUserPass and Login/Change POSTs
+                // are original-binary metadata, NOT proof of safe net10 auth.
+                // Even an otherwise verified test-only session must not dispatch
+                // a password collector/change route before the same-account
+                // verifier, antiforgery, permissions and revocation are proven.
+                foreach (string path in new[] { "/Login/TestUserPass", "/Login/Change",
+                    "/Login/ChangePassword", "/Login/ChangePasswordForce" })
+                {
+                    using var request = new HttpRequestMessage(HttpMethod.Post, path);
+                    request.Headers.TryAddWithoutValidation("X-Synthetic-Session", "synthetic-valid");
+                    request.Content = new FormUrlEncodedContent(new Dictionary<string, string>
+                    {
+                        ["userName"] = "fixture-only",
+                        ["password"] = "FIXED_TEST_PASSWORD_NEVER_REAL",
+                        ["newPassword"] = "FIXED_TEST_NEW_PASSWORD_NEVER_REAL"
+                    });
+                    using var response = await client.SendAsync(request);
+                    Require(response.StatusCode is HttpStatusCode.NotFound or HttpStatusCode.MethodNotAllowed,
+                        path + " must not dispatch a credential operation");
+                    Require(!response.Headers.TryGetValues("Set-Cookie", out _) &&
+                        response.Headers.TryGetValues("Cache-Control", out var cache) &&
+                        cache.Contains("no-store"), "no session or cacheable credential response");
+                    string body = await response.Content.ReadAsStringAsync();
+                    Require(!body.Contains("FIXED_TEST_PASSWORD_NEVER_REAL", StringComparison.Ordinal) &&
+                        !body.Contains("FIXED_TEST_NEW_PASSWORD_NEVER_REAL", StringComparison.Ordinal),
+                        "no fixture credential echo");
+                }
+            });
         }
 
         Console.WriteLine($"Summary: {_passed} Passed, {_failed} Failed (net10.0 Aria Kestrel/Razor synthetic only)");
-        return _passed == 16 && _failed == 0 ? 0 : 1;
+        return _passed == 17 && _failed == 0 ? 0 : 1;
     }
 
     private static async Task<HttpClient> Start(WebApplication app)

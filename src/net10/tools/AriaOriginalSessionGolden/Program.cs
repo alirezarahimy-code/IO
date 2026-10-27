@@ -3,11 +3,13 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Web;
+using System.Web.Routing;
 
 // Windows/.NET Framework probe against ONLY the pinned TWF 4.28 original
 // MyTime3.dll. The original creates synthetic in-memory cookies; this program
-// never prints their values, reuses a real cookie, calls Login/SQL/Settings,
-// starts IIS, or copies original encryption into the net10 product.
+// never prints their values, reuses a real cookie, calls Login, SQL or Settings,
+// starts IIS, or copies original encryption into the net10 product. Route and
+// action-attribute checks below are in-memory metadata, NOT HTTP execution.
 internal static class Program
 {
     private static int _passed;
@@ -78,9 +80,12 @@ internal static class Program
         HttpContextBase overEightHours = Token(DateTime.Now.AddMinutes(-485), "4242", "user");
         Check("AR-ORIG-SESSION-10 server rejects 8h05m-old supplied token",
             overEightHours, "user", "4242", true, false, false);
+        CheckOriginalDefaultRoute(original);
+        CheckOriginalLoginMetadata(original);
+        CheckOriginalUnauthorizedRedirect();
 
-        Console.WriteLine("Summary: " + _passed + " Passed, 0 Failed (original TWF 4.28 binary; synthetic cookie methods/AuthorizeCore only)");
-        return _passed == 10 ? 0 : 1;
+        Console.WriteLine("Summary: " + _passed + " Passed, 0 Failed (original TWF 4.28 binary; in-memory cookie/route metadata only)");
+        return _passed == 13 ? 0 : 1;
     }
 
     private static MethodInfo Required(Type type, string name, BindingFlags flags, Type[] arguments)
@@ -128,5 +133,78 @@ internal static class Program
             throw new InvalidOperationException(name + ": original binary differed from the fixed expectation.");
         _passed++;
         Console.WriteLine("[ORIGINAL-PASS] " + name);
+    }
+
+    private static void CheckOriginalDefaultRoute(Assembly original)
+    {
+        Type routesType = original.GetType("MyTime3.RouteConfig", true);
+        MethodInfo register = routesType.GetMethod("RegisterRoutes", new Type[] { typeof(RouteCollection) });
+        if (register == null || !register.IsStatic)
+            throw new MissingMethodException("Original Aria RegisterRoutes missing.");
+        // RouteCollection is created ONLY in this disposable Framework process.
+        // RegisterRoutes does not initialize the web application or query a DB.
+        var routes = new RouteCollection();
+        register.Invoke(null, new object[] { routes });
+        Route main = routes["Default"] as Route;
+        if (main == null || main.Url != "{controller}/{action}/{id}" ||
+            (string)main.Defaults["controller"] != "Home" ||
+            (string)main.Defaults["action"] != "Index")
+            throw new InvalidOperationException("AR-ORIG-ROUTE-11: original default route differs.");
+        _passed++;
+        Console.WriteLine("[ORIGINAL-PASS] AR-ORIG-ROUTE-11 default route metadata");
+    }
+
+    private static void CheckOriginalLoginMetadata(Assembly original)
+    {
+        Type login = original.GetType("MyTime3.Controllers.LoginController", true);
+        Type model = original.GetType("MyTime3.Models.LoginModel", true);
+        MethodInfo get = login.GetMethod("Login", new Type[0]);
+        MethodInfo post = login.GetMethod("Login", new Type[] { model });
+        MethodInfo testPassword = login.GetMethod("TestUserPass", new Type[] { model });
+        MethodInfo change = login.GetMethod("Change",
+            new Type[] { typeof(string), typeof(string), typeof(string) });
+        if (!AttributePresent(get, "HttpGetAttribute") ||
+            !AttributePresent(post, "HttpPostAttribute") ||
+            !AttributePresent(testPassword, "HttpPostAttribute") ||
+            !AttributePresent(change, "HttpPostAttribute") ||
+            AttributePresent(testPassword, "AuthorizeFilter") ||
+            AttributePresent(change, "AuthorizeFilter") ||
+            AttributePresent(change, "ValidateAntiForgeryTokenAttribute"))
+            throw new InvalidOperationException("AR-ORIG-ROUTE-12: original login action metadata differs.");
+        // This reflects entry points ONLY. The original password checker and
+        // edit-password action are NEVER invoked by this probe.
+        _passed++;
+        Console.WriteLine("[ORIGINAL-PASS] AR-ORIG-ROUTE-12 login GET/POST and unprotected credential POST metadata");
+    }
+
+    private static bool AttributePresent(MethodInfo method, string name)
+    {
+        if (method == null)
+            throw new MissingMethodException("Original Aria login action missing.");
+        foreach (CustomAttributeData attribute in method.GetCustomAttributesData())
+            if (attribute.AttributeType.Name == name) return true;
+        return false;
+    }
+
+    private static void CheckOriginalUnauthorizedRedirect()
+    {
+        // Inspect the actual original filter behavior, without invoking an
+        // HTTP action or executing a redirect. MVC5 AuthorizationContext is
+        // constructed in memory with no request, host, service or database.
+        MethodInfo handler = _filter.GetMethod("HandleUnauthorizedRequest",
+            BindingFlags.NonPublic | BindingFlags.Instance);
+        if (handler == null || handler.GetParameters().Length != 1)
+            throw new MissingMethodException("Original Aria unauthorized filter missing.");
+        Type contextType = handler.GetParameters()[0].ParameterType;
+        object context = Activator.CreateInstance(contextType);
+        object filter = Activator.CreateInstance(_filter);
+        handler.Invoke(filter, new object[] { context });
+        PropertyInfo resultProperty = contextType.GetProperty("Result");
+        object result = resultProperty == null ? null : resultProperty.GetValue(context, null);
+        PropertyInfo url = result == null ? null : result.GetType().GetProperty("Url");
+        if (url == null || (string)url.GetValue(result, null) != "~/Login/Login")
+            throw new InvalidOperationException("AR-ORIG-ROUTE-13: original redirect target differs.");
+        _passed++;
+        Console.WriteLine("[ORIGINAL-PASS] AR-ORIG-ROUTE-13 filter redirects unauthorized to local login");
     }
 }
