@@ -62,6 +62,35 @@ $localdb = Get-Command sqllocaldb -ErrorAction SilentlyContinue
 Notice ("sqlcmd={0} | sqllocaldb={1} (paths only; no SQL connection)" -f `
     $(if ($sqlcmd) { $sqlcmd.Source } else { 'not found' }),
     $(if ($localdb) { $localdb.Source } else { 'not found' }))
+# `sqllocaldb versions` reads installed engine registrations only. It does NOT
+# create/start/stop an instance or prove the database is SQL Server 2016.
+if ($localdb) {
+    $installedVersions = @(& $localdb.Source versions 2>&1)
+    if ($LASTEXITCODE -eq 0) {
+        Notice ("LocalDB installed versions={0} (registry inventory only; NO instance started)" -f
+            ($installedVersions -join ' / '))
+    } else {
+        Needs 'Cannot enumerate installed LocalDB versions (no instance touched).'
+    }
+}
+# Candidate managed provider files from *already installed* .NET 10 SDK and
+# the runner's LOCAL cache only. A filename is not a verified net10 driver,
+# package source/license, functional SQL connection or redistributable feed.
+$dotnetRoot = if ($dotnet) { Split-Path -Parent $dotnet.Source } else { $null }
+$sdkPath = if ($dotnetRoot) { Join-Path $dotnetRoot 'sdk' } else { $null }
+$sdk10Dirs = if ($sdkPath -and (Test-Path -LiteralPath $sdkPath)) {
+    @(Get-ChildItem -LiteralPath $sdkPath -Directory | Where-Object { $_.Name -like '10.0.*' })
+} else { @() }
+foreach ($name in @('Microsoft.Data.SqlClient.dll', 'System.Data.SqlClient.dll', 'System.Data.Odbc.dll')) {
+    $found = @($sdk10Dirs | ForEach-Object {
+        Get-ChildItem -LiteralPath $_.FullName -Filter $name -File -Recurse -ErrorAction SilentlyContinue
+    } | Select-Object -First 3)
+    Notice ("installed SDK10 {0} candidates={1} (file discovery only)" -f $name,
+        $(if ($found.Count -gt 0) { ($found.FullName -join ' / ') } else { 'none' }))
+}
+$cache = Join-Path $env:USERPROFILE '.nuget\packages\microsoft.data.sqlclient'
+Notice ("local Microsoft.Data.SqlClient NuGet cache={0} (discovery only)" -f
+    $(if (Test-Path -LiteralPath $cache -PathType Container) { 'directory exists; pin and audit before any use' } else { 'none' }))
 Needs 'No SQL Server 2016 two-catalog synthetic integration, tested net10 SQL provider from an approved local feed, or real application-pool rights were demonstrated. SQL gate NOT RUN.'
 Needs 'No original TWF 4.28/T5Web 3.5.7 routes, IIS app, Windows-auth principal, offline Hosting Bundle install, rollback or 100-user operational load was executed.'
 
