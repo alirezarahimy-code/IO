@@ -66,9 +66,21 @@ internal static class Program
         HttpContextBase future = Token(DateTime.Now.AddHours(1), "4242", "admin");
         Check("AR-ORIG-SESSION-07 future admin timestamp is accepted by original",
             future, "admin", "4242", false, true, true);
+        HttpContextBase zeroBadge = Token(DateTime.Now.AddMinutes(-2), "0", "user");
+        Check("AR-ORIG-SESSION-08 role gate ignores zero badge",
+            zeroBadge, "user", "0", false, true, false);
+        // Cookie.Expires is a browser-side attribute, not a server-side proof of
+        // expiry when a client sends the value itself. Test the actual original
+        // server-side boundary away from wall-clock/rounding edges.
+        HttpContextBase justUnderEightHours = Token(DateTime.Now.AddMinutes(-475), "4242", "user");
+        Check("AR-ORIG-SESSION-09 server accepts 7h55m-old supplied token",
+            justUnderEightHours, "user", "4242", false, true, false);
+        HttpContextBase overEightHours = Token(DateTime.Now.AddMinutes(-485), "4242", "user");
+        Check("AR-ORIG-SESSION-10 server rejects 8h05m-old supplied token",
+            overEightHours, "user", "4242", true, false, false);
 
         Console.WriteLine("Summary: " + _passed + " Passed, 0 Failed (original TWF 4.28 binary; synthetic cookie methods/AuthorizeCore only)");
-        return _passed == 7 ? 0 : 1;
+        return _passed == 10 ? 0 : 1;
     }
 
     private static MethodInfo Required(Type type, string name, BindingFlags flags, Type[] arguments)
