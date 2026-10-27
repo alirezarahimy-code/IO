@@ -1,0 +1,15 @@
+{
+  "source_sha256": "d8f0570b39635e21b883257cf4d6bba1d6011002921ba5227dcd9cdf567b1faf",
+  "scope": "ORIGINAL_TWF_REQUEST_EDMX_ONLY_X86",
+  "table": "dbo.Request",
+  "columns": {
+    "RequestID": "bigint",
+    "BadgeNumber": "bigint",
+    "WofkflowType": "int",
+    "ForDate": "datetime",
+    "FromTime": "datetime",
+    "ToTime": "datetime",
+    "IsSuspend": "bit",
+    "IsDaily": "bit"
+  }
+}

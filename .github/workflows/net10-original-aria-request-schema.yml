@@ -5,6 +5,10 @@ on:
     branches: [arena/a4df3135-io]
     paths:
       - 'src/net10/tools/AriaOriginalRequestSchema/**'
+      - 'src/net10/Aria/Web/Data/ReadOnlyAriaRequestDirectory.cs'
+      - 'src/net10/Aria/Web/Properties/Internals.cs'
+      - 'src/net10/Aria/Request.Tests/**'
+      - 'src/net10/nuget.offline.config'
       - 'TWF 4.28/App/bin/T5V3.DB.dll'
       - '.github/workflows/net10-original-aria-request-schema.yml'
   workflow_dispatch:
@@ -41,3 +45,26 @@ jobs:
             Write-Host '::error::Incomplete original Aria Request EDMX schema'; exit 1
           }
           Write-Host '::notice::Pinned original TWF 4.28 T5V3.DB.dll EDMX confirms dbo.Request and 8 selected metadata-only typed fields. NO database opened, provider/net10 read, HTTP, customer row or request workflow.'
+      - name: Compare same-run original metadata to bounded net10 fake ADO snapshot
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (!(Get-Command dotnet -ErrorAction SilentlyContinue) -or
+              !(@(dotnet --list-sdks | Where-Object { $_ -match '^10\.0\.[0-9]+ ' }).Count -gt 0)) {
+            Write-Host '::error::NEEDS-INFRA: .NET 10 SDK not preinstalled'; exit 2
+          }
+          $tests = Join-Path $env:GITHUB_WORKSPACE 'src/net10/Aria/Request.Tests/Aria.Request.Tests.csproj'
+          $config = Join-Path $env:GITHUB_WORKSPACE 'src/net10/nuget.offline.config'
+          $fixture = Join-Path $env:RUNNER_TEMP 'aria-original-request-schema.json'
+          if (!(Test-Path $fixture)) { Write-Host '::error::Missing same-run EDMX fixture'; exit 1 }
+          & dotnet restore $tests --configfile $config -v minimal
+          if ($LASTEXITCODE -ne 0) { Write-Host '::error::Offline request test restore failed'; exit 1 }
+          & dotnet build $tests -c Release --no-restore -v minimal
+          if ($LASTEXITCODE -ne 0) { Write-Host '::error::Request adapter build failed'; exit 1 }
+          $output = @(& dotnet run --project $tests -c Release --no-build --no-restore -- $fixture)
+          $code = $LASTEXITCODE
+          $output | Write-Host
+          if ($code -ne 0 -or !($output | Select-String -Quiet 'Summary: 6 Passed, 0 Failed')) {
+            Write-Host '::error::TWF original request EDMX/net10 fake ADO snapshot comparison failed'; exit 1
+          }
+          Write-Host '::notice::Same-run original Request EDMX 8 selected fields versus net10 read-only UNWIRED fake ADO 6/6; NO SQL executed, RequestDA.GetAll/controller, provider, SQL2016, HTTP, actual user authorization or request persistence.'

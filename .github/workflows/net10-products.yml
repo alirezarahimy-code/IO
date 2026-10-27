@@ -467,4 +467,16 @@ jobs:
             echo '::error::Aria identity suite did not complete 28 direct + 1 test-only Kestrel cases.'
             exit 1
           fi
-          echo "::notice::ARIA identity net10.0 | 29/29 FAKE ADO.NET/Kestrel/in-memory protected session cases | $RUNNER_OS | NO issued HTTP cookie, operational logout/login, SQL 2016, IIS or 100-user load"
+          request=src/net10/Aria/Request.Tests/Aria.Request.Tests.csproj
+          if grep -E '<(PackageReference|Reference[[:space:]>])' "$request"; then
+            echo '::error::Aria Request snapshot must not add a SQL provider or remote dependency.'
+            exit 1
+          fi
+          diagnose request-restore dotnet restore "$request" --configfile src/net10/nuget.offline.config -v minimal
+          diagnose request-build dotnet build "$request" -c Release --no-restore -v minimal
+          diagnose request-snapshot dotnet run --project "$request" -c Release --no-build --no-restore
+          if ! grep -q 'Summary: 6 Passed, 0 Failed' "$logdir/aria-profile-request-snapshot.log"; then
+            echo '::error::Aria request metadata/fake ADO tests did not complete 6 checks.'
+            exit 1
+          fi
+          echo "::notice::ARIA identity net10.0 | 29/29 FAKE ADO.NET/Kestrel/in-memory protected session + 6/6 TWF-only Request metadata snapshot/fake T5 ADO checks | $RUNNER_OS | NO issued HTTP cookie, real RequestDA/attendance save, operational login, SQL 2016, IIS or 100-user load"
