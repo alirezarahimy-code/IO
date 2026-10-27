@@ -56,10 +56,12 @@ await Run("AA-DIR-01: Personnel/T5 read-only commands bind separate values and c
         personCommand.CommandText.Contains("TOP (2)") && !personCommand.CommandText.Contains("Password") &&
         personCommand.CommandType == CommandType.Text, "limited current-T5Web person projection, no password");
     Require(personCommand.Parameters.Count == 1 && personCommand.Parameters["@UserName"].DbType == DbType.String &&
-        (string)personCommand.Parameters["@UserName"].Value == "fixture-user", "normalized username must be bound, never interpolated");
+        personCommand.Parameters["@UserName"].Value is string boundUser && boundUser == "fixture-user",
+        "normalized username must be bound, never interpolated");
     Require(accessCommand.CommandText == ReadOnlySqlDirectory.AccessSql &&
         accessCommand.Parameters.Count == 1 && accessCommand.Parameters["@BadgeNumber"].DbType == DbType.Int64 &&
-        (long)accessCommand.Parameters["@BadgeNumber"].Value == 101, "permissions must be bound to same person in T5");
+        accessCommand.Parameters["@BadgeNumber"].Value is long boundBadge && boundBadge == 101,
+        "permissions must be bound to same person in T5");
 });
 
 await Run("AA-DIR-02: disabled, former, zero and duplicate users are denied before T5", async () =>
@@ -165,7 +167,7 @@ await Run("AA-DIR-07: UPN and bound adversarial login never become SQL text", as
     Require(allowed.State == DirectoryState.Allowed && allowed.Session?.BadgeNumber == 101,
         "fixed fake rows make this a binding test ONLY, not a real identity check");
     Require(!p.Commands.Single().CommandText.Contains(adversarial) &&
-        (string)p.Commands.Single().Parameters["@UserName"].Value == adversarial,
+        p.Commands.Single().Parameters["@UserName"].Value is string boundAdversarial && boundAdversarial == adversarial,
         "SQL command text must never concatenate untrusted Windows identity");
 });
 
