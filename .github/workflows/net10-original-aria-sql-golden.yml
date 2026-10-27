@@ -1,0 +1,28 @@
+name: TWF 4.28 isolated original password golden (LocalDB only)
+
+on:
+  push:
+    branches: [arena/a4df3135-io]
+    paths:
+      - 'src/net10/tools/AriaOriginalSqlGolden/**'
+      - '.github/workflows/net10-original-aria-sql-golden.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  original-personnel-password-localdb:
+    runs-on: windows-2022
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Execute pinned original x86 CheckUserPass on disposable synthetic LocalDB fixture
+        shell: powershell
+        run: |
+          & ./src/net10/tools/AriaOriginalSqlGolden/run.ps1 `
+            -OriginalBin (Join-Path $env:GITHUB_WORKSPACE 'TWF 4.28/App/bin') `
+            -RunnerTemp $env:RUNNER_TEMP -RunId $env:GITHUB_RUN_ID
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
