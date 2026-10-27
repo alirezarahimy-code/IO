@@ -1,0 +1,43 @@
+name: TWF 4.28 Request table schema (original binary x86, metadata only)
+
+on:
+  push:
+    branches: [arena/a4df3135-io]
+    paths:
+      - 'src/net10/tools/AriaOriginalRequestSchema/**'
+      - 'TWF 4.28/App/bin/T5V3.DB.dll'
+      - '.github/workflows/net10-original-aria-request-schema.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  original-aria-request-schema:
+    runs-on: windows-2022
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Inspect pinned original Aria T5 EDMX metadata with no database
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $compiler = Join-Path $env:WINDIR 'Microsoft.NET\Framework\v4.0.30319\csc.exe'
+          if (!(Test-Path $compiler)) { Write-Host '::error::Framework x86 compiler absent'; exit 2 }
+          $probe = Join-Path $env:RUNNER_TEMP 'AriaOriginalRequestSchema.exe'
+          $source = Join-Path $env:GITHUB_WORKSPACE 'src/net10/tools/AriaOriginalRequestSchema/Program.cs'
+          & $compiler /nologo /platform:x86 /target:exe /r:System.Xml.Linq.dll /r:System.Core.dll "/out:$probe" $source
+          if ($LASTEXITCODE -ne 0) { Write-Host '::error::Original Aria Request schema probe build failed'; exit 1 }
+          $bin = Join-Path $env:GITHUB_WORKSPACE 'TWF 4.28/App/bin'
+          $fixture = Join-Path $env:RUNNER_TEMP 'aria-original-request-schema.json'
+          & $probe $bin $fixture
+          if ($LASTEXITCODE -ne 0 -or !(Test-Path $fixture)) { exit 1 }
+          $data = Get-Content $fixture -Raw | ConvertFrom-Json
+          if ($data.scope -ne 'ORIGINAL_TWF_REQUEST_EDMX_ONLY_X86' -or
+              $data.table -ne 'dbo.Request' -or
+              @($data.columns.PSObject.Properties).Count -ne 8) {
+            Write-Host '::error::Incomplete original Aria Request EDMX schema'; exit 1
+          }
+          Write-Host '::notice::Pinned original TWF 4.28 T5V3.DB.dll EDMX confirms dbo.Request and 8 selected metadata-only typed fields. NO database opened, provider/net10 read, HTTP, customer row or request workflow.'
