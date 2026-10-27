@@ -1,0 +1,41 @@
+name: TWF 4.28 pure attendance interval golden (original x86)
+
+on:
+  push:
+    branches: [arena/a4df3135-io]
+    paths:
+      - 'src/net10/tools/AriaOriginalAttendanceInterval/**'
+      - '.github/workflows/net10-original-aria-attendance-interval.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  original-aria-attendance-interval:
+    runs-on: windows-2022
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Execute pinned TWF-packaged original pure TimeInterval without SQL
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $compiler = Join-Path $env:WINDIR 'Microsoft.NET\Framework\v4.0.30319\csc.exe'
+          if (!(Test-Path $compiler)) { Write-Host '::error::Framework x86 compiler missing'; exit 2 }
+          $probe = Join-Path $env:RUNNER_TEMP 'AriaOriginalInterval.exe'
+          $source = Join-Path $env:GITHUB_WORKSPACE 'src/net10/tools/AriaOriginalAttendanceInterval/Program.cs'
+          & $compiler /nologo /platform:x86 /target:exe "/out:$probe" $source
+          if ($LASTEXITCODE -ne 0) { Write-Host '::error::Original interval harness compilation failed'; exit 1 }
+          $bin = Join-Path $env:GITHUB_WORKSPACE 'TWF 4.28/App/bin'
+          $fixture = Join-Path $env:RUNNER_TEMP 'aria-original-attendance-interval.json'
+          & $probe $bin $fixture
+          if ($LASTEXITCODE -ne 0 -or !(Test-Path $fixture)) { exit 1 }
+          $data = Get-Content $fixture -Raw | ConvertFrom-Json
+          if ($data.scope -ne 'SYNTHETIC_PURE_ORIGINAL_X86' -or
+              @($data.cases.PSObject.Properties).Count -ne 8) {
+            Write-Host '::error::Original interval fixture incomplete'; exit 1
+          }
+          Write-Host '::notice::TWF 4.28 original SHA-pinned TimeInterval 8 bounded pure cases; no SQL/attendance engine/day calculation/IIS/net10 parity.'
