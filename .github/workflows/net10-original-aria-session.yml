@@ -1,0 +1,63 @@
+name: net10-original-aria-session
+
+# Separate read-only original-product golden. No IIS, SQL, customer accounts,
+# authentication service, install, restart, or mutation of an existing product.
+on:
+  push:
+    branches: [arena/a4df3135-io]
+    paths:
+      - 'src/net10/tools/AriaOriginalSessionGolden/**'
+      - 'TWF 4.28/App/bin/MyTime3.dll'
+      - '.github/workflows/net10-original-aria-session.yml'
+  pull_request:
+    paths:
+      - 'src/net10/tools/AriaOriginalSessionGolden/**'
+      - 'TWF 4.28/App/bin/MyTime3.dll'
+      - '.github/workflows/net10-original-aria-session.yml'
+  workflow_dispatch:
+
+jobs:
+  original-aria-session:
+    name: Pinned TWF 4.28 cookie/role observations (Windows Framework, in-memory only)
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run original binary with synthetic in-memory cookie, no secrets/SQL/IIS
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $original = Join-Path $env:GITHUB_WORKSPACE 'TWF 4.28\App\bin\MyTime3.dll'
+          $expected = 'edba04ccafb9f111870f9050f86e9059e92389188bbd3115678afb21691ddd6b'
+          if (-not (Test-Path -LiteralPath $original -PathType Leaf)) {
+            Write-Host '::error::NEEDS-INFRA: original TWF 4.28 MyTime3.dll unavailable.'
+            exit 2
+          }
+          $actual = (Get-FileHash -LiteralPath $original -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -ne $expected) {
+            Write-Host "::error::Original TWF 4.28 binary SHA drift: $actual; refuse cookie golden."
+            exit 1
+          }
+          $compiler = Join-Path $env:WINDIR 'Microsoft.NET\Framework\v4.0.30319\csc.exe'
+          if (-not (Test-Path -LiteralPath $compiler -PathType Leaf)) {
+            Write-Host '::error::NEEDS-INFRA: preinstalled .NET Framework compiler unavailable.'
+            exit 2
+          }
+          $probe = Join-Path $env:RUNNER_TEMP 'AriaOriginalSessionProbe.exe'
+          $source = Join-Path $env:GITHUB_WORKSPACE 'src\net10\tools\AriaOriginalSessionGolden\Program.cs'
+          $build = & $compiler '/nologo' '/target:exe' '/r:System.Web.dll' ("/out:" + $probe) $source 2>&1
+          $buildCode = $LASTEXITCODE
+          $build | Write-Host
+          if ($buildCode -ne 0 -or -not (Test-Path -LiteralPath $probe -PathType Leaf)) {
+            foreach ($line in @($build | Select-Object -First 25)) { Write-Host "::error::Aria original-session probe build: $line" }
+            exit 1
+          }
+          $output = & $probe $original 2>&1
+          $code = $LASTEXITCODE
+          $output | Write-Host
+          if ($code -ne 0 -or -not ($output | Select-String -Quiet 'Summary: 7 Passed, 0 Failed')) {
+            foreach ($line in @($output | Select-Object -Last 25)) { Write-Host "::error::Aria original-session probe: $line" }
+            Write-Host '::error::No session/role golden can be accepted from this run.'
+            exit 1
+          }
+          Write-Host '::notice::TWF 4.28 original-binary 7/7 in-memory synthetic cookie/AuthorizeCore observations. Role-only and future timestamps accepted by the original; NOT a safe migration verifier, real login/password, HTTP/IIS/SQL parity, or deployment.'
