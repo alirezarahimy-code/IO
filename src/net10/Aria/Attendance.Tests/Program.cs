@@ -89,6 +89,12 @@ Run("AR-ATT-16: inverted interval rejected (port-only safety, not original parit
         throw new InvalidOperationException("Inversion was accepted.");
     }
     catch (ArgumentOutOfRangeException) { }
+    try
+    {
+        OriginalAttendanceInterval.IsIn(day.AddHours(10), day.AddHours(9), day.AddHours(9));
+        throw new InvalidOperationException("Inverted point interval was accepted.");
+    }
+    catch (ArgumentOutOfRangeException) { }
 });
 Run("AR-ATT-17: mixed clock kinds rejected (port-only safety, not original parity)", () =>
 {
@@ -98,6 +104,13 @@ Run("AR-ATT-17: mixed clock kinds rejected (port-only safety, not original parit
             DateTime.SpecifyKind(day, DateTimeKind.Utc),
             DateTime.SpecifyKind(day.AddHours(1), DateTimeKind.Utc));
         throw new InvalidOperationException("Mixed clock kinds were accepted.");
+    }
+    catch (ArgumentException) { }
+    try
+    {
+        OriginalAttendanceInterval.IsIn(day, day.AddHours(1),
+            DateTime.SpecifyKind(day.AddMinutes(5), DateTimeKind.Utc));
+        throw new InvalidOperationException("Mixed clock point was accepted.");
     }
     catch (ArgumentException) { }
 });
