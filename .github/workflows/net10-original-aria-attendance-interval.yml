@@ -38,4 +38,7 @@ jobs:
               @($data.cases.PSObject.Properties).Count -ne 8) {
             Write-Host '::error::Original interval fixture incomplete'; exit 1
           }
-          Write-Host '::notice::TWF 4.28 original SHA-pinned TimeInterval 8 bounded pure cases; no SQL/attendance engine/day calculation/IIS/net10 parity.'
+          $observed = @($data.cases.PSObject.Properties | ForEach-Object {
+            '{0}={1}' -f $_.Name, ([string]$_.Value).ToLowerInvariant()
+          }) -join ', '
+          Write-Host "::notice::TWF 4.28 original SHA-pinned TimeInterval bounded observations: $observed. No SQL/attendance engine/day calculation/IIS/net10 parity."
