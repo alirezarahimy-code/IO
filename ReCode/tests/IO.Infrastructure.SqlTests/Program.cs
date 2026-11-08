@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
 using IO.Infrastructure.Security;
 using IO.Infrastructure.Storage;
 using Microsoft.Data.SqlClient;
@@ -273,6 +275,63 @@ try
         foreach (var table in expectedTables) if (await HasTable(table)) recreated++;
         Check(recreated == expectedTables.Length, "migration recreated all 14 foundation tables");
         Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 1, "migration history restored");
+    }
+    // Independent Identity schema and bootstrap: the foundation DB was just
+    // recreated empty above. Never run this against non-disposable data.
+    var serviceCollection = new ServiceCollection();
+    serviceCollection.AddLogging();
+    serviceCollection.AddIoIdentityStorage(connection);
+    await using (var provider = serviceCollection.BuildServiceProvider())
+    {
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var idDb = scope.ServiceProvider.GetRequiredService<LoginIdentityDbContext>();
+            Check(!idDb.Database.HasPendingModelChanges(), "identity model matches migration snapshot");
+            await idDb.Database.MigrateAsync();
+            await idDb.Database.MigrateAsync();
+            Check((await idDb.Database.GetAppliedMigrationsAsync()).Count() == 1, "identity migration applied idempotently");
+            try
+            {
+                await scope.ServiceProvider.GetRequiredService<InitialAdministrator>().CreateAsync("invalid-admin", "short");
+                throw new InvalidOperationException("Weak password was accepted");
+            }
+            catch (InvalidOperationException e) when (e.Message.StartsWith("Administrator creation rejected by identity validation:", StringComparison.Ordinal)) { }
+        }
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var idDb = scope.ServiceProvider.GetRequiredService<LoginIdentityDbContext>();
+            var foundation = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            Check(!await idDb.Users.AnyAsync() && !await foundation.Users.AnyAsync() && !await idDb.SecurityAudit.AnyAsync(),
+                "weak bootstrap password rejected without partial writes");
+        }
+        async Task<bool> TryInitialize(string name)
+        {
+            await using var scope = provider.CreateAsyncScope();
+            try
+            {
+                await scope.ServiceProvider.GetRequiredService<InitialAdministrator>().CreateAsync(name, "Synthetic!Password-2026");
+                return true;
+            }
+            catch (InvalidOperationException e) when (e.Message.StartsWith("The database already contains an account", StringComparison.Ordinal)) { return false; }
+        }
+        var results = await Task.WhenAll(TryInitialize("administrator-one"), TryInitialize("administrator-two"));
+        Check(results.Count(x => x) == 1, "concurrent initial administrator attempts create exactly one account");
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var idDb = scope.ServiceProvider.GetRequiredService<LoginIdentityDbContext>();
+            var foundation = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var manager = scope.ServiceProvider.GetRequiredService<UserManager<LoginAccount>>();
+            var login = await idDb.Users.SingleAsync();
+            Check(await foundation.Users.AnyAsync(x => x.Id == login.Id && x.IsActive) &&
+                await idDb.SecurityAudit.CountAsync(x => x.ActorUserId == login.Id && x.Action == "identity.initial-administrator.created") == 1,
+                "bootstrap links active foundation user and writes audit atomically");
+            Check(login.PasswordHash is not null && login.PasswordHash != "Synthetic!Password-2026" &&
+                await manager.CheckPasswordAsync(login, "Synthetic!Password-2026") && !await manager.CheckPasswordAsync(login, "wrong"),
+                "Identity stores hashed password and verifies credentials");
+            for (var i = 0; i < 5; i++) await manager.AccessFailedAsync(login);
+            Check(await manager.IsLockedOutAsync(login), "Identity locks account after five failed attempts");
+        }
+        Check(!await TryInitialize("third-admin"), "initial administrator creation cannot be repeated");
     }
     Console.WriteLine("PASS disposable SQL Server integration checks");
     return 0;
