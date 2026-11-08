@@ -1,3 +1,4 @@
+using IO.Infrastructure.Security;
 using IO.Infrastructure.Storage;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -91,6 +92,59 @@ try
         await db.SaveChangesAsync();
     }, 547);
     Check(true, "invalid date interval rejected");
+    // These synthetic actors exercise the access reader directly. They do not
+    // represent authenticated HTTP sessions or a complete authorization feature.
+    var selfUser = Guid.NewGuid(); var scopedUser = Guid.NewGuid(); var globalUser = Guid.NewGuid();
+    var disabledUser = Guid.NewGuid(); var noRoleUser = Guid.NewGuid(); var otherEmployee = Guid.NewGuid();
+    var selfRole = Guid.NewGuid(); var scopeRole = Guid.NewGuid(); var allRole = Guid.NewGuid();
+    var selfPermission = Guid.NewGuid(); var scopePermission = Guid.NewGuid(); var allPermission = Guid.NewGuid();
+    await using (var db = NewDb())
+    {
+        db.Employees.Add(new() { Id = otherEmployee, CompanyId = otherCompanyId, PersonnelNumber = "SYN-2", DisplayName = "Other synthetic person" });
+        db.Users.AddRange(
+            new UserRecord { Id = selfUser, UserName = "self", EmployeeId = employeeId, IsActive = true },
+            new UserRecord { Id = scopedUser, UserName = "scoped", IsActive = true },
+            new UserRecord { Id = globalUser, UserName = "global", IsActive = true },
+            new UserRecord { Id = disabledUser, UserName = "disabled", EmployeeId = employeeId, IsActive = false },
+            new UserRecord { Id = noRoleUser, UserName = "no-role", EmployeeId = employeeId, IsActive = true });
+        db.Roles.AddRange(new RoleRecord { Id = selfRole, Name = "self" },
+            new RoleRecord { Id = scopeRole, Name = "scoped" }, new RoleRecord { Id = allRole, Name = "global" });
+        db.Permissions.AddRange(new PermissionRecord { Id = selfPermission, Code = EmployeeAccessReader.ReadSelf },
+            new PermissionRecord { Id = scopePermission, Code = EmployeeAccessReader.ReadScoped },
+            new PermissionRecord { Id = allPermission, Code = EmployeeAccessReader.ReadAll });
+        db.UserRoles.AddRange(new UserRoleRecord { UserId = selfUser, RoleId = selfRole },
+            new UserRoleRecord { UserId = disabledUser, RoleId = selfRole },
+            new UserRoleRecord { UserId = scopedUser, RoleId = scopeRole },
+            new UserRoleRecord { UserId = globalUser, RoleId = allRole });
+        db.RolePermissions.AddRange(new RolePermissionRecord { RoleId = selfRole, PermissionId = selfPermission },
+            new RolePermissionRecord { RoleId = scopeRole, PermissionId = scopePermission },
+            new RolePermissionRecord { RoleId = allRole, PermissionId = allPermission });
+        db.UserOrgScopes.Add(new() { Id = Guid.NewGuid(), UserId = scopedUser, OrgUnitId = unitId,
+            ValidFrom = new DateOnly(2026, 1, 1), ValidUntilExclusive = new DateOnly(2026, 2, 1) });
+        db.EmployeeAssignments.Add(new() { Id = Guid.NewGuid(), CompanyId = otherCompanyId, EmployeeId = otherEmployee,
+            OrgUnitId = otherUnitId, ValidFrom = new DateOnly(2026, 1, 1) });
+        await db.SaveChangesAsync();
+    }
+    await using (var db = NewDb())
+    {
+        var reader = new EmployeeAccessReader(db);
+        var at = new DateOnly(2026, 1, 15);
+        async Task<bool> Allowed(Guid actor, Guid target, DateOnly date) => await reader.FindAuthorizedAsync(actor, target, date) is not null;
+        Check(await Allowed(selfUser, employeeId, at) && !await Allowed(selfUser, otherEmployee, at), "self permission only reads linked employee");
+        Check(!await Allowed(noRoleUser, employeeId, at) && !await Allowed(disabledUser, employeeId, at), "missing permission and inactive account denied");
+        Check(await Allowed(scopedUser, employeeId, at) && !await Allowed(scopedUser, otherEmployee, at), "scope only reads assigned exact unit");
+        Check(!await Allowed(scopedUser, employeeId, new DateOnly(2025, 12, 31)) && !await Allowed(scopedUser, employeeId, new DateOnly(2026, 2, 1)), "scope and assignment dates enforce half-open boundaries");
+        Check(await Allowed(globalUser, employeeId, at) && await Allowed(globalUser, otherEmployee, at), "explicit global permission reads across companies");
+        Check(!await Allowed(Guid.Empty, employeeId, at) && !await Allowed(Guid.NewGuid(), employeeId, at) && !await Allowed(globalUser, Guid.NewGuid(), at), "invalid actor and unknown target denied");
+    }
+    await using (var db = NewDb())
+    {
+        var grant = await db.UserRoles.SingleAsync(x => x.UserId == scopedUser && x.RoleId == scopeRole);
+        db.UserRoles.Remove(grant);
+        await db.SaveChangesAsync();
+        Check(await new EmployeeAccessReader(db).FindAuthorizedAsync(scopedUser, employeeId, new DateOnly(2026, 1, 15)) is null,
+            "permission revocation observed without stale claims");
+    }
     await ExpectSqlFailure(async () =>
     {
         await using var db = NewDb();
