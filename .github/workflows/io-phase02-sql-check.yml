@@ -1,5 +1,5 @@
-# Authorized exception: isolated phase 2 test workflow; no production data.
-name: IO phase 2 isolated SQL test
+# Authorized exception: isolated phase 2–3 test workflow; no production data.
+name: IO foundation isolated SQL test
 on:
   push:
     branches:
@@ -28,25 +28,19 @@ jobs:
             exit 1
           fi
           echo '::notice title=Foundation build::Solution built and domain checks passed'
-      - name: Scaffold initial EF migration when absent
+      - name: Require versioned foundation migration
         working-directory: ReCode
         shell: bash
         run: |
           set -euo pipefail
-          if compgen -G 'src/IO.Infrastructure/Migrations/*_InitialFoundation.cs' >/dev/null; then
-            echo 'Versioned EF migration already present.'
-            exit 0
-          fi
-          if ! dotnet tool install dotnet-ef --tool-path "$RUNNER_TEMP/ef" --version 10.0.11 > "$RUNNER_TEMP/io-ef.log" 2>&1; then
-            python3 tools/phase03-annotate-error.py "$RUNNER_TEMP/io-ef.log" "EF tool install failure"
+          compgen -G 'src/IO.Infrastructure/Migrations/*_InitialFoundation.cs' >/dev/null || {
+            echo '::error::Versioned initial foundation migration is missing.'
             exit 1
-          fi
-          if ! "$RUNNER_TEMP/ef/dotnet-ef" migrations add InitialFoundation --project src/IO.Infrastructure --startup-project src/IO.Infrastructure --configuration Release --no-build > "$RUNNER_TEMP/io-ef.log" 2>&1; then
-            python3 tools/phase03-annotate-error.py "$RUNNER_TEMP/io-ef.log" "EF migration scaffold failure"
+          }
+          test -f src/IO.Infrastructure/Migrations/IoDbContextModelSnapshot.cs || {
+            echo '::error::EF model snapshot is missing.'
             exit 1
-          fi
-          python3 tools/phase03-export-scaffold.py
-          touch "$RUNNER_TEMP/io-scaffold-only"
+          }
       - name: Test isolated SQL Server Developer
         shell: bash
         run: |
@@ -99,15 +93,11 @@ jobs:
           image_digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "$image_ref")"
           echo "::notice title=Isolated SQL Server::$version_info"
           echo "::notice title=SQL Server image::$image_digest"
-          if [[ -f "$RUNNER_TEMP/io-scaffold-only" ]]; then
-            echo '::notice title=Schema test pending::Migration scaffold exported; integration tests not run in this build.'
-          else
-            cd ReCode
-            export IO_SQL_DISPOSABLE_TEST=yes
-            if ! dotnet run --project tests/IO.Infrastructure.SqlTests/IO.Infrastructure.SqlTests.csproj --configuration Release --no-build > "$RUNNER_TEMP/io-sql-tests.log" 2>&1; then
-              python3 tools/phase03-annotate-error.py "$RUNNER_TEMP/io-sql-tests.log" "SQL integration failure"
-              exit 1
-            fi
-            python3 tools/phase03-report-tests.py "$RUNNER_TEMP/io-sql-tests.log"
-            echo '::notice title=Phase 3 SQL integration::Disposable SQL migration and constraint checks passed'
+          cd ReCode
+          export IO_SQL_DISPOSABLE_TEST=yes
+          if ! dotnet run --project tests/IO.Infrastructure.SqlTests/IO.Infrastructure.SqlTests.csproj --configuration Release --no-build > "$RUNNER_TEMP/io-sql-tests.log" 2>&1; then
+            python3 tools/phase03-annotate-error.py "$RUNNER_TEMP/io-sql-tests.log" "SQL integration failure"
+            exit 1
           fi
+          python3 tools/phase03-report-tests.py "$RUNNER_TEMP/io-sql-tests.log"
+          echo '::notice title=Phase 3 SQL integration::Disposable SQL migration and constraint checks passed'
