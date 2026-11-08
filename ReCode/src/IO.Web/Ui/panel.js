@@ -23,6 +23,7 @@ function form(id, handler) {
   });
 }
 form('login', f => { const p = f.elements.password.value; f.elements.password.value = ''; return send('/auth/login', { userName: f.elements.userName.value, password: p }); });
+form('password-change', f => { const old = f.elements.currentPassword.value; const next = f.elements.newPassword.value; f.elements.currentPassword.value = ''; f.elements.newPassword.value = ''; return send('/auth/change-password', { currentPassword: old, newPassword: next }); });
 form('employee', async f => show(await fetch('/employees/' + encodeURIComponent(f.elements.id.value), { credentials: 'same-origin', cache: 'no-store' })));
 form('user', f => { const p = f.elements.password.value; f.elements.password.value = ''; return send('/admin/users', { userName: f.elements.userName.value, password: p, employeeId: f.elements.employeeId.value || null }); });
 form('role', f => send('/admin/roles', { name: f.elements.name.value }));

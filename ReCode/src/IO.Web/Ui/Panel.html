@@ -5,6 +5,7 @@
 <h1>ورود و مدیریت آزمایشی</h1>
 <p>این رابط آزمایشی است و برای استفادهٔ عملیاتی یا دادهٔ واقعی آماده نیست.</p>
 <section><h2>ورود</h2><form id="login"><label>نام کاربری <input name="userName" autocomplete="username" required maxlength="200"></label> <label>گذرواژه <input name="password" type="password" autocomplete="current-password" required maxlength="256"></label> <button>ورود</button></form><button id="logout" type="button">خروج</button></section>
+<section><h2>تغییر گذرواژهٔ خود</h2><form id="password-change"><label>گذرواژهٔ فعلی <input name="currentPassword" type="password" autocomplete="current-password" required maxlength="256"></label> <label>گذرواژهٔ جدید <input name="newPassword" type="password" autocomplete="new-password" required maxlength="256"></label> <button>تغییر و خروج</button></form></section>
 <section><h2>مشاهدهٔ کارمند مجاز</h2><form id="employee"><label>شناسهٔ کارمند <input name="id" required></label> <button>مشاهده</button></form></section>
 <section><h2>مدیریت حساب و مجوز</h2><p>عملیات فقط برای حساب دارای مجوز مدیریت و پس از بررسی سمت سرور مجاز است.</p>
 <form id="user"><h3>ساخت حساب</h3><label>نام کاربری <input name="userName" required maxlength="200"></label> <label>رمز اولیه <input name="password" type="password" autocomplete="new-password" required maxlength="256"></label> <label>شناسهٔ کارمند، اختیاری <input name="employeeId"></label> <button>ساخت حساب</button></form>

@@ -28,6 +28,7 @@ public static class IdentityServices
         }).AddEntityFrameworkStores<LoginIdentityDbContext>().AddSignInManager();
         services.AddScoped<InitialAdministrator>();
         services.AddScoped<IdentityAdministration>();
+        services.AddScoped<PersonalCredentials>();
         return services;
     }
 }

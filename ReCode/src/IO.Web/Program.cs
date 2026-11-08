@@ -114,6 +114,20 @@ public static class IoWebHost
             return Results.NoContent();
         });
         app.MapGet("/auth/me", (ClaimsPrincipal user) => Results.Ok(new { id = user.FindFirstValue(ClaimTypes.NameIdentifier) }));
+        app.MapPost("/auth/change-password", async (ChangePasswordInput input, HttpContext context, IAntiforgery csrf,
+            PersonalCredentials credentials, SignInManager<LoginAccount> signIn) =>
+        {
+            if (!await ValidCsrf(context, csrf)) return Results.BadRequest();
+            if (!Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var actor)) return Results.Unauthorized();
+            try
+            {
+                await credentials.ChangePasswordAsync(actor, input.CurrentPassword, input.NewPassword, context.RequestAborted);
+                await signIn.SignOutAsync();
+                return Results.NoContent();
+            }
+            catch (UnauthorizedAccessException) { return Results.Unauthorized(); }
+            catch (ArgumentException) { return Results.BadRequest(); }
+        });
         app.MapGet("/employees/{id:guid}", async (Guid id, ClaimsPrincipal principal, EmployeeAccessReader reader,
             CancellationToken cancellationToken) =>
         {
@@ -164,6 +178,7 @@ public static class IoWebHost
 }
 
 public sealed record LoginInput(string UserName, string Password);
+public sealed record ChangePasswordInput(string CurrentPassword, string NewPassword);
 public sealed record NewUserInput(string UserName, string Password, Guid? EmployeeId);
 public sealed record NewRoleInput(string Name);
 public sealed record UserRoleInput(Guid UserId, Guid RoleId);

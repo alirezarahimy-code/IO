@@ -1,4 +1,5 @@
 using System.Data;
+using System.Globalization;
 using IO.Infrastructure.Storage;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -89,8 +90,8 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
         }, ct);
 
     public Task<bool> GrantScopeAsync(Guid actor, Guid userId, Guid unitId, DateOnly from, DateOnly? until, CancellationToken ct = default) =>
-        ExecuteAsync(actor, "scope-grant." + unitId.ToString("N") + "." + from.ToString("yyyyMMdd") + "." +
-            (until?.ToString("yyyyMMdd") ?? "open"), async () =>
+        ExecuteAsync(actor, "scope-grant." + unitId.ToString("N") + "." + from.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "." +
+            (until?.ToString("yyyyMMdd", CultureInfo.InvariantCulture) ?? "open"), async () =>
         {
             if (until is not null && until <= from || !await foundation.Users.AnyAsync(x => x.Id == userId, ct) ||
                 !await foundation.OrgUnits.AnyAsync(x => x.Id == unitId, ct)) throw new ArgumentException("Invalid scope.");
