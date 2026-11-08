@@ -150,6 +150,13 @@ public static class IoWebHost
             var employee = await reader.FindAuthorizedAsync(actor, id, date, cancellationToken);
             return employee is null ? Results.NotFound() : Results.Ok(employee);
         });
+        app.MapGet("/admin/catalog/{kind}", async (string kind, int? offset, HttpContext context, IdentityAdministration admin) =>
+        {
+            if (!Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var actor)) return Results.Unauthorized();
+            try { return Results.Ok(await admin.ListAsync(actor, kind, offset ?? 0, context.RequestAborted)); }
+            catch (UnauthorizedAccessException) { return Results.StatusCode(403); }
+            catch (ArgumentException) { return Results.BadRequest(); }
+        });
         app.MapPost("/admin/users", (NewUserInput input, HttpContext context, IAntiforgery csrf, IdentityAdministration admin) =>
             Admin(context, csrf, actor => admin.CreateUserAsync(actor, input.UserName, input.Password, input.EmployeeId, context.RequestAborted)));
         app.MapPost("/admin/roles", (NewRoleInput input, HttpContext context, IAntiforgery csrf, IdentityAdministration admin) =>

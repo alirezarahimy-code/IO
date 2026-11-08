@@ -119,6 +119,17 @@ internal static class HttpSecurityTests
             using var adminClient = Client();
             check((await Login(adminClient, adminName, Password)).StatusCode == HttpStatusCode.NoContent &&
                   (await adminClient.GetAsync($"/employees/{second}")).StatusCode == HttpStatusCode.OK, "HTTP administrator with explicit permission reads globally");
+            var catalog = await adminClient.GetAsync("/admin/catalog/users?offset=0");
+            var catalogText = await catalog.Content.ReadAsStringAsync();
+            check(catalog.StatusCode == HttpStatusCode.OK && catalogText.Contains("web-self", StringComparison.Ordinal) &&
+                !catalogText.Contains("password", StringComparison.OrdinalIgnoreCase) &&
+                (await scoped.GetAsync("/admin/catalog/users?offset=0")).StatusCode == HttpStatusCode.Forbidden,
+                "HTTP administration catalog requires management permission and excludes credentials");
+            check((await adminClient.GetAsync("/admin/catalog/users?offset=-1")).StatusCode == HttpStatusCode.BadRequest &&
+                (await adminClient.GetAsync("/admin/catalog/unknown")).StatusCode == HttpStatusCode.BadRequest &&
+                (await adminClient.GetAsync("/admin/catalog/user-scopes")).StatusCode == HttpStatusCode.OK &&
+                (await adminClient.GetAsync("/admin/catalog/org-units")).StatusCode == HttpStatusCode.OK,
+                "HTTP administration catalog validates pages and exposes scope identifiers");
             async Task<HttpResponseMessage> PostAdmin(HttpClient client, string path, object? input = null)
             {
                 var csrf = await Csrf(client);

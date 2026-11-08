@@ -19,6 +19,18 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
         await foundation.Database.CloseConnectionAsync();
         foundation.Database.SetDbConnection(identity.Database.GetDbConnection());
         await foundation.Database.UseTransactionAsync(tx.GetDbTransaction(), cancellationToken);
+        await RequireManagementAsync(actor, cancellationToken);
+        var (result, target) = await operation();
+        identity.SecurityAudit.Add(new SecurityAuditRecord { Id = Guid.NewGuid(), ActorUserId = actor,
+            Action = action + ":" + target.ToString("N"), OccurredAtUtc = DateTimeOffset.UtcNow });
+        await foundation.SaveChangesAsync(cancellationToken);
+        await identity.SaveChangesAsync(cancellationToken);
+        await tx.CommitAsync(cancellationToken);
+        return result;
+    }
+
+    private async Task RequireManagementAsync(Guid actor, CancellationToken cancellationToken)
+    {
         var permission = InitialAdministrator.ManageIdentity;
         var allowed = await (from user in foundation.Users
                              join ur in foundation.UserRoles on user.Id equals ur.UserId
@@ -29,13 +41,38 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
                                  EF.Functions.DataLength(p.Code) == permission.Length * 2
                              select user.Id).AnyAsync(cancellationToken);
         if (!allowed) throw new UnauthorizedAccessException();
-        var (result, target) = await operation();
-        identity.SecurityAudit.Add(new SecurityAuditRecord { Id = Guid.NewGuid(), ActorUserId = actor,
-            Action = action + ":" + target.ToString("N"), OccurredAtUtc = DateTimeOffset.UtcNow });
-        await foundation.SaveChangesAsync(cancellationToken);
-        await identity.SaveChangesAsync(cancellationToken);
-        await tx.CommitAsync(cancellationToken);
-        return result;
+    }
+
+    /// <summary>Returns one bounded page of non-credential administration data.</summary>
+    public async Task<object> ListAsync(Guid actor, string kind, int offset, CancellationToken ct = default)
+    {
+        if (offset < 0 || offset > 1_000_000) throw new ArgumentException("Invalid page offset.");
+        await using var tx = await identity.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        await foundation.Database.CloseConnectionAsync();
+        foundation.Database.SetDbConnection(identity.Database.GetDbConnection());
+        await foundation.Database.UseTransactionAsync(tx.GetDbTransaction(), ct);
+        await RequireManagementAsync(actor, ct);
+        const int pageSize = 100;
+        object page = kind switch
+        {
+            "org-units" => await foundation.OrgUnits.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(pageSize)
+                .Select(x => new { x.Id, x.CompanyId, x.Name }).ToListAsync(ct),
+            "users" => await foundation.Users.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(pageSize)
+                .Select(x => new { x.Id, x.UserName, x.EmployeeId, x.IsActive }).ToListAsync(ct),
+            "roles" => await foundation.Roles.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(pageSize)
+                .Select(x => new { x.Id, x.Name }).ToListAsync(ct),
+            "permissions" => await foundation.Permissions.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(pageSize)
+                .Select(x => new { x.Id, x.Code }).ToListAsync(ct),
+            "user-roles" => await foundation.UserRoles.AsNoTracking().OrderBy(x => x.UserId).ThenBy(x => x.RoleId)
+                .Skip(offset).Take(pageSize).Select(x => new { x.UserId, x.RoleId }).ToListAsync(ct),
+            "role-permissions" => await foundation.RolePermissions.AsNoTracking().OrderBy(x => x.RoleId).ThenBy(x => x.PermissionId)
+                .Skip(offset).Take(pageSize).Select(x => new { x.RoleId, x.PermissionId }).ToListAsync(ct),
+            "user-scopes" => await foundation.UserOrgScopes.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(pageSize)
+                .Select(x => new { x.Id, x.UserId, x.OrgUnitId, x.ValidFrom, x.ValidUntilExclusive }).ToListAsync(ct),
+            _ => throw new ArgumentException("Unknown catalog type.")
+        };
+        await tx.CommitAsync(ct);
+        return new { kind, offset, pageSize, items = page };
     }
 
     public Task<Guid> CreateUserAsync(Guid actor, string username, string password, Guid? employeeId, CancellationToken ct = default) =>
