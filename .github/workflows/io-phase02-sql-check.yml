@@ -1,0 +1,54 @@
+# Authorized exception: isolated phase 2 test workflow; no production data.
+name: IO phase 2 isolated SQL test
+on:
+  push:
+    branches:
+      - arena/5496cceb-io
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Build and run domain checks
+        working-directory: ReCode
+        env:
+          DOTNET_CLI_TELEMETRY_OPTOUT: 1
+          DOTNET_NOLOGO: 1
+        run: ./tools/phase02-verify.sh
+      - name: Test isolated SQL Server Developer
+        shell: bash
+        run: |
+          set -euo pipefail
+          export MSSQL_SA_PASSWORD="$(python3 -c 'import secrets; print("Io9!" + secrets.token_hex(24))')"
+          echo "::add-mask::$MSSQL_SA_PASSWORD"
+          trap 'docker rm -f io-phase02-sql >/dev/null 2>&1 || true; unset MSSQL_SA_PASSWORD' EXIT
+          docker run -d --name io-phase02-sql \
+            -e ACCEPT_EULA=Y -e MSSQL_PID=Developer -e MSSQL_SA_PASSWORD \
+            mcr.microsoft.com/mssql/server:2022-latest >/dev/null
+          ready=0
+          for attempt in {1..90}; do
+            if docker exec io-phase02-sql /bin/bash -c \
+              'export SQLCMDPASSWORD="$MSSQL_SA_PASSWORD"; exec /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -b -l 2 -Q "SET NOCOUNT ON; SELECT 1;"' \
+              >/dev/null 2>&1; then
+              ready=1
+              break
+            fi
+            if [[ "$(docker inspect --format '{{.State.Running}}' io-phase02-sql)" != true ]]; then
+              echo 'SQL Server stopped before becoming ready.' >&2
+              exit 1
+            fi
+            sleep 2
+          done
+          if [[ "$ready" != 1 ]]; then
+            echo 'SQL Server did not become ready within the time limit.' >&2
+            exit 1
+          fi
+          docker exec io-phase02-sql /bin/bash -c \
+            'export SQLCMDPASSWORD="$MSSQL_SA_PASSWORD"; exec /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -b -l 10 -Q "SET NOCOUNT ON; SELECT SERVERPROPERTY('"'"'ProductVersion'"'"') AS ProductVersion, SERVERPROPERTY('"'"'Edition'"'"') AS Edition; SELECT 1 AS TestConnection;"'
+          echo 'PASS: temporary SQL Server responded; schema and application integration were not tested.'
