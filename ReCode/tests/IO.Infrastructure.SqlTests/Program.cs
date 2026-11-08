@@ -143,6 +143,19 @@ try
     }
     await using (var db = NewDb())
     {
+        var permission = await db.Permissions.SingleAsync(x => x.Id == selfPermission);
+        permission.Code = EmployeeAccessReader.ReadSelf.ToUpperInvariant();
+        await db.SaveChangesAsync();
+        var caseDenied = await new EmployeeAccessReader(db).FindAuthorizedAsync(selfUser, employeeId, new DateOnly(2026, 1, 15)) is null;
+        permission.Code = EmployeeAccessReader.ReadSelf + " ";
+        await db.SaveChangesAsync();
+        var paddingDenied = await new EmployeeAccessReader(db).FindAuthorizedAsync(selfUser, employeeId, new DateOnly(2026, 1, 15)) is null;
+        permission.Code = EmployeeAccessReader.ReadSelf;
+        await db.SaveChangesAsync();
+        Check(caseDenied && paddingDenied, "permission codes are exact despite SQL collation and padding");
+    }
+    await using (var db = NewDb())
+    {
         var scope = await db.UserOrgScopes.SingleAsync(x => x.UserId == scopedUser);
         scope.ValidUntilExclusive = null;
         await db.SaveChangesAsync();

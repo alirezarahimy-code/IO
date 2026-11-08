@@ -34,9 +34,16 @@ public sealed class EmployeeAccessReader(IoDbContext db)
         var query = from employee in db.Employees.AsNoTracking()
                     where employee.Id == employeeId && db.Users.Any(user =>
                         user.Id == actorId && user.IsActive &&
-                        (codes.Contains(ReadAll) ||
-                         (user.EmployeeId == employee.Id && codes.Contains(ReadSelf)) ||
-                         (codes.Contains(ReadScoped) &&
+                        // Permission codes are protocol identifiers, not human names.
+                        // Binary collation plus byte length avoids SQL's case and
+                        // trailing-space comparison rules granting a different code.
+                        (codes.Any(code => EF.Functions.Collate(code, "Latin1_General_100_BIN2") == ReadAll &&
+                                           EF.Functions.DataLength(code) == ReadAll.Length * 2) ||
+                         (user.EmployeeId == employee.Id &&
+                          codes.Any(code => EF.Functions.Collate(code, "Latin1_General_100_BIN2") == ReadSelf &&
+                                            EF.Functions.DataLength(code) == ReadSelf.Length * 2)) ||
+                         (codes.Any(code => EF.Functions.Collate(code, "Latin1_General_100_BIN2") == ReadScoped &&
+                                           EF.Functions.DataLength(code) == ReadScoped.Length * 2) &&
                           db.UserOrgScopes.Any(scope =>
                               scope.UserId == user.Id &&
                               scope.ValidFrom <= businessDate &&
