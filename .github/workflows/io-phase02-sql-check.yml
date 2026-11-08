@@ -27,14 +27,31 @@ jobs:
           set -euo pipefail
           export MSSQL_SA_PASSWORD="$(python3 -c 'import secrets; print("Io9!" + secrets.token_hex(24))')"
           echo "::add-mask::$MSSQL_SA_PASSWORD"
-          trap 'docker rm -f io-phase02-sql >/dev/null 2>&1 || true; unset MSSQL_SA_PASSWORD' EXIT
+          container_started=0
+          cleanup() {
+            local status=$?
+            trap - EXIT
+            if [[ "$container_started" == 1 ]]; then
+              if docker rm -f io-phase02-sql >/dev/null; then
+                echo '::notice title=SQL test cleanup::Temporary SQL Server container removed'
+              else
+                echo 'SQL Server container cleanup failed.' >&2
+                status=1
+              fi
+            fi
+            unset MSSQL_SA_PASSWORD
+            exit "$status"
+          }
+          trap cleanup EXIT
+          image_ref='mcr.microsoft.com/mssql/server@sha256:cf8f0ab2ebe61feec2eed2629061a07d247f791c2a8ddda74a4ac9f06a291718'
           docker run -d --name io-phase02-sql \
             -e ACCEPT_EULA=Y -e MSSQL_PID=Developer -e MSSQL_SA_PASSWORD \
-            mcr.microsoft.com/mssql/server:2022-latest >/dev/null
+            "$image_ref" >/dev/null
+          container_started=1
           ready=0
           for attempt in {1..90}; do
             if docker exec io-phase02-sql /bin/bash -c \
-              'export SQLCMDPASSWORD="$MSSQL_SA_PASSWORD"; exec /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -b -l 2 -Q "SET NOCOUNT ON; SELECT 1;"' \
+              'export SQLCMDPASSWORD="$MSSQL_SA_PASSWORD"; exec /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -N -C -b -l 2 -Q "SET NOCOUNT ON; SELECT 1;"' \
               >/dev/null 2>&1; then
               ready=1
               break
@@ -50,10 +67,10 @@ jobs:
             exit 1
           fi
           docker exec io-phase02-sql /bin/bash -c \
-            'export SQLCMDPASSWORD="$MSSQL_SA_PASSWORD"; exec /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -b -l 10 -Q "SET NOCOUNT ON; SELECT SERVERPROPERTY('"'"'ProductVersion'"'"') AS ProductVersion, SERVERPROPERTY('"'"'Edition'"'"') AS Edition; SELECT 1 AS TestConnection;"'
+            'export SQLCMDPASSWORD="$MSSQL_SA_PASSWORD"; exec /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -N -C -b -l 10 -Q "SET NOCOUNT ON; SELECT SERVERPROPERTY('"'"'ProductVersion'"'"') AS ProductVersion, SERVERPROPERTY('"'"'Edition'"'"') AS Edition; SELECT 1 AS TestConnection;"'
           version_info="$(docker exec io-phase02-sql /bin/bash -c \
-            'export SQLCMDPASSWORD="$MSSQL_SA_PASSWORD"; exec /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -b -l 10 -h -1 -W -Q "SET NOCOUNT ON; SELECT CONCAT(CONVERT(nvarchar(128), SERVERPROPERTY('"'"'ProductVersion'"'"')), '"'"' | '"'"', CONVERT(nvarchar(128), SERVERPROPERTY('"'"'Edition'"'"')));"')"
-          image_digest="$(docker image inspect --format '{{index .RepoDigests 0}}' mcr.microsoft.com/mssql/server:2022-latest)"
+            'export SQLCMDPASSWORD="$MSSQL_SA_PASSWORD"; exec /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -N -C -b -l 10 -h -1 -W -Q "SET NOCOUNT ON; SELECT CONCAT(CONVERT(nvarchar(128), SERVERPROPERTY('"'"'ProductVersion'"'"')), '"'"' | '"'"', CONVERT(nvarchar(128), SERVERPROPERTY('"'"'Edition'"'"')));"')"
+          image_digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "$image_ref")"
           echo "::notice title=Isolated SQL Server::$version_info"
           echo "::notice title=SQL Server image::$image_digest"
           echo 'PASS: temporary SQL Server responded; schema and application integration were not tested.'
