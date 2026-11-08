@@ -162,9 +162,15 @@ internal static class HttpSecurityTests
                 "HTTP administrator creates user and assigns role");
             using var createdClient = Client();
             check((await Login(createdClient, "web-created", Password)).StatusCode == HttpStatusCode.NoContent &&
+                (await createdClient.GetAsync($"/employees/{first}")).StatusCode == HttpStatusCode.Forbidden &&
+                (await PostAdmin(createdClient, "/auth/change-password", new { CurrentPassword = Password, NewPassword = Password })).StatusCode == HttpStatusCode.BadRequest,
+                "HTTP provisioned user must change temporary password before access");
+            const string changedCreatedPassword = "Synthetic!Created-Password-2026";
+            check((await PostAdmin(createdClient, "/auth/change-password", new { CurrentPassword = Password, NewPassword = changedCreatedPassword })).StatusCode == HttpStatusCode.NoContent &&
+                (await Login(createdClient, "web-created", changedCreatedPassword)).StatusCode == HttpStatusCode.NoContent &&
                 (await createdClient.GetAsync($"/employees/{first}")).StatusCode == HttpStatusCode.OK &&
                 (await createdClient.GetAsync($"/employees/{second}")).StatusCode == HttpStatusCode.NotFound,
-                "HTTP newly provisioned user has only explicit own access");
+                "HTTP provisioned user gets only explicit own access after changing password");
             using var scopedRoleResponse = await PostAdmin(adminClient, "/admin/roles", new { Name = "web extra scope role" });
             scopedRoleResponse.EnsureSuccessStatusCode();
             using var scopedRoleJson = JsonDocument.Parse(await scopedRoleResponse.Content.ReadAsStringAsync());
@@ -207,14 +213,14 @@ internal static class HttpSecurityTests
                 (await PostAdmin(adminClient, "/admin/role-permissions/revoke", new { RoleId = administratorRole, Code = InitialAdministrator.ManageIdentity })).StatusCode == HttpStatusCode.BadRequest,
                 "HTTP administrator cannot revoke own management path");
             using var preservedCookie = Client();
-            if ((await Login(preservedCookie, "web-created", Password)).StatusCode != HttpStatusCode.NoContent)
+            if ((await Login(preservedCookie, "web-created", changedCreatedPassword)).StatusCode != HttpStatusCode.NoContent)
                 throw new InvalidOperationException("Second synthetic user login failed.");
             check((await PostAdmin(adminClient, $"/admin/users/{createdUser}/disable")).StatusCode == HttpStatusCode.OK &&
                 (await createdClient.GetAsync("/auth/me")).StatusCode == HttpStatusCode.Unauthorized,
                 "HTTP administrator disables account and session is revoked");
             check((await PostAdmin(adminClient, $"/admin/users/{createdUser}/enable")).StatusCode == HttpStatusCode.OK &&
                 (await preservedCookie.GetAsync("/auth/me")).StatusCode == HttpStatusCode.Unauthorized &&
-                (await Login(createdClient, "web-created", Password)).StatusCode == HttpStatusCode.NoContent,
+                (await Login(createdClient, "web-created", changedCreatedPassword)).StatusCode == HttpStatusCode.NoContent,
                 "HTTP re-enable does not resurrect a never-presented old session");
             await using (var auditScope = provider.CreateAsyncScope())
             {

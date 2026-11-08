@@ -92,6 +92,21 @@ public static class IoWebHost
         });
         app.UseAuthentication();
         app.UseRateLimiter();
+        app.Use(async (context, next) =>
+        {
+            // Provisioned accounts may only change their temporary credential or
+            // sign out until they have selected a new password of their own.
+            if (context.User.HasClaim(IdentityServices.MustChangePasswordClaim, "1") &&
+                context.Request.Path != "/auth/change-password" && context.Request.Path != "/auth/logout" &&
+                context.Request.Path != "/auth/csrf" && context.Request.Path != "/auth/me" &&
+                context.Request.Path != "/panel" && context.Request.Path != "/assets/panel.js" &&
+                context.Request.Path != "/health/live")
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return;
+            }
+            await next(context);
+        });
         app.UseAuthorization();
 
         app.MapGet("/panel", () => Results.Content(Resource("IO.Web.Ui.Panel.html"), "text/html; charset=utf-8")).AllowAnonymous();

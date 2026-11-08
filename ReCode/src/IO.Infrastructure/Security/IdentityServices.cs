@@ -9,6 +9,7 @@ namespace IO.Infrastructure.Security;
 
 public static class IdentityServices
 {
+    public const string MustChangePasswordClaim = "io.password_change_required";
     // Caller supplies an explicitly configured and authorized SQL connection.
     // This method does not create a database, apply migrations, or seed users.
     public static IServiceCollection AddIoIdentityStorage(this IServiceCollection services, string connection)

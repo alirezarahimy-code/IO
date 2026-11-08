@@ -83,8 +83,11 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
             if (employeeId is not null && !await foundation.Employees.AnyAsync(e => e.Id == employeeId, ct))
                 throw new ArgumentException("Unknown employee.");
             var id = Guid.NewGuid();
-            var result = await users.CreateAsync(new LoginAccount { Id = id, UserName = username, LockoutEnabled = true }, password);
+            var login = new LoginAccount { Id = id, UserName = username, LockoutEnabled = true };
+            var result = await users.CreateAsync(login, password);
             if (!result.Succeeded) throw new ArgumentException("Username or password rejected by identity validation.");
+            var claimResult = await users.AddClaimAsync(login, new System.Security.Claims.Claim(IdentityServices.MustChangePasswordClaim, "1"));
+            if (!claimResult.Succeeded) throw new InvalidOperationException("Unable to enforce initial password change.");
             foundation.Users.Add(new UserRecord { Id = id, UserName = username, EmployeeId = employeeId, IsActive = true });
             return (id, id);
         }, ct);
