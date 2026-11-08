@@ -80,12 +80,15 @@ public static class IoWebHost
             if (!context.Request.IsHttps) { context.Response.StatusCode = 400; return; }
             context.Response.Headers.CacheControl = "no-store";
             context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+            context.Response.Headers.ContentSecurityPolicy = "default-src 'none'; script-src 'self'; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'";
             await next(context);
         });
         app.UseRateLimiter();
         app.UseAuthentication();
         app.UseAuthorization();
 
+        app.MapGet("/panel", () => Results.Content(Resource("IO.Web.Ui.Panel.html"), "text/html; charset=utf-8")).AllowAnonymous();
+        app.MapGet("/assets/panel.js", () => Results.Content(Resource("IO.Web.Ui.panel.js"), "text/javascript; charset=utf-8")).AllowAnonymous();
         app.MapGet("/auth/csrf", (HttpContext context, IAntiforgery antiforgery) =>
             Results.Ok(new { token = antiforgery.GetAndStoreTokens(context).RequestToken })).AllowAnonymous();
         app.MapPost("/auth/login", async (LoginInput input, HttpContext context, IAntiforgery antiforgery,
@@ -134,6 +137,14 @@ public static class IoWebHost
         app.MapPost("/admin/users/{id:guid}/disable", (Guid id, HttpContext context, IAntiforgery csrf, IdentityAdministration admin) =>
             Admin(context, csrf, actor => admin.DisableUserAsync(actor, id, context.RequestAborted)));
         return app;
+    }
+
+    private static string Resource(string name)
+    {
+        using var stream = typeof(IoWebHost).Assembly.GetManifestResourceStream(name)
+            ?? throw new InvalidOperationException("Embedded UI resource missing.");
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
     }
 
     private static async Task<IResult> Admin<T>(HttpContext context, IAntiforgery antiforgery, Func<Guid, Task<T>> action)

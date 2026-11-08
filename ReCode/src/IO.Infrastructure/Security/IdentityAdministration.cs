@@ -61,7 +61,7 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
         }, ct);
 
     public Task<bool> GrantUserRoleAsync(Guid actor, Guid userId, Guid roleId, CancellationToken ct = default) =>
-        ExecuteAsync(actor, "identity.user-role.granted", async () =>
+        ExecuteAsync(actor, "role-grant." + roleId.ToString("N"), async () =>
         {
             if (!await foundation.Users.AnyAsync(x => x.Id == userId, ct) || !await foundation.Roles.AnyAsync(x => x.Id == roleId, ct) ||
                 await foundation.UserRoles.AnyAsync(x => x.UserId == userId && x.RoleId == roleId, ct))
@@ -71,7 +71,7 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
         }, ct);
 
     public Task<bool> GrantPermissionAsync(Guid actor, Guid roleId, string code, CancellationToken ct = default) =>
-        ExecuteAsync(actor, "identity.role-permission.granted", async () =>
+        ExecuteAsync(actor, "permission-grant." + code, async () =>
         {
             if (code is not (EmployeeAccessReader.ReadSelf or EmployeeAccessReader.ReadScoped or EmployeeAccessReader.ReadAll or InitialAdministrator.ManageIdentity) ||
                 !await foundation.Roles.AnyAsync(x => x.Id == roleId, ct)) throw new ArgumentException("Invalid permission or role.");
@@ -89,7 +89,8 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
         }, ct);
 
     public Task<bool> GrantScopeAsync(Guid actor, Guid userId, Guid unitId, DateOnly from, DateOnly? until, CancellationToken ct = default) =>
-        ExecuteAsync(actor, "identity.user-scope.granted", async () =>
+        ExecuteAsync(actor, "scope-grant." + unitId.ToString("N") + "." + from.ToString("yyyyMMdd") + "." +
+            (until?.ToString("yyyyMMdd") ?? "open"), async () =>
         {
             if (until is not null && until <= from || !await foundation.Users.AnyAsync(x => x.Id == userId, ct) ||
                 !await foundation.OrgUnits.AnyAsync(x => x.Id == unitId, ct)) throw new ArgumentException("Invalid scope.");

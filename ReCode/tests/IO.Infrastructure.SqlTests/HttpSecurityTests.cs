@@ -97,6 +97,10 @@ internal static class HttpSecurityTests
                 return await client.SendAsync(message);
             }
             using var anon = Client();
+            var panel = await anon.GetAsync("/panel");
+            var script = await anon.GetAsync("/assets/panel.js");
+            check(panel.StatusCode == HttpStatusCode.OK && script.StatusCode == HttpStatusCode.OK &&
+                panel.Headers.Contains("Content-Security-Policy"), "HTTP experimental UI and security policy served");
             check((await anon.GetAsync($"/employees/{first}")).StatusCode == HttpStatusCode.Unauthorized,
                 "HTTP anonymous direct employee access denied");
             check((await anon.PostAsJsonAsync("/auth/login", new { UserName = "web-self", Password })).StatusCode == HttpStatusCode.BadRequest,
@@ -150,6 +154,25 @@ internal static class HttpSecurityTests
                 (await createdClient.GetAsync($"/employees/{first}")).StatusCode == HttpStatusCode.OK &&
                 (await createdClient.GetAsync($"/employees/{second}")).StatusCode == HttpStatusCode.NotFound,
                 "HTTP newly provisioned user has only explicit own access");
+            using var scopedRoleResponse = await PostAdmin(adminClient, "/admin/roles", new { Name = "web extra scope role" });
+            scopedRoleResponse.EnsureSuccessStatusCode();
+            using var scopedRoleJson = JsonDocument.Parse(await scopedRoleResponse.Content.ReadAsStringAsync());
+            var scopedRoleId = scopedRoleJson.RootElement.GetProperty("result").GetGuid();
+            var permissionGranted = await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = scopedRoleId, Code = EmployeeAccessReader.ReadScoped });
+            var roleGranted = await PostAdmin(adminClient, "/admin/user-roles", new { UserId = createdUser, RoleId = scopedRoleId });
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var invalidScope = await PostAdmin(adminClient, "/admin/user-scopes", new { UserId = createdUser, UnitId = otherUnit, ValidFrom = today, ValidUntilExclusive = today });
+            check(invalidScope.StatusCode == HttpStatusCode.BadRequest, "HTTP invalid scope interval rejected");
+            var validScope = await PostAdmin(adminClient, "/admin/user-scopes", new { UserId = createdUser, UnitId = otherUnit, ValidFrom = today, ValidUntilExclusive = (DateOnly?)null });
+            check(permissionGranted.StatusCode == HttpStatusCode.OK && roleGranted.StatusCode == HttpStatusCode.OK &&
+                validScope.StatusCode == HttpStatusCode.OK && (await createdClient.GetAsync($"/employees/{second}")).StatusCode == HttpStatusCode.OK,
+                "HTTP administrator grants role and exact-unit scope to user");
+            await using (var auditScope = provider.CreateAsyncScope())
+            {
+                var rows = auditScope.ServiceProvider.GetRequiredService<LoginIdentityDbContext>().SecurityAudit;
+                var expected = "scope-grant." + otherUnit.ToString("N") + "." + today.ToString("yyyyMMdd") + ".open:" + createdUser.ToString("N");
+                check(await rows.AnyAsync(x => x.Action == expected), "HTTP scope grant audit identifies user, unit and interval");
+            }
             check((await PostAdmin(adminClient, $"/admin/users/{createdUser}/disable")).StatusCode == HttpStatusCode.OK &&
                 (await createdClient.GetAsync("/auth/me")).StatusCode == HttpStatusCode.Unauthorized,
                 "HTTP administrator disables account and session is revoked");

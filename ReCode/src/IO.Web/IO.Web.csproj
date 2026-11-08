@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <ItemGroup>
+    <EmbeddedResource Include="Ui/Panel.html" />
+    <EmbeddedResource Include="Ui/panel.js" />
     <ProjectReference Include="../IO.Domain/IO.Domain.csproj" />
     <ProjectReference Include="../IO.Infrastructure/IO.Infrastructure.csproj" />
   </ItemGroup>
