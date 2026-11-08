@@ -333,6 +333,7 @@ try
         }
         Check(!await TryInitialize("third-admin"), "initial administrator creation cannot be repeated");
     }
+    await HttpSecurityTests.RunAsync(connection, Check);
     Console.WriteLine("PASS disposable SQL Server integration checks");
     return 0;
 }
