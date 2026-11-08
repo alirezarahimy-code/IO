@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
+    <Project Path="src/IO.Bootstrap/IO.Bootstrap.csproj" />
     <Project Path="src/IO.Domain/IO.Domain.csproj" />
     <Project Path="src/IO.Infrastructure/IO.Infrastructure.csproj" />
     <Project Path="src/IO.Web/IO.Web.csproj" />
