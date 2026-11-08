@@ -159,6 +159,12 @@ public static class IoWebHost
             Admin(context, csrf, actor => admin.GrantPermissionAsync(actor, input.RoleId, input.Code, context.RequestAborted)));
         app.MapPost("/admin/user-scopes", (UserScopeInput input, HttpContext context, IAntiforgery csrf, IdentityAdministration admin) =>
             Admin(context, csrf, actor => admin.GrantScopeAsync(actor, input.UserId, input.UnitId, input.ValidFrom, input.ValidUntilExclusive, context.RequestAborted)));
+        app.MapPost("/admin/user-roles/revoke", (UserRoleInput input, HttpContext context, IAntiforgery csrf, IdentityAdministration admin) =>
+            Admin(context, csrf, actor => admin.RevokeUserRoleAsync(actor, input.UserId, input.RoleId, context.RequestAborted)));
+        app.MapPost("/admin/role-permissions/revoke", (RolePermissionInput input, HttpContext context, IAntiforgery csrf, IdentityAdministration admin) =>
+            Admin(context, csrf, actor => admin.RevokePermissionAsync(actor, input.RoleId, input.Code, context.RequestAborted)));
+        app.MapPost("/admin/user-scopes/{id:guid}/revoke", (Guid id, HttpContext context, IAntiforgery csrf, IdentityAdministration admin) =>
+            Admin(context, csrf, actor => admin.RevokeScopeAsync(actor, id, context.RequestAborted)));
         app.MapPost("/admin/users/{id:guid}/disable", (Guid id, HttpContext context, IAntiforgery csrf, IdentityAdministration admin) =>
             Admin(context, csrf, actor => admin.DisableUserAsync(actor, id, context.RequestAborted)));
         return app;

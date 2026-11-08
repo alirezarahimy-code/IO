@@ -89,15 +89,51 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
             return (true, roleId);
         }, ct);
 
-    public Task<bool> GrantScopeAsync(Guid actor, Guid userId, Guid unitId, DateOnly from, DateOnly? until, CancellationToken ct = default) =>
+    public Task<Guid> GrantScopeAsync(Guid actor, Guid userId, Guid unitId, DateOnly from, DateOnly? until, CancellationToken ct = default) =>
         ExecuteAsync(actor, "scope-grant." + unitId.ToString("N") + "." + from.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "." +
             (until?.ToString("yyyyMMdd", CultureInfo.InvariantCulture) ?? "open"), async () =>
         {
             if (until is not null && until <= from || !await foundation.Users.AnyAsync(x => x.Id == userId, ct) ||
                 !await foundation.OrgUnits.AnyAsync(x => x.Id == unitId, ct)) throw new ArgumentException("Invalid scope.");
-            foundation.UserOrgScopes.Add(new UserOrgScopeRecord { Id = Guid.NewGuid(), UserId = userId, OrgUnitId = unitId,
+            var scopeId = Guid.NewGuid();
+            foundation.UserOrgScopes.Add(new UserOrgScopeRecord { Id = scopeId, UserId = userId, OrgUnitId = unitId,
                 ValidFrom = from, ValidUntilExclusive = until });
+            return (scopeId, userId);
+        }, ct);
+
+    public Task<bool> RevokeUserRoleAsync(Guid actor, Guid userId, Guid roleId, CancellationToken ct = default) =>
+        ExecuteAsync(actor, "role-revoke." + roleId.ToString("N"), async () =>
+        {
+            // Never remove the current actor's own management path through this API.
+            if (actor == userId) throw new ArgumentException("Cannot revoke your own role.");
+            var grant = await foundation.UserRoles.SingleOrDefaultAsync(x => x.UserId == userId && x.RoleId == roleId, ct)
+                ?? throw new ArgumentException("Unknown user-role grant.");
+            foundation.UserRoles.Remove(grant);
             return (true, userId);
+        }, ct);
+
+    public Task<bool> RevokePermissionAsync(Guid actor, Guid roleId, string code, CancellationToken ct = default) =>
+        ExecuteAsync(actor, "permission-revoke." + code, async () =>
+        {
+            if (code is not (EmployeeAccessReader.ReadSelf or EmployeeAccessReader.ReadScoped or EmployeeAccessReader.ReadAll or InitialAdministrator.ManageIdentity) ||
+                await foundation.UserRoles.AnyAsync(x => x.UserId == actor && x.RoleId == roleId, ct))
+                throw new ArgumentException("Invalid permission or role used by the actor.");
+            var permissionId = await foundation.Permissions.Where(p =>
+                EF.Functions.Collate(p.Code, "Latin1_General_100_BIN2") == code && EF.Functions.DataLength(p.Code) == code.Length * 2)
+                .Select(p => p.Id).SingleOrDefaultAsync(ct);
+            var grant = await foundation.RolePermissions.SingleOrDefaultAsync(x => x.RoleId == roleId && x.PermissionId == permissionId, ct)
+                ?? throw new ArgumentException("Unknown role-permission grant.");
+            foundation.RolePermissions.Remove(grant);
+            return (true, roleId);
+        }, ct);
+
+    public Task<bool> RevokeScopeAsync(Guid actor, Guid scopeId, CancellationToken ct = default) =>
+        ExecuteAsync(actor, "scope-revoke." + scopeId.ToString("N"), async () =>
+        {
+            var scope = await foundation.UserOrgScopes.SingleOrDefaultAsync(x => x.Id == scopeId, ct)
+                ?? throw new ArgumentException("Unknown scope.");
+            foundation.UserOrgScopes.Remove(scope);
+            return (true, scope.UserId);
         }, ct);
 
     public Task<bool> DisableUserAsync(Guid actor, Guid userId, CancellationToken ct = default) =>

@@ -173,6 +173,28 @@ internal static class HttpSecurityTests
                 var expected = "scope-grant." + otherUnit.ToString("N") + "." + today.ToString("yyyyMMdd") + ".open:" + createdUser.ToString("N");
                 check(await rows.AnyAsync(x => x.Action == expected), "HTTP scope grant audit identifies user, unit and interval");
             }
+            using var validScopeJson = JsonDocument.Parse(await validScope.Content.ReadAsStringAsync());
+            var scopeId = validScopeJson.RootElement.GetProperty("result").GetGuid();
+            check((await PostAdmin(adminClient, $"/admin/user-scopes/{scopeId}/revoke")).StatusCode == HttpStatusCode.OK &&
+                (await createdClient.GetAsync($"/employees/{second}")).StatusCode == HttpStatusCode.NotFound,
+                "HTTP scope revocation takes effect immediately");
+            var scopeAgain = await PostAdmin(adminClient, "/admin/user-scopes", new { UserId = createdUser, UnitId = otherUnit, ValidFrom = today, ValidUntilExclusive = (DateOnly?)null });
+            if (scopeAgain.StatusCode != HttpStatusCode.OK) throw new InvalidOperationException("Could not re-grant test scope.");
+            check((await PostAdmin(adminClient, "/admin/user-roles/revoke", new { UserId = createdUser, RoleId = scopedRoleId })).StatusCode == HttpStatusCode.OK &&
+                (await createdClient.GetAsync($"/employees/{second}")).StatusCode == HttpStatusCode.NotFound,
+                "HTTP role revocation takes effect immediately");
+            if ((await PostAdmin(adminClient, "/admin/user-roles", new { UserId = createdUser, RoleId = scopedRoleId })).StatusCode != HttpStatusCode.OK)
+                throw new InvalidOperationException("Could not re-grant test role.");
+            check((await PostAdmin(adminClient, "/admin/role-permissions/revoke", new { RoleId = scopedRoleId, Code = EmployeeAccessReader.ReadScoped })).StatusCode == HttpStatusCode.OK &&
+                (await createdClient.GetAsync($"/employees/{second}")).StatusCode == HttpStatusCode.NotFound,
+                "HTTP permission revocation takes effect immediately");
+            Guid administratorId;
+            await using (var adminScope = provider.CreateAsyncScope())
+                administratorId = await adminScope.ServiceProvider.GetRequiredService<LoginIdentityDbContext>().Users
+                    .Where(x => x.UserName == adminName).Select(x => x.Id).SingleAsync();
+            check((await PostAdmin(adminClient, "/admin/user-roles/revoke", new { UserId = administratorId, RoleId = administratorRole })).StatusCode == HttpStatusCode.BadRequest &&
+                (await PostAdmin(adminClient, "/admin/role-permissions/revoke", new { RoleId = administratorRole, Code = InitialAdministrator.ManageIdentity })).StatusCode == HttpStatusCode.BadRequest,
+                "HTTP administrator cannot revoke own management path");
             check((await PostAdmin(adminClient, $"/admin/users/{createdUser}/disable")).StatusCode == HttpStatusCode.OK &&
                 (await createdClient.GetAsync("/auth/me")).StatusCode == HttpStatusCode.Unauthorized,
                 "HTTP administrator disables account and session is revoked");

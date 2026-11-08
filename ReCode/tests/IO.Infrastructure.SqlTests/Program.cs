@@ -334,6 +334,18 @@ try
         Check(!await TryInitialize("third-admin"), "initial administrator creation cannot be repeated");
     }
     await HttpSecurityTests.RunAsync(connection, Check);
+    await using (var identity = new LoginIdentityDbContext(new DbContextOptionsBuilder<LoginIdentityDbContext>()
+        .UseSqlServer(connection, sql => sql.MigrationsHistoryTable("__IdentityMigrationsHistory")).Options))
+    {
+        var migration = identity.GetService<IMigrator>();
+        await migration.MigrateAsync("0");
+        Check(!await HasTable("AspNetUsers") && !await HasTable("SecurityAudit") && await HasTable("Users"),
+            "identity rollback removes identity tables without dropping foundation");
+        await migration.MigrateAsync();
+        Check(await HasTable("AspNetUsers") && await HasTable("SecurityAudit") &&
+            (await identity.Database.GetAppliedMigrationsAsync()).Count() == 1,
+            "identity migration reapplies and restores history");
+    }
     Console.WriteLine("PASS disposable SQL Server integration checks");
     return 0;
 }
