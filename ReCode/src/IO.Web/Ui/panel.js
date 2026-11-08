@@ -34,5 +34,6 @@ form('scope', f => send('/admin/user-scopes', { userId: f.elements.userId.value,
 form('revoke-role', f => send('/admin/user-roles/revoke', { userId: f.elements.userId.value, roleId: f.elements.roleId.value }));
 form('revoke-permission', f => send('/admin/role-permissions/revoke', { roleId: f.elements.roleId.value, code: f.elements.code.value }));
 form('revoke-scope', f => send('/admin/user-scopes/' + encodeURIComponent(f.elements.id.value) + '/revoke', null));
+form('enable', f => send('/admin/users/' + encodeURIComponent(f.elements.id.value) + '/enable', null));
 form('disable', f => send('/admin/users/' + encodeURIComponent(f.elements.id.value) + '/disable', null));
 document.getElementById('logout').addEventListener('click', async () => { try { await send('/auth/logout', null); } catch { output.textContent = 'خروج ناموفق بود.'; } });

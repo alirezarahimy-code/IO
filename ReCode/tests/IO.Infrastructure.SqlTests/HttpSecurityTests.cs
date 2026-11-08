@@ -206,9 +206,16 @@ internal static class HttpSecurityTests
             check((await PostAdmin(adminClient, "/admin/user-roles/revoke", new { UserId = administratorId, RoleId = administratorRole })).StatusCode == HttpStatusCode.BadRequest &&
                 (await PostAdmin(adminClient, "/admin/role-permissions/revoke", new { RoleId = administratorRole, Code = InitialAdministrator.ManageIdentity })).StatusCode == HttpStatusCode.BadRequest,
                 "HTTP administrator cannot revoke own management path");
+            using var preservedCookie = Client();
+            if ((await Login(preservedCookie, "web-created", Password)).StatusCode != HttpStatusCode.NoContent)
+                throw new InvalidOperationException("Second synthetic user login failed.");
             check((await PostAdmin(adminClient, $"/admin/users/{createdUser}/disable")).StatusCode == HttpStatusCode.OK &&
                 (await createdClient.GetAsync("/auth/me")).StatusCode == HttpStatusCode.Unauthorized,
                 "HTTP administrator disables account and session is revoked");
+            check((await PostAdmin(adminClient, $"/admin/users/{createdUser}/enable")).StatusCode == HttpStatusCode.OK &&
+                (await preservedCookie.GetAsync("/auth/me")).StatusCode == HttpStatusCode.Unauthorized &&
+                (await Login(createdClient, "web-created", Password)).StatusCode == HttpStatusCode.NoContent,
+                "HTTP re-enable does not resurrect a never-presented old session");
             await using (var auditScope = provider.CreateAsyncScope())
             {
                 var audits = auditScope.ServiceProvider.GetRequiredService<LoginIdentityDbContext>().SecurityAudit;

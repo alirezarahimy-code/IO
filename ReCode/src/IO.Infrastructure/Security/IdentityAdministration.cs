@@ -179,7 +179,27 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
             if (actor == userId) throw new ArgumentException("Cannot disable your own account.");
             var user = await foundation.Users.SingleOrDefaultAsync(x => x.Id == userId, ct);
             if (user is null || !user.IsActive) throw new ArgumentException("Unknown or inactive user.");
+            await RotateStampIfLoginExistsAsync(userId);
             user.IsActive = false;
             return (true, userId);
         }, ct);
+
+    public Task<bool> EnableUserAsync(Guid actor, Guid userId, CancellationToken ct = default) =>
+        ExecuteAsync(actor, "identity.user.enabled", async () =>
+        {
+            var user = await foundation.Users.SingleOrDefaultAsync(x => x.Id == userId, ct);
+            if (user is null || user.IsActive) throw new ArgumentException("Unknown or already active user.");
+            await RotateStampIfLoginExistsAsync(userId);
+            user.IsActive = true;
+            return (true, userId);
+        }, ct);
+
+    private async Task RotateStampIfLoginExistsAsync(Guid userId)
+    {
+        // The stamp must rotate even when a disabled account is later enabled:
+        // otherwise a cookie that was never presented during disablement revives.
+        var login = await users.FindByIdAsync(userId.ToString());
+        if (login is not null && !(await users.UpdateSecurityStampAsync(login)).Succeeded)
+            throw new InvalidOperationException("Unable to invalidate account sessions.");
+    }
 }

@@ -175,6 +175,8 @@ public static class IoWebHost
             Admin(context, csrf, actor => admin.RevokeScopeAsync(actor, id, context.RequestAborted)));
         app.MapPost("/admin/users/{id:guid}/disable", (Guid id, HttpContext context, IAntiforgery csrf, IdentityAdministration admin) =>
             Admin(context, csrf, actor => admin.DisableUserAsync(actor, id, context.RequestAborted)));
+        app.MapPost("/admin/users/{id:guid}/enable", (Guid id, HttpContext context, IAntiforgery csrf, IdentityAdministration admin) =>
+            Admin(context, csrf, actor => admin.EnableUserAsync(actor, id, context.RequestAborted)));
         return app;
     }
 
