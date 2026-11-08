@@ -25,7 +25,7 @@ public static class IdentityServices
             options.Lockout.AllowedForNewUsers = true;
             options.Lockout.MaxFailedAccessAttempts = 5;
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
-        }).AddEntityFrameworkStores<LoginIdentityDbContext>();
+        }).AddEntityFrameworkStores<LoginIdentityDbContext>().AddSignInManager();
         services.AddScoped<InitialAdministrator>();
         return services;
     }

@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <ItemGroup>
     <ProjectReference Include="../IO.Domain/IO.Domain.csproj" />
+    <ProjectReference Include="../IO.Infrastructure/IO.Infrastructure.csproj" />
   </ItemGroup>
 </Project>
