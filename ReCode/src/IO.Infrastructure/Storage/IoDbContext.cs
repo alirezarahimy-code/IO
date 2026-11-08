@@ -45,8 +45,10 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.ToTable("OrgUnits", t => t.HasCheckConstraint("CK_OrgUnits_NotOwnParent", "[ParentId] IS NULL OR [ParentId] <> [Id]"));
             b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
             b.Property(x => x.Name).HasMaxLength(200).IsRequired(); b.Property(x => x.Version).IsRowVersion();
+            b.HasAlternateKey(x => new { x.Id, x.CompanyId });
             b.HasOne<CompanyRecord>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
-            b.HasOne<OrgUnitRecord>().WithMany().HasForeignKey(x => x.ParentId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<OrgUnitRecord>().WithMany().HasForeignKey(x => new { x.ParentId, x.CompanyId })
+                .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
         });
         model.Entity<EmployeeRecord>(b =>
         {
@@ -54,6 +56,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.Property(x => x.PersonnelNumber).HasMaxLength(80).IsRequired();
             b.Property(x => x.DisplayName).HasMaxLength(200).IsRequired(); b.Property(x => x.Version).IsRowVersion();
             b.HasIndex(x => new { x.CompanyId, x.PersonnelNumber }).IsUnique();
+            b.HasAlternateKey(x => new { x.Id, x.CompanyId });
             b.HasOne<CompanyRecord>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
         });
         model.Entity<EmployeeAssignmentRecord>(b =>
@@ -62,8 +65,10 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
                 "[ValidUntilExclusive] IS NULL OR [ValidUntilExclusive] > [ValidFrom]"));
             b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever(); b.Property(x => x.Version).IsRowVersion();
             b.HasIndex(x => new { x.EmployeeId, x.ValidFrom });
-            b.HasOne<EmployeeRecord>().WithMany().HasForeignKey(x => x.EmployeeId).OnDelete(DeleteBehavior.Restrict);
-            b.HasOne<OrgUnitRecord>().WithMany().HasForeignKey(x => x.OrgUnitId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<EmployeeRecord>().WithMany().HasForeignKey(x => new { x.EmployeeId, x.CompanyId })
+                .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<OrgUnitRecord>().WithMany().HasForeignKey(x => new { x.OrgUnitId, x.CompanyId })
+                .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
         });
         model.Entity<UserRecord>(b =>
         {

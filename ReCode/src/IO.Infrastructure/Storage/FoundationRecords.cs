@@ -42,6 +42,7 @@ public sealed class EmployeeRecord
 public sealed class EmployeeAssignmentRecord
 {
     public Guid Id { get; set; }
+    public Guid CompanyId { get; set; }
     public Guid EmployeeId { get; set; }
     public Guid OrgUnitId { get; set; }
     public DateOnly ValidFrom { get; set; }

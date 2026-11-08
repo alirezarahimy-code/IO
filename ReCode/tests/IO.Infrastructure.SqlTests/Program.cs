@@ -49,8 +49,8 @@ RawAttendanceEventRecord Raw(Guid source, string? external, DateTimeOffset? occu
     ReceivedAtUtc = DateTimeOffset.UtcNow, OccurredAtUtc = occurred,
     SourcePayload = [0x01, 0x02, 0x03]
 };
-var orgId = Guid.NewGuid(); var companyId = Guid.NewGuid(); var siteId = Guid.NewGuid();
-var unitId = Guid.NewGuid(); var employeeId = Guid.NewGuid();
+var orgId = Guid.NewGuid(); var companyId = Guid.NewGuid(); var otherCompanyId = Guid.NewGuid(); var siteId = Guid.NewGuid();
+var unitId = Guid.NewGuid(); var otherUnitId = Guid.NewGuid(); var employeeId = Guid.NewGuid();
 var sourceId = Guid.NewGuid(); var otherSourceId = Guid.NewGuid();
 try
 {
@@ -60,9 +60,11 @@ try
         Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 1, "initial migration applied");
         Check(await HasTable("RawAttendanceEvents"), "raw table exists");
         db.Organizations.Add(new() { Id = orgId, Name = "Synthetic organization" });
-        db.Companies.Add(new() { Id = companyId, OrganizationId = orgId, Name = "Synthetic company" });
+        db.Companies.AddRange(new CompanyRecord { Id = companyId, OrganizationId = orgId, Name = "Synthetic company" },
+            new CompanyRecord { Id = otherCompanyId, OrganizationId = orgId, Name = "Other synthetic company" });
         db.Sites.Add(new() { Id = siteId, CompanyId = companyId, Name = "Synthetic site", TimeZoneId = "Asia/Tehran" });
-        db.OrgUnits.Add(new() { Id = unitId, CompanyId = companyId, Name = "Synthetic unit" });
+        db.OrgUnits.AddRange(new OrgUnitRecord { Id = unitId, CompanyId = companyId, Name = "Synthetic unit" },
+            new OrgUnitRecord { Id = otherUnitId, CompanyId = otherCompanyId, Name = "Other synthetic unit" });
         db.Employees.Add(new() { Id = employeeId, CompanyId = companyId, PersonnelNumber = "SYN-1", DisplayName = "Synthetic person" });
         db.EventSources.AddRange(new EventSourceRecord { Id = sourceId, SiteId = siteId, Name = "Synthetic source 1" },
             new EventSourceRecord { Id = otherSourceId, SiteId = siteId, Name = "Synthetic source 2" });
@@ -70,7 +72,7 @@ try
     }
     await using (var db = NewDb())
     {
-        db.EmployeeAssignments.Add(new() { Id = Guid.NewGuid(), EmployeeId = employeeId, OrgUnitId = unitId,
+        db.EmployeeAssignments.Add(new() { Id = Guid.NewGuid(), CompanyId = companyId, EmployeeId = employeeId, OrgUnitId = unitId,
             ValidFrom = new DateOnly(2026, 1, 1), ValidUntilExclusive = new DateOnly(2026, 2, 1) });
         await db.SaveChangesAsync();
         Check(true, "synthetic organization and valid assignment saved");
@@ -78,11 +80,25 @@ try
     await ExpectSqlFailure(async () =>
     {
         await using var db = NewDb();
-        db.EmployeeAssignments.Add(new() { Id = Guid.NewGuid(), EmployeeId = employeeId, OrgUnitId = unitId,
+        db.EmployeeAssignments.Add(new() { Id = Guid.NewGuid(), CompanyId = companyId, EmployeeId = employeeId, OrgUnitId = unitId,
             ValidFrom = new DateOnly(2026, 2, 1), ValidUntilExclusive = new DateOnly(2026, 2, 1) });
         await db.SaveChangesAsync();
     }, 547);
     Check(true, "invalid date interval rejected");
+    await ExpectSqlFailure(async () =>
+    {
+        await using var db = NewDb();
+        db.EmployeeAssignments.Add(new() { Id = Guid.NewGuid(), CompanyId = companyId, EmployeeId = employeeId,
+            OrgUnitId = otherUnitId, ValidFrom = new DateOnly(2026, 3, 1) });
+        await db.SaveChangesAsync();
+    }, 547);
+    await ExpectSqlFailure(async () =>
+    {
+        await using var db = NewDb();
+        db.OrgUnits.Add(new() { Id = Guid.NewGuid(), CompanyId = companyId, ParentId = otherUnitId, Name = "Invalid parent" });
+        await db.SaveChangesAsync();
+    }, 547);
+    Check(true, "cross-company assignment and parent rejected");
     await ExpectSqlFailure(async () =>
     {
         await using var db = NewDb(); db.RawAttendanceEvents.Add(Raw(Guid.NewGuid(), "unknown-source"));
