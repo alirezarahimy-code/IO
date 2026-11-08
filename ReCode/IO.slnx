@@ -1,9 +1,11 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/IO.Domain/IO.Domain.csproj" />
+    <Project Path="src/IO.Infrastructure/IO.Infrastructure.csproj" />
     <Project Path="src/IO.Web/IO.Web.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/IO.Domain.Tests/IO.Domain.Tests.csproj" />
+    <Project Path="tests/IO.Infrastructure.SqlTests/IO.Infrastructure.SqlTests.csproj" />
   </Folder>
 </Solution>
