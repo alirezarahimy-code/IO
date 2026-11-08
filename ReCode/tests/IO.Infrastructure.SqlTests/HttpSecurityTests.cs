@@ -200,21 +200,31 @@ internal static class HttpSecurityTests
                 "HTTP inactive account session revoked");
             check((await adminClient.GetAsync("/auth/me")).StatusCode == HttpStatusCode.Unauthorized,
                 "HTTP security stamp change revokes session");
+            using var managerSecond = Client();
+            if ((await Login(managerSecond, "web-manager", Password)).StatusCode != HttpStatusCode.NoContent)
+                throw new InvalidOperationException("Second synthetic manager login failed.");
             check((await PostAdmin(scoped, "/auth/change-password", new { CurrentPassword = "wrong", NewPassword = "Synthetic!Changed-Password-2026" })).StatusCode == HttpStatusCode.BadRequest &&
                 (await scoped.GetAsync("/auth/me")).StatusCode == HttpStatusCode.OK, "HTTP wrong current password does not change credentials or session");
             check((await PostAdmin(scoped, "/auth/change-password", new { CurrentPassword = Password, NewPassword = "Synthetic!Changed-Password-2026" })).StatusCode == HttpStatusCode.NoContent &&
                 (await scoped.GetAsync("/auth/me")).StatusCode == HttpStatusCode.Unauthorized, "HTTP password change ends current session");
+            check((await managerSecond.GetAsync("/auth/me")).StatusCode == HttpStatusCode.Unauthorized,
+                "HTTP password change revokes another session");
             check((await Login(scoped, "web-manager", Password)).StatusCode == HttpStatusCode.Unauthorized &&
                 (await Login(scoped, "web-manager", "Synthetic!Changed-Password-2026")).StatusCode == HttpStatusCode.NoContent,
                 "HTTP new password replaces old password");
             await using (var passwordAudit = provider.CreateAsyncScope())
                 check(await passwordAudit.ServiceProvider.GetRequiredService<LoginIdentityDbContext>().SecurityAudit
                     .AnyAsync(x => x.Action == "identity.password.changed:" + manager.ToString("N")), "HTTP password change audited without credentials");
+            using var anotherManagerSession = Client();
+            if ((await Login(anotherManagerSession, "web-manager", "Synthetic!Changed-Password-2026")).StatusCode != HttpStatusCode.NoContent)
+                throw new InvalidOperationException("Second synthetic manager re-login failed.");
             var token = await Csrf(scoped);
             using var logout = new HttpRequestMessage(HttpMethod.Post, "/auth/logout");
             logout.Headers.Add("X-CSRF-TOKEN", token);
             check((await scoped.SendAsync(logout)).StatusCode == HttpStatusCode.NoContent &&
-                  (await scoped.GetAsync("/auth/me")).StatusCode == HttpStatusCode.Unauthorized, "HTTP logout ends session");
+                  (await scoped.GetAsync("/auth/me")).StatusCode == HttpStatusCode.Unauthorized &&
+                  (await anotherManagerSession.GetAsync("/auth/me")).StatusCode == HttpStatusCode.Unauthorized,
+                  "HTTP logout ends all sessions and revokes copied cookies");
             using var lockClient = Client();
             for (var i = 0; i < 5; i++)
                 if ((await Login(lockClient, "web-locked", "invalid-password")).StatusCode != HttpStatusCode.Unauthorized)

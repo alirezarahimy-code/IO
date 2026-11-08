@@ -64,9 +64,15 @@ public static class IoWebHost
                 o.Cookie.SecurePolicy = CookieSecurePolicy.Always;
                 o.Cookie.SameSite = SameSiteMode.Strict;
             });
-            builder.Services.AddRateLimiter(o => o.AddPolicy("login", context =>
-                RateLimitPartition.GetFixedWindowLimiter(context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-                    _ => new FixedWindowRateLimiterOptions { PermitLimit = 30, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 })));
+            builder.Services.AddRateLimiter(o =>
+            {
+                o.AddPolicy("login", context => RateLimitPartition.GetFixedWindowLimiter(
+                    context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    _ => new FixedWindowRateLimiterOptions { PermitLimit = 30, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+                o.AddPolicy("password-change", context => RateLimitPartition.GetFixedWindowLimiter(
+                    context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
+                    _ => new FixedWindowRateLimiterOptions { PermitLimit = 5, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
+            });
         }
         var app = builder.Build();
         app.MapGet("/health/live", () => Results.Ok(new { status = "alive" })).AllowAnonymous();
@@ -83,8 +89,8 @@ public static class IoWebHost
             context.Response.Headers.ContentSecurityPolicy = "default-src 'none'; script-src 'self'; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'";
             await next(context);
         });
-        app.UseRateLimiter();
         app.UseAuthentication();
+        app.UseRateLimiter();
         app.UseAuthorization();
 
         app.MapGet("/panel", () => Results.Content(Resource("IO.Web.Ui.Panel.html"), "text/html; charset=utf-8")).AllowAnonymous();
@@ -110,8 +116,13 @@ public static class IoWebHost
         app.MapPost("/auth/logout", async (HttpContext context, IAntiforgery antiforgery, SignInManager<LoginAccount> signIn) =>
         {
             if (!await ValidCsrf(context, antiforgery)) return Results.BadRequest();
+            // Cookies are stateless: rotating the stamp revokes copied cookies,
+            // at the cost of signing out this account's other sessions as well.
+            var login = await signIn.UserManager.GetUserAsync(context.User);
+            if (login is null) return Results.Unauthorized();
+            var updated = await signIn.UserManager.UpdateSecurityStampAsync(login);
             await signIn.SignOutAsync();
-            return Results.NoContent();
+            return updated.Succeeded ? Results.NoContent() : Results.StatusCode(503);
         });
         app.MapGet("/auth/me", (ClaimsPrincipal user) => Results.Ok(new { id = user.FindFirstValue(ClaimTypes.NameIdentifier) }));
         app.MapPost("/auth/change-password", async (ChangePasswordInput input, HttpContext context, IAntiforgery csrf,
@@ -127,7 +138,7 @@ public static class IoWebHost
             }
             catch (UnauthorizedAccessException) { return Results.Unauthorized(); }
             catch (ArgumentException) { return Results.BadRequest(); }
-        });
+        }).RequireRateLimiting("password-change");
         app.MapGet("/employees/{id:guid}", async (Guid id, ClaimsPrincipal principal, EmployeeAccessReader reader,
             CancellationToken cancellationToken) =>
         {
