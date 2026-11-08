@@ -118,6 +118,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             {
                 t.HasCheckConstraint("CK_RawEvents_ReceivedUtc", "DATEPART(TZOFFSET, [ReceivedAtUtc]) = 0");
                 t.HasCheckConstraint("CK_RawEvents_OccurredUtc", "[OccurredAtUtc] IS NULL OR DATEPART(TZOFFSET, [OccurredAtUtc]) = 0");
+                t.HasCheckConstraint("CK_RawEvents_ExternalIdNotEmpty", "[ExternalEventId] IS NULL OR DATALENGTH([ExternalEventId]) > 0");
                 t.HasTrigger("TR_RawAttendanceEvents_Immutable");
                 t.UseSqlOutputClause(false);
             });
@@ -125,7 +126,11 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.Property(x => x.ExternalEventId).HasMaxLength(180);
             b.Property<byte[]?>("ExternalEventIdBytes").HasColumnType("varbinary(360)")
                 .HasComputedColumnSql("CONVERT(varbinary(360), [ExternalEventId])", stored: true);
-            b.HasIndex(nameof(RawAttendanceEventRecord.SourceId), "ExternalEventIdBytes").IsUnique()
+            // SQL Server can pad binary comparisons with zeroes. Include byte length
+            // so distinct trailing NUL code units are not collapsed as duplicates.
+            b.Property<int?>("ExternalEventIdByteLength")
+                .HasComputedColumnSql("DATALENGTH([ExternalEventId])", stored: true);
+            b.HasIndex(nameof(RawAttendanceEventRecord.SourceId), "ExternalEventIdBytes", "ExternalEventIdByteLength").IsUnique()
                 .HasFilter("[ExternalEventId] IS NOT NULL");
             b.Property(x => x.SourceEmployeeIdentifier).HasMaxLength(100);
             b.Property(x => x.SourceTimeZoneId).HasMaxLength(100);

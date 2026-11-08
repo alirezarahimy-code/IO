@@ -102,7 +102,7 @@ try
     {
         db.RawAttendanceEvents.AddRange(
             new RawAttendanceEventRecord { Id = rawId, SourceId = sourceId, ExternalEventId = "abc", ReceivedAtUtc = DateTimeOffset.UtcNow, SourcePayload = [1] },
-            Raw(sourceId, "abc "), Raw(sourceId, "ABC"), Raw(otherSourceId, "abc"), Raw(sourceId, null), Raw(sourceId, null));
+            Raw(sourceId, "abc "), Raw(sourceId, "ABC"), Raw(sourceId, "abc\0"), Raw(otherSourceId, "abc"), Raw(sourceId, null), Raw(sourceId, null));
         await db.SaveChangesAsync();
     }
     Check(true, "raw IDs retain exact bytes; different sources and missing IDs allowed");
@@ -111,6 +111,11 @@ try
         await using var db = NewDb(); db.RawAttendanceEvents.Add(Raw(sourceId, "abc")); await db.SaveChangesAsync();
     }, 2601, 2627);
     Check(true, "duplicate raw source and exact external ID rejected");
+    await ExpectSqlFailure(async () =>
+    {
+        await using var db = NewDb(); db.RawAttendanceEvents.Add(Raw(sourceId, "")); await db.SaveChangesAsync();
+    }, 547);
+    Check(true, "empty external ID rejected");
     await ExpectSqlFailure(async () =>
     {
         await using var db = NewDb();
