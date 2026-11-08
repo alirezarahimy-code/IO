@@ -24,7 +24,7 @@ Console.Write("Password (not echoed): ");
 var password = ReadSecret();
 Console.Write("Repeat password (not echoed): ");
 var repeated = ReadSecret();
-if (string.IsNullOrWhiteSpace(name) || password != repeated)
+if (string.IsNullOrWhiteSpace(name) || password is null || repeated is null || password != repeated)
 {
     Console.Error.WriteLine("Input invalid or passwords do not match; no account created.");
     return 2;
@@ -52,14 +52,17 @@ catch (Exception)
     return 1;
 }
 
-static string ReadSecret()
+static string? ReadSecret()
 {
     var value = new StringBuilder();
+    var overflow = false;
     while (true)
     {
         var key = Console.ReadKey(intercept: true);
-        if (key.Key == ConsoleKey.Enter) { Console.WriteLine(); return value.ToString(); }
+        if (key.Key == ConsoleKey.Enter) { Console.WriteLine(); return overflow ? null : value.ToString(); }
         if (key.Key == ConsoleKey.Backspace) { if (value.Length > 0) value.Length--; continue; }
-        if (!char.IsControl(key.KeyChar) && value.Length < 256) value.Append(key.KeyChar);
+        if (char.IsControl(key.KeyChar)) continue;
+        if (value.Length == 256) overflow = true;
+        else value.Append(key.KeyChar);
     }
 }

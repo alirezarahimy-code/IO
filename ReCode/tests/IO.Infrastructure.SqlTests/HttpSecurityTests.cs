@@ -115,6 +115,51 @@ internal static class HttpSecurityTests
             using var adminClient = Client();
             check((await Login(adminClient, adminName, Password)).StatusCode == HttpStatusCode.NoContent &&
                   (await adminClient.GetAsync($"/employees/{second}")).StatusCode == HttpStatusCode.OK, "HTTP administrator with explicit permission reads globally");
+            async Task<HttpResponseMessage> PostAdmin(HttpClient client, string path, object? input = null)
+            {
+                var csrf = await Csrf(client);
+                using var message = new HttpRequestMessage(HttpMethod.Post, path);
+                message.Headers.Add("X-CSRF-TOKEN", csrf);
+                if (input is not null) message.Content = JsonContent.Create(input);
+                return await client.SendAsync(message);
+            }
+            Guid administratorRole;
+            await using (var scope = provider.CreateAsyncScope())
+                administratorRole = await scope.ServiceProvider.GetRequiredService<IoDbContext>().Roles
+                    .Where(x => x.Name == "Initial administrator").Select(x => x.Id).SingleAsync();
+            check((await PostAdmin(scoped, "/admin/user-roles", new { UserId = manager, RoleId = administratorRole })).StatusCode == HttpStatusCode.Forbidden,
+                "HTTP scoped manager cannot grant itself administrator role");
+            check((await adminClient.PostAsJsonAsync("/admin/roles", new { Name = "without csrf" })).StatusCode == HttpStatusCode.BadRequest,
+                "HTTP administrative mutation without antiforgery denied");
+            using var newRoleResponse = await PostAdmin(adminClient, "/admin/roles", new { Name = "web created role" });
+            newRoleResponse.EnsureSuccessStatusCode();
+            using var roleJson = JsonDocument.Parse(await newRoleResponse.Content.ReadAsStringAsync());
+            var createdRole = roleJson.RootElement.GetProperty("result").GetGuid();
+            var permissionResponse = await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = createdRole, Code = EmployeeAccessReader.ReadSelf });
+            check(permissionResponse.StatusCode == HttpStatusCode.OK, "HTTP administrator creates role and grants explicit permission");
+            check((await PostAdmin(adminClient, "/admin/users", new { UserName = "web-invalid", Password = "short", EmployeeId = first })).StatusCode == HttpStatusCode.BadRequest,
+                "HTTP administrative user creation rejects weak password");
+            using var newUserResponse = await PostAdmin(adminClient, "/admin/users", new { UserName = "web-created", Password, EmployeeId = first });
+            newUserResponse.EnsureSuccessStatusCode();
+            using var userJson = JsonDocument.Parse(await newUserResponse.Content.ReadAsStringAsync());
+            var createdUser = userJson.RootElement.GetProperty("result").GetGuid();
+            check((await PostAdmin(adminClient, "/admin/user-roles", new { UserId = createdUser, RoleId = createdRole })).StatusCode == HttpStatusCode.OK,
+                "HTTP administrator creates user and assigns role");
+            using var createdClient = Client();
+            check((await Login(createdClient, "web-created", Password)).StatusCode == HttpStatusCode.NoContent &&
+                (await createdClient.GetAsync($"/employees/{first}")).StatusCode == HttpStatusCode.OK &&
+                (await createdClient.GetAsync($"/employees/{second}")).StatusCode == HttpStatusCode.NotFound,
+                "HTTP newly provisioned user has only explicit own access");
+            check((await PostAdmin(adminClient, $"/admin/users/{createdUser}/disable")).StatusCode == HttpStatusCode.OK &&
+                (await createdClient.GetAsync("/auth/me")).StatusCode == HttpStatusCode.Unauthorized,
+                "HTTP administrator disables account and session is revoked");
+            await using (var auditScope = provider.CreateAsyncScope())
+            {
+                var audits = auditScope.ServiceProvider.GetRequiredService<LoginIdentityDbContext>().SecurityAudit;
+                check(await audits.AnyAsync(x => x.Action == "identity.user.created:" + createdUser.ToString("N")) &&
+                    await audits.AnyAsync(x => x.Action == "identity.user.disabled:" + createdUser.ToString("N")),
+                    "HTTP sensitive administration records audit events");
+            }
             await using (var scope = provider.CreateAsyncScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();

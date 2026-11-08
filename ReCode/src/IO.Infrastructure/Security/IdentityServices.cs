@@ -27,6 +27,7 @@ public static class IdentityServices
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
         }).AddEntityFrameworkStores<LoginIdentityDbContext>().AddSignInManager();
         services.AddScoped<InitialAdministrator>();
+        services.AddScoped<IdentityAdministration>();
         return services;
     }
 }

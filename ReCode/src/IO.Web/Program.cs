@@ -121,7 +121,28 @@ public static class IoWebHost
             var employee = await reader.FindAuthorizedAsync(actor, id, date, cancellationToken);
             return employee is null ? Results.NotFound() : Results.Ok(employee);
         });
+        app.MapPost("/admin/users", (NewUserInput input, HttpContext context, IAntiforgery csrf, IdentityAdministration admin) =>
+            Admin(context, csrf, actor => admin.CreateUserAsync(actor, input.UserName, input.Password, input.EmployeeId, context.RequestAborted)));
+        app.MapPost("/admin/roles", (NewRoleInput input, HttpContext context, IAntiforgery csrf, IdentityAdministration admin) =>
+            Admin(context, csrf, actor => admin.CreateRoleAsync(actor, input.Name, context.RequestAborted)));
+        app.MapPost("/admin/user-roles", (UserRoleInput input, HttpContext context, IAntiforgery csrf, IdentityAdministration admin) =>
+            Admin(context, csrf, actor => admin.GrantUserRoleAsync(actor, input.UserId, input.RoleId, context.RequestAborted)));
+        app.MapPost("/admin/role-permissions", (RolePermissionInput input, HttpContext context, IAntiforgery csrf, IdentityAdministration admin) =>
+            Admin(context, csrf, actor => admin.GrantPermissionAsync(actor, input.RoleId, input.Code, context.RequestAborted)));
+        app.MapPost("/admin/user-scopes", (UserScopeInput input, HttpContext context, IAntiforgery csrf, IdentityAdministration admin) =>
+            Admin(context, csrf, actor => admin.GrantScopeAsync(actor, input.UserId, input.UnitId, input.ValidFrom, input.ValidUntilExclusive, context.RequestAborted)));
+        app.MapPost("/admin/users/{id:guid}/disable", (Guid id, HttpContext context, IAntiforgery csrf, IdentityAdministration admin) =>
+            Admin(context, csrf, actor => admin.DisableUserAsync(actor, id, context.RequestAborted)));
         return app;
+    }
+
+    private static async Task<IResult> Admin<T>(HttpContext context, IAntiforgery antiforgery, Func<Guid, Task<T>> action)
+    {
+        if (!await ValidCsrf(context, antiforgery)) return Results.BadRequest();
+        if (!Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var actor)) return Results.Unauthorized();
+        try { return Results.Ok(new { result = await action(actor) }); }
+        catch (UnauthorizedAccessException) { return Results.StatusCode(403); }
+        catch (ArgumentException) { return Results.BadRequest(); }
     }
 
     private static async Task<bool> ValidCsrf(HttpContext context, IAntiforgery antiforgery)
@@ -132,3 +153,8 @@ public static class IoWebHost
 }
 
 public sealed record LoginInput(string UserName, string Password);
+public sealed record NewUserInput(string UserName, string Password, Guid? EmployeeId);
+public sealed record NewRoleInput(string Name);
+public sealed record UserRoleInput(Guid UserId, Guid RoleId);
+public sealed record RolePermissionInput(Guid RoleId, string Code);
+public sealed record UserScopeInput(Guid UserId, Guid UnitId, DateOnly ValidFrom, DateOnly? ValidUntilExclusive);
