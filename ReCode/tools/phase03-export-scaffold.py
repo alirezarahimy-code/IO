@@ -19,7 +19,8 @@ with tarfile.open(fileobj=buffer, mode='w') as archive:
     for file in files:
         archive.add(file, arcname=file.name, recursive=False)
 encoded = base64.b64encode(gzip.compress(buffer.getvalue(), mtime=0)).decode('ascii')
-chunks = [encoded[i:i + 7000] for i in range(0, len(encoded), 7000)]
+# GitHub truncates annotation messages around 4096 characters.
+chunks = [encoded[i:i + 3000] for i in range(0, len(encoded), 3000)]
 if len(chunks) > 8:
     raise SystemExit(f'Scaffold exceeds annotation limit: {len(chunks)} chunks')
 print(f'::notice title=EF_SCAFFOLD_COUNT::{len(chunks)}')
