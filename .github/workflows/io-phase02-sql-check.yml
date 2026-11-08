@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
         with:
           dotnet-version: 10.0.x
       - name: Build and run domain checks
@@ -51,4 +51,9 @@ jobs:
           fi
           docker exec io-phase02-sql /bin/bash -c \
             'export SQLCMDPASSWORD="$MSSQL_SA_PASSWORD"; exec /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -b -l 10 -Q "SET NOCOUNT ON; SELECT SERVERPROPERTY('"'"'ProductVersion'"'"') AS ProductVersion, SERVERPROPERTY('"'"'Edition'"'"') AS Edition; SELECT 1 AS TestConnection;"'
+          version_info="$(docker exec io-phase02-sql /bin/bash -c \
+            'export SQLCMDPASSWORD="$MSSQL_SA_PASSWORD"; exec /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -b -l 10 -h -1 -W -Q "SET NOCOUNT ON; SELECT CONCAT(CONVERT(nvarchar(128), SERVERPROPERTY('"'"'ProductVersion'"'"')), '"'"' | '"'"', CONVERT(nvarchar(128), SERVERPROPERTY('"'"'Edition'"'"')));"')"
+          image_digest="$(docker image inspect --format '{{index .RepoDigests 0}}' mcr.microsoft.com/mssql/server:2022-latest)"
+          echo "::notice title=Isolated SQL Server::$version_info"
+          echo "::notice title=SQL Server image::$image_digest"
           echo 'PASS: temporary SQL Server responded; schema and application integration were not tested.'
