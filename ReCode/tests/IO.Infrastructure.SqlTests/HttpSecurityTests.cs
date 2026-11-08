@@ -237,6 +237,11 @@ internal static class HttpSecurityTests
             await using (var passwordAudit = provider.CreateAsyncScope())
                 check(await passwordAudit.ServiceProvider.GetRequiredService<LoginIdentityDbContext>().SecurityAudit
                     .AnyAsync(x => x.Action == "identity.password.changed:" + manager.ToString("N")), "HTTP password change audited without credentials");
+            for (var i = 0; i < 3; i++)
+                if ((await PostAdmin(scoped, "/auth/change-password", new { CurrentPassword = "wrong", NewPassword = "Synthetic!Other-Password-2026" })).StatusCode != HttpStatusCode.BadRequest)
+                    throw new InvalidOperationException("Wrong password change was not rejected.");
+            check((await PostAdmin(scoped, "/auth/change-password", new { CurrentPassword = "wrong", NewPassword = "Synthetic!Other-Password-2026" })).StatusCode == HttpStatusCode.TooManyRequests,
+                "HTTP repeated password changes are rate limited");
             using var anotherManagerSession = Client();
             if ((await Login(anotherManagerSession, "web-manager", "Synthetic!Changed-Password-2026")).StatusCode != HttpStatusCode.NoContent)
                 throw new InvalidOperationException("Second synthetic manager re-login failed.");

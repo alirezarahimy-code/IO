@@ -66,6 +66,7 @@ public static class IoWebHost
             });
             builder.Services.AddRateLimiter(o =>
             {
+                o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
                 o.AddPolicy("login", context => RateLimitPartition.GetFixedWindowLimiter(
                     context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
                     _ => new FixedWindowRateLimiterOptions { PermitLimit = 30, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
