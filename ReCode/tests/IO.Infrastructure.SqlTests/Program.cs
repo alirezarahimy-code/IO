@@ -52,13 +52,19 @@ RawAttendanceEventRecord Raw(Guid source, string? external, DateTimeOffset? occu
 var orgId = Guid.NewGuid(); var companyId = Guid.NewGuid(); var otherCompanyId = Guid.NewGuid(); var siteId = Guid.NewGuid();
 var unitId = Guid.NewGuid(); var otherUnitId = Guid.NewGuid(); var employeeId = Guid.NewGuid();
 var sourceId = Guid.NewGuid(); var otherSourceId = Guid.NewGuid();
+string[] expectedTables = ["Organizations", "Companies", "Sites", "OrgUnits", "Employees", "EmployeeAssignments",
+    "Users", "Roles", "Permissions", "UserRoles", "RolePermissions", "UserOrgScopes", "EventSources", "RawAttendanceEvents"];
 try
 {
     await using (var db = NewDb())
     {
+        Check(!db.Database.HasPendingModelChanges(), "model matches migration snapshot");
         await db.Database.MigrateAsync();
-        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 1, "initial migration applied");
-        Check(await HasTable("RawAttendanceEvents"), "raw table exists");
+        await db.Database.MigrateAsync();
+        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 1, "initial migration applied idempotently");
+        var created = 0;
+        foreach (var table in expectedTables) if (await HasTable(table)) created++;
+        Check(created == expectedTables.Length, "all 14 foundation tables created");
         db.Organizations.Add(new() { Id = orgId, Name = "Synthetic organization" });
         db.Companies.AddRange(new CompanyRecord { Id = companyId, OrganizationId = orgId, Name = "Synthetic company" },
             new CompanyRecord { Id = otherCompanyId, OrganizationId = orgId, Name = "Other synthetic company" });
@@ -127,6 +133,15 @@ try
         await using var db = NewDb(); db.RawAttendanceEvents.Add(Raw(sourceId, "abc")); await db.SaveChangesAsync();
     }, 2601, 2627);
     Check(true, "duplicate raw source and exact external ID rejected");
+    async Task<bool> TryConcurrentInsert()
+    {
+        await using var db = NewDb();
+        db.RawAttendanceEvents.Add(Raw(sourceId, "concurrent-event"));
+        try { await db.SaveChangesAsync(); return true; }
+        catch (DbUpdateException e) when (e.InnerException is SqlException sql && sql.Number is 2601 or 2627) { return false; }
+    }
+    var concurrent = await Task.WhenAll(TryConcurrentInsert(), TryConcurrentInsert());
+    Check(concurrent.Count(x => x) == 1, "concurrent duplicate key inserts store exactly one event");
     await ExpectSqlFailure(async () =>
     {
         await using var db = NewDb(); db.RawAttendanceEvents.Add(Raw(sourceId, "")); await db.SaveChangesAsync();
@@ -165,9 +180,13 @@ try
     {
         var migrator = db.GetService<IMigrator>();
         await migrator.MigrateAsync("0");
-        Check(!await HasTable("RawAttendanceEvents"), "rollback removed foundation tables");
+        var remaining = 0;
+        foreach (var table in expectedTables) if (await HasTable(table)) remaining++;
+        Check(remaining == 0, "rollback removed all 14 foundation tables");
         await migrator.MigrateAsync();
-        Check(await HasTable("RawAttendanceEvents"), "migration reapplied after rollback");
+        var recreated = 0;
+        foreach (var table in expectedTables) if (await HasTable(table)) recreated++;
+        Check(recreated == expectedTables.Length, "migration recreated all 14 foundation tables");
         Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 1, "migration history restored");
     }
     Console.WriteLine("PASS disposable SQL Server integration checks");

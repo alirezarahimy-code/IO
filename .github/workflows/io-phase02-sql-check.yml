@@ -108,5 +108,6 @@ jobs:
               python3 tools/phase03-annotate-error.py "$RUNNER_TEMP/io-sql-tests.log" "SQL integration failure"
               exit 1
             fi
+            python3 tools/phase03-report-tests.py "$RUNNER_TEMP/io-sql-tests.log"
             echo '::notice title=Phase 3 SQL integration::Disposable SQL migration and constraint checks passed'
           fi
