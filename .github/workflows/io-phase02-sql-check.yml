@@ -41,7 +41,7 @@ jobs:
             python3 tools/phase03-annotate-error.py "$RUNNER_TEMP/io-ef.log" "EF tool install failure"
             exit 1
           fi
-          if ! "$RUNNER_TEMP/ef/dotnet-ef" migrations add InitialFoundation --project src/IO.Infrastructure --startup-project src/IO.Infrastructure --no-build > "$RUNNER_TEMP/io-ef.log" 2>&1; then
+          if ! "$RUNNER_TEMP/ef/dotnet-ef" migrations add InitialFoundation --project src/IO.Infrastructure --startup-project src/IO.Infrastructure --configuration Release --no-build > "$RUNNER_TEMP/io-ef.log" 2>&1; then
             python3 tools/phase03-annotate-error.py "$RUNNER_TEMP/io-ef.log" "EF migration scaffold failure"
             exit 1
           fi
