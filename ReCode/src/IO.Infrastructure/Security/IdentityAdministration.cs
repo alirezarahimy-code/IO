@@ -1,6 +1,7 @@
 using System.Data;
 using System.Globalization;
 using IO.Infrastructure.Storage;
+using IO.Infrastructure.Organization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -122,7 +123,7 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
     public Task<bool> GrantPermissionAsync(Guid actor, Guid roleId, string code, CancellationToken ct = default) =>
         ExecuteAsync(actor, "permission-grant." + code, async () =>
         {
-            if (code is not (EmployeeAccessReader.ReadSelf or EmployeeAccessReader.ReadScoped or EmployeeAccessReader.ReadAll or InitialAdministrator.ManageIdentity) ||
+            if (code is not (EmployeeAccessReader.ReadSelf or EmployeeAccessReader.ReadScoped or EmployeeAccessReader.ReadAll or InitialAdministrator.ManageIdentity or OrganizationManagement.Manage) ||
                 !await foundation.Roles.AnyAsync(x => x.Id == roleId, ct)) throw new ArgumentException("Invalid permission or role.");
             var permission = await foundation.Permissions.SingleOrDefaultAsync(p =>
                 EF.Functions.Collate(p.Code, "Latin1_General_100_BIN2") == code && EF.Functions.DataLength(p.Code) == code.Length * 2, ct);
@@ -163,7 +164,7 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
     public Task<bool> RevokePermissionAsync(Guid actor, Guid roleId, string code, CancellationToken ct = default) =>
         ExecuteAsync(actor, "permission-revoke." + code, async () =>
         {
-            if (code is not (EmployeeAccessReader.ReadSelf or EmployeeAccessReader.ReadScoped or EmployeeAccessReader.ReadAll or InitialAdministrator.ManageIdentity) ||
+            if (code is not (EmployeeAccessReader.ReadSelf or EmployeeAccessReader.ReadScoped or EmployeeAccessReader.ReadAll or InitialAdministrator.ManageIdentity or OrganizationManagement.Manage) ||
                 await foundation.UserRoles.AnyAsync(x => x.UserId == actor && x.RoleId == roleId, ct))
                 throw new ArgumentException("Invalid permission or role used by the actor.");
             var permissionId = await foundation.Permissions.Where(p =>

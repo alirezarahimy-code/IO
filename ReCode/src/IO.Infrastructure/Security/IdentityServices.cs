@@ -1,4 +1,5 @@
 using System.Data;
+using IO.Infrastructure.Organization;
 using IO.Infrastructure.Storage;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +31,8 @@ public static class IdentityServices
         services.AddScoped<InitialAdministrator>();
         services.AddScoped<IdentityAdministration>();
         services.AddScoped<PersonalCredentials>();
+        services.AddScoped<PermissionTransaction>();
+        services.AddScoped<OrganizationManagement>();
         return services;
     }
 }
