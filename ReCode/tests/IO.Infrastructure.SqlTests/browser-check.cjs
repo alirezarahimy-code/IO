@@ -135,6 +135,22 @@ async function main() {
     if (await deniedCalculations.locator('#body tr').count() !== 0 || await deniedCalculations.locator('#create-form button').isEnabled())
       throw new Error('Calculation workspace exposed data without permission');
     await deniedCalculations.close();
+    const deniedPeriods = await context.newPage();
+    await deniedPeriods.goto(address + '/workspace/periods');
+    await deniedPeriods.locator('#filter input[name=employeeId]').fill(first);
+    await deniedPeriods.locator('#filter button').click();
+    await deniedPeriods.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
+    if (await deniedPeriods.locator('#body tr').count() !== 0 || await deniedPeriods.locator('#create-form button').isEnabled())
+      throw new Error('Period drafts exposed data without permission');
+    await deniedPeriods.locator('#preflight-form input[name=employeeId]').fill(first);
+    await deniedPeriods.locator('#preflight-form input[name=start]').fill('2027-01-01');
+    await deniedPeriods.locator('#preflight-form input[name=endExclusive]').fill('2027-01-02');
+    const deniedPreflight = deniedPeriods.waitForResponse(r => r.url().includes('/periods/preflight/') && r.request().method() === 'GET');
+    await deniedPeriods.locator('#preflight-form button').click();
+    if ((await deniedPreflight).status() !== 403 || await deniedPeriods.locator('#preflight-result').isVisible())
+      throw new Error('Period preflight exposed data without its permission');
+    await deniedPeriods.close();
+
     const deniedHistory = await context.newPage();
     await deniedHistory.goto(address + '/workspace/employee-history');
     await deniedHistory.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
@@ -584,6 +600,36 @@ async function main() {
     if (await calculationPage.locator('#create-form button').isEnabled() || await calculationPage.locator('#body tr').count() !== 0 || await calculationPage.locator('#details').isVisible())
       throw new Error('Changing employee left stale calculations visible');
     await calculationPage.close();
+    const periodPage = await context.newPage();
+    await periodPage.goto(address + '/workspace/periods');
+    await periodPage.locator('#filter input[name=employeeId]').fill(employee);
+    await periodPage.locator('#filter button').click();
+    await periodPage.waitForFunction(() => !document.querySelector('#create-form button').disabled);
+    await periodPage.locator('#create-form input[name=start]').fill('2027-01-01');
+    await periodPage.locator('#create-form input[name=endExclusive]').fill('2027-01-03');
+    await periodPage.locator('#create-form button').click();
+    await periodPage.waitForFunction(() => document.getElementById('notice').textContent.includes('از قبل وجود داشت'));
+    const periodRow = periodPage.locator('#body tr').filter({hasText:'2027-01-03'});
+    await periodRow.waitFor();
+    const workspaceDraft = await periodRow.locator('td').last().textContent();
+    await periodPage.locator('#create-form button').click();
+    await periodPage.waitForFunction(() => !document.querySelector('#create-form button').disabled);
+    const storedDrafts = await periodPage.evaluate(async id => (await (await fetch('/periods/drafts/' + encodeURIComponent(id))).json()), employee);
+    if (storedDrafts.approvable !== false || storedDrafts.items.length !== 1 || storedDrafts.items[0].id !== workspaceDraft) throw new Error('Period drafts are not idempotent diagnostic drafts');
+    await periodPage.locator('#preflight-form input[name=employeeId]').fill(employee);
+    await periodPage.locator('#preflight-form input[name=start]').fill('2027-01-01');
+    await periodPage.locator('#preflight-form input[name=endExclusive]').fill('2027-01-03');
+    await periodPage.locator('#preflight-form button').click();
+    await periodPage.locator('#preflight-result').waitFor();
+    if (await periodPage.locator('#day-body tr').count() !== 2 || !(await periodPage.locator('#day-body').textContent()).includes('بدون اجرا') || !(await periodPage.locator('#day-body').textContent()).includes('source-has-conflicts'))
+      throw new Error('Period preflight concealed missing runs or anomalies');
+    await periodPage.locator('#preflight-form input[name=endExclusive]').fill('2027-01-04');
+    if (await periodPage.locator('#preflight-result').isVisible()) throw new Error('Changing interval left stale diagnostics visible');
+    await periodPage.locator('#filter input[name=employeeId]').fill(first);
+    if (await periodPage.locator('#create-form button').isEnabled() || await periodPage.locator('#body tr').count() !== 0)
+      throw new Error('Changing employee left stale drafts visible');
+    await periodPage.close();
+
     await page.locator('#calculation-revision input[name=id]').fill(run);
     await clearResult();
     await page.locator('#calculation-revision button').click();
