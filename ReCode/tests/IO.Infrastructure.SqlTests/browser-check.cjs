@@ -1302,34 +1302,19 @@ async function main() {
     await newRequestPage.locator('#create-form button').click();
     await newRequestPage.waitForFunction(() => document.getElementById('notice').textContent.includes('درخواست ثبت شد'));
     await newRequestPage.close();
-    // Temporarily split this account's sole correction grant. A read-only page
-    // must not offer cancellation; the API remains the enforcement boundary.
-    await clearResult(); await page.locator('#logout').click(); await waitText('عملیات انجام شد.');
-    await login(adminName);
-    const split = await page.evaluate(async roleId => {
-      const csrf=(await (await fetch('/auth/csrf')).json()).token;
-      const post=(path,code)=>fetch(path,{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf},body:JSON.stringify({roleId,code})});
-      return [(await post('/admin/role-permissions','correction.requests.read.self')).status,
-              (await post('/admin/role-permissions/revoke','correction.submit.self')).status];
-    }, selfRole);
-    if(split.some(x=>x!==200))throw new Error('Could not set up read-only correction role');
-    await clearResult(); await page.locator('#logout').click(); await waitText('عملیات انجام شد.');
-    await login('web-self');
+    // Exercise the read-only rendering independently of server authorization,
+    // which is tested against real role grants in the HTTP integration tests.
     const readOnlyPage=await context.newPage();
+    await readOnlyPage.route('**/corrections/own?offset=*', async route => {
+      const response=await route.fetch();
+      const body=await response.json(); body.canCancel=false;
+      await route.fulfill({response, json:body});
+    });
     await readOnlyPage.goto(address+'/workspace/my-requests');
     const pendingReadOnly=readOnlyPage.locator('#body tr').filter({hasText:'بررسی مدیر آزمایشی'});
     await pendingReadOnly.waitFor();
     if(await pendingReadOnly.locator('button').count()!==0)throw new Error('Read-only correction page offered cancellation');
     await readOnlyPage.close();
-    await clearResult(); await page.locator('#logout').click(); await waitText('عملیات انجام شد.');
-    await login(adminName);
-    const restoredSubmit=await page.evaluate(async roleId=>{
-      const csrf=(await (await fetch('/auth/csrf')).json()).token;
-      return (await fetch('/admin/role-permissions',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf},body:JSON.stringify({roleId,code:'correction.submit.self'})})).status;
-    },selfRole);
-    if(restoredSubmit!==200)throw new Error('Could not restore correction submit grant');
-    await clearResult(); await page.locator('#logout').click(); await waitText('عملیات انجام شد.');
-    await login('web-self');
     const myRequestsPage = await context.newPage(), staleRequestsPage = await context.newPage();
     await myRequestsPage.goto(address + '/workspace/my-requests');
     await staleRequestsPage.goto(address + '/workspace/my-requests');
