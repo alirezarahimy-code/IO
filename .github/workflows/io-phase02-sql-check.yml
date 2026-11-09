@@ -52,6 +52,12 @@ jobs:
             echo '::error::EF model snapshot is missing.'
             exit 1
           }
+      - name: Prepare browser test dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          command -v google-chrome >/dev/null
+          npm install --prefix "$RUNNER_TEMP/io-browser" --ignore-scripts --no-audit --no-fund playwright-core@1.56.1
       - name: Test isolated SQL Server Developer
         shell: bash
         run: |
@@ -106,6 +112,9 @@ jobs:
           echo "::notice title=SQL Server image::$image_digest"
           cd ReCode
           export IO_SQL_DISPOSABLE_TEST=yes
+          export IO_BROWSER_TEST=yes
+          export NODE_PATH="$RUNNER_TEMP/io-browser/node_modules"
+          export IO_CHROME_BINARY="$(command -v google-chrome)"
           if ! dotnet run --project tests/IO.Infrastructure.SqlTests/IO.Infrastructure.SqlTests.csproj --configuration Release --no-build > "$RUNNER_TEMP/io-sql-tests.log" 2>&1; then
             python3 tools/phase03-annotate-error.py "$RUNNER_TEMP/io-sql-tests.log" "SQL integration failure"
             exit 1

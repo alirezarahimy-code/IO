@@ -1,4 +1,5 @@
 using System.Net;
+using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -79,6 +80,27 @@ internal static class HttpSecurityTests
         {
             await app.StartAsync();
             var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
+            if (Environment.GetEnvironmentVariable("IO_BROWSER_TEST") != "yes")
+                throw new InvalidOperationException("Disposable browser test is required in CI.");
+            var browserProcess = new ProcessStartInfo("node") { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false };
+            browserProcess.Environment.Remove("MSSQL_SA_PASSWORD");
+            browserProcess.ArgumentList.Add("tests/IO.Infrastructure.SqlTests/browser-check.cjs");
+            browserProcess.ArgumentList.Add(address);
+            browserProcess.ArgumentList.Add(first.ToString());
+            browserProcess.ArgumentList.Add(second.ToString());
+            browserProcess.ArgumentList.Add(adminName);
+            using (var browser = Process.Start(browserProcess) ?? throw new InvalidOperationException("Cannot start browser test."))
+            {
+                var stdout = browser.StandardOutput.ReadToEndAsync();
+                var stderr = browser.StandardError.ReadToEndAsync();
+                using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+                try { await browser.WaitForExitAsync(timeout.Token); }
+                catch (OperationCanceledException) { browser.Kill(entireProcessTree: true); throw; }
+                var output = await stdout;
+                var errors = await stderr;
+                if (browser.ExitCode != 0) throw new InvalidOperationException("Browser test failed: " + errors);
+                check(output.Contains("Browser form scenarios passed.", StringComparison.Ordinal), "browser login, own access, denied access, administration and logout forms");
+            }
             HttpClient Client() => new(new HttpClientHandler { CookieContainer = new CookieContainer(),
                 ServerCertificateCustomValidationCallback = (_, _, _, _) => true }) { BaseAddress = new Uri(address) };
             async Task<string> Csrf(HttpClient client)
