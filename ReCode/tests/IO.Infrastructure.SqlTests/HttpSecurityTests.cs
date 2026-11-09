@@ -99,7 +99,7 @@ internal static class HttpSecurityTests
                 var output = await stdout;
                 var errors = await stderr;
                 if (browser.ExitCode != 0) throw new InvalidOperationException("Browser test failed: " + errors);
-                check(output.Contains("Browser form scenarios passed.", StringComparison.Ordinal), "browser login, own access, denied access, administration and logout forms");
+                check(output.Contains("Browser form scenarios passed.", StringComparison.Ordinal), "browser login, denied access, organization, calendar, overnight schedule and logout forms");
             }
             HttpClient Client() => new(new HttpClientHandler { CookieContainer = new CookieContainer(),
                 ServerCertificateCustomValidationCallback = (_, _, _, _) => true }) { BaseAddress = new Uri(address) };
