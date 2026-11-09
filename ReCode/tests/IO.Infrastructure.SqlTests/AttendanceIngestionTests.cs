@@ -126,6 +126,10 @@ internal static class AttendanceIngestionTests
         check(!notes.GetProperty("resolved").GetBoolean() && notes.GetProperty("items").GetArrayLength() == 1 &&
               await Reject<UnauthorizedAccessException>(() => Use(s => s.ListConflictNotesAsync(limited, conflictId, 0))),
               "conflict notes remain restricted and do not mark collision resolved");
+        var conflictList = JsonSerializer.SerializeToElement(await Use(s => s.ListConflictsAsync(admin, source, 0)));
+        var listed = conflictList.GetProperty("items").EnumerateArray().Single(x => x.GetProperty("Id").GetGuid() == conflictId);
+        check(listed.GetProperty("NoteCount").GetInt32() == 1 && !listed.GetProperty("Resolved").GetBoolean(),
+              "collision list shows note count without presenting the conflict as resolved");
         await using (var scope = provider.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();

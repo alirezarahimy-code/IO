@@ -270,6 +270,9 @@ internal static class HttpSecurityTests
                   (await notesResponse.Content.ReadAsStringAsync()).Contains("\"resolved\":false", StringComparison.Ordinal) &&
                   (await scoped.GetAsync($"/attendance/conflict/{conflictId}/notes")).StatusCode == HttpStatusCode.Forbidden,
                   "HTTP conflict notes are restricted and do not resolve the conflict");
+            using var notedConflicts = await adminClient.GetAsync($"/attendance/conflicts/{rawSource}");
+            check((await notedConflicts.Content.ReadAsStringAsync()).Contains("\"noteCount\":1", StringComparison.Ordinal),
+                  "HTTP collision list includes note count without resolving the collision");
             var newUnit = await CreateId("/org/units", new { CompanyId = newCompany, ParentId = (Guid?)null, Name = "HTTP unit" });
             var newEmployee = await CreateId("/org/employees", new { CompanyId = newCompany, PersonnelNumber = "HTTP-1", DisplayName = "HTTP synthetic employee" });
             var map = new { SourceId = rawSource, SourcePersonId = "test-person", EmployeeId = newEmployee, ValidFrom = "2026-01-01T00:00:00Z", ValidUntilExclusive = (string?)null };

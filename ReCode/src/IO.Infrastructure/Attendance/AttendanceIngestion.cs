@@ -142,7 +142,8 @@ public sealed class AttendanceIngestion(IoDbContext db, PermissionTransaction tr
             var items = await db.RawEventConflicts.AsNoTracking().Where(x => x.SourceId == sourceId)
                 .OrderBy(x => x.ReceivedAtUtc).ThenBy(x => x.Id).Skip(offset).Take(50)
                 .Select(x => new { x.Id, x.OriginalEventId, x.SourceId, x.ExternalEventId, x.SourceEmployeeIdentifier,
-                    x.OccurredAtUtc, x.ReceivedAtUtc, x.SourceTimeZoneId, x.ReportedEventType }).ToListAsync(token);
+                    x.OccurredAtUtc, x.ReceivedAtUtc, x.SourceTimeZoneId, x.ReportedEventType,
+                    NoteCount = db.RawConflictNotes.Count(note => note.ConflictId == x.Id), Resolved = false }).ToListAsync(token);
             return (new { sourceId, offset, pageSize = 50, items }, sourceId);
         }, ct);
 
