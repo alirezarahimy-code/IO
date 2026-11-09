@@ -71,7 +71,7 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
             // Serialize with setting changes: the active company version at submission time is authoritative.
             await transaction.LockAsync(CorrectionSettings.LockName(employee.CompanyId), token);
             var setting = await db.CorrectionSettings.AsNoTracking().Where(x => x.CompanyId == employee.CompanyId)
-                .OrderByDescending(x => x.Revision).Select(x => new { x.MaxRequestAgeDays, x.DailyRequestLimit, x.MonthlyRequestLimit }).FirstOrDefaultAsync(token);
+                .OrderByDescending(x => x.Revision).Select(x => new { x.Id, x.MaxRequestAgeDays, x.DailyRequestLimit, x.MonthlyRequestLimit }).FirstOrDefaultAsync(token);
             int maxAge = setting?.MaxRequestAgeDays ?? 0;
             if (maxAge > 0 && workDate < DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-maxAge))
                 throw new ArgumentException("Work date exceeds configured maximum request age.");
@@ -95,7 +95,7 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
             if (!await db.Users.AnyAsync(x => x.Id == policy.ApproverUserId && x.IsActive, token))
                 throw new DomainConflictException("Policy approver is inactive.");
             db.CorrectionRequests.Add(new() { Id = id, CompanyId = employee.CompanyId, EmployeeId = employee.Id,
-                RequesterUserId = actor, PolicyId = policyId, WorkDate = workDate, ProposedAtUtc = proposedUtc,
+                RequesterUserId = actor, PolicyId = policyId, CorrectionSettingsId = setting?.Id, WorkDate = workDate, ProposedAtUtc = proposedUtc,
                 PunchKind = kind, Reason = reason, State = 0, CreatedAtUtc = DateTimeOffset.UtcNow });
             return (id, id);
         }, ct);
@@ -159,10 +159,13 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
             var items = await (from request in db.CorrectionRequests.AsNoTracking()
                                join decision in db.CorrectionDecisions on request.Id equals decision.RequestId into decisions
                                from decision in decisions.DefaultIfEmpty()
+                               join settings in db.CorrectionSettings on request.CorrectionSettingsId equals (Guid?)settings.Id into settingsVersions
+                               from settings in settingsVersions.DefaultIfEmpty()
                                where request.RequesterUserId == actor
                                orderby request.CreatedAtUtc descending, request.Id
                                select new { request.Id, request.EmployeeId, request.PolicyId, request.WorkDate, request.ProposedAtUtc,
                                    request.PunchKind, request.Reason, request.State, request.CreatedAtUtc,
+                                   request.CorrectionSettingsId, SettingsRevision = settings == null ? (int?)null : settings.Revision,
                                    DecisionReason = decision == null ? null : decision.Reason,
                                    DecisionAtUtc = decision == null ? (DateTimeOffset?)null : decision.AtUtc })
                                .Skip(offset).Take(50).ToListAsync(token);

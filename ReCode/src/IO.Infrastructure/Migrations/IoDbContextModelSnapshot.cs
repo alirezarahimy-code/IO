@@ -234,6 +234,9 @@ namespace IO.Infrastructure.Migrations
                     b.Property<Guid>("CompanyId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid?>("CorrectionSettingsId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTimeOffset>("CreatedAtUtc")
                         .HasColumnType("datetimeoffset");
 
@@ -272,6 +275,8 @@ namespace IO.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("RequesterUserId");
+
+                    b.HasIndex("CorrectionSettingsId", "CompanyId");
 
                     b.HasIndex("EmployeeId", "CompanyId");
 
@@ -1638,6 +1643,12 @@ namespace IO.Infrastructure.Migrations
                         .HasForeignKey("RequesterUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("IO.Infrastructure.Storage.CorrectionSettingsRecord", null)
+                        .WithMany()
+                        .HasForeignKey("CorrectionSettingsId", "CompanyId")
+                        .HasPrincipalKey("Id", "CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("IO.Infrastructure.Storage.EmployeeRecord", null)
                         .WithMany()

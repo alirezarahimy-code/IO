@@ -1285,7 +1285,7 @@ async function main() {
     const ownRequestRow = myRequestsPage.locator('#body tr').filter({hasText:'درخواست آزمایشی من'});
     const staleRequestRow = staleRequestsPage.locator('#body tr').filter({hasText:'درخواست آزمایشی من'});
     await ownRequestRow.waitFor(); await staleRequestRow.waitFor();
-    const ownRequestId = await ownRequestRow.locator('td').nth(6).textContent();
+    const ownRequestId = await ownRequestRow.locator('td').nth(7).textContent();
     await ownRequestRow.locator('button').click(); await staleRequestRow.locator('button').click();
     await myRequestsPage.locator('#cancel-form input[name=reason]').fill('لغو آزمایشی');
     await myRequestsPage.locator('#cancel-form button[type=submit]').click();
@@ -1297,7 +1297,7 @@ async function main() {
     await staleRequestsPage.waitForFunction(() => document.getElementById('notice').textContent.includes('تعارض'));
     if (await staleRequestsPage.locator('#cancel-section').isVisible()) throw new Error('Conflict retained stale cancellation selection');
     const ownHistory = await myRequestsPage.evaluate(async () => (await (await fetch('/corrections/own')).json()).items);
-    if (!ownHistory.some(x=>x.id===ownRequestId && x.state===3 && x.decisionReason==='لغو آزمایشی')) throw new Error('Own cancellation history was not saved');
+    if (!ownHistory.some(x=>x.id===ownRequestId && x.state===3 && x.settingsRevision===1 && x.decisionReason==='لغو آزمایشی')) throw new Error('Own cancellation history was not saved');
     await staleRequestsPage.close(); await myRequestsPage.close();
     await clearResult();
     await page.locator('#correction-policies button').click();

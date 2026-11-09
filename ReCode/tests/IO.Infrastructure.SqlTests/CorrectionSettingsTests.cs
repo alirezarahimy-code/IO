@@ -46,10 +46,11 @@ internal static class CorrectionSettingsTests
         var before=await Flow(s=>s.SubmitAsync(requester,policy,today.AddDays(-50),proposed,0,"before setting"));
         var op=Guid.NewGuid();await Set(s=>s.SetAsync(admin,op,company,0,5,"set five"));
         var own=JsonSerializer.SerializeToElement(await Set(s=>s.ReadOwnAsync(requester)));
+        var boundary=await Flow(s=>s.SubmitAsync(requester,policy,today.AddDays(-5),proposed,0,"boundary"));
         check(own.GetProperty("configured").GetBoolean() && own.GetProperty("maxRequestAgeDays").GetInt32()==5 &&
               await Flow(s=>s.SubmitAsync(requester,policy,today.AddDays(-50),proposed,0,"before setting",operationId:before))==before &&
               await Reject<ArgumentException>(()=>Flow(s=>s.SubmitAsync(requester,policy,today.AddDays(-6),proposed,0,"too old"))) &&
-              await Flow(s=>s.SubmitAsync(requester,policy,today.AddDays(-5),proposed,0,"boundary"))!=Guid.Empty &&
+              boundary!=Guid.Empty &&
               await Flow(s=>s.SubmitAsync(requester2,otherPolicy,today.AddDays(-50),proposed,0,"other company"))!=Guid.Empty,
               "maximum request age is enforced at UTC date boundary for configured company only");
         check(await Set(s=>s.SetAsync(admin,op,company,0,5,"set five"))==op &&
@@ -63,6 +64,20 @@ internal static class CorrectionSettingsTests
         check(await Flow(s=>s.SubmitAsync(requester,policy,today.AddDays(-50),proposed,0,"unlimited again"))!=Guid.Empty &&
               JsonSerializer.SerializeToElement(await Set(s=>s.ReadOwnAsync(requester))).GetProperty("maxRequestAgeDays").GetInt32()==0,
               "zero restores unlimited submissions without deleting history");
+        var foreignSetting=Guid.NewGuid();await Set(s=>s.SetAsync(admin,foreignSetting,company2,0,0,"foreign company"));
+        await using(var scope=provider.CreateAsyncScope())
+        {
+            var db=scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var initialRequest=await db.CorrectionRequests.AsNoTracking().SingleAsync(x=>x.Id==before);
+            var configuredRequest=await db.CorrectionRequests.AsNoTracking().SingleAsync(x=>x.Id==boundary);
+            bool immutable=false,crossCompany=false;
+            try{await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.CorrectionRequests SET CorrectionSettingsId={op} WHERE Id={before}");}catch(SqlException e) when(e.Number==51008){immutable=true;}
+            var id=Guid.NewGuid();
+            try{await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO dbo.CorrectionRequests (Id,CompanyId,EmployeeId,RequesterUserId,PolicyId,CorrectionSettingsId,WorkDate,ProposedAtUtc,PunchKind,Reason,State,CreatedAtUtc) VALUES ({id},{company},{employee},{requester},{policy},{foreignSetting},{today},{proposed},{0},{"foreign"},{0},{proposed})");}catch(SqlException e) when(e.Number==547){crossCompany=true;}
+            check(initialRequest.CorrectionSettingsId is null && configuredRequest.CorrectionSettingsId==op && immutable,
+                  "correction requests retain immutable setting evidence or an explicitly unknown legacy reference");
+            check(crossCompany,"correction request setting evidence cannot refer to another company");
+        }
         await Set(s=>s.SetAsync(admin,Guid.NewGuid(),company,3,0,"count limits",daily:1,monthly:2));
         var day1=PersianDates.ToGregorian(1408,12,20);var day2=day1.AddDays(1);var day3=day1.AddDays(2);var nextMonth=PersianDates.ToGregorian(1409,1,1);
         var first=await Flow(s=>s.SubmitAsync(requester,policy,day1,proposed,0,"daily first"));
