@@ -182,6 +182,13 @@ async function main() {
     if (await deniedAudit.locator('#body tr').count() !== 0 || await deniedAudit.locator('#next').isEnabled())
       throw new Error('Audit workspace exposed events without identity management permission');
     await deniedAudit.close();
+    const deniedUsers = await context.newPage();
+    await deniedUsers.goto(address + '/workspace/users');
+    await deniedUsers.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
+    if (await deniedUsers.locator('#body tr').count() !== 0 || await deniedUsers.locator('#create-form button').isEnabled())
+      throw new Error('User workspace exposed accounts without identity management permission');
+    await deniedUsers.close();
+
 
 
 
@@ -240,6 +247,47 @@ async function main() {
     await page.locator('#role button').click();
     await page.waitForFunction(() => document.getElementById('result').textContent.includes('result'), null, { timeout: 10000 });
     const role = JSON.parse(await page.locator('#result').textContent()).result;
+    const usersPage = await context.newPage();
+    await usersPage.goto(address + '/workspace/users');
+    await usersPage.waitForFunction(() => !document.querySelector('#create-form button').disabled);
+    await usersPage.locator('#create-form input[name=userName]').fill('workspace-browser-account');
+    await usersPage.locator('#create-form input[name=password]').fill('Synthetic!Workspace-Password-2026');
+    await usersPage.locator('#create-form button').click();
+    await usersPage.waitForFunction(() => document.getElementById('notice').textContent.includes('حساب ساخته شد'));
+    if (await usersPage.locator('#create-form input[name=password]').inputValue() !== '') throw new Error('Temporary password retained in form');
+    const userRow = usersPage.locator('#body tr').filter({hasText:'workspace-browser-account'});
+    await userRow.waitFor();
+    const workspaceUserId = await userRow.locator('td').nth(3).textContent();
+    const userContext = await browser.newContext({ignoreHTTPSErrors:true});
+    const userLogin = await userContext.newPage();
+    await userLogin.goto(address + '/login');
+    await userLogin.locator('#login-form input[name=userName]').fill('workspace-browser-account');
+    await userLogin.locator('#login-form input[name=password]').fill('Synthetic!Workspace-Password-2026');
+    await userLogin.locator('#login-form button').click();
+    await userLogin.waitForURL('**/workspace/account');
+    await userLogin.waitForFunction(() => !document.getElementById('logout').disabled);
+    if ((await userLogin.evaluate(async()=> (await fetch('/workspace/employees')).status)) !== 403) throw new Error('Temporary password was not enforced');
+    await userRow.locator('button').click();
+    await usersPage.locator('#role-form input[name=roleId]').fill(role);
+    await usersPage.locator('#role-form button').click();
+    await usersPage.waitForFunction(() => document.getElementById('notice').textContent.includes('نقش به حساب اعطا شد'));
+    const granted = await usersPage.evaluate(async () => (await (await fetch('/admin/catalog/user-roles')).json()).items);
+    if (!granted.some(x=>x.userId===workspaceUserId && x.roleId===role)) throw new Error('User role grant not persisted');
+    await usersPage.locator('#role-form input[name=roleId]').fill(role);
+    await usersPage.locator('#role-form select[name=operation]').selectOption('revoke');
+    await usersPage.locator('#role-form button').click();
+    await usersPage.waitForFunction(() => document.getElementById('notice').textContent.includes('نقش از حساب لغو شد'));
+    await usersPage.locator('#state-form button[type=submit]').click();
+    await usersPage.waitForFunction(() => document.getElementById('notice').textContent.includes('وضعیت حساب تغییر کرد'));
+    if (!(await userRow.textContent()).includes('غیرفعال') || (await userLogin.evaluate(async()=> (await fetch('/auth/me')).status)) !== 401)
+      throw new Error('Disabling user did not revoke the session');
+    await userRow.locator('button').click();
+    await usersPage.locator('#notice').evaluate(el=>{el.textContent='';});
+    await usersPage.locator('#state-form button[type=submit]').click();
+    await usersPage.waitForFunction(() => document.getElementById('notice').textContent.includes('وضعیت حساب تغییر کرد'));
+    if (!(await userRow.textContent()).includes('فعال') || (await userLogin.evaluate(async()=> (await fetch('/auth/me')).status)) !== 401)
+      throw new Error('Re-enabling user resurrected an old session');
+    await userContext.close(); await usersPage.close();
     const adminId = await page.evaluate(async () => (await (await fetch('/auth/me')).json()).id);
     async function submit(formId) {
       await clearResult();
