@@ -9,6 +9,7 @@ using IO.Infrastructure.Scheduling;
 using IO.Domain.Scheduling;
 using IO.Infrastructure.Storage;
 using IO.Infrastructure.Reports;
+using IO.Infrastructure.Leaves;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -154,6 +155,10 @@ public static class IoWebHost
         app.MapGet("/assets/my-reports.js", () => Results.Content(Resource("IO.Web.Ui.my-reports.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/team-attendance", () => Results.Content(Resource("IO.Web.Ui.TeamAttendance.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/team-attendance.js", () => Results.Content(Resource("IO.Web.Ui.team-attendance.js"), "text/javascript; charset=utf-8"));
+        app.MapGet("/workspace/leave-admin", () => Results.Content(Resource("IO.Web.Ui.LeaveAdmin.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/leave-admin.js", () => Results.Content(Resource("IO.Web.Ui.leave-admin.js"), "text/javascript; charset=utf-8"));
+        app.MapGet("/workspace/my-leave", () => Results.Content(Resource("IO.Web.Ui.MyLeave.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/my-leave.js", () => Results.Content(Resource("IO.Web.Ui.my-leave.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/my-attendance", () => Results.Content(Resource("IO.Web.Ui.MyAttendance.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/my-attendance.js", () => Results.Content(Resource("IO.Web.Ui.my-attendance.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/my-schedule", () => Results.Content(Resource("IO.Web.Ui.MySchedule.html"), "text/html; charset=utf-8"));
@@ -271,6 +276,20 @@ public static class IoWebHost
             catch (InvalidOperationException) { return Results.Conflict(); }
             catch (ArgumentOutOfRangeException) { return Results.BadRequest(); }
         });
+        app.MapPost("/leave/types", (LeaveTypeInput input, HttpContext c, IAntiforgery csrf, LeaveLedger service) =>
+            Admin(c, csrf, actor => service.CreateTypeAsync(actor,input.CompanyId,input.Name,input.Symbol,input.MinutesPerDay,input.CarryOverAllowed,c.RequestAborted)));
+        app.MapGet("/leave/types/{companyId:guid}", (Guid companyId, int? offset, HttpContext c, LeaveLedger service) =>
+            AdminRead(c, actor => service.ListTypesAsync(actor,companyId,offset ?? 0,c.RequestAborted)));
+        app.MapGet("/leave/own-types", (int? offset, HttpContext c, LeaveLedger service) =>
+            AdminRead(c, actor => service.ListOwnTypesAsync(actor,offset ?? 0,c.RequestAborted)));
+        app.MapPost("/leave/entries", (LeaveEntryInput input, HttpContext c, IAntiforgery csrf, LeaveLedger service) =>
+            Admin(c, csrf, actor => service.AddEntryAsync(actor,input.OperationId,input.EmployeeId,input.LeaveTypeId,input.EffectiveDate,input.Kind,input.Minutes,input.DocumentNumber,input.Description,c.RequestAborted)));
+        app.MapGet("/leave/entries/{employeeId:guid}/{leaveTypeId:guid}", (Guid employeeId, Guid leaveTypeId, DateOnly asOf, int? offset, HttpContext c, LeaveLedger service) =>
+            AdminRead(c, actor => service.ListEntriesAsync(actor,employeeId,leaveTypeId,asOf,offset ?? 0,c.RequestAborted)));
+        app.MapGet("/leave/balance/{employeeId:guid}/{leaveTypeId:guid}", (Guid employeeId, Guid leaveTypeId, DateOnly asOf, HttpContext c, LeaveLedger service) =>
+            AdminRead(c, async actor => await service.GetBalanceAsync(actor,employeeId,leaveTypeId,asOf,c.RequestAborted)));
+        app.MapGet("/leave/own-balance/{leaveTypeId:guid}", (Guid leaveTypeId, DateOnly asOf, HttpContext c, LeaveLedger service) =>
+            AdminRead(c, async actor => await service.GetOwnBalanceAsync(actor,leaveTypeId,asOf,c.RequestAborted)));
         app.MapGet("/executive/overview/{companyId:guid}", (Guid companyId, string fromUtc, string untilUtcExclusive, HttpContext c, ExecutiveOverview service) =>
             AdminRead(c, async actor => await service.InspectAsync(actor, companyId, ParseExplicitTime(fromUtc), ParseExplicitTime(untilUtcExclusive), c.RequestAborted)));
         app.MapGet("/calculations/own-report", (DateOnly start, DateOnly endExclusive, HttpContext c, PersonalReports service) =>
@@ -535,3 +554,6 @@ public sealed record PeriodDraftInput(Guid EmployeeId, DateOnly Start, DateOnly 
 public sealed record ConflictNoteInput(string Note);
 
 public sealed record SourceMappingReplacementInput(Guid SourceId, string SourcePersonId, Guid MappingId, Guid EmployeeId, string EffectiveAt, string ExpectedVersion, string Reason);
+
+public sealed record LeaveTypeInput(Guid CompanyId,string Name,string Symbol,int MinutesPerDay,bool CarryOverAllowed);
+public sealed record LeaveEntryInput(Guid OperationId,Guid EmployeeId,Guid LeaveTypeId,DateOnly EffectiveDate,int Kind,int Minutes,string DocumentNumber,string Description);

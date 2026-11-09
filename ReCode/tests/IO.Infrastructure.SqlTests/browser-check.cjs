@@ -232,6 +232,16 @@ async function main() {
     await deniedReport.waitForFunction(()=>document.getElementById('notice').textContent.includes('مجوز'));
     if (await deniedReport.locator('#result').isVisible()) throw new Error('Diagnostic reports exposed without permission');
     await deniedReport.close();
+    const deniedLeave = await context.newPage();
+    await deniedLeave.goto(address + '/workspace/my-leave');
+    await deniedLeave.waitForFunction(()=>document.getElementById('notice').textContent.includes('مجوز'));
+    if (await deniedLeave.locator('#filter button').isEnabled() || await deniedLeave.locator('#balance').isVisible()) throw new Error('Own leave exposed without permission');
+    await deniedLeave.goto(address + '/workspace/leave-admin');
+    await deniedLeave.locator('#type-filter input').fill(first);
+    await deniedLeave.locator('#type-filter button').click();
+    await deniedLeave.waitForFunction(()=>document.getElementById('notice').textContent.includes('مجوز'));
+    if (await deniedLeave.locator('#type-form button').isEnabled()) throw new Error('Leave management exposed without permission');
+    await deniedLeave.close();
     const deniedPersonalReport = await context.newPage();
     await deniedPersonalReport.goto(address + '/workspace/my-reports');
     await deniedPersonalReport.locator('#filter input[name=start]').fill('2027-03-01');
@@ -389,7 +399,7 @@ async function main() {
       await waitText('result');
       return JSON.parse(await page.locator('#result').textContent()).result;
     }
-    for (const code of ['organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.read.team', 'attendance.read.all', 'executive.dashboard.read', 'attendance.calculate', 'correction.configure', 'correction.decide', 'correction.decide.all', 'period.preflight', 'period.draft.manage', 'period.diagnostic.manage']) {
+    for (const code of ['organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.read.team', 'attendance.read.all', 'executive.dashboard.read', 'leave.manage', 'attendance.calculate', 'correction.configure', 'correction.decide', 'correction.decide.all', 'period.preflight', 'period.draft.manage', 'period.diagnostic.manage']) {
       await page.locator('#permission input[name=roleId]').fill(role);
       await page.locator('#permission select[name=code]').selectOption(code);
       await submit('permission');
@@ -951,6 +961,8 @@ async function main() {
     await submit('permission');
     await page.locator('#permission select[name=code]').selectOption('attendance.results.read.self');
     await submit('permission');
+    await page.locator('#permission select[name=code]').selectOption('leave.read.self');
+    await submit('permission');
     await page.locator('#grant input[name=userId]').fill(selfId);
     await page.locator('#grant input[name=roleId]').fill(selfRole);
     await submit('grant');
@@ -1011,6 +1023,51 @@ async function main() {
     await page.locator('#calculation-run input[name=ruleVersionId]').fill(selfRule);
     await page.locator('#calculation-run input[name=workDate]').fill('2027-03-01');
     const personalRun = await submit('calculation-run');
+    const leaveAdmin=await context.newPage();
+    await leaveAdmin.goto(address+'/workspace/leave-admin');
+    await leaveAdmin.locator('#type-filter input[name=companyId]').fill(selfCompany);
+    await leaveAdmin.locator('#type-filter button').click();
+    await leaveAdmin.waitForFunction(()=>!document.querySelector('#type-form button').disabled);
+    const noLeaveCsrf=await leaveAdmin.evaluate(async c=>(await fetch('/leave/types',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({companyId:c,name:'invalid',symbol:'invalid',minutesPerDay:480,carryOverAllowed:false})})).status,selfCompany);
+    if(noLeaveCsrf!==400) throw new Error('Leave creation accepted missing CSRF');
+    await leaveAdmin.locator('#type-form input[name=name]').fill('Browser leave type');
+    await leaveAdmin.locator('#type-form input[name=symbol]').fill('BROWSER-LEAVE');
+    await leaveAdmin.locator('#type-form input[name=minutesPerDay]').fill('480');
+    await leaveAdmin.locator('#type-form button').click();
+    await leaveAdmin.waitForFunction(()=>document.getElementById('notice').textContent.includes('نوع ثبت شد'));
+    const leaveType=(await leaveAdmin.locator('#notice').textContent()).split('شناسه: ')[1];
+    await leaveAdmin.locator('#filter input[name=employeeId]').fill(first);
+    await leaveAdmin.locator('#filter input[name=leaveTypeId]').fill(leaveType);
+    await leaveAdmin.locator('#filter input[name=asOf]').fill('2024-03-30');
+    await leaveAdmin.locator('#filter button').click();
+    await leaveAdmin.waitForFunction(()=>!document.querySelector('#entry-form button').disabled);
+    if(!(await leaveAdmin.locator('#balance-body').textContent()).includes('نامشخص')) throw new Error('Missing leave opening was treated as zero');
+    await leaveAdmin.locator('#entry-form input[name=effectiveDate]').fill('2024-03-20');
+    await leaveAdmin.locator('#entry-form input[name=minutes]').fill('480');
+    await leaveAdmin.locator('#entry-form input[name=documentNumber]').fill('OPEN-1');
+    await leaveAdmin.locator('#entry-form input[name=description]').fill('افتتاحیه آزمایشی');
+    const leaveOperation=await leaveAdmin.locator('#entry-form input[name=operationId]').inputValue();
+    await leaveAdmin.locator('#entry-form button').click();
+    await leaveAdmin.waitForFunction(()=>document.getElementById('notice').textContent.includes('رویداد ثبت شد'));
+    await leaveAdmin.locator('#entry-form input[name=effectiveDate]').fill('2024-03-25');
+    await leaveAdmin.locator('#entry-form select[name=kind]').selectOption('1');
+    await leaveAdmin.locator('#entry-form input[name=minutes]').fill('120');
+    await leaveAdmin.locator('#entry-form input[name=documentNumber]').fill('GRANT-1');
+    await leaveAdmin.locator('#entry-form input[name=description]').fill('اعطای آزمایشی');
+    await leaveAdmin.locator('#notice').evaluate(el=>el.textContent='');
+    await leaveAdmin.locator('#entry-form button').click();
+    await leaveAdmin.waitForFunction(()=>document.getElementById('notice').textContent.includes('رویداد ثبت شد'));
+    const retryStatus=await leaveAdmin.evaluate(async ({employee,type,op})=>{
+      const csrf=(await (await fetch('/auth/csrf')).json()).token;
+      const entry={operationId:op,employeeId:employee,leaveTypeId:type,effectiveDate:'2024-03-20',kind:0,minutes:480,documentNumber:'OPEN-1',description:'افتتاحیه آزمایشی'};
+      const post=x=>fetch('/leave/entries',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf},body:JSON.stringify(x)});
+      return [(await post(entry)).status,(await post({...entry,minutes:481})).status];
+    },{employee:first,type:leaveType,op:leaveOperation});
+    if(retryStatus[0]!==200||retryStatus[1]!==409) throw new Error('Leave entry idempotency not enforced');
+    const adminBalance=await leaveAdmin.evaluate(async ({employee,type})=>(await (await fetch('/leave/balance/'+employee+'/'+type+'?asOf=2024-03-30')).json()),{employee:first,type:leaveType});
+    if(adminBalance.balanceMinutes!==600 || await leaveAdmin.locator('#entry-body tr').count()!==2) throw new Error('Leave ledger did not persist expected entries');
+    await leaveAdmin.close();
+
     const executivePage=await context.newPage();
     await executivePage.goto(address + '/workspace/executive-home');
     await executivePage.locator('#filter input[name=companyId]').fill(selfCompany);
@@ -1041,6 +1098,19 @@ async function main() {
     await page.locator('#logout').click();
     await waitText('عملیات انجام شد.');
     await login('web-self');
+    const myLeave=await context.newPage();
+    await myLeave.goto(address+'/workspace/my-leave');
+    await myLeave.waitForFunction(id=>[...document.querySelector('#filter select').options].some(x=>x.value===id),leaveType);
+    await myLeave.locator('#filter select').selectOption(leaveType);
+    await myLeave.locator('#filter input[name=asOf]').fill('2024-03-30');
+    await myLeave.locator('#filter button').click();
+    await myLeave.locator('#balance').waitFor();
+    if(!(await myLeave.locator('#body').textContent()).includes('600')) throw new Error('Personal leave did not display stored balance');
+    const selfLeave=await myLeave.evaluate(async ({type,employee})=>(await (await fetch('/leave/own-balance/'+type+'?asOf=2024-03-30&employeeId='+employee)).json()),{type:leaveType,employee});
+    if(selfLeave.balanceMinutes!==600 || 'employeeId' in selfLeave) throw new Error('Personal leave accepted client identity');
+    await myLeave.locator('#filter input[name=asOf]').fill('2024-03-31');
+    if(await myLeave.locator('#balance').isVisible()) throw new Error('Changing leave date left stale balance');
+    await myLeave.close();
     const myReport = await context.newPage();
     await myReport.goto(address + '/workspace/my-reports');
     await myReport.locator('#filter input[name=start]').fill('2027-03-01');

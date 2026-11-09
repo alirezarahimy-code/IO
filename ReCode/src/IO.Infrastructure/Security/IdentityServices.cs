@@ -7,6 +7,7 @@ using IO.Infrastructure.Calculation;
 using IO.Infrastructure.Scheduling;
 using IO.Infrastructure.Storage;
 using IO.Infrastructure.Reports;
+using IO.Infrastructure.Leaves;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -45,6 +46,7 @@ public static class IdentityServices
         services.AddScoped<ObservedCalculation>();
         services.AddScoped<PersonalReports>();
         services.AddScoped<ExecutiveOverview>();
+        services.AddScoped<LeaveLedger>();
         services.AddScoped<CorrectionWorkflow>();
         services.AddScoped<PeriodPreflight>();
         services.AddScoped<PeriodDrafts>();
