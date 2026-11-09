@@ -214,6 +214,15 @@ async function main() {
     if (await deniedRules.locator('#body tr').count() !== 0 || await deniedRules.locator('#create-form button').isEnabled())
       throw new Error('Rules workspace exposed data without permission');
     await deniedRules.close();
+    const deniedReport = await context.newPage();
+    await deniedReport.goto(address + '/workspace/reports');
+    await deniedReport.locator('#filter input[name=employeeId]').fill(first);
+    await deniedReport.locator('#filter input[name=start]').fill('2027-01-01');
+    await deniedReport.locator('#filter input[name=endExclusive]').fill('2027-01-02');
+    await deniedReport.locator('#filter button').click();
+    await deniedReport.waitForFunction(()=>document.getElementById('notice').textContent.includes('مجوز'));
+    if (await deniedReport.locator('#result').isVisible()) throw new Error('Diagnostic reports exposed without permission');
+    await deniedReport.close();
     const deniedPersonalReport = await context.newPage();
     await deniedPersonalReport.goto(address + '/workspace/my-reports');
     await deniedPersonalReport.locator('#filter input[name=start]').fill('2027-03-01');
@@ -825,6 +834,19 @@ async function main() {
     if (await periodPage.locator('#create-form button').isEnabled() || await periodPage.locator('#body tr').count() !== 0)
       throw new Error('Changing employee left stale drafts visible');
     await periodPage.close();
+    const reportPage = await context.newPage();
+    await reportPage.goto(address + '/workspace/reports');
+    await reportPage.locator('#filter input[name=employeeId]').fill(employee);
+    await reportPage.locator('#filter input[name=start]').fill('2027-01-01');
+    await reportPage.locator('#filter input[name=endExclusive]').fill('2027-01-03');
+    await reportPage.locator('#filter button').click();
+    await reportPage.locator('#result').waitFor();
+    const reportApi = await reportPage.evaluate(async id => await (await fetch('/periods/preflight/'+id+'?start=2027-01-01&endExclusive=2027-01-03')).json(), employee);
+    if (await reportPage.locator('#body tr').count()!==2 || !(await reportPage.locator('#body tr').first().textContent()).includes(reportApi.days[0].latestRun.id) || !(await reportPage.locator('#body tr').last().textContent()).includes('بدون اجرا') || reportApi.approvable!==false || reportApi.freshness!=='unknown') throw new Error('Diagnostic report did not match preflight');
+    await reportPage.locator('#filter input[name=employeeId]').fill(first);
+    if (await reportPage.locator('#result').isVisible() || await reportPage.locator('#body tr').count()) throw new Error('Changing report employee left stale data');
+    await reportPage.close();
+
 
     await page.locator('#calculation-revision input[name=id]').fill(run);
     await clearResult();
