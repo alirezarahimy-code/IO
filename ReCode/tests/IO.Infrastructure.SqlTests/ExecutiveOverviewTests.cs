@@ -1,3 +1,4 @@
+using IO.Infrastructure.Security;
 using IO.Infrastructure.Reports;
 using IO.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
