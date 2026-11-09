@@ -92,26 +92,19 @@ jobs:
           compgen -G 'src/IO.Infrastructure/Migrations/*_CorrectionWorkflow.cs' >/dev/null || {
             echo '::error::Correction workflow migration missing.'; exit 1;
           }
-      - name: Temporarily scaffold period draft migration
+      - name: Require versioned period draft migration
         working-directory: ReCode
         shell: bash
         run: |
           set -euo pipefail
-          if compgen -G 'src/IO.Infrastructure/Migrations/*_PeriodDrafts.cs' >/dev/null; then exit 0; fi
-          if ! dotnet tool install dotnet-ef --tool-path "$RUNNER_TEMP/ef-scaffold" --version 10.0.11 > "$RUNNER_TEMP/io-scaffold.log" 2>&1; then
-            python3 tools/phase03-annotate-error.py "$RUNNER_TEMP/io-scaffold.log" "EF install failure"; exit 1
-          fi
-          if ! "$RUNNER_TEMP/ef-scaffold/dotnet-ef" migrations add PeriodDrafts --context IoDbContext --project src/IO.Infrastructure --startup-project src/IO.Infrastructure --configuration Release --no-build > "$RUNNER_TEMP/io-scaffold.log" 2>&1; then
-            python3 tools/phase03-annotate-error.py "$RUNNER_TEMP/io-scaffold.log" "Period scaffold failure"; exit 1
-          fi
-          python3 tools/phase10-export-scaffold.py
-          touch "$RUNNER_TEMP/io-period-scaffold-only"
+          compgen -G 'src/IO.Infrastructure/Migrations/*_PeriodDrafts.cs' >/dev/null || {
+            echo '::error::Period draft migration missing.'; exit 1;
+          }
       - name: Generate migration scripts offline
         working-directory: ReCode
         shell: bash
         run: |
           set -euo pipefail
-          if [[ -f "$RUNNER_TEMP/io-period-scaffold-only" ]]; then echo '::notice::Scaffold only; SQL tests pending.'; exit 0; fi
           if ! dotnet tool install dotnet-ef --tool-path "$RUNNER_TEMP/ef" --version 10.0.11 > "$RUNNER_TEMP/io-script.log" 2>&1; then
             python3 tools/phase03-annotate-error.py "$RUNNER_TEMP/io-script.log" "EF tool install failure"; exit 1
           fi
@@ -134,7 +127,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ -f "$RUNNER_TEMP/io-period-scaffold-only" ]]; then echo '::notice::Scaffold only; SQL tests pending.'; exit 0; fi
           export MSSQL_SA_PASSWORD="$(python3 -c 'import secrets; print("Io9!" + secrets.token_hex(24))')"
           echo "::add-mask::$MSSQL_SA_PASSWORD"
           container_started=0

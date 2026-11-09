@@ -204,7 +204,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
                 t.HasTrigger("TR_PeriodDrafts_Immutable"); t.UseSqlOutputClause(false);
             });
             b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
-            b.HasIndex(x => new { x.EmployeeId, x.Start, x.EndExclusive });
+            b.HasIndex(x => new { x.EmployeeId, x.Start, x.EndExclusive }).IsUnique();
             b.HasOne<EmployeeRecord>().WithMany().HasForeignKey(x => new { x.EmployeeId, x.CompanyId })
                 .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
