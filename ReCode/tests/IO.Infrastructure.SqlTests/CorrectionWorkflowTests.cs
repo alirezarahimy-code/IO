@@ -23,7 +23,11 @@ internal static class CorrectionWorkflowTests
             self = await db.Users.Where(x => x.UserName == "web-self").Select(x => x.Id).SingleAsync();
             manager = await db.Users.Where(x => x.UserName == "web-manager").Select(x => x.Id).SingleAsync();
             outsider = await db.Users.Where(x => x.UserName == "web-locked").Select(x => x.Id).SingleAsync();
-            employee = (await db.Users.SingleAsync(x => x.Id == self)).EmployeeId!.Value;
+            var selfUser = await db.Users.SingleAsync(x => x.Id == self);
+            selfUser.IsActive = true; // Previous HTTP security checks intentionally deactivated this synthetic account.
+            if (!await db.UserRoles.AnyAsync(x => x.UserId == manager && x.RoleId == managerRole.Id))
+                db.UserRoles.Add(new() { UserId = manager, RoleId = managerRole.Id });
+            employee = selfUser.EmployeeId!.Value;
             company = (await db.Employees.SingleAsync(x => x.Id == employee)).CompanyId;
             foreach (var (role, code) in new[] { (adminRole.Id, CorrectionWorkflow.Configure), (selfRole.Id, CorrectionWorkflow.Submit),
                 (managerRole.Id, CorrectionWorkflow.Decide), (managerRole.Id, CorrectionWorkflow.DecideScoped) })
