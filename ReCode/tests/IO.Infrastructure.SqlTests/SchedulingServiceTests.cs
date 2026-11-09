@@ -84,12 +84,14 @@ internal static class SchedulingServiceTests
                 ValidFrom = new DateOnly(2026, 3, 1), ValidUntilExclusive = new DateOnly(2027, 1, 1) });
             db.UserOrgScopes.Add(new() { Id = Guid.NewGuid(), UserId = limited, OrgUnitId = unit, ValidFrom = new DateOnly(2026, 1, 1) });
             var selfRole = Guid.NewGuid(); var scopedRole = Guid.NewGuid();
-            var selfPermission = Guid.NewGuid(); var scopedPermission = Guid.NewGuid();
+            var existingReadSelf = await db.Permissions.SingleOrDefaultAsync(x => x.Code == ScheduleReader.ReadSelf);
+            var existingReadScoped = await db.Permissions.SingleOrDefaultAsync(x => x.Code == ScheduleReader.ReadScoped);
+            var selfPermission = existingReadSelf?.Id ?? Guid.NewGuid(); var scopedPermission = existingReadScoped?.Id ?? Guid.NewGuid();
             var existingReadAll = await db.Permissions.SingleOrDefaultAsync(x => x.Code == ScheduleReader.ReadAll);
             var allPermission = existingReadAll?.Id ?? Guid.NewGuid();
             db.Roles.AddRange(new RoleRecord { Id = selfRole, Name = "schedule self test" }, new RoleRecord { Id = scopedRole, Name = "schedule scoped test" });
-            db.Permissions.AddRange(new PermissionRecord { Id = selfPermission, Code = ScheduleReader.ReadSelf },
-                new PermissionRecord { Id = scopedPermission, Code = ScheduleReader.ReadScoped });
+            if (existingReadSelf is null) db.Permissions.Add(new PermissionRecord { Id = selfPermission, Code = ScheduleReader.ReadSelf });
+            if (existingReadScoped is null) db.Permissions.Add(new PermissionRecord { Id = scopedPermission, Code = ScheduleReader.ReadScoped });
             if (existingReadAll is null) db.Permissions.Add(new PermissionRecord { Id = allPermission, Code = ScheduleReader.ReadAll });
             db.UserRoles.AddRange(new UserRoleRecord { UserId = self, RoleId = selfRole }, new UserRoleRecord { UserId = limited, RoleId = scopedRole });
             db.RolePermissions.AddRange(new RolePermissionRecord { RoleId = selfRole, PermissionId = selfPermission },
@@ -104,7 +106,8 @@ internal static class SchedulingServiceTests
             var scoped = await reader.FindAsync(limited, employee, date, authorizationDate);
             var global = await reader.FindAsync(admin, employee, date, authorizationDate);
             var jalali = PersianDates.FromGregorian(date);
-            check(own?.DayKind == 1 && scoped is not null && global is not null &&
+            check(own?.DayKind == 1 && (await reader.FindOwnAsync(self, date, authorizationDate))?.EmployeeId == employee &&
+                  await reader.FindOwnAsync(limited, date, authorizationDate) is null && scoped is not null && global is not null &&
                   own.JalaliYear == jalali.Year && own.JalaliMonth == jalali.Month && own.JalaliDay == jalali.Day &&
                   own.StartUtc == new DateTimeOffset(2027, 1, 1, 18, 30, 0, TimeSpan.Zero) &&
                   own.EndUtc == new DateTimeOffset(2027, 1, 2, 2, 30, 0, TimeSpan.Zero),
@@ -120,7 +123,9 @@ internal static class SchedulingServiceTests
             var selfScheduleRole = await db.Roles.SingleAsync(x => x.Name == "schedule self test");
             db.UserRoles.Remove(await db.UserRoles.SingleAsync(x => x.UserId == self && x.RoleId == selfScheduleRole.Id));
             await db.SaveChangesAsync();
-            check(await scope.ServiceProvider.GetRequiredService<ScheduleReader>().FindAsync(self, employee, date, new DateOnly(2026, 4, 1)) is null,
+            var revokedReader = scope.ServiceProvider.GetRequiredService<ScheduleReader>();
+            check(await revokedReader.FindAsync(self, employee, date, new DateOnly(2026, 4, 1)) is null &&
+                  await revokedReader.FindOwnAsync(self, date, new DateOnly(2026, 4, 1)) is null,
                 "schedule permission revocation applies even when employee-read permission remains");
         }
         var raceCalendar = await Execute(s => s.CreateCalendarAsync(admin, company, "Calendar race test"));

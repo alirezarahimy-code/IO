@@ -168,6 +168,15 @@ async function main() {
         throw new Error('Manager request workspace exposed data without permission');
     }
     await deniedManagerRequests.close();
+    const deniedOwnSchedule = await context.newPage();
+    await deniedOwnSchedule.goto(address + '/workspace/my-schedule');
+    await deniedOwnSchedule.locator('#filter input[name=workDate]').fill('2027-03-01');
+    await deniedOwnSchedule.locator('#filter button').click();
+    await deniedOwnSchedule.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
+    if (await deniedOwnSchedule.locator('#result').isVisible() || await deniedOwnSchedule.locator('#body tr').count() !== 0)
+      throw new Error('Own schedule exposed data without permission');
+    await deniedOwnSchedule.close();
+
 
 
 
@@ -705,6 +714,8 @@ async function main() {
     await page.locator('#permission input[name=roleId]').fill(selfRole);
     await page.locator('#permission select[name=code]').selectOption('correction.submit.self');
     await submit('permission');
+    await page.locator('#permission select[name=code]').selectOption('schedule.read.self');
+    await submit('permission');
     await page.locator('#grant input[name=userId]').fill(selfId);
     await page.locator('#grant input[name=roleId]').fill(selfRole);
     await submit('grant');
@@ -712,10 +723,47 @@ async function main() {
     await page.locator('#correction-policy input[name=approverUserId]').fill(adminId);
     await page.locator('#correction-policy input[name=name]').fill('Browser employee correction policy');
     const employeePolicy = await submit('correction-policy');
+    await page.locator('#site input[name=companyId]').fill(selfCompany);
+    await page.locator('#site input[name=name]').fill('Browser self schedule site');
+    await page.locator('#site input[name=timeZoneId]').fill('Asia/Tehran');
+    const selfSite = await submit('site');
+    await page.locator('#calendar input[name=companyId]').fill(selfCompany);
+    await page.locator('#calendar input[name=name]').fill('Browser self calendar');
+    const selfCalendar = await submit('calendar');
+    await page.locator('#calendar-day input[name=calendarId]').fill(selfCalendar);
+    await page.locator('#calendar-day input[name=date]').fill('2027-03-01');
+    await page.locator('#calendar-day select[name=kind]').selectOption('1');
+    await submit('calendar-day');
+    await page.locator('#shift input[name=companyId]').fill(selfCompany);
+    await page.locator('#shift input[name=siteId]').fill(selfSite);
+    await page.locator('#shift input[name=name]').fill('Browser self shift');
+    await page.locator('#shift input[name=startsAt]').fill('08:00');
+    await page.locator('#shift input[name=endsAt]').fill('17:00');
+    await page.locator('#shift select[name=endDayOffset]').selectOption('0');
+    const selfShift = await submit('shift');
+    await page.locator('#schedule-assignment input[name=employeeId]').fill(first);
+    await page.locator('#schedule-assignment input[name=calendarId]').fill(selfCalendar);
+    await page.locator('#schedule-assignment input[name=shiftId]').fill(selfShift);
+    await page.locator('#schedule-assignment input[name=validFrom]').fill('2027-03-01');
+    await submit('schedule-assignment');
     await clearResult();
     await page.locator('#logout').click();
     await waitText('عملیات انجام شد.');
     await login('web-self');
+    const mySchedule = await context.newPage();
+    await mySchedule.goto(address + '/workspace/my-schedule');
+    await mySchedule.locator('#filter input[name=workDate]').fill('2027-03-01');
+    await mySchedule.locator('#filter button').click();
+    await mySchedule.locator('#result').waitFor();
+    const scheduleText = await mySchedule.locator('#body').textContent();
+    if (!scheduleText.includes('Browser self shift') || !scheduleText.includes('تعطیل') || !scheduleText.includes('Asia/Tehran')) throw new Error('Own schedule did not display stored calendar and shift');
+    if ((await mySchedule.evaluate(async id => (await fetch('/schedules/' + id + '/2027-01-01')).status, employee)) !== 404)
+      throw new Error('Self schedule grant exposed another employee schedule');
+    await mySchedule.locator('#filter input[name=workDate]').fill('2026-01-01');
+    if (await mySchedule.locator('#result').isVisible()) throw new Error('Changing day left stale schedule visible');
+    await mySchedule.locator('#filter button').click();
+    await mySchedule.waitForFunction(() => document.getElementById('notice').textContent.includes('در دسترس نیست'));
+    await mySchedule.close();
     const newRequestPage = await context.newPage();
     await newRequestPage.goto(address + '/workspace/new-request');
     await newRequestPage.waitForFunction(id => [...document.querySelector('#create-form select[name=policyId]').options].some(o=>o.value===id), employeePolicy);

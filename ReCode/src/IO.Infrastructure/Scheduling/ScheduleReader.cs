@@ -14,16 +14,27 @@ public sealed class ScheduleReader(IoDbContext db, EmployeeAccessReader access)
     public sealed record ScheduleView(Guid EmployeeId, DateOnly WorkDate, int JalaliYear, int JalaliMonth, int JalaliDay,
         string Calendar, int? DayKind, string Shift, string TimeZoneId, DateTimeOffset StartUtc, DateTimeOffset EndUtc);
 
-    public async Task<ScheduleView?> FindAsync(Guid actor, Guid employeeId, DateOnly workDate,
-        DateOnly trustedAuthorizationDate, CancellationToken ct = default)
+    public Task<ScheduleView?> FindAsync(Guid actor, Guid employeeId, DateOnly workDate,
+        DateOnly trustedAuthorizationDate, CancellationToken ct = default) =>
+        actor == Guid.Empty || employeeId == Guid.Empty ? Task.FromResult<ScheduleView?>(null) :
+        FindCoreAsync(actor, employeeId, false, workDate, trustedAuthorizationDate, ct);
+
+    // The linked employee and its permission are checked in the same SQL query.
+    // This endpoint never accepts a client-selected employee identifier.
+    public Task<ScheduleView?> FindOwnAsync(Guid actor, DateOnly workDate, DateOnly trustedAuthorizationDate, CancellationToken ct = default) =>
+        actor == Guid.Empty ? Task.FromResult<ScheduleView?>(null) :
+        FindCoreAsync(actor, Guid.Empty, true, workDate, trustedAuthorizationDate, ct);
+
+    private async Task<ScheduleView?> FindCoreAsync(Guid actor, Guid employeeId, bool ownOnly, DateOnly workDate,
+        DateOnly trustedAuthorizationDate, CancellationToken ct)
     {
-        if (actor == Guid.Empty || employeeId == Guid.Empty) return null;
         var authorized = access.AuthorizedEmployees(actor, trustedAuthorizationDate, ReadSelf, ReadScoped, ReadAll);
         var query = from assignment in db.WorkScheduleAssignments.AsNoTracking()
                     join shift in db.ShiftDefinitions on assignment.ShiftId equals shift.Id
                     join site in db.Sites on shift.SiteId equals site.Id
                     join calendar in db.Calendars on assignment.CalendarId equals calendar.Id
-                    where assignment.EmployeeId == employeeId && assignment.ValidFrom <= workDate &&
+                    where ((ownOnly && db.Users.Any(user => user.Id == actor && user.IsActive && user.EmployeeId == assignment.EmployeeId)) ||
+                           (!ownOnly && assignment.EmployeeId == employeeId)) && assignment.ValidFrom <= workDate &&
                           (assignment.ValidUntilExclusive == null || workDate < assignment.ValidUntilExclusive) &&
                           authorized.Any(x => x.Id == assignment.EmployeeId)
                     select new

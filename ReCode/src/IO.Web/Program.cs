@@ -131,6 +131,8 @@ public static class IoWebHost
         // enforce organization.manage in the service, never merely in the UI.
         foreach (var page in new[] { "/workspace/calendars", "/workspace/shifts", "/workspace/schedules", "/workspace/employee-history", "/workspace/sources" })
             app.MapGet(page, () => Results.Content(Resource("IO.Web.Ui.Scheduling.html"), "text/html; charset=utf-8"));
+        app.MapGet("/workspace/my-schedule", () => Results.Content(Resource("IO.Web.Ui.MySchedule.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/my-schedule.js", () => Results.Content(Resource("IO.Web.Ui.my-schedule.js"), "text/javascript; charset=utf-8"));
         foreach (var page in new[] { "/workspace/inbox", "/workspace/decision-history" })
             app.MapGet(page, () => Results.Content(Resource("IO.Web.Ui.ManagerRequests.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/manager-requests.js", () => Results.Content(Resource("IO.Web.Ui.manager-requests.js"), "text/javascript; charset=utf-8"));
@@ -220,6 +222,17 @@ public static class IoWebHost
         app.MapGet("/dates/gregorian/{date}", (DateOnly date) =>
         {
             try { var j = PersianDates.FromGregorian(date); return Results.Ok(new { j.Year, j.Month, j.Day }); }
+            catch (ArgumentOutOfRangeException) { return Results.BadRequest(); }
+        });
+        app.MapGet("/schedules/own/{workDate}", async (DateOnly workDate, HttpContext context, ScheduleReader reader) =>
+        {
+            if (!Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var actor)) return Results.Unauthorized();
+            try
+            {
+                var day = await reader.FindOwnAsync(actor, workDate, DateOnly.FromDateTime(DateTime.UtcNow), context.RequestAborted);
+                return day is null ? Results.NotFound() : Results.Ok(day);
+            }
+            catch (InvalidOperationException) { return Results.Conflict(); }
             catch (ArgumentOutOfRangeException) { return Results.BadRequest(); }
         });
         app.MapGet("/schedules/{employeeId:guid}/{workDate}", async (Guid employeeId, DateOnly workDate, HttpContext context, ScheduleReader reader) =>
