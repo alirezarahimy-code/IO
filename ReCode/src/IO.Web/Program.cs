@@ -123,7 +123,7 @@ public static class IoWebHost
         app.MapGet("/panel", () => Results.Content(Resource("IO.Web.Ui.Panel.html"), "text/html; charset=utf-8")).AllowAnonymous();
         // Shell and assets are authenticated; all data operations additionally
         // enforce organization.manage in the service, never merely in the UI.
-        foreach (var page in new[] { "/workspace/calendars", "/workspace/shifts", "/workspace/schedules" })
+        foreach (var page in new[] { "/workspace/calendars", "/workspace/shifts", "/workspace/schedules", "/workspace/employee-history" })
             app.MapGet(page, () => Results.Content(Resource("IO.Web.Ui.Scheduling.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/scheduling.js", () => Results.Content(Resource("IO.Web.Ui.scheduling.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/organization", () => Results.Content(Resource("IO.Web.Ui.Organization.html"), "text/html; charset=utf-8"));

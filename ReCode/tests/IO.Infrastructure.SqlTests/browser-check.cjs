@@ -97,6 +97,12 @@ async function main() {
     if (await deniedSchedule.locator('#body tr').count() !== 0 || await deniedSchedule.locator('#create-form button').isEnabled())
       throw new Error('Schedule workspace exposed data without permission');
     await deniedSchedule.close();
+    const deniedHistory = await context.newPage();
+    await deniedHistory.goto(address + '/workspace/employee-history');
+    await deniedHistory.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
+    if (await deniedHistory.locator('#body tr').count() !== 0 || await deniedHistory.locator('#create-form button').isEnabled())
+      throw new Error('Employee history exposed data without permission');
+    await deniedHistory.close();
     const selfId = await page.evaluate(async () => (await (await fetch('/auth/me')).json()).id);
     const selfCompany = await page.evaluate(async id => (await (await fetch('/employees/' + encodeURIComponent(id))).json()).companyId, first);
     await clearResult();
@@ -261,6 +267,39 @@ async function main() {
     await schedulePage.locator('#create-form button').click();
     await schedulePage.waitForFunction(() => document.getElementById('notice').textContent.includes('تعارض'));
     await schedulePage.close();
+    await page.locator('#unit input[name=companyId]').fill(company);
+    await page.locator('#unit input[name=name]').fill('Workspace history unit');
+    const historyUnit = await submit('unit');
+    const historyPage = await context.newPage();
+    await historyPage.goto(address + '/workspace/employee-history');
+    await historyPage.waitForFunction(() => !document.querySelector('#create-form button').disabled);
+    await historyPage.locator('[name=employeeId]').fill(workspaceId);
+    await historyPage.locator('[name=unitId]').fill(historyUnit);
+    await historyPage.locator('[name=validFrom]').fill('2027-01-01');
+    await historyPage.locator('#create-form button').click();
+    await historyPage.locator('#body tr').filter({hasText:workspaceId}).waitFor();
+    await historyPage.locator('[data-kind=siteAssignments]').click();
+    await historyPage.waitForFunction(() => !document.querySelector('#create-form button').disabled);
+    await historyPage.locator('[name=employeeId]').fill(workspaceId);
+    await historyPage.locator('[name=siteId]').fill(site);
+    await historyPage.locator('[name=validFrom]').fill('2027-01-01');
+    await historyPage.locator('#create-form button').click();
+    await historyPage.locator('#body tr').filter({hasText:workspaceId}).waitFor();
+    await historyPage.locator('[data-kind=employmentProfiles]').click();
+    await historyPage.waitForFunction(() => !document.querySelector('#create-form button').disabled);
+    await historyPage.locator('[name=employeeId]').fill(workspaceId);
+    await historyPage.locator('[name=statusCode]').fill('workspace-status');
+    await historyPage.locator('[name=title]').fill('Workspace title');
+    await historyPage.locator('[name=validFrom]').fill('2027-01-01');
+    await historyPage.locator('#create-form button').click();
+    await historyPage.locator('#body tr').filter({hasText:'workspace-status'}).waitFor();
+    await historyPage.locator('[name=employeeId]').fill(workspaceId);
+    await historyPage.locator('[name=statusCode]').fill('overlap');
+    await historyPage.locator('[name=validFrom]').fill('2027-01-02');
+    await historyPage.locator('#create-form button').click();
+    await historyPage.waitForFunction(() => document.getElementById('notice').textContent.includes('تعارض'));
+    await historyPage.close();
+
 
     await page.locator('#attendance-source input[name=name]').fill('Browser synthetic source');
     await page.locator('#attendance-source input[name=siteId]').fill(site);
