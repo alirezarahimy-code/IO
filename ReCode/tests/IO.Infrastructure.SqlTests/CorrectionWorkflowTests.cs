@@ -239,6 +239,19 @@ internal static class CorrectionWorkflowTests
         check(await Run(s => s.CancelAsync(self, cancel, "not needed")) &&
               await Reject<DomainConflictException>(() => Run(s => s.DecideAsync(manager, cancel, true, null))), "cancelled request cannot later be approved");
         var nextDayRequest = await Run(s => s.SubmitAsync(self, policy, workDate.AddDays(1), at.AddDays(1), 0, "next day filter"));
+        var ascendingInbox = JsonSerializer.SerializeToElement(await Run(s => s.InboxAsync(manager, 0, employeeId: employee, sort: "work-asc")));
+        var descendingInbox = JsonSerializer.SerializeToElement(await Run(s => s.InboxAsync(manager, 0, employeeId: employee, sort: "work-desc")));
+        var ascendingItems = ascendingInbox.GetProperty("items").EnumerateArray().ToArray();
+        var descendingItems = descendingInbox.GetProperty("items").EnumerateArray().ToArray();
+        var ascendingDays = ascendingItems.Select(x => x.GetProperty("WorkDate").GetString()).ToArray();
+        var descendingDays = descendingItems.Select(x => x.GetProperty("WorkDate").GetString()).ToArray();
+        check(ascendingItems.Any(x => x.GetProperty("Id").GetGuid() == nextDayRequest) &&
+              ascendingItems.Any(x => x.GetProperty("Id").GetGuid() == identical) &&
+              ascendingDays.SequenceEqual(ascendingDays.OrderBy(x => x)) && descendingDays.SequenceEqual(descendingDays.OrderByDescending(x => x)) &&
+              ascendingItems.Select(x => x.GetProperty("Id").GetGuid()).ToHashSet().SetEquals(descendingItems.Select(x => x.GetProperty("Id").GetGuid())) &&
+              !ascendingItems.Any(x => x.GetProperty("Id").GetGuid() == outside) &&
+              await Reject<ArgumentException>(() => Run(s => s.InboxAsync(manager, 0, sort: "unknown"))),
+              "inbox work-date ordering is applied before pagination and preserves scope");
         var exactApproved = JsonSerializer.Serialize(await Run(s => s.ListOwnAsync(self, 0, fromDate: workDate, toDate: workDate, state: 1)));
         var rangePending = JsonSerializer.Serialize(await Run(s => s.ListOwnAsync(self, 0, fromDate: workDate, toDate: workDate.AddDays(1), state: 0)));
         var exactCancelled = JsonSerializer.Serialize(await Run(s => s.ListOwnAsync(self, 0, fromDate: workDate, toDate: workDate, state: 3)));

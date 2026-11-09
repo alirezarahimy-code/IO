@@ -343,6 +343,13 @@ internal static class HttpSecurityTests
                   invalidInbox.StatusCode == HttpStatusCode.BadRequest && malformedInbox.StatusCode == HttpStatusCode.BadRequest &&
                   restoredDecide.StatusCode == HttpStatusCode.OK && removedReadInbox.StatusCode == HttpStatusCode.OK,
                   "HTTP inbox read-only grant preserves employee scope and cannot decide");
+            using var sortedInbox = await scoped.GetAsync($"/corrections/inbox?employeeId={first}&sort=work-desc");
+            using var sortedInboxJson = JsonDocument.Parse(await sortedInbox.Content.ReadAsStringAsync());
+            check(sortedInbox.StatusCode == HttpStatusCode.OK && sortedInboxJson.RootElement.GetProperty("sort").GetString() == "work-desc" &&
+                  sortedInboxJson.RootElement.GetProperty("items").EnumerateArray().Any(x => x.GetProperty("id").GetGuid() == correctionId) &&
+                  (await scoped.GetAsync("/corrections/inbox?sort=invalid")).StatusCode == HttpStatusCode.BadRequest &&
+                  (await own.GetAsync("/corrections/inbox?sort=work-asc")).StatusCode == HttpStatusCode.Forbidden,
+                  "HTTP inbox sort is validated and remains permissioned");
             var inboxStatus = (await scoped.GetAsync("/corrections/inbox")).StatusCode;
             var ownDecisionStatus = (await PostAdmin(own, $"/corrections/requests/{correctionId}/decision", new { Approve = true, Reason = (string?)null })).StatusCode;
             var managerDecisionStatus = (await PostAdmin(scoped, $"/corrections/requests/{correctionId}/decision", new { Approve = true, Reason = (string?)null })).StatusCode;

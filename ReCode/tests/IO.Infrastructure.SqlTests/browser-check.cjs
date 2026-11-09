@@ -1425,6 +1425,16 @@ async function main() {
     await managerInbox.locator('#inbox-filter-reset').click();
     await managerInbox.waitForFunction(()=>document.getElementById('notice').textContent.includes('فیلتر اعمال شد'));
     await managerRow.waitFor();
+    await managerInbox.locator('#inbox-filter select[name=sort]').selectOption('work-desc');
+    await managerInbox.locator('#inbox-filter button[type=submit]').click();
+    await managerInbox.waitForFunction(()=>document.getElementById('notice').textContent.includes('فیلتر اعمال شد'));
+    const displayedDates=await managerInbox.locator('#body tr td:nth-child(2)').allTextContents();
+    if(displayedDates.length<2 || displayedDates.join('|')!==[...displayedDates].sort().reverse().join('|')) throw new Error('Inbox descending work-date sort failed');
+    await managerInbox.locator('#inbox-filter select[name=sort]').selectOption('work-asc');
+    await managerInbox.locator('#inbox-filter button[type=submit]').click();
+    await managerInbox.waitForFunction(()=>document.getElementById('notice').textContent.includes('فیلتر اعمال شد'));
+    const ascendingDates=await managerInbox.locator('#body tr td:nth-child(2)').allTextContents();
+    if(ascendingDates.join('|')!==[...ascendingDates].sort().join('|')) throw new Error('Inbox ascending work-date sort failed');
     const managerRequestId = await managerRow.locator('td').nth(6).textContent();
     await managerRow.locator('button').click(); await staleManagerRow.locator('button').click();
     await managerInbox.locator('#decision-form select[name=decision]').selectOption('reject');
