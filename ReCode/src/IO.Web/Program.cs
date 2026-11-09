@@ -146,6 +146,8 @@ public static class IoWebHost
         app.MapGet("/assets/employee-home.js", () => Results.Content(Resource("IO.Web.Ui.employee-home.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/workflow", () => Results.Content(Resource("IO.Web.Ui.Workflow.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/workflow.js", () => Results.Content(Resource("IO.Web.Ui.workflow.js"), "text/javascript; charset=utf-8"));
+        app.MapGet("/workspace/report-builder", () => Results.Content(Resource("IO.Web.Ui.ReportBuilder.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/report-builder.js", () => Results.Content(Resource("IO.Web.Ui.report-builder.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/reports", () => Results.Content(Resource("IO.Web.Ui.Reports.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/reports.js", () => Results.Content(Resource("IO.Web.Ui.reports.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/my-reports", () => Results.Content(Resource("IO.Web.Ui.MyReports.html"), "text/html; charset=utf-8"));

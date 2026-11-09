@@ -214,6 +214,15 @@ async function main() {
     if (await deniedRules.locator('#body tr').count() !== 0 || await deniedRules.locator('#create-form button').isEnabled())
       throw new Error('Rules workspace exposed data without permission');
     await deniedRules.close();
+    const deniedBuilder = await context.newPage();
+    await deniedBuilder.goto(address + '/workspace/report-builder');
+    await deniedBuilder.locator('#filter input[name=employeeId]').fill(first);
+    await deniedBuilder.locator('#filter input[name=start]').fill('2027-01-01');
+    await deniedBuilder.locator('#filter input[name=endExclusive]').fill('2027-01-02');
+    await deniedBuilder.locator('#filter button').click();
+    await deniedBuilder.waitForFunction(()=>document.getElementById('notice').textContent.includes('مجوز'));
+    if (await deniedBuilder.locator('#result').isVisible()) throw new Error('Report builder exposed data without permission');
+    await deniedBuilder.close();
     const deniedReport = await context.newPage();
     await deniedReport.goto(address + '/workspace/reports');
     await deniedReport.locator('#filter input[name=employeeId]').fill(first);
@@ -863,6 +872,22 @@ async function main() {
     await reportPage.locator('#filter input[name=employeeId]').fill(first);
     if (await reportPage.locator('#result').isVisible() || await reportPage.locator('#body tr').count()) throw new Error('Changing report employee left stale data');
     await reportPage.close();
+    const builder = await context.newPage();
+    await builder.goto(address + '/workspace/report-builder');
+    await builder.locator('#filter input[name=employeeId]').fill(employee);
+    await builder.locator('#filter input[name=start]').fill('2027-01-01');
+    await builder.locator('#filter input[name=endExclusive]').fill('2027-01-03');
+    await builder.locator('#filter button').click();
+    await builder.locator('#result').waitFor();
+    if (await builder.locator('#head th').count()!==6 || await builder.locator('#body tr').count()!==2 || !(await builder.locator('#body tr').first().textContent()).includes(reportApi.days[0].latestRun.id)) throw new Error('Report builder did not use actual preflight data');
+    await builder.locator('#columns input[value=id]').uncheck();
+    if (await builder.locator('#head th').count()!==5 || (await builder.locator('#body tr').first().textContent()).includes(reportApi.days[0].latestRun.id)) throw new Error('Report builder did not change visible columns');
+    for(const checkbox of await builder.locator('#columns input:checked').all()) await checkbox.uncheck();
+    if (!(await builder.locator('#column-message').isVisible()) || await builder.locator('#body tr').count()) throw new Error('Report builder mishandled empty column selection');
+    await builder.locator('#filter input[name=employeeId]').fill(first);
+    if (await builder.locator('#result').isVisible()) throw new Error('Changing report builder employee left stale data');
+    await builder.close();
+
 
 
     await page.locator('#calculation-revision input[name=id]').fill(run);

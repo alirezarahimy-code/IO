@@ -17,6 +17,8 @@
     <EmbeddedResource Include="Ui/team-attendance.js" />
     <EmbeddedResource Include="Ui/MyReports.html" />
     <EmbeddedResource Include="Ui/Reports.html" />
+    <EmbeddedResource Include="Ui/ReportBuilder.html" />
+    <EmbeddedResource Include="Ui/report-builder.js" />
     <EmbeddedResource Include="Ui/reports.js" />
     <EmbeddedResource Include="Ui/my-reports.js" />
     <EmbeddedResource Include="Ui/Workflow.html" />
