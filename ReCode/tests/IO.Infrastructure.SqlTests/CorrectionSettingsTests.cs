@@ -47,6 +47,7 @@ internal static class CorrectionSettingsTests
         var op=Guid.NewGuid();await Set(s=>s.SetAsync(admin,op,company,0,5,"set five"));
         var own=JsonSerializer.SerializeToElement(await Set(s=>s.ReadOwnAsync(requester)));
         check(own.GetProperty("configured").GetBoolean() && own.GetProperty("maxRequestAgeDays").GetInt32()==5 &&
+              await Flow(s=>s.SubmitAsync(requester,policy,today.AddDays(-50),proposed,0,"before setting",operationId:before))==before &&
               await Reject<ArgumentException>(()=>Flow(s=>s.SubmitAsync(requester,policy,today.AddDays(-6),proposed,0,"too old"))) &&
               await Flow(s=>s.SubmitAsync(requester,policy,today.AddDays(-5),proposed,0,"boundary"))!=Guid.Empty &&
               await Flow(s=>s.SubmitAsync(requester2,otherPolicy,today.AddDays(-50),proposed,0,"other company"))!=Guid.Empty,
