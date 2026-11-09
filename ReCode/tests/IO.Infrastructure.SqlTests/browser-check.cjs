@@ -79,6 +79,8 @@ async function main() {
       await waitText('عملیات انجام شد.');
     }
     await login('web-self');
+    const selfId = await page.evaluate(async () => (await (await fetch('/auth/me')).json()).id);
+    const selfCompany = await page.evaluate(async id => (await (await fetch('/employees/' + encodeURIComponent(id))).json()).companyId, first);
     await clearResult();
     await page.locator('#employee input[name=id]').fill(first);
     await page.locator('#employee button').click();
@@ -107,7 +109,7 @@ async function main() {
       await waitText('result');
       return JSON.parse(await page.locator('#result').textContent()).result;
     }
-    for (const code of ['organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.calculate', 'correction.configure', 'period.preflight', 'period.draft.manage']) {
+    for (const code of ['organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.calculate', 'correction.configure', 'correction.decide', 'correction.decide.all', 'period.preflight', 'period.draft.manage']) {
       await page.locator('#permission input[name=roleId]').fill(role);
       await page.locator('#permission select[name=code]').selectOption(code);
       await submit('permission');
@@ -234,6 +236,47 @@ async function main() {
     await page.locator('#jalali input[name=day]').fill('1');
     await page.locator('#jalali button').click();
     await waitText('2024-03-20');
+    // Exercise the actual self request and distinct approver UI, with explicit grants.
+    await page.locator('#role input[name=name]').fill('browser correction self role');
+    const selfRole = await submit('role');
+    await page.locator('#permission input[name=roleId]').fill(selfRole);
+    await page.locator('#permission select[name=code]').selectOption('correction.submit.self');
+    await submit('permission');
+    await page.locator('#grant input[name=userId]').fill(selfId);
+    await page.locator('#grant input[name=roleId]').fill(selfRole);
+    await submit('grant');
+    await page.locator('#correction-policy input[name=companyId]').fill(selfCompany);
+    await page.locator('#correction-policy input[name=approverUserId]').fill(adminId);
+    await page.locator('#correction-policy input[name=name]').fill('Browser employee correction policy');
+    const employeePolicy = await submit('correction-policy');
+    await clearResult();
+    await page.locator('#logout').click();
+    await waitText('عملیات انجام شد.');
+    await login('web-self');
+    await clearResult();
+    await page.locator('#correction-policies button').click();
+    await waitText(employeePolicy);
+    await page.locator('#correction-submit input[name=policyId]').fill(employeePolicy);
+    await page.locator('#correction-submit input[name=workDate]').fill('2027-03-01');
+    await page.locator('#correction-submit input[name=proposedAt]').fill('2027-03-01T08:00:00Z');
+    await page.locator('#correction-submit input[name=reason]').fill('Browser missed entry');
+    const requestId = await submit('correction-submit');
+    await clearResult();
+    await page.locator('#correction-own button').click();
+    await waitText(requestId);
+    await clearResult();
+    await page.locator('#logout').click();
+    await waitText('عملیات انجام شد.');
+    await login(adminName);
+    await clearResult();
+    await page.locator('#correction-inbox button').click();
+    await waitText(requestId);
+    await page.locator('#correction-decision input[name=id]').fill(requestId);
+    await page.locator('#correction-decision input[name=reason]').fill('Browser verified');
+    await submit('correction-decision');
+    await clearResult();
+    await page.locator('#correction-decisions button').click();
+    await waitText(requestId);
     await clearResult();
     await page.locator('#logout').click();
     await waitText('عملیات انجام شد.');
