@@ -60,4 +60,13 @@ form('shift', f => send('/scheduling/shifts', { companyId: f.elements.companyId.
 form('schedule-assignment', f => send('/scheduling/assignments', { employeeId: f.elements.employeeId.value, calendarId: f.elements.calendarId.value, shiftId: f.elements.shiftId.value, validFrom: f.elements.validFrom.value, validUntilExclusive: f.elements.validUntilExclusive.value || null }));
 form('schedule-replacement', f => send('/scheduling/replacements', { employeeId: f.elements.employeeId.value, assignmentId: f.elements.assignmentId.value, calendarId: f.elements.calendarId.value, shiftId: f.elements.shiftId.value, effective: f.elements.effective.value }));
 form('schedule-view', async f => show(await fetch('/schedules/' + encodeURIComponent(f.elements.employeeId.value) + '/' + encodeURIComponent(f.elements.workDate.value), { credentials: 'same-origin', cache: 'no-store' })));
+form('attendance-source', f => send('/attendance/sources', { name: f.elements.name.value, siteId: f.elements.siteId.value || null }));
+form('attendance-event', f => {
+  const bytes = new TextEncoder().encode(f.elements.payload.value);
+  let binary = ''; for (const byte of bytes) binary += String.fromCharCode(byte);
+  return send('/attendance/simulated-events', { sourceId: f.elements.sourceId.value, externalId: f.elements.externalId.value || null,
+    personId: f.elements.personId.value || null, occurredAt: f.elements.occurredAt.value || null, sourceZone: f.elements.sourceZone.value || null,
+    eventType: f.elements.eventType.value || null, payload: btoa(binary) });
+});
+form('attendance-list', async f => show(await fetch('/attendance/raw/' + encodeURIComponent(f.elements.sourceId.value) + '?offset=' + encodeURIComponent(f.elements.offset.value), { credentials: 'same-origin', cache: 'no-store' })));
 document.getElementById('logout').addEventListener('click', async () => { try { await send('/auth/logout', null); } catch { output.textContent = 'خروج ناموفق بود.'; } });

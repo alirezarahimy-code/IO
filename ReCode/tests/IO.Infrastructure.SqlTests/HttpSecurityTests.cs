@@ -178,7 +178,7 @@ internal static class HttpSecurityTests
                 return json.RootElement.GetProperty("result").GetGuid();
             }
             var featureRole = await CreateId("/admin/roles", new { Name = "phase five six test role" });
-            foreach (var code in new[] { "organization.manage", "schedule.manage", "schedule.read.all" })
+            foreach (var code in new[] { "organization.manage", "schedule.manage", "schedule.read.all", "attendance.ingest" })
                 if ((await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = featureRole, Code = code })).StatusCode != HttpStatusCode.OK)
                     throw new InvalidOperationException("Synthetic feature permission grant failed.");
             Guid globalActor;
@@ -190,6 +190,25 @@ internal static class HttpSecurityTests
             var newOrg = await CreateId("/org/organizations", new { Name = "HTTP synthetic org" });
             var newCompany = await CreateId("/org/companies", new { OrganizationId = newOrg, Name = "HTTP synthetic company" });
             var newSite = await CreateId("/org/sites", new { CompanyId = newCompany, Name = "HTTP site", TimeZoneId = "Asia/Tehran" });
+            var rawSource = await CreateId("/attendance/sources", new { SiteId = newSite, Name = "HTTP synthetic source" });
+            var rawEvent = new { SourceId = rawSource, ExternalId = "http-1", PersonId = "test-person", OccurredAt = "2026-01-01T08:00:00Z", SourceZone = "Asia/Tehran", EventType = "in", Payload = Convert.ToBase64String(new byte[] { 1, 2 }) };
+            check((await PostAdmin(scoped, "/attendance/simulated-events", rawEvent)).StatusCode == HttpStatusCode.Forbidden &&
+                  (await adminClient.PostAsJsonAsync("/attendance/simulated-events", rawEvent)).StatusCode == HttpStatusCode.BadRequest &&
+                  (await scoped.GetAsync($"/attendance/raw/{rawSource}")).StatusCode == HttpStatusCode.Forbidden,
+                "HTTP raw ingestion requires permission and CSRF");
+            using var firstRaw = await PostAdmin(adminClient, "/attendance/simulated-events", rawEvent);
+            using var retryRaw = await PostAdmin(adminClient, "/attendance/simulated-events", rawEvent);
+            using var firstRawJson = JsonDocument.Parse(await firstRaw.Content.ReadAsStringAsync());
+            using var retryRawJson = JsonDocument.Parse(await retryRaw.Content.ReadAsStringAsync());
+            check(firstRaw.StatusCode == HttpStatusCode.OK && retryRaw.StatusCode == HttpStatusCode.OK &&
+                  firstRawJson.RootElement.GetProperty("result").GetProperty("outcome").GetInt32() == 0 &&
+                  retryRawJson.RootElement.GetProperty("result").GetProperty("outcome").GetInt32() == 1 &&
+                  firstRawJson.RootElement.GetProperty("result").GetProperty("eventId").GetGuid() == retryRawJson.RootElement.GetProperty("result").GetProperty("eventId").GetGuid() &&
+                  (await adminClient.GetAsync($"/attendance/raw/{rawSource}")).StatusCode == HttpStatusCode.OK,
+                "HTTP raw event retry reports same recorded event and authorized list");
+            check((await PostAdmin(adminClient, "/attendance/simulated-events", new { SourceId = rawSource, ExternalId = "http-1", PersonId = "test-person", OccurredAt = "2026-01-01T08:00:00Z", SourceZone = "Asia/Tehran", EventType = "in", Payload = Convert.ToBase64String(new byte[] { 9 }) })).StatusCode == HttpStatusCode.Conflict &&
+                  (await PostAdmin(adminClient, "/attendance/simulated-events", new { SourceId = rawSource, ExternalId = "http-2", OccurredAt = "2026-01-01T08:00:00", Payload = "" })).StatusCode == HttpStatusCode.BadRequest,
+                "HTTP raw identity collision and timestamp without offset fail closed");
             var newUnit = await CreateId("/org/units", new { CompanyId = newCompany, ParentId = (Guid?)null, Name = "HTTP unit" });
             var newEmployee = await CreateId("/org/employees", new { CompanyId = newCompany, PersonnelNumber = "HTTP-1", DisplayName = "HTTP synthetic employee" });
             async Task<string> CatalogVersion(string kind, Guid id)

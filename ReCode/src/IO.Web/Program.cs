@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using System.Globalization;
+using System.Text.RegularExpressions;
 using System.Threading.RateLimiting;
 
 var app = IoWebHost.Build(args);
@@ -292,8 +294,16 @@ public static class IoWebHost
         if (!Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var actor)) return Results.Unauthorized();
         try
         {
+            DateTimeOffset? occurred = null;
+            if (input.OccurredAt is not null)
+            {
+                if (!Regex.IsMatch(input.OccurredAt, @"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?(?:Z|[+-]\d{2}:\d{2})$", RegexOptions.CultureInvariant) ||
+                    !DateTimeOffset.TryParse(input.OccurredAt, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed))
+                    return Results.BadRequest();
+                occurred = parsed;
+            }
             var result = await service.AppendAsync(actor, input.SourceId, input.ExternalId, input.PersonId,
-                input.OccurredAt, input.SourceZone, input.EventType, input.Payload, context.RequestAborted);
+                occurred, input.SourceZone, input.EventType, input.Payload, context.RequestAborted);
             return result.Outcome == RawEventAppendResult.ConflictingExternalIdentity
                 ? Results.Conflict(new { result }) : Results.Ok(new { result });
         }
@@ -355,4 +365,4 @@ public sealed record EmploymentInput(Guid EmployeeId, string StatusCode, string?
 public sealed record EmploymentChangeInput(Guid EmployeeId, Guid ProfileId, string StatusCode, string? Title, DateOnly Effective);
 
 public sealed record AttendanceSourceInput(Guid? SiteId, string Name);
-public sealed record SimulatedEventInput(Guid SourceId, string? ExternalId, string? PersonId, DateTimeOffset? OccurredAt, string? SourceZone, string? EventType, byte[] Payload);
+public sealed record SimulatedEventInput(Guid SourceId, string? ExternalId, string? PersonId, string? OccurredAt, string? SourceZone, string? EventType, byte[] Payload);

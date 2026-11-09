@@ -50,7 +50,7 @@ async function main() {
       await waitText('result');
       return JSON.parse(await page.locator('#result').textContent()).result;
     }
-    for (const code of ['organization.manage', 'schedule.manage', 'schedule.read.all']) {
+    for (const code of ['organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest']) {
       await page.locator('#permission input[name=roleId]').fill(role);
       await page.locator('#permission select[name=code]').selectOption(code);
       await submit('permission');
@@ -67,6 +67,18 @@ async function main() {
     await page.locator('#site input[name=name]').fill('Browser synthetic site');
     await page.locator('#site input[name=timeZoneId]').fill('Asia/Tehran');
     const site = await submit('site');
+    await page.locator('#attendance-source input[name=name]').fill('Browser synthetic source');
+    await page.locator('#attendance-source input[name=siteId]').fill(site);
+    const rawSource = await submit('attendance-source');
+    await page.locator('#attendance-event input[name=sourceId]').fill(rawSource);
+    await page.locator('#attendance-event input[name=externalId]').fill('browser-event');
+    await page.locator('#attendance-event input[name=occurredAt]').fill('2026-01-01T08:00:00Z');
+    await page.locator('#attendance-event textarea[name=payload]').fill('دادهٔ ساختگی');
+    await submit('attendance-event');
+    await clearResult();
+    await page.locator('#attendance-list input[name=sourceId]').fill(rawSource);
+    await page.locator('#attendance-list button').click();
+    await waitText('browser-event');
     await page.locator('#new-employee input[name=companyId]').fill(company);
     await page.locator('#new-employee input[name=personnelNumber]').fill('BROWSER-1');
     await page.locator('#new-employee input[name=displayName]').fill('Browser synthetic employee');

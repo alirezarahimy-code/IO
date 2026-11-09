@@ -18,8 +18,10 @@ internal static class AttendanceIngestionTests
             var role = await db.Roles.SingleAsync(x => x.Name == "Initial administrator");
             admin = await db.UserRoles.Where(x => x.RoleId == role.Id).Select(x => x.UserId).SingleAsync();
             limited = await db.Users.Where(x => x.UserName == "web-manager").Select(x => x.Id).SingleAsync();
-            var permission = new PermissionRecord { Id = Guid.NewGuid(), Code = AttendanceIngestion.Manage };
-            db.Permissions.Add(permission); db.RolePermissions.Add(new() { RoleId = role.Id, PermissionId = permission.Id });
+            var permission = await db.Permissions.SingleOrDefaultAsync(x => x.Code == AttendanceIngestion.Manage);
+            if (permission is null) { permission = new PermissionRecord { Id = Guid.NewGuid(), Code = AttendanceIngestion.Manage }; db.Permissions.Add(permission); }
+            if (!await db.RolePermissions.AnyAsync(x => x.RoleId == role.Id && x.PermissionId == permission.Id))
+                db.RolePermissions.Add(new() { RoleId = role.Id, PermissionId = permission.Id });
             await db.SaveChangesAsync();
         }
         async Task<T> Use<T>(Func<AttendanceIngestion, Task<T>> f)
