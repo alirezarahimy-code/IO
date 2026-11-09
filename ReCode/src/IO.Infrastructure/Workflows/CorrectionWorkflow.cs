@@ -47,14 +47,26 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
             return (new { companyId, offset, pageSize = 50, items }, companyId);
         }, ct);
 
-    public Task<Guid> SubmitAsync(Guid actor, Guid policyId, DateOnly workDate, DateTimeOffset proposedUtc, int kind, string reason, CancellationToken ct = default) =>
+    public Task<Guid> SubmitAsync(Guid actor, Guid policyId, DateOnly workDate, DateTimeOffset proposedUtc, int kind, string reason, CancellationToken ct = default, Guid? operationId = null) =>
         transaction.ExecuteAsync(actor, Submit, "correction.request.created", async token =>
         {
             Reason(reason, true);
-            if (policyId == Guid.Empty || proposedUtc.Offset != TimeSpan.Zero || kind is < 0 or > 1) throw new ArgumentException("Invalid proposed punch.");
+            if (policyId == Guid.Empty || operationId == Guid.Empty || proposedUtc.Offset != TimeSpan.Zero || kind is < 0 or > 1) throw new ArgumentException("Invalid proposed punch or operation id.");
             var employee = await (from user in db.Users join e in db.Employees on user.EmployeeId equals (Guid?)e.Id
                                   where user.Id == actor && user.IsActive select e).SingleOrDefaultAsync(token)
                 ?? throw new ArgumentException("Active account must be linked to an employee.");
+            // A client operation id lets an uncertain retry resolve to the original immutable request.
+            var id = operationId ?? Guid.NewGuid();
+            await transaction.LockAsync("IO.CorrectionOperation." + id.ToString("N"), token);
+            var existing = await db.CorrectionRequests.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, token);
+            if (existing is not null)
+            {
+                if (existing.RequesterUserId != actor || existing.EmployeeId != employee.Id || existing.CompanyId != employee.CompanyId ||
+                    existing.PolicyId != policyId || existing.WorkDate != workDate || existing.ProposedAtUtc != proposedUtc || existing.PunchKind != kind ||
+                    !string.Equals(existing.Reason, reason, StringComparison.Ordinal))
+                    throw new DomainConflictException("Operation id already used for another request.");
+                return (id, id);
+            }
             // Serialize with setting changes: the active company version at submission time is authoritative.
             await transaction.LockAsync(CorrectionSettings.LockName(employee.CompanyId), token);
             int maxAge = await db.CorrectionSettings.AsNoTracking().Where(x => x.CompanyId == employee.CompanyId)
@@ -67,7 +79,6 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
                 throw new ArgumentException("Self-approval policy cannot be used.");
             if (!await db.Users.AnyAsync(x => x.Id == policy.ApproverUserId && x.IsActive, token))
                 throw new DomainConflictException("Policy approver is inactive.");
-            var id = Guid.NewGuid();
             db.CorrectionRequests.Add(new() { Id = id, CompanyId = employee.CompanyId, EmployeeId = employee.Id,
                 RequesterUserId = actor, PolicyId = policyId, WorkDate = workDate, ProposedAtUtc = proposedUtc,
                 PunchKind = kind, Reason = reason, State = 0, CreatedAtUtc = DateTimeOffset.UtcNow });

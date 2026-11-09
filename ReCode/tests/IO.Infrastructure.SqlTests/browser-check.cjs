@@ -1153,7 +1153,7 @@ async function main() {
     const oldRequest=await policyAgePage.evaluate(async policy=>{
       const csrf=(await (await fetch('/auth/csrf')).json()).token;
       const old=new Date();old.setUTCDate(old.getUTCDate()-10);
-      return (await fetch('/corrections/requests',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf},body:JSON.stringify({policyId:policy,workDate:old.toISOString().slice(0,10),proposedAt:old.toISOString(),punchKind:0,reason:'old date'})})).status;
+      return (await fetch('/corrections/requests',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf},body:JSON.stringify({operationId:crypto.randomUUID(),policyId:policy,workDate:old.toISOString().slice(0,10),proposedAt:old.toISOString(),punchKind:0,reason:'old date'})})).status;
     },employeePolicy);
     if(oldRequest!==400)throw new Error('Configured age limit did not block old request');
     await policyAgePage.close();
@@ -1252,8 +1252,17 @@ async function main() {
     await newRequestPage.locator('#create-form input[name=proposedAt]').fill('2027-03-02T08:00:00Z');
     await newRequestPage.locator('#create-form select[name=punchKind]').selectOption('0');
     await newRequestPage.locator('#create-form input[name=reason]').fill('درخواست آزمایشی من');
+    const requestOperation=await newRequestPage.locator('#create-form input[name=operationId]').inputValue();
     await newRequestPage.locator('#create-form button').click();
     await newRequestPage.waitForFunction(() => document.getElementById('notice').textContent.includes('درخواست ثبت شد'));
+    if(!(await newRequestPage.locator('#notice').textContent()).includes(requestOperation) || await newRequestPage.locator('#create-form input[name=operationId]').inputValue()===requestOperation) throw new Error('Correction request operation was not persisted or rotated');
+    const retryCorrection=await newRequestPage.evaluate(async ({operation,policy})=>{
+      const csrf=(await (await fetch('/auth/csrf')).json()).token;
+      const body={operationId:operation,policyId:policy,workDate:'2027-03-02',proposedAt:'2027-03-02T08:00:00Z',punchKind:0,reason:'درخواست آزمایشی من'};
+      const post=x=>fetch('/corrections/requests',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf},body:JSON.stringify(x)});
+      return [(await post(body)).status,(await post({...body,reason:'different'})).status];
+    },{operation:requestOperation,policy:employeePolicy});
+    if(retryCorrection[0]!==200||retryCorrection[1]!==409)throw new Error('Correction retry was not idempotent');
     const employeeHome = await context.newPage();
     await employeeHome.goto(address + '/workspace/employee-home');
     await employeeHome.locator('#body tr').first().waitFor();

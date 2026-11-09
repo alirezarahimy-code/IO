@@ -51,6 +51,23 @@ internal static class CorrectionWorkflowTests
         check(await Reject<UnauthorizedAccessException>(() => Run(s => s.CreatePolicyAsync(self, company, manager, "denied"))) &&
               await Reject<ArgumentException>(() => Run(s => s.CreatePolicyAsync(admin, company, Guid.NewGuid(), "invalid"))), "correction policy requires configured permission and existing active approver");
         var policy = await Run(s => s.CreatePolicyAsync(admin, company, manager, "synthetic single approver"));
+        var operation=Guid.NewGuid();
+        var identical=await Run(s=>s.SubmitAsync(self,policy,workDate,at,0,"safe retry",operationId:operation));
+        check(identical==operation && await Run(s=>s.SubmitAsync(self,policy,workDate,at,0,"safe retry",operationId:operation))==operation &&
+              await Reject<DomainConflictException>(()=>Run(s=>s.SubmitAsync(self,policy,workDate,at,1,"safe retry",operationId:operation))) &&
+              await Reject<DomainConflictException>(()=>Run(s=>s.SubmitAsync(otherActor,policy,workDate,at,0,"safe retry",operationId:operation))) &&
+              await Reject<ArgumentException>(()=>Run(s=>s.SubmitAsync(self,policy,workDate,at,0,"safe retry",operationId:Guid.Empty))),
+              "correction submission retries use one immutable operation id and reject changed payload or actor");
+        var concurrentOp=Guid.NewGuid();
+        async Task<bool> SubmitOnce(){try{return await Run(s=>s.SubmitAsync(self,policy,workDate,at,0,"concurrent retry",operationId:concurrentOp))==concurrentOp;}catch(DomainConflictException){return false;}}
+        var attempts=await Task.WhenAll(SubmitOnce(),SubmitOnce());
+        await using(var s=provider.CreateAsyncScope())
+        {
+            var db=s.ServiceProvider.GetRequiredService<IoDbContext>();
+            check(attempts.Any(x=>x) && await db.CorrectionRequests.CountAsync(x=>x.Id==concurrentOp)==1 &&
+                  await Run(w=>w.SubmitAsync(self,policy,workDate,at,0,"concurrent retry",operationId:concurrentOp))==concurrentOp,
+                  "concurrent correction retries persist at most one request and a later retry resolves it");
+        }
         var configured = JsonSerializer.Serialize(await Run(s => s.ListConfiguredPoliciesAsync(admin, company, 0)));
         check(configured.Contains(policy.ToString(), StringComparison.OrdinalIgnoreCase) && configured.Contains(manager.ToString(), StringComparison.OrdinalIgnoreCase) &&
               await Reject<UnauthorizedAccessException>(() => Run(s => s.ListConfiguredPoliciesAsync(self, company, 0))) &&

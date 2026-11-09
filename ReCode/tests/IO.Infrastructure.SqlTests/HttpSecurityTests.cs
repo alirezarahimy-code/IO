@@ -275,14 +275,20 @@ internal static class HttpSecurityTests
                   (await adminClient.PostAsJsonAsync("/corrections/policies", policyInput)).StatusCode == HttpStatusCode.BadRequest,
                 "HTTP correction policy requires permission and antiforgery");
             var correctionPolicy = await CreateId("/corrections/policies", policyInput);
-            var correctionInput = new { PolicyId = correctionPolicy, WorkDate = "2027-05-05", ProposedAt = "2027-05-05T08:00:00Z", PunchKind = 0, Reason = "test" };
+            var correctionInput = new { OperationId = Guid.NewGuid(), PolicyId = correctionPolicy, WorkDate = "2027-05-05", ProposedAt = "2027-05-05T08:00:00Z", PunchKind = 0, Reason = "test" };
             check((await own.PostAsJsonAsync("/corrections/requests", correctionInput)).StatusCode == HttpStatusCode.BadRequest &&
-                  (await PostAdmin(own, "/corrections/requests", new { PolicyId = correctionPolicy, WorkDate = "2027-05-05", ProposedAt = "2027-05-05T08:00:00", PunchKind = 0, Reason = "test" })).StatusCode == HttpStatusCode.BadRequest,
+                  (await PostAdmin(own, "/corrections/requests", new { OperationId = Guid.NewGuid(), PolicyId = correctionPolicy, WorkDate = "2027-05-05", ProposedAt = "2027-05-05T08:00:00", PunchKind = 0, Reason = "test" })).StatusCode == HttpStatusCode.BadRequest,
                 "HTTP correction requires antiforgery and an explicit timestamp offset");
             using var correctionResponse = await PostAdmin(own, "/corrections/requests", correctionInput);
             correctionResponse.EnsureSuccessStatusCode();
             using var correctionJson = JsonDocument.Parse(await correctionResponse.Content.ReadAsStringAsync());
             var correctionId = correctionJson.RootElement.GetProperty("result").GetGuid();
+            using var retryResponse = await PostAdmin(own, "/corrections/requests", correctionInput);
+            using var retryJson = JsonDocument.Parse(await retryResponse.Content.ReadAsStringAsync());
+            check(retryResponse.StatusCode == HttpStatusCode.OK && retryJson.RootElement.GetProperty("result").GetGuid() == correctionId &&
+                  (await PostAdmin(own, "/corrections/requests", new { correctionInput.OperationId, correctionInput.PolicyId, correctionInput.WorkDate, correctionInput.ProposedAt, correctionInput.PunchKind, Reason = "changed" })).StatusCode == HttpStatusCode.Conflict &&
+                  (await PostAdmin(own, "/corrections/requests", new { correctionInput.PolicyId, correctionInput.WorkDate, correctionInput.ProposedAt, correctionInput.PunchKind, correctionInput.Reason })).StatusCode == HttpStatusCode.BadRequest,
+                  "HTTP correction requires operation id and rejects changed idempotent replay");
             var inboxStatus = (await scoped.GetAsync("/corrections/inbox")).StatusCode;
             var ownDecisionStatus = (await PostAdmin(own, $"/corrections/requests/{correctionId}/decision", new { Approve = true, Reason = (string?)null })).StatusCode;
             var managerDecisionStatus = (await PostAdmin(scoped, $"/corrections/requests/{correctionId}/decision", new { Approve = true, Reason = (string?)null })).StatusCode;

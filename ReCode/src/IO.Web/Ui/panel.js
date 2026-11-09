@@ -11,6 +11,7 @@ async function send(path, body) {
     headers: { 'X-CSRF-TOKEN': csrf, ...(body === null ? {} : { 'Content-Type': 'application/json' }) },
     body: body === null ? null : JSON.stringify(body) });
   await show(response);
+  return response.ok;
 }
 async function show(response) {
   const text = await response.text();
@@ -86,7 +87,11 @@ form('calculation-results', async f => show(await fetch('/calculations/runs/' + 
 form('correction-policy', f => send('/corrections/policies', { companyId: f.elements.companyId.value, approverUserId: f.elements.approverUserId.value, name: f.elements.name.value }));
 for (const [id, path] of [['correction-policies', 'policies'], ['correction-own', 'own'], ['correction-inbox', 'inbox'], ['correction-decisions', 'decisions']])
   form(id, async f => show(await fetch('/corrections/' + path + '?offset=' + encodeURIComponent(f.elements.offset.value), { credentials: 'same-origin', cache: 'no-store' })));
-form('correction-submit', f => send('/corrections/requests', { policyId: f.elements.policyId.value, workDate: f.elements.workDate.value, proposedAt: f.elements.proposedAt.value, punchKind: Number(f.elements.punchKind.value), reason: f.elements.reason.value }));
+document.getElementById('correction-submit').elements.operationId.value = crypto.randomUUID();
+form('correction-submit', async f => {
+  const ok = await send('/corrections/requests', { policyId: f.elements.policyId.value, workDate: f.elements.workDate.value, proposedAt: f.elements.proposedAt.value, punchKind: Number(f.elements.punchKind.value), reason: f.elements.reason.value, operationId: f.elements.operationId.value });
+  if (ok) f.elements.operationId.value = crypto.randomUUID();
+});
 form('correction-decision', f => send('/corrections/requests/' + encodeURIComponent(f.elements.id.value) + '/decision', { approve: f.elements.decision.value === 'approve', reason: f.elements.reason.value || null }));
 form('correction-cancel', f => send('/corrections/requests/' + encodeURIComponent(f.elements.id.value) + '/cancel', { reason: f.elements.reason.value }));
 form('period-draft', f => send('/periods/drafts', { employeeId: f.elements.employeeId.value, start: f.elements.start.value, endExclusive: f.elements.endExclusive.value }));
