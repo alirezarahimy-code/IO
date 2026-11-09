@@ -157,6 +157,27 @@ public sealed class AttendanceIngestion(IoDbContext db, PermissionTransaction tr
             return (item, conflictId);
         }, ct);
 
+    // Notes preserve observations only; they do not resolve or suppress conflicts.
+    public Task<Guid> AddConflictNoteAsync(Guid actor, Guid conflictId, string note, CancellationToken ct = default) =>
+        transaction.ExecuteAsync(actor, Manage, "attendance.conflict.noted", async token =>
+        {
+            if (conflictId == Guid.Empty || string.IsNullOrWhiteSpace(note) || note.Length > 500 || note.Any(char.IsControl) ||
+                !await db.RawEventConflicts.AnyAsync(x => x.Id == conflictId, token)) throw new ArgumentException("Invalid conflict note.");
+            var id = Guid.NewGuid();
+            db.RawConflictNotes.Add(new() { Id = id, ConflictId = conflictId, Note = note, CreatedByUserId = actor, CreatedAtUtc = DateTimeOffset.UtcNow });
+            return (id, id);
+        }, ct);
+
+    public Task<object> ListConflictNotesAsync(Guid actor, Guid conflictId, int offset, CancellationToken ct = default) =>
+        transaction.ExecuteAsync<object>(actor, Manage, "attendance.conflict.notes.viewed", async token =>
+        {
+            if (conflictId == Guid.Empty || offset is < 0 or > 100000 || !await db.RawEventConflicts.AnyAsync(x => x.Id == conflictId, token))
+                throw new ArgumentException("Invalid conflict or page.");
+            var items = await db.RawConflictNotes.AsNoTracking().Where(x => x.ConflictId == conflictId)
+                .OrderBy(x => x.CreatedAtUtc).ThenBy(x => x.Id).Skip(offset).Take(50).ToListAsync(token);
+            return (new { conflictId, offset, pageSize = 50, resolved = false, items }, conflictId);
+        }, ct);
+
     // Only globally authorized ingestion operators can inspect unassigned raw
     // records: source identity is not yet a trusted employee mapping.
     public Task<object> ListAsync(Guid actor, Guid sourceId, int offset, CancellationToken ct = default) =>

@@ -94,6 +94,15 @@ internal static class ObservedCalculationTests
                   run.InputSnapshotJson.Contains(unknown.EventId.ToString(), StringComparison.OrdinalIgnoreCase),
                 "unmapped source event prevents numeric result and remains in snapshot");
         }
+        var collision = await Raw(s => s.AppendAsync(admin, source, "in-1", "person-1", midnight.AddHours(7).AddMinutes(55), null, "in", [99]));
+        await Raw(s => s.AddConflictNoteAsync(admin, collision.ConflictId!.Value, "reviewed but not resolved"));
+        var afterNote = await Calc(s => s.CalculateAsync(admin, employee, date, source, rule));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var run = await scope.ServiceProvider.GetRequiredService<IoDbContext>().DailyCalculationRuns.SingleAsync(x => x.Id == afterNote);
+            check(run.ObservedTicks is null && run.AnomaliesJson.Contains("source-has-conflicts", StringComparison.Ordinal),
+                "conflict note does not suppress calculation anomaly");
+        }
         await using (var scope = provider.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();

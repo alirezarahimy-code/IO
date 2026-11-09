@@ -260,6 +260,16 @@ internal static class HttpSecurityTests
                   (await scoped.GetAsync($"/attendance/conflict/{conflictId}")).StatusCode == HttpStatusCode.Forbidden &&
                   (await adminClient.GetAsync($"/attendance/conflicts/{rawSource}")).StatusCode == HttpStatusCode.OK,
                 "HTTP collision response identifies stored restricted payload for review");
+            var conflictNote = new { Note = "HTTP synthetic review" };
+            check((await PostAdmin(scoped, $"/attendance/conflict/{conflictId}/notes", conflictNote)).StatusCode == HttpStatusCode.Forbidden &&
+                  (await adminClient.PostAsJsonAsync($"/attendance/conflict/{conflictId}/notes", conflictNote)).StatusCode == HttpStatusCode.BadRequest,
+                  "HTTP conflict notes require permission and antiforgery");
+            await CreateId($"/attendance/conflict/{conflictId}/notes", conflictNote);
+            using var notesResponse = await adminClient.GetAsync($"/attendance/conflict/{conflictId}/notes");
+            check(notesResponse.StatusCode == HttpStatusCode.OK &&
+                  (await notesResponse.Content.ReadAsStringAsync()).Contains("\"resolved\":false", StringComparison.Ordinal) &&
+                  (await scoped.GetAsync($"/attendance/conflict/{conflictId}/notes")).StatusCode == HttpStatusCode.Forbidden,
+                  "HTTP conflict notes are restricted and do not resolve the conflict");
             var newUnit = await CreateId("/org/units", new { CompanyId = newCompany, ParentId = (Guid?)null, Name = "HTTP unit" });
             var newEmployee = await CreateId("/org/employees", new { CompanyId = newCompany, PersonnelNumber = "HTTP-1", DisplayName = "HTTP synthetic employee" });
             var map = new { SourceId = rawSource, SourcePersonId = "test-person", EmployeeId = newEmployee, ValidFrom = "2026-01-01T00:00:00Z", ValidUntilExclusive = (string?)null };

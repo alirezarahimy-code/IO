@@ -209,6 +209,10 @@ public static class IoWebHost
             AdminRead(c, actor => service.ListConflictsAsync(actor, sourceId, offset ?? 0, c.RequestAborted)));
         app.MapGet("/attendance/conflict/{id:guid}", (Guid id, HttpContext c, AttendanceIngestion service) =>
             AdminRead(c, actor => service.GetConflictAsync(actor, id, c.RequestAborted)));
+        app.MapGet("/attendance/conflict/{id:guid}/notes", (Guid id, int? offset, HttpContext c, AttendanceIngestion service) =>
+            AdminRead(c, actor => service.ListConflictNotesAsync(actor, id, offset ?? 0, c.RequestAborted)));
+        app.MapPost("/attendance/conflict/{id:guid}/notes", (Guid id, ConflictNoteInput input, HttpContext c, IAntiforgery csrf, AttendanceIngestion service) =>
+            Admin(c, csrf, actor => service.AddConflictNoteAsync(actor, id, input.Note, c.RequestAborted)));
         app.MapPost("/attendance/mappings", (SourceMappingInput input, HttpContext c, IAntiforgery csrf, AttendanceIngestion service) =>
             Admin(c, csrf, actor => service.AddMappingAsync(actor, input.SourceId, input.SourcePersonId, input.EmployeeId,
                 ParseExplicitTime(input.ValidFrom).ToUniversalTime(), input.ValidUntilExclusive is null ? null : ParseExplicitTime(input.ValidUntilExclusive).ToUniversalTime(), c.RequestAborted)));
@@ -429,3 +433,5 @@ public sealed record CorrectionDecisionInput(bool Approve, string? Reason);
 public sealed record CorrectionCancelInput(string Reason);
 
 public sealed record PeriodDraftInput(Guid EmployeeId, DateOnly Start, DateOnly EndExclusive);
+
+public sealed record ConflictNoteInput(string Note);

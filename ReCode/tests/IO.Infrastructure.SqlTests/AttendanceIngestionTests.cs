@@ -116,6 +116,26 @@ internal static class AttendanceIngestionTests
               await Reject<UnauthorizedAccessException>(() => Use(s => s.GetConflictAsync(limited, conflict.ConflictId!.Value))) &&
               (await Use(s => s.GetConflictAsync(admin, conflict.ConflictId!.Value))) is not null,
               "mapping review and conflict payload require explicit permission");
+        var conflictId = conflict.ConflictId!.Value;
+        check(await Reject<UnauthorizedAccessException>(() => Use(s => s.AddConflictNoteAsync(limited, conflictId, "denied"))) &&
+              await Reject<ArgumentException>(() => Use(s => s.AddConflictNoteAsync(admin, conflictId, " "))) &&
+              await Reject<ArgumentException>(() => Use(s => s.AddConflictNoteAsync(admin, Guid.NewGuid(), "unknown"))),
+              "conflict notes require permission, valid text and an existing conflict");
+        var noteId = await Use(s => s.AddConflictNoteAsync(admin, conflictId, "synthetic review note"));
+        var notes = JsonSerializer.SerializeToElement(await Use(s => s.ListConflictNotesAsync(admin, conflictId, 0)));
+        check(!notes.GetProperty("resolved").GetBoolean() && notes.GetProperty("items").GetArrayLength() == 1 &&
+              await Reject<UnauthorizedAccessException>(() => Use(s => s.ListConflictNotesAsync(limited, conflictId, 0))),
+              "conflict notes remain restricted and do not mark collision resolved");
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var blocked = false;
+            try { await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM dbo.RawConflictNotes WHERE Id = {noteId}"); }
+            catch (SqlException e) when (e.Number == 51010) { blocked = true; }
+            check(blocked && await db.RawEventConflicts.AnyAsync(x => x.Id == conflictId) &&
+                  await scope.ServiceProvider.GetRequiredService<LoginIdentityDbContext>().SecurityAudit.AnyAsync(x => x.Action == "attendance.conflict.noted:" + noteId.ToString("N")),
+                  "SQL protects conflict notes and their audit without modifying collision evidence");
+        }
         await using (var scope = provider.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
