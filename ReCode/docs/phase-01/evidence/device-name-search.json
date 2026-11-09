@@ -1,0 +1,84 @@
+{
+  "scope": {
+    "roots": [
+      "TWF 4.28",
+      "T5V3.9.2",
+      "T5Web [3.5.7]",
+      "Link5 v4.0.4"
+    ],
+    "file_count": 851,
+    "text_extensions": [
+      ".config",
+      ".cshtml",
+      ".js",
+      ".md",
+      ".sql",
+      ".txt",
+      ".xml"
+    ],
+    "successfully_decoded_text_files": 297,
+    "utf8_failed_used_latin1_ascii_search_only": [
+      "TWF 4.28/App/Scripts/JsFarsiCalendar.js",
+      "T5Web [3.5.7]/App/Scripts/JsFarsiCalendar.js",
+      "Link5 v4.0.4/test.txt"
+    ],
+    "decode_or_read_errors": [],
+    "assembly_type_inventories_searched": 11,
+    "notes": "Whole-word ASCII name search only; original encoding is unknown for latin1 fallback. No binary content/string scan, database inspection, external documentation, device execution or network connection. No matches do not prove lack of support. Config text values are never exported."
+  },
+  "filename_matches": {
+    "VIRDI": [],
+    "UNIS": [],
+    "ZKTeco": [],
+    "zkemkeeper": [],
+    "ZKDevice": []
+  },
+  "text_content_file_matches": {
+    "VIRDI": [],
+    "UNIS": [],
+    "ZKTeco": [],
+    "zkemkeeper": [],
+    "ZKDevice": []
+  },
+  "type_name_matches": {
+    "VIRDI": [],
+    "UNIS": [],
+    "ZKTeco": [],
+    "zkemkeeper": [
+      {
+        "assembly": "Link5/Service",
+        "type": "zkemkeeper._IZKEMEvents"
+      },
+      {
+        "assembly": "Link5/Service",
+        "type": "zkemkeeper._IZKEMEvents_Event"
+      },
+      {
+        "assembly": "Link5/Service",
+        "type": "zkemkeeper._IZKEMEvents_OnAttTransactionExEventHandler"
+      },
+      {
+        "assembly": "Link5/Service",
+        "type": "zkemkeeper.CZKEM"
+      },
+      {
+        "assembly": "Link5/Service",
+        "type": "zkemkeeper.IZKEM"
+      }
+    ],
+    "ZKDevice": [
+      {
+        "assembly": "T5Desktop/ZK",
+        "type": "T5V3.ZK.ZKDevice"
+      },
+      {
+        "assembly": "T5Desktop/ZK",
+        "type": "T5V3.ZK.ZKDevice.OnZKDeviceEventHandler"
+      },
+      {
+        "assembly": "T5Desktop/ZK",
+        "type": "T5V3.ZK.ZKDevice.OnZKDeviceTransactHandler"
+      }
+    ]
+  }
+}

@@ -206,22 +206,28 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
             return (new { offset, pageSize = 50, fromDate, toDate, state, items, canCancel }, actor);
         }, ct);
 
-    public Task<object> ListDecisionsAsync(Guid actor, int offset, CancellationToken ct = default) =>
+    public Task<object> ListDecisionsAsync(Guid actor, int offset, CancellationToken ct = default, DateOnly? fromDate = null, DateOnly? toDate = null) =>
         transaction.ExecuteEitherAsync<object>(actor, ReadDecisions, Decide, "correction.decisions.viewed", async token =>
         {
-            if (offset is < 0 or > 100000) throw new ArgumentException("Invalid page.");
+            if (offset is < 0 or > 100000 || fromDate.HasValue != toDate.HasValue ||
+                (fromDate.HasValue && fromDate > toDate))
+                throw new ArgumentException("Invalid page or date range.");
             var authorized = access.AuthorizedEmployees(actor, DateOnly.FromDateTime(DateTime.UtcNow), "correction.never-self", DecideScoped, DecideAll);
-            var items = await (from decision in db.CorrectionDecisions.AsNoTracking()
-                               join request in db.CorrectionRequests on decision.RequestId equals request.Id
-                               join policy in db.CorrectionPolicies on request.PolicyId equals policy.Id
-                               where decision.ActorUserId == actor && policy.ApproverUserId == actor &&
-                                     decision.Decision != 3 && request.RequesterUserId != actor && authorized.Any(x => x.Id == request.EmployeeId) &&
-                                     !db.Users.Any(x => x.Id == actor && x.EmployeeId == request.EmployeeId)
-                               orderby decision.AtUtc descending, decision.Id
-                               select new { decision.RequestId, request.EmployeeId, request.WorkDate, request.ProposedAtUtc, request.PunchKind,
-                                   RequestReason = request.Reason, decision.Decision, DecisionReason = decision.Reason, decision.AtUtc })
-                               .Skip(offset).Take(50).ToListAsync(token);
-            return (new { offset, pageSize = 50, items }, actor);
+            var query = from decision in db.CorrectionDecisions.AsNoTracking()
+                        join request in db.CorrectionRequests on decision.RequestId equals request.Id
+                        join policy in db.CorrectionPolicies on request.PolicyId equals policy.Id
+                        where decision.ActorUserId == actor && policy.ApproverUserId == actor &&
+                              decision.Decision != 3 && request.RequesterUserId != actor && authorized.Any(x => x.Id == request.EmployeeId) &&
+                              !db.Users.Any(x => x.Id == actor && x.EmployeeId == request.EmployeeId)
+                        select new { decision.RequestId, request.EmployeeId, request.WorkDate, request.ProposedAtUtc, request.PunchKind,
+                            RequestReason = request.Reason, decision.Decision, DecisionReason = decision.Reason, decision.AtUtc };
+            if (fromDate.HasValue && toDate.HasValue)
+            {
+                var from = fromDate.Value; var to = toDate.Value;
+                query = query.Where(x => x.WorkDate >= from && x.WorkDate <= to);
+            }
+            var items = await query.OrderByDescending(x => x.AtUtc).ThenBy(x => x.RequestId).Skip(offset).Take(50).ToListAsync(token);
+            return (new { offset, pageSize = 50, fromDate, toDate, items }, actor);
         }, ct);
 
     // Only employees with a pending request actually assigned to this actor and

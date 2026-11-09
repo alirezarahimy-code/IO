@@ -362,6 +362,14 @@ internal static class CorrectionWorkflowTests
               await Reject<UnauthorizedAccessException>(() => Run(s => s.ListOwnAsync(outsider, 0, fromDate: workDate, toDate: workDate))),
               "own correction filters include both dates, state and actor and reject invalid ranges");
         await Run(s => s.DecideAsync(manager, nextDayRequest, false, "rejected for test"));
+        var datedDecisions = JsonSerializer.SerializeToElement(await Run(s => s.ListDecisionsAsync(manager, 0, fromDate: workDate, toDate: workDate)));
+        var datedDecisionItems = datedDecisions.GetProperty("items").EnumerateArray().ToArray();
+        check(datedDecisions.GetProperty("fromDate").GetString() == workDate.ToString("yyyy-MM-dd") &&
+              datedDecisionItems.Any(x => x.GetProperty("RequestId").GetGuid() == request) &&
+              !datedDecisionItems.Any(x => x.GetProperty("RequestId").GetGuid() == nextDayRequest) &&
+              await Reject<ArgumentException>(() => Run(s => s.ListDecisionsAsync(manager, 0, fromDate: workDate))) &&
+              await Reject<ArgumentException>(() => Run(s => s.ListDecisionsAsync(manager, 0, fromDate: workDate.AddDays(1), toDate: workDate))),
+              "decision history work-date filter is inclusive and rejects invalid ranges");
         await using (var scope = provider.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();

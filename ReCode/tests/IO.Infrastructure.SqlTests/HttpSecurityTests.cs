@@ -432,6 +432,20 @@ internal static class HttpSecurityTests
             check(inboxStatus == HttpStatusCode.OK && ownDecisionStatus == HttpStatusCode.Forbidden && managerDecisionStatus == HttpStatusCode.OK &&
                   lateCancelStatus == HttpStatusCode.Conflict && ownHistoryStatus == HttpStatusCode.OK,
                 $"HTTP scoped approval and own history enforce state and identity ({inboxStatus}, {ownDecisionStatus}, {managerDecisionStatus}, {lateCancelStatus}, {ownHistoryStatus})");
+            using var datedHistory = await scoped.GetAsync("/corrections/decisions?fromDate=2027-05-08&toDate=2027-05-08");
+            using var datedHistoryJson = JsonDocument.Parse(await datedHistory.Content.ReadAsStringAsync());
+            using var rejectionDayHistory = await scoped.GetAsync("/corrections/decisions?fromDate=2027-05-09&toDate=2027-05-09");
+            using var rejectionDayJson = JsonDocument.Parse(await rejectionDayHistory.Content.ReadAsStringAsync());
+            check(datedHistory.StatusCode == HttpStatusCode.OK &&
+                  datedHistoryJson.RootElement.GetProperty("items").EnumerateArray().Any(x => x.GetProperty("requestId").GetGuid() == splitApprovalId) &&
+                  !datedHistoryJson.RootElement.GetProperty("items").EnumerateArray().Any(x => x.GetProperty("requestId").GetGuid() == splitRejectionId) &&
+                  rejectionDayHistory.StatusCode == HttpStatusCode.OK &&
+                  rejectionDayJson.RootElement.GetProperty("items").EnumerateArray().Any(x => x.GetProperty("requestId").GetGuid() == splitRejectionId) &&
+                  !rejectionDayJson.RootElement.GetProperty("items").EnumerateArray().Any(x => x.GetProperty("requestId").GetGuid() == splitApprovalId) &&
+                  (await scoped.GetAsync("/corrections/decisions?fromDate=2027-05-08")).StatusCode == HttpStatusCode.BadRequest &&
+                  (await scoped.GetAsync("/corrections/decisions?fromDate=2027-05-09&toDate=2027-05-08")).StatusCode == HttpStatusCode.BadRequest &&
+                  (await own.GetAsync("/corrections/decisions?fromDate=2027-05-08&toDate=2027-05-08")).StatusCode == HttpStatusCode.Forbidden,
+                  "HTTP decision history date filter narrows work dates and rejects invalid ranges");
             using var trackedResponse = await own.GetAsync("/corrections/own?fromDate=2027-05-05&toDate=2027-05-05");
             using var trackedJson = JsonDocument.Parse(await trackedResponse.Content.ReadAsStringAsync());
             var tracked = trackedJson.RootElement.GetProperty("items").EnumerateArray().Single(x => x.GetProperty("id").GetGuid() == correctionId);
