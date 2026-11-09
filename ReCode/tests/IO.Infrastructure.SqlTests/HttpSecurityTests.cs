@@ -137,6 +137,7 @@ internal static class HttpSecurityTests
                   (await anon.GetAsync("/workspace/mappings")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/workspace/raw-events")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/workspace/conflicts")).StatusCode == HttpStatusCode.Unauthorized &&
+                  (await anon.GetAsync("/workspace/calculations")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/attendance/sources")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/workspace/calendars")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/workspace/shifts")).StatusCode == HttpStatusCode.Unauthorized &&

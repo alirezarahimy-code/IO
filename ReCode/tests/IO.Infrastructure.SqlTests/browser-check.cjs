@@ -127,6 +127,14 @@ async function main() {
     if (await deniedConflicts.locator('#body tr').count() !== 0 || await deniedConflicts.locator('#details').isVisible())
       throw new Error('Conflict workspace exposed data without permission');
     await deniedConflicts.close();
+    const deniedCalculations = await context.newPage();
+    await deniedCalculations.goto(address + '/workspace/calculations');
+    await deniedCalculations.locator('#filter input[name=employeeId]').fill(first);
+    await deniedCalculations.locator('#filter button').click();
+    await deniedCalculations.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
+    if (await deniedCalculations.locator('#body tr').count() !== 0 || await deniedCalculations.locator('#create-form button').isEnabled())
+      throw new Error('Calculation workspace exposed data without permission');
+    await deniedCalculations.close();
     const deniedHistory = await context.newPage();
     await deniedHistory.goto(address + '/workspace/employee-history');
     await deniedHistory.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
@@ -556,6 +564,26 @@ async function main() {
     await page.locator('#calculation-run input[name=ruleVersionId]').fill(rule);
     await page.locator('#calculation-run input[name=workDate]').fill('2027-01-01');
     const run = await submit('calculation-run');
+    const calculationPage = await context.newPage();
+    await calculationPage.goto(address + '/workspace/calculations');
+    await calculationPage.locator('#filter input[name=employeeId]').fill(employee);
+    await calculationPage.locator('#filter button').click();
+    const existingRun = calculationPage.locator('#body tr').filter({hasText:run});
+    await existingRun.waitFor();
+    await existingRun.locator('button').click();
+    if (!(await calculationPage.locator('#detail-text').textContent()).includes('inputSnapshotJson')) throw new Error('Calculation detail missing');
+    await calculationPage.locator('#create-form input[name=sourceId]').fill(rawSource);
+    await calculationPage.locator('#create-form input[name=ruleVersionId]').fill(rule);
+    await calculationPage.locator('#create-form input[name=workDate]').fill('2027-01-01');
+    await calculationPage.locator('#create-form button').click();
+    await calculationPage.waitForFunction(() => document.getElementById('notice').textContent.includes('اجرای آزمایشی ثبت شد'));
+    const savedRuns = await calculationPage.evaluate(async employee => (await (await fetch('/calculations/runs/' + encodeURIComponent(employee))).json()), employee);
+    if (savedRuns.items.length !== 2 || savedRuns.freshness !== 'unknown' || savedRuns.items.some(x => x.observedTicks !== null || !x.anomaliesJson.includes('source-has-conflicts')))
+      throw new Error('Experimental calculation result is not persisted or anomalies were concealed');
+    await calculationPage.locator('#filter input[name=employeeId]').fill(first);
+    if (await calculationPage.locator('#create-form button').isEnabled() || await calculationPage.locator('#body tr').count() !== 0 || await calculationPage.locator('#details').isVisible())
+      throw new Error('Changing employee left stale calculations visible');
+    await calculationPage.close();
     await page.locator('#calculation-revision input[name=id]').fill(run);
     await clearResult();
     await page.locator('#calculation-revision button').click();

@@ -8,6 +8,8 @@
     <EmbeddedResource Include="Ui/Mappings.html" />
     <EmbeddedResource Include="Ui/RawEvents.html" />
     <EmbeddedResource Include="Ui/Conflicts.html" />
+    <EmbeddedResource Include="Ui/Calculations.html" />
+    <EmbeddedResource Include="Ui/calculations.js" />
     <EmbeddedResource Include="Ui/conflicts.js" />
     <EmbeddedResource Include="Ui/raw-events.js" />
     <EmbeddedResource Include="Ui/mappings.js" />
