@@ -70,6 +70,20 @@ try
         var created = 0;
         foreach (var table in expectedTables) if (await HasTable(table)) created++;
         Check(created == expectedTables.Length, "all 37 foundation and later tables created");
+        // Upgrade an existing settings row across the limits migration, not only an empty database.
+        var legacyOrg=Guid.NewGuid(); var legacyCompany=Guid.NewGuid(); var legacyUser=Guid.NewGuid(); var legacySetting=Guid.NewGuid();
+        var migrator=db.GetService<IMigrator>();
+        await migrator.MigrateAsync("20261109201550_CorrectionSettings");
+        db.Organizations.Add(new OrganizationRecord {Id=legacyOrg,Name="Synthetic migration organization"});
+        db.Companies.Add(new CompanyRecord {Id=legacyCompany,OrganizationId=legacyOrg,Name="Synthetic migration company"});
+        db.Users.Add(new UserRecord {Id=legacyUser,UserName="synthetic-migration-settings",IsActive=true});
+        await db.SaveChangesAsync();
+        var createdUtc=DateTimeOffset.UtcNow;
+        await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO dbo.CorrectionSettings (Id,CompanyId,Revision,MaxRequestAgeDays,Reason,CreatedByUserId,CreatedAtUtc) VALUES ({legacySetting},{legacyCompany},{1},{5},{"legacy"},{legacyUser},{createdUtc})");
+        await migrator.MigrateAsync();
+        var upgraded=await db.CorrectionSettings.AsNoTracking().SingleAsync(x=>x.Id==legacySetting);
+        Check(upgraded.Revision==1 && upgraded.MaxRequestAgeDays==5 && upgraded.DailyRequestLimit==0 && upgraded.MonthlyRequestLimit==0,
+            "settings migration preserves old values and leaves new limits unlimited");
         db.Organizations.Add(new() { Id = orgId, Name = "Synthetic organization" });
         db.Companies.AddRange(new CompanyRecord { Id = companyId, OrganizationId = orgId, Name = "Synthetic company" },
             new CompanyRecord { Id = otherCompanyId, OrganizationId = orgId, Name = "Other synthetic company" });

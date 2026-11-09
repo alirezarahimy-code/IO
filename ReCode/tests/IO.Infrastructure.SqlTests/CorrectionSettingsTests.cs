@@ -15,7 +15,7 @@ internal static class CorrectionSettingsTests
         var services=new ServiceCollection();services.AddLogging();services.AddIoIdentityStorage(connection);
         await using var provider=services.BuildServiceProvider();
         var org=Guid.NewGuid();var company=Guid.NewGuid();var company2=Guid.NewGuid();var employee=Guid.NewGuid();var employee2=Guid.NewGuid();
-        var requester=Guid.NewGuid();var requester2=Guid.NewGuid();var approver=Guid.NewGuid();var role=Guid.NewGuid();var approverRole=Guid.NewGuid();Guid admin;
+        var requester=Guid.NewGuid();var requester2=Guid.NewGuid();var sameEmployeeUser=Guid.NewGuid();var approver=Guid.NewGuid();var role=Guid.NewGuid();var approverRole=Guid.NewGuid();Guid admin;
         await using(var scope=provider.CreateAsyncScope())
         {
             var db=scope.ServiceProvider.GetRequiredService<IoDbContext>();var adminRole=await db.Roles.SingleAsync(x=>x.Name=="Initial administrator");
@@ -23,8 +23,8 @@ internal static class CorrectionSettingsTests
             db.Organizations.Add(new OrganizationRecord{Id=org,Name="settings test org"});
             db.Companies.AddRange(new CompanyRecord{Id=company,OrganizationId=org,Name="settings company"},new CompanyRecord{Id=company2,OrganizationId=org,Name="settings other"});
             db.Employees.AddRange(new EmployeeRecord{Id=employee,CompanyId=company,PersonnelNumber="SET-1",DisplayName="Setting person"},new EmployeeRecord{Id=employee2,CompanyId=company2,PersonnelNumber="SET-2",DisplayName="Other person"});
-            db.Users.AddRange(new UserRecord{Id=requester,UserName="setting-requester",EmployeeId=employee,IsActive=true},new UserRecord{Id=requester2,UserName="setting-requester-2",EmployeeId=employee2,IsActive=true},new UserRecord{Id=approver,UserName="setting-approver",IsActive=true});
-            db.Roles.AddRange(new RoleRecord{Id=role,Name="setting-submitter-role"},new RoleRecord{Id=approverRole,Name="setting-approver-role"});db.UserRoles.AddRange(new UserRoleRecord{UserId=requester,RoleId=role},new UserRoleRecord{UserId=requester2,RoleId=role},new UserRoleRecord{UserId=approver,RoleId=approverRole});
+            db.Users.AddRange(new UserRecord{Id=requester,UserName="setting-requester",EmployeeId=employee,IsActive=true},new UserRecord{Id=requester2,UserName="setting-requester-2",EmployeeId=employee2,IsActive=true},new UserRecord{Id=sameEmployeeUser,UserName="setting-requester-same-employee",EmployeeId=employee,IsActive=true},new UserRecord{Id=approver,UserName="setting-approver",IsActive=true});
+            db.Roles.AddRange(new RoleRecord{Id=role,Name="setting-submitter-role"},new RoleRecord{Id=approverRole,Name="setting-approver-role"});db.UserRoles.AddRange(new UserRoleRecord{UserId=requester,RoleId=role},new UserRoleRecord{UserId=requester2,RoleId=role},new UserRoleRecord{UserId=sameEmployeeUser,RoleId=role},new UserRoleRecord{UserId=approver,RoleId=approverRole});
             foreach(var (r,code) in new[]{(adminRole.Id,CorrectionSettings.Manage),(adminRole.Id,CorrectionWorkflow.Configure),(role,CorrectionWorkflow.Submit),(approverRole,CorrectionWorkflow.Decide),(approverRole,CorrectionWorkflow.DecideAll)})
             {
                 var p=await db.Permissions.SingleOrDefaultAsync(x=>x.Code==code);if(p is null){p=new PermissionRecord{Id=Guid.NewGuid(),Code=code};db.Permissions.Add(p);}
@@ -66,6 +66,7 @@ internal static class CorrectionSettingsTests
         var day1=PersianDates.ToGregorian(1408,12,20);var day2=day1.AddDays(1);var day3=day1.AddDays(2);var nextMonth=PersianDates.ToGregorian(1409,1,1);
         var first=await Flow(s=>s.SubmitAsync(requester,policy,day1,proposed,0,"daily first"));
         check(await Reject<DomainConflictException>(()=>Flow(s=>s.SubmitAsync(requester,policy,day1,proposed,1,"daily excess"))) &&
+              await Reject<DomainConflictException>(()=>Flow(s=>s.SubmitAsync(sameEmployeeUser,policy,day1,proposed,1,"same employee other account"))) &&
               await Flow(s=>s.CancelAsync(requester,first,"cancel first")) &&
               await Flow(s=>s.SubmitAsync(requester,policy,day1,proposed,1,"after cancel"))!=Guid.Empty,
               "daily limits count pending and approved requests and free rejected or cancelled requests");
