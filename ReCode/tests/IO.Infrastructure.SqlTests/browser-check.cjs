@@ -85,6 +85,12 @@ async function main() {
     if (await deniedWorkspace.locator('#employee-rows tr').count() !== 0 || await deniedWorkspace.locator('#create-employee button').isEnabled())
       throw new Error('Workspace exposed data or create action without organization permission');
     await deniedWorkspace.close();
+    const deniedOrg = await context.newPage();
+    await deniedOrg.goto(address + '/workspace/organization');
+    await deniedOrg.waitForFunction(() => document.getElementById('notice').textContent.includes('دسترسی'));
+    if (await deniedOrg.locator('#body tr').count() !== 0 || await deniedOrg.locator('#create-form button').isEnabled())
+      throw new Error('Organization workspace exposed data without permission');
+    await deniedOrg.close();
     const selfId = await page.evaluate(async () => (await (await fetch('/auth/me')).json()).id);
     const selfCompany = await page.evaluate(async id => (await (await fetch('/employees/' + encodeURIComponent(id))).json()).companyId, first);
     await clearResult();
@@ -162,6 +168,38 @@ async function main() {
     await employeePage.waitForFunction(() => document.getElementById('notice').textContent.includes('نام کارمند تغییر کرد'));
     if (!(await employeeRow.textContent()).includes('Workspace renamed employee')) throw new Error('Updated employee not displayed');
     await employeePage.close();
+    const orgPage = await context.newPage();
+    await orgPage.goto(address + '/workspace/organization');
+    await orgPage.locator('#create-form input[name=name]').waitFor();
+    await orgPage.waitForFunction(() => !document.querySelector('#create-form button').disabled);
+    await orgPage.locator('#create-form input[name=name]').fill('Workspace organization');
+    await orgPage.locator('#create-form button').click();
+    const orgRow = orgPage.locator('#body tr').filter({hasText:'Workspace organization'});
+    await orgRow.waitFor();
+    const workspaceOrg = await orgRow.locator('td').last().textContent();
+    await orgPage.locator('[data-kind=companies]').click();
+    await orgPage.waitForFunction(() => !document.querySelector('#create-form button').disabled);
+    await orgPage.locator('#create-form input[name=organizationId]').fill(workspaceOrg);
+    await orgPage.locator('#create-form input[name=name]').fill('Workspace company');
+    await orgPage.locator('#create-form button').click();
+    const orgCompanyRow = orgPage.locator('#body tr').filter({hasText:'Workspace company'});
+    await orgCompanyRow.waitFor();
+    const workspaceCompany = await orgCompanyRow.locator('td').last().textContent();
+    await orgPage.locator('[data-kind=sites]').click();
+    await orgPage.waitForFunction(() => !document.querySelector('#create-form button').disabled);
+    await orgPage.locator('#create-form input[name=companyId]').fill(workspaceCompany);
+    await orgPage.locator('#create-form input[name=name]').fill('Workspace site');
+    await orgPage.locator('#create-form input[name=timeZoneId]').fill('Etc/UTC');
+    await orgPage.locator('#create-form button').click();
+    await orgPage.locator('#body tr').filter({hasText:'Workspace site'}).waitFor();
+    await orgPage.locator('[data-kind=units]').click();
+    await orgPage.waitForFunction(() => !document.querySelector('#create-form button').disabled);
+    await orgPage.locator('#create-form input[name=companyId]').fill(workspaceCompany);
+    await orgPage.locator('#create-form input[name=name]').fill('Workspace unit');
+    await orgPage.locator('#create-form button').click();
+    await orgPage.locator('#body tr').filter({hasText:'Workspace unit'}).waitFor();
+    await orgPage.close();
+
 
     await page.locator('#correction-policy input[name=companyId]').fill(company);
     await page.locator('#correction-policy input[name=approverUserId]').fill(adminId);
