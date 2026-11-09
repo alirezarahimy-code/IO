@@ -53,6 +53,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             {
                 t.HasCheckConstraint("CK_CorrectionSettings_Revision", "[Revision] > 0");
                 t.HasCheckConstraint("CK_CorrectionSettings_Age", "[MaxRequestAgeDays] BETWEEN 0 AND 3650");
+                t.HasCheckConstraint("CK_CorrectionSettings_Limits", "[DailyRequestLimit] BETWEEN 0 AND 1000 AND [MonthlyRequestLimit] BETWEEN 0 AND 1000");
                 t.HasCheckConstraint("CK_CorrectionSettings_Utc", "DATEPART(TZOFFSET, [CreatedAtUtc]) = 0");
                 t.HasTrigger("TR_CorrectionSettings_Immutable"); t.UseSqlOutputClause(false);
             });

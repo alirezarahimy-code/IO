@@ -7,6 +7,8 @@ public sealed class CorrectionSettingsRecord
     public Guid CompanyId { get; set; }
     public int Revision { get; set; }
     public int MaxRequestAgeDays { get; set; }
+    public int DailyRequestLimit { get; set; }
+    public int MonthlyRequestLimit { get; set; }
     public string Reason { get; set; } = null!;
     public Guid CreatedByUserId { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }
