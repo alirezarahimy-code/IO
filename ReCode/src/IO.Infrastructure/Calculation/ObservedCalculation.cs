@@ -112,6 +112,34 @@ public sealed class ObservedCalculation(IoDbContext db, PermissionTransaction tr
                 if (kind is null) anomalies.Add("unknown-event-type");
                 else points.Add(new(row.Id, row.OccurredAtUtc!.Value, kind.Value));
             }
+            // Only immutable, explicitly approved missing-punch requests for this employee/day
+            // may contribute. A decision is verified separately; pending or inconsistent records
+            // block a numeric result rather than being guessed away.
+            var corrections = await (from request in db.CorrectionRequests.AsNoTracking()
+                                     join policy in db.CorrectionPolicies on request.PolicyId equals policy.Id
+                                     join decision in db.CorrectionDecisions on request.Id equals decision.RequestId into decisions
+                                     from decision in decisions.DefaultIfEmpty()
+                                     where request.EmployeeId == employeeId && request.WorkDate == workDate && (request.State == 0 || request.State == 1)
+                                     orderby request.CreatedAtUtc, request.Id
+                                     select new { request.Id, request.CompanyId, request.PolicyId, request.RequesterUserId, request.State,
+                                         request.ProposedAtUtc, request.PunchKind, request.Reason, request.CreatedAtUtc,
+                                         policy.ApproverUserId, DecisionId = decision == null ? (Guid?)null : decision.Id,
+                                         Decision = decision == null ? (int?)null : decision.Decision,
+                                         DecisionActor = decision == null ? (Guid?)null : decision.ActorUserId,
+                                         DecisionAtUtc = decision == null ? (DateTimeOffset?)null : decision.AtUtc,
+                                         DecisionReason = decision == null ? null : decision.Reason }).Take(501).ToListAsync(token);
+            if (corrections.Count > 500) throw new DomainConflictException("The correction input exceeds 500 requests.");
+            foreach (var correction in corrections)
+            {
+                if (correction.State == 0) { anomalies.Add("pending-correction"); continue; }
+                if (correction.Decision != 1 || correction.DecisionId is null || correction.DecisionActor != correction.ApproverUserId ||
+                    correction.DecisionActor == correction.RequesterUserId || correction.CompanyId != employee.CompanyId ||
+                    correction.DecisionAtUtc < correction.CreatedAtUtc)
+                { anomalies.Add("invalid-correction-decision"); continue; }
+                if (correction.ProposedAtUtc < start || correction.ProposedAtUtc >= end)
+                { anomalies.Add("correction-outside-window"); continue; }
+                points.Add(new(correction.Id, correction.ProposedAtUtc, (PunchKind)correction.PunchKind));
+            }
             var calculated = ObservedAttendance.Calculate(employeeId, workDate, ruleId, start, end, points, []);
             foreach (var anomaly in calculated.Anomalies) anomalies.Add(anomaly);
             var id = Guid.NewGuid();
@@ -121,7 +149,7 @@ public sealed class ObservedCalculation(IoDbContext db, PermissionTransaction tr
                 ObservedTicks = anomalies.Count == 0 ? calculated.ObservedPresence?.Ticks : null,
                 InputSnapshotJson = JsonSerializer.Serialize(new { rule.Algorithm, rule.BeforeMinutes, rule.AfterMinutes,
                     schedule.Id, schedule.CalendarId, schedule.SiteId, schedule.TimeZoneId, ShiftStartUtc = shiftStart, ShiftEndUtc = shiftEnd,
-                    DayKind = dayKind, Events = snapshot }),
+                    DayKind = dayKind, Events = snapshot, Corrections = corrections }),
                 AnomaliesJson = JsonSerializer.Serialize(anomalies.Order(StringComparer.Ordinal)) });
             return (id, id);
         }, ct);

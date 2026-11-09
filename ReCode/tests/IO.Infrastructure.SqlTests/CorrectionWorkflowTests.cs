@@ -1,5 +1,7 @@
 using System.Text.Json;
 using IO.Infrastructure.Security;
+using IO.Infrastructure.Attendance;
+using IO.Infrastructure.Calculation;
 using IO.Infrastructure.Storage;
 using IO.Infrastructure.Workflows;
 using Microsoft.Data.SqlClient;
@@ -62,6 +64,47 @@ internal static class CorrectionWorkflowTests
         var cancel = await Run(s => s.SubmitAsync(self, policy, workDate, at.AddMinutes(1), 1, "missing exit"));
         check(await Run(s => s.CancelAsync(self, cancel, "not needed")) &&
               await Reject<DomainConflictException>(() => Run(s => s.DecideAsync(manager, cancel, true, null))), "cancelled request cannot later be approved");
+        var integratedDate = new DateOnly(2028, 6, 6);
+        var integratedAt = new DateTimeOffset(2028, 6, 6, 8, 0, 0, TimeSpan.Zero);
+        var site = Guid.NewGuid(); var source = Guid.NewGuid(); var calendar = Guid.NewGuid(); var shift = Guid.NewGuid();
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            db.Sites.Add(new() { Id = site, CompanyId = company, Name = "correction site", TimeZoneId = "Etc/UTC" });
+            db.EventSources.Add(new() { Id = source, SiteId = site, Name = "correction source" });
+            db.Calendars.Add(new() { Id = calendar, CompanyId = company, Name = "correction calendar" });
+            db.CalendarDays.Add(new() { Id = Guid.NewGuid(), CalendarId = calendar, Date = integratedDate, Kind = 0, RecordedAtUtc = DateTimeOffset.UtcNow });
+            db.ShiftDefinitions.Add(new() { Id = shift, CompanyId = company, SiteId = site, Name = "correction shift", StartsAt = new(8, 0), EndsAt = new(16, 0) });
+            db.WorkScheduleAssignments.Add(new() { Id = Guid.NewGuid(), CompanyId = company, EmployeeId = employee, CalendarId = calendar,
+                ShiftId = shift, ValidFrom = integratedDate, ValidUntilExclusive = integratedDate.AddDays(1) });
+            await db.SaveChangesAsync();
+        }
+        async Task<T> Calc<T>(Func<ObservedCalculation, Task<T>> f) { await using var scope = provider.CreateAsyncScope(); return await f(scope.ServiceProvider.GetRequiredService<ObservedCalculation>()); }
+        async Task<T> Raw<T>(Func<AttendanceIngestion, Task<T>> f) { await using var scope = provider.CreateAsyncScope(); return await f(scope.ServiceProvider.GetRequiredService<AttendanceIngestion>()); }
+        var calculationRule = await Calc(s => s.CreateRuleAsync(admin, company, "correction test rule", 0, 0));
+        await Raw(s => s.AddMappingAsync(admin, source, "correction-person", employee, integratedAt.AddDays(-1), null));
+        var rawExit = await Raw(s => s.AppendAsync(admin, source, "correction-exit", "correction-person", integratedAt.AddHours(8), null, "out", [9]));
+        var pending = await Run(s => s.SubmitAsync(self, policy, integratedDate, integratedAt, 0, "forgot entry"));
+        var before = await Calc(s => s.CalculateAsync(admin, employee, integratedDate, source, calculationRule));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var run = await scope.ServiceProvider.GetRequiredService<IoDbContext>().DailyCalculationRuns.SingleAsync(x => x.Id == before);
+            check(run.ObservedTicks is null && run.AnomaliesJson.Contains("pending-correction", StringComparison.Ordinal),
+                "pending correction blocks a numerical calculation");
+        }
+        await Run(s => s.DecideAsync(manager, pending, true, "verified"));
+        var after = await Calc(s => s.CalculateAsync(admin, employee, integratedDate, source, calculationRule));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var run = await db.DailyCalculationRuns.SingleAsync(x => x.Id == after);
+            var prior = await db.DailyCalculationRuns.SingleAsync(x => x.Id == before);
+            check(run.ObservedTicks == TimeSpan.FromHours(8).Ticks && run.AnomaliesJson == "[]" &&
+                run.InputSnapshotJson.Contains(pending.ToString(), StringComparison.OrdinalIgnoreCase) &&
+                run.InputSnapshotJson.Contains("verified", StringComparison.Ordinal) && prior.ObservedTicks is null &&
+                await db.RawAttendanceEvents.CountAsync(x => x.Id == rawExit.EventId) == 1,
+                "approved correction contributes to new snapshot without altering raw or previous run");
+        }
         var race = await Run(s => s.SubmitAsync(self, policy, workDate, at.AddMinutes(2), 1, "race"));
         async Task<bool> Attempt(Func<Task> f) { try { await f(); return true; } catch (DomainConflictException) { return false; } }
         var winners = await Task.WhenAll(Attempt(() => Run(s => s.CancelAsync(self, race, "cancel"))), Attempt(() => Run(s => s.DecideAsync(manager, race, true, null))));
