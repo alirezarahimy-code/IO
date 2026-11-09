@@ -882,7 +882,7 @@ async function main() {
     if (await builder.locator('#head th').count()!==6 || await builder.locator('#body tr').count()!==2 || !(await builder.locator('#body tr').first().textContent()).includes(reportApi.days[0].latestRun.id)) throw new Error('Report builder did not use actual preflight data');
     await builder.locator('#columns input[value=id]').uncheck();
     if (await builder.locator('#head th').count()!==5 || (await builder.locator('#body tr').first().textContent()).includes(reportApi.days[0].latestRun.id)) throw new Error('Report builder did not change visible columns');
-    for(const checkbox of await builder.locator('#columns input:checked').all()) await checkbox.uncheck();
+    for(const checkbox of await builder.locator('#columns input').all()) if (await checkbox.isChecked()) await checkbox.uncheck();
     if (!(await builder.locator('#column-message').isVisible()) || await builder.locator('#body tr').count()) throw new Error('Report builder mishandled empty column selection');
     await builder.locator('#filter input[name=employeeId]').fill(first);
     if (await builder.locator('#result').isVisible()) throw new Error('Changing report builder employee left stale data');
