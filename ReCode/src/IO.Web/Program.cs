@@ -201,6 +201,11 @@ public static class IoWebHost
         });
         app.MapGet("/attendance/raw/{sourceId:guid}", (Guid sourceId, int? offset, HttpContext c, AttendanceIngestion service) =>
             AdminRead(c, actor => service.ListAsync(actor, sourceId, offset ?? 0, c.RequestAborted)));
+        app.MapGet("/attendance/mapping-changes/{sourceId:guid}", (Guid sourceId, int? offset, HttpContext c, AttendanceIngestion service) =>
+            AdminRead(c, actor => service.ListMappingChangesAsync(actor, sourceId, offset ?? 0, c.RequestAborted)));
+        app.MapPost("/attendance/mapping-replacements", (SourceMappingReplacementInput input, HttpContext c, IAntiforgery csrf, AttendanceIngestion service) =>
+            Admin(c, csrf, actor => service.ReplaceMappingAsync(actor, input.SourceId, input.SourcePersonId, input.MappingId, input.EmployeeId,
+                ParseExplicitTime(input.EffectiveAt).ToUniversalTime(), ParseVersion(input.ExpectedVersion), input.Reason, c.RequestAborted)));
         app.MapGet("/attendance/mappings/{sourceId:guid}", (Guid sourceId, int? offset, HttpContext c, AttendanceIngestion service) =>
             AdminRead(c, actor => service.ListMappingsAsync(actor, sourceId, offset ?? 0, c.RequestAborted)));
         app.MapGet("/attendance/resolution/{sourceId:guid}", (Guid sourceId, int? offset, HttpContext c, AttendanceIngestion service) =>
@@ -435,3 +440,5 @@ public sealed record CorrectionCancelInput(string Reason);
 public sealed record PeriodDraftInput(Guid EmployeeId, DateOnly Start, DateOnly EndExclusive);
 
 public sealed record ConflictNoteInput(string Note);
+
+public sealed record SourceMappingReplacementInput(Guid SourceId, string SourcePersonId, Guid MappingId, Guid EmployeeId, string EffectiveAt, string ExpectedVersion, string Reason);

@@ -93,7 +93,7 @@ internal static class AttendanceIngestionTests
         }
         var attempts = await Task.WhenAll(TryMapping(), TryMapping());
         check(attempts.Count(x => x.HasValue) == 1, "concurrent overlapping source mappings serialize");
-        await Use(s => s.AddMappingAsync(admin, mappedSource, "P1", employee, time.AddHours(1), null));
+        var openMapping = await Use(s => s.AddMappingAsync(admin, mappedSource, "P1", employee, time.AddHours(1), null));
         var before = await Use(s => s.AppendAsync(admin, mappedSource, "before", "P1", time.AddSeconds(-1), null, "in", []));
         var atStart = await Use(s => s.AppendAsync(admin, mappedSource, "start", "P1", time, null, "in", []));
         var boundary = await Use(s => s.AppendAsync(admin, mappedSource, "boundary", "P1", time.AddHours(1), null, "out", []));
@@ -116,6 +116,51 @@ internal static class AttendanceIngestionTests
               await Reject<UnauthorizedAccessException>(() => Use(s => s.GetConflictAsync(limited, conflict.ConflictId!.Value))) &&
               (await Use(s => s.GetConflictAsync(admin, conflict.ConflictId!.Value))) is not null,
               "mapping review and conflict payload require explicit permission");
+        var newEmployee = Guid.NewGuid(); byte[] version;
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var company = await db.Employees.Where(x => x.Id == employee).Select(x => x.CompanyId).SingleAsync();
+            db.Employees.Add(new() { Id = newEmployee, CompanyId = company, PersonnelNumber = "MAPPING-NEW", DisplayName = "New synthetic mapped employee" });
+            await db.SaveChangesAsync();
+            version = (await db.SourceEmployeeMappings.SingleAsync(x => x.Id == openMapping)).Version;
+        }
+        var cutoff = time.AddHours(2);
+        check(await Reject<UnauthorizedAccessException>(() => Use(s => s.ReplaceMappingAsync(limited, mappedSource, "P1", openMapping, newEmployee, cutoff, version, "denied"))) &&
+              await Reject<ArgumentException>(() => Use(s => s.ReplaceMappingAsync(admin, mappedSource, "p1", openMapping, newEmployee, cutoff, version, "wrong case"))) &&
+              await Reject<ArgumentException>(() => Use(s => s.ReplaceMappingAsync(admin, mappedSource, "P1", openMapping, foreignEmployee, cutoff, version, "wrong company"))) &&
+              await Reject<ArgumentException>(() => Use(s => s.ReplaceMappingAsync(admin, mappedSource, "P1", openMapping, newEmployee, time, version, "bad boundary"))) &&
+              await Reject<DomainConflictException>(() => Use(s => s.ReplaceMappingAsync(admin, mappedSource, "P1", openMapping, newEmployee, cutoff, new byte[8], "stale"))),
+              "mapping replacement validates permission, exact identity, company, boundary and rowversion");
+        async Task<AttendanceIngestion.MappingReplacement?> TryReplacement()
+        {
+            try { return await Use(s => s.ReplaceMappingAsync(admin, mappedSource, "P1", openMapping, newEmployee, cutoff, version, "synthetic transfer")); }
+            catch (DomainConflictException) { return null; }
+        }
+        var replacements = await Task.WhenAll(TryReplacement(), TryReplacement());
+        var changed = replacements.Single(x => x is not null)!;
+        check(replacements.Count(x => x is not null) == 1, "competing mapping replacements allow exactly one winner");
+        var atCutoff = await Use(s => s.AppendAsync(admin, mappedSource, "new-boundary", "P1", cutoff, null, "in", []));
+        using var afterReplacement = JsonSerializer.SerializeToDocument(await Use(s => s.ListResolutionAsync(admin, mappedSource, 0)));
+        var resolved = afterReplacement.RootElement.GetProperty("items").EnumerateArray().ToDictionary(x => x.GetProperty("Id").GetGuid());
+        check(resolved[boundary.EventId].GetProperty("EmployeeId").GetGuid() == employee &&
+              resolved[atCutoff.EventId].GetProperty("EmployeeId").GetGuid() == newEmployee,
+              "mapping replacement preserves previous interval and uses new employee at the half-open boundary");
+        var mappingChanges = JsonSerializer.SerializeToElement(await Use(s => s.ListMappingChangesAsync(admin, mappedSource, 0)));
+        check(mappingChanges.GetProperty("items").GetArrayLength() == 1 &&
+              await Reject<UnauthorizedAccessException>(() => Use(s => s.ListMappingChangesAsync(limited, mappedSource, 0))),
+              "mapping change history is restricted and includes the recorded replacement");
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var blocked = false;
+            try { await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM dbo.SourceMappingChanges WHERE Id = {changed.ChangeId}"); }
+            catch (SqlException e) when (e.Number == 51011) { blocked = true; }
+            check(blocked && await db.SourceEmployeeMappings.AnyAsync(x => x.Id == openMapping && x.ValidUntilUtcExclusive == cutoff) &&
+                await db.SourceEmployeeMappings.AnyAsync(x => x.Id == changed.NewMappingId && x.ValidFromUtc == cutoff && x.EmployeeId == newEmployee) &&
+                await scope.ServiceProvider.GetRequiredService<LoginIdentityDbContext>().SecurityAudit.AnyAsync(x => x.Action == "attendance.mapping.replaced:" + changed.ChangeId.ToString("N")),
+                "mapping replacement is transactional, audited and its history is immutable");
+        }
         var conflictId = conflict.ConflictId!.Value;
         check(await Reject<UnauthorizedAccessException>(() => Use(s => s.AddConflictNoteAsync(limited, conflictId, "denied"))) &&
               await Reject<ArgumentException>(() => Use(s => s.AddConflictNoteAsync(admin, conflictId, " "))) &&

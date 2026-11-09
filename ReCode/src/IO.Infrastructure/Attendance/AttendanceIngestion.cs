@@ -12,6 +12,7 @@ public sealed class AttendanceIngestion(IoDbContext db, PermissionTransaction tr
 {
     public const string Manage = "attendance.ingest";
     public sealed record Receipt(Guid EventId, RawEventAppendResult Outcome, Guid? ConflictId = null);
+    public sealed record MappingReplacement(Guid ChangeId, Guid NewMappingId);
 
     public Task<Guid> CreateSourceAsync(Guid actor, Guid? siteId, string name, CancellationToken ct = default) =>
         transaction.ExecuteAsync(actor, Manage, "attendance.source.created", async token =>
@@ -98,13 +99,65 @@ public sealed class AttendanceIngestion(IoDbContext db, PermissionTransaction tr
             return (id, id);
         }, ct);
 
+    // Replace an open mapping at a precise UTC boundary in one transaction.
+    // Historical calculations remain snapshots and must be recomputed separately.
+    public Task<MappingReplacement> ReplaceMappingAsync(Guid actor, Guid sourceId, string sourcePersonId, Guid mappingId,
+        Guid employeeId, DateTimeOffset effectiveUtc, byte[] expectedVersion, string reason, CancellationToken ct = default) =>
+        transaction.ExecuteAsync(actor, Manage, "attendance.mapping.replaced", async token =>
+        {
+            if (sourceId == Guid.Empty || mappingId == Guid.Empty || employeeId == Guid.Empty ||
+                string.IsNullOrWhiteSpace(sourcePersonId) || sourcePersonId.Length > 100 || sourcePersonId.Any(char.IsControl) ||
+                effectiveUtc.Offset != TimeSpan.Zero || expectedVersion is null || expectedVersion.Length != 8 ||
+                string.IsNullOrWhiteSpace(reason) || reason.Length > 500 || reason.Any(char.IsControl))
+                throw new ArgumentException("Invalid mapping replacement.");
+            var identity = Encoding.Unicode.GetBytes(sourcePersonId);
+            await transaction.LockAsync("IO.SourcePerson." + sourceId.ToString("N") + "." + Convert.ToHexString(SHA256.HashData(identity)), token);
+            var old = await db.SourceEmployeeMappings.SingleOrDefaultAsync(x => x.Id == mappingId && x.SourceId == sourceId &&
+                EF.Property<byte[]>(x, "SourcePersonIdBytes") == identity && EF.Property<int>(x, "SourcePersonIdByteLength") == identity.Length, token)
+                ?? throw new ArgumentException("Unknown mapping or identity mismatch.");
+            if (!old.Version.AsSpan().SequenceEqual(expectedVersion) || old.ValidUntilUtcExclusive is not null)
+                throw new DomainConflictException("Mapping is stale or already closed.");
+            if (effectiveUtc <= old.ValidFromUtc || old.EmployeeId == employeeId) throw new ArgumentException("Invalid replacement boundary or employee.");
+            var validCompany = await (from source in db.EventSources join site in db.Sites on source.SiteId equals (Guid?)site.Id
+                                      join employee in db.Employees on site.CompanyId equals employee.CompanyId
+                                      where source.Id == sourceId && employee.Id == employeeId && site.CompanyId == old.CompanyId
+                                      select employee.Id).AnyAsync(token);
+            if (!validCompany) throw new ArgumentException("Source and new employee must share the mapping's company.");
+            if (await db.SourceEmployeeMappings.AnyAsync(x => x.Id != mappingId && x.SourceId == sourceId &&
+                EF.Property<byte[]>(x, "SourcePersonIdBytes") == identity && EF.Property<int>(x, "SourcePersonIdByteLength") == identity.Length &&
+                (x.ValidUntilUtcExclusive == null || effectiveUtc < x.ValidUntilUtcExclusive), token))
+                throw new DomainConflictException("Replacement overlaps another mapping.");
+            old.ValidUntilUtcExclusive = effectiveUtc;
+            var newId = Guid.NewGuid(); var changeId = Guid.NewGuid();
+            db.SourceEmployeeMappings.Add(new() { Id = newId, SourceId = sourceId, SourcePersonId = sourcePersonId, EmployeeId = employeeId,
+                CompanyId = old.CompanyId, ValidFromUtc = effectiveUtc, ValidUntilUtcExclusive = null });
+            db.SourceMappingChanges.Add(new() { Id = changeId, PreviousMappingId = old.Id, NewMappingId = newId,
+                EffectiveAtUtc = effectiveUtc, ActorUserId = actor, CreatedAtUtc = DateTimeOffset.UtcNow, Reason = reason });
+            return (new MappingReplacement(changeId, newId), changeId);
+        }, ct);
+
+    public Task<object> ListMappingChangesAsync(Guid actor, Guid sourceId, int offset, CancellationToken ct = default) =>
+        transaction.ExecuteAsync<object>(actor, Manage, "attendance.mapping.changes.viewed", async token =>
+        {
+            if (sourceId == Guid.Empty || offset is < 0 or > 100000) throw new ArgumentException("Invalid page.");
+            var items = await (from change in db.SourceMappingChanges.AsNoTracking()
+                               join previous in db.SourceEmployeeMappings on change.PreviousMappingId equals previous.Id
+                               join next in db.SourceEmployeeMappings on change.NewMappingId equals next.Id
+                               where previous.SourceId == sourceId
+                               orderby change.CreatedAtUtc descending, change.Id
+                               select new { change.Id, change.PreviousMappingId, change.NewMappingId, previous.SourcePersonId,
+                                   PreviousEmployeeId = previous.EmployeeId, NewEmployeeId = next.EmployeeId, change.EffectiveAtUtc,
+                                   change.ActorUserId, change.CreatedAtUtc, change.Reason }).Skip(offset).Take(50).ToListAsync(token);
+            return (new { sourceId, offset, pageSize = 50, items }, sourceId);
+        }, ct);
+
     public Task<object> ListMappingsAsync(Guid actor, Guid sourceId, int offset, CancellationToken ct = default) =>
         transaction.ExecuteAsync<object>(actor, Manage, "attendance.mappings.viewed", async token =>
         {
             if (sourceId == Guid.Empty || offset is < 0 or > 100000) throw new ArgumentException("Invalid page.");
             var items = await db.SourceEmployeeMappings.AsNoTracking().Where(x => x.SourceId == sourceId)
                 .OrderBy(x => x.ValidFromUtc).ThenBy(x => x.Id).Skip(offset).Take(50)
-                .Select(x => new { x.Id, x.SourceId, x.SourcePersonId, x.EmployeeId, x.CompanyId, x.ValidFromUtc, x.ValidUntilUtcExclusive })
+                .Select(x => new { x.Id, x.SourceId, x.SourcePersonId, x.EmployeeId, x.CompanyId, x.ValidFromUtc, x.ValidUntilUtcExclusive, x.Version })
                 .ToListAsync(token);
             return (new { sourceId, offset, pageSize = 50, items }, sourceId);
         }, ct);

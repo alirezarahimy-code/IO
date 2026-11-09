@@ -287,6 +287,24 @@ internal static class HttpSecurityTests
                   (await scoped.GetAsync($"/attendance/mappings/{rawSource}")).StatusCode == HttpStatusCode.Forbidden &&
                   (await adminClient.GetAsync($"/attendance/mappings/{rawSource}?offset=-1")).StatusCode == HttpStatusCode.BadRequest,
                   "HTTP mapping history requires ingestion permission and bounded paging");
+            var reassignedEmployee = await CreateId("/org/employees", new { CompanyId = newCompany, PersonnelNumber = "HTTP-REMAP", DisplayName = "HTTP replacement employee" });
+            using var mappingListResponse = await adminClient.GetAsync($"/attendance/mappings/{rawSource}");
+            using var mappingList = JsonDocument.Parse(await mappingListResponse.Content.ReadAsStringAsync());
+            var mapped = mappingList.RootElement.GetProperty("items")[0];
+            var replaceMapping = new { SourceId = rawSource, SourcePersonId = "test-person", MappingId = mapped.GetProperty("id").GetGuid(),
+                EmployeeId = reassignedEmployee, EffectiveAt = "2026-02-01T00:00:00Z", ExpectedVersion = mapped.GetProperty("version").GetString(), Reason = "HTTP reassignment" };
+            check((await PostAdmin(scoped, "/attendance/mapping-replacements", replaceMapping)).StatusCode == HttpStatusCode.Forbidden &&
+                  (await adminClient.PostAsJsonAsync("/attendance/mapping-replacements", replaceMapping)).StatusCode == HttpStatusCode.BadRequest &&
+                  (await PostAdmin(adminClient, "/attendance/mapping-replacements", new { SourceId = rawSource, SourcePersonId = "test-person", MappingId = mapped.GetProperty("id").GetGuid(),
+                      EmployeeId = reassignedEmployee, EffectiveAt = "2026-02-01T00:00:00", ExpectedVersion = mapped.GetProperty("version").GetString(), Reason = "invalid" })).StatusCode == HttpStatusCode.BadRequest,
+                  "HTTP mapping replacement enforces permission, antiforgery and explicit timestamp");
+            using var replaced = await PostAdmin(adminClient, "/attendance/mapping-replacements", replaceMapping);
+            using var changes = await adminClient.GetAsync($"/attendance/mapping-changes/{rawSource}");
+            check(replaced.StatusCode == HttpStatusCode.OK && changes.StatusCode == HttpStatusCode.OK &&
+                  (await changes.Content.ReadAsStringAsync()).Contains("HTTP reassignment", StringComparison.Ordinal) &&
+                  (await PostAdmin(adminClient, "/attendance/mapping-replacements", replaceMapping)).StatusCode == HttpStatusCode.Conflict &&
+                  (await scoped.GetAsync($"/attendance/mapping-changes/{rawSource}")).StatusCode == HttpStatusCode.Forbidden,
+                  "HTTP mapping replacement is audited, scoped and rejects stale replay");
             async Task<string> CatalogVersion(string kind, Guid id)
             {
                 using var response = await adminClient.GetAsync("/org/catalog/" + kind);
