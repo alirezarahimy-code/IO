@@ -804,6 +804,44 @@ async function main() {
     await clearResult();
     await page.locator('#logout').click();
     await waitText('عملیات انجام شد.');
+    const loginPage = await context.newPage();
+    await loginPage.goto(address + '/login');
+    await loginPage.locator('#login-form input[name=userName]').fill('web-self');
+    await loginPage.locator('#login-form input[name=password]').fill('Synthetic!Password-2026');
+    await loginPage.locator('#login-form button').click();
+    await loginPage.waitForURL('**/workspace/account');
+    await loginPage.waitForFunction(() => !document.querySelector('#password-form button').disabled);
+    if (await loginPage.locator('#account-id').textContent() !== selfId) throw new Error('Account page showed wrong user');
+    async function changePassword(current, next, confirm) {
+      await loginPage.locator('#password-form input[name=currentPassword]').fill(current);
+      await loginPage.locator('#password-form input[name=newPassword]').fill(next);
+      await loginPage.locator('#password-form input[name=confirm]').fill(confirm);
+      await loginPage.locator('#password-form button').click();
+    }
+    await changePassword('Synthetic!Password-2026','Synthetic!Browser-Changed-2026','mismatch');
+    await loginPage.waitForFunction(() => document.getElementById('notice').textContent.includes('یکسان نیست'));
+    if (await loginPage.locator('#password-form input[name=currentPassword]').inputValue() !== '') throw new Error('Password input retained secrets after mismatch');
+    await changePassword('Synthetic!Password-2026','Synthetic!Browser-Changed-2026','Synthetic!Browser-Changed-2026');
+    await loginPage.waitForFunction(() => document.getElementById('notice').textContent.includes('گذرواژه تغییر کرد'));
+    if ((await loginPage.evaluate(async()=> (await fetch('/auth/me')).status)) !== 401 || await loginPage.locator('#password-form button').isEnabled())
+      throw new Error('Password change did not sign out the current session');
+    await loginPage.goto(address + '/login');
+    await loginPage.locator('#login-form input[name=userName]').fill('web-self');
+    await loginPage.locator('#login-form input[name=password]').fill('Synthetic!Browser-Changed-2026');
+    await loginPage.locator('#login-form button').click();
+    await loginPage.waitForURL('**/workspace/account');
+    await loginPage.waitForFunction(() => !document.querySelector('#password-form button').disabled);
+    await changePassword('Synthetic!Browser-Changed-2026','Synthetic!Password-2026','Synthetic!Password-2026');
+    await loginPage.waitForFunction(() => document.getElementById('notice').textContent.includes('گذرواژه تغییر کرد'));
+    await loginPage.goto(address + '/login');
+    await loginPage.locator('#login-form input[name=userName]').fill('web-self');
+    await loginPage.locator('#login-form input[name=password]').fill('Synthetic!Password-2026');
+    await loginPage.locator('#login-form button').click();
+    await loginPage.waitForURL('**/workspace/account');
+    await loginPage.waitForFunction(() => !document.getElementById('logout').disabled);
+    await loginPage.locator('#logout').click();
+    await loginPage.waitForFunction(() => document.getElementById('notice').textContent.includes('خارج شدید'));
+    await loginPage.close();
     await context.close();
     console.log('Browser form scenarios passed.');
   } finally {

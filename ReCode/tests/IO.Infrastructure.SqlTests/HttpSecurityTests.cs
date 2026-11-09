@@ -139,6 +139,10 @@ internal static class HttpSecurityTests
                   (await anon.GetAsync("/workspace/conflicts")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/workspace/calculations")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/workspace/periods")).StatusCode == HttpStatusCode.Unauthorized &&
+                  (await anon.GetAsync("/workspace/account")).StatusCode == HttpStatusCode.Unauthorized &&
+                  (await anon.GetAsync("/assets/account.js")).StatusCode == HttpStatusCode.Unauthorized &&
+                  (await anon.GetAsync("/login")).StatusCode == HttpStatusCode.OK &&
+                  (await anon.GetAsync("/assets/login.js")).StatusCode == HttpStatusCode.OK &&
                   (await anon.GetAsync("/workspace/my-requests")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/workspace/new-request")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/assets/my-requests.js")).StatusCode == HttpStatusCode.Unauthorized &&
@@ -487,6 +491,10 @@ internal static class HttpSecurityTests
             using var createdClient = Client();
             check((await Login(createdClient, "web-created", Password)).StatusCode == HttpStatusCode.NoContent &&
                 (await createdClient.GetAsync($"/employees/{first}")).StatusCode == HttpStatusCode.Forbidden &&
+                (await createdClient.GetAsync("/workspace/account")).StatusCode == HttpStatusCode.OK &&
+                (await createdClient.GetAsync("/assets/account.js")).StatusCode == HttpStatusCode.OK &&
+                (await createdClient.GetAsync("/assets/employees.css")).StatusCode == HttpStatusCode.OK &&
+                (await createdClient.GetAsync("/workspace/my-requests")).StatusCode == HttpStatusCode.Forbidden &&
                 (await createdClient.GetAsync("/assets/theme.js")).StatusCode == HttpStatusCode.OK &&
                 (await createdClient.GetAsync("/assets/theme.css")).StatusCode == HttpStatusCode.OK &&
                 (await PostAdmin(createdClient, "/auth/change-password", new { CurrentPassword = Password, NewPassword = Password })).StatusCode == HttpStatusCode.BadRequest,

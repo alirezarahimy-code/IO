@@ -111,6 +111,8 @@ public static class IoWebHost
                 context.Request.Path != "/auth/csrf" && context.Request.Path != "/auth/me" &&
                 context.Request.Path != "/panel" && context.Request.Path != "/assets/panel.js" &&
                 context.Request.Path != "/assets/theme.js" && context.Request.Path != "/assets/theme.css" &&
+                context.Request.Path != "/workspace/account" && context.Request.Path != "/assets/account.js" &&
+                context.Request.Path != "/assets/employees.css" && context.Request.Path != "/login" && context.Request.Path != "/assets/login.js" &&
                 context.Request.Path != "/health/live")
             {
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
@@ -121,6 +123,10 @@ public static class IoWebHost
         app.UseAuthorization();
 
         app.MapGet("/panel", () => Results.Content(Resource("IO.Web.Ui.Panel.html"), "text/html; charset=utf-8")).AllowAnonymous();
+        app.MapGet("/login", () => Results.Content(Resource("IO.Web.Ui.Login.html"), "text/html; charset=utf-8")).AllowAnonymous();
+        app.MapGet("/assets/login.js", () => Results.Content(Resource("IO.Web.Ui.login.js"), "text/javascript; charset=utf-8")).AllowAnonymous();
+        app.MapGet("/workspace/account", () => Results.Content(Resource("IO.Web.Ui.Account.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/account.js", () => Results.Content(Resource("IO.Web.Ui.account.js"), "text/javascript; charset=utf-8"));
         // Shell and assets are authenticated; all data operations additionally
         // enforce organization.manage in the service, never merely in the UI.
         foreach (var page in new[] { "/workspace/calendars", "/workspace/shifts", "/workspace/schedules", "/workspace/employee-history", "/workspace/sources" })
@@ -148,7 +154,7 @@ public static class IoWebHost
         app.MapGet("/assets/organization.js", () => Results.Content(Resource("IO.Web.Ui.organization.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/employees", () => Results.Content(Resource("IO.Web.Ui.Employees.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/employees.js", () => Results.Content(Resource("IO.Web.Ui.employees.js"), "text/javascript; charset=utf-8"));
-        app.MapGet("/assets/employees.css", () => Results.Content(Resource("IO.Web.Ui.employees.css"), "text/css; charset=utf-8"));
+        app.MapGet("/assets/employees.css", () => Results.Content(Resource("IO.Web.Ui.employees.css"), "text/css; charset=utf-8")).AllowAnonymous();
         app.MapGet("/assets/panel.js", () => Results.Content(Resource("IO.Web.Ui.panel.js"), "text/javascript; charset=utf-8")).AllowAnonymous();
         app.MapGet("/assets/theme.js", () => Results.Content(Resource("IO.Web.Ui.theme.js"), "text/javascript; charset=utf-8")).AllowAnonymous();
         app.MapGet("/assets/theme.css", () => Results.Content(Resource("IO.Web.Ui.theme.css"), "text/css; charset=utf-8")).AllowAnonymous();
