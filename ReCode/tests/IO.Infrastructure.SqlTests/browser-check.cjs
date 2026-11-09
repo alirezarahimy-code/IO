@@ -1054,6 +1054,14 @@ async function main() {
     await settingsPage.locator('#filter input[name=companyId]').fill(selfCompany);
     await settingsPage.locator('#filter button').click();
     await settingsPage.waitForFunction(()=>!document.querySelector('#save button').disabled);
+    const savedTheme=await settingsPage.evaluate(()=>window.IOTheme.get());
+    await settingsPage.setViewportSize({width:375,height:812});
+    for(const theme of ['ocean','forest','sand','night']){
+      await settingsPage.locator('.io-theme-picker select').selectOption(theme);
+      if(await settingsPage.evaluate(()=>document.documentElement.scrollWidth>innerWidth))throw new Error('Settings page overflows mobile viewport in theme '+theme);
+    }
+    await settingsPage.locator('.io-theme-picker select').selectOption(savedTheme);
+    await settingsPage.setViewportSize({width:1280,height:720});
     const invalidCsrf=await settingsPage.evaluate(async company=>(await fetch('/settings/correction',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operationId:crypto.randomUUID(),companyId:company,expectedRevision:0,maxRequestAgeDays:5,dailyRequestLimit:0,monthlyRequestLimit:0,reason:'test'})})).status,selfCompany);
     if(invalidCsrf!==400)throw new Error('Settings accepted missing CSRF');
     await settingsPage.locator('#save input[name=maxRequestAgeDays]').fill('5');
@@ -1162,6 +1170,9 @@ async function main() {
     const delegatePage=await context.newPage();
     await delegatePage.goto(address+'/workspace/delegation');
     await delegatePage.waitForFunction(id=>[...document.querySelector('#assign select').options].some(x=>x.value===id),delegateId);
+    await delegatePage.setViewportSize({width:375,height:812});
+    if(await delegatePage.evaluate(()=>document.documentElement.scrollWidth>innerWidth))throw new Error('Delegation page overflows mobile viewport');
+    await delegatePage.setViewportSize({width:1280,height:720});
     const dateDays=days=>{const d=new Date();d.setUTCDate(d.getUTCDate()+days);return d.toISOString().slice(0,10);};
     const from=dateDays(0),until=dateDays(2);
     const missingCsrf=await delegatePage.evaluate(async ({delegateId,from,until})=>(await fetch('/delegations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operationId:crypto.randomUUID(),delegateUserId:delegateId,validFrom:from,validUntilExclusive:until})})).status,{delegateId,from,until});
