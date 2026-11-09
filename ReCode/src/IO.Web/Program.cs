@@ -213,6 +213,10 @@ public static class IoWebHost
             Admin(c, csrf, actor => service.TransferAsync(actor, input.EmployeeId, input.AssignmentId, input.UnitId, input.Effective, c.RequestAborted)));
         app.MapPost("/scheduling/calendars", (CalendarInput input, HttpContext c, IAntiforgery csrf, ScheduleManagement service) =>
             Admin(c, csrf, actor => service.CreateCalendarAsync(actor, input.CompanyId, input.Name, c.RequestAborted)));
+        app.MapPost("/scheduling/calendars/{id:guid}/fork", (Guid id, CalendarForkInput input, HttpContext c, IAntiforgery csrf, ScheduleManagement service) =>
+            Admin(c, csrf, actor => service.ForkCalendarAsync(actor, id, input.Name, c.RequestAborted)));
+        app.MapPost("/scheduling/calendar-days/revise", (CalendarDayInput input, HttpContext c, IAntiforgery csrf, ScheduleManagement service) =>
+            Admin(c, csrf, actor => service.ReviseCalendarDayAsync(actor, input.CalendarId, input.Date, input.Kind, input.Note, c.RequestAborted)));
         app.MapPost("/scheduling/calendar-days", (CalendarDayInput input, HttpContext c, IAntiforgery csrf, ScheduleManagement service) =>
             Admin(c, csrf, actor => service.AddCalendarDayAsync(actor, input.CalendarId, input.Date, input.Kind, input.Note, c.RequestAborted)));
         app.MapPost("/scheduling/shifts", (ShiftInput input, HttpContext c, IAntiforgery csrf, ScheduleManagement service) =>
@@ -313,3 +317,4 @@ public sealed record ScheduleInput(Guid EmployeeId, Guid CalendarId, Guid ShiftI
 public sealed record ScheduleReplacementInput(Guid EmployeeId, Guid AssignmentId, Guid CalendarId, Guid ShiftId, DateOnly Effective);
 public sealed record EmployeeRenameInput(string DisplayName, string ExpectedVersion);
 public sealed record ReparentUnitInput(Guid CompanyId, Guid? ParentId, string ExpectedVersion);
+public sealed record CalendarForkInput(string Name);

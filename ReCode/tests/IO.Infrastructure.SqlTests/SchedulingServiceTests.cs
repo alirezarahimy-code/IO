@@ -114,7 +114,17 @@ internal static class SchedulingServiceTests
                   await reader.FindAsync(self, Guid.NewGuid(), date, authorizationDate) is null,
                 "schedule read denies absent scope, actor and different employee");
         }
-        var calendarVersion = await Execute(s => s.CreateCalendarAsync(admin, company, "Synthetic next calendar version"));
+        var calendarVersion = await Execute(s => s.ForkCalendarAsync(admin, calendar, "Synthetic next calendar version"));
+        await Execute(s => s.ReviseCalendarDayAsync(admin, calendarVersion, date, 0, "Changed only on new version"));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var originalKind = await db.CalendarDays.Where(x => x.CalendarId == calendar && x.Date == date).Select(x => x.Kind).SingleAsync();
+            var revisedKind = await db.CalendarDays.Where(x => x.CalendarId == calendarVersion && x.Date == date).Select(x => x.Kind).SingleAsync();
+            check(originalKind == 1 && revisedKind == 0, "calendar version copy can be revised without changing assigned history");
+        }
+        check(await Reject<InvalidOperationException>(() => Execute(s => s.ReviseCalendarDayAsync(admin, calendar, date, 0, null))),
+            "assigned calendar day cannot be revised through service");
         await Execute(s => s.AddCalendarDayAsync(admin, calendarVersion, new DateOnly(2027, 2, 1), 0, null));
         var oldSchedule = attempts.Single(x => x.HasValue)!.Value;
         var newSchedule = await Execute(s => s.RescheduleAsync(admin, employee, oldSchedule, calendarVersion, shift, new DateOnly(2027, 2, 1)));

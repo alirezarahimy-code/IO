@@ -40,6 +40,39 @@ public sealed class ScheduleManagement(IoDbContext db, PermissionTransaction tra
             return (id, id);
         }, ct);
 
+    public Task<Guid> ForkCalendarAsync(Guid actor, Guid sourceId, string name, CancellationToken ct = default) =>
+        transaction.ExecuteAsync(actor, Manage, "schedule.calendar.fork." + sourceId.ToString("N"), async token =>
+        {
+            ValidateName(name);
+            if (sourceId == Guid.Empty) throw new ArgumentException("Invalid calendar.");
+            await transaction.LockAsync("IO.Calendar." + sourceId.ToString("N"), token);
+            var source = await db.Calendars.AsNoTracking().SingleOrDefaultAsync(x => x.Id == sourceId, token)
+                ?? throw new ArgumentException("Unknown calendar.");
+            var days = await db.CalendarDays.AsNoTracking().Where(x => x.CalendarId == sourceId)
+                .OrderBy(x => x.Date).Take(10001).ToListAsync(token);
+            if (days.Count > 10000) throw new DomainConflictException("Calendar exceeds the supported copy size.");
+            var id = Guid.NewGuid();
+            db.Calendars.Add(new() { Id = id, CompanyId = source.CompanyId, Name = name });
+            var now = DateTimeOffset.UtcNow;
+            foreach (var day in days)
+                db.CalendarDays.Add(new() { Id = Guid.NewGuid(), CalendarId = id, Date = day.Date,
+                    Kind = day.Kind, Note = day.Note, RecordedAtUtc = now });
+            return (id, id);
+        }, ct);
+
+    public Task<bool> ReviseCalendarDayAsync(Guid actor, Guid calendarId, DateOnly date, int kind, string? note, CancellationToken ct = default) =>
+        transaction.ExecuteAsync(actor, Manage, "schedule.calendar-day.revised", async token =>
+        {
+            if (kind is < 0 or > 2 || note is { Length: > 500 }) throw new ArgumentException("Invalid calendar day.");
+            await transaction.LockAsync("IO.Calendar." + calendarId.ToString("N"), token);
+            if (await db.WorkScheduleAssignments.AnyAsync(x => x.CalendarId == calendarId, token))
+                throw new DomainConflictException("An assigned calendar cannot be modified; create a new version.");
+            var day = await db.CalendarDays.SingleOrDefaultAsync(x => x.CalendarId == calendarId && x.Date == date, token)
+                ?? throw new ArgumentException("Unknown calendar day.");
+            day.Kind = kind; day.Note = note; day.RecordedAtUtc = DateTimeOffset.UtcNow;
+            return (true, day.Id);
+        }, ct);
+
     public Task<Guid> AddCalendarDayAsync(Guid actor, Guid calendarId, DateOnly date, int kind, string? note, CancellationToken ct = default) =>
         transaction.ExecuteAsync(actor, Manage, "schedule.calendar-day.created", async token =>
         {
