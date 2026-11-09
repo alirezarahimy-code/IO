@@ -171,6 +171,16 @@ jobs:
           python3 -m http.server 4174 --bind 127.0.0.1 > "$RUNNER_TEMP/io-pages-server.log" 2>&1 &
           server_pid=$!
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          # The browser test must not race the Python server's bind on a busy runner.
+          python3 -c 'import time, urllib.request
+          for _ in range(100):
+              try:
+                  urllib.request.urlopen("http://127.0.0.1:4174/", timeout=1).close()
+                  break
+              except OSError:
+                  time.sleep(0.1)
+          else:
+              raise RuntimeError("preview server did not start")'
           export NODE_PATH="$RUNNER_TEMP/io-browser/node_modules"
           export IO_CHROME_BINARY="$(command -v google-chrome)"
           node preview/pages-first/browser-check.cjs http://127.0.0.1:4174/
