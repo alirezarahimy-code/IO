@@ -8,6 +8,7 @@ using IO.Domain.Attendance;
 using IO.Infrastructure.Scheduling;
 using IO.Domain.Scheduling;
 using IO.Infrastructure.Storage;
+using IO.Infrastructure.Reports;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -137,6 +138,8 @@ public static class IoWebHost
         app.MapGet("/assets/users.js", () => Results.Content(Resource("IO.Web.Ui.users.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/audit", () => Results.Content(Resource("IO.Web.Ui.Audit.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/audit.js", () => Results.Content(Resource("IO.Web.Ui.audit.js"), "text/javascript; charset=utf-8"));
+        app.MapGet("/workspace/executive-home", () => Results.Content(Resource("IO.Web.Ui.ExecutiveHome.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/executive-home.js", () => Results.Content(Resource("IO.Web.Ui.executive-home.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/manager-home", () => Results.Content(Resource("IO.Web.Ui.ManagerHome.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/manager-home.js", () => Results.Content(Resource("IO.Web.Ui.manager-home.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/employee-home", () => Results.Content(Resource("IO.Web.Ui.EmployeeHome.html"), "text/html; charset=utf-8"));
@@ -266,6 +269,8 @@ public static class IoWebHost
             catch (InvalidOperationException) { return Results.Conflict(); }
             catch (ArgumentOutOfRangeException) { return Results.BadRequest(); }
         });
+        app.MapGet("/executive/overview/{companyId:guid}", (Guid companyId, string fromUtc, string untilUtcExclusive, HttpContext c, ExecutiveOverview service) =>
+            AdminRead(c, async actor => await service.InspectAsync(actor, companyId, ParseExplicitTime(fromUtc), ParseExplicitTime(untilUtcExclusive), c.RequestAborted)));
         app.MapGet("/calculations/own-report", (DateOnly start, DateOnly endExclusive, HttpContext c, PersonalReports service) =>
             AdminRead(c, async actor => await service.InspectAsync(actor, start, endExclusive, c.RequestAborted)));
         app.MapGet("/attendance/team", (string fromUtc, string untilUtcExclusive, int? offset, HttpContext c, TeamAttendance service) =>

@@ -152,6 +152,9 @@ internal static class HttpSecurityTests
                   (await anon.GetAsync("/workspace/workflow")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/workspace/employee-home")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/workspace/manager-home")).StatusCode == HttpStatusCode.Unauthorized &&
+                  (await anon.GetAsync("/workspace/executive-home")).StatusCode == HttpStatusCode.Unauthorized &&
+                  (await anon.GetAsync("/assets/executive-home.js")).StatusCode == HttpStatusCode.Unauthorized &&
+                  (await anon.GetAsync($"/executive/overview/{Guid.NewGuid()}?fromUtc=2027-03-01T00%3A00%3A00Z&untilUtcExclusive=2027-03-02T00%3A00%3A00Z")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/assets/manager-home.js")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/assets/employee-home.js")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/assets/workflow.js")).StatusCode == HttpStatusCode.Unauthorized &&

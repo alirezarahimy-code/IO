@@ -340,6 +340,7 @@ try
     await SchedulingServiceTests.RunAsync(connection, Check);
     await AttendanceIngestionTests.RunAsync(connection, Check);
     await PersonalAttendanceTests.RunAsync(connection, Check);
+    await ExecutiveOverviewTests.RunAsync(connection, Check);
     await ObservedCalculationTests.RunAsync(connection, Check);
     await CorrectionWorkflowTests.RunAsync(connection, Check);
     await PeriodDraftTests.RunAsync(connection, Check);

@@ -231,6 +231,15 @@ async function main() {
     await deniedPersonalReport.waitForFunction(()=>document.getElementById('notice').textContent.includes('مجوز'));
     if (await deniedPersonalReport.locator('#result').isVisible()) throw new Error('Personal report exposed without permission');
     await deniedPersonalReport.close();
+    const deniedExecutive = await context.newPage();
+    await deniedExecutive.goto(address + '/workspace/executive-home');
+    await deniedExecutive.locator('#filter input[name=companyId]').fill(first);
+    await deniedExecutive.locator('#filter input[name=from]').fill('2027-03-01');
+    await deniedExecutive.locator('#filter input[name=until]').fill('2027-03-02');
+    await deniedExecutive.locator('#filter button').click();
+    await deniedExecutive.waitForFunction(()=>document.getElementById('notice').textContent.includes('مجوز'));
+    if (await deniedExecutive.locator('#result').isVisible()) throw new Error('Executive summary exposed without permission');
+    await deniedExecutive.close();
     const deniedTeam = await context.newPage();
     await deniedTeam.goto(address + '/workspace/team-attendance');
     await deniedTeam.locator('#filter input[name=from]').fill('2027-03-01');
@@ -371,7 +380,7 @@ async function main() {
       await waitText('result');
       return JSON.parse(await page.locator('#result').textContent()).result;
     }
-    for (const code of ['organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.read.team', 'attendance.read.all', 'attendance.calculate', 'correction.configure', 'correction.decide', 'correction.decide.all', 'period.preflight', 'period.draft.manage', 'period.diagnostic.manage']) {
+    for (const code of ['organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.read.team', 'attendance.read.all', 'executive.dashboard.read', 'attendance.calculate', 'correction.configure', 'correction.decide', 'correction.decide.all', 'period.preflight', 'period.draft.manage', 'period.diagnostic.manage']) {
       await page.locator('#permission input[name=roleId]').fill(role);
       await page.locator('#permission select[name=code]').selectOption(code);
       await submit('permission');
@@ -977,6 +986,20 @@ async function main() {
     await page.locator('#calculation-run input[name=ruleVersionId]').fill(selfRule);
     await page.locator('#calculation-run input[name=workDate]').fill('2027-03-01');
     const personalRun = await submit('calculation-run');
+    const executivePage=await context.newPage();
+    await executivePage.goto(address + '/workspace/executive-home');
+    await executivePage.locator('#filter input[name=companyId]').fill(selfCompany);
+    await executivePage.locator('#filter input[name=from]').fill('2027-03-01');
+    await executivePage.locator('#filter input[name=until]').fill('2027-03-02');
+    await executivePage.locator('#filter button').click();
+    await executivePage.locator('#result').waitFor();
+    const execData=await executivePage.evaluate(async company=>(await (await fetch('/executive/overview/'+company+'?fromUtc=2027-03-01T00%3A00%3A00Z&untilUtcExclusive=2027-03-02T00%3A00%3A00Z')).json()),selfCompany);
+    const displayed=await executivePage.locator('#body tr td').allTextContents();
+    if (displayed.join(',')!==[execData.employeeCount,execData.activeLinkedAccountCount,execData.pendingCorrectionCount,execData.rawEventCount].join(',') || execData.rawEventCount!==2) throw new Error('Executive aggregate did not match persisted records');
+    await executivePage.locator('#filter input[name=companyId]').fill(company);
+    if (await executivePage.locator('#result').isVisible() || await executivePage.locator('#body tr').count()) throw new Error('Changing executive company left stale counts');
+    await executivePage.close();
+
     const teamPage = await context.newPage();
     await teamPage.goto(address + '/workspace/team-attendance');
     await teamPage.locator('#filter input[name=from]').fill('2027-03-01');

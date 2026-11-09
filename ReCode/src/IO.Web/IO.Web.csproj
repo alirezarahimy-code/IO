@@ -22,6 +22,8 @@
     <EmbeddedResource Include="Ui/Workflow.html" />
     <EmbeddedResource Include="Ui/EmployeeHome.html" />
     <EmbeddedResource Include="Ui/ManagerHome.html" />
+    <EmbeddedResource Include="Ui/ExecutiveHome.html" />
+    <EmbeddedResource Include="Ui/executive-home.js" />
     <EmbeddedResource Include="Ui/manager-home.js" />
     <EmbeddedResource Include="Ui/employee-home.js" />
     <EmbeddedResource Include="Ui/workflow.js" />
