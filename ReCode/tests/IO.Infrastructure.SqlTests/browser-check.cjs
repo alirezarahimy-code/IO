@@ -107,7 +107,7 @@ async function main() {
       await waitText('result');
       return JSON.parse(await page.locator('#result').textContent()).result;
     }
-    for (const code of ['organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest']) {
+    for (const code of ['organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.calculate']) {
       await page.locator('#permission input[name=roleId]').fill(role);
       await page.locator('#permission select[name=code]').selectOption(code);
       await submit('permission');
@@ -187,6 +187,19 @@ async function main() {
     await page.locator('#schedule-assignment input[name=shiftId]').fill(shift);
     await page.locator('#schedule-assignment input[name=validFrom]').fill('2027-01-01');
     await submit('schedule-assignment');
+    await page.locator('#calculation-rule input[name=companyId]').fill(company);
+    await page.locator('#calculation-rule input[name=name]').fill('Browser paired policy');
+    const rule = await submit('calculation-rule');
+    await page.locator('#calculation-run input[name=employeeId]').fill(employee);
+    await page.locator('#calculation-run input[name=sourceId]').fill(rawSource);
+    await page.locator('#calculation-run input[name=ruleVersionId]').fill(rule);
+    await page.locator('#calculation-run input[name=workDate]').fill('2027-01-01');
+    await submit('calculation-run');
+    await clearResult();
+    await page.locator('#calculation-results input[name=employeeId]').fill(employee);
+    await page.locator('#calculation-results button').click();
+    await waitText('anomaliesJson');
+
     await clearResult();
     await page.locator('#schedule-view input[name=employeeId]').fill(employee);
     await page.locator('#schedule-view input[name=workDate]').fill('2027-01-01');

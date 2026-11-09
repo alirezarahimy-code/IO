@@ -1,6 +1,7 @@
 using IO.Infrastructure.Security;
 using IO.Infrastructure.Organization;
 using IO.Infrastructure.Attendance;
+using IO.Infrastructure.Calculation;
 using IO.Domain.Attendance;
 using IO.Infrastructure.Scheduling;
 using IO.Domain.Scheduling;
@@ -211,6 +212,14 @@ public static class IoWebHost
             Admin(c, csrf, actor => service.CreateSourceAsync(actor, input.SiteId, input.Name, c.RequestAborted)));
         app.MapPost("/attendance/simulated-events", (SimulatedEventInput input, HttpContext c, IAntiforgery csrf, AttendanceIngestion service) =>
             ReceiveEvent(c, csrf, service, input));
+        app.MapGet("/calculations/rules/{companyId:guid}", (Guid companyId, int? offset, HttpContext c, ObservedCalculation service) =>
+            AdminRead(c, actor => service.ListRulesAsync(actor, companyId, offset ?? 0, c.RequestAborted)));
+        app.MapGet("/calculations/runs/{employeeId:guid}", (Guid employeeId, int? offset, HttpContext c, ObservedCalculation service) =>
+            AdminRead(c, actor => service.ListRunsAsync(actor, employeeId, offset ?? 0, c.RequestAborted)));
+        app.MapPost("/calculations/rules", (CalculationRuleInput input, HttpContext c, IAntiforgery csrf, ObservedCalculation service) =>
+            Admin(c, csrf, actor => service.CreateRuleAsync(actor, input.CompanyId, input.Name, input.BeforeMinutes, input.AfterMinutes, c.RequestAborted)));
+        app.MapPost("/calculations/runs", (CalculationRunInput input, HttpContext c, IAntiforgery csrf, ObservedCalculation service) =>
+            Admin(c, csrf, actor => service.CalculateAsync(actor, input.EmployeeId, input.WorkDate, input.SourceId, input.RuleVersionId, c.RequestAborted)));
         app.MapGet("/org/catalog/{kind}", (string kind, int? offset, HttpContext context, OrganizationManagement service) =>
             AdminRead(context, actor => service.ListAsync(actor, kind, offset ?? 0, context.RequestAborted)));
         app.MapGet("/scheduling/catalog/{kind}", (string kind, int? offset, HttpContext context, ScheduleManagement service) =>
@@ -381,3 +390,6 @@ public sealed record AttendanceSourceInput(Guid? SiteId, string Name);
 public sealed record SimulatedEventInput(Guid SourceId, string? ExternalId, string? PersonId, string? OccurredAt, string? SourceZone, string? EventType, byte[] Payload);
 
 public sealed record SourceMappingInput(Guid SourceId, string SourcePersonId, Guid EmployeeId, string ValidFrom, string? ValidUntilExclusive);
+
+public sealed record CalculationRuleInput(Guid CompanyId, string Name, int BeforeMinutes, int AfterMinutes);
+public sealed record CalculationRunInput(Guid EmployeeId, DateOnly WorkDate, Guid SourceId, Guid RuleVersionId);

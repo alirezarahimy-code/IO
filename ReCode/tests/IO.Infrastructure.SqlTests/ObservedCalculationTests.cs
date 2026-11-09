@@ -1,0 +1,95 @@
+using System.Text.Json;
+using IO.Infrastructure.Attendance;
+using IO.Infrastructure.Calculation;
+using IO.Infrastructure.Security;
+using IO.Infrastructure.Storage;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+
+internal static class ObservedCalculationTests
+{
+    public static async Task RunAsync(string connection, Action<bool, string> check)
+    {
+        var services = new ServiceCollection(); services.AddLogging(); services.AddIoIdentityStorage(connection);
+        await using var provider = services.BuildServiceProvider();
+        Guid admin, limited, employee = Guid.NewGuid(), company = Guid.NewGuid(), source = Guid.NewGuid();
+        var date = new DateOnly(2027, 5, 5); var midnight = new DateTimeOffset(2027, 5, 5, 0, 0, 0, TimeSpan.Zero);
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var role = await db.Roles.SingleAsync(x => x.Name == "Initial administrator");
+            admin = await db.UserRoles.Where(x => x.RoleId == role.Id).Select(x => x.UserId).SingleAsync();
+            limited = await db.Users.Where(x => x.UserName == "web-manager").Select(x => x.Id).SingleAsync();
+            var permission = await db.Permissions.SingleOrDefaultAsync(x => x.Code == ObservedCalculation.Manage);
+            if (permission is null) { permission = new() { Id = Guid.NewGuid(), Code = ObservedCalculation.Manage }; db.Permissions.Add(permission); }
+            if (!await db.RolePermissions.AnyAsync(x => x.RoleId == role.Id && x.PermissionId == permission.Id))
+                db.RolePermissions.Add(new() { RoleId = role.Id, PermissionId = permission.Id });
+            var org = Guid.NewGuid(); var site = Guid.NewGuid(); var calendar = Guid.NewGuid(); var shift = Guid.NewGuid();
+            db.Organizations.Add(new() { Id = org, Name = "calculation synthetic org" });
+            db.Companies.Add(new() { Id = company, OrganizationId = org, Name = "calculation synthetic company" });
+            db.Sites.Add(new() { Id = site, CompanyId = company, Name = "calculation synthetic site", TimeZoneId = "Etc/UTC" });
+            db.Employees.Add(new() { Id = employee, CompanyId = company, PersonnelNumber = "CALC-1", DisplayName = "Synthetic calculation employee" });
+            db.EventSources.Add(new() { Id = source, SiteId = site, Name = "calculation synthetic source" });
+            db.Calendars.Add(new() { Id = calendar, CompanyId = company, Name = "calculation synthetic calendar" });
+            db.CalendarDays.Add(new() { Id = Guid.NewGuid(), CalendarId = calendar, Date = date, Kind = 0, RecordedAtUtc = DateTimeOffset.UtcNow });
+            db.ShiftDefinitions.Add(new() { Id = shift, CompanyId = company, SiteId = site, Name = "synthetic fixed shift", StartsAt = new(8, 0), EndsAt = new(16, 0), EndDayOffset = 0 });
+            db.WorkScheduleAssignments.Add(new() { Id = Guid.NewGuid(), CompanyId = company, EmployeeId = employee, CalendarId = calendar, ShiftId = shift, ValidFrom = date, ValidUntilExclusive = date.AddDays(1) });
+            await db.SaveChangesAsync();
+        }
+        async Task<T> Calc<T>(Func<ObservedCalculation, Task<T>> f) { await using var scope = provider.CreateAsyncScope(); return await f(scope.ServiceProvider.GetRequiredService<ObservedCalculation>()); }
+        async Task<T> Raw<T>(Func<AttendanceIngestion, Task<T>> f) { await using var scope = provider.CreateAsyncScope(); return await f(scope.ServiceProvider.GetRequiredService<AttendanceIngestion>()); }
+        async Task<bool> Reject<T>(Func<Task> f) where T : Exception { try { await f(); return false; } catch (T) { return true; } }
+        check(await Reject<UnauthorizedAccessException>(() => Calc(s => s.CreateRuleAsync(limited, company, "denied", 0, 0))) &&
+              await Reject<ArgumentException>(() => Calc(s => s.CreateRuleAsync(admin, company, "invalid", 721, 0))),
+            "calculation policy requires permission and bounded explicit margins");
+        var rule = await Calc(s => s.CreateRuleAsync(admin, company, "test paired presence", 10, 0));
+        await Raw(s => s.AddMappingAsync(admin, source, "person-1", employee, midnight, null));
+        var entry = await Raw(s => s.AppendAsync(admin, source, "in-1", "person-1", midnight.AddHours(7).AddMinutes(55), null, "in", [1]));
+        var exit = await Raw(s => s.AppendAsync(admin, source, "out-1", "person-1", midnight.AddHours(16), null, "out", [2]));
+        var first = await Calc(s => s.CalculateAsync(admin, employee, date, source, rule));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var run = await db.DailyCalculationRuns.SingleAsync(x => x.Id == first);
+            using var snapshot = JsonDocument.Parse(run.InputSnapshotJson);
+            check(run.ObservedTicks == TimeSpan.FromMinutes(485).Ticks && run.AnomaliesJson == "[]" &&
+                  run.WindowEndUtc == midnight.AddHours(16).AddTicks(1) && snapshot.RootElement.GetProperty("Events").GetArrayLength() == 2 &&
+                  await scope.ServiceProvider.GetRequiredService<LoginIdentityDbContext>().SecurityAudit.AnyAsync(x => x.Action == "calculation.run.created:" + first.ToString("N")),
+                "calculation resolves schedule, exact boundary, mapped punches and audit");
+        }
+        await Raw(s => s.AppendAsync(admin, source, "extra", "person-1", midnight.AddHours(12), null, "in", [3]));
+        var second = await Calc(s => s.CalculateAsync(admin, employee, date, source, rule));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var old = await db.DailyCalculationRuns.SingleAsync(x => x.Id == first);
+            var next = await db.DailyCalculationRuns.SingleAsync(x => x.Id == second);
+            check(old.ObservedTicks == TimeSpan.FromMinutes(485).Ticks && next.ObservedTicks is null && next.AnomaliesJson.Contains("invalid-punch-order", StringComparison.Ordinal) &&
+                  await db.RawAttendanceEvents.CountAsync(x => x.Id == entry.EventId || x.Id == exit.EventId) == 2,
+                "recalculation preserves previous run and raw input while incomplete pairing fails closed");
+            var runBlocked = false; var ruleBlocked = false;
+            try { await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM dbo.DailyCalculationRuns WHERE Id = {first}"); }
+            catch (SqlException e) when (e.Number == 51005) { runBlocked = true; }
+            try { await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.ObservedRuleVersions SET Name = {'x'.ToString()} WHERE Id = {rule}"); }
+            catch (SqlException e) when (e.Number == 51004) { ruleBlocked = true; }
+            check(runBlocked && ruleBlocked, "SQL blocks mutation of calculation runs and rule versions");
+        }
+        var unknown = await Raw(s => s.AppendAsync(admin, source, "unknown", "unmapped", midnight.AddHours(10), null, "in", [4]));
+        var third = await Calc(s => s.CalculateAsync(admin, employee, date, source, rule));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var run = await db.DailyCalculationRuns.SingleAsync(x => x.Id == third);
+            check(run.ObservedTicks is null && run.AnomaliesJson.Contains("unresolved-source-events", StringComparison.Ordinal) &&
+                  run.InputSnapshotJson.Contains(unknown.EventId.ToString(), StringComparison.OrdinalIgnoreCase),
+                "unmapped source event prevents numeric result and remains in snapshot");
+        }
+        check(await Reject<UnauthorizedAccessException>(() => Calc(s => s.CalculateAsync(limited, employee, date, source, rule))) &&
+              await Reject<UnauthorizedAccessException>(() => Calc(s => s.ListRunsAsync(limited, employee, 0))) &&
+              await Reject<ArgumentException>(() => Calc(s => s.CalculateAsync(admin, employee, date, Guid.NewGuid(), rule))),
+              "calculation execution and results enforce permission and source identity");
+        var concurrent = await Task.WhenAll(Calc(s => s.CalculateAsync(admin, employee, date, source, rule)), Calc(s => s.CalculateAsync(admin, employee, date, source, rule)));
+        check(concurrent.Distinct().Count() == 2, "concurrent recomputations preserve distinct run history");
+    }
+}

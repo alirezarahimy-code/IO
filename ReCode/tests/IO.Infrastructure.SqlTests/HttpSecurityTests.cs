@@ -183,7 +183,7 @@ internal static class HttpSecurityTests
                 return json.RootElement.GetProperty("result").GetGuid();
             }
             var featureRole = await CreateId("/admin/roles", new { Name = "phase five six test role" });
-            foreach (var code in new[] { "organization.manage", "schedule.manage", "schedule.read.all", "attendance.ingest" })
+            foreach (var code in new[] { "organization.manage", "schedule.manage", "schedule.read.all", "attendance.ingest", "attendance.calculate" })
                 if ((await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = featureRole, Code = code })).StatusCode != HttpStatusCode.OK)
                     throw new InvalidOperationException("Synthetic feature permission grant failed.");
             Guid globalActor;
@@ -277,6 +277,16 @@ internal static class HttpSecurityTests
             await CreateId("/scheduling/calendar-days", new { CalendarId = newCalendar, Date = workDay, Kind = 0, Note = "synthetic" });
             var newShift = await CreateId("/scheduling/shifts", new { CompanyId = newCompany, SiteId = newSite, Name = "HTTP night", StartsAt = "22:00:00", EndsAt = "06:00:00", EndDayOffset = 1 });
             var initialWorkSchedule = await CreateId("/scheduling/assignments", new { EmployeeId = newEmployee, CalendarId = newCalendar, ShiftId = newShift, ValidFrom = workDay, ValidUntilExclusive = (DateOnly?)null });
+            var ruleInput = new { CompanyId = newCompany, Name = "HTTP synthetic paired rule", BeforeMinutes = 10, AfterMinutes = 10 };
+            check((await PostAdmin(scoped, "/calculations/rules", ruleInput)).StatusCode == HttpStatusCode.Forbidden &&
+                  (await adminClient.PostAsJsonAsync("/calculations/rules", ruleInput)).StatusCode == HttpStatusCode.BadRequest,
+                "HTTP calculation rules require explicit permission and CSRF");
+            var calcRule = await CreateId("/calculations/rules", ruleInput);
+            await CreateId("/calculations/runs", new { EmployeeId = newEmployee, WorkDate = workDay, SourceId = rawSource, RuleVersionId = calcRule });
+            check((await adminClient.GetAsync($"/calculations/runs/{newEmployee}")).StatusCode == HttpStatusCode.OK &&
+                  (await scoped.GetAsync($"/calculations/runs/{newEmployee}")).StatusCode == HttpStatusCode.Forbidden &&
+                  (await adminClient.GetAsync($"/calculations/rules/{newCompany}")).StatusCode == HttpStatusCode.OK,
+                "HTTP calculation runs and rules expose only authorized historical snapshots");
             var scheduleResponse = await adminClient.GetAsync($"/schedules/{newEmployee}/{workDay:yyyy-MM-dd}");
             check(scheduleResponse.StatusCode == HttpStatusCode.OK && (await scheduleResponse.Content.ReadAsStringAsync()).Contains("HTTP night", StringComparison.Ordinal) &&
                 (await own.GetAsync($"/schedules/{newEmployee}/{workDay:yyyy-MM-dd}")).StatusCode == HttpStatusCode.NotFound,
