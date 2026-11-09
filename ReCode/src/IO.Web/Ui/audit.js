@@ -1,0 +1,9 @@
+'use strict';
+(() => {
+  const $=id=>document.getElementById(id);let offset=0,count=0,authorized=false,busy=false;
+  function controls(){$('refresh').disabled=busy;$('previous').disabled=busy||!authorized||offset===0;$('next').disabled=busy||!authorized||count<100||offset>=1000000;}
+  function clear(){authorized=false;count=0;$('body').replaceChildren();$('page-label').textContent='';$('empty').hidden=true;}
+  async function load(){const response=await fetch('/admin/catalog/audit?offset='+offset,{credentials:'same-origin',cache:'no-store'});if(!response.ok){if(response.status===401||response.status===403)clear();throw new Error(response.status===401?'نشست پایان یافته؛ دوباره وارد شوید.':response.status===403?'مجوز مدیریت هویت ندارید یا باید گذرواژه را تغییر دهید.':response.status===400?'شمارهٔ صفحه معتبر نیست.':'دریافت رخدادها انجام نشد.');}const data=await response.json();authorized=true;count=data.items.length;$('body').replaceChildren();$('empty').hidden=count!==0;$('page-label').textContent='از ردیف '+(offset+1).toLocaleString('fa-IR');for(const item of data.items){const row=document.createElement('tr');for(const key of ['occurredAtUtc','actorUserId','action','id']){const td=document.createElement('td');td.textContent=item[key]??'—';row.append(td);}$('body').append(row);}}
+  async function run(action){if(busy)return;busy=true;controls();try{await action();$('notice').textContent='';}catch(e){$('notice').textContent=e instanceof TypeError?'ارتباط برقرار نشد؛ دوباره تلاش کنید.':e.message;}finally{busy=false;controls();}}
+  $('refresh').addEventListener('click',()=>run(load));$('previous').addEventListener('click',()=>run(async()=>{offset-=100;try{await load();}catch(e){offset+=100;throw e;}}));$('next').addEventListener('click',()=>run(async()=>{offset+=100;try{await load();}catch(e){offset-=100;throw e;}}));controls();run(load);
+})();

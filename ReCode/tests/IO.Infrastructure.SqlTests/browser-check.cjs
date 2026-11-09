@@ -176,6 +176,13 @@ async function main() {
     if (await deniedOwnSchedule.locator('#result').isVisible() || await deniedOwnSchedule.locator('#body tr').count() !== 0)
       throw new Error('Own schedule exposed data without permission');
     await deniedOwnSchedule.close();
+    const deniedAudit = await context.newPage();
+    await deniedAudit.goto(address + '/workspace/audit');
+    await deniedAudit.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
+    if (await deniedAudit.locator('#body tr').count() !== 0 || await deniedAudit.locator('#next').isEnabled())
+      throw new Error('Audit workspace exposed events without identity management permission');
+    await deniedAudit.close();
+
 
 
 
@@ -212,6 +219,22 @@ async function main() {
     await page.locator('#logout').click();
     await waitText('عملیات انجام شد.');
     await login(adminName);
+    const auditPage = await context.newPage();
+    await auditPage.goto(address + '/workspace/audit');
+    await auditPage.locator('#body tr').first().waitFor();
+    const auditFirst = await auditPage.evaluate(async () => (await (await fetch('/admin/catalog/audit?offset=0')).json()).items[0]);
+    if ((await auditPage.locator('#body tr').first().locator('td').last().textContent()) !== auditFirst.id)
+      throw new Error('Audit workspace did not display the persisted first audit event');
+    if (await auditPage.locator('#next').isEnabled()) {
+      await auditPage.locator('#next').click();
+      await auditPage.waitForFunction(() => document.getElementById('page-label').textContent.includes('۱۰۱'));
+      const auditSecond = await auditPage.evaluate(async () => (await (await fetch('/admin/catalog/audit?offset=100')).json()).items[0]);
+      if ((await auditPage.locator('#body tr').first().locator('td').last().textContent()) !== auditSecond.id)
+        throw new Error('Audit workspace pagination did not read the requested page');
+      await auditPage.locator('#previous').click();
+      await auditPage.waitForFunction(() => document.getElementById('page-label').textContent === 'از ردیف ۱' && document.getElementById('previous').disabled);
+    }
+    await auditPage.close();
     await clearResult();
     await page.locator('#role input[name=name]').fill('synthetic-browser-role');
     await page.locator('#role button').click();
