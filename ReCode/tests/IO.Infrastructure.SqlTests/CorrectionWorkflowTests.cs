@@ -14,7 +14,7 @@ internal static class CorrectionWorkflowTests
     {
         var services = new ServiceCollection(); services.AddLogging(); services.AddIoIdentityStorage(connection);
         await using var provider = services.BuildServiceProvider();
-        Guid admin, self, manager, company, employee, outsider, otherActor = Guid.NewGuid();
+        Guid admin, self, manager, company, employee, outsider, otherActor = Guid.NewGuid(), duplicateActor = Guid.NewGuid();
         await using (var scope = provider.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
@@ -34,6 +34,7 @@ internal static class CorrectionWorkflowTests
             var otherEmployee = await db.Employees.SingleAsync(x => x.CompanyId == company && x.PersonnelNumber == "WEB-2");
             db.Users.Add(new() { Id = otherActor, UserName = "synthetic-other-correction-user", EmployeeId = otherEmployee.Id, IsActive = true });
             db.UserRoles.Add(new() { UserId = otherActor, RoleId = selfRole.Id });
+            db.Users.Add(new() { Id = duplicateActor, UserName = "synthetic-same-employee-user", EmployeeId = employee, IsActive = true });
             foreach (var (role, code) in new[] { (adminRole.Id, CorrectionWorkflow.Configure), (selfRole.Id, CorrectionWorkflow.Submit),
                 (managerRole.Id, CorrectionWorkflow.Decide), (managerRole.Id, CorrectionWorkflow.DecideScoped) })
             {
@@ -51,7 +52,9 @@ internal static class CorrectionWorkflowTests
               await Reject<ArgumentException>(() => Run(s => s.CreatePolicyAsync(admin, company, Guid.NewGuid(), "invalid"))), "correction policy requires configured permission and existing active approver");
         var policy = await Run(s => s.CreatePolicyAsync(admin, company, manager, "synthetic single approver"));
         var selfPolicy = await Run(s => s.CreatePolicyAsync(admin, company, self, "self forbidden"));
+        var duplicatePolicy = await Run(s => s.CreatePolicyAsync(admin, company, duplicateActor, "same employee forbidden"));
         check(await Reject<ArgumentException>(() => Run(s => s.SubmitAsync(self, selfPolicy, workDate, at, 0, "test"))) &&
+              await Reject<ArgumentException>(() => Run(s => s.SubmitAsync(self, duplicatePolicy, workDate, at, 0, "test"))) &&
               await Reject<ArgumentException>(() => Run(s => s.SubmitAsync(self, policy, workDate, at.ToOffset(TimeSpan.FromHours(1)), 0, "test"))) &&
               await Reject<UnauthorizedAccessException>(() => Run(s => s.SubmitAsync(outsider, policy, workDate, at, 0, "test"))), "self approval, non-UTC and unauthorized correction submissions are rejected");
         var outside = await Run(s => s.SubmitAsync(otherActor, policy, workDate, at, 0, "outside unit"));
@@ -113,6 +116,15 @@ internal static class CorrectionWorkflowTests
                 run.InputSnapshotJson.Contains("verified", StringComparison.Ordinal) && prior.ObservedTicks is null &&
                 await db.RawAttendanceEvents.CountAsync(x => x.Id == rawExit.EventId) == 1,
                 "approved correction contributes to new snapshot without altering raw or previous run");
+        }
+        var outsideWindow = await Run(s => s.SubmitAsync(self, policy, integratedDate, integratedAt.AddHours(9), 1, "outside window"));
+        await Run(s => s.DecideAsync(manager, outsideWindow, true, "verified"));
+        var outsideRun = await Calc(s => s.CalculateAsync(admin, employee, integratedDate, source, calculationRule));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var run = await scope.ServiceProvider.GetRequiredService<IoDbContext>().DailyCalculationRuns.SingleAsync(x => x.Id == outsideRun);
+            check(run.ObservedTicks is null && run.AnomaliesJson.Contains("correction-outside-window", StringComparison.Ordinal),
+                "approved correction outside the work window blocks a numerical result");
         }
         var race = await Run(s => s.SubmitAsync(self, policy, workDate, at.AddMinutes(2), 1, "race"));
         async Task<bool> Attempt(Func<Task> f) { try { await f(); return true; } catch (DomainConflictException) { return false; } }
