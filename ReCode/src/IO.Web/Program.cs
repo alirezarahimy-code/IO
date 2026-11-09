@@ -236,6 +236,10 @@ public static class IoWebHost
             Admin(c, csrf, actor => service.DecideAsync(actor, id, input.Approve, input.Reason, c.RequestAborted)));
         app.MapPost("/corrections/requests/{id:guid}/cancel", (Guid id, CorrectionCancelInput input, HttpContext c, IAntiforgery csrf, CorrectionWorkflow service) =>
             Admin(c, csrf, actor => service.CancelAsync(actor, id, input.Reason, c.RequestAborted)));
+        app.MapGet("/periods/drafts/{employeeId:guid}", (Guid employeeId, int? offset, HttpContext c, PeriodDrafts service) =>
+            AdminRead(c, actor => service.ListAsync(actor, employeeId, offset ?? 0, c.RequestAborted)));
+        app.MapPost("/periods/drafts", (PeriodDraftInput input, HttpContext c, IAntiforgery csrf, PeriodDrafts service) =>
+            Admin(c, csrf, actor => service.CreateAsync(actor, input.EmployeeId, input.Start, input.EndExclusive, c.RequestAborted)));
         app.MapGet("/periods/preflight/{employeeId:guid}", (Guid employeeId, DateOnly start, DateOnly endExclusive, HttpContext c, PeriodPreflight service) =>
             AdminRead(c, actor => service.InspectAsync(actor, employeeId, start, endExclusive, c.RequestAborted)));
         app.MapGet("/org/catalog/{kind}", (string kind, int? offset, HttpContext context, OrganizationManagement service) =>
@@ -417,3 +421,5 @@ public sealed record CorrectionPolicyInput(Guid CompanyId, Guid ApproverUserId, 
 public sealed record CorrectionRequestInput(Guid PolicyId, DateOnly WorkDate, string ProposedAt, int PunchKind, string Reason);
 public sealed record CorrectionDecisionInput(bool Approve, string? Reason);
 public sealed record CorrectionCancelInput(string Reason);
+
+public sealed record PeriodDraftInput(Guid EmployeeId, DateOnly Start, DateOnly EndExclusive);

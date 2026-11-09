@@ -183,7 +183,7 @@ internal static class HttpSecurityTests
                 return json.RootElement.GetProperty("result").GetGuid();
             }
             var featureRole = await CreateId("/admin/roles", new { Name = "phase five six test role" });
-            foreach (var code in new[] { "organization.manage", "schedule.manage", "schedule.read.all", "attendance.ingest", "attendance.calculate", "correction.configure", "period.preflight" })
+            foreach (var code in new[] { "organization.manage", "schedule.manage", "schedule.read.all", "attendance.ingest", "attendance.calculate", "correction.configure", "period.preflight", "period.draft.manage" })
                 if ((await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = featureRole, Code = code })).StatusCode != HttpStatusCode.OK)
                     throw new InvalidOperationException("Synthetic feature permission grant failed.");
             Guid globalActor;
@@ -319,6 +319,17 @@ internal static class HttpSecurityTests
                   (await scoped.GetAsync($"/calculations/runs/{newEmployee}")).StatusCode == HttpStatusCode.Forbidden &&
                   (await adminClient.GetAsync($"/calculations/rules/{newCompany}")).StatusCode == HttpStatusCode.OK,
                 "HTTP calculation runs and rules expose only authorized historical snapshots");
+            var draftInput = new { EmployeeId = newEmployee, Start = workDay, EndExclusive = workDay.AddDays(2) };
+            check((await PostAdmin(scoped, "/periods/drafts", draftInput)).StatusCode == HttpStatusCode.Forbidden &&
+                  (await adminClient.PostAsJsonAsync("/periods/drafts", draftInput)).StatusCode == HttpStatusCode.BadRequest,
+                  "HTTP draft registration requires permission and CSRF");
+            var draftId = await CreateId("/periods/drafts", draftInput);
+            var retriedDraftId = await CreateId("/periods/drafts", draftInput);
+            using var draftList = await adminClient.GetAsync($"/periods/drafts/{newEmployee}");
+            check(draftId == retriedDraftId && draftList.StatusCode == HttpStatusCode.OK &&
+                  (await draftList.Content.ReadAsStringAsync()).Contains("diagnostic-draft-only", StringComparison.Ordinal) &&
+                  (await scoped.GetAsync($"/periods/drafts/{newEmployee}")).StatusCode == HttpStatusCode.Forbidden,
+                  "HTTP period drafts retry idempotently and remain restricted diagnostic records");
             var preflight = await adminClient.GetAsync($"/periods/preflight/{newEmployee}?start={workDay:yyyy-MM-dd}&endExclusive={workDay.AddDays(1):yyyy-MM-dd}");
             check(preflight.StatusCode == HttpStatusCode.OK && (await preflight.Content.ReadAsStringAsync()).Contains("\"approvable\":false", StringComparison.Ordinal) &&
                   (await scoped.GetAsync($"/periods/preflight/{newEmployee}?start={workDay:yyyy-MM-dd}&endExclusive={workDay.AddDays(1):yyyy-MM-dd}")).StatusCode == HttpStatusCode.Forbidden &&

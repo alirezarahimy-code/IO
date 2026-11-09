@@ -341,6 +341,7 @@ try
     await AttendanceIngestionTests.RunAsync(connection, Check);
     await ObservedCalculationTests.RunAsync(connection, Check);
     await CorrectionWorkflowTests.RunAsync(connection, Check);
+    await PeriodDraftTests.RunAsync(connection, Check);
     await using (var identity = new LoginIdentityDbContext(new DbContextOptionsBuilder<LoginIdentityDbContext>()
         .UseSqlServer(connection, sql => sql.MigrationsHistoryTable("__IdentityMigrationsHistory")).Options))
     {
