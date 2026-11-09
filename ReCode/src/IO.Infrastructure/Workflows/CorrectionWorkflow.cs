@@ -42,6 +42,8 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
                 ?? throw new ArgumentException("Unknown policy or different company.");
             if (policy.ApproverUserId == actor || await db.Users.AnyAsync(x => x.Id == policy.ApproverUserId && x.EmployeeId == employee.Id, token))
                 throw new ArgumentException("Self-approval policy cannot be used.");
+            if (!await db.Users.AnyAsync(x => x.Id == policy.ApproverUserId && x.IsActive, token))
+                throw new DomainConflictException("Policy approver is inactive.");
             var id = Guid.NewGuid();
             db.CorrectionRequests.Add(new() { Id = id, CompanyId = employee.CompanyId, EmployeeId = employee.Id,
                 RequesterUserId = actor, PolicyId = policyId, WorkDate = workDate, ProposedAtUtc = proposedUtc,
@@ -94,7 +96,8 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
             var items = await (from user in db.Users.AsNoTracking()
                                join employee in db.Employees on user.EmployeeId equals (Guid?)employee.Id
                                join policy in db.CorrectionPolicies on employee.CompanyId equals policy.CompanyId
-                               where user.Id == actor && user.IsActive && policy.ApproverUserId != actor
+                               where user.Id == actor && user.IsActive && policy.ApproverUserId != actor &&
+                                     db.Users.Any(approver => approver.Id == policy.ApproverUserId && approver.IsActive && (approver.EmployeeId == null || approver.EmployeeId != employee.Id))
                                orderby policy.CreatedAtUtc, policy.Id
                                select new { policy.Id, policy.Name, policy.ApproverUserId }).Skip(offset).Take(50).ToListAsync(token);
             return (new { offset, pageSize = 50, items }, actor);

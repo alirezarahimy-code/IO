@@ -63,6 +63,27 @@ internal static class CorrectionWorkflowTests
               await Reject<UnauthorizedAccessException>(() => Run(s => s.DecideAsync(manager, outside, true, null))) &&
               await Reject<UnauthorizedAccessException>(() => Run(s => s.CancelAsync(self, outside, "not mine"))),
               "correction inbox and decisions exclude employees outside exact unit and other users' requests");
+        var policies = JsonSerializer.Serialize(await Run(s => s.ListPoliciesAsync(self, 0)));
+        check(policies.Contains(policy.ToString(), StringComparison.OrdinalIgnoreCase) &&
+              !policies.Contains(duplicatePolicy.ToString(), StringComparison.OrdinalIgnoreCase) &&
+              !policies.Contains(selfPolicy.ToString(), StringComparison.OrdinalIgnoreCase),
+              "policy list excludes any approver account linked to the requester employee");
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            (await db.Users.SingleAsync(x => x.Id == manager)).IsActive = false;
+            await db.SaveChangesAsync();
+        }
+        var inactivePolicies = JsonSerializer.Serialize(await Run(s => s.ListPoliciesAsync(self, 0)));
+        check(!inactivePolicies.Contains(policy.ToString(), StringComparison.OrdinalIgnoreCase) &&
+              await Reject<DomainConflictException>(() => Run(s => s.SubmitAsync(self, policy, workDate, at, 0, "inactive"))),
+              "inactive approver policies cannot accept new requests");
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            (await db.Users.SingleAsync(x => x.Id == manager)).IsActive = true;
+            await db.SaveChangesAsync();
+        }
         var request = await Run(s => s.SubmitAsync(self, policy, workDate, at, 0, "missed punch"));
         var inbox = JsonSerializer.Serialize(await Run(s => s.InboxAsync(manager, 0)));
         check(inbox.Contains(request.ToString(), StringComparison.OrdinalIgnoreCase) &&
