@@ -45,7 +45,7 @@ internal static class ObservedCalculationTests
               await Reject<ArgumentException>(() => Calc(s => s.CreateRuleAsync(admin, company, "invalid", 721, 0))),
             "calculation policy requires permission and bounded explicit margins");
         var rule = await Calc(s => s.CreateRuleAsync(admin, company, "test paired presence", 10, 0));
-        await Raw(s => s.AddMappingAsync(admin, source, "person-1", employee, midnight, null));
+        var sourceMapping = await Raw(s => s.AddMappingAsync(admin, source, "person-1", employee, midnight, null));
         var entry = await Raw(s => s.AppendAsync(admin, source, "in-1", "person-1", midnight.AddHours(7).AddMinutes(55), null, "in", [1]));
         var exit = await Raw(s => s.AppendAsync(admin, source, "out-1", "person-1", midnight.AddHours(16), null, "out", [2]));
         var first = await Calc(s => s.CalculateAsync(admin, employee, date, source, rule));
@@ -144,6 +144,28 @@ internal static class ObservedCalculationTests
               days.GetArrayLength() == 2 && days[0].GetProperty("latestRun").ValueKind == JsonValueKind.Object &&
               days[1].GetProperty("latestRun").ValueKind == JsonValueKind.Null,
               "period preflight displays historical coverage without claiming freshness or approval");
+        var replacementEmployee = Guid.NewGuid(); byte[] mappingVersion;
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            db.Employees.Add(new() { Id = replacementEmployee, CompanyId = company, PersonnelNumber = "CALC-REMAP", DisplayName = "Synthetic remapped employee" });
+            await db.SaveChangesAsync();
+            mappingVersion = (await db.SourceEmployeeMappings.SingleAsync(x => x.Id == sourceMapping)).Version;
+        }
+        await Raw(s => s.ReplaceMappingAsync(admin, source, "person-1", sourceMapping, replacementEmployee, midnight.AddHours(12), mappingVersion, "historical correction"));
+        var afterRemap = await Calc(s => s.CalculateAsync(admin, employee, date, source, rule));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var priorRun = await db.DailyCalculationRuns.SingleAsync(x => x.Id == first);
+            var newRun = await db.DailyCalculationRuns.SingleAsync(x => x.Id == afterRemap);
+            using var newSnapshot = JsonDocument.Parse(newRun.InputSnapshotJson);
+            var exitEvent = newSnapshot.RootElement.GetProperty("Events").EnumerateArray().Single(x => x.GetProperty("Id").GetGuid() == exit.EventId);
+            check(priorRun.ObservedTicks == TimeSpan.FromMinutes(485).Ticks && newRun.ObservedTicks is null &&
+                  exitEvent.GetProperty("MappedEmployeeId").GetGuid() == replacementEmployee &&
+                  await db.RawAttendanceEvents.AnyAsync(x => x.Id == exit.EventId),
+                  "mapping replacement affects recomputation while preserving prior snapshot and raw evidence");
+        }
         check(await Reject<UnauthorizedAccessException>(() => Period(s => s.InspectAsync(limited, employee, date, date.AddDays(1)))) &&
               await Reject<ArgumentException>(() => Period(s => s.InspectAsync(admin, employee, date, date.AddDays(63)))) &&
               await Reject<ArgumentException>(() => Period(s => s.InspectAsync(admin, employee, date, date))),
