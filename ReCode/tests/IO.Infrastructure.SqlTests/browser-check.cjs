@@ -103,6 +103,14 @@ async function main() {
     if (await deniedHistory.locator('#body tr').count() !== 0 || await deniedHistory.locator('#create-form button').isEnabled())
       throw new Error('Employee history exposed data without permission');
     await deniedHistory.close();
+    const deniedRules = await context.newPage();
+    await deniedRules.goto(address + '/workspace/rules');
+    await deniedRules.locator('#filter input[name=companyId]').fill(first);
+    await deniedRules.locator('#filter button').click();
+    await deniedRules.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
+    if (await deniedRules.locator('#body tr').count() !== 0 || await deniedRules.locator('#create-form button').isEnabled())
+      throw new Error('Rules workspace exposed data without permission');
+    await deniedRules.close();
     const selfId = await page.evaluate(async () => (await (await fetch('/auth/me')).json()).id);
     const selfCompany = await page.evaluate(async id => (await (await fetch('/employees/' + encodeURIComponent(id))).json()).companyId, first);
     await clearResult();
@@ -299,6 +307,23 @@ async function main() {
     await historyPage.locator('#create-form button').click();
     await historyPage.waitForFunction(() => document.getElementById('notice').textContent.includes('تعارض'));
     await historyPage.close();
+    const rulesPage = await context.newPage();
+    await rulesPage.goto(address + '/workspace/rules');
+    await rulesPage.locator('#filter input[name=companyId]').fill(company);
+    await rulesPage.locator('#filter button').click();
+    await rulesPage.waitForFunction(() => !document.querySelector('#create-form button').disabled);
+    await rulesPage.locator('#create-form input[name=name]').fill('Workspace paired rule');
+    await rulesPage.locator('#create-form input[name=beforeMinutes]').fill('10');
+    await rulesPage.locator('#create-form input[name=afterMinutes]').fill('5');
+    await rulesPage.locator('#create-form button').click();
+    const rulesRow = rulesPage.locator('#body tr').filter({hasText:'Workspace paired rule'});
+    await rulesRow.waitFor();
+    if (!(await rulesRow.textContent()).includes('paired-v1')) throw new Error('Stored rule algorithm missing');
+    await rulesPage.locator('#filter input[name=companyId]').fill(first);
+    if (await rulesPage.locator('#create-form button').isEnabled() || await rulesPage.locator('#body tr').count() !== 0)
+      throw new Error('Changing company left stale rules editable');
+    await rulesPage.close();
+
 
 
     await page.locator('#attendance-source input[name=name]').fill('Browser synthetic source');
