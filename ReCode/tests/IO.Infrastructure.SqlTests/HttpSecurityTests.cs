@@ -216,12 +216,14 @@ internal static class HttpSecurityTests
             correctionResponse.EnsureSuccessStatusCode();
             using var correctionJson = JsonDocument.Parse(await correctionResponse.Content.ReadAsStringAsync());
             var correctionId = correctionJson.RootElement.GetProperty("result").GetGuid();
-            check((await scoped.GetAsync("/corrections/inbox")).StatusCode == HttpStatusCode.OK &&
-                  (await PostAdmin(own, $"/corrections/requests/{correctionId}/decision", new { Approve = true, Reason = (string?)null })).StatusCode == HttpStatusCode.Forbidden &&
-                  (await PostAdmin(scoped, $"/corrections/requests/{correctionId}/decision", new { Approve = true, Reason = (string?)null })).StatusCode == HttpStatusCode.OK &&
-                  (await PostAdmin(own, $"/corrections/requests/{correctionId}/cancel", new { Reason = "late" })).StatusCode == HttpStatusCode.Conflict &&
-                  (await own.GetAsync("/corrections/own")).StatusCode == HttpStatusCode.OK,
-                "HTTP scoped approval and own history enforce state and identity");
+            var inboxStatus = (await scoped.GetAsync("/corrections/inbox")).StatusCode;
+            var ownDecisionStatus = (await PostAdmin(own, $"/corrections/requests/{correctionId}/decision", new { Approve = true, Reason = (string?)null })).StatusCode;
+            var managerDecisionStatus = (await PostAdmin(scoped, $"/corrections/requests/{correctionId}/decision", new { Approve = true, Reason = (string?)null })).StatusCode;
+            var lateCancelStatus = (await PostAdmin(own, $"/corrections/requests/{correctionId}/cancel", new { Reason = "late" })).StatusCode;
+            var ownHistoryStatus = (await own.GetAsync("/corrections/own")).StatusCode;
+            check(inboxStatus == HttpStatusCode.OK && ownDecisionStatus == HttpStatusCode.Forbidden && managerDecisionStatus == HttpStatusCode.OK &&
+                  lateCancelStatus == HttpStatusCode.Conflict && ownHistoryStatus == HttpStatusCode.OK,
+                $"HTTP scoped approval and own history enforce state and identity ({inboxStatus}, {ownDecisionStatus}, {managerDecisionStatus}, {lateCancelStatus}, {ownHistoryStatus})");
             var newOrg = await CreateId("/org/organizations", new { Name = "HTTP synthetic org" });
             var newCompany = await CreateId("/org/companies", new { OrganizationId = newOrg, Name = "HTTP synthetic company" });
             var newSite = await CreateId("/org/sites", new { CompanyId = newCompany, Name = "HTTP site", TimeZoneId = "Asia/Tehran" });
