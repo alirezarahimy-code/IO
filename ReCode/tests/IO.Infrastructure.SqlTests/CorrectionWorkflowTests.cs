@@ -161,6 +161,8 @@ internal static class CorrectionWorkflowTests
               readOnlyHistory.Contains("\"canCancel\":false", StringComparison.OrdinalIgnoreCase) && readOnlyDenied && inactiveDenied && caseDenied && paddingDenied &&
               legacyHistory.Contains(identical.ToString(), StringComparison.OrdinalIgnoreCase) && legacyHistory.Contains("\"canCancel\":true", StringComparison.OrdinalIgnoreCase),
               "own correction read-only permission is exact, active, isolated and preserves legacy submit access");
+        var splitApproved = await Run(s => s.SubmitAsync(self, policy, workDate.AddDays(3), at.AddDays(3), 0, "independent approval"));
+        var splitRejected = await Run(s => s.SubmitAsync(self, policy, workDate.AddDays(4), at.AddDays(4), 0, "independent rejection"));
         Guid managerRoleId, decidePermissionId, scopedPermissionId, inboxReadId;
         await using (var scope = provider.CreateAsyncScope())
         {
@@ -182,6 +184,53 @@ internal static class CorrectionWorkflowTests
         var outsideInbox = JsonSerializer.Serialize(await Run(s => s.InboxAsync(manager, 0, employeeId: otherEmployeeId)));
         var noDecision = await Reject<UnauthorizedAccessException>(() => Run(s => s.DecideAsync(manager, identical, true, "denied"))) &&
             await Reject<UnauthorizedAccessException>(() => Run(s => s.ListDecisionsAsync(manager, 0)));
+        Guid approvePermissionId, rejectPermissionId, historyPermissionId;
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            async Task<Guid> EnsurePermission(string code)
+            {
+                var permission = await db.Permissions.SingleOrDefaultAsync(x => x.Code == code);
+                if (permission is null) { permission = new() { Id = Guid.NewGuid(), Code = code }; db.Permissions.Add(permission); }
+                return permission.Id;
+            }
+            approvePermissionId = await EnsurePermission(CorrectionWorkflow.Approve);
+            rejectPermissionId = await EnsurePermission(CorrectionWorkflow.Reject);
+            historyPermissionId = await EnsurePermission(CorrectionWorkflow.ReadDecisions);
+            db.RolePermissions.Add(new() { RoleId = managerRoleId, PermissionId = approvePermissionId });
+            await db.SaveChangesAsync();
+        }
+        var approveOnlyInbox = JsonSerializer.Serialize(await Run(s => s.InboxAsync(manager, 0)));
+        var approveOnlyDenied = await Reject<UnauthorizedAccessException>(() => Run(s => s.DecideAsync(manager, splitRejected, false, "denied"))) &&
+            await Reject<UnauthorizedAccessException>(() => Run(s => s.DecideAsync(manager, outside, true, null)));
+        var approvedSeparately = await Run(s => s.DecideAsync(manager, splitApproved, true, "verified"));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            db.RolePermissions.Remove(await db.RolePermissions.SingleAsync(x => x.RoleId == managerRoleId && x.PermissionId == approvePermissionId));
+            db.RolePermissions.Add(new() { RoleId = managerRoleId, PermissionId = rejectPermissionId });
+            await db.SaveChangesAsync();
+        }
+        var rejectOnlyInbox = JsonSerializer.Serialize(await Run(s => s.InboxAsync(manager, 0)));
+        var rejectOnlyDenied = await Reject<UnauthorizedAccessException>(() => Run(s => s.DecideAsync(manager, splitRejected, true, null))) &&
+            await Reject<ArgumentException>(() => Run(s => s.DecideAsync(manager, splitRejected, false, null)));
+        var rejectedSeparately = await Run(s => s.DecideAsync(manager, splitRejected, false, "not accepted"));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            db.RolePermissions.Remove(await db.RolePermissions.SingleAsync(x => x.RoleId == managerRoleId && x.PermissionId == rejectPermissionId));
+            db.RolePermissions.Add(new() { RoleId = managerRoleId, PermissionId = historyPermissionId });
+            await db.SaveChangesAsync();
+        }
+        var splitHistory = JsonSerializer.Serialize(await Run(s => s.ListDecisionsAsync(manager, 0)));
+        var revokedActions = await Reject<UnauthorizedAccessException>(() => Run(s => s.DecideAsync(manager, identical, true, null))) &&
+            await Reject<UnauthorizedAccessException>(() => Run(s => s.DecideAsync(manager, identical, false, "denied")));
+        check(approveOnlyInbox.Contains("\"canApprove\":true", StringComparison.OrdinalIgnoreCase) && approveOnlyInbox.Contains("\"canReject\":false", StringComparison.OrdinalIgnoreCase) &&
+              rejectOnlyInbox.Contains("\"canApprove\":false", StringComparison.OrdinalIgnoreCase) && rejectOnlyInbox.Contains("\"canReject\":true", StringComparison.OrdinalIgnoreCase) &&
+              approveOnlyDenied && approvedSeparately && rejectOnlyDenied && rejectedSeparately && revokedActions &&
+              splitHistory.Contains(splitApproved.ToString(), StringComparison.OrdinalIgnoreCase) && splitHistory.Contains(splitRejected.ToString(), StringComparison.OrdinalIgnoreCase) &&
+              !splitHistory.Contains(outside.ToString(), StringComparison.OrdinalIgnoreCase),
+              "approval, rejection and own decision history have distinct permissions with scoped legacy compatibility");
         await using (var scope = provider.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
@@ -189,6 +238,7 @@ internal static class CorrectionWorkflowTests
             await db.SaveChangesAsync();
         }
         var noScopeInbox = JsonSerializer.Serialize(await Run(s => s.InboxAsync(manager, 0, employeeId: employee)));
+        var noScopeHistory = JsonSerializer.Serialize(await Run(s => s.ListDecisionsAsync(manager, 0)));
         await using (var scope = provider.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
@@ -196,12 +246,14 @@ internal static class CorrectionWorkflowTests
             (await db.Users.SingleAsync(x => x.Id == manager)).IsActive = false;
             await db.SaveChangesAsync();
         }
-        var inactiveInbox = await Reject<UnauthorizedAccessException>(() => Run(s => s.InboxAsync(manager, 0)));
+        var inactiveInbox = await Reject<UnauthorizedAccessException>(() => Run(s => s.InboxAsync(manager, 0))) &&
+            await Reject<UnauthorizedAccessException>(() => Run(s => s.ListDecisionsAsync(manager, 0)));
         await using (var scope = provider.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
             (await db.Users.SingleAsync(x => x.Id == manager)).IsActive = true;
             db.RolePermissions.Remove(await db.RolePermissions.SingleAsync(x => x.RoleId == managerRoleId && x.PermissionId == inboxReadId));
+            db.RolePermissions.Remove(await db.RolePermissions.SingleAsync(x => x.RoleId == managerRoleId && x.PermissionId == historyPermissionId));
             await db.SaveChangesAsync();
         }
         var revokedInbox = await Reject<UnauthorizedAccessException>(() => Run(s => s.InboxAsync(manager, 0)));
@@ -215,7 +267,7 @@ internal static class CorrectionWorkflowTests
         check(readInbox.Contains(identical.ToString(), StringComparison.OrdinalIgnoreCase) &&
               readInbox.Contains("\"EmployeeName\":\"First\"", StringComparison.Ordinal) && readInbox.Contains("WEB-1", StringComparison.Ordinal) &&
               readInbox.Contains("\"canDecide\":false", StringComparison.OrdinalIgnoreCase) && !outsideInbox.Contains(outside.ToString(), StringComparison.OrdinalIgnoreCase) &&
-              !noScopeInbox.Contains(identical.ToString(), StringComparison.OrdinalIgnoreCase) && noDecision && inactiveInbox && revokedInbox &&
+              !noScopeInbox.Contains(identical.ToString(), StringComparison.OrdinalIgnoreCase) && !noScopeHistory.Contains(splitApproved.ToString(), StringComparison.OrdinalIgnoreCase) && noDecision && inactiveInbox && revokedInbox &&
               legacyInbox.Contains(identical.ToString(), StringComparison.OrdinalIgnoreCase) && legacyInbox.Contains("\"canDecide\":true", StringComparison.OrdinalIgnoreCase) &&
               await Reject<ArgumentException>(() => Run(s => s.InboxAsync(manager, 0, employeeId: Guid.Empty))),
               "inbox read permission requires assigned approver and scope, filters employees and never grants decisions");

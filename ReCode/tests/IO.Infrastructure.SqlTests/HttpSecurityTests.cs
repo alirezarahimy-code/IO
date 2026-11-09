@@ -293,6 +293,15 @@ internal static class HttpSecurityTests
             cancellableResponse.EnsureSuccessStatusCode();
             using var cancellableJson = JsonDocument.Parse(await cancellableResponse.Content.ReadAsStringAsync());
             var cancellableId = cancellableJson.RootElement.GetProperty("result").GetGuid();
+            async Task<Guid> SubmitSplitRequest(string day)
+            {
+                using var response = await PostAdmin(own, "/corrections/requests", new { OperationId = Guid.NewGuid(), PolicyId = correctionPolicy, WorkDate = day, ProposedAt = day + "T08:00:00Z", PunchKind = 0, Reason = "split decision" });
+                response.EnsureSuccessStatusCode();
+                using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                return body.RootElement.GetProperty("result").GetGuid();
+            }
+            var splitApprovalId = await SubmitSplitRequest("2027-05-08");
+            var splitRejectionId = await SubmitSplitRequest("2027-05-09");
             var readGrant = await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = testSelfRole, Code = "correction.requests.read.self" });
             var submitRevoke = await PostAdmin(adminClient, "/admin/role-permissions/revoke", new { RoleId = testSelfRole, Code = "correction.submit.self" });
             // The browser fixture also grants submit through a separate role; revoke it
@@ -350,6 +359,33 @@ internal static class HttpSecurityTests
             var readOnlyDecisionHistory = await scoped.GetAsync("/corrections/decisions");
             var invalidInbox = await scoped.GetAsync("/corrections/inbox?employeeId=00000000-0000-0000-0000-000000000000");
             var malformedInbox = await scoped.GetAsync("/corrections/inbox?employeeId=invalid");
+            var approvalGrant = await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = testManagerRole, Code = "correction.approve" });
+            using var approvalOnlyResponse = await scoped.GetAsync("/corrections/inbox");
+            using var approvalOnlyJson = JsonDocument.Parse(await approvalOnlyResponse.Content.ReadAsStringAsync());
+            var rejectWithoutGrant = await PostAdmin(scoped, $"/corrections/requests/{splitRejectionId}/decision", new { Approve = false, Reason = "denied" });
+            var approvedWithoutLegacy = await PostAdmin(scoped, $"/corrections/requests/{splitApprovalId}/decision", new { Approve = true, Reason = (string?)null });
+            var approvalRevoke = await PostAdmin(adminClient, "/admin/role-permissions/revoke", new { RoleId = testManagerRole, Code = "correction.approve" });
+            var rejectionGrant = await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = testManagerRole, Code = "correction.reject" });
+            using var rejectionOnlyResponse = await scoped.GetAsync("/corrections/inbox");
+            using var rejectionOnlyJson = JsonDocument.Parse(await rejectionOnlyResponse.Content.ReadAsStringAsync());
+            var approveWithoutGrant = await PostAdmin(scoped, $"/corrections/requests/{splitRejectionId}/decision", new { Approve = true, Reason = (string?)null });
+            var rejectedWithoutLegacy = await PostAdmin(scoped, $"/corrections/requests/{splitRejectionId}/decision", new { Approve = false, Reason = "not accepted" });
+            var rejectionRevoke = await PostAdmin(adminClient, "/admin/role-permissions/revoke", new { RoleId = testManagerRole, Code = "correction.reject" });
+            var historyGrant = await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = testManagerRole, Code = "correction.decisions.read.self" });
+            using var separateHistory = await scoped.GetAsync("/corrections/decisions");
+            var separateHistoryText = await separateHistory.Content.ReadAsStringAsync();
+            var historyRevoke = await PostAdmin(adminClient, "/admin/role-permissions/revoke", new { RoleId = testManagerRole, Code = "correction.decisions.read.self" });
+            var historyAfterRevoke = await scoped.GetAsync("/corrections/decisions");
+            check(approvalGrant.StatusCode == HttpStatusCode.OK && approvalOnlyResponse.StatusCode == HttpStatusCode.OK &&
+                  approvalOnlyJson.RootElement.GetProperty("canApprove").GetBoolean() && !approvalOnlyJson.RootElement.GetProperty("canReject").GetBoolean() &&
+                  rejectWithoutGrant.StatusCode == HttpStatusCode.Forbidden && approvedWithoutLegacy.StatusCode == HttpStatusCode.OK && approvalRevoke.StatusCode == HttpStatusCode.OK &&
+                  rejectionGrant.StatusCode == HttpStatusCode.OK && rejectionOnlyResponse.StatusCode == HttpStatusCode.OK &&
+                  !rejectionOnlyJson.RootElement.GetProperty("canApprove").GetBoolean() && rejectionOnlyJson.RootElement.GetProperty("canReject").GetBoolean() &&
+                  approveWithoutGrant.StatusCode == HttpStatusCode.Forbidden && rejectedWithoutLegacy.StatusCode == HttpStatusCode.OK && rejectionRevoke.StatusCode == HttpStatusCode.OK &&
+                  historyGrant.StatusCode == HttpStatusCode.OK && separateHistory.StatusCode == HttpStatusCode.OK &&
+                  separateHistoryText.Contains(splitApprovalId.ToString(), StringComparison.OrdinalIgnoreCase) && separateHistoryText.Contains(splitRejectionId.ToString(), StringComparison.OrdinalIgnoreCase) &&
+                  historyRevoke.StatusCode == HttpStatusCode.OK && historyAfterRevoke.StatusCode == HttpStatusCode.Forbidden,
+                  "HTTP approval, rejection and decision history permissions are independent and revocable");
             var restoredDecide = await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = testManagerRole, Code = "correction.decide" });
             var removedReadInbox = await PostAdmin(adminClient, "/admin/role-permissions/revoke", new { RoleId = testManagerRole, Code = "correction.inbox.read" });
             check(readInboxGrant.StatusCode == HttpStatusCode.OK && decideRevoke.StatusCode == HttpStatusCode.OK && filteredInbox.StatusCode == HttpStatusCode.OK &&

@@ -14,6 +14,9 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
     public const string ReadOwn = "correction.requests.read.self";
     public const string CancelOwn = "correction.cancel.self";
     public const string Decide = "correction.decide";
+    public const string Approve = "correction.approve";
+    public const string Reject = "correction.reject";
+    public const string ReadDecisions = "correction.decisions.read.self";
     public const string ReadInbox = "correction.inbox.read";
     public const string DecideScoped = "correction.decide.scoped";
     public const string DecideAll = "correction.decide.all";
@@ -104,7 +107,7 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
         }, ct);
 
     public Task<bool> DecideAsync(Guid actor, Guid requestId, bool approve, string? reason, CancellationToken ct = default) =>
-        transaction.ExecuteAsync(actor, Decide, "correction.request.decided", async token =>
+        transaction.ExecuteEitherAsync(actor, approve ? Approve : Reject, Decide, "correction.request.decided", async token =>
         {
             Reason(reason, !approve);
             if (requestId == Guid.Empty) throw new ArgumentException("Invalid request.");
@@ -204,7 +207,7 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
         }, ct);
 
     public Task<object> ListDecisionsAsync(Guid actor, int offset, CancellationToken ct = default) =>
-        transaction.ExecuteAsync<object>(actor, Decide, "correction.decisions.viewed", async token =>
+        transaction.ExecuteEitherAsync<object>(actor, ReadDecisions, Decide, "correction.decisions.viewed", async token =>
         {
             if (offset is < 0 or > 100000) throw new ArgumentException("Invalid page.");
             var authorized = access.AuthorizedEmployees(actor, DateOnly.FromDateTime(DateTime.UtcNow), "correction.never-self", DecideScoped, DecideAll);
@@ -244,7 +247,10 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
                 _ => query.OrderBy(x => x.CreatedAtUtc).ThenBy(x => x.Id)
             };
             var items = await ordered.Skip(offset).Take(50).ToListAsync(token);
-            var canDecide = await transaction.HasPermissionAsync(actor, Decide, token);
-            return (new { offset, pageSize = 50, employeeId, sort, items, canDecide }, actor);
+            var legacyDecision = await transaction.HasPermissionAsync(actor, Decide, token);
+            var canApprove = legacyDecision || await transaction.HasPermissionAsync(actor, Approve, token);
+            var canReject = legacyDecision || await transaction.HasPermissionAsync(actor, Reject, token);
+            var canDecide = canApprove || canReject;
+            return (new { offset, pageSize = 50, employeeId, sort, items, canDecide, canApprove, canReject }, actor);
         }, ct);
 }

@@ -2,7 +2,7 @@
 (() => {
   const $=id=>document.getElementById(id),forms=[$('role-form'),$('permission-form'),$('scope-form'),$('revoke-form')];
   const specs={roles:{title:'نقش‌ها',columns:[['name','نام نقش'],['id','شناسهٔ نقش']]},permissions:{title:'مجوزها',columns:[['code','کد مجوز'],['id','شناسهٔ مجوز']]},'role-permissions':{title:'مجوزهای نقش‌ها',columns:[['roleId','شناسهٔ نقش'],['permissionId','شناسهٔ مجوز']]},'user-roles':{title:'نقش‌های حساب‌ها',columns:[['userId','شناسهٔ حساب'],['roleId','شناسهٔ نقش']]},'user-scopes':{title:'محدوده‌های واحد حساب‌ها',columns:[['userId','شناسهٔ حساب'],['orgUnitId','شناسهٔ واحد'],['validFrom','شروع میلادی'],['validUntilExclusive','پایان انحصاری'],['id','شناسهٔ محدوده']]}};
-  const codes=['employees.read.self','employees.read.scoped','employees.read.all','identity.manage','leave.manage','leave.read.self','delegation.manage.self','delegation.receive','settings.correction.manage','executive.dashboard.read','organization.manage','attendance.ingest','attendance.read.self','attendance.read.team','attendance.read.scoped','attendance.read.all','attendance.results.read.self','attendance.calculate','correction.configure','correction.submit.self','correction.requests.read.self','correction.cancel.self','correction.inbox.read','correction.decide','correction.decide.scoped','correction.decide.all','period.preflight','period.draft.manage','period.diagnostic.manage','schedule.manage','schedule.read.self','schedule.read.scoped','schedule.read.all'];for(const code of codes)$('permission-form').elements.code.add(new Option(code,code));
+  const codes=['employees.read.self','employees.read.scoped','employees.read.all','identity.manage','leave.manage','leave.read.self','delegation.manage.self','delegation.receive','settings.correction.manage','executive.dashboard.read','organization.manage','attendance.ingest','attendance.read.self','attendance.read.team','attendance.read.scoped','attendance.read.all','attendance.results.read.self','attendance.calculate','correction.configure','correction.submit.self','correction.requests.read.self','correction.cancel.self','correction.inbox.read','correction.decide','correction.approve','correction.reject','correction.decisions.read.self','correction.decide.scoped','correction.decide.all','period.preflight','period.draft.manage','period.diagnostic.manage','schedule.manage','schedule.read.self','schedule.read.scoped','schedule.read.all'];for(const code of codes)$('permission-form').elements.code.add(new Option(code,code));
   // These are descriptions of the existing coarse server permissions, not new grants.
   const broadWarnings={
     'identity.manage':'این مجوز گسترده است: مدیریت حساب، نقش، مجوز، محدوده و مشاهدهٔ حسابرسی را شامل می‌شود؛ تفکیک این عملیات هنوز وجود ندارد.',
@@ -18,10 +18,13 @@
     'correction.requests.read.self':'فقط مشاهدهٔ درخواست‌های تردد فراموش‌شدهٔ خود حساب؛ ثبت یا لغو اجازه نمی‌دهد مگر با مجوز جداگانه.',
     'correction.cancel.self':'فقط لغو درخواست تردد فراموش‌شدهٔ در انتظار متعلق به همین حساب؛ مشاهده و ثبت مجوز جداگانه دارند.',
     'correction.inbox.read':'فقط مشاهدهٔ کارتابل درخواست‌های ارجاع‌شده به همین حساب؛ مجوز محدودهٔ تصمیم و انتساب معتبر نیز لازم است و این مجوز حق تصمیم نمی‌دهد.',
-    'correction.decide':'برای تصمیم، مجوز محدودهٔ تصمیم نیز لازم است؛ این مجوز خودبه‌خود اختیار همهٔ کارکنان را نمی‌دهد.',
+    'correction.decide':'مجوز قدیمی همچنان تأیید، رد، مشاهدهٔ کارتابل و تاریخچهٔ تصمیم‌های خود را با هم می‌دهد؛ محدودهٔ تصمیم نیز لازم است.',
+    'correction.approve':'فقط تأیید درخواست تردد ارجاع‌شده به حساب و در محدودهٔ معتبر؛ مشاهدهٔ کارتابل مجوز جدا دارد.',
+    'correction.reject':'فقط رد درخواست تردد ارجاع‌شده به حساب و در محدودهٔ معتبر؛ مشاهدهٔ کارتابل مجوز جدا دارد.',
+    'correction.decisions.read.self':'فقط مشاهدهٔ تصمیم‌های ثبت‌شده توسط خود در محدودهٔ معتبر؛ حق تصمیم یا مشاهدهٔ کارتابل ندارد.',
     'attendance.read.team':'برای مشاهدهٔ تردد تیم، مجوز محدودهٔ تردد نیز لازم است.',
-    'correction.decide.scoped':'فقط همراه مجوز تصمیم یا مشاهدهٔ کارتابل و محدودهٔ معتبر واحد کاربرد دارد؛ به‌تنهایی مجوز تصمیم نیست.',
-    'correction.decide.all':'همراه مجوز تصمیم یا مشاهدهٔ کارتابل کاربرد دارد و دامنهٔ آن سراسری است.',
+    'correction.decide.scoped':'فقط همراه مجوز عملیات تصمیم، تاریخچه یا کارتابل و محدودهٔ معتبر واحد کاربرد دارد؛ به‌تنهایی مجوز تصمیم نیست.',
+    'correction.decide.all':'همراه مجوز عملیات تصمیم، تاریخچه یا کارتابل کاربرد دارد و دامنهٔ آن سراسری است.',
     'attendance.read.scoped':'فقط همراه مجوز تردد تیم و محدودهٔ معتبر واحد کاربرد دارد.',
     'attendance.read.all':'فقط همراه مجوز تردد تیم کاربرد دارد و دامنهٔ آن سراسری است.'
   };

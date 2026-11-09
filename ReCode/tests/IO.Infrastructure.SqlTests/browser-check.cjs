@@ -1407,6 +1407,22 @@ async function main() {
     if(await readOnlyInboxRow.locator('button').count() || !(await readOnlyInboxRow.textContent()).includes('First'))
       throw new Error('Read-only inbox rendered a decision button or omitted employee name');
     await readOnlyInboxPage.close();
+    // Rendering cases are simulated; HTTP tests exercise real grant and revoke.
+    for(const allowed of ['approve','reject']) {
+      const partialInbox=await context.newPage();
+      await partialInbox.route('**/corrections/inbox?offset=*',async route=>{
+        const response=await route.fetch();const data=await response.json();
+        data.canDecide=true;data.canApprove=allowed==='approve';data.canReject=allowed==='reject';
+        await route.fulfill({response,json:data});
+      });
+      await partialInbox.goto(address+'/workspace/inbox');
+      const partialRow=partialInbox.locator('#body tr').filter({hasText:'بررسی مدیر آزمایشی'});
+      await partialRow.waitFor();await partialRow.locator('button').click();
+      const options=await partialInbox.locator('#decision-form select[name=decision] option').evaluateAll(nodes=>nodes.map(x=>x.value));
+      if(options.length!==1 || options[0]!==allowed || await partialInbox.locator('#decision-form input[name=reason]').getAttribute('required')!==(allowed==='reject'?'':null))
+        throw new Error('Decision form offered an action without the matching permission');
+      await partialInbox.close();
+    }
     const managerInbox = await context.newPage(), staleManagerInbox = await context.newPage();
     await managerInbox.goto(address + '/workspace/inbox');
     await staleManagerInbox.goto(address + '/workspace/inbox');
