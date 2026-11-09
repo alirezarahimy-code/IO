@@ -1,6 +1,7 @@
 using IO.Infrastructure.Security;
 using IO.Infrastructure.Storage;
 using IO.Infrastructure.Settings;
+using IO.Domain.Scheduling;
 using Microsoft.EntityFrameworkCore;
 
 namespace IO.Infrastructure.Workflows;
@@ -69,10 +70,24 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
             }
             // Serialize with setting changes: the active company version at submission time is authoritative.
             await transaction.LockAsync(CorrectionSettings.LockName(employee.CompanyId), token);
-            int maxAge = await db.CorrectionSettings.AsNoTracking().Where(x => x.CompanyId == employee.CompanyId)
-                .OrderByDescending(x => x.Revision).Select(x => (int?)x.MaxRequestAgeDays).FirstOrDefaultAsync(token) ?? 0;
+            var setting = await db.CorrectionSettings.AsNoTracking().Where(x => x.CompanyId == employee.CompanyId)
+                .OrderByDescending(x => x.Revision).Select(x => new { x.MaxRequestAgeDays, x.DailyRequestLimit, x.MonthlyRequestLimit }).FirstOrDefaultAsync(token);
+            int maxAge = setting?.MaxRequestAgeDays ?? 0;
             if (maxAge > 0 && workDate < DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-maxAge))
                 throw new ArgumentException("Work date exceeds configured maximum request age.");
+            // The company lock serializes these counts with submissions and setting changes.
+            var counted = db.CorrectionRequests.AsNoTracking().Where(x => x.CompanyId == employee.CompanyId && x.EmployeeId == employee.Id && (x.State == 0 || x.State == 1));
+            if (setting is { DailyRequestLimit: > 0 } && await counted.CountAsync(x => x.WorkDate == workDate, token) >= setting.DailyRequestLimit)
+                throw new DomainConflictException("Daily request limit reached.");
+            if (setting is { MonthlyRequestLimit: > 0 })
+            {
+                var (year, month, _) = PersianDates.FromGregorian(workDate);
+                if (year is < 1300 or > 1500) throw new ArgumentException("Unsupported Persian year for monthly limit.");
+                var first = PersianDates.ToGregorian(year, month, 1);
+                var next = month == 12 ? PersianDates.ToGregorian(year + 1, 1, 1) : PersianDates.ToGregorian(year, month + 1, 1);
+                if (await counted.CountAsync(x => x.WorkDate >= first && x.WorkDate < next, token) >= setting.MonthlyRequestLimit)
+                    throw new DomainConflictException("Monthly request limit reached.");
+            }
             var policy = await db.CorrectionPolicies.AsNoTracking().SingleOrDefaultAsync(x => x.Id == policyId && x.CompanyId == employee.CompanyId, token)
                 ?? throw new ArgumentException("Unknown policy or different company.");
             if (policy.ApproverUserId == actor || await db.Users.AnyAsync(x => x.Id == policy.ApproverUserId && x.EmployeeId == employee.Id, token))

@@ -287,7 +287,7 @@ public static class IoWebHost
         app.MapGet("/settings/correction-own", (HttpContext c,CorrectionSettings service) =>
             AdminRead(c,actor => service.ReadOwnAsync(actor,c.RequestAborted)));
         app.MapPost("/settings/correction", (CorrectionSettingsInput input,HttpContext c,IAntiforgery csrf,CorrectionSettings service) =>
-            Admin(c,csrf,actor => service.SetAsync(actor,input.OperationId,input.CompanyId,input.ExpectedRevision,input.MaxRequestAgeDays,input.Reason,c.RequestAborted)));
+            Admin(c,csrf,actor => service.SetAsync(actor,input.OperationId,input.CompanyId,input.ExpectedRevision,input.MaxRequestAgeDays,input.Reason,c.RequestAborted,input.DailyRequestLimit ?? -1,input.MonthlyRequestLimit ?? -1)));
         app.MapGet("/delegations/candidates", (int? offset,HttpContext c,DelegationRegistry service) =>
             AdminRead(c, actor => service.CandidatesAsync(actor,offset ?? 0,c.RequestAborted)));
         app.MapGet("/delegations/own", (int? offset,HttpContext c,DelegationRegistry service) =>
@@ -581,4 +581,4 @@ public sealed record LeaveEntryInput(Guid OperationId,Guid EmployeeId,Guid Leave
 public sealed record DelegationInput(Guid OperationId,Guid DelegateUserId,DateOnly ValidFrom,DateOnly ValidUntilExclusive);
 public sealed record DelegationRevokeInput(string Reason);
 
-public sealed record CorrectionSettingsInput(Guid OperationId,Guid CompanyId,int ExpectedRevision,int MaxRequestAgeDays,string Reason);
+public sealed record CorrectionSettingsInput(Guid OperationId,Guid CompanyId,int ExpectedRevision,int MaxRequestAgeDays,string Reason,int? DailyRequestLimit,int? MonthlyRequestLimit);

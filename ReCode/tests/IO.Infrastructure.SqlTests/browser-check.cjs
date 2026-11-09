@@ -1054,9 +1054,11 @@ async function main() {
     await settingsPage.locator('#filter input[name=companyId]').fill(selfCompany);
     await settingsPage.locator('#filter button').click();
     await settingsPage.waitForFunction(()=>!document.querySelector('#save button').disabled);
-    const invalidCsrf=await settingsPage.evaluate(async company=>(await fetch('/settings/correction',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operationId:crypto.randomUUID(),companyId:company,expectedRevision:0,maxRequestAgeDays:5,reason:'test'})})).status,selfCompany);
+    const invalidCsrf=await settingsPage.evaluate(async company=>(await fetch('/settings/correction',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operationId:crypto.randomUUID(),companyId:company,expectedRevision:0,maxRequestAgeDays:5,dailyRequestLimit:0,monthlyRequestLimit:0,reason:'test'})})).status,selfCompany);
     if(invalidCsrf!==400)throw new Error('Settings accepted missing CSRF');
     await settingsPage.locator('#save input[name=maxRequestAgeDays]').fill('5');
+    await settingsPage.locator('#save input[name=dailyRequestLimit]').fill('1');
+    await settingsPage.locator('#save input[name=monthlyRequestLimit]').fill('3');
     await settingsPage.locator('#save input[name=reason]').fill('سقف آزمایشی درخواست');
     const settingsOp=await settingsPage.locator('#save input[name=operationId]').inputValue();
     await settingsPage.locator('#save button').click();
@@ -1064,7 +1066,7 @@ async function main() {
     if(!(await settingsPage.locator('#current').textContent()).includes('5'))throw new Error('Setting not persisted');
     const settingsRetry=await settingsPage.evaluate(async ({company,operation})=>{
       const csrf=(await (await fetch('/auth/csrf')).json()).token;
-      const body={operationId:operation,companyId:company,expectedRevision:0,maxRequestAgeDays:5,reason:'سقف آزمایشی درخواست'};
+      const body={operationId:operation,companyId:company,expectedRevision:0,maxRequestAgeDays:5,dailyRequestLimit:1,monthlyRequestLimit:3,reason:'سقف آزمایشی درخواست'};
       const post=x=>fetch('/settings/correction',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf},body:JSON.stringify(x)});
       return [(await post(body)).status,(await post({...body,operationId:crypto.randomUUID()})).status];
     },{company:selfCompany,operation:settingsOp});
@@ -1260,9 +1262,9 @@ async function main() {
       const csrf=(await (await fetch('/auth/csrf')).json()).token;
       const body={operationId:operation,policyId:policy,workDate:'2027-03-02',proposedAt:'2027-03-02T08:00:00Z',punchKind:0,reason:'درخواست آزمایشی من'};
       const post=x=>fetch('/corrections/requests',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf},body:JSON.stringify(x)});
-      return [(await post(body)).status,(await post({...body,reason:'different'})).status];
+      return [(await post(body)).status,(await post({...body,reason:'different'})).status,(await post({...body,operationId:crypto.randomUUID()})).status];
     },{operation:requestOperation,policy:employeePolicy});
-    if(retryCorrection[0]!==200||retryCorrection[1]!==409)throw new Error('Correction retry was not idempotent');
+    if(retryCorrection[0]!==200||retryCorrection[1]!==409||retryCorrection[2]!==409)throw new Error('Correction retry or daily limit failed');
     const employeeHome = await context.newPage();
     await employeeHome.goto(address + '/workspace/employee-home');
     await employeeHome.locator('#body tr').first().waitFor();
@@ -1312,6 +1314,11 @@ async function main() {
     await page.locator('#logout').click();
     await waitText('عملیات انجام شد.');
     await login(adminName);
+    const restoredLimits=await page.evaluate(async company=>{
+      const csrf=(await (await fetch('/auth/csrf')).json()).token;
+      return (await fetch('/settings/correction',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf},body:JSON.stringify({operationId:crypto.randomUUID(),companyId:company,expectedRevision:1,maxRequestAgeDays:0,dailyRequestLimit:0,monthlyRequestLimit:0,reason:'restore fixture'})})).status;
+    },selfCompany);
+    if(restoredLimits!==200)throw new Error('Could not restore browser fixture limits');
     const managerHome = await context.newPage();
     await managerHome.goto(address + '/workspace/manager-home');
     await managerHome.locator('#body tr').first().waitFor();

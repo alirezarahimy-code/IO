@@ -309,7 +309,13 @@ namespace IO.Infrastructure.Migrations
                     b.Property<Guid>("CreatedByUserId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("DailyRequestLimit")
+                        .HasColumnType("int");
+
                     b.Property<int>("MaxRequestAgeDays")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MonthlyRequestLimit")
                         .HasColumnType("int");
 
                     b.Property<string>("Reason")
@@ -332,6 +338,8 @@ namespace IO.Infrastructure.Migrations
                             t.HasTrigger("TR_CorrectionSettings_Immutable");
 
                             t.HasCheckConstraint("CK_CorrectionSettings_Age", "[MaxRequestAgeDays] BETWEEN 0 AND 3650");
+
+                            t.HasCheckConstraint("CK_CorrectionSettings_Limits", "[DailyRequestLimit] BETWEEN 0 AND 1000 AND [MonthlyRequestLimit] BETWEEN 0 AND 1000");
 
                             t.HasCheckConstraint("CK_CorrectionSettings_Revision", "[Revision] > 0");
 
