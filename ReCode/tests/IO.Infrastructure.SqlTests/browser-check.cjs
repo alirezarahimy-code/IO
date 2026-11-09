@@ -231,6 +231,14 @@ async function main() {
     await deniedPersonalReport.waitForFunction(()=>document.getElementById('notice').textContent.includes('مجوز'));
     if (await deniedPersonalReport.locator('#result').isVisible()) throw new Error('Personal report exposed without permission');
     await deniedPersonalReport.close();
+    const deniedTeam = await context.newPage();
+    await deniedTeam.goto(address + '/workspace/team-attendance');
+    await deniedTeam.locator('#filter input[name=from]').fill('2027-03-01');
+    await deniedTeam.locator('#filter input[name=until]').fill('2027-03-02');
+    await deniedTeam.locator('#filter button').click();
+    await deniedTeam.waitForFunction(()=>document.getElementById('notice').textContent.includes('مجوز'));
+    if (await deniedTeam.locator('#results').isVisible()) throw new Error('Team attendance exposed without permission');
+    await deniedTeam.close();
     const deniedAttendance = await context.newPage();
     await deniedAttendance.goto(address + '/workspace/my-attendance');
     await deniedAttendance.locator('#filter input[name=from]').fill('2027-03-01');
@@ -363,7 +371,7 @@ async function main() {
       await waitText('result');
       return JSON.parse(await page.locator('#result').textContent()).result;
     }
-    for (const code of ['organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.calculate', 'correction.configure', 'correction.decide', 'correction.decide.all', 'period.preflight', 'period.draft.manage', 'period.diagnostic.manage']) {
+    for (const code of ['organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.read.team', 'attendance.read.all', 'attendance.calculate', 'correction.configure', 'correction.decide', 'correction.decide.all', 'period.preflight', 'period.draft.manage', 'period.diagnostic.manage']) {
       await page.locator('#permission input[name=roleId]').fill(role);
       await page.locator('#permission select[name=code]').selectOption(code);
       await submit('permission');
@@ -969,6 +977,18 @@ async function main() {
     await page.locator('#calculation-run input[name=ruleVersionId]').fill(selfRule);
     await page.locator('#calculation-run input[name=workDate]').fill('2027-03-01');
     const personalRun = await submit('calculation-run');
+    const teamPage = await context.newPage();
+    await teamPage.goto(address + '/workspace/team-attendance');
+    await teamPage.locator('#filter input[name=from]').fill('2027-03-01');
+    await teamPage.locator('#filter input[name=until]').fill('2027-03-02');
+    await teamPage.locator('#filter button').click();
+    await teamPage.locator('#results').waitFor();
+    const teamData=await teamPage.evaluate(async ()=>(await (await fetch('/attendance/team?fromUtc=2027-03-01T00%3A00%3A00Z&untilUtcExclusive=2027-03-02T00%3A00%3A00Z&authorizationDate=1900-01-01')).json()));
+    if (!teamData.items.some(x=>x.employeeId===first) || await teamPage.locator('#body tr').count()!==teamData.items.length || (await teamPage.locator('#body').textContent()).includes('private raw payload') || teamData.items.some(x=>'sourcePayload' in x || 'sourceEmployeeIdentifier' in x)) throw new Error('Team attendance did not show allowed mapped events safely');
+    await teamPage.locator('#filter input[name=from]').fill('2027-03-02');
+    if (await teamPage.locator('#results').isVisible() || await teamPage.locator('#body tr').count()) throw new Error('Changing team interval left stale results');
+    await teamPage.close();
+
     await clearResult();
     await page.locator('#logout').click();
     await waitText('عملیات انجام شد.');

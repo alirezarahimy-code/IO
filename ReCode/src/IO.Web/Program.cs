@@ -147,6 +147,8 @@ public static class IoWebHost
         app.MapGet("/assets/reports.js", () => Results.Content(Resource("IO.Web.Ui.reports.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/my-reports", () => Results.Content(Resource("IO.Web.Ui.MyReports.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/my-reports.js", () => Results.Content(Resource("IO.Web.Ui.my-reports.js"), "text/javascript; charset=utf-8"));
+        app.MapGet("/workspace/team-attendance", () => Results.Content(Resource("IO.Web.Ui.TeamAttendance.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/team-attendance.js", () => Results.Content(Resource("IO.Web.Ui.team-attendance.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/my-attendance", () => Results.Content(Resource("IO.Web.Ui.MyAttendance.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/my-attendance.js", () => Results.Content(Resource("IO.Web.Ui.my-attendance.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/my-schedule", () => Results.Content(Resource("IO.Web.Ui.MySchedule.html"), "text/html; charset=utf-8"));
@@ -266,6 +268,8 @@ public static class IoWebHost
         });
         app.MapGet("/calculations/own-report", (DateOnly start, DateOnly endExclusive, HttpContext c, PersonalReports service) =>
             AdminRead(c, async actor => await service.InspectAsync(actor, start, endExclusive, c.RequestAborted)));
+        app.MapGet("/attendance/team", (string fromUtc, string untilUtcExclusive, int? offset, HttpContext c, TeamAttendance service) =>
+            AdminRead(c, async actor => await service.ListAsync(actor, DateOnly.FromDateTime(DateTime.UtcNow), ParseExplicitTime(fromUtc), ParseExplicitTime(untilUtcExclusive), offset ?? 0, c.RequestAborted)));
         app.MapGet("/attendance/own", (string fromUtc, string untilUtcExclusive, int? offset, HttpContext c, PersonalAttendance service) =>
             AdminRead(c, async actor => await service.ListAsync(actor, ParseExplicitTime(fromUtc), ParseExplicitTime(untilUtcExclusive), offset ?? 0, c.RequestAborted)));
         app.MapGet("/attendance/raw/{sourceId:guid}", (Guid sourceId, int? offset, HttpContext c, AttendanceIngestion service) =>

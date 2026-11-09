@@ -40,6 +40,7 @@ public static class IdentityServices
         services.AddScoped<OrganizationManagement>();
         services.AddScoped<AttendanceIngestion>();
         services.AddScoped<PersonalAttendance>();
+        services.AddScoped<TeamAttendance>();
         services.AddScoped<ObservedCalculation>();
         services.AddScoped<PersonalReports>();
         services.AddScoped<CorrectionWorkflow>();

@@ -59,6 +59,35 @@ internal static class PersonalAttendanceTests
         try { await Read(actor,start,start.AddDays(63)); } catch (ArgumentException) { invalid=true; }
         try { await Read(actor,start.ToOffset(TimeSpan.FromHours(1)),end); } catch (ArgumentException) { wrongZone=true; }
         check(denied && invalid && wrongZone, "personal attendance requires explicit permission and bounded UTC interval");
+        var teamActor=Guid.NewGuid(); var globalActor=Guid.NewGuid(); var teamOnlyActor=Guid.NewGuid();
+        var teamRole=Guid.NewGuid(); var globalRole=Guid.NewGuid(); var teamOnlyRole=Guid.NewGuid(); var unit=Guid.NewGuid();
+        await using (var scope=provider.CreateAsyncScope())
+        {
+            var db=scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var company=(await db.Employees.SingleAsync(x=>x.Id==employee)).CompanyId;
+            db.OrgUnits.Add(new OrgUnitRecord{Id=unit,CompanyId=company,Name="Personal test unit"});
+            db.EmployeeAssignments.Add(new EmployeeAssignmentRecord{Id=Guid.NewGuid(),CompanyId=company,EmployeeId=employee,OrgUnitId=unit,ValidFrom=new DateOnly(2026,1,1),ValidUntilExclusive=new DateOnly(2026,2,1)});
+            db.Users.AddRange(new UserRecord{Id=teamActor,UserName="personal scoped team",IsActive=true},new UserRecord{Id=globalActor,UserName="personal global team",IsActive=true},new UserRecord{Id=teamOnlyActor,UserName="personal unscoped team",IsActive=true});
+            db.Roles.AddRange(new RoleRecord{Id=teamRole,Name="personal scoped team role"},new RoleRecord{Id=globalRole,Name="personal global team role"},new RoleRecord{Id=teamOnlyRole,Name="personal unscoped team role"});
+            db.UserRoles.AddRange(new UserRoleRecord{UserId=teamActor,RoleId=teamRole},new UserRoleRecord{UserId=globalActor,RoleId=globalRole},new UserRoleRecord{UserId=teamOnlyActor,RoleId=teamOnlyRole});
+            db.UserOrgScopes.Add(new UserOrgScopeRecord{Id=Guid.NewGuid(),UserId=teamActor,OrgUnitId=unit,ValidFrom=new DateOnly(2026,1,1),ValidUntilExclusive=new DateOnly(2026,2,1)});
+            foreach (var (roleId,code) in new[]{(teamRole,TeamAttendance.Read),(teamRole,TeamAttendance.Scoped),(globalRole,TeamAttendance.Read),(globalRole,TeamAttendance.All),(teamOnlyRole,TeamAttendance.Read)})
+            {
+                var existing=await db.Permissions.SingleOrDefaultAsync(x=>x.Code==code);
+                if(existing is null){existing=db.Permissions.Local.SingleOrDefault(x=>x.Code==code);if(existing is null){existing=new PermissionRecord{Id=Guid.NewGuid(),Code=code};db.Permissions.Add(existing);}}
+                db.RolePermissions.Add(new RolePermissionRecord{RoleId=roleId,PermissionId=existing.Id});
+            }
+            await db.SaveChangesAsync();
+        }
+        async Task<TeamAttendance.EventPage> Team(Guid who,DateOnly trustedDate)
+        {await using var scope=provider.CreateAsyncScope();return await scope.ServiceProvider.GetRequiredService<TeamAttendance>().ListAsync(who,trustedDate,start,end,0);}
+        var scoped=await Team(teamActor,new DateOnly(2026,1,1));var all=await Team(globalActor,new DateOnly(2026,1,1));
+        check(scoped.Items.Count==1 && scoped.Items[0].Id==match && scoped.Items[0].EmployeeId==employee &&
+              all.Items.Count==2 && all.Items.Any(x=>x.EmployeeId==otherEmployee) && (await Team(teamActor,new DateOnly(2026,2,1))).Items.Count==0 &&
+              (await Team(teamOnlyActor,new DateOnly(2026,1,1))).Items.Count==0,
+              "team attendance enforces exact unit scope and excludes ambiguous mappings even with global access");
+        denied=false;try{await Team(otherActor,new DateOnly(2026,1,1));}catch(UnauthorizedAccessException){denied=true;}
+        check(denied,"team attendance requires separate team-read permission");
         await using (var scope=provider.CreateAsyncScope())
         {
             var db=scope.ServiceProvider.GetRequiredService<IoDbContext>();
