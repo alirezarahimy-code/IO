@@ -119,6 +119,14 @@ async function main() {
     if (await deniedRaw.locator('#body tr').count() !== 0 || await deniedRaw.locator('#create-form button').isEnabled())
       throw new Error('Raw event workspace exposed data without permission');
     await deniedRaw.close();
+    const deniedConflicts = await context.newPage();
+    await deniedConflicts.goto(address + '/workspace/conflicts');
+    await deniedConflicts.locator('#filter input[name=sourceId]').fill(first);
+    await deniedConflicts.locator('#filter button').click();
+    await deniedConflicts.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
+    if (await deniedConflicts.locator('#body tr').count() !== 0 || await deniedConflicts.locator('#details').isVisible())
+      throw new Error('Conflict workspace exposed data without permission');
+    await deniedConflicts.close();
     const deniedHistory = await context.newPage();
     await deniedHistory.goto(address + '/workspace/employee-history');
     await deniedHistory.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
@@ -464,6 +472,26 @@ async function main() {
     if (receiptState.events.length !== 1 || receiptState.events[0].id !== rawId || receiptState.events[0].sourceEmployeeIdentifier !== ' exact identity ' || receiptState.conflicts.length !== 1 || receiptState.conflicts[0].resolved !== false)
       throw new Error('Raw event retry or conflict handling is incorrect');
     await rawPage.close();
+    const conflictPage = await context.newPage();
+    await conflictPage.goto(address + '/workspace/conflicts');
+    await conflictPage.locator('#filter input[name=sourceId]').fill(workspaceSource);
+    await conflictPage.locator('#filter button').click();
+    const conflictRow = conflictPage.locator('#body tr').filter({hasText:'workspace-event'});
+    await conflictRow.waitFor();
+    const workspaceConflictId = await conflictRow.locator('td').nth(5).textContent();
+    await conflictRow.locator('button').click();
+    await conflictPage.waitForFunction(() => document.getElementById('details').hidden === false && !document.querySelector('#note-form button').disabled);
+    if (!(await conflictPage.locator('#detail-text').textContent()).includes(workspaceConflictId)) throw new Error('Missing conflict detail');
+    await conflictPage.locator('#note-form input[name=note]').fill('بررسی آزمایشی');
+    await conflictPage.locator('#note-form button').click();
+    await conflictPage.waitForFunction(() => document.getElementById('notice').textContent.includes('یادداشت ثبت شد'));
+    await conflictPage.locator('#notes li').filter({hasText:'بررسی آزمایشی'}).waitFor();
+    const savedNotes = await conflictPage.evaluate(async id => (await (await fetch('/attendance/conflict/' + encodeURIComponent(id) + '/notes')).json()), workspaceConflictId);
+    if (savedNotes.resolved !== false || savedNotes.items.length !== 1 || savedNotes.items[0].note !== 'بررسی آزمایشی') throw new Error('Conflict note was not retained unresolved');
+    await conflictPage.locator('#filter input[name=sourceId]').fill(first);
+    if (await conflictPage.locator('#details').isVisible() || await conflictPage.locator('#body tr').count() !== 0) throw new Error('Changing source left conflict data visible');
+    await conflictPage.close();
+
 
 
     await page.locator('#attendance-mapping-replace input[name=sourceId]').fill(rawSource);
