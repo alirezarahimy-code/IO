@@ -40,8 +40,39 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
     public DbSet<LeaveTypeRecord> LeaveTypes => Set<LeaveTypeRecord>();
     public DbSet<LeaveLedgerEntryRecord> LeaveLedgerEntries => Set<LeaveLedgerEntryRecord>();
 
+    public DbSet<DelegationRecord> Delegations => Set<DelegationRecord>();
+    public DbSet<DelegationRevocationRecord> DelegationRevocations => Set<DelegationRevocationRecord>();
+
     protected override void OnModelCreating(ModelBuilder model)
     {
+        model.Entity<DelegationRecord>(b =>
+        {
+            b.ToTable("Delegations", t =>
+            {
+                t.HasCheckConstraint("CK_Delegations_Interval", "[ValidFrom] < [ValidUntilExclusive]");
+                t.HasCheckConstraint("CK_Delegations_DifferentPeople", "[PrincipalUserId] <> [DelegateUserId] AND [PrincipalEmployeeId] <> [DelegateEmployeeId]");
+                t.HasCheckConstraint("CK_Delegations_Utc", "DATEPART(TZOFFSET, [CreatedAtUtc]) = 0");
+                t.HasTrigger("TR_Delegations_Immutable"); t.UseSqlOutputClause(false);
+            });
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
+            b.HasIndex(x => new { x.PrincipalUserId, x.ValidFrom, x.ValidUntilExclusive });
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.PrincipalUserId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.DelegateUserId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<EmployeeRecord>().WithMany().HasForeignKey(x => new { x.PrincipalEmployeeId, x.CompanyId }).HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<EmployeeRecord>().WithMany().HasForeignKey(x => new { x.DelegateEmployeeId, x.CompanyId }).HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<DelegationRevocationRecord>(b =>
+        {
+            b.ToTable("DelegationRevocations", t =>
+            {
+                t.HasCheckConstraint("CK_DelegationRevocations_Utc", "DATEPART(TZOFFSET, [RevokedAtUtc]) = 0");
+                t.HasTrigger("TR_DelegationRevocations_Immutable"); t.UseSqlOutputClause(false);
+            });
+            b.HasKey(x => x.DelegationId); b.Property(x => x.DelegationId).ValueGeneratedNever();
+            b.Property(x => x.Reason).HasMaxLength(500).IsRequired();
+            b.HasOne<DelegationRecord>().WithMany().HasForeignKey(x => x.DelegationId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.ActorUserId).OnDelete(DeleteBehavior.Restrict);
+        });
         model.Entity<LeaveTypeRecord>(b =>
         {
             b.ToTable("LeaveTypes", t =>
