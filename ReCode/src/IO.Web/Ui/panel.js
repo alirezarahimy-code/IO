@@ -76,4 +76,10 @@ form('attendance-conflict', async f => show(await fetch('/attendance/conflict/' 
 form('calculation-rule', f => send('/calculations/rules', { companyId: f.elements.companyId.value, name: f.elements.name.value, beforeMinutes: Number(f.elements.beforeMinutes.value), afterMinutes: Number(f.elements.afterMinutes.value) }));
 form('calculation-run', f => send('/calculations/runs', { employeeId: f.elements.employeeId.value, sourceId: f.elements.sourceId.value, ruleVersionId: f.elements.ruleVersionId.value, workDate: f.elements.workDate.value }));
 form('calculation-results', async f => show(await fetch('/calculations/runs/' + encodeURIComponent(f.elements.employeeId.value) + '?offset=' + encodeURIComponent(f.elements.offset.value), { credentials: 'same-origin', cache: 'no-store' })));
+form('correction-policy', f => send('/corrections/policies', { companyId: f.elements.companyId.value, approverUserId: f.elements.approverUserId.value, name: f.elements.name.value }));
+for (const [id, path] of [['correction-policies', 'policies'], ['correction-own', 'own'], ['correction-inbox', 'inbox']])
+  form(id, async f => show(await fetch('/corrections/' + path + '?offset=' + encodeURIComponent(f.elements.offset.value), { credentials: 'same-origin', cache: 'no-store' })));
+form('correction-submit', f => send('/corrections/requests', { policyId: f.elements.policyId.value, workDate: f.elements.workDate.value, proposedAt: f.elements.proposedAt.value, punchKind: Number(f.elements.punchKind.value), reason: f.elements.reason.value }));
+form('correction-decision', f => send('/corrections/requests/' + encodeURIComponent(f.elements.id.value) + '/decision', { approve: f.elements.decision.value === 'approve', reason: f.elements.reason.value || null }));
+form('correction-cancel', f => send('/corrections/requests/' + encodeURIComponent(f.elements.id.value) + '/cancel', { reason: f.elements.reason.value }));
 document.getElementById('logout').addEventListener('click', async () => { try { await send('/auth/logout', null); } catch { output.textContent = 'خروج ناموفق بود.'; } });

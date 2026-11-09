@@ -1,6 +1,7 @@
 using IO.Infrastructure.Security;
 using IO.Infrastructure.Organization;
 using IO.Infrastructure.Attendance;
+using IO.Infrastructure.Workflows;
 using IO.Infrastructure.Calculation;
 using IO.Domain.Attendance;
 using IO.Infrastructure.Scheduling;
@@ -220,6 +221,20 @@ public static class IoWebHost
             Admin(c, csrf, actor => service.CreateRuleAsync(actor, input.CompanyId, input.Name, input.BeforeMinutes, input.AfterMinutes, c.RequestAborted)));
         app.MapPost("/calculations/runs", (CalculationRunInput input, HttpContext c, IAntiforgery csrf, ObservedCalculation service) =>
             Admin(c, csrf, actor => service.CalculateAsync(actor, input.EmployeeId, input.WorkDate, input.SourceId, input.RuleVersionId, c.RequestAborted)));
+        app.MapGet("/corrections/policies", (int? offset, HttpContext c, CorrectionWorkflow service) =>
+            AdminRead(c, actor => service.ListPoliciesAsync(actor, offset ?? 0, c.RequestAborted)));
+        app.MapGet("/corrections/own", (int? offset, HttpContext c, CorrectionWorkflow service) =>
+            AdminRead(c, actor => service.ListOwnAsync(actor, offset ?? 0, c.RequestAborted)));
+        app.MapGet("/corrections/inbox", (int? offset, HttpContext c, CorrectionWorkflow service) =>
+            AdminRead(c, actor => service.InboxAsync(actor, offset ?? 0, c.RequestAborted)));
+        app.MapPost("/corrections/policies", (CorrectionPolicyInput input, HttpContext c, IAntiforgery csrf, CorrectionWorkflow service) =>
+            Admin(c, csrf, actor => service.CreatePolicyAsync(actor, input.CompanyId, input.ApproverUserId, input.Name, c.RequestAborted)));
+        app.MapPost("/corrections/requests", (CorrectionRequestInput input, HttpContext c, IAntiforgery csrf, CorrectionWorkflow service) =>
+            Admin(c, csrf, actor => service.SubmitAsync(actor, input.PolicyId, input.WorkDate, ParseExplicitTime(input.ProposedAt).ToUniversalTime(), input.PunchKind, input.Reason, c.RequestAborted)));
+        app.MapPost("/corrections/requests/{id:guid}/decision", (Guid id, CorrectionDecisionInput input, HttpContext c, IAntiforgery csrf, CorrectionWorkflow service) =>
+            Admin(c, csrf, actor => service.DecideAsync(actor, id, input.Approve, input.Reason, c.RequestAborted)));
+        app.MapPost("/corrections/requests/{id:guid}/cancel", (Guid id, CorrectionCancelInput input, HttpContext c, IAntiforgery csrf, CorrectionWorkflow service) =>
+            Admin(c, csrf, actor => service.CancelAsync(actor, id, input.Reason, c.RequestAborted)));
         app.MapGet("/org/catalog/{kind}", (string kind, int? offset, HttpContext context, OrganizationManagement service) =>
             AdminRead(context, actor => service.ListAsync(actor, kind, offset ?? 0, context.RequestAborted)));
         app.MapGet("/scheduling/catalog/{kind}", (string kind, int? offset, HttpContext context, ScheduleManagement service) =>
@@ -393,3 +408,8 @@ public sealed record SourceMappingInput(Guid SourceId, string SourcePersonId, Gu
 
 public sealed record CalculationRuleInput(Guid CompanyId, string Name, int BeforeMinutes, int AfterMinutes);
 public sealed record CalculationRunInput(Guid EmployeeId, DateOnly WorkDate, Guid SourceId, Guid RuleVersionId);
+
+public sealed record CorrectionPolicyInput(Guid CompanyId, Guid ApproverUserId, string Name);
+public sealed record CorrectionRequestInput(Guid PolicyId, DateOnly WorkDate, string ProposedAt, int PunchKind, string Reason);
+public sealed record CorrectionDecisionInput(bool Approve, string? Reason);
+public sealed record CorrectionCancelInput(string Reason);

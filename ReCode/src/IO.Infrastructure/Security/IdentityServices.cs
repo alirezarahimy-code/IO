@@ -1,6 +1,7 @@
 using System.Data;
 using IO.Infrastructure.Organization;
 using IO.Infrastructure.Attendance;
+using IO.Infrastructure.Workflows;
 using IO.Infrastructure.Calculation;
 using IO.Infrastructure.Scheduling;
 using IO.Infrastructure.Storage;
@@ -38,6 +39,7 @@ public static class IdentityServices
         services.AddScoped<OrganizationManagement>();
         services.AddScoped<AttendanceIngestion>();
         services.AddScoped<ObservedCalculation>();
+        services.AddScoped<CorrectionWorkflow>();
         services.AddScoped<ScheduleManagement>();
         services.AddScoped<EmployeeAccessReader>();
         services.AddScoped<ScheduleReader>();
