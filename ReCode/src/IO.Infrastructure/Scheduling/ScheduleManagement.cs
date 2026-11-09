@@ -15,6 +15,22 @@ public sealed class ScheduleManagement(IoDbContext db, PermissionTransaction tra
             throw new ArgumentException("Invalid name.");
     }
 
+    public Task<object> ListAsync(Guid actor, string kind, int offset, CancellationToken ct = default) =>
+        transaction.ExecuteAsync<object>(actor, Manage, "schedule.catalog.viewed", async token =>
+        {
+            if (offset is < 0 or > 1_000_000) throw new ArgumentException("Invalid offset.");
+            const int size = 100;
+            object items = kind switch
+            {
+                "calendars" => await db.Calendars.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(size).Select(x => new { x.Id, x.CompanyId, x.Name }).ToListAsync(token),
+                "days" => await db.CalendarDays.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(size).Select(x => new { x.Id, x.CalendarId, x.Date, x.Kind, x.Note, x.RecordedAtUtc }).ToListAsync(token),
+                "shifts" => await db.ShiftDefinitions.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(size).Select(x => new { x.Id, x.CompanyId, x.SiteId, x.Name, x.StartsAt, x.EndsAt, x.EndDayOffset }).ToListAsync(token),
+                "assignments" => await db.WorkScheduleAssignments.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(size).Select(x => new { x.Id, x.EmployeeId, x.CompanyId, x.CalendarId, x.ShiftId, x.ValidFrom, x.ValidUntilExclusive }).ToListAsync(token),
+                _ => throw new ArgumentException("Unknown catalog type.")
+            };
+            return (new { kind, offset, pageSize = size, items }, actor);
+        }, ct);
+
     public Task<Guid> CreateCalendarAsync(Guid actor, Guid companyId, string name, CancellationToken ct = default) =>
         transaction.ExecuteAsync(actor, Manage, "schedule.calendar.created", async token =>
         {
@@ -50,6 +66,30 @@ public sealed class ScheduleManagement(IoDbContext db, PermissionTransaction tra
             var id = Guid.NewGuid();
             db.ShiftDefinitions.Add(new() { Id = id, CompanyId = companyId, SiteId = siteId, Name = name,
                 StartsAt = start, EndsAt = end, EndDayOffset = endDayOffset });
+            return (id, id);
+        }, ct);
+
+    public Task<Guid> RescheduleAsync(Guid actor, Guid employeeId, Guid assignmentId, Guid calendarId, Guid shiftId,
+        DateOnly effective, CancellationToken ct = default) =>
+        transaction.ExecuteAsync(actor, Manage, "schedule.replace." + assignmentId.ToString("N"), async token =>
+        {
+            if (employeeId == Guid.Empty || calendarId == Guid.Empty || shiftId == Guid.Empty) throw new ArgumentException("Invalid identifier.");
+            await transaction.LockAsync("IO.WorkSchedules." + employeeId.ToString("N"), token);
+            await transaction.LockAsync("IO.Calendar." + calendarId.ToString("N"), token);
+            var original = await db.WorkScheduleAssignments.SingleOrDefaultAsync(x => x.Id == assignmentId && x.EmployeeId == employeeId, token)
+                ?? throw new ArgumentException("Unknown schedule assignment.");
+            if (original.ValidUntilExclusive is not null || effective <= original.ValidFrom)
+                throw new DomainConflictException("Replacement requires an open schedule and a later effective date.");
+            if (!await db.Calendars.AnyAsync(x => x.Id == calendarId && x.CompanyId == original.CompanyId, token) ||
+                !await db.ShiftDefinitions.AnyAsync(x => x.Id == shiftId && x.CompanyId == original.CompanyId, token))
+                throw new ArgumentException("Unknown calendar or shift, or different company.");
+            if (await db.WorkScheduleAssignments.AnyAsync(x => x.EmployeeId == employeeId && x.Id != assignmentId &&
+                (x.ValidUntilExclusive == null || effective < x.ValidUntilExclusive), token))
+                throw new DomainConflictException("Replacement overlaps an existing schedule.");
+            original.ValidUntilExclusive = effective;
+            var id = Guid.NewGuid();
+            db.WorkScheduleAssignments.Add(new() { Id = id, EmployeeId = employeeId, CompanyId = original.CompanyId,
+                CalendarId = calendarId, ShiftId = shiftId, ValidFrom = effective });
             return (id, id);
         }, ct);
 

@@ -188,6 +188,10 @@ public static class IoWebHost
             }
             catch (InvalidOperationException) { return Results.Conflict(); }
         });
+        app.MapGet("/org/catalog/{kind}", (string kind, int? offset, HttpContext context, OrganizationManagement service) =>
+            AdminRead(context, actor => service.ListAsync(actor, kind, offset ?? 0, context.RequestAborted)));
+        app.MapGet("/scheduling/catalog/{kind}", (string kind, int? offset, HttpContext context, ScheduleManagement service) =>
+            AdminRead(context, actor => service.ListAsync(actor, kind, offset ?? 0, context.RequestAborted)));
         app.MapPost("/org/organizations", (OrganizationInput input, HttpContext c, IAntiforgery csrf, OrganizationManagement service) =>
             Admin(c, csrf, actor => service.CreateOrganizationAsync(actor, input.Name, c.RequestAborted)));
         app.MapPost("/org/companies", (CompanyInput input, HttpContext c, IAntiforgery csrf, OrganizationManagement service) =>
@@ -210,6 +214,8 @@ public static class IoWebHost
             Admin(c, csrf, actor => service.CreateShiftAsync(actor, input.CompanyId, input.SiteId, input.Name, input.StartsAt, input.EndsAt, input.EndDayOffset, c.RequestAborted)));
         app.MapPost("/scheduling/assignments", (ScheduleInput input, HttpContext c, IAntiforgery csrf, ScheduleManagement service) =>
             Admin(c, csrf, actor => service.AssignAsync(actor, input.EmployeeId, input.CalendarId, input.ShiftId, input.ValidFrom, input.ValidUntilExclusive, c.RequestAborted)));
+        app.MapPost("/scheduling/replacements", (ScheduleReplacementInput input, HttpContext c, IAntiforgery csrf, ScheduleManagement service) =>
+            Admin(c, csrf, actor => service.RescheduleAsync(actor, input.EmployeeId, input.AssignmentId, input.CalendarId, input.ShiftId, input.Effective, c.RequestAborted)));
         app.MapGet("/admin/catalog/{kind}", async (string kind, int? offset, HttpContext context, IdentityAdministration admin) =>
         {
             if (!Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var actor)) return Results.Unauthorized();
@@ -248,6 +254,14 @@ public static class IoWebHost
         return reader.ReadToEnd();
     }
 
+    private static async Task<IResult> AdminRead(HttpContext context, Func<Guid, Task<object>> action)
+    {
+        if (!Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var actor)) return Results.Unauthorized();
+        try { return Results.Ok(await action(actor)); }
+        catch (UnauthorizedAccessException) { return Results.StatusCode(403); }
+        catch (ArgumentException) { return Results.BadRequest(); }
+    }
+
     private static async Task<IResult> Admin<T>(HttpContext context, IAntiforgery antiforgery, Func<Guid, Task<T>> action)
     {
         if (!await ValidCsrf(context, antiforgery)) return Results.BadRequest();
@@ -284,3 +298,4 @@ public sealed record CalendarInput(Guid CompanyId, string Name);
 public sealed record CalendarDayInput(Guid CalendarId, DateOnly Date, int Kind, string? Note);
 public sealed record ShiftInput(Guid CompanyId, Guid SiteId, string Name, TimeOnly StartsAt, TimeOnly EndsAt, int EndDayOffset);
 public sealed record ScheduleInput(Guid EmployeeId, Guid CalendarId, Guid ShiftId, DateOnly ValidFrom, DateOnly? ValidUntilExclusive);
+public sealed record ScheduleReplacementInput(Guid EmployeeId, Guid AssignmentId, Guid CalendarId, Guid ShiftId, DateOnly Effective);

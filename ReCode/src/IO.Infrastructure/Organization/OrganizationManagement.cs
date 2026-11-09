@@ -20,6 +20,24 @@ public sealed class OrganizationManagement(IoDbContext db, PermissionTransaction
             throw new ArgumentException("Invalid name or identifier.");
     }
 
+    public Task<object> ListAsync(Guid actor, string kind, int offset, CancellationToken ct = default) =>
+        transaction.ExecuteAsync<object>(actor, Manage, "org.catalog.viewed", async token =>
+        {
+            if (offset is < 0 or > 1_000_000) throw new ArgumentException("Invalid offset.");
+            const int size = 100;
+            object items = kind switch
+            {
+                "organizations" => await db.Organizations.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(size).Select(x => new { x.Id, x.Name }).ToListAsync(token),
+                "companies" => await db.Companies.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(size).Select(x => new { x.Id, x.OrganizationId, x.Name }).ToListAsync(token),
+                "sites" => await db.Sites.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(size).Select(x => new { x.Id, x.CompanyId, x.Name, x.TimeZoneId }).ToListAsync(token),
+                "units" => await db.OrgUnits.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(size).Select(x => new { x.Id, x.CompanyId, x.ParentId, x.Name }).ToListAsync(token),
+                "employees" => await db.Employees.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(size).Select(x => new { x.Id, x.CompanyId, x.PersonnelNumber, x.DisplayName }).ToListAsync(token),
+                "assignments" => await db.EmployeeAssignments.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(size).Select(x => new { x.Id, x.EmployeeId, x.CompanyId, x.OrgUnitId, x.ValidFrom, x.ValidUntilExclusive }).ToListAsync(token),
+                _ => throw new ArgumentException("Unknown catalog type.")
+            };
+            return (new { kind, offset, pageSize = size, items }, actor);
+        }, ct);
+
     public Task<Guid> CreateOrganizationAsync(Guid actor, string name, CancellationToken ct = default) =>
         transaction.ExecuteAsync(actor, Manage, "org.organization.created", _ =>
         {

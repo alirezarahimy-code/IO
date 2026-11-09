@@ -111,6 +111,21 @@ internal static class SchedulingServiceTests
                   await reader.FindAsync(self, Guid.NewGuid(), date, authorizationDate) is null,
                 "schedule read denies absent scope, actor and different employee");
         }
+        var calendarVersion = await Execute(s => s.CreateCalendarAsync(admin, company, "Synthetic next calendar version"));
+        await Execute(s => s.AddCalendarDayAsync(admin, calendarVersion, new DateOnly(2027, 2, 1), 0, null));
+        var oldSchedule = attempts.Single(x => x.HasValue)!.Value;
+        var newSchedule = await Execute(s => s.RescheduleAsync(admin, employee, oldSchedule, calendarVersion, shift, new DateOnly(2027, 2, 1)));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var previous = await db.WorkScheduleAssignments.SingleAsync(x => x.Id == oldSchedule);
+            var next = await db.WorkScheduleAssignments.SingleAsync(x => x.Id == newSchedule);
+            check(previous.ValidUntilExclusive == new DateOnly(2027, 2, 1) && next.ValidFrom == previous.ValidUntilExclusive &&
+                next.CalendarId == calendarVersion && next.ValidUntilExclusive is null,
+                "schedule replacement preserves previous interval and starts new version atomically");
+        }
+        check(await Reject<InvalidOperationException>(() => Execute(s => s.RescheduleAsync(admin, employee, oldSchedule, calendarVersion, shift, new DateOnly(2027, 3, 1)))),
+            "closed schedule cannot be replaced twice");
         await using (var scope = provider.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();

@@ -36,6 +36,8 @@ form('revoke-permission', f => send('/admin/role-permissions/revoke', { roleId: 
 form('revoke-scope', f => send('/admin/user-scopes/' + encodeURIComponent(f.elements.id.value) + '/revoke', null));
 form('enable', f => send('/admin/users/' + encodeURIComponent(f.elements.id.value) + '/enable', null));
 form('disable', f => send('/admin/users/' + encodeURIComponent(f.elements.id.value) + '/disable', null));
+form('org-catalog', async f => show(await fetch('/org/catalog/' + encodeURIComponent(f.elements.kind.value) + '?offset=' + encodeURIComponent(f.elements.offset.value), { credentials: 'same-origin', cache: 'no-store' })));
+form('schedule-catalog', async f => show(await fetch('/scheduling/catalog/' + encodeURIComponent(f.elements.kind.value) + '?offset=' + encodeURIComponent(f.elements.offset.value), { credentials: 'same-origin', cache: 'no-store' })));
 form('org', f => send('/org/organizations', { name: f.elements.name.value }));
 form('company', f => send('/org/companies', { organizationId: f.elements.organizationId.value, name: f.elements.name.value }));
 form('site', f => send('/org/sites', { companyId: f.elements.companyId.value, name: f.elements.name.value, timeZoneId: f.elements.timeZoneId.value }));
@@ -48,5 +50,6 @@ form('calendar', f => send('/scheduling/calendars', { companyId: f.elements.comp
 form('calendar-day', f => send('/scheduling/calendar-days', { calendarId: f.elements.calendarId.value, date: f.elements.date.value, kind: Number(f.elements.kind.value), note: f.elements.note.value || null }));
 form('shift', f => send('/scheduling/shifts', { companyId: f.elements.companyId.value, siteId: f.elements.siteId.value, name: f.elements.name.value, startsAt: f.elements.startsAt.value, endsAt: f.elements.endsAt.value, endDayOffset: Number(f.elements.endDayOffset.value) }));
 form('schedule-assignment', f => send('/scheduling/assignments', { employeeId: f.elements.employeeId.value, calendarId: f.elements.calendarId.value, shiftId: f.elements.shiftId.value, validFrom: f.elements.validFrom.value, validUntilExclusive: f.elements.validUntilExclusive.value || null }));
+form('schedule-replacement', f => send('/scheduling/replacements', { employeeId: f.elements.employeeId.value, assignmentId: f.elements.assignmentId.value, calendarId: f.elements.calendarId.value, shiftId: f.elements.shiftId.value, effective: f.elements.effective.value }));
 form('schedule-view', async f => show(await fetch('/schedules/' + encodeURIComponent(f.elements.employeeId.value) + '/' + encodeURIComponent(f.elements.workDate.value), { credentials: 'same-origin', cache: 'no-store' })));
 document.getElementById('logout').addEventListener('click', async () => { try { await send('/auth/logout', null); } catch { output.textContent = 'خروج ناموفق بود.'; } });
