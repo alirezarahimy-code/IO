@@ -44,9 +44,32 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
     public DbSet<DelegationRevocationRecord> DelegationRevocations => Set<DelegationRevocationRecord>();
 
     public DbSet<CorrectionSettingsRecord> CorrectionSettings => Set<CorrectionSettingsRecord>();
+    public DbSet<CorrectionDelegationGrantRecord> CorrectionDelegationGrants => Set<CorrectionDelegationGrantRecord>();
+    public DbSet<DelegatedCorrectionDecisionRecord> DelegatedCorrectionDecisions => Set<DelegatedCorrectionDecisionRecord>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
+        model.Entity<CorrectionDelegationGrantRecord>(b =>
+        {
+            b.ToTable("CorrectionDelegationGrants", t =>
+            {
+                t.HasCheckConstraint("CK_CorrectionDelegationGrants_Utc", "DATEPART(TZOFFSET, [GrantedAtUtc]) = 0");
+                t.HasTrigger("TR_CorrectionDelegationGrants_Immutable"); t.UseSqlOutputClause(false);
+            });
+            b.HasKey(x => x.DelegationId); b.Property(x => x.DelegationId).ValueGeneratedNever();
+            b.HasOne<DelegationRecord>().WithMany().HasForeignKey(x => x.DelegationId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.PrincipalUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<DelegatedCorrectionDecisionRecord>(b =>
+        {
+            b.ToTable("DelegatedCorrectionDecisions", t =>
+            {
+                t.HasTrigger("TR_DelegatedCorrectionDecisions_Immutable"); t.UseSqlOutputClause(false);
+            });
+            b.HasKey(x => x.DecisionId); b.Property(x => x.DecisionId).ValueGeneratedNever();
+            b.HasOne<CorrectionDecisionRecord>().WithMany().HasForeignKey(x => x.DecisionId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<CorrectionDelegationGrantRecord>().WithMany().HasForeignKey(x => x.DelegationId).OnDelete(DeleteBehavior.Restrict);
+        });
         model.Entity<CorrectionSettingsRecord>(b =>
         {
             b.ToTable("CorrectionSettings", t =>

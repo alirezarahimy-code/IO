@@ -22,3 +22,18 @@ public sealed class DelegationRevocationRecord
     public DateTimeOffset RevokedAtUtc { get; set; }
     public string Reason { get; set; } = null!;
 }
+
+// Explicit separate grant for correction decisions. Registration alone conveys no authority.
+public sealed class CorrectionDelegationGrantRecord
+{
+    public Guid DelegationId { get; set; }
+    public Guid PrincipalUserId { get; set; }
+    public DateTimeOffset GrantedAtUtc { get; set; }
+}
+
+// Immutable evidence linking the actual decision to the explicit grant.
+public sealed class DelegatedCorrectionDecisionRecord
+{
+    public Guid DecisionId { get; set; }
+    public Guid DelegationId { get; set; }
+}
