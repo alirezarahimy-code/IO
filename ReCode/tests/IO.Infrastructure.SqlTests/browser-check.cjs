@@ -79,6 +79,12 @@ async function main() {
       await waitText('عملیات انجام شد.');
     }
     await login('web-self');
+    const deniedWorkspace = await context.newPage();
+    await deniedWorkspace.goto(address + '/workspace/employees');
+    await deniedWorkspace.waitForFunction(() => document.getElementById('notice').textContent.includes('دسترسی'));
+    if (await deniedWorkspace.locator('#employee-rows tr').count() !== 0 || await deniedWorkspace.locator('#create-employee button').isEnabled())
+      throw new Error('Workspace exposed data or create action without organization permission');
+    await deniedWorkspace.close();
     const selfId = await page.evaluate(async () => (await (await fetch('/auth/me')).json()).id);
     const selfCompany = await page.evaluate(async id => (await (await fetch('/employees/' + encodeURIComponent(id))).json()).companyId, first);
     await clearResult();
@@ -122,6 +128,41 @@ async function main() {
     await page.locator('#company input[name=organizationId]').fill(org);
     await page.locator('#company input[name=name]').fill('Browser synthetic company');
     const company = await submit('company');
+    const employeePage = await context.newPage();
+    await employeePage.goto(address + '/workspace/employees');
+    await employeePage.waitForFunction(id => [...document.querySelector('#company').options].some(o => o.value === id), company);
+    await employeePage.locator('#company').selectOption(company);
+    await employeePage.locator('#create-employee input[name=personnelNumber]').fill('WORKSPACE-1');
+    await employeePage.locator('#create-employee input[name=displayName]').fill('Workspace synthetic employee');
+    await employeePage.locator('#create-employee button').click();
+    await employeePage.waitForFunction(() => document.getElementById('notice').textContent.includes('کارمند ثبت شد'));
+    const employeeRow = employeePage.locator('#employee-rows tr').filter({ hasText:'WORKSPACE-1' });
+    await employeeRow.waitFor();
+    const workspaceId = await employeeRow.locator('td').nth(3).textContent();
+    await employeeRow.locator('button').click();
+    // Make the displayed rowversion stale through an independent request.
+    const version = await employeePage.evaluate(async id => {
+      const result = await (await fetch('/org/catalog/employees?offset=0')).json();
+      return result.items.find(x => x.id === id).version;
+    }, workspaceId);
+    const changed = await employeePage.evaluate(async ({ id, version }) => {
+      const token = (await (await fetch('/auth/csrf')).json()).token;
+      return (await fetch('/org/employees/' + encodeURIComponent(id) + '/rename', { method:'POST', headers:{ 'Content-Type':'application/json', 'X-CSRF-TOKEN':token }, body:JSON.stringify({displayName:'Changed in another request',expectedVersion:version}) })).status;
+    }, { id:workspaceId, version });
+    if (changed !== 200) throw new Error('Could not create a real stale employee version');
+    await employeePage.locator('#rename-employee-form input').fill('Stale write');
+    await employeePage.locator('#rename-employee-form button[type=submit]').click();
+    await employeePage.waitForFunction(() => document.getElementById('notice').textContent.includes('تعارض'));
+    if (await employeePage.locator('#rename-section').isVisible()) throw new Error('Stale edit must be discarded');
+    await employeePage.locator('#refresh').click();
+    await employeePage.waitForFunction(() => document.getElementById('notice').textContent.includes('به‌روزرسانی شد'));
+    await employeeRow.locator('button').click();
+    await employeePage.locator('#rename-employee-form input').fill('Workspace renamed employee');
+    await employeePage.locator('#rename-employee-form button[type=submit]').click();
+    await employeePage.waitForFunction(() => document.getElementById('notice').textContent.includes('نام کارمند تغییر کرد'));
+    if (!(await employeeRow.textContent()).includes('Workspace renamed employee')) throw new Error('Updated employee not displayed');
+    await employeePage.close();
+
     await page.locator('#correction-policy input[name=companyId]').fill(company);
     await page.locator('#correction-policy input[name=approverUserId]').fill(adminId);
     await page.locator('#correction-policy input[name=name]').fill('Browser synthetic correction policy');

@@ -128,8 +128,10 @@ internal static class HttpSecurityTests
                 themeStyle.Content.Headers.ContentType?.MediaType == "text/css" &&
                 panel.Headers.GetValues("Content-Security-Policy").Single().Contains("style-src 'self'", StringComparison.Ordinal),
                 "HTTP experimental UI shared theme assets and security policy served");
-            check((await anon.GetAsync($"/employees/{first}")).StatusCode == HttpStatusCode.Unauthorized,
-                "HTTP anonymous direct employee access denied");
+            check((await anon.GetAsync($"/employees/{first}")).StatusCode == HttpStatusCode.Unauthorized &&
+                  (await anon.GetAsync("/workspace/employees")).StatusCode == HttpStatusCode.Unauthorized &&
+                  (await anon.GetAsync("/assets/employees.js")).StatusCode == HttpStatusCode.Unauthorized,
+                "HTTP anonymous direct employee and workspace access denied");
             check((await anon.PostAsJsonAsync("/auth/login", new { UserName = "web-self", Password })).StatusCode == HttpStatusCode.BadRequest,
                 "HTTP login without antiforgery denied");
             using var own = Client();

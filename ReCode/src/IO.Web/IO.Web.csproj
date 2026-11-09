@@ -1,6 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <ItemGroup>
     <EmbeddedResource Include="Ui/Panel.html" />
+    <EmbeddedResource Include="Ui/Employees.html" />
+    <EmbeddedResource Include="Ui/employees.js" />
+    <EmbeddedResource Include="Ui/employees.css" />
     <EmbeddedResource Include="Ui/panel.js" />
     <EmbeddedResource Include="Ui/theme.js" />
     <EmbeddedResource Include="Ui/theme.css" />

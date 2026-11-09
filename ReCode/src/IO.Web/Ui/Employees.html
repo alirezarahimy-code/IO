@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>کارکنان | سامانهٔ حضور</title>
+  <script src="/assets/theme.js"></script><link rel="stylesheet" href="/assets/theme.css"><link rel="stylesheet" href="/assets/employees.css">
+  <script src="/assets/employees.js" defer></script>
+</head>
+<body>
+  <nav aria-label="مسیر صفحه" class="page-nav"><a href="/panel">پنل ابزار آزمایشی</a><span aria-hidden="true"> / </span><span>کارکنان</span></nav>
+  <main>
+    <header class="page-heading"><div><p class="eyebrow">سازمان و کارکنان</p><h1>کارکنان و پرونده‌ها</h1><p>فهرست، ایجاد و تغییر نام کارکنان؛ فقط برای حساب دارای مجوز مدیریت سازمان.</p></div><button type="button" id="refresh">به‌روزرسانی</button></header>
+    <div id="notice" role="status" aria-live="polite"></div>
+    <section aria-labelledby="list-heading">
+      <div class="section-heading"><div><h2 id="list-heading">فهرست کارکنان</h2><p>هر صفحه حداکثر ۱۰۰ رکورد؛ مرتب‌شده بر اساس شناسه.</p></div><span id="page-label"></span></div>
+      <div class="table-wrap"><table><thead><tr><th>شمارهٔ پرسنلی</th><th>نام نمایشی</th><th>شناسهٔ شرکت</th><th>شناسهٔ کارمند</th><th>عملیات</th></tr></thead><tbody id="employee-rows"></tbody></table></div>
+      <p id="empty" hidden>در این صفحه کارمندی یافت نشد.</p><div class="pagination"><button type="button" id="previous">صفحهٔ قبل</button><button type="button" id="next">صفحهٔ بعد</button></div>
+    </section>
+    <section aria-labelledby="create-heading"><h2 id="create-heading">افزودن کارمند</h2><p>شمارهٔ پرسنلی در هر شرکت باید یکتا باشد. شرکت را از فهرست انتخاب کنید.</p>
+      <div class="company-picker"><label for="company">شرکت</label><select id="company" name="company" required><option value="">در حال دریافت شرکت‌ها…</option></select><button type="button" id="company-previous">شرکت‌های قبلی</button><button type="button" id="company-next">شرکت‌های بعدی</button><span id="company-page"></span></div>
+      <form id="create-employee"><label>شمارهٔ پرسنلی <input name="personnelNumber" maxlength="80" required></label><label>نام نمایشی <input name="displayName" maxlength="200" required></label><button type="submit">ثبت کارمند</button></form>
+    </section>
+    <section id="rename-section" aria-labelledby="rename-heading" hidden><h2 id="rename-heading">تغییر نام کارمند</h2><p>نام انتخاب‌شده با نسخهٔ همان رکورد بررسی می‌شود؛ در صورت تغییر هم‌زمان باید دوباره انتخاب کنید.</p><p id="rename-employee"></p>
+      <form id="rename-employee-form"><label>نام جدید <input name="displayName" maxlength="200" required></label><button type="submit">ثبت نام جدید</button><button type="button" id="cancel-rename">انصراف</button></form>
+    </section>
+    <p class="footnote">این بخش آزمایشی است؛ تغییرات از طریق مجوز، حسابرسی و محدودیت‌های سرویس سازمان انجام می‌شوند. پروندهٔ استخدام و انتساب‌ها هنوز در این صفحه وجود ندارند.</p>
+  </main>
+</body></html>
