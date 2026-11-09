@@ -200,6 +200,7 @@ Check("multi-step correction requires designated approvers and approved content"
     Throws<InvalidOperationException>(() => new ApprovedCorrection(correctionRequest, [], [exit]));
     correctionRequest.Submit(owner, windowStart);
     Throws<InvalidOperationException>(() => correctionRequest.Approve(approver2, windowStart));
+    Throws<InvalidOperationException>(() => correctionRequest.Approve(approver1, windowStart.AddSeconds(-1)));
     correctionRequest.Approve(approver1, windowStart);
     Throws<InvalidOperationException>(() => new ApprovedCorrection(correctionRequest, [], [exit]));
     correctionRequest.Approve(approver2, windowStart);
@@ -217,6 +218,9 @@ Check("approved correction feeds calculation without mutating raw points", () =>
 });
 Check("request rejection and cancellation require reason and cannot be approved later", () =>
 {
+    var self = new ApprovalRequest(Guid.NewGuid(), calculationEmployee, owner, RequestKind.Leave, new[] { new[] { owner } });
+    self.Submit(owner, windowStart);
+    Throws<InvalidOperationException>(() => self.Approve(owner, windowStart));
     var rejected = new ApprovalRequest(Guid.NewGuid(), calculationEmployee, owner, RequestKind.Leave, new[] { new[] { approver1 } });
     rejected.Submit(owner, windowStart);
     Throws<ArgumentException>(() => rejected.Reject(approver1, windowStart, ""));

@@ -36,9 +36,10 @@ public sealed class ApprovalRequest
         this.payloadHash = payloadHash?.ToArray();
         Id = id; EmployeeId = employeeId; RequesterId = requesterId; Kind = kind;
     }
-    private static void Validate(Guid actor, DateTimeOffset atUtc)
+    private void Validate(Guid actor, DateTimeOffset atUtc)
     {
         if (actor == Guid.Empty || atUtc.Offset != TimeSpan.Zero) throw new ArgumentException("Actor and UTC time required.");
+        if (history.Count > 0 && atUtc < history[^1].AtUtc) throw new InvalidOperationException("Action time precedes history.");
     }
     private void Add(Guid actor, string action, DateTimeOffset atUtc, string? reason) =>
         history.Add(new(actor, action, atUtc, reason, CurrentStep));
@@ -68,7 +69,7 @@ public sealed class ApprovalRequest
     }
     private void RequireApprover(Guid actor)
     {
-        if (State != RequestState.Pending || !steps[CurrentStep].Contains(actor))
+        if (State != RequestState.Pending || actor == RequesterId || !steps[CurrentStep].Contains(actor))
             throw new InvalidOperationException("Actor is not an approver at the current step.");
     }
     internal static void ValidateReason(string reason)

@@ -22,9 +22,10 @@ public sealed class AttendancePeriod
         if (id == Guid.Empty || employeeId == Guid.Empty || endExclusive <= start) throw new ArgumentException("Invalid period.");
         Id = id; EmployeeId = employeeId; Start = start; EndExclusive = endExclusive;
     }
-    private static void Validate(Guid actor, DateTimeOffset time)
+    private void Validate(Guid actor, DateTimeOffset time)
     {
         if (actor == Guid.Empty || time.Offset != TimeSpan.Zero) throw new ArgumentException("Actor and UTC time required.");
+        if (history.Count > 0 && time < history[^1].AtUtc) throw new InvalidOperationException("Action time precedes history.");
     }
     public void Review(Guid actor, DateTimeOffset time, Guid runId, IReadOnlyList<AttendanceResult> results)
     {
