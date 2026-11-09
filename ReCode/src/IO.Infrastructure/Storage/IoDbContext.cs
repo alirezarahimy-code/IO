@@ -31,6 +31,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
     public DbSet<RawConflictNoteRecord> RawConflictNotes => Set<RawConflictNoteRecord>();
     public DbSet<ObservedRuleVersionRecord> ObservedRuleVersions => Set<ObservedRuleVersionRecord>();
     public DbSet<DailyCalculationRunRecord> DailyCalculationRuns => Set<DailyCalculationRunRecord>();
+    public DbSet<CalculationInputRevisionRecord> CalculationInputRevisions => Set<CalculationInputRevisionRecord>();
     public DbSet<CorrectionPolicyRecord> CorrectionPolicies => Set<CorrectionPolicyRecord>();
     public DbSet<CorrectionRequestRecord> CorrectionRequests => Set<CorrectionRequestRecord>();
     public DbSet<CorrectionDecisionRecord> CorrectionDecisions => Set<CorrectionDecisionRecord>();
@@ -254,6 +255,15 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.HasOne<CorrectionRequestRecord>().WithMany().HasForeignKey(x => x.RequestId).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.ActorUserId).OnDelete(DeleteBehavior.Restrict);
         });
+        model.Entity<CalculationInputRevisionRecord>(b =>
+        {
+            b.ToTable("CalculationInputRevision", t =>
+            {
+                t.HasCheckConstraint("CK_CalculationInputRevision_Singleton", "[Id] = 1 AND [Revision] >= 0");
+                t.HasTrigger("TR_CalculationInputRevision_Monotonic"); t.UseSqlOutputClause(false);
+            });
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
+        });
         model.Entity<ObservedRuleVersionRecord>(b =>
         {
             b.ToTable("ObservedRuleVersions", t =>
@@ -276,6 +286,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
                 t.HasCheckConstraint("CK_CalculationRuns_Window", "[WindowEndUtc] > [WindowStartUtc]");
                 t.HasCheckConstraint("CK_CalculationRuns_Utc", "DATEPART(TZOFFSET, [WindowStartUtc]) = 0 AND DATEPART(TZOFFSET, [WindowEndUtc]) = 0 AND DATEPART(TZOFFSET, [CreatedAtUtc]) = 0");
                 t.HasCheckConstraint("CK_CalculationRuns_Ticks", "[ObservedTicks] IS NULL OR [ObservedTicks] >= 0");
+                t.HasCheckConstraint("CK_CalculationRuns_Revision", "[InputRevision] IS NULL OR [InputRevision] >= 0");
                 t.HasTrigger("TR_DailyCalculationRuns_Immutable"); t.UseSqlOutputClause(false);
             });
             b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();

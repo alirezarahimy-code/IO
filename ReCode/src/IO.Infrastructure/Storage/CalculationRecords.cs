@@ -27,7 +27,16 @@ public sealed class DailyCalculationRunRecord
     public DateTimeOffset WindowEndUtc { get; set; }
     public string InputSnapshotJson { get; set; } = null!;
     public string AnomaliesJson { get; set; } = null!;
+    // Null for historical runs created before input-change monitoring existed.
+    public long? InputRevision { get; set; }
     public long? ObservedTicks { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }
     public Guid CreatedByUserId { get; set; }
+}
+
+// One coarse, database-wide epoch. It detects writes, not business validity.
+public sealed class CalculationInputRevisionRecord
+{
+    public int Id { get; set; }
+    public long Revision { get; set; }
 }
