@@ -167,6 +167,49 @@ internal static class HttpSecurityTests
                 if (input is not null) message.Content = JsonContent.Create(input);
                 return await client.SendAsync(message);
             }
+            check((await PostAdmin(scoped, "/org/organizations", new { Name = "unauthorized" })).StatusCode == HttpStatusCode.Forbidden &&
+                (await adminClient.PostAsJsonAsync("/org/organizations", new { Name = "without csrf" })).StatusCode == HttpStatusCode.BadRequest,
+                "HTTP organization writes require explicit permission and CSRF");
+            async Task<Guid> CreateId(string path, object body)
+            {
+                using var response = await PostAdmin(adminClient, path, body);
+                response.EnsureSuccessStatusCode();
+                using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                return json.RootElement.GetProperty("result").GetGuid();
+            }
+            var featureRole = await CreateId("/admin/roles", new { Name = "phase five six test role" });
+            foreach (var code in new[] { "organization.manage", "schedule.manage", "schedule.read.all" })
+                if ((await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = featureRole, Code = code })).StatusCode != HttpStatusCode.OK)
+                    throw new InvalidOperationException("Synthetic feature permission grant failed.");
+            Guid globalActor;
+            await using (var setupScope = provider.CreateAsyncScope())
+                globalActor = await setupScope.ServiceProvider.GetRequiredService<LoginIdentityDbContext>().Users
+                    .Where(x => x.UserName == adminName).Select(x => x.Id).SingleAsync();
+            if ((await PostAdmin(adminClient, "/admin/user-roles", new { UserId = globalActor, RoleId = featureRole })).StatusCode != HttpStatusCode.OK)
+                throw new InvalidOperationException("Synthetic feature role grant failed.");
+            var newOrg = await CreateId("/org/organizations", new { Name = "HTTP synthetic org" });
+            var newCompany = await CreateId("/org/companies", new { OrganizationId = newOrg, Name = "HTTP synthetic company" });
+            var newSite = await CreateId("/org/sites", new { CompanyId = newCompany, Name = "HTTP site", TimeZoneId = "Asia/Tehran" });
+            var newUnit = await CreateId("/org/units", new { CompanyId = newCompany, ParentId = (Guid?)null, Name = "HTTP unit" });
+            var newEmployee = await CreateId("/org/employees", new { CompanyId = newCompany, PersonnelNumber = "HTTP-1", DisplayName = "HTTP synthetic employee" });
+            var workDay = DateOnly.FromDateTime(DateTime.UtcNow);
+            await CreateId("/org/assignments", new { EmployeeId = newEmployee, UnitId = newUnit, ValidFrom = workDay, ValidUntilExclusive = (DateOnly?)null });
+            check((await PostAdmin(adminClient, "/org/assignments", new { EmployeeId = newEmployee, UnitId = newUnit, ValidFrom = workDay, ValidUntilExclusive = (DateOnly?)null })).StatusCode == HttpStatusCode.Conflict,
+                "HTTP duplicate employee assignment returns conflict");
+            var newCalendar = await CreateId("/scheduling/calendars", new { CompanyId = newCompany, Name = "HTTP calendar" });
+            await CreateId("/scheduling/calendar-days", new { CalendarId = newCalendar, Date = workDay, Kind = 0, Note = "synthetic" });
+            var newShift = await CreateId("/scheduling/shifts", new { CompanyId = newCompany, SiteId = newSite, Name = "HTTP night", StartsAt = "22:00:00", EndsAt = "06:00:00", EndDayOffset = 1 });
+            await CreateId("/scheduling/assignments", new { EmployeeId = newEmployee, CalendarId = newCalendar, ShiftId = newShift, ValidFrom = workDay, ValidUntilExclusive = (DateOnly?)null });
+            var scheduleResponse = await adminClient.GetAsync($"/schedules/{newEmployee}/{workDay:yyyy-MM-dd}");
+            check(scheduleResponse.StatusCode == HttpStatusCode.OK && (await scheduleResponse.Content.ReadAsStringAsync()).Contains("HTTP night", StringComparison.Ordinal) &&
+                (await own.GetAsync($"/schedules/{newEmployee}/{workDay:yyyy-MM-dd}")).StatusCode == HttpStatusCode.NotFound,
+                "HTTP schedule read enforces explicit permission and target scope");
+            check((await PostAdmin(adminClient, "/scheduling/assignments", new { EmployeeId = newEmployee, CalendarId = newCalendar, ShiftId = newShift, ValidFrom = workDay, ValidUntilExclusive = (DateOnly?)null })).StatusCode == HttpStatusCode.Conflict,
+                "HTTP duplicate schedule assignment returns conflict");
+            var converted = await adminClient.GetAsync("/dates/jalali/1403/1/1");
+            check(converted.StatusCode == HttpStatusCode.OK && (await converted.Content.ReadAsStringAsync()).Contains("2024-03-20", StringComparison.Ordinal) &&
+                (await adminClient.GetAsync("/dates/jalali/1402/12/30")).StatusCode == HttpStatusCode.BadRequest,
+                "HTTP Persian date conversion validates leap boundaries");
             Guid administratorRole;
             await using (var scope = provider.CreateAsyncScope())
                 administratorRole = await scope.ServiceProvider.GetRequiredService<IoDbContext>().Roles

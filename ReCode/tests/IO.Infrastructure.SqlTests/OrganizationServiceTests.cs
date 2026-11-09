@@ -18,8 +18,9 @@ internal static class OrganizationServiceTests
             var administratorRole = await db.Roles.SingleAsync(x => x.Name == "Initial administrator");
             admin = await db.UserRoles.Where(x => x.RoleId == administratorRole.Id).Select(x => x.UserId).SingleAsync();
             limited = await db.Users.Where(x => x.UserName == "web-manager").Select(x => x.Id).SingleAsync();
-            var permissionId = Guid.NewGuid();
-            db.Permissions.Add(new() { Id = permissionId, Code = OrganizationManagement.Manage });
+            var existingPermission = await db.Permissions.SingleOrDefaultAsync(x => x.Code == OrganizationManagement.Manage);
+            var permissionId = existingPermission?.Id ?? Guid.NewGuid();
+            if (existingPermission is null) db.Permissions.Add(new() { Id = permissionId, Code = OrganizationManagement.Manage });
             db.RolePermissions.Add(new() { RoleId = administratorRole.Id, PermissionId = permissionId });
             await db.SaveChangesAsync();
         }

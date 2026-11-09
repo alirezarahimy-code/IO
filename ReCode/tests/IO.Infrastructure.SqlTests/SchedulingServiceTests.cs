@@ -22,8 +22,9 @@ internal static class SchedulingServiceTests
             otherCompany = await db.Companies.Where(x => x.Name == "Other synthetic company").Select(x => x.Id).SingleAsync();
             site = await db.Sites.Where(x => x.CompanyId == company).Select(x => x.Id).SingleAsync();
             employee = await db.Employees.Where(x => x.PersonnelNumber == "ORG-SYN-1").Select(x => x.Id).SingleAsync();
-            var permissionId = Guid.NewGuid();
-            db.Permissions.Add(new() { Id = permissionId, Code = ScheduleManagement.Manage });
+            var existingPermission = await db.Permissions.SingleOrDefaultAsync(x => x.Code == ScheduleManagement.Manage);
+            var permissionId = existingPermission?.Id ?? Guid.NewGuid();
+            if (existingPermission is null) db.Permissions.Add(new() { Id = permissionId, Code = ScheduleManagement.Manage });
             db.RolePermissions.Add(new() { RoleId = role.Id, PermissionId = permissionId });
             await db.SaveChangesAsync();
         }
