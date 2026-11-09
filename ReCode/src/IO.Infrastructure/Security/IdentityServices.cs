@@ -1,5 +1,6 @@
 using System.Data;
 using IO.Infrastructure.Organization;
+using IO.Infrastructure.Attendance;
 using IO.Infrastructure.Scheduling;
 using IO.Infrastructure.Storage;
 using Microsoft.AspNetCore.Identity;
@@ -34,6 +35,7 @@ public static class IdentityServices
         services.AddScoped<PersonalCredentials>();
         services.AddScoped<PermissionTransaction>();
         services.AddScoped<OrganizationManagement>();
+        services.AddScoped<AttendanceIngestion>();
         services.AddScoped<ScheduleManagement>();
         services.AddScoped<EmployeeAccessReader>();
         services.AddScoped<ScheduleReader>();

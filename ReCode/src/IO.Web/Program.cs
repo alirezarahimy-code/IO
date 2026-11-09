@@ -1,5 +1,7 @@
 using IO.Infrastructure.Security;
 using IO.Infrastructure.Organization;
+using IO.Infrastructure.Attendance;
+using IO.Domain.Attendance;
 using IO.Infrastructure.Scheduling;
 using IO.Domain.Scheduling;
 using IO.Infrastructure.Storage;
@@ -189,6 +191,12 @@ public static class IoWebHost
             catch (InvalidOperationException) { return Results.Conflict(); }
             catch (ArgumentOutOfRangeException) { return Results.BadRequest(); }
         });
+        app.MapGet("/attendance/raw/{sourceId:guid}", (Guid sourceId, int? offset, HttpContext c, AttendanceIngestion service) =>
+            AdminRead(c, actor => service.ListAsync(actor, sourceId, offset ?? 0, c.RequestAborted)));
+        app.MapPost("/attendance/sources", (AttendanceSourceInput input, HttpContext c, IAntiforgery csrf, AttendanceIngestion service) =>
+            Admin(c, csrf, actor => service.CreateSourceAsync(actor, input.SiteId, input.Name, c.RequestAborted)));
+        app.MapPost("/attendance/simulated-events", (SimulatedEventInput input, HttpContext c, IAntiforgery csrf, AttendanceIngestion service) =>
+            ReceiveEvent(c, csrf, service, input));
         app.MapGet("/org/catalog/{kind}", (string kind, int? offset, HttpContext context, OrganizationManagement service) =>
             AdminRead(context, actor => service.ListAsync(actor, kind, offset ?? 0, context.RequestAborted)));
         app.MapGet("/scheduling/catalog/{kind}", (string kind, int? offset, HttpContext context, ScheduleManagement service) =>
@@ -278,6 +286,21 @@ public static class IoWebHost
         catch (ArgumentNullException) { throw new ArgumentException("Missing rowversion."); }
     }
 
+    private static async Task<IResult> ReceiveEvent(HttpContext context, IAntiforgery antiforgery, AttendanceIngestion service, SimulatedEventInput input)
+    {
+        if (!await ValidCsrf(context, antiforgery)) return Results.BadRequest();
+        if (!Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var actor)) return Results.Unauthorized();
+        try
+        {
+            var result = await service.AppendAsync(actor, input.SourceId, input.ExternalId, input.PersonId,
+                input.OccurredAt, input.SourceZone, input.EventType, input.Payload, context.RequestAborted);
+            return result.Outcome == RawEventAppendResult.ConflictingExternalIdentity
+                ? Results.Conflict(new { result }) : Results.Ok(new { result });
+        }
+        catch (UnauthorizedAccessException) { return Results.StatusCode(403); }
+        catch (ArgumentException) { return Results.BadRequest(); }
+    }
+
     private static async Task<IResult> AdminRead(HttpContext context, Func<Guid, Task<object>> action)
     {
         if (!Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var actor)) return Results.Unauthorized();
@@ -330,3 +353,6 @@ public sealed record EmployeeSiteInput(Guid EmployeeId, Guid SiteId, DateOnly Va
 public sealed record EmployeeSiteTransferInput(Guid EmployeeId, Guid AssignmentId, Guid SiteId, DateOnly Effective);
 public sealed record EmploymentInput(Guid EmployeeId, string StatusCode, string? Title, DateOnly ValidFrom, DateOnly? ValidUntilExclusive);
 public sealed record EmploymentChangeInput(Guid EmployeeId, Guid ProfileId, string StatusCode, string? Title, DateOnly Effective);
+
+public sealed record AttendanceSourceInput(Guid? SiteId, string Name);
+public sealed record SimulatedEventInput(Guid SourceId, string? ExternalId, string? PersonId, DateTimeOffset? OccurredAt, string? SourceZone, string? EventType, byte[] Payload);
