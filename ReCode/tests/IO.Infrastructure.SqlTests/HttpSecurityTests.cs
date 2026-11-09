@@ -192,6 +192,21 @@ internal static class HttpSecurityTests
             var newSite = await CreateId("/org/sites", new { CompanyId = newCompany, Name = "HTTP site", TimeZoneId = "Asia/Tehran" });
             var newUnit = await CreateId("/org/units", new { CompanyId = newCompany, ParentId = (Guid?)null, Name = "HTTP unit" });
             var newEmployee = await CreateId("/org/employees", new { CompanyId = newCompany, PersonnelNumber = "HTTP-1", DisplayName = "HTTP synthetic employee" });
+            async Task<string> CatalogVersion(string kind, Guid id)
+            {
+                using var response = await adminClient.GetAsync("/org/catalog/" + kind);
+                response.EnsureSuccessStatusCode();
+                using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                return json.RootElement.GetProperty("items").EnumerateArray()
+                    .Single(x => x.GetProperty("id").GetGuid() == id).GetProperty("version").GetString()!;
+            }
+            var employeeVersion = await CatalogVersion("employees", newEmployee);
+            check((await PostAdmin(adminClient, $"/org/employees/{newEmployee}/rename", new { DisplayName = "HTTP changed", ExpectedVersion = employeeVersion })).StatusCode == HttpStatusCode.OK &&
+                (await PostAdmin(adminClient, $"/org/employees/{newEmployee}/rename", new { DisplayName = "stale", ExpectedVersion = employeeVersion })).StatusCode == HttpStatusCode.Conflict,
+                "HTTP employee update enforces optimistic rowversion");
+            check((await PostAdmin(scoped, $"/org/employees/{newEmployee}/rename", new { DisplayName = "unauthorized", ExpectedVersion = employeeVersion })).StatusCode == HttpStatusCode.Forbidden &&
+                (await PostAdmin(adminClient, $"/org/employees/{newEmployee}/rename", new { DisplayName = "invalid", ExpectedVersion = "not-base64" })).StatusCode == HttpStatusCode.BadRequest,
+                "HTTP employee update rejects unauthorized and malformed version");
             var workDay = DateOnly.FromDateTime(DateTime.UtcNow);
             var initialOrgAssignment = await CreateId("/org/assignments", new { EmployeeId = newEmployee, UnitId = newUnit, ValidFrom = workDay, ValidUntilExclusive = (DateOnly?)null });
             check((await PostAdmin(adminClient, "/org/assignments", new { EmployeeId = newEmployee, UnitId = newUnit, ValidFrom = workDay, ValidUntilExclusive = (DateOnly?)null })).StatusCode == HttpStatusCode.Conflict,
@@ -207,10 +222,18 @@ internal static class HttpSecurityTests
             check((await PostAdmin(adminClient, "/scheduling/assignments", new { EmployeeId = newEmployee, CalendarId = newCalendar, ShiftId = newShift, ValidFrom = workDay, ValidUntilExclusive = (DateOnly?)null })).StatusCode == HttpStatusCode.Conflict,
                 "HTTP duplicate schedule assignment returns conflict");
             var secondOrgUnit = await CreateId("/org/units", new { CompanyId = newCompany, ParentId = newUnit, Name = "HTTP second unit" });
+            var unitVersion = await CatalogVersion("units", newUnit);
+            check((await PostAdmin(adminClient, $"/org/units/{newUnit}/reparent", new { CompanyId = newCompany, ParentId = secondOrgUnit, ExpectedVersion = unitVersion })).StatusCode == HttpStatusCode.Conflict,
+                "HTTP organization tree rejects cycles");
             await CreateId("/org/transfers", new { EmployeeId = newEmployee, AssignmentId = initialOrgAssignment, UnitId = secondOrgUnit, Effective = workDay.AddDays(1) });
             check((await PostAdmin(adminClient, "/org/transfers", new { EmployeeId = newEmployee, AssignmentId = initialOrgAssignment, UnitId = secondOrgUnit, Effective = workDay.AddDays(2) })).StatusCode == HttpStatusCode.Conflict,
                 "HTTP transfer preserves history and cannot repeat closed assignment");
-            await CreateId("/scheduling/replacements", new { EmployeeId = newEmployee, AssignmentId = initialWorkSchedule, CalendarId = newCalendar, ShiftId = newShift, Effective = workDay.AddDays(1) });
+            var nextCalendar = await CreateId($"/scheduling/calendars/{newCalendar}/fork", new { Name = "HTTP calendar version two" });
+            check((await PostAdmin(adminClient, "/scheduling/calendar-days/revise", new { CalendarId = newCalendar, Date = workDay, Kind = 1, Note = "no" })).StatusCode == HttpStatusCode.Conflict &&
+                (await PostAdmin(adminClient, "/scheduling/calendar-days/revise", new { CalendarId = nextCalendar, Date = workDay, Kind = 1, Note = "yes" })).StatusCode == HttpStatusCode.OK,
+                "HTTP calendar versions prevent modification of assigned history");
+            await CreateId("/scheduling/calendar-days", new { CalendarId = nextCalendar, Date = workDay.AddDays(1), Kind = 1, Note = "next day" });
+            await CreateId("/scheduling/replacements", new { EmployeeId = newEmployee, AssignmentId = initialWorkSchedule, CalendarId = nextCalendar, ShiftId = newShift, Effective = workDay.AddDays(1) });
             check((await adminClient.GetAsync($"/schedules/{newEmployee}/{workDay:yyyy-MM-dd}")).StatusCode == HttpStatusCode.OK &&
                 (await adminClient.GetAsync($"/schedules/{newEmployee}/{workDay.AddDays(1):yyyy-MM-dd}")).StatusCode == HttpStatusCode.OK &&
                 (await PostAdmin(adminClient, "/scheduling/replacements", new { EmployeeId = newEmployee, AssignmentId = initialWorkSchedule, CalendarId = newCalendar, ShiftId = newShift, Effective = workDay.AddDays(2) })).StatusCode == HttpStatusCode.Conflict,
