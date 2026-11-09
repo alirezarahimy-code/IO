@@ -43,6 +43,7 @@ public static class IdentityServices
         services.AddScoped<CorrectionWorkflow>();
         services.AddScoped<PeriodPreflight>();
         services.AddScoped<PeriodDrafts>();
+        services.AddScoped<PeriodDiagnostics>();
         services.AddScoped<ScheduleManagement>();
         services.AddScoped<EmployeeAccessReader>();
         services.AddScoped<ScheduleReader>();

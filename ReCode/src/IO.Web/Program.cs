@@ -253,6 +253,12 @@ public static class IoWebHost
             Admin(c, csrf, actor => service.DecideAsync(actor, id, input.Approve, input.Reason, c.RequestAborted)));
         app.MapPost("/corrections/requests/{id:guid}/cancel", (Guid id, CorrectionCancelInput input, HttpContext c, IAntiforgery csrf, CorrectionWorkflow service) =>
             Admin(c, csrf, actor => service.CancelAsync(actor, id, input.Reason, c.RequestAborted)));
+        app.MapPost("/periods/drafts/{draftId:guid}/diagnostics", (Guid draftId, HttpContext c, IAntiforgery csrf, PeriodDiagnostics service) =>
+            Admin(c, csrf, actor => service.RecordAsync(actor, draftId, c.RequestAborted)));
+        app.MapGet("/periods/drafts/{draftId:guid}/diagnostics", (Guid draftId, int? offset, HttpContext c, PeriodDiagnostics service) =>
+            AdminRead(c, actor => service.ListAsync(actor, draftId, offset ?? 0, c.RequestAborted)));
+        app.MapGet("/periods/diagnostics/{id:guid}", (Guid id, HttpContext c, PeriodDiagnostics service) =>
+            AdminRead(c, actor => service.AssessAsync(actor, id, c.RequestAborted)));
         app.MapGet("/periods/drafts/{employeeId:guid}", (Guid employeeId, int? offset, HttpContext c, PeriodDrafts service) =>
             AdminRead(c, actor => service.ListAsync(actor, employeeId, offset ?? 0, c.RequestAborted)));
         app.MapPost("/periods/drafts", (PeriodDraftInput input, HttpContext c, IAntiforgery csrf, PeriodDrafts service) =>

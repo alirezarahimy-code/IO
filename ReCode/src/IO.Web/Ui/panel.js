@@ -91,5 +91,8 @@ form('correction-decision', f => send('/corrections/requests/' + encodeURICompon
 form('correction-cancel', f => send('/corrections/requests/' + encodeURIComponent(f.elements.id.value) + '/cancel', { reason: f.elements.reason.value }));
 form('period-draft', f => send('/periods/drafts', { employeeId: f.elements.employeeId.value, start: f.elements.start.value, endExclusive: f.elements.endExclusive.value }));
 form('period-drafts', async f => show(await fetch('/periods/drafts/' + encodeURIComponent(f.elements.employeeId.value) + '?offset=' + encodeURIComponent(f.elements.offset.value), { credentials: 'same-origin', cache: 'no-store' })));
+form('period-diagnostic-record', f => send('/periods/drafts/' + encodeURIComponent(f.elements.draftId.value) + '/diagnostics', null));
+form('period-diagnostic-list', async f => show(await fetch('/periods/drafts/' + encodeURIComponent(f.elements.draftId.value) + '/diagnostics?offset=' + encodeURIComponent(f.elements.offset.value), { credentials: 'same-origin', cache: 'no-store' })));
+form('period-diagnostic-assess', async f => show(await fetch('/periods/diagnostics/' + encodeURIComponent(f.elements.id.value), { credentials: 'same-origin', cache: 'no-store' })));
 form('period-preflight', async f => show(await fetch('/periods/preflight/' + encodeURIComponent(f.elements.employeeId.value) + '?start=' + encodeURIComponent(f.elements.start.value) + '&endExclusive=' + encodeURIComponent(f.elements.endExclusive.value), { credentials: 'same-origin', cache: 'no-store' })));
 document.getElementById('logout').addEventListener('click', async () => { try { await send('/auth/logout', null); } catch { output.textContent = 'خروج ناموفق بود.'; } });

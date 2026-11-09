@@ -183,7 +183,7 @@ internal static class HttpSecurityTests
                 return json.RootElement.GetProperty("result").GetGuid();
             }
             var featureRole = await CreateId("/admin/roles", new { Name = "phase five six test role" });
-            foreach (var code in new[] { "organization.manage", "schedule.manage", "schedule.read.all", "attendance.ingest", "attendance.calculate", "correction.configure", "period.preflight", "period.draft.manage" })
+            foreach (var code in new[] { "organization.manage", "schedule.manage", "schedule.read.all", "attendance.ingest", "attendance.calculate", "correction.configure", "period.preflight", "period.draft.manage", "period.diagnostic.manage" })
                 if ((await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = featureRole, Code = code })).StatusCode != HttpStatusCode.OK)
                     throw new InvalidOperationException("Synthetic feature permission grant failed.");
             Guid globalActor;
@@ -380,6 +380,20 @@ internal static class HttpSecurityTests
                   (await draftList.Content.ReadAsStringAsync()).Contains("diagnostic-draft-only", StringComparison.Ordinal) &&
                   (await scoped.GetAsync($"/periods/drafts/{newEmployee}")).StatusCode == HttpStatusCode.Forbidden,
                   "HTTP period drafts retry idempotently and remain restricted diagnostic records");
+            var diagnosticsPath = $"/periods/drafts/{draftId}/diagnostics";
+            check((await PostAdmin(scoped, diagnosticsPath)).StatusCode == HttpStatusCode.Forbidden &&
+                  (await adminClient.PostAsync(diagnosticsPath, null)).StatusCode == HttpStatusCode.BadRequest,
+                  "HTTP period diagnostic capture requires explicit permission and antiforgery");
+            using var diagnosticResponse = await PostAdmin(adminClient, diagnosticsPath);
+            diagnosticResponse.EnsureSuccessStatusCode();
+            using var diagnosticJson = JsonDocument.Parse(await diagnosticResponse.Content.ReadAsStringAsync());
+            var diagnosticId = diagnosticJson.RootElement.GetProperty("result").GetGuid();
+            using var diagnosticAssessment = await adminClient.GetAsync($"/periods/diagnostics/{diagnosticId}");
+            check(diagnosticAssessment.StatusCode == HttpStatusCode.OK &&
+                  (await diagnosticAssessment.Content.ReadAsStringAsync()).Contains("\"approvable\":false", StringComparison.Ordinal) &&
+                  (await adminClient.GetAsync(diagnosticsPath)).StatusCode == HttpStatusCode.OK &&
+                  (await scoped.GetAsync($"/periods/diagnostics/{diagnosticId}")).StatusCode == HttpStatusCode.Forbidden,
+                  "HTTP diagnostic evidence is restricted and cannot approve a period");
             var preflight = await adminClient.GetAsync($"/periods/preflight/{newEmployee}?start={workDay:yyyy-MM-dd}&endExclusive={workDay.AddDays(1):yyyy-MM-dd}");
             check(preflight.StatusCode == HttpStatusCode.OK && (await preflight.Content.ReadAsStringAsync()).Contains("\"approvable\":false", StringComparison.Ordinal) &&
                   (await scoped.GetAsync($"/periods/preflight/{newEmployee}?start={workDay:yyyy-MM-dd}&endExclusive={workDay.AddDays(1):yyyy-MM-dd}")).StatusCode == HttpStatusCode.Forbidden &&

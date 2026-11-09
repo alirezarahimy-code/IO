@@ -109,7 +109,7 @@ async function main() {
       await waitText('result');
       return JSON.parse(await page.locator('#result').textContent()).result;
     }
-    for (const code of ['organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.calculate', 'correction.configure', 'correction.decide', 'correction.decide.all', 'period.preflight', 'period.draft.manage']) {
+    for (const code of ['organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.calculate', 'correction.configure', 'correction.decide', 'correction.decide.all', 'period.preflight', 'period.draft.manage', 'period.diagnostic.manage']) {
       await page.locator('#permission input[name=roleId]').fill(role);
       await page.locator('#permission select[name=code]').selectOption(code);
       await submit('permission');
@@ -250,11 +250,21 @@ async function main() {
     await page.locator('#period-draft input[name=employeeId]').fill(employee);
     await page.locator('#period-draft input[name=start]').fill('2027-01-01');
     await page.locator('#period-draft input[name=endExclusive]').fill('2027-01-02');
-    await submit('period-draft');
+    const draft = await submit('period-draft');
     await page.locator('#period-drafts input[name=employeeId]').fill(employee);
     await clearResult();
     await page.locator('#period-drafts button').click();
     await waitText('diagnostic-draft-only');
+    await page.locator('#period-diagnostic-record input[name=draftId]').fill(draft);
+    const diagnostic = await submit('period-diagnostic-record');
+    await page.locator('#period-diagnostic-list input[name=draftId]').fill(draft);
+    await clearResult();
+    await page.locator('#period-diagnostic-list button').click();
+    await waitText(diagnostic);
+    await page.locator('#period-diagnostic-assess input[name=id]').fill(diagnostic);
+    await clearResult();
+    await page.locator('#period-diagnostic-assess button').click();
+    await waitText('approvable');
     await page.locator('#period-preflight input[name=employeeId]').fill(employee);
     await page.locator('#period-preflight input[name=start]').fill('2027-01-01');
     await page.locator('#period-preflight input[name=endExclusive]').fill('2027-01-02');
