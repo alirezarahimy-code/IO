@@ -5,6 +5,8 @@
     <EmbeddedResource Include="Ui/Organization.html" />
     <EmbeddedResource Include="Ui/Scheduling.html" />
     <EmbeddedResource Include="Ui/Rules.html" />
+    <EmbeddedResource Include="Ui/Mappings.html" />
+    <EmbeddedResource Include="Ui/mappings.js" />
     <EmbeddedResource Include="Ui/rules.js" />
     <EmbeddedResource Include="Ui/scheduling.js" />
     <EmbeddedResource Include="Ui/organization.js" />

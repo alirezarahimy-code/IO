@@ -103,6 +103,14 @@ async function main() {
     if (await deniedSources.locator('#body tr').count() !== 0 || await deniedSources.locator('#create-form button').isEnabled())
       throw new Error('Source workspace exposed data without permission');
     await deniedSources.close();
+    const deniedMappings = await context.newPage();
+    await deniedMappings.goto(address + '/workspace/mappings');
+    await deniedMappings.locator('#filter input[name=sourceId]').fill(first);
+    await deniedMappings.locator('#filter button').click();
+    await deniedMappings.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
+    if (await deniedMappings.locator('#body tr').count() !== 0 || await deniedMappings.locator('#create-form button').isEnabled())
+      throw new Error('Mapping workspace exposed data without permission');
+    await deniedMappings.close();
     const deniedHistory = await context.newPage();
     await deniedHistory.goto(address + '/workspace/employee-history');
     await deniedHistory.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
@@ -389,6 +397,38 @@ async function main() {
     await page.locator('#new-employee input[name=personnelNumber]').fill('BROWSER-REMAP');
     await page.locator('#new-employee input[name=displayName]').fill('Browser replacement employee');
     const remappedEmployee = await submit('new-employee');
+    const mapPage = await context.newPage();
+    await mapPage.goto(address + '/workspace/mappings');
+    await mapPage.locator('#filter input[name=sourceId]').fill(workspaceSource);
+    await mapPage.locator('#filter button').click();
+    await mapPage.waitForFunction(() => !document.querySelector('#create-form button').disabled);
+    await mapPage.locator('#create-form input[name=sourcePersonId]').fill(' exact identity ');
+    await mapPage.locator('#create-form input[name=employeeId]').fill(workspaceId);
+    await mapPage.locator('#create-form input[name=validFrom]').fill('2027-01-01T00:00:00Z');
+    await mapPage.locator('#create-form button').click();
+    const mappedRow = mapPage.locator('#body tr').filter({hasText:'exact identity'});
+    await mappedRow.waitFor();
+    const idBefore = await mappedRow.locator('td').nth(4).textContent();
+    const exactBefore = await mapPage.evaluate(async source => {
+      const data = await (await fetch('/attendance/mappings/' + encodeURIComponent(source))).json();
+      return data.items.map(x => x.sourcePersonId);
+    }, workspaceSource);
+    if (exactBefore.length !== 1 || exactBefore[0] !== ' exact identity ') throw new Error('Mapping identity lost exact spaces');
+    await mappedRow.locator('button').click();
+    await mapPage.locator('#replace-form input[name=employeeId]').fill(remappedEmployee);
+    await mapPage.locator('#replace-form input[name=effectiveAt]').fill('2027-02-01T00:00:00Z');
+    await mapPage.locator('#replace-form input[name=reason]').fill('Workspace transfer');
+    await mapPage.locator('#replace-form button[type=submit]').click();
+    await mapPage.waitForFunction(() => document.getElementById('notice').textContent.includes('انتقال نگاشت ثبت شد'));
+    const after = await mapPage.evaluate(async source => (await (await fetch('/attendance/mappings/' + encodeURIComponent(source))).json()).items, workspaceSource);
+    const oldMapping = after.find(x => x.id === idBefore), newMapping = after.find(x => x.id !== idBefore);
+    if (after.length !== 2 || oldMapping.sourcePersonId !== ' exact identity ' || newMapping.sourcePersonId !== ' exact identity ' || !oldMapping.validUntilUtcExclusive || newMapping.employeeId !== remappedEmployee)
+      throw new Error('Mapping transfer did not preserve exact identity and history');
+    await mapPage.locator('#filter input[name=sourceId]').fill(first);
+    if (await mapPage.locator('#create-form button').isEnabled() || await mapPage.locator('#body tr').count() !== 0)
+      throw new Error('Changing source left stale mapping data editable');
+    await mapPage.close();
+
     await page.locator('#attendance-mapping-replace input[name=sourceId]').fill(rawSource);
     await page.locator('#attendance-mapping-replace input[name=personId]').fill('browser-person');
     await page.locator('#attendance-mapping-replace input[name=mappingId]').fill(mapping);
