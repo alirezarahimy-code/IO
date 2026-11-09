@@ -390,5 +390,22 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.HasIndex(x => new { x.SourceId, x.OccurredAtUtc });
             b.HasOne<EventSourceRecord>().WithMany().HasForeignKey(x => x.SourceId).OnDelete(DeleteBehavior.Restrict);
         });
+        // Monitored input tables have SQL revision triggers; EF must not use
+        // bare OUTPUT clauses when writing to these tables.
+        model.Entity<CompanyRecord>().ToTable("Companies", t => { t.HasTrigger("TR_Revision_Companies"); t.UseSqlOutputClause(false); });
+        model.Entity<SiteRecord>().ToTable("Sites", t => { t.HasTrigger("TR_Revision_Sites"); t.UseSqlOutputClause(false); });
+        model.Entity<EmployeeRecord>().ToTable("Employees", t => { t.HasTrigger("TR_Revision_Employees"); t.UseSqlOutputClause(false); });
+        model.Entity<CalendarRecord>().ToTable("Calendars", t => { t.HasTrigger("TR_Revision_Calendars"); t.UseSqlOutputClause(false); });
+        model.Entity<CalendarDayRecord>().ToTable("CalendarDays", t => { t.HasTrigger("TR_Revision_CalendarDays"); t.UseSqlOutputClause(false); });
+        model.Entity<ShiftDefinitionRecord>().ToTable("ShiftDefinitions", t => { t.HasTrigger("TR_Revision_ShiftDefinitions"); t.UseSqlOutputClause(false); });
+        model.Entity<WorkScheduleAssignmentRecord>().ToTable("WorkScheduleAssignments", t => { t.HasTrigger("TR_Revision_WorkScheduleAssignments"); t.UseSqlOutputClause(false); });
+        model.Entity<EventSourceRecord>().ToTable("EventSources", t => { t.HasTrigger("TR_Revision_EventSources"); t.UseSqlOutputClause(false); });
+        model.Entity<RawAttendanceEventRecord>().ToTable("RawAttendanceEvents", t => { t.HasTrigger("TR_Revision_RawAttendanceEvents"); t.UseSqlOutputClause(false); });
+        model.Entity<RawEventConflictRecord>().ToTable("RawEventConflicts", t => { t.HasTrigger("TR_Revision_RawEventConflicts"); t.UseSqlOutputClause(false); });
+        model.Entity<SourceEmployeeMappingRecord>().ToTable("SourceEmployeeMappings", t => { t.HasTrigger("TR_Revision_SourceEmployeeMappings"); t.UseSqlOutputClause(false); });
+        model.Entity<ObservedRuleVersionRecord>().ToTable("ObservedRuleVersions", t => { t.HasTrigger("TR_Revision_ObservedRuleVersions"); t.UseSqlOutputClause(false); });
+        model.Entity<CorrectionPolicyRecord>().ToTable("CorrectionPolicies", t => { t.HasTrigger("TR_Revision_CorrectionPolicies"); t.UseSqlOutputClause(false); });
+        model.Entity<CorrectionRequestRecord>().ToTable("CorrectionRequests", t => { t.HasTrigger("TR_Revision_CorrectionRequests"); t.UseSqlOutputClause(false); });
+        model.Entity<CorrectionDecisionRecord>().ToTable("CorrectionDecisions", t => { t.HasTrigger("TR_Revision_CorrectionDecisions"); t.UseSqlOutputClause(false); });
     }
 }
