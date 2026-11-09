@@ -22,6 +22,66 @@ namespace IO.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("IO.Infrastructure.Storage.CalendarDayRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CalendarId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTimeOffset>("RecordedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CalendarId", "Date")
+                        .IsUnique();
+
+                    b.ToTable("CalendarDays", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_CalendarDays_Kind", "[Kind] IN (0, 1, 2)");
+
+                            t.HasCheckConstraint("CK_CalendarDays_RecordedUtc", "DATEPART(TZOFFSET, [RecordedAtUtc]) = 0");
+                        });
+                });
+
+            modelBuilder.Entity("IO.Infrastructure.Storage.CalendarRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<byte[]>("Version")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.ToTable("Calendars", (string)null);
+                });
+
             modelBuilder.Entity("IO.Infrastructure.Storage.CompanyRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -330,6 +390,47 @@ namespace IO.Infrastructure.Migrations
                     b.ToTable("Roles", (string)null);
                 });
 
+            modelBuilder.Entity("IO.Infrastructure.Storage.ShiftDefinitionRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("EndDayOffset")
+                        .HasColumnType("int");
+
+                    b.Property<TimeOnly>("EndsAt")
+                        .HasColumnType("time");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("SiteId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<TimeOnly>("StartsAt")
+                        .HasColumnType("time");
+
+                    b.Property<byte[]>("Version")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SiteId", "CompanyId");
+
+                    b.ToTable("ShiftDefinitions", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_ShiftDefinitions_Interval", "([EndDayOffset] = 0 AND [EndsAt] > [StartsAt]) OR ([EndDayOffset] = 1 AND [EndsAt] <= [StartsAt])");
+                        });
+                });
+
             modelBuilder.Entity("IO.Infrastructure.Storage.SiteRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -445,6 +546,69 @@ namespace IO.Infrastructure.Migrations
                     b.ToTable("UserRoles", (string)null);
                 });
 
+            modelBuilder.Entity("IO.Infrastructure.Storage.WorkScheduleAssignmentRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CalendarId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ShiftId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly>("ValidFrom")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("ValidUntilExclusive")
+                        .HasColumnType("date");
+
+                    b.Property<byte[]>("Version")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CalendarId", "CompanyId");
+
+                    b.HasIndex("EmployeeId", "CompanyId");
+
+                    b.HasIndex("EmployeeId", "ValidFrom");
+
+                    b.HasIndex("ShiftId", "CompanyId");
+
+                    b.ToTable("WorkScheduleAssignments", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_WorkScheduleAssignments_Interval", "[ValidUntilExclusive] IS NULL OR [ValidUntilExclusive] > [ValidFrom]");
+                        });
+                });
+
+            modelBuilder.Entity("IO.Infrastructure.Storage.CalendarDayRecord", b =>
+                {
+                    b.HasOne("IO.Infrastructure.Storage.CalendarRecord", null)
+                        .WithMany()
+                        .HasForeignKey("CalendarId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("IO.Infrastructure.Storage.CalendarRecord", b =>
+                {
+                    b.HasOne("IO.Infrastructure.Storage.CompanyRecord", null)
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("IO.Infrastructure.Storage.CompanyRecord", b =>
                 {
                     b.HasOne("IO.Infrastructure.Storage.OrganizationRecord", null)
@@ -527,6 +691,16 @@ namespace IO.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("IO.Infrastructure.Storage.ShiftDefinitionRecord", b =>
+                {
+                    b.HasOne("IO.Infrastructure.Storage.SiteRecord", null)
+                        .WithMany()
+                        .HasForeignKey("SiteId", "CompanyId")
+                        .HasPrincipalKey("Id", "CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("IO.Infrastructure.Storage.SiteRecord", b =>
                 {
                     b.HasOne("IO.Infrastructure.Storage.CompanyRecord", null)
@@ -570,6 +744,30 @@ namespace IO.Infrastructure.Migrations
                     b.HasOne("IO.Infrastructure.Storage.UserRecord", null)
                         .WithMany()
                         .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("IO.Infrastructure.Storage.WorkScheduleAssignmentRecord", b =>
+                {
+                    b.HasOne("IO.Infrastructure.Storage.CalendarRecord", null)
+                        .WithMany()
+                        .HasForeignKey("CalendarId", "CompanyId")
+                        .HasPrincipalKey("Id", "CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IO.Infrastructure.Storage.EmployeeRecord", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeeId", "CompanyId")
+                        .HasPrincipalKey("Id", "CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IO.Infrastructure.Storage.ShiftDefinitionRecord", null)
+                        .WithMany()
+                        .HasForeignKey("ShiftId", "CompanyId")
+                        .HasPrincipalKey("Id", "CompanyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
