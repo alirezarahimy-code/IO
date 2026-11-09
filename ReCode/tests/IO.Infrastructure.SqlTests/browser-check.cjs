@@ -111,6 +111,14 @@ async function main() {
     if (await deniedMappings.locator('#body tr').count() !== 0 || await deniedMappings.locator('#create-form button').isEnabled())
       throw new Error('Mapping workspace exposed data without permission');
     await deniedMappings.close();
+    const deniedRaw = await context.newPage();
+    await deniedRaw.goto(address + '/workspace/raw-events');
+    await deniedRaw.locator('#filter input[name=sourceId]').fill(first);
+    await deniedRaw.locator('#filter button').click();
+    await deniedRaw.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
+    if (await deniedRaw.locator('#body tr').count() !== 0 || await deniedRaw.locator('#create-form button').isEnabled())
+      throw new Error('Raw event workspace exposed data without permission');
+    await deniedRaw.close();
     const deniedHistory = await context.newPage();
     await deniedHistory.goto(address + '/workspace/employee-history');
     await deniedHistory.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
@@ -428,6 +436,35 @@ async function main() {
     if (await mapPage.locator('#create-form button').isEnabled() || await mapPage.locator('#body tr').count() !== 0)
       throw new Error('Changing source left stale mapping data editable');
     await mapPage.close();
+    const rawPage = await context.newPage();
+    await rawPage.goto(address + '/workspace/raw-events');
+    await rawPage.locator('#filter input[name=sourceId]').fill(workspaceSource);
+    await rawPage.locator('#filter button').click();
+    await rawPage.waitForFunction(() => !document.querySelector('#create-form button').disabled);
+    await rawPage.locator('[name=externalId]').fill('workspace-event');
+    await rawPage.locator('[name=personId]').fill(' exact identity ');
+    await rawPage.locator('[name=occurredAt]').fill('2027-01-01T08:00:00Z');
+    await rawPage.locator('[name=eventType]').fill('in');
+    await rawPage.locator('[name=payload]').fill('رویداد ساختگی');
+    await rawPage.locator('#create-form button').click();
+    await rawPage.waitForFunction(() => document.getElementById('notice').textContent.includes('رویداد ثبت شد'));
+    const rawRow = rawPage.locator('#body tr').filter({hasText:'workspace-event'});
+    await rawRow.waitFor();
+    const rawId = await rawRow.locator('td').last().textContent();
+    await rawPage.locator('#create-form button').click();
+    await rawPage.waitForFunction(() => document.getElementById('notice').textContent.includes('تکرار همسان'));
+    await rawPage.locator('[name=payload]').fill('payload متفاوت');
+    await rawPage.locator('#create-form button').click();
+    await rawPage.waitForFunction(() => document.getElementById('notice').textContent.includes('برخورد ثبت شد'));
+    const receiptState = await rawPage.evaluate(async source => {
+      const events = await (await fetch('/attendance/raw/' + encodeURIComponent(source))).json();
+      const conflicts = await (await fetch('/attendance/conflicts/' + encodeURIComponent(source))).json();
+      return { events:events.items, conflicts:conflicts.items };
+    }, workspaceSource);
+    if (receiptState.events.length !== 1 || receiptState.events[0].id !== rawId || receiptState.events[0].sourceEmployeeIdentifier !== ' exact identity ' || receiptState.conflicts.length !== 1 || receiptState.conflicts[0].resolved !== false)
+      throw new Error('Raw event retry or conflict handling is incorrect');
+    await rawPage.close();
+
 
     await page.locator('#attendance-mapping-replace input[name=sourceId]').fill(rawSource);
     await page.locator('#attendance-mapping-replace input[name=personId]').fill('browser-person');
