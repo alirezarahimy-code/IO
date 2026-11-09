@@ -141,6 +141,6 @@ public sealed class ObservedCalculation(IoDbContext db, PermissionTransaction tr
             if (employeeId == Guid.Empty || offset is < 0 or > 100000) throw new ArgumentException("Invalid page.");
             var items = await db.DailyCalculationRuns.AsNoTracking().Where(x => x.EmployeeId == employeeId)
                 .OrderByDescending(x => x.CreatedAtUtc).ThenBy(x => x.Id).Skip(offset).Take(50).ToListAsync(token);
-            return (new { employeeId, offset, pageSize = 50, items }, employeeId);
+            return (new { employeeId, offset, pageSize = 50, freshness = "unknown", scope = "single-selected-source", items }, employeeId);
         }, ct);
 }
