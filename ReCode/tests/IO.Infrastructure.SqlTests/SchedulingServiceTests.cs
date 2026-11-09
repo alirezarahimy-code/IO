@@ -83,10 +83,13 @@ internal static class SchedulingServiceTests
                 ValidFrom = new DateOnly(2026, 3, 1), ValidUntilExclusive = new DateOnly(2027, 1, 1) });
             db.UserOrgScopes.Add(new() { Id = Guid.NewGuid(), UserId = limited, OrgUnitId = unit, ValidFrom = new DateOnly(2026, 1, 1) });
             var selfRole = Guid.NewGuid(); var scopedRole = Guid.NewGuid();
-            var selfPermission = Guid.NewGuid(); var scopedPermission = Guid.NewGuid(); var allPermission = Guid.NewGuid();
+            var selfPermission = Guid.NewGuid(); var scopedPermission = Guid.NewGuid();
+            var existingReadAll = await db.Permissions.SingleOrDefaultAsync(x => x.Code == ScheduleReader.ReadAll);
+            var allPermission = existingReadAll?.Id ?? Guid.NewGuid();
             db.Roles.AddRange(new RoleRecord { Id = selfRole, Name = "schedule self test" }, new RoleRecord { Id = scopedRole, Name = "schedule scoped test" });
             db.Permissions.AddRange(new PermissionRecord { Id = selfPermission, Code = ScheduleReader.ReadSelf },
-                new PermissionRecord { Id = scopedPermission, Code = ScheduleReader.ReadScoped }, new PermissionRecord { Id = allPermission, Code = ScheduleReader.ReadAll });
+                new PermissionRecord { Id = scopedPermission, Code = ScheduleReader.ReadScoped });
+            if (existingReadAll is null) db.Permissions.Add(new PermissionRecord { Id = allPermission, Code = ScheduleReader.ReadAll });
             db.UserRoles.AddRange(new UserRoleRecord { UserId = self, RoleId = selfRole }, new UserRoleRecord { UserId = limited, RoleId = scopedRole });
             db.RolePermissions.AddRange(new RolePermissionRecord { RoleId = selfRole, PermissionId = selfPermission },
                 new RolePermissionRecord { RoleId = scopedRole, PermissionId = scopedPermission }, new RolePermissionRecord { RoleId = adminRole.Id, PermissionId = allPermission });
