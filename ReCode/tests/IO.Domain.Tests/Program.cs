@@ -1,6 +1,9 @@
 using IO.Domain.Scheduling;
 using IO.Domain.Attendance;
 using IO.Domain.Organization;
+using IO.Domain.Calculation;
+using IO.Domain.Workflows;
+using IO.Domain.Periods;
 
 // Dependency-free executable checks. Run with `dotnet run --project tests/IO.Domain.Tests`.
 var failures = 0;
@@ -164,6 +167,78 @@ Check("invalid and ambiguous DST boundaries fail closed", () =>
     var ambiguous = new FixedShift(new TimeOnly(1, 30), new TimeOnly(4, 0), 0);
     Throws<InvalidOperationException>(() => invalid.Resolve(new DateOnly(2026, 3, 8), zone));
     Throws<InvalidOperationException>(() => ambiguous.Resolve(new DateOnly(2026, 11, 1), zone));
+});
+
+var owner = Guid.NewGuid(); var approver1 = Guid.NewGuid(); var approver2 = Guid.NewGuid();
+var calculationEmployee = Guid.NewGuid(); var ruleVersion = Guid.NewGuid();
+var workDate = new DateOnly(2026, 1, 1);
+var windowStart = new DateTimeOffset(2026, 1, 1, 18, 0, 0, TimeSpan.Zero);
+var windowEnd = windowStart.AddHours(12);
+var entry = new AttendancePoint(Guid.NewGuid(), windowStart.AddHours(1), PunchKind.In);
+var exit = new AttendancePoint(Guid.NewGuid(), windowStart.AddHours(9), PunchKind.Out);
+AttendanceResult Compute(IEnumerable<AttendancePoint> points, IEnumerable<ApprovedCorrection> changes) =>
+    ObservedAttendance.Calculate(calculationEmployee, workDate, ruleVersion, windowStart, windowEnd, points, changes);
+Check("observed time pairs overnight punches without treating them as payroll", () =>
+{
+    var result = Compute([exit, entry], []);
+    Assert(result.ObservedPresence == TimeSpan.FromHours(8) && result.RuleVersion == ruleVersion && result.Anomalies.Count == 0, "Wrong elapsed time");
+});
+Check("incomplete and simultaneous punches fail closed", () =>
+{
+    var missing = Compute([entry], []);
+    Assert(missing.ObservedPresence is null && missing.Anomalies.Contains("unpaired-punch"), "Incomplete pair accepted");
+    var same = Compute([entry, new(Guid.NewGuid(), entry.AtUtc, PunchKind.Out)], []);
+    Assert(same.ObservedPresence is null && same.Anomalies.Contains("simultaneous-punches"), "Simultaneous pair accepted");
+    Throws<ArgumentException>(() => Compute([entry, entry], []));
+    Throws<ArgumentException>(() => Compute([new(Guid.NewGuid(), windowEnd, PunchKind.In)], []));
+});
+var hash = ApprovedCorrection.ComputePayloadHash([], [exit]);
+var correctionRequest = new ApprovalRequest(Guid.NewGuid(), calculationEmployee, owner, RequestKind.AttendanceCorrection,
+    new[] { new[] { approver1 }, new[] { approver2 } }, hash);
+Check("multi-step correction requires designated approvers and approved content", () =>
+{
+    Throws<InvalidOperationException>(() => new ApprovedCorrection(correctionRequest, [], [exit]));
+    correctionRequest.Submit(owner, windowStart);
+    Throws<InvalidOperationException>(() => correctionRequest.Approve(approver2, windowStart));
+    correctionRequest.Approve(approver1, windowStart);
+    Throws<InvalidOperationException>(() => new ApprovedCorrection(correctionRequest, [], [exit]));
+    correctionRequest.Approve(approver2, windowStart);
+    Assert(correctionRequest.State == RequestState.Approved && correctionRequest.History.Count == 3, "Wrong state or history");
+    Throws<InvalidOperationException>(() => new ApprovedCorrection(correctionRequest, [], [entry]));
+});
+Check("approved correction feeds calculation without mutating raw points", () =>
+{
+    var raw = new[] { entry };
+    var before = Compute(raw, []);
+    var corrected = Compute(raw, [new ApprovedCorrection(correctionRequest, [], [exit])]);
+    Assert(raw.Length == 1 && before.ObservedPresence is null && corrected.ObservedPresence == TimeSpan.FromHours(8) &&
+        corrected.AppliedRequestIds.Single() == correctionRequest.Id && corrected.InputIds.Single() == entry.Id, "History or source was altered");
+    Throws<ArgumentException>(() => Compute(raw, [new ApprovedCorrection(correctionRequest, [], [exit]), new ApprovedCorrection(correctionRequest, [], [exit])]));
+});
+Check("request rejection and cancellation require reason and cannot be approved later", () =>
+{
+    var rejected = new ApprovalRequest(Guid.NewGuid(), calculationEmployee, owner, RequestKind.Leave, new[] { new[] { approver1 } });
+    rejected.Submit(owner, windowStart);
+    Throws<ArgumentException>(() => rejected.Reject(approver1, windowStart, ""));
+    rejected.Reject(approver1, windowStart, "test rejection");
+    Throws<InvalidOperationException>(() => rejected.Approve(approver1, windowStart));
+    var cancelled = new ApprovalRequest(Guid.NewGuid(), calculationEmployee, owner, RequestKind.Mission, new[] { new[] { approver1 } });
+    cancelled.Submit(owner, windowStart); cancelled.Cancel(owner, windowStart, "test cancellation");
+    Throws<InvalidOperationException>(() => cancelled.Approve(approver1, windowStart));
+});
+Check("period blocks anomalies and missing days, binds review to run and preserves reopen history", () =>
+{
+    var period = new AttendancePeriod(Guid.NewGuid(), calculationEmployee, workDate, workDate.AddDays(1));
+    var bad = Compute([entry], []); var good = Compute([entry, exit], []); var run = Guid.NewGuid();
+    Throws<InvalidOperationException>(() => period.Review(approver1, windowStart, run, [bad]));
+    Throws<InvalidOperationException>(() => period.Review(approver1, windowStart, run, []));
+    period.Review(approver1, windowStart, run, [good]);
+    Throws<InvalidOperationException>(() => period.Approve(approver2, windowStart, Guid.NewGuid()));
+    period.Approve(approver2, windowStart, run);
+    Throws<ArgumentException>(() => period.Reopen(approver1, windowStart, ""));
+    period.Reopen(approver1, windowStart, "test reopen");
+    Assert(period.State == PeriodState.Open && period.ReviewedRunId is null && period.History.Count == 3 &&
+        period.History.Last().RunId == run, "Approval history lost");
 });
 
 Console.WriteLine($"{count - failures}/{count} checks passed.");
