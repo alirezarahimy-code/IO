@@ -29,6 +29,9 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
     public DbSet<RawEventConflictRecord> RawEventConflicts => Set<RawEventConflictRecord>();
     public DbSet<ObservedRuleVersionRecord> ObservedRuleVersions => Set<ObservedRuleVersionRecord>();
     public DbSet<DailyCalculationRunRecord> DailyCalculationRuns => Set<DailyCalculationRunRecord>();
+    public DbSet<CorrectionPolicyRecord> CorrectionPolicies => Set<CorrectionPolicyRecord>();
+    public DbSet<CorrectionRequestRecord> CorrectionRequests => Set<CorrectionRequestRecord>();
+    public DbSet<CorrectionDecisionRecord> CorrectionDecisions => Set<CorrectionDecisionRecord>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
@@ -190,6 +193,49 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.ToTable("EventSources"); b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
             b.Property(x => x.Name).HasMaxLength(200).IsRequired(); b.Property(x => x.Version).IsRowVersion();
             b.HasOne<SiteRecord>().WithMany().HasForeignKey(x => x.SiteId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<CorrectionPolicyRecord>(b =>
+        {
+            b.ToTable("CorrectionPolicies", t =>
+            {
+                t.HasCheckConstraint("CK_CorrectionPolicies_Utc", "DATEPART(TZOFFSET, [CreatedAtUtc]) = 0");
+                t.HasTrigger("TR_CorrectionPolicies_Immutable"); t.UseSqlOutputClause(false);
+            });
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever(); b.Property(x => x.Name).HasMaxLength(200).IsRequired();
+            b.HasAlternateKey(x => new { x.Id, x.CompanyId });
+            b.HasOne<CompanyRecord>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.ApproverUserId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<CorrectionRequestRecord>(b =>
+        {
+            b.ToTable("CorrectionRequests", t =>
+            {
+                t.HasCheckConstraint("CK_CorrectionRequests_State", "[State] IN (0,1,2,3)");
+                t.HasCheckConstraint("CK_CorrectionRequests_Kind", "[PunchKind] IN (0,1)");
+                t.HasCheckConstraint("CK_CorrectionRequests_Utc", "DATEPART(TZOFFSET, [CreatedAtUtc]) = 0 AND DATEPART(TZOFFSET, [ProposedAtUtc]) = 0");
+                t.HasTrigger("TR_CorrectionRequests_ImmutablePayload"); t.UseSqlOutputClause(false);
+            });
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever(); b.Property(x => x.Version).IsRowVersion();
+            b.Property(x => x.Reason).HasMaxLength(500).IsRequired(); b.HasIndex(x => new { x.EmployeeId, x.WorkDate, x.State });
+            b.HasOne<EmployeeRecord>().WithMany().HasForeignKey(x => new { x.EmployeeId, x.CompanyId })
+                .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<CorrectionPolicyRecord>().WithMany().HasForeignKey(x => new { x.PolicyId, x.CompanyId })
+                .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.RequesterUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<CorrectionDecisionRecord>(b =>
+        {
+            b.ToTable("CorrectionDecisions", t =>
+            {
+                t.HasCheckConstraint("CK_CorrectionDecisions_Decision", "[Decision] IN (1,2,3)");
+                t.HasCheckConstraint("CK_CorrectionDecisions_Utc", "DATEPART(TZOFFSET, [AtUtc]) = 0");
+                t.HasTrigger("TR_CorrectionDecisions_Immutable"); t.UseSqlOutputClause(false);
+            });
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever(); b.Property(x => x.Reason).HasMaxLength(500);
+            b.HasIndex(x => x.RequestId).IsUnique();
+            b.HasOne<CorrectionRequestRecord>().WithMany().HasForeignKey(x => x.RequestId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.ActorUserId).OnDelete(DeleteBehavior.Restrict);
         });
         model.Entity<ObservedRuleVersionRecord>(b =>
         {
