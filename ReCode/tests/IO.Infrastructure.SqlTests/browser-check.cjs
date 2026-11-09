@@ -91,6 +91,12 @@ async function main() {
     if (await deniedOrg.locator('#body tr').count() !== 0 || await deniedOrg.locator('#create-form button').isEnabled())
       throw new Error('Organization workspace exposed data without permission');
     await deniedOrg.close();
+    const deniedSchedule = await context.newPage();
+    await deniedSchedule.goto(address + '/workspace/calendars');
+    await deniedSchedule.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
+    if (await deniedSchedule.locator('#body tr').count() !== 0 || await deniedSchedule.locator('#create-form button').isEnabled())
+      throw new Error('Schedule workspace exposed data without permission');
+    await deniedSchedule.close();
     const selfId = await page.evaluate(async () => (await (await fetch('/auth/me')).json()).id);
     const selfCompany = await page.evaluate(async id => (await (await fetch('/employees/' + encodeURIComponent(id))).json()).companyId, first);
     await clearResult();
@@ -209,6 +215,53 @@ async function main() {
     await page.locator('#site input[name=name]').fill('Browser synthetic site');
     await page.locator('#site input[name=timeZoneId]').fill('Asia/Tehran');
     const site = await submit('site');
+    const schedulePage = await context.newPage();
+    await schedulePage.goto(address + '/workspace/calendars');
+    await schedulePage.waitForFunction(() => !document.querySelector('#create-form button').disabled);
+    await schedulePage.locator('[name=companyId]').fill(company);
+    await schedulePage.locator('[name=name]').fill('Workspace calendar');
+    await schedulePage.locator('#create-form button').click();
+    const calendarRow = schedulePage.locator('#body tr').filter({hasText:'Workspace calendar'});
+    await calendarRow.waitFor();
+    const workspaceCalendar = await calendarRow.locator('td').last().textContent();
+    await schedulePage.locator('[data-kind=days]').click();
+    await schedulePage.waitForFunction(() => !document.querySelector('#create-form button').disabled);
+    await schedulePage.locator('[name=calendarId]').fill(workspaceCalendar);
+    await schedulePage.locator('[name=date]').fill('2027-05-01');
+    await schedulePage.locator('[name=kind]').selectOption('1');
+    await schedulePage.locator('[name=note]').fill('Workspace holiday');
+    await schedulePage.locator('#create-form button').click();
+    await schedulePage.locator('#body tr').filter({hasText:'Workspace holiday'}).waitFor();
+    await schedulePage.goto(address + '/workspace/shifts');
+    await schedulePage.waitForFunction(() => !document.querySelector('#create-form button').disabled);
+    await schedulePage.locator('[name=companyId]').fill(company);
+    await schedulePage.locator('[name=siteId]').fill(site);
+    await schedulePage.locator('[name=name]').fill('Workspace night shift');
+    await schedulePage.locator('[name=startsAt]').fill('22:00');
+    await schedulePage.locator('[name=endsAt]').fill('06:00');
+    await schedulePage.locator('[name=endDayOffset]').selectOption('1');
+    await schedulePage.locator('#create-form button').click();
+    const shiftRow = schedulePage.locator('#body tr').filter({hasText:'Workspace night shift'});
+    await shiftRow.waitFor();
+    const workspaceShift = await shiftRow.locator('td').last().textContent();
+    await schedulePage.goto(address + '/workspace/schedules');
+    await schedulePage.waitForFunction(() => !document.querySelector('#create-form button').disabled);
+    await schedulePage.locator('[name=employeeId]').fill(workspaceId);
+    await schedulePage.locator('[name=calendarId]').fill(workspaceCalendar);
+    await schedulePage.locator('[name=shiftId]').fill(workspaceShift);
+    await schedulePage.locator('[name=validFrom]').fill('2027-05-01');
+    await schedulePage.locator('#create-form button').click();
+    await schedulePage.locator('#body tr').filter({hasText:workspaceId}).waitFor();
+    // After assignment, a calendar cannot be altered in place.
+    await schedulePage.goto(address + '/workspace/calendars');
+    await schedulePage.locator('[data-kind=days]').click();
+    await schedulePage.waitForFunction(() => !document.querySelector('#create-form button').disabled);
+    await schedulePage.locator('[name=calendarId]').fill(workspaceCalendar);
+    await schedulePage.locator('[name=date]').fill('2027-05-02');
+    await schedulePage.locator('#create-form button').click();
+    await schedulePage.waitForFunction(() => document.getElementById('notice').textContent.includes('تعارض'));
+    await schedulePage.close();
+
     await page.locator('#attendance-source input[name=name]').fill('Browser synthetic source');
     await page.locator('#attendance-source input[name=siteId]').fill(site);
     const rawSource = await submit('attendance-source');

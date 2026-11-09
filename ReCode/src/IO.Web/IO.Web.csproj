@@ -3,6 +3,8 @@
     <EmbeddedResource Include="Ui/Panel.html" />
     <EmbeddedResource Include="Ui/Employees.html" />
     <EmbeddedResource Include="Ui/Organization.html" />
+    <EmbeddedResource Include="Ui/Scheduling.html" />
+    <EmbeddedResource Include="Ui/scheduling.js" />
     <EmbeddedResource Include="Ui/organization.js" />
     <EmbeddedResource Include="Ui/employees.js" />
     <EmbeddedResource Include="Ui/employees.css" />

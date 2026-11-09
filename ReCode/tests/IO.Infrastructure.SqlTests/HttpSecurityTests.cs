@@ -93,7 +93,7 @@ internal static class HttpSecurityTests
             {
                 var stdout = browser.StandardOutput.ReadToEndAsync();
                 var stderr = browser.StandardError.ReadToEndAsync();
-                using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+                using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(120));
                 try { await browser.WaitForExitAsync(timeout.Token); }
                 catch (OperationCanceledException) { browser.Kill(entireProcessTree: true); throw; }
                 var output = await stdout;
@@ -131,6 +131,9 @@ internal static class HttpSecurityTests
             check((await anon.GetAsync($"/employees/{first}")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/workspace/employees")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/workspace/organization")).StatusCode == HttpStatusCode.Unauthorized &&
+                  (await anon.GetAsync("/workspace/calendars")).StatusCode == HttpStatusCode.Unauthorized &&
+                  (await anon.GetAsync("/workspace/shifts")).StatusCode == HttpStatusCode.Unauthorized &&
+                  (await anon.GetAsync("/workspace/schedules")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/assets/employees.js")).StatusCode == HttpStatusCode.Unauthorized,
                 "HTTP anonymous direct employee and workspace access denied");
             check((await anon.PostAsJsonAsync("/auth/login", new { UserName = "web-self", Password })).StatusCode == HttpStatusCode.BadRequest,
