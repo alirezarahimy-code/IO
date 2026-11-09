@@ -172,14 +172,27 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
                 ownRequests = ownRequests.Where(x => x.State == requestedState);
             }
             var items = await (from request in ownRequests
+                               join policy in db.CorrectionPolicies on request.PolicyId equals policy.Id
+                               join approver in db.Users on policy.ApproverUserId equals approver.Id
+                               join approverEmployee in db.Employees on approver.EmployeeId equals (Guid?)approverEmployee.Id into approverEmployees
+                               from approverEmployee in approverEmployees.DefaultIfEmpty()
                                join decision in db.CorrectionDecisions on request.Id equals decision.RequestId into decisions
                                from decision in decisions.DefaultIfEmpty()
+                               join decisionActor in db.Users on (Guid?)decision.ActorUserId equals (Guid?)decisionActor.Id into decisionActors
+                               from decisionActor in decisionActors.DefaultIfEmpty()
+                               join decisionEmployee in db.Employees on decisionActor.EmployeeId equals (Guid?)decisionEmployee.Id into decisionEmployees
+                               from decisionEmployee in decisionEmployees.DefaultIfEmpty()
                                join settings in db.CorrectionSettings on request.CorrectionSettingsId equals (Guid?)settings.Id into settingsVersions
                                from settings in settingsVersions.DefaultIfEmpty()
                                orderby request.CreatedAtUtc descending, request.Id
                                select new { request.Id, request.EmployeeId, request.PolicyId, request.WorkDate, request.ProposedAtUtc,
                                    request.PunchKind, request.Reason, request.State, request.CreatedAtUtc,
+                                   PolicyName = policy.Name, policy.ApproverUserId,
+                                   ApproverDisplayName = approverEmployee == null ? null : approverEmployee.DisplayName,
                                    request.CorrectionSettingsId, SettingsRevision = settings == null ? (int?)null : settings.Revision,
+                                   DecisionKind = decision == null ? (int?)null : decision.Decision,
+                                   DecisionActorUserId = decision == null ? (Guid?)null : decision.ActorUserId,
+                                   DecisionActorDisplayName = decisionEmployee == null ? null : decisionEmployee.DisplayName,
                                    DecisionReason = decision == null ? null : decision.Reason,
                                    DecisionAtUtc = decision == null ? (DateTimeOffset?)null : decision.AtUtc })
                                .Skip(offset).Take(50).ToListAsync(token);

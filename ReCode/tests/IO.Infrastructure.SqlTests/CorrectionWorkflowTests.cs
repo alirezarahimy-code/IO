@@ -193,6 +193,39 @@ internal static class CorrectionWorkflowTests
               await Reject<ArgumentException>(() => Run(s => s.ListOwnAsync(self, 0, state: 4))) &&
               await Reject<UnauthorizedAccessException>(() => Run(s => s.ListOwnAsync(outsider, 0, fromDate: workDate, toDate: workDate))),
               "own correction filters include both dates, state and actor and reject invalid ranges");
+        await Run(s => s.DecideAsync(manager, nextDayRequest, false, "rejected for test"));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            (await db.Users.SingleAsync(x => x.Id == manager)).IsActive = false;
+            await db.SaveChangesAsync();
+        }
+        var historyDetails = JsonSerializer.SerializeToElement(await Run(s => s.ListOwnAsync(self, 0)));
+        var detailItems = historyDetails.GetProperty("items").EnumerateArray().ToArray();
+        var approvedDetail = detailItems.Single(x => x.GetProperty("Id").GetGuid() == request);
+        var cancelledDetail = detailItems.Single(x => x.GetProperty("Id").GetGuid() == cancel);
+        var rejectedDetail = detailItems.Single(x => x.GetProperty("Id").GetGuid() == nextDayRequest);
+        var pendingDetail = detailItems.Single(x => x.GetProperty("Id").GetGuid() == identical);
+        check(detailItems.All(x => x.GetProperty("Id").GetGuid() != outside) &&
+              approvedDetail.GetProperty("PolicyName").GetString() == "synthetic single approver" &&
+              approvedDetail.GetProperty("ApproverUserId").GetGuid() == manager &&
+              approvedDetail.GetProperty("ApproverDisplayName").ValueKind == JsonValueKind.Null &&
+              approvedDetail.GetProperty("DecisionKind").GetInt32() == 1 && approvedDetail.GetProperty("DecisionActorUserId").GetGuid() == manager &&
+              approvedDetail.GetProperty("DecisionReason").GetString() == "checked" && approvedDetail.GetProperty("DecisionAtUtc").ValueKind == JsonValueKind.String &&
+              rejectedDetail.GetProperty("DecisionKind").GetInt32() == 2 && rejectedDetail.GetProperty("DecisionActorUserId").GetGuid() == manager &&
+              rejectedDetail.GetProperty("DecisionReason").GetString() == "rejected for test" &&
+              cancelledDetail.GetProperty("DecisionKind").GetInt32() == 3 && cancelledDetail.GetProperty("DecisionActorUserId").GetGuid() == self &&
+              cancelledDetail.GetProperty("DecisionActorDisplayName").GetString() == "First" &&
+              pendingDetail.GetProperty("DecisionKind").ValueKind == JsonValueKind.Null && pendingDetail.GetProperty("DecisionActorUserId").ValueKind == JsonValueKind.Null &&
+              pendingDetail.GetProperty("DecisionAtUtc").ValueKind == JsonValueKind.Null &&
+              await Reject<UnauthorizedAccessException>(() => Run(s => s.ListOwnAsync(outsider, 0))),
+              "own correction tracking shows recorded actor and decision without leaking other requests or losing inactive approvers");
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            (await db.Users.SingleAsync(x => x.Id == manager)).IsActive = true;
+            await db.SaveChangesAsync();
+        }
         var integratedDate = new DateOnly(2028, 6, 6);
         var integratedAt = new DateTimeOffset(2028, 6, 6, 8, 0, 0, TimeSpan.Zero);
         var site = Guid.NewGuid(); var source = Guid.NewGuid(); var calendar = Guid.NewGuid(); var shift = Guid.NewGuid();

@@ -1348,6 +1348,10 @@ async function main() {
     const ownRequestRow = myRequestsPage.locator('#body tr').filter({hasText:'درخواست آزمایشی من'});
     const staleRequestRow = staleRequestsPage.locator('#body tr').filter({hasText:'درخواست آزمایشی من'});
     await ownRequestRow.waitFor(); await staleRequestRow.waitFor();
+    await ownRequestRow.locator('summary').click();
+    const pendingTracking=await ownRequestRow.locator('details').textContent();
+    if(!pendingTracking.includes('Browser employee correction policy') || !pendingTracking.includes(adminId) || !pendingTracking.includes('ثبت نشده'))
+      throw new Error('Pending request did not show its configured approver and absent decision');
     const ownRequestId = await ownRequestRow.locator('td').nth(7).textContent();
     await ownRequestRow.locator('button').click(); await staleRequestRow.locator('button').click();
     await myRequestsPage.locator('#cancel-form input[name=reason]').fill('لغو آزمایشی');
@@ -1355,6 +1359,10 @@ async function main() {
     await myRequestsPage.waitForFunction(() => document.getElementById('notice').textContent.includes('درخواست لغو شد'));
     if (!(await ownRequestRow.textContent()).includes('لغوشده') || await ownRequestRow.locator('button').count() !== 0)
       throw new Error('Cancelled request state was not persisted');
+    await ownRequestRow.locator('summary').click();
+    const cancelledTracking=await ownRequestRow.locator('details').textContent();
+    if(!cancelledTracking.includes('لغو توسط درخواست‌کننده') || !cancelledTracking.includes(selfId) || !cancelledTracking.includes('First') || !cancelledTracking.includes('لغو آزمایشی'))
+      throw new Error('Cancellation tracking did not show the real actor, action and reason');
     await staleRequestsPage.locator('#cancel-form input[name=reason]').fill('لغو دوباره');
     await staleRequestsPage.locator('#cancel-form button[type=submit]').click();
     await staleRequestsPage.waitForFunction(() => document.getElementById('notice').textContent.includes('تعارض'));
@@ -1431,6 +1439,15 @@ async function main() {
     await loginPage.waitForURL('**/workspace/account');
     await loginPage.waitForFunction(() => !document.querySelector('#password-form button').disabled);
     if (await loginPage.locator('#account-id').textContent() !== selfId) throw new Error('Account page showed wrong user');
+    const requesterTracking=await context.newPage();
+    await requesterTracking.goto(address+'/workspace/my-requests');
+    const rejectedRequest=requesterTracking.locator('#body tr').filter({hasText:'بررسی مدیر آزمایشی'});
+    await rejectedRequest.waitFor();
+    await rejectedRequest.locator('summary').click();
+    const rejectedTracking=await rejectedRequest.locator('details').textContent();
+    if(!rejectedTracking.includes('رد آزمایشی') || !rejectedTracking.includes(adminId) || !rejectedTracking.includes('رد'))
+      throw new Error('Requester did not see actual rejection tracking');
+    await requesterTracking.close();
     async function changePassword(current, next, confirm) {
       await loginPage.locator('#password-form input[name=currentPassword]').fill(current);
       await loginPage.locator('#password-form input[name=newPassword]').fill(next);

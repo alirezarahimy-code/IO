@@ -331,6 +331,17 @@ internal static class HttpSecurityTests
             check(inboxStatus == HttpStatusCode.OK && ownDecisionStatus == HttpStatusCode.Forbidden && managerDecisionStatus == HttpStatusCode.OK &&
                   lateCancelStatus == HttpStatusCode.Conflict && ownHistoryStatus == HttpStatusCode.OK,
                 $"HTTP scoped approval and own history enforce state and identity ({inboxStatus}, {ownDecisionStatus}, {managerDecisionStatus}, {lateCancelStatus}, {ownHistoryStatus})");
+            using var trackedResponse = await own.GetAsync("/corrections/own?fromDate=2027-05-05&toDate=2027-05-05");
+            using var trackedJson = JsonDocument.Parse(await trackedResponse.Content.ReadAsStringAsync());
+            var tracked = trackedJson.RootElement.GetProperty("items").EnumerateArray().Single(x => x.GetProperty("id").GetGuid() == correctionId);
+            var initiallyPending = filteredJson.RootElement.GetProperty("items").EnumerateArray().Single(x => x.GetProperty("id").GetGuid() == correctionId);
+            check(trackedResponse.StatusCode == HttpStatusCode.OK && tracked.GetProperty("policyName").GetString() == "HTTP correction policy" &&
+                  tracked.GetProperty("approverUserId").GetGuid() == manager && tracked.GetProperty("decisionKind").GetInt32() == 1 &&
+                  tracked.GetProperty("decisionActorUserId").GetGuid() == manager && tracked.GetProperty("decisionAtUtc").ValueKind == JsonValueKind.String &&
+                  initiallyPending.GetProperty("decisionKind").ValueKind == JsonValueKind.Null &&
+                  initiallyPending.GetProperty("decisionActorUserId").ValueKind == JsonValueKind.Null &&
+                  !tracked.TryGetProperty("userName", out _) && !tracked.TryGetProperty("password", out _),
+                  "HTTP own tracking exposes only the assigned approver and recorded decision");
             using var decisionHistory = await scoped.GetAsync("/corrections/decisions");
             check(decisionHistory.StatusCode == HttpStatusCode.OK &&
                   (await decisionHistory.Content.ReadAsStringAsync()).Contains(correctionId.ToString(), StringComparison.OrdinalIgnoreCase) &&
