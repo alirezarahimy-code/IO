@@ -26,6 +26,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
     public DbSet<EventSourceRecord> EventSources => Set<EventSourceRecord>();
     public DbSet<RawAttendanceEventRecord> RawAttendanceEvents => Set<RawAttendanceEventRecord>();
     public DbSet<SourceEmployeeMappingRecord> SourceEmployeeMappings => Set<SourceEmployeeMappingRecord>();
+    public DbSet<SourceMappingChangeRecord> SourceMappingChanges => Set<SourceMappingChangeRecord>();
     public DbSet<RawEventConflictRecord> RawEventConflicts => Set<RawEventConflictRecord>();
     public DbSet<RawConflictNoteRecord> RawConflictNotes => Set<RawConflictNoteRecord>();
     public DbSet<ObservedRuleVersionRecord> ObservedRuleVersions => Set<ObservedRuleVersionRecord>();
@@ -287,6 +288,20 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.HasOne<EventSourceRecord>().WithMany().HasForeignKey(x => x.SourceId).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<WorkScheduleAssignmentRecord>().WithMany().HasForeignKey(x => x.ScheduleAssignmentId).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<SourceMappingChangeRecord>(b =>
+        {
+            b.ToTable("SourceMappingChanges", t =>
+            {
+                t.HasCheckConstraint("CK_SourceMappingChanges_Utc", "DATEPART(TZOFFSET, [EffectiveAtUtc]) = 0 AND DATEPART(TZOFFSET, [CreatedAtUtc]) = 0");
+                t.HasCheckConstraint("CK_SourceMappingChanges_Distinct", "[PreviousMappingId] <> [NewMappingId]");
+                t.HasTrigger("TR_SourceMappingChanges_Immutable"); t.UseSqlOutputClause(false);
+            });
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever(); b.Property(x => x.Reason).HasMaxLength(500).IsRequired();
+            b.HasIndex(x => x.PreviousMappingId).IsUnique(); b.HasIndex(x => x.NewMappingId).IsUnique();
+            b.HasOne<SourceEmployeeMappingRecord>().WithMany().HasForeignKey(x => x.PreviousMappingId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<SourceEmployeeMappingRecord>().WithMany().HasForeignKey(x => x.NewMappingId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.ActorUserId).OnDelete(DeleteBehavior.Restrict);
         });
         model.Entity<RawConflictNoteRecord>(b =>
         {

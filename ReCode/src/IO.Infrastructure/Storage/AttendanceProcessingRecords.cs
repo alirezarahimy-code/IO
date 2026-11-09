@@ -39,3 +39,15 @@ public sealed class RawConflictNoteRecord
     public DateTimeOffset CreatedAtUtc { get; set; }
     public string Note { get; set; } = null!;
 }
+
+/// <summary>Audited change of an open mapping, preserving the old interval and new identity.</summary>
+public sealed class SourceMappingChangeRecord
+{
+    public Guid Id { get; set; }
+    public Guid PreviousMappingId { get; set; }
+    public Guid NewMappingId { get; set; }
+    public DateTimeOffset EffectiveAtUtc { get; set; }
+    public Guid ActorUserId { get; set; }
+    public DateTimeOffset CreatedAtUtc { get; set; }
+    public string Reason { get; set; } = null!;
+}
