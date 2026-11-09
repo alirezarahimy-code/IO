@@ -58,7 +58,7 @@ var unitId = Guid.NewGuid(); var otherUnitId = Guid.NewGuid(); var employeeId = 
 var sourceId = Guid.NewGuid(); var otherSourceId = Guid.NewGuid();
 string[] expectedTables = ["Organizations", "Companies", "Sites", "OrgUnits", "Employees", "EmployeeAssignments",
     "Users", "Roles", "Permissions", "UserRoles", "RolePermissions", "UserOrgScopes", "EventSources", "RawAttendanceEvents",
-    "Calendars", "CalendarDays", "ShiftDefinitions", "WorkScheduleAssignments", "EmploymentProfiles", "EmployeeSiteAssignments", "SourceEmployeeMappings", "RawEventConflicts", "ObservedRuleVersions", "DailyCalculationRuns", "CorrectionPolicies", "CorrectionRequests", "CorrectionDecisions", "PeriodDrafts", "RawConflictNotes", "SourceMappingChanges", "CalculationInputRevision", "PeriodDiagnostics", "LeaveTypes", "LeaveLedgerEntries", "Delegations", "DelegationRevocations"];
+    "Calendars", "CalendarDays", "ShiftDefinitions", "WorkScheduleAssignments", "EmploymentProfiles", "EmployeeSiteAssignments", "SourceEmployeeMappings", "RawEventConflicts", "ObservedRuleVersions", "DailyCalculationRuns", "CorrectionPolicies", "CorrectionRequests", "CorrectionDecisions", "PeriodDrafts", "RawConflictNotes", "SourceMappingChanges", "CalculationInputRevision", "PeriodDiagnostics", "LeaveTypes", "LeaveLedgerEntries", "Delegations", "DelegationRevocations", "CorrectionSettings"];
 try
 {
     await using (var db = NewDb())
@@ -66,10 +66,10 @@ try
         Check(!db.Database.HasPendingModelChanges(), "model matches migration snapshot");
         await db.Database.MigrateAsync();
         await db.Database.MigrateAsync();
-        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 14, "foundation and thirteen later migrations applied idempotently");
+        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 15, "foundation and fourteen later migrations applied idempotently");
         var created = 0;
         foreach (var table in expectedTables) if (await HasTable(table)) created++;
-        Check(created == expectedTables.Length, "all 36 foundation and later tables created");
+        Check(created == expectedTables.Length, "all 37 foundation and later tables created");
         db.Organizations.Add(new() { Id = orgId, Name = "Synthetic organization" });
         db.Companies.AddRange(new CompanyRecord { Id = companyId, OrganizationId = orgId, Name = "Synthetic company" },
             new CompanyRecord { Id = otherCompanyId, OrganizationId = orgId, Name = "Other synthetic company" });
@@ -271,12 +271,12 @@ try
         await migrator.MigrateAsync("0");
         var remaining = 0;
         foreach (var table in expectedTables) if (await HasTable(table)) remaining++;
-        Check(remaining == 0, "rollback removed all 36 foundation and later tables");
+        Check(remaining == 0, "rollback removed all 37 foundation and later tables");
         await migrator.MigrateAsync();
         var recreated = 0;
         foreach (var table in expectedTables) if (await HasTable(table)) recreated++;
-        Check(recreated == expectedTables.Length, "migrations recreated all 36 foundation and later tables");
-        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 14, "migration history restored");
+        Check(recreated == expectedTables.Length, "migrations recreated all 37 foundation and later tables");
+        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 15, "migration history restored");
     }
     // Independent Identity schema and bootstrap: the foundation DB was just
     // recreated empty above. Never run this against non-disposable data.
@@ -345,6 +345,7 @@ try
     await DelegationRegistryTests.RunAsync(connection, Check);
     await ObservedCalculationTests.RunAsync(connection, Check);
     await CorrectionWorkflowTests.RunAsync(connection, Check);
+    await CorrectionSettingsTests.RunAsync(connection, Check);
     await PeriodDraftTests.RunAsync(connection, Check);
     await PeriodDiagnosticTests.RunAsync(connection, Check);
     await RevisionCoverageTests.RunAsync(connection, Check);

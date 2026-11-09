@@ -10,6 +10,7 @@ using IO.Infrastructure.Scheduling;
 using IO.Infrastructure.Reports;
 using IO.Infrastructure.Leaves;
 using IO.Infrastructure.Delegation;
+using IO.Infrastructure.Settings;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -131,7 +132,7 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
     public Task<bool> GrantPermissionAsync(Guid actor, Guid roleId, string code, CancellationToken ct = default) =>
         ExecuteAsync(actor, "permission-grant." + code, async () =>
         {
-            if (code is not (EmployeeAccessReader.ReadSelf or EmployeeAccessReader.ReadScoped or EmployeeAccessReader.ReadAll or InitialAdministrator.ManageIdentity or OrganizationManagement.Manage or AttendanceIngestion.Manage or PersonalAttendance.ReadSelf or TeamAttendance.Read or TeamAttendance.Scoped or TeamAttendance.All or PersonalReports.ReadSelf or ExecutiveOverview.Read or LeaveLedger.Manage or LeaveLedger.ReadSelf or DelegationRegistry.ManageSelf or DelegationRegistry.Receive or ObservedCalculation.Manage or CorrectionWorkflow.Configure or CorrectionWorkflow.Submit or CorrectionWorkflow.Decide or CorrectionWorkflow.DecideScoped or CorrectionWorkflow.DecideAll or PeriodPreflight.Read or PeriodDrafts.Manage or PeriodDiagnostics.Manage or ScheduleManagement.Manage or ScheduleReader.ReadSelf or ScheduleReader.ReadScoped or ScheduleReader.ReadAll) ||
+            if (code is not (EmployeeAccessReader.ReadSelf or EmployeeAccessReader.ReadScoped or EmployeeAccessReader.ReadAll or InitialAdministrator.ManageIdentity or OrganizationManagement.Manage or AttendanceIngestion.Manage or PersonalAttendance.ReadSelf or TeamAttendance.Read or TeamAttendance.Scoped or TeamAttendance.All or PersonalReports.ReadSelf or ExecutiveOverview.Read or LeaveLedger.Manage or LeaveLedger.ReadSelf or DelegationRegistry.ManageSelf or DelegationRegistry.Receive or CorrectionSettings.Manage or ObservedCalculation.Manage or CorrectionWorkflow.Configure or CorrectionWorkflow.Submit or CorrectionWorkflow.Decide or CorrectionWorkflow.DecideScoped or CorrectionWorkflow.DecideAll or PeriodPreflight.Read or PeriodDrafts.Manage or PeriodDiagnostics.Manage or ScheduleManagement.Manage or ScheduleReader.ReadSelf or ScheduleReader.ReadScoped or ScheduleReader.ReadAll) ||
                 !await foundation.Roles.AnyAsync(x => x.Id == roleId, ct)) throw new ArgumentException("Invalid permission or role.");
             var permission = await foundation.Permissions.SingleOrDefaultAsync(p =>
                 EF.Functions.Collate(p.Code, "Latin1_General_100_BIN2") == code && EF.Functions.DataLength(p.Code) == code.Length * 2, ct);
@@ -172,7 +173,7 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
     public Task<bool> RevokePermissionAsync(Guid actor, Guid roleId, string code, CancellationToken ct = default) =>
         ExecuteAsync(actor, "permission-revoke." + code, async () =>
         {
-            if (code is not (EmployeeAccessReader.ReadSelf or EmployeeAccessReader.ReadScoped or EmployeeAccessReader.ReadAll or InitialAdministrator.ManageIdentity or OrganizationManagement.Manage or AttendanceIngestion.Manage or PersonalAttendance.ReadSelf or TeamAttendance.Read or TeamAttendance.Scoped or TeamAttendance.All or PersonalReports.ReadSelf or ExecutiveOverview.Read or LeaveLedger.Manage or LeaveLedger.ReadSelf or DelegationRegistry.ManageSelf or DelegationRegistry.Receive or ObservedCalculation.Manage or CorrectionWorkflow.Configure or CorrectionWorkflow.Submit or CorrectionWorkflow.Decide or CorrectionWorkflow.DecideScoped or CorrectionWorkflow.DecideAll or PeriodPreflight.Read or PeriodDrafts.Manage or PeriodDiagnostics.Manage or ScheduleManagement.Manage or ScheduleReader.ReadSelf or ScheduleReader.ReadScoped or ScheduleReader.ReadAll) ||
+            if (code is not (EmployeeAccessReader.ReadSelf or EmployeeAccessReader.ReadScoped or EmployeeAccessReader.ReadAll or InitialAdministrator.ManageIdentity or OrganizationManagement.Manage or AttendanceIngestion.Manage or PersonalAttendance.ReadSelf or TeamAttendance.Read or TeamAttendance.Scoped or TeamAttendance.All or PersonalReports.ReadSelf or ExecutiveOverview.Read or LeaveLedger.Manage or LeaveLedger.ReadSelf or DelegationRegistry.ManageSelf or DelegationRegistry.Receive or CorrectionSettings.Manage or ObservedCalculation.Manage or CorrectionWorkflow.Configure or CorrectionWorkflow.Submit or CorrectionWorkflow.Decide or CorrectionWorkflow.DecideScoped or CorrectionWorkflow.DecideAll or PeriodPreflight.Read or PeriodDrafts.Manage or PeriodDiagnostics.Manage or ScheduleManagement.Manage or ScheduleReader.ReadSelf or ScheduleReader.ReadScoped or ScheduleReader.ReadAll) ||
                 await foundation.UserRoles.AnyAsync(x => x.UserId == actor && x.RoleId == roleId, ct))
                 throw new ArgumentException("Invalid permission or role used by the actor.");
             var permissionId = await foundation.Permissions.Where(p =>

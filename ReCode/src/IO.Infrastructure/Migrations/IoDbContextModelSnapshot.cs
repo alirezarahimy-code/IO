@@ -295,6 +295,52 @@ namespace IO.Infrastructure.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
+            modelBuilder.Entity("IO.Infrastructure.Storage.CorrectionSettingsRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("MaxRequestAgeDays")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Revision")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("CompanyId", "Revision")
+                        .IsUnique();
+
+                    b.ToTable("CorrectionSettings", null, t =>
+                        {
+                            t.HasTrigger("TR_CorrectionSettings_Immutable");
+
+                            t.HasCheckConstraint("CK_CorrectionSettings_Age", "[MaxRequestAgeDays] BETWEEN 0 AND 3650");
+
+                            t.HasCheckConstraint("CK_CorrectionSettings_Revision", "[Revision] > 0");
+
+                            t.HasCheckConstraint("CK_CorrectionSettings_Utc", "DATEPART(TZOFFSET, [CreatedAtUtc]) = 0");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
             modelBuilder.Entity("IO.Infrastructure.Storage.DailyCalculationRunRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1596,6 +1642,21 @@ namespace IO.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("PolicyId", "CompanyId")
                         .HasPrincipalKey("Id", "CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("IO.Infrastructure.Storage.CorrectionSettingsRecord", b =>
+                {
+                    b.HasOne("IO.Infrastructure.Storage.CompanyRecord", null)
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IO.Infrastructure.Storage.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

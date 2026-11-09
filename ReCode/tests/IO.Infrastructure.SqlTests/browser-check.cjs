@@ -232,6 +232,13 @@ async function main() {
     await deniedReport.waitForFunction(()=>document.getElementById('notice').textContent.includes('مجوز'));
     if (await deniedReport.locator('#result').isVisible()) throw new Error('Diagnostic reports exposed without permission');
     await deniedReport.close();
+    const deniedSettings=await context.newPage();
+    await deniedSettings.goto(address+'/workspace/settings');
+    await deniedSettings.locator('#filter input').fill(first);
+    await deniedSettings.locator('#filter button').click();
+    await deniedSettings.waitForFunction(()=>document.getElementById('notice').textContent.includes('مجوز'));
+    if(await deniedSettings.locator('#save button').isEnabled() || await deniedSettings.locator('#body tr').count()) throw new Error('Settings exposed without permission');
+    await deniedSettings.close();
     const deniedDelegation=await context.newPage();
     await deniedDelegation.goto(address+'/workspace/delegation');
     await deniedDelegation.waitForFunction(()=>document.getElementById('notice').textContent.includes('مجوز'));
@@ -404,7 +411,7 @@ async function main() {
       await waitText('result');
       return JSON.parse(await page.locator('#result').textContent()).result;
     }
-    for (const code of ['organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.read.team', 'attendance.read.all', 'executive.dashboard.read', 'leave.manage', 'attendance.calculate', 'correction.configure', 'correction.decide', 'correction.decide.all', 'period.preflight', 'period.draft.manage', 'period.diagnostic.manage']) {
+    for (const code of ['organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.read.team', 'attendance.read.all', 'executive.dashboard.read', 'leave.manage', 'settings.correction.manage', 'attendance.calculate', 'correction.configure', 'correction.decide', 'correction.decide.all', 'period.preflight', 'period.draft.manage', 'period.diagnostic.manage']) {
       await page.locator('#permission input[name=roleId]').fill(role);
       await page.locator('#permission select[name=code]').selectOption(code);
       await submit('permission');
@@ -1042,6 +1049,29 @@ async function main() {
     await page.locator('#calculation-run input[name=ruleVersionId]').fill(selfRule);
     await page.locator('#calculation-run input[name=workDate]').fill('2027-03-01');
     const personalRun = await submit('calculation-run');
+    const settingsPage=await context.newPage();
+    await settingsPage.goto(address+'/workspace/settings');
+    await settingsPage.locator('#filter input[name=companyId]').fill(selfCompany);
+    await settingsPage.locator('#filter button').click();
+    await settingsPage.waitForFunction(()=>!document.querySelector('#save button').disabled);
+    const invalidCsrf=await settingsPage.evaluate(async company=>(await fetch('/settings/correction',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operationId:crypto.randomUUID(),companyId:company,expectedRevision:0,maxRequestAgeDays:5,reason:'test'})})).status,selfCompany);
+    if(invalidCsrf!==400)throw new Error('Settings accepted missing CSRF');
+    await settingsPage.locator('#save input[name=maxRequestAgeDays]').fill('5');
+    await settingsPage.locator('#save input[name=reason]').fill('سقف آزمایشی درخواست');
+    const settingsOp=await settingsPage.locator('#save input[name=operationId]').inputValue();
+    await settingsPage.locator('#save button').click();
+    await settingsPage.waitForFunction(()=>document.getElementById('notice').textContent.includes('نسخه ثبت شد'));
+    if(!(await settingsPage.locator('#current').textContent()).includes('5'))throw new Error('Setting not persisted');
+    const settingsRetry=await settingsPage.evaluate(async ({company,operation})=>{
+      const csrf=(await (await fetch('/auth/csrf')).json()).token;
+      const body={operationId:operation,companyId:company,expectedRevision:0,maxRequestAgeDays:5,reason:'سقف آزمایشی درخواست'};
+      const post=x=>fetch('/settings/correction',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf},body:JSON.stringify(x)});
+      return [(await post(body)).status,(await post({...body,operationId:crypto.randomUUID()})).status];
+    },{company:selfCompany,operation:settingsOp});
+    if(settingsRetry[0]!==200||settingsRetry[1]!==409)throw new Error('Settings retry or stale revision was not protected');
+    await settingsPage.locator('#filter input[name=companyId]').fill(company);
+    if(await settingsPage.locator('#save button').isEnabled()||await settingsPage.locator('#body tr').count())throw new Error('Changing settings company left stale data');
+    await settingsPage.close();
     const leaveAdmin=await context.newPage();
     await leaveAdmin.goto(address+'/workspace/leave-admin');
     await leaveAdmin.locator('#type-filter input[name=companyId]').fill(selfCompany);
@@ -1117,6 +1147,16 @@ async function main() {
     await page.locator('#logout').click();
     await waitText('عملیات انجام شد.');
     await login('web-self');
+    const policyAgePage=await context.newPage();
+    await policyAgePage.goto(address+'/workspace/new-request');
+    await policyAgePage.waitForFunction(()=>document.getElementById('request-age').textContent.includes('5'));
+    const oldRequest=await policyAgePage.evaluate(async policy=>{
+      const csrf=(await (await fetch('/auth/csrf')).json()).token;
+      const old=new Date();old.setUTCDate(old.getUTCDate()-10);
+      return (await fetch('/corrections/requests',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf},body:JSON.stringify({policyId:policy,workDate:old.toISOString().slice(0,10),proposedAt:old.toISOString(),punchKind:0,reason:'old date'})})).status;
+    },employeePolicy);
+    if(oldRequest!==400)throw new Error('Configured age limit did not block old request');
+    await policyAgePage.close();
     const delegatePage=await context.newPage();
     await delegatePage.goto(address+'/workspace/delegation');
     await delegatePage.waitForFunction(id=>[...document.querySelector('#assign select').options].some(x=>x.value===id),delegateId);

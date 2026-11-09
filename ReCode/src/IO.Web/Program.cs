@@ -11,6 +11,7 @@ using IO.Infrastructure.Storage;
 using IO.Infrastructure.Reports;
 using IO.Infrastructure.Leaves;
 using IO.Infrastructure.Delegation;
+using IO.Infrastructure.Settings;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -158,6 +159,8 @@ public static class IoWebHost
         app.MapGet("/assets/team-attendance.js", () => Results.Content(Resource("IO.Web.Ui.team-attendance.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/leave-admin", () => Results.Content(Resource("IO.Web.Ui.LeaveAdmin.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/leave-admin.js", () => Results.Content(Resource("IO.Web.Ui.leave-admin.js"), "text/javascript; charset=utf-8"));
+        app.MapGet("/workspace/settings", () => Results.Content(Resource("IO.Web.Ui.Settings.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/settings.js", () => Results.Content(Resource("IO.Web.Ui.settings.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/delegation", () => Results.Content(Resource("IO.Web.Ui.Delegation.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/delegation.js", () => Results.Content(Resource("IO.Web.Ui.delegation.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/my-leave", () => Results.Content(Resource("IO.Web.Ui.MyLeave.html"), "text/html; charset=utf-8"));
@@ -279,6 +282,12 @@ public static class IoWebHost
             catch (InvalidOperationException) { return Results.Conflict(); }
             catch (ArgumentOutOfRangeException) { return Results.BadRequest(); }
         });
+        app.MapGet("/settings/correction/{companyId:guid}", (Guid companyId,int? offset,HttpContext c,CorrectionSettings service) =>
+            AdminRead(c,actor => service.ReadAsync(actor,companyId,offset ?? 0,c.RequestAborted)));
+        app.MapGet("/settings/correction-own", (HttpContext c,CorrectionSettings service) =>
+            AdminRead(c,actor => service.ReadOwnAsync(actor,c.RequestAborted)));
+        app.MapPost("/settings/correction", (CorrectionSettingsInput input,HttpContext c,IAntiforgery csrf,CorrectionSettings service) =>
+            Admin(c,csrf,actor => service.SetAsync(actor,input.OperationId,input.CompanyId,input.ExpectedRevision,input.MaxRequestAgeDays,input.Reason,c.RequestAborted)));
         app.MapGet("/delegations/candidates", (int? offset,HttpContext c,DelegationRegistry service) =>
             AdminRead(c, actor => service.CandidatesAsync(actor,offset ?? 0,c.RequestAborted)));
         app.MapGet("/delegations/own", (int? offset,HttpContext c,DelegationRegistry service) =>
@@ -571,3 +580,5 @@ public sealed record LeaveEntryInput(Guid OperationId,Guid EmployeeId,Guid Leave
 
 public sealed record DelegationInput(Guid OperationId,Guid DelegateUserId,DateOnly ValidFrom,DateOnly ValidUntilExclusive);
 public sealed record DelegationRevokeInput(string Reason);
+
+public sealed record CorrectionSettingsInput(Guid OperationId,Guid CompanyId,int ExpectedRevision,int MaxRequestAgeDays,string Reason);

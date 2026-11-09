@@ -16,6 +16,8 @@
     <EmbeddedResource Include="Ui/LeaveAdmin.html" />
     <EmbeddedResource Include="Ui/leave-admin.js" />
     <EmbeddedResource Include="Ui/MyLeave.html" />
+    <EmbeddedResource Include="Ui/Settings.html" />
+    <EmbeddedResource Include="Ui/settings.js" />
     <EmbeddedResource Include="Ui/Delegation.html" />
     <EmbeddedResource Include="Ui/delegation.js" />
     <EmbeddedResource Include="Ui/my-leave.js" />
