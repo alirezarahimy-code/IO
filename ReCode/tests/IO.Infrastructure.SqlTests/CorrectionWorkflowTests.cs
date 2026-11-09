@@ -361,6 +361,17 @@ internal static class CorrectionWorkflowTests
               await Reject<ArgumentException>(() => Run(s => s.ListOwnAsync(self, 0, state: 4))) &&
               await Reject<UnauthorizedAccessException>(() => Run(s => s.ListOwnAsync(outsider, 0, fromDate: workDate, toDate: workDate))),
               "own correction filters include both dates, state and actor and reject invalid ranges");
+        var edited = await Run(s => s.EditAsync(self, nextDayRequest, at.AddDays(1).AddMinutes(30), 1, "edited while pending"));
+        var editedView = JsonSerializer.SerializeToElement(await Run(s => s.ListOwnAsync(self, 0, fromDate: workDate.AddDays(1), toDate: workDate.AddDays(1), state: 0)));
+        var editedItem = editedView.GetProperty("items").EnumerateArray().Single(x => x.GetProperty("Id").GetGuid() == nextDayRequest);
+        check(edited && editedItem.GetProperty("Reason").GetString() == "edited while pending" &&
+              editedItem.GetProperty("PunchKind").GetInt32() == 1 && editedItem.GetProperty("State").GetInt32() == 0 &&
+              await Reject<UnauthorizedAccessException>(() => Run(s => s.EditAsync(otherActor, nextDayRequest, at, 0, "not mine"))) &&
+              await Reject<DomainConflictException>(() => Run(s => s.EditAsync(self, cancel, at, 0, "cancelled"))) &&
+              await Reject<ArgumentException>(() => Run(s => s.EditAsync(self, nextDayRequest, at.AddMinutes(30), 0, "local offset"))) &&
+              await Reject<ArgumentException>(() => Run(s => s.EditAsync(self, nextDayRequest, at.AddDays(1), 2, "kind"))) &&
+              await Reject<ArgumentException>(() => Run(s => s.EditAsync(self, nextDayRequest, at.AddDays(1), 0, " "))),
+              "own pending request edits touch only time, kind and reason and reject others and invalid input");
         await Run(s => s.DecideAsync(manager, nextDayRequest, false, "rejected for test"));
         var datedDecisions = JsonSerializer.SerializeToElement(await Run(s => s.ListDecisionsAsync(manager, 0, fromDate: workDate, toDate: workDate)));
         var datedDecisionItems = datedDecisions.GetProperty("items").EnumerateArray().ToArray();

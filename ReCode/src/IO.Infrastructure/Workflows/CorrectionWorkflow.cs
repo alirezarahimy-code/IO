@@ -13,6 +13,7 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
     public const string Submit = "correction.submit.self";
     public const string ReadOwn = "correction.requests.read.self";
     public const string CancelOwn = "correction.cancel.self";
+    public const string EditOwn = "correction.edit.self";
     public const string Decide = "correction.decide";
     public const string Approve = "correction.approve";
     public const string Reject = "correction.reject";
@@ -144,6 +145,29 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
             return (true, requestId);
         }, ct);
 
+    // Editing touches only the proposed time, punch kind and reason; the work date,
+    // policy and the consumed daily/monthly request slots stay untouched.
+    public Task<bool> EditAsync(Guid actor, Guid requestId, DateTimeOffset proposedUtc, int kind, string reason, CancellationToken ct = default) =>
+        transaction.ExecuteEitherAsync(actor, EditOwn, Submit, "correction.request.edited", async token =>
+        {
+            Reason(reason, true);
+            if (requestId == Guid.Empty || proposedUtc.Offset != TimeSpan.Zero || kind is < 0 or > 1) throw new ArgumentException("Invalid proposed punch or request.");
+            await transaction.LockAsync("IO.Correction." + requestId.ToString("N"), token);
+            var request = await db.CorrectionRequests.SingleOrDefaultAsync(x => x.Id == requestId && x.RequesterUserId == actor, token)
+                ?? throw new UnauthorizedAccessException();
+            if (request.State != 0 || await db.CorrectionDecisions.AnyAsync(x => x.RequestId == requestId, token))
+                throw new DomainConflictException("Request has already been decided or cancelled.");
+            var setting = await db.CorrectionSettings.AsNoTracking().Where(x => x.CompanyId == request.CompanyId)
+                .OrderByDescending(x => x.Revision).Select(x => new { x.MaxRequestAgeDays }).FirstOrDefaultAsync(token);
+            int maxAge = setting?.MaxRequestAgeDays ?? 0;
+            if (maxAge > 0 && request.WorkDate < DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-maxAge))
+                throw new ArgumentException("Work date exceeds configured maximum request age.");
+            request.ProposedAtUtc = proposedUtc;
+            request.PunchKind = kind;
+            request.Reason = reason;
+            return (true, requestId);
+        }, ct);
+
     public Task<object> ListPoliciesAsync(Guid actor, int offset, CancellationToken ct = default) =>
         transaction.ExecuteAsync<object>(actor, Submit, "correction.policies.viewed", async token =>
         {
@@ -203,7 +227,9 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
                                .Skip(offset).Take(50).ToListAsync(token);
             var canCancel = await transaction.HasPermissionAsync(actor, CancelOwn, token) ||
                             await transaction.HasPermissionAsync(actor, Submit, token);
-            return (new { offset, pageSize = 50, fromDate, toDate, state, items, canCancel }, actor);
+            var canEdit = await transaction.HasPermissionAsync(actor, EditOwn, token) ||
+                          await transaction.HasPermissionAsync(actor, Submit, token);
+            return (new { offset, pageSize = 50, fromDate, toDate, state, items, canCancel, canEdit }, actor);
         }, ct);
 
     public Task<object> ListDecisionsAsync(Guid actor, int offset, CancellationToken ct = default, DateOnly? fromDate = null, DateOnly? toDate = null) =>

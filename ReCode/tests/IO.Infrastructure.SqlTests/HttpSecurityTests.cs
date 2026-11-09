@@ -424,6 +424,24 @@ internal static class HttpSecurityTests
                   (await scoped.GetAsync("/corrections/inbox?fromDate=not-a-date&toDate=2027-05-05")).StatusCode == HttpStatusCode.BadRequest &&
                   (await own.GetAsync("/corrections/inbox?fromDate=2027-05-05&toDate=2027-05-05")).StatusCode == HttpStatusCode.Forbidden,
                   "HTTP inbox date filter narrows pending work dates and rejects invalid ranges");
+            var editGrant = await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = testSelfRole, Code = "correction.edit.self" });
+            var submitRevokeForEdit = await PostAdmin(adminClient, "/admin/role-permissions/revoke", new { RoleId = testSelfRole, Code = "correction.submit.self" });
+            Guid browserSelfRoleForEdit;
+            await using (var scope = provider.CreateAsyncScope())
+                browserSelfRoleForEdit = (await scope.ServiceProvider.GetRequiredService<IoDbContext>().Roles.SingleAsync(x => x.Name == "browser correction self role")).Id;
+            var browserRevokeForEdit = await PostAdmin(adminClient, "/admin/role-permissions/revoke", new { RoleId = browserSelfRoleForEdit, Code = "correction.submit.self" });
+            using var editOnlyResponse = await PostAdmin(own, $"/corrections/requests/{correctionId}/edit", new { ProposedAt = "2027-05-05T09:30:00Z", PunchKind = 1, Reason = "edited once" });
+            var editRevoke = await PostAdmin(adminClient, "/admin/role-permissions/revoke", new { RoleId = testSelfRole, Code = "correction.edit.self" });
+            var editAfterRevoke = await PostAdmin(own, $"/corrections/requests/{correctionId}/edit", new { ProposedAt = "2027-05-05T10:30:00Z", PunchKind = 0, Reason = "revoked edit" });
+            var submitRestoreForEdit = await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = testSelfRole, Code = "correction.submit.self" });
+            var browserRestoreForEdit = await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = browserSelfRoleForEdit, Code = "correction.submit.self" });
+            var badEdit = await PostAdmin(own, $"/corrections/requests/{correctionId}/edit", new { ProposedAt = "2027-05-05T09:30:00", PunchKind = 1, Reason = "no offset" });
+            check(editGrant.StatusCode == HttpStatusCode.OK && submitRevokeForEdit.StatusCode == HttpStatusCode.OK &&
+                  browserRevokeForEdit.StatusCode == HttpStatusCode.OK && editOnlyResponse.StatusCode == HttpStatusCode.OK &&
+                  editRevoke.StatusCode == HttpStatusCode.OK && editAfterRevoke.StatusCode == HttpStatusCode.Forbidden &&
+                  submitRestoreForEdit.StatusCode == HttpStatusCode.OK && browserRestoreForEdit.StatusCode == HttpStatusCode.OK &&
+                  badEdit.StatusCode == HttpStatusCode.BadRequest,
+                  "HTTP own pending edit is independent, revocable and validated");
             var inboxStatus = (await scoped.GetAsync("/corrections/inbox")).StatusCode;
             var ownDecisionStatus = (await PostAdmin(own, $"/corrections/requests/{correctionId}/decision", new { Approve = true, Reason = (string?)null })).StatusCode;
             var managerDecisionStatus = (await PostAdmin(scoped, $"/corrections/requests/{correctionId}/decision", new { Approve = true, Reason = (string?)null })).StatusCode;
@@ -432,6 +450,8 @@ internal static class HttpSecurityTests
             check(inboxStatus == HttpStatusCode.OK && ownDecisionStatus == HttpStatusCode.Forbidden && managerDecisionStatus == HttpStatusCode.OK &&
                   lateCancelStatus == HttpStatusCode.Conflict && ownHistoryStatus == HttpStatusCode.OK,
                 $"HTTP scoped approval and own history enforce state and identity ({inboxStatus}, {ownDecisionStatus}, {managerDecisionStatus}, {lateCancelStatus}, {ownHistoryStatus})");
+            var editDecided = await PostAdmin(own, $"/corrections/requests/{correctionId}/edit", new { ProposedAt = "2027-05-05T09:30:00Z", PunchKind = 1, Reason = "late edit" });
+            check(editDecided.StatusCode == HttpStatusCode.Conflict, "HTTP editing a decided request conflicts");
             using var datedHistory = await scoped.GetAsync("/corrections/decisions?fromDate=2027-05-08&toDate=2027-05-08");
             using var datedHistoryJson = JsonDocument.Parse(await datedHistory.Content.ReadAsStringAsync());
             using var rejectionDayHistory = await scoped.GetAsync("/corrections/decisions?fromDate=2027-05-09&toDate=2027-05-09");

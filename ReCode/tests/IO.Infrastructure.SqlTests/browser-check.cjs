@@ -1505,6 +1505,18 @@ async function main() {
     await historyRow.waitFor();
     if(!(await managerHistory.locator('#body tr').filter({hasText:managerRequestId}).count())) throw new Error('Decision history reset did not restore rows');
     await managerHistory.close(); await staleManagerInbox.close(); await managerInbox.close();
+    const editPage = await context.newPage();
+    await editPage.goto(address + '/workspace/my-requests');
+    const editRow = editPage.locator('#body tr').filter({hasText:requestId});
+    await editRow.waitFor();
+    await editRow.locator('button[aria-label^="ویرایش درخواست"]').click();
+    const reasonInput = editPage.locator('#edit-form input[name=reason]');
+    if(await reasonInput.inputValue() !== 'Browser missed entry') throw new Error('Edit form was not prefilled from the pending request');
+    await reasonInput.fill('Browser edited entry');
+    await editPage.locator('#edit-form button[type=submit]').click();
+    await editPage.waitForFunction(()=>document.getElementById('notice').textContent.includes('ویرایش شد'));
+    if(!(await editRow.textContent()).includes('Browser edited entry')) throw new Error('Edited request was not refreshed in the list');
+    await editPage.close();
     await clearResult();
     await page.locator('#correction-inbox button').click();
     await waitText(requestId);

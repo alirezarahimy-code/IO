@@ -376,6 +376,8 @@ public static class IoWebHost
             Admin(c, csrf, actor => service.SubmitAsync(actor, input.PolicyId, input.WorkDate, ParseExplicitTime(input.ProposedAt).ToUniversalTime(), input.PunchKind, input.Reason, c.RequestAborted, input.OperationId)));
         app.MapPost("/corrections/requests/{id:guid}/decision", (Guid id, CorrectionDecisionInput input, HttpContext c, IAntiforgery csrf, CorrectionWorkflow service) =>
             Admin(c, csrf, actor => service.DecideAsync(actor, id, input.Approve, input.Reason, c.RequestAborted)));
+        app.MapPost("/corrections/requests/{id:guid}/edit", (Guid id, CorrectionEditInput input, HttpContext c, IAntiforgery csrf, CorrectionWorkflow service) =>
+            Admin(c, csrf, actor => service.EditAsync(actor, id, input.ProposedAt, input.PunchKind, input.Reason, c.RequestAborted)));
         app.MapPost("/corrections/requests/{id:guid}/cancel", (Guid id, CorrectionCancelInput input, HttpContext c, IAntiforgery csrf, CorrectionWorkflow service) =>
             Admin(c, csrf, actor => service.CancelAsync(actor, id, input.Reason, c.RequestAborted)));
         app.MapPost("/periods/drafts/{draftId:guid}/diagnostics", (Guid draftId, HttpContext c, IAntiforgery csrf, PeriodDiagnostics service) =>
@@ -570,6 +572,7 @@ public sealed record CorrectionPolicyInput(Guid CompanyId, Guid ApproverUserId, 
 public sealed record CorrectionRequestInput(Guid PolicyId, DateOnly WorkDate, string ProposedAt, int PunchKind, string Reason, Guid OperationId);
 public sealed record CorrectionDecisionInput(bool Approve, string? Reason);
 public sealed record CorrectionCancelInput(string Reason);
+public sealed record CorrectionEditInput(string ProposedAt, int PunchKind, string Reason);
 
 public sealed record PeriodDraftInput(Guid EmployeeId, DateOnly Start, DateOnly EndExclusive);
 
