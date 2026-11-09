@@ -229,6 +229,11 @@ async function main() {
     await deniedWorkflow.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
     if (await deniedWorkflow.locator('#body tr').count() || await deniedWorkflow.locator('#create-form button').isEnabled()) throw new Error('Workflow catalog exposed without permission');
     await deniedWorkflow.close();
+    const deniedHome = await context.newPage();
+    await deniedHome.goto(address + '/workspace/employee-home');
+    await deniedHome.waitForFunction(() => document.getElementById('requests-message').textContent.includes('مجوز'));
+    if (await deniedHome.locator('#body tr').count()) throw new Error('Employee home exposed requests without permission');
+    await deniedHome.close();
     const selfId = await page.evaluate(async () => (await (await fetch('/auth/me')).json()).id);
     const selfCompany = await page.evaluate(async id => (await (await fetch('/employees/' + encodeURIComponent(id))).json()).companyId, first);
     await clearResult();
@@ -968,6 +973,12 @@ async function main() {
     await newRequestPage.locator('#create-form input[name=reason]').fill('درخواست آزمایشی من');
     await newRequestPage.locator('#create-form button').click();
     await newRequestPage.waitForFunction(() => document.getElementById('notice').textContent.includes('درخواست ثبت شد'));
+    const employeeHome = await context.newPage();
+    await employeeHome.goto(address + '/workspace/employee-home');
+    await employeeHome.locator('#body tr').first().waitFor();
+    const homeApi = await employeeHome.evaluate(async () => ({user:await (await fetch('/auth/me')).json(), requests:await (await fetch('/corrections/own?offset=0')).json()}));
+    if (await employeeHome.locator('#account-id').textContent() !== homeApi.user.id || await employeeHome.locator('#body tr').count() !== Math.min(5,homeApi.requests.items.length) || !(await employeeHome.locator('#body tr').first().textContent()).includes(homeApi.requests.items[0].id)) throw new Error('Employee home did not show the current account and its own recent requests');
+    await employeeHome.close();
     await newRequestPage.locator('#notice').evaluate(el=>{el.textContent='';});
     await newRequestPage.locator('#create-form select[name=policyId]').selectOption(employeePolicy);
     await newRequestPage.locator('#create-form input[name=workDate]').fill('2027-03-03');
