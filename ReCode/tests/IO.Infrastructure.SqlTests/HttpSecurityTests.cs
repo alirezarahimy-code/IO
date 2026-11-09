@@ -152,6 +152,13 @@ internal static class HttpSecurityTests
                 (await adminClient.GetAsync("/admin/catalog/user-scopes")).StatusCode == HttpStatusCode.OK &&
                 (await adminClient.GetAsync("/admin/catalog/org-units")).StatusCode == HttpStatusCode.OK,
                 "HTTP administration catalog validates pages and exposes scope identifiers");
+            var auditResponse = await adminClient.GetAsync("/admin/catalog/audit");
+            check(auditResponse.StatusCode == HttpStatusCode.OK && (await auditResponse.Content.ReadAsStringAsync()).Contains("identity.initial-administrator.created", StringComparison.Ordinal) &&
+                (await scoped.GetAsync("/admin/catalog/audit")).StatusCode == HttpStatusCode.Forbidden,
+                "HTTP audit catalog restricted to identity administrators");
+            await using (var scope = provider.CreateAsyncScope())
+                check(await scope.ServiceProvider.GetRequiredService<LoginIdentityDbContext>().SecurityAudit
+                    .AnyAsync(x => x.Action.StartsWith("identity.audit.viewed:")), "HTTP audit access is itself recorded");
             async Task<HttpResponseMessage> PostAdmin(HttpClient client, string path, object? input = null)
             {
                 var csrf = await Csrf(client);

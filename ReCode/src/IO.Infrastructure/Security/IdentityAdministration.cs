@@ -55,6 +55,8 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
         const int pageSize = 100;
         object page = kind switch
         {
+            "audit" => await identity.SecurityAudit.AsNoTracking().OrderBy(x => x.OccurredAtUtc).ThenBy(x => x.Id)
+                .Skip(offset).Take(pageSize).Select(x => new { x.Id, x.ActorUserId, x.Action, x.OccurredAtUtc }).ToListAsync(ct),
             "org-units" => await foundation.OrgUnits.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(pageSize)
                 .Select(x => new { x.Id, x.CompanyId, x.Name }).ToListAsync(ct),
             "users" => await foundation.Users.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(pageSize)
@@ -71,6 +73,12 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
                 .Select(x => new { x.Id, x.UserId, x.OrgUnitId, x.ValidFrom, x.ValidUntilExclusive }).ToListAsync(ct),
             _ => throw new ArgumentException("Unknown catalog type.")
         };
+        if (kind == "audit")
+        {
+            identity.SecurityAudit.Add(new SecurityAuditRecord { Id = Guid.NewGuid(), ActorUserId = actor,
+                Action = "identity.audit.viewed:" + actor.ToString("N"), OccurredAtUtc = DateTimeOffset.UtcNow });
+            await identity.SaveChangesAsync(ct);
+        }
         await tx.CommitAsync(ct);
         return new { kind, offset, pageSize, items = page };
     }
