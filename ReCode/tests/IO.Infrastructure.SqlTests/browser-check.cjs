@@ -1307,7 +1307,7 @@ async function main() {
     const readOnlyPage=await context.newPage();
     await readOnlyPage.route('**/corrections/own?offset=*', async route => {
       const response=await route.fetch();
-      const body=await response.json(); body.canCancel=false;
+      const body=await response.json(); body.canCancel=false; body.canEdit=false;
       await route.fulfill({response, json:body});
     });
     await readOnlyPage.goto(address+'/workspace/my-requests');
