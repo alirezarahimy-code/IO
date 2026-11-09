@@ -369,6 +369,7 @@ public static class IoWebHost
                 ? Results.Conflict(new { result }) : Results.Ok(new { result });
         }
         catch (UnauthorizedAccessException) { return Results.StatusCode(403); }
+        catch (DomainConflictException) { return Results.Conflict(); }
         catch (ArgumentException) { return Results.BadRequest(); }
     }
 

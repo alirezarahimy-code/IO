@@ -1,6 +1,7 @@
 using System.Data;
 using IO.Infrastructure.Storage;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace IO.Infrastructure.Security;
@@ -11,26 +12,43 @@ public sealed class PermissionTransaction(LoginIdentityDbContext identity, IoDbC
     public async Task<T> ExecuteAsync<T>(Guid actor, string permission, string action,
         Func<CancellationToken, Task<(T Result, Guid Target)>> operation, CancellationToken ct = default)
     {
-        await using var transaction = await identity.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
-        await db.Database.CloseConnectionAsync();
-        db.Database.SetDbConnection(identity.Database.GetDbConnection());
-        await db.Database.UseTransactionAsync(transaction.GetDbTransaction(), ct);
-        var authorized = await (from user in db.Users
-                                join ur in db.UserRoles on user.Id equals ur.UserId
-                                join rp in db.RolePermissions on ur.RoleId equals rp.RoleId
-                                join p in db.Permissions on rp.PermissionId equals p.Id
-                                where user.Id == actor && user.IsActive &&
-                                    EF.Functions.Collate(p.Code, "Latin1_General_100_BIN2") == permission &&
-                                    EF.Functions.DataLength(p.Code) == permission.Length * 2
-                                select user.Id).AnyAsync(ct);
-        if (!authorized) throw new UnauthorizedAccessException();
-        var (result, target) = await operation(ct);
-        identity.SecurityAudit.Add(new SecurityAuditRecord { Id = Guid.NewGuid(), ActorUserId = actor,
-            Action = action + ":" + target.ToString("N"), OccurredAtUtc = DateTimeOffset.UtcNow });
-        await db.SaveChangesAsync(ct);
-        await identity.SaveChangesAsync(ct);
-        await transaction.CommitAsync(ct);
-        return result;
+        try
+        {
+            await using var transaction = await identity.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+            await db.Database.CloseConnectionAsync();
+            db.Database.SetDbConnection(identity.Database.GetDbConnection());
+            await db.Database.UseTransactionAsync(transaction.GetDbTransaction(), ct);
+            var authorized = await (from user in db.Users
+                                    join ur in db.UserRoles on user.Id equals ur.UserId
+                                    join rp in db.RolePermissions on ur.RoleId equals rp.RoleId
+                                    join p in db.Permissions on rp.PermissionId equals p.Id
+                                    where user.Id == actor && user.IsActive &&
+                                        EF.Functions.Collate(p.Code, "Latin1_General_100_BIN2") == permission &&
+                                        EF.Functions.DataLength(p.Code) == permission.Length * 2
+                                    select user.Id).AnyAsync(ct);
+            if (!authorized) throw new UnauthorizedAccessException();
+            var (result, target) = await operation(ct);
+            identity.SecurityAudit.Add(new SecurityAuditRecord { Id = Guid.NewGuid(), ActorUserId = actor,
+                Action = action + ":" + target.ToString("N"), OccurredAtUtc = DateTimeOffset.UtcNow });
+            await db.SaveChangesAsync(ct);
+            await identity.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
+            return result;
+        }
+        catch (Exception error) when (IsRetryableConcurrency(error))
+        {
+            // SQL Server chose this transaction as the deadlock victim or the
+            // application lock was not obtained. The transaction was rolled back;
+            // callers may retry deliberately, never infer that it committed.
+            throw new DomainConflictException("Concurrent operation conflicted; retry the complete request.");
+        }
+    }
+
+    private static bool IsRetryableConcurrency(Exception error)
+    {
+        for (Exception? current = error; current is not null; current = current.InnerException)
+            if (current is SqlException sql && sql.Number is 1205 or 51002) return true;
+        return false;
     }
 
     /// <summary>Serializes cooperating SQL transactions for one logical resource.</summary>

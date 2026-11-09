@@ -343,6 +343,7 @@ try
     await CorrectionWorkflowTests.RunAsync(connection, Check);
     await PeriodDraftTests.RunAsync(connection, Check);
     await RevisionCoverageTests.RunAsync(connection, Check);
+    await TransactionDeadlockTests.RunAsync(connection, Check);
     await using (var identity = new LoginIdentityDbContext(new DbContextOptionsBuilder<LoginIdentityDbContext>()
         .UseSqlServer(connection, sql => sql.MigrationsHistoryTable("__IdentityMigrationsHistory")).Options))
     {
