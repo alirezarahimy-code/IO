@@ -1,3 +1,4 @@
+using IO.Domain.Scheduling;
 using IO.Domain.Attendance;
 using IO.Domain.Organization;
 
@@ -125,6 +126,44 @@ Check("blank external ID and missing internal IDs rejected", () =>
     Throws<ArgumentException>(() => new RawAttendanceEvent(Guid.NewGuid(), Guid.NewGuid(), "  ", null, null, received, null, null, []));
     Throws<ArgumentException>(() => new RawAttendanceEvent(Guid.Empty, Guid.NewGuid(), null, null, null, received, null, null, []));
     Throws<ArgumentException>(() => new RawAttendanceEvent(Guid.NewGuid(), Guid.Empty, null, null, null, received, null, null, []));
+});
+
+Check("Persian dates round-trip around Nowruz", () =>
+{
+    var nowruz = PersianDates.ToGregorian(1403, 1, 1);
+    Assert(nowruz == new DateOnly(2024, 3, 20), "Incorrect Nowruz conversion");
+    Assert(PersianDates.FromGregorian(nowruz) == (1403, 1, 1), "Nowruz did not round trip");
+    Assert(PersianDates.FromGregorian(nowruz.AddDays(-1)) == (1402, 12, 29), "Wrong year boundary");
+});
+Check("Persian leap day and invalid dates", () =>
+{
+    var leapDay = PersianDates.ToGregorian(1399, 12, 30);
+    Assert(PersianDates.FromGregorian(leapDay) == (1399, 12, 30), "Leap day did not round trip");
+    Throws<ArgumentOutOfRangeException>(() => PersianDates.ToGregorian(1402, 12, 30));
+    Throws<ArgumentOutOfRangeException>(() => PersianDates.ToGregorian(1403, 13, 1));
+});
+Check("fixed shift requires explicit positive bounded interval", () =>
+{
+    Throws<ArgumentException>(() => new FixedShift(new TimeOnly(22, 0), new TimeOnly(6, 0), 0));
+    Throws<ArgumentException>(() => new FixedShift(new TimeOnly(8, 0), new TimeOnly(8, 0), 0));
+    Throws<ArgumentException>(() => new FixedShift(new TimeOnly(8, 0), new TimeOnly(9, 0), 1));
+    Throws<ArgumentOutOfRangeException>(() => new FixedShift(new TimeOnly(8, 0), new TimeOnly(9, 0), 2));
+});
+Check("overnight shift retains work date and resolves UTC", () =>
+{
+    var zone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Tehran");
+    var shift = new FixedShift(new TimeOnly(22, 0), new TimeOnly(6, 0), 1);
+    var (start, end) = shift.Resolve(new DateOnly(2026, 1, 1), zone);
+    Assert(start == new DateTimeOffset(2026, 1, 1, 18, 30, 0, TimeSpan.Zero), "Unexpected start UTC");
+    Assert(end == new DateTimeOffset(2026, 1, 2, 2, 30, 0, TimeSpan.Zero), "Unexpected end UTC");
+});
+Check("invalid and ambiguous DST boundaries fail closed", () =>
+{
+    var zone = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
+    var invalid = new FixedShift(new TimeOnly(2, 30), new TimeOnly(4, 0), 0);
+    var ambiguous = new FixedShift(new TimeOnly(1, 30), new TimeOnly(4, 0), 0);
+    Throws<InvalidOperationException>(() => invalid.Resolve(new DateOnly(2026, 3, 8), zone));
+    Throws<InvalidOperationException>(() => ambiguous.Resolve(new DateOnly(2026, 11, 1), zone));
 });
 
 Console.WriteLine($"{count - failures}/{count} checks passed.");
