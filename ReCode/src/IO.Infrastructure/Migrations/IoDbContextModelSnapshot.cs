@@ -180,6 +180,90 @@ namespace IO.Infrastructure.Migrations
                     b.ToTable("Employees", (string)null);
                 });
 
+            modelBuilder.Entity("IO.Infrastructure.Storage.EmployeeSiteAssignmentRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SiteId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly>("ValidFrom")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("ValidUntilExclusive")
+                        .HasColumnType("date");
+
+                    b.Property<byte[]>("Version")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId", "CompanyId");
+
+                    b.HasIndex("EmployeeId", "ValidFrom");
+
+                    b.HasIndex("SiteId", "CompanyId");
+
+                    b.ToTable("EmployeeSiteAssignments", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_EmployeeSiteAssignments_Interval", "[ValidUntilExclusive] IS NULL OR [ValidUntilExclusive] > [ValidFrom]");
+                        });
+                });
+
+            modelBuilder.Entity("IO.Infrastructure.Storage.EmploymentProfileRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateOnly>("ValidFrom")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("ValidUntilExclusive")
+                        .HasColumnType("date");
+
+                    b.Property<byte[]>("Version")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId", "CompanyId");
+
+                    b.HasIndex("EmployeeId", "ValidFrom");
+
+                    b.ToTable("EmploymentProfiles", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_EmploymentProfiles_Interval", "[ValidUntilExclusive] IS NULL OR [ValidUntilExclusive] > [ValidFrom]");
+                        });
+                });
+
             modelBuilder.Entity("IO.Infrastructure.Storage.EventSourceRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -640,6 +724,33 @@ namespace IO.Infrastructure.Migrations
                     b.HasOne("IO.Infrastructure.Storage.CompanyRecord", null)
                         .WithMany()
                         .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("IO.Infrastructure.Storage.EmployeeSiteAssignmentRecord", b =>
+                {
+                    b.HasOne("IO.Infrastructure.Storage.EmployeeRecord", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeeId", "CompanyId")
+                        .HasPrincipalKey("Id", "CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IO.Infrastructure.Storage.SiteRecord", null)
+                        .WithMany()
+                        .HasForeignKey("SiteId", "CompanyId")
+                        .HasPrincipalKey("Id", "CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("IO.Infrastructure.Storage.EmploymentProfileRecord", b =>
+                {
+                    b.HasOne("IO.Infrastructure.Storage.EmployeeRecord", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeeId", "CompanyId")
+                        .HasPrincipalKey("Id", "CompanyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
