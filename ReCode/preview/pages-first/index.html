@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>نقشهٔ صفحات | IO</title>
+  <link rel="stylesheet" href="pages.css">
+  <script src="pages.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#content">رفتن به محتوای صفحه</a>
+  <div class="shell">
+    <aside class="sidebar" aria-label="فهرست صفحات">
+      <div class="brand"><span class="brand-mark">io.</span><div><strong>یکپارچه</strong><small>حضور و کارکرد</small></div></div>
+      <div class="workspace"><span class="workspace-icon">ن</span><div><b>سازمان نمونه</b><small>فضای نمایشی</small></div><span class="chevron">⌄</span></div>
+      <label class="nav-search"><span aria-hidden="true">⌕</span><span class="sr-only">جست‌وجوی صفحه</span><input id="page-search" type="search" placeholder="جست‌وجوی صفحه..."></label>
+      <nav id="navigation" aria-label="صفحات نمونه"></nav>
+      <p id="no-pages" class="no-pages" hidden>صفحه‌ای پیدا نشد.</p>
+      <div class="sidebar-footer"><span class="demo-dot"></span> فقط محیط طراحی</div>
+    </aside>
+    <div class="content-shell">
+      <header class="topbar">
+        <div class="topbar-left"><button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="navigation">☰ <span>فهرست صفحات</span></button><span class="breadcrumb">فضای کاری <span>/</span> <b id="breadcrumb">نمای کلی من</b></span></div>
+        <div class="topbar-user"><span class="avatar">م</span><span><strong>مریم احمدی</strong><small>کاربر نمونه</small></span></div>
+      </header>
+      <main id="content" tabindex="-1">
+        <div class="demo-banner"><span class="banner-icon">!</span><div><strong>پیش‌نمایش طراحی صفحات</strong><span>همهٔ اطلاعات ساختگی‌اند. عملیات ثبت، تغییر و گزارش هنوز به سرویس‌ها متصل نیستند.</span></div><a href="../../docs/pages-first/Plan.fa.md">برنامهٔ اجرا ←</a></div>
+        <div id="page-content" aria-live="polite"><div class="loading">در حال بارگذاری فهرست صفحات…</div></div>
+        <footer>IO · نمونهٔ طراحی صفحه‌ها <span>داده‌ها و نقش‌ها صرفاً نمایشی هستند</span></footer>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
