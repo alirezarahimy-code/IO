@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>چهار پیشنهاد رابط کاربری | IO</title>
+  <link rel="stylesheet" href="showcase.css">
+  <script src="showcase.js" defer></script>
+</head>
+<body>
+<svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+ <symbol id="grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
+ <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+ <symbol id="calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M7 14h2M12 14h2M17 14h1M7 18h2"/></symbol>
+ <symbol id="clipboard" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="17" rx="2"/><path d="M9 4V3h6v1M8 10h8M8 14h8M8 18h5"/></symbol>
+ <symbol id="chart" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+ <symbol id="settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12c0-.5-.1-1-.2-1.5l1.5-1.2-1.5-2.6-1.8.6a7 7 0 0 0-2.5-1.5L14 4h-4l-.5 1.8A7 7 0 0 0 7 7.3l-1.8-.6-1.5 2.6 1.5 1.2a7 7 0 0 0 0 3l-1.5 1.2 1.5 2.6 1.8-.6a7 7 0 0 0 2.5 1.5L10 20h4l.5-1.8a7 7 0 0 0 2.5-1.5l1.8.6 1.5-2.6-1.5-1.2c.1-.5.2-1 .2-1.5Z"/></symbol>
+ <symbol id="search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4 4"/></symbol>
+ <symbol id="bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-2 7-2 9h16c0-2-2-2-2-9M10 20h4"/></symbol>
+ <symbol id="chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+ <symbol id="arrow" viewBox="0 0 24 24"><path d="M19 12H5m0 0 5-5m-5 5 5 5"/></symbol>
+ <symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+ <symbol id="check" viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></symbol>
+ <symbol id="sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M19 5l-1.5 1.5m-11 11L5 19"/></symbol>
+ <symbol id="people" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 19v-1a6 6 0 0 1 12 0v1M17 5a3 3 0 0 1 0 6m1 3a5 5 0 0 1 3 5"/></symbol>
+ <symbol id="logout" viewBox="0 0 24 24"><path d="M10 4H5v16h5M14 8l4 4-4 4m4-4H9"/></symbol>
+</svg>
+<header class="preview-bar">
+  <div class="preview-intro"><span class="preview-spark">✳</span><div><strong>چهار نگاه به یک سامانه</strong><small>پیش‌نمایش مفهومی رابط کاربری</small></div></div>
+  <div class="theme-choices" role="group" aria-label="انتخاب طرح نمایشی">
+    <button type="button" class="choice active" data-choice="ocean" aria-pressed="true"><span class="choice-num">۰۱</span><span><b>مدرن سازمانی</b><small>دریایی روشن</small></span></button>
+    <button type="button" class="choice" data-choice="forest" aria-pressed="false"><span class="choice-num">۰۲</span><span><b>طبیعت آرام</b><small>سبز و افقی</small></span></button>
+    <button type="button" class="choice" data-choice="sand" aria-pressed="false"><span class="choice-num">۰۳</span><span><b>گرم و مینیمال</b><small>شنی و تحریری</small></span></button>
+    <button type="button" class="choice" data-choice="night" aria-pressed="false"><span class="choice-num">۰۴</span><span><b>مرکز فرمان</b><small>تیره و متمرکز</small></span></button>
+  </div>
+  <div class="preview-note"><span class="pulse"></span> فقط نمونهٔ نمایشی</div>
+</header>
+<div class="showcase" data-theme="ocean">
+ <div class="app-shell">
+  <aside class="sidebar" aria-label="منوی نمایشی">
+   <div class="brand"><span class="brand-mark">io.</span><div><strong>یکپارچه</strong><small>مدیریت هوشمند منابع انسانی</small></div></div>
+   <div class="workspace"><span class="workspace-icon">ن</span><span><b>شرکت نمونه</b><small>فضای کاری سازمان</small></span><svg class="icon"><use href="#chevron"/></svg></div>
+   <div class="nav-title">فضای کاری</div>
+   <nav class="nav-list" aria-label="منوی اصلی نمایشی">
+    <button class="nav-item selected" type="button" aria-label="داشبورد"><svg class="icon"><use href="#grid"/></svg><span>داشبورد</span><i></i></button>
+    <button class="nav-item" type="button" aria-label="ترددهای من"><svg class="icon"><use href="#clock"/></svg><span>ترددهای من</span></button>
+    <button class="nav-item" type="button" aria-label="برنامهٔ کاری"><svg class="icon"><use href="#calendar"/></svg><span>برنامهٔ کاری</span></button>
+    <button class="nav-item" type="button" aria-label="درخواست‌ها"><svg class="icon"><use href="#clipboard"/></svg><span>درخواست‌ها</span><em>۲</em></button>
+    <button class="nav-item" type="button" aria-label="گزارش کارکرد"><svg class="icon"><use href="#chart"/></svg><span>گزارش کارکرد</span></button>
+   </nav>
+   <div class="nav-title second-title">سازمان</div>
+   <nav class="nav-list secondary-nav" aria-label="منوی سازمان نمایشی">
+    <button class="nav-item" type="button" aria-label="همکاران"><svg class="icon"><use href="#people"/></svg><span>همکاران</span></button>
+    <button class="nav-item" type="button" aria-label="تنظیمات"><svg class="icon"><use href="#settings"/></svg><span>تنظیمات</span></button>
+   </nav>
+   <div class="sidebar-bottom"><div class="help-card"><div class="help-icon">؟</div><b>کمکی نیاز دارید؟</b><small>راهنمای سامانه همراه شماست.</small><button type="button" class="help-link demo-action">مشاهده راهنما <span>←</span></button></div><button type="button" class="nav-item demo-action" aria-label="خروج از حساب"><svg class="icon"><use href="#logout"/></svg><span>خروج از حساب</span></button></div>
+  </aside>
+  <div class="app-content">
+   <header class="app-topbar"><div class="breadcrumbs"><span>فضای کاری</span><span class="slash">/</span><b>داشبورد</b></div><div class="top-actions"><button type="button" class="icon-btn demo-action" aria-label="جست‌وجو"><svg class="icon"><use href="#search"/></svg></button><button type="button" class="icon-btn notification demo-action" aria-label="اعلان‌ها"><svg class="icon"><use href="#bell"/></svg></button><div class="top-divider"></div><span class="avatar">م</span><div class="user-info"><b>مریم احمدی</b><small>کارشناس منابع انسانی</small></div><svg class="icon chevron-small"><use href="#chevron"/></svg></div></header>
+   <main class="dashboard">
+    <div class="welcome"><div><div class="eyebrow"><span class="tiny-dot"></span> نمای کلی روز شما</div><h1>سلام مریم، روزت بخیر <span class="wave">✳</span></h1><p>همه چیز دربارهٔ زمان، برنامه و درخواست‌های شما در یک نگاه.</p></div><div class="date-pill"><svg class="icon"><use href="#calendar"/></svg><span>سه‌شنبه، ۱۴ اردیبهشت ۱۴۰۵</span></div></div>
+    <div class="overview-heading"><div><h2>نمای کلی کارکرد</h2><p>خلاصهٔ فعالیت شما در این ماه</p></div><button class="period-button demo-action" type="button">اردیبهشت ۱۴۰۵ <span>⌄</span></button></div>
+    <section class="stats" aria-label="آمار نمونه">
+     <article class="stat"><div class="stat-top"><span class="stat-icon blue"><svg class="icon"><use href="#clock"/></svg></span><span class="stat-badge positive">↗ ۸٪</span></div><p>ساعت کارکرد</p><div class="stat-value">۱۴۲ <small>ساعت</small></div><div class="stat-foot"><span class="mini-dot"></span> از ۱۷۶ ساعت موظفی</div></article>
+     <article class="stat"><div class="stat-top"><span class="stat-icon violet"><svg class="icon"><use href="#calendar"/></svg></span><span class="stat-more">···</span></div><p>روزهای حضور</p><div class="stat-value">۱۸ <small>روز</small></div><div class="stat-foot">از ۲۲ روز کاری این ماه</div></article>
+     <article class="stat"><div class="stat-top"><span class="stat-icon amber"><svg class="icon"><use href="#sun"/></svg></span><span class="stat-more">···</span></div><p>ماندهٔ مرخصی</p><div class="stat-value">۱۲٫۵ <small>روز</small></div><div class="stat-foot">قابل استفاده تا پایان سال</div></article>
+     <article class="stat"><div class="stat-top"><span class="stat-icon green"><svg class="icon"><use href="#clipboard"/></svg></span><span class="stat-badge neutral">در جریان</span></div><p>درخواست‌های باز</p><div class="stat-value">۲ <small>درخواست</small></div><div class="stat-foot">در انتظار بررسی مدیر</div></article>
+    </section>
+    <div class="content-grid">
+     <section class="card chart-card"><div class="card-header"><div><h3>کارکرد هفتگی</h3><p>مقایسهٔ ساعت حضور در روزهای هفته</p></div><button type="button" class="subtle-button demo-action">این هفته <span>⌄</span></button></div>
+      <div class="chart-summary"><strong>۴۱:۳۰</strong><span>ساعت در این هفته</span><b>↗ ۱۲٪</b></div>
+      <div class="chart-wrap"><div class="chart-axis"><span>۱۰</span><span>۸</span><span>۶</span><span>۴</span><span>۲</span><span>۰</span></div><div class="chart-body"><div class="gridlines"><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="bars"><div class="bar-group"><span style="--height:68%"></span><small>شنبه</small></div><div class="bar-group"><span style="--height:82%"></span><small>یکشنبه</small></div><div class="bar-group"><span style="--height:76%"></span><small>دوشنبه</small></div><div class="bar-group current"><span style="--height:92%"></span><small>سه‌شنبه</small></div><div class="bar-group"><span style="--height:73%"></span><small>چهارشنبه</small></div><div class="bar-group"><span style="--height:22%"></span><small>پنجشنبه</small></div><div class="bar-group muted"><span style="--height:4%"></span><small>جمعه</small></div></div></div></div>
+     </section>
+     <section class="card today-card"><div class="card-header"><div><h3>برنامهٔ امروز</h3><p>سه‌شنبه، ۱۴ اردیبهشت</p></div><span class="today-icon"><svg class="icon"><use href="#sun"/></svg></span></div><div class="shift-label"><span class="status-dot"></span> شیفت روزانه <span class="shift-tag">حضوری</span></div><div class="shift-time"><strong>۰۸:۰۰</strong><span class="time-line"></span><strong>۱۷:۰۰</strong></div><div class="time-captions"><span>شروع شیفت</span><span>پایان شیفت</span></div><div class="today-divider"></div><div class="today-entry"><span class="entry-icon"><svg class="icon"><use href="#check"/></svg></span><span><b>اولین ورود ثبت شد</b><small>امروز، ساعت ۰۷:۵۳</small></span><span class="entry-ok">به‌موقع</span></div><button class="text-link demo-action" type="button">مشاهدهٔ برنامهٔ کاری <span>←</span></button></section>
+     <section class="card table-card"><div class="card-header"><div><h3>آخرین ترددها</h3><p>جزئیات ثبت ورود و خروج شما</p></div><button type="button" class="text-link demo-action">مشاهده همه <span>←</span></button></div><div class="table-wrap"><table><thead><tr><th>تاریخ</th><th>ورود</th><th>خروج</th><th>کارکرد</th><th>وضعیت</th></tr></thead><tbody><tr><td><b>سه‌شنبه، ۱۴ اردیبهشت</b><small>امروز</small></td><td>۰۷:۵۳</td><td>—</td><td>در حال کار</td><td><span class="pill active-pill">● در جریان</span></td></tr><tr><td><b>دوشنبه، ۱۳ اردیبهشت</b><small>دیروز</small></td><td>۰۸:۰۲</td><td>۱۷:۰۸</td><td>۰۹:۰۶</td><td><span class="pill success-pill">● تکمیل شده</span></td></tr><tr><td><b>یکشنبه، ۱۲ اردیبهشت</b><small>۲ روز پیش</small></td><td>۰۸:۱۰</td><td>۱۶:۵۶</td><td>۰۸:۴۶</td><td><span class="pill success-pill">● تکمیل شده</span></td></tr></tbody></table></div></section>
+     <section class="card request-card"><div class="card-header"><div><h3>درخواست‌های من</h3><p>پیگیری آخرین درخواست‌ها</p></div><button type="button" class="new-request demo-action"><svg class="icon"><use href="#plus"/></svg> جدید</button></div><div class="request-row"><div class="request-icon amber"><svg class="icon"><use href="#sun"/></svg></div><div class="request-text"><b>مرخصی روزانه</b><small>۱۹ اردیبهشت ۱۴۰۵ · ۱ روز</small></div><span class="pill pending-pill">در انتظار</span></div><div class="request-row"><div class="request-icon blue"><svg class="icon"><use href="#clock"/></svg></div><div class="request-text"><b>اصلاح تردد</b><small>۱۰ اردیبهشت ۱۴۰۵</small></div><span class="pill success-pill">تأیید شده</span></div><button class="text-link request-more demo-action" type="button">همهٔ درخواست‌ها <span>←</span></button></section>
+    </div>
+    <footer class="app-footer"><span>طراحی نمونه · تمامی اطلاعات ساختگی هستند</span><span>سامانهٔ یکپارچه IO</span></footer>
+   </main>
+  </div>
+ </div>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
