@@ -184,6 +184,31 @@ namespace IO.Infrastructure.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
+            modelBuilder.Entity("IO.Infrastructure.Storage.CorrectionDelegationGrantRecord", b =>
+                {
+                    b.Property<Guid>("DelegationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("GrantedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("PrincipalUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("DelegationId");
+
+                    b.HasIndex("PrincipalUserId");
+
+                    b.ToTable("CorrectionDelegationGrants", null, t =>
+                        {
+                            t.HasTrigger("TR_CorrectionDelegationGrants_Immutable");
+
+                            t.HasCheckConstraint("CK_CorrectionDelegationGrants_Utc", "DATEPART(TZOFFSET, [GrantedAtUtc]) = 0");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
             modelBuilder.Entity("IO.Infrastructure.Storage.CorrectionPolicyRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -434,6 +459,26 @@ namespace IO.Infrastructure.Migrations
                             t.HasCheckConstraint("CK_CalculationRuns_Utc", "DATEPART(TZOFFSET, [WindowStartUtc]) = 0 AND DATEPART(TZOFFSET, [WindowEndUtc]) = 0 AND DATEPART(TZOFFSET, [CreatedAtUtc]) = 0");
 
                             t.HasCheckConstraint("CK_CalculationRuns_Window", "[WindowEndUtc] > [WindowStartUtc]");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
+            modelBuilder.Entity("IO.Infrastructure.Storage.DelegatedCorrectionDecisionRecord", b =>
+                {
+                    b.Property<Guid>("DecisionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("DelegationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("DecisionId");
+
+                    b.HasIndex("DelegationId");
+
+                    b.ToTable("DelegatedCorrectionDecisions", null, t =>
+                        {
+                            t.HasTrigger("TR_DelegatedCorrectionDecisions_Immutable");
                         });
 
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
@@ -1615,6 +1660,21 @@ namespace IO.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("IO.Infrastructure.Storage.CorrectionDelegationGrantRecord", b =>
+                {
+                    b.HasOne("IO.Infrastructure.Storage.DelegationRecord", null)
+                        .WithMany()
+                        .HasForeignKey("DelegationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IO.Infrastructure.Storage.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("PrincipalUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("IO.Infrastructure.Storage.CorrectionPolicyRecord", b =>
                 {
                     b.HasOne("IO.Infrastructure.Storage.UserRecord", null)
@@ -1711,6 +1771,21 @@ namespace IO.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("RuleVersionId", "CompanyId")
                         .HasPrincipalKey("Id", "CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("IO.Infrastructure.Storage.DelegatedCorrectionDecisionRecord", b =>
+                {
+                    b.HasOne("IO.Infrastructure.Storage.CorrectionDecisionRecord", null)
+                        .WithMany()
+                        .HasForeignKey("DecisionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IO.Infrastructure.Storage.CorrectionDelegationGrantRecord", null)
+                        .WithMany()
+                        .HasForeignKey("DelegationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });

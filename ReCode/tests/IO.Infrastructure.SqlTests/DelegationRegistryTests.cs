@@ -74,6 +74,26 @@ internal static class DelegationRegistryTests
         check(await Use(s=>s.RevokeAsync(principal,id,"reason")) && await Use(s=>s.RevokeAsync(principal,id,"reason")) &&
               await Reject<DomainConflictException>(()=>Use(s=>s.RevokeAsync(principal,id,"different"))),
               "delegation revocation is auditable and retry-safe without changing the assignment");
+        // Exercise only the structural evidence tables. This is not an operational grant or decision API.
+        await using(var scope=provider.CreateAsyncScope())
+        {
+            var db=scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var decisionId=Guid.NewGuid();
+            db.CorrectionDelegationGrants.Add(new CorrectionDelegationGrantRecord { DelegationId=id, PrincipalUserId=principal, GrantedAtUtc=DateTimeOffset.UtcNow });
+            db.CorrectionDecisions.Add(new CorrectionDecisionRecord { Id=decisionId, RequestId=requestId, ActorUserId=candidate, Decision=1, AtUtc=DateTimeOffset.UtcNow });
+            await db.SaveChangesAsync();
+            bool grantUpdate=false,grantDelete=false,evidenceUpdate=false,evidenceDelete=false,badGrant=false,badEvidence=false;
+            try { await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.CorrectionDelegationGrants SET PrincipalUserId=PrincipalUserId WHERE DelegationId={id}"); } catch(SqlException e) when(e.Number==51032) { grantUpdate=true; }
+            try { await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM dbo.CorrectionDelegationGrants WHERE DelegationId={id}"); } catch(SqlException e) when(e.Number==51032) { grantDelete=true; }
+            db.DelegatedCorrectionDecisions.Add(new DelegatedCorrectionDecisionRecord { DecisionId=decisionId, DelegationId=id });
+            await db.SaveChangesAsync();
+            try { await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.DelegatedCorrectionDecisions SET DelegationId=DelegationId WHERE DecisionId={decisionId}"); } catch(SqlException e) when(e.Number==51033) { evidenceUpdate=true; }
+            try { await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM dbo.DelegatedCorrectionDecisions WHERE DecisionId={decisionId}"); } catch(SqlException e) when(e.Number==51033) { evidenceDelete=true; }
+            try { await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO dbo.CorrectionDelegationGrants (DelegationId,PrincipalUserId,GrantedAtUtc) VALUES ({Guid.NewGuid()},{principal},{DateTimeOffset.UtcNow})"); } catch(SqlException e) when(e.Number==547) { badGrant=true; }
+            try { await db.Database.ExecuteSqlInterpolatedAsync($"INSERT INTO dbo.DelegatedCorrectionDecisions (DecisionId,DelegationId) VALUES ({Guid.NewGuid()},{id})"); } catch(SqlException e) when(e.Number==547) { badEvidence=true; }
+            check(grantUpdate && grantDelete && evidenceUpdate && evidenceDelete && badGrant && badEvidence,
+                "delegated correction evidence inserts, foreign keys and immutable triggers enforced");
+        }
         var pair=await Task.WhenAll(Enumerable.Range(0,2).Select(async _=>
         {
             try{await Use(s=>s.AssignAsync(principal,Guid.NewGuid(),candidate,today,end));return true;}
