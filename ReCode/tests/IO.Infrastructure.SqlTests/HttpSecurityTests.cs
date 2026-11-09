@@ -289,6 +289,27 @@ internal static class HttpSecurityTests
                   (await PostAdmin(own, "/corrections/requests", new { correctionInput.OperationId, correctionInput.PolicyId, correctionInput.WorkDate, correctionInput.ProposedAt, correctionInput.PunchKind, Reason = "changed" })).StatusCode == HttpStatusCode.Conflict &&
                   (await PostAdmin(own, "/corrections/requests", new { correctionInput.PolicyId, correctionInput.WorkDate, correctionInput.ProposedAt, correctionInput.PunchKind, correctionInput.Reason })).StatusCode == HttpStatusCode.BadRequest,
                   "HTTP correction requires operation id and rejects changed idempotent replay");
+            var readGrant = await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = testSelfRole, Code = "correction.requests.read.self" });
+            var submitRevoke = await PostAdmin(adminClient, "/admin/role-permissions/revoke", new { RoleId = testSelfRole, Code = "correction.submit.self" });
+            // The browser fixture also grants submit through a separate role; revoke it
+            // temporarily to exercise union semantics without changing the login session.
+            Guid browserSelfRole;
+            await using (var scope = provider.CreateAsyncScope())
+                browserSelfRole = (await scope.ServiceProvider.GetRequiredService<IoDbContext>().Roles.SingleAsync(x => x.Name == "browser correction self role")).Id;
+            var browserRevoke = await PostAdmin(adminClient, "/admin/role-permissions/revoke", new { RoleId = browserSelfRole, Code = "correction.submit.self" });
+            using var readOnlyResponse = await own.GetAsync("/corrections/own?employeeId=" + second);
+            var readOnlyJson = await readOnlyResponse.Content.ReadAsStringAsync();
+            var readOnlySubmit = await PostAdmin(own, "/corrections/requests", correctionInput);
+            var readOnlyCancel = await PostAdmin(own, $"/corrections/requests/{correctionId}/cancel", new { Reason = "denied" });
+            var readOnlyPolicies = await own.GetAsync("/corrections/policies");
+            var restore = await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = testSelfRole, Code = "correction.submit.self" });
+            var browserRestore = await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = browserSelfRole, Code = "correction.submit.self" });
+            check(readGrant.StatusCode == HttpStatusCode.OK && submitRevoke.StatusCode == HttpStatusCode.OK && browserRevoke.StatusCode == HttpStatusCode.OK &&
+                  readOnlyResponse.StatusCode == HttpStatusCode.OK && readOnlyJson.Contains(correctionId.ToString(), StringComparison.OrdinalIgnoreCase) &&
+                  readOnlyJson.Contains("\"canCancel\":false", StringComparison.Ordinal) && readOnlySubmit.StatusCode == HttpStatusCode.Forbidden &&
+                  readOnlyCancel.StatusCode == HttpStatusCode.Forbidden && readOnlyPolicies.StatusCode == HttpStatusCode.Forbidden &&
+                  restore.StatusCode == HttpStatusCode.OK && browserRestore.StatusCode == HttpStatusCode.OK,
+                  "HTTP own correction read-only grant cannot submit, cancel or list policies");
             var inboxStatus = (await scoped.GetAsync("/corrections/inbox")).StatusCode;
             var ownDecisionStatus = (await PostAdmin(own, $"/corrections/requests/{correctionId}/decision", new { Approve = true, Reason = (string?)null })).StatusCode;
             var managerDecisionStatus = (await PostAdmin(scoped, $"/corrections/requests/{correctionId}/decision", new { Approve = true, Reason = (string?)null })).StatusCode;

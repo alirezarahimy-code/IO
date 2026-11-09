@@ -2,7 +2,7 @@
 (() => {
   const $=id=>document.getElementById(id),forms=[$('role-form'),$('permission-form'),$('scope-form'),$('revoke-form')];
   const specs={roles:{title:'نقش‌ها',columns:[['name','نام نقش'],['id','شناسهٔ نقش']]},permissions:{title:'مجوزها',columns:[['code','کد مجوز'],['id','شناسهٔ مجوز']]},'role-permissions':{title:'مجوزهای نقش‌ها',columns:[['roleId','شناسهٔ نقش'],['permissionId','شناسهٔ مجوز']]},'user-roles':{title:'نقش‌های حساب‌ها',columns:[['userId','شناسهٔ حساب'],['roleId','شناسهٔ نقش']]},'user-scopes':{title:'محدوده‌های واحد حساب‌ها',columns:[['userId','شناسهٔ حساب'],['orgUnitId','شناسهٔ واحد'],['validFrom','شروع میلادی'],['validUntilExclusive','پایان انحصاری'],['id','شناسهٔ محدوده']]}};
-  const codes=['employees.read.self','employees.read.scoped','employees.read.all','identity.manage','leave.manage','leave.read.self','delegation.manage.self','delegation.receive','settings.correction.manage','executive.dashboard.read','organization.manage','attendance.ingest','attendance.read.self','attendance.read.team','attendance.read.scoped','attendance.read.all','attendance.results.read.self','attendance.calculate','correction.configure','correction.submit.self','correction.decide','correction.decide.scoped','correction.decide.all','period.preflight','period.draft.manage','period.diagnostic.manage','schedule.manage','schedule.read.self','schedule.read.scoped','schedule.read.all'];for(const code of codes)$('permission-form').elements.code.add(new Option(code,code));
+  const codes=['employees.read.self','employees.read.scoped','employees.read.all','identity.manage','leave.manage','leave.read.self','delegation.manage.self','delegation.receive','settings.correction.manage','executive.dashboard.read','organization.manage','attendance.ingest','attendance.read.self','attendance.read.team','attendance.read.scoped','attendance.read.all','attendance.results.read.self','attendance.calculate','correction.configure','correction.submit.self','correction.requests.read.self','correction.decide','correction.decide.scoped','correction.decide.all','period.preflight','period.draft.manage','period.diagnostic.manage','schedule.manage','schedule.read.self','schedule.read.scoped','schedule.read.all'];for(const code of codes)$('permission-form').elements.code.add(new Option(code,code));
   // These are descriptions of the existing coarse server permissions, not new grants.
   const broadWarnings={
     'identity.manage':'این مجوز گسترده است: مدیریت حساب، نقش، مجوز، محدوده و مشاهدهٔ حسابرسی را شامل می‌شود؛ تفکیک این عملیات هنوز وجود ندارد.',
@@ -14,6 +14,8 @@
     'settings.correction.manage':'این مجوز سراسری است و مشاهده و تغییر تنظیم محدود درخواست تردد فراموش‌شده را شامل می‌شود.',
     'period.preflight':'این مجوز سراسری است و گزارش تشخیصی دوره را در اختیار می‌گذارد، نه تأیید نهایی دوره.',
     'executive.dashboard.read':'این مجوز سراسری است و آمار محدود شرکت انتخاب‌شده را نمایش می‌دهد.',
+    'correction.submit.self':'این مجوز فعلی همچنان ثبت، مشاهده و لغو درخواست شخصی را با هم می‌دهد؛ برای فقط مشاهده از correction.requests.read.self استفاده کنید.',
+    'correction.requests.read.self':'فقط مشاهدهٔ درخواست‌های تردد فراموش‌شدهٔ خود حساب؛ ثبت یا لغو اجازه نمی‌دهد.',
     'correction.decide':'برای تصمیم، مجوز محدودهٔ تصمیم نیز لازم است؛ این مجوز خودبه‌خود اختیار همهٔ کارکنان را نمی‌دهد.',
     'attendance.read.team':'برای مشاهدهٔ تردد تیم، مجوز محدودهٔ تردد نیز لازم است.',
     'correction.decide.scoped':'فقط همراه مجوز تصمیم و محدودهٔ معتبر واحد کاربرد دارد؛ به‌تنهایی مجوز تصمیم نیست.',

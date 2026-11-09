@@ -81,6 +81,61 @@ internal static class CorrectionWorkflowTests
               await Reject<ArgumentException>(() => Run(s => s.SubmitAsync(self, policy, workDate, at.ToOffset(TimeSpan.FromHours(1)), 0, "test"))) &&
               await Reject<UnauthorizedAccessException>(() => Run(s => s.SubmitAsync(outsider, policy, workDate, at, 0, "test"))), "self approval, non-UTC and unauthorized correction submissions are rejected");
         var outside = await Run(s => s.SubmitAsync(otherActor, policy, workDate, at, 0, "outside unit"));
+        // A separate role exercises the split without changing the other actor's identity.
+        Guid testReadRole, readPermission, submitPermission, legacySelfRole;
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            legacySelfRole = (await db.Roles.SingleAsync(x => x.Name == "web self role")).Id;
+            submitPermission = (await db.Permissions.SingleAsync(x => x.Code == CorrectionWorkflow.Submit)).Id;
+            var read = await db.Permissions.SingleOrDefaultAsync(x => x.Code == CorrectionWorkflow.ReadOwn);
+            if (read is null) { read = new() { Id = Guid.NewGuid(), Code = CorrectionWorkflow.ReadOwn }; db.Permissions.Add(read); }
+            readPermission = read.Id; testReadRole = Guid.NewGuid();
+            db.Roles.Add(new() { Id = testReadRole, Name = "synthetic read-only correction role" });
+            db.UserRoles.Add(new() { UserId = otherActor, RoleId = testReadRole });
+            db.RolePermissions.Add(new() { RoleId = testReadRole, PermissionId = readPermission });
+            db.RolePermissions.Remove(await db.RolePermissions.SingleAsync(x => x.RoleId == legacySelfRole && x.PermissionId == submitPermission));
+            await db.SaveChangesAsync();
+        }
+        var readOnlyHistory = JsonSerializer.Serialize(await Run(s => s.ListOwnAsync(otherActor, 0)));
+        var readOnlyDenied = await Reject<UnauthorizedAccessException>(() => Run(s => s.SubmitAsync(otherActor, policy, workDate, at, 0, "denied"))) &&
+            await Reject<UnauthorizedAccessException>(() => Run(s => s.CancelAsync(otherActor, outside, "denied"))) &&
+            await Reject<UnauthorizedAccessException>(() => Run(s => s.ListPoliciesAsync(otherActor, 0)));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            (await db.Users.SingleAsync(x => x.Id == otherActor)).IsActive = false;
+            await db.SaveChangesAsync();
+        }
+        var inactiveDenied = await Reject<UnauthorizedAccessException>(() => Run(s => s.ListOwnAsync(otherActor, 0)));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            (await db.Users.SingleAsync(x => x.Id == otherActor)).IsActive = true;
+            (await db.Permissions.SingleAsync(x => x.Id == readPermission)).Code = CorrectionWorkflow.ReadOwn.ToUpperInvariant();
+            await db.SaveChangesAsync();
+        }
+        var caseDenied = await Reject<UnauthorizedAccessException>(() => Run(s => s.ListOwnAsync(otherActor, 0)));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            (await db.Permissions.SingleAsync(x => x.Id == readPermission)).Code = CorrectionWorkflow.ReadOwn + " ";
+            await db.SaveChangesAsync();
+        }
+        var paddingDenied = await Reject<UnauthorizedAccessException>(() => Run(s => s.ListOwnAsync(otherActor, 0)));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            (await db.Permissions.SingleAsync(x => x.Id == readPermission)).Code = CorrectionWorkflow.ReadOwn;
+            db.RolePermissions.Add(new() { RoleId = legacySelfRole, PermissionId = submitPermission });
+            await db.SaveChangesAsync();
+        }
+        var legacyHistory = JsonSerializer.Serialize(await Run(s => s.ListOwnAsync(self, 0)));
+        check(readOnlyHistory.Contains(outside.ToString(), StringComparison.OrdinalIgnoreCase) &&
+              !readOnlyHistory.Contains(identical.ToString(), StringComparison.OrdinalIgnoreCase) &&
+              readOnlyHistory.Contains("\"canCancel\":false", StringComparison.OrdinalIgnoreCase) && readOnlyDenied && inactiveDenied && caseDenied && paddingDenied &&
+              legacyHistory.Contains(identical.ToString(), StringComparison.OrdinalIgnoreCase) && legacyHistory.Contains("\"canCancel\":true", StringComparison.OrdinalIgnoreCase),
+              "own correction read-only permission is exact, active, isolated and preserves legacy submit access");
         var scopedInbox = JsonSerializer.Serialize(await Run(s => s.InboxAsync(manager, 0)));
         check(!scopedInbox.Contains(outside.ToString(), StringComparison.OrdinalIgnoreCase) &&
               await Reject<UnauthorizedAccessException>(() => Run(s => s.DecideAsync(manager, outside, true, null))) &&

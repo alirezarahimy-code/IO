@@ -11,6 +11,7 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
 {
     public const string Configure = "correction.configure";
     public const string Submit = "correction.submit.self";
+    public const string ReadOwn = "correction.requests.read.self";
     public const string Decide = "correction.decide";
     public const string DecideScoped = "correction.decide.scoped";
     public const string DecideAll = "correction.decide.all";
@@ -153,7 +154,7 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
         }, ct);
 
     public Task<object> ListOwnAsync(Guid actor, int offset, CancellationToken ct = default) =>
-        transaction.ExecuteAsync<object>(actor, Submit, "correction.own.viewed", async token =>
+        transaction.ExecuteEitherAsync<object>(actor, ReadOwn, Submit, "correction.own.viewed", async token =>
         {
             if (offset is < 0 or > 100000) throw new ArgumentException("Invalid page.");
             var items = await (from request in db.CorrectionRequests.AsNoTracking()
@@ -169,7 +170,8 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
                                    DecisionReason = decision == null ? null : decision.Reason,
                                    DecisionAtUtc = decision == null ? (DateTimeOffset?)null : decision.AtUtc })
                                .Skip(offset).Take(50).ToListAsync(token);
-            return (new { offset, pageSize = 50, items }, actor);
+            var canCancel = await transaction.HasPermissionAsync(actor, Submit, token);
+            return (new { offset, pageSize = 50, items, canCancel }, actor);
         }, ct);
 
     public Task<object> ListDecisionsAsync(Guid actor, int offset, CancellationToken ct = default) =>
