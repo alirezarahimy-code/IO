@@ -114,6 +114,40 @@ internal static class SchedulingServiceTests
                   await reader.FindAsync(self, Guid.NewGuid(), date, authorizationDate) is null,
                 "schedule read denies absent scope, actor and different employee");
         }
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var selfScheduleRole = await db.Roles.SingleAsync(x => x.Name == "schedule self test");
+            db.UserRoles.Remove(await db.UserRoles.SingleAsync(x => x.UserId == self && x.RoleId == selfScheduleRole.Id));
+            await db.SaveChangesAsync();
+            check(await scope.ServiceProvider.GetRequiredService<ScheduleReader>().FindAsync(self, employee, date, new DateOnly(2026, 4, 1)) is null,
+                "schedule permission revocation applies even when employee-read permission remains");
+        }
+        var raceCalendar = await Execute(s => s.CreateCalendarAsync(admin, company, "Calendar race test"));
+        Guid raceEmployee;
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            raceEmployee = Guid.NewGuid();
+            db.Employees.Add(new() { Id = raceEmployee, CompanyId = company, PersonnelNumber = "RACE-SYN", DisplayName = "Synthetic race" });
+            await db.SaveChangesAsync();
+        }
+        async Task<bool> TryAddRaceDay()
+        {
+            try { await Execute(s => s.AddCalendarDayAsync(admin, raceCalendar, date, 0, null)); return true; }
+            catch (DomainConflictException) { return false; }
+        }
+        var addRace = TryAddRaceDay();
+        var assignRace = Execute(s => s.AssignAsync(admin, raceEmployee, raceCalendar, shift, date, null));
+        await Task.WhenAll(addRace, assignRace);
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            check(await db.WorkScheduleAssignments.CountAsync(x => x.EmployeeId == raceEmployee) == 1 &&
+                  (await db.CalendarDays.AnyAsync(x => x.CalendarId == raceCalendar && x.Date == date)) == addRace.Result &&
+                  await Reject<DomainConflictException>(() => Execute(s => s.AddCalendarDayAsync(admin, raceCalendar, date.AddDays(1), 0, null))),
+                "calendar edits and first assignment serialize without modifying assigned version");
+        }
         var calendarVersion = await Execute(s => s.ForkCalendarAsync(admin, calendar, "Synthetic next calendar version"));
         await Execute(s => s.ReviseCalendarDayAsync(admin, calendarVersion, date, 0, "Changed only on new version"));
         await using (var scope = provider.CreateAsyncScope())
