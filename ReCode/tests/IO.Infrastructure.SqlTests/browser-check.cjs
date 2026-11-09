@@ -1461,10 +1461,10 @@ async function main() {
     await managerInbox.waitForFunction(()=>document.getElementById('notice').textContent.includes('فیلتر اعمال شد'));
     const ascendingDates=await managerInbox.locator('#body tr td:nth-child(2)').allTextContents();
     if(ascendingDates.join('|')!==[...ascendingDates].sort().join('|')) throw new Error('Inbox ascending work-date sort failed');
-    await managerInbox.locator('#inbox-filter input[name=fromDate]').fill('۱۴۰۵/۱۲/۱۱');
+    await managerInbox.locator('#inbox-filter input[name=fromDate]').fill('۱۴۰۵/۱۲/۱۲');
     await managerInbox.locator('#inbox-filter button[type=submit]').click();
     await managerInbox.waitForFunction(()=>document.getElementById('notice').textContent.includes('هر دو روز شمسی'));
-    await managerInbox.locator('#inbox-filter input[name=toDate]').fill('۱۴۰۵/۱۲/۱۱');
+    await managerInbox.locator('#inbox-filter input[name=toDate]').fill('۱۴۰۵/۱۲/۱۲');
     await managerInbox.locator('#inbox-filter button[type=submit]').click();
     await managerInbox.waitForFunction(()=>document.getElementById('notice').textContent.includes('فیلتر اعمال شد'));
     const datedRows=await managerInbox.locator('#body tr td:nth-child(2)').allTextContents();
