@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using IO.Infrastructure.Security;
@@ -345,6 +346,37 @@ try
         Check(await HasTable("AspNetUsers") && await HasTable("SecurityAudit") &&
             (await identity.Database.GetAppliedMigrationsAsync()).Count() == 1,
             "identity migration reapplies and restores history");
+    }
+    // A separate fresh disposable DB is used to exercise the actual interactive
+    // bootstrap executable through a pseudo-terminal; no production connection.
+    var cliBuilder = new SqlConnectionStringBuilder(connection) { InitialCatalog = "IO_Phase04_Cli_" + Guid.NewGuid().ToString("N") };
+    var cliConnection = cliBuilder.ConnectionString;
+    var cliOptions = new DbContextOptionsBuilder<IoDbContext>().UseSqlServer(cliConnection).Options;
+    await using (var cliFoundation = new IoDbContext(cliOptions))
+    {
+        try
+        {
+            await cliFoundation.Database.MigrateAsync();
+            await using var cliIdentity = new LoginIdentityDbContext(new DbContextOptionsBuilder<LoginIdentityDbContext>()
+                .UseSqlServer(cliConnection, sql => sql.MigrationsHistoryTable("__IdentityMigrationsHistory")).Options);
+            await cliIdentity.Database.MigrateAsync();
+            var processInfo = new ProcessStartInfo("python3") { RedirectStandardOutput = true, RedirectStandardError = true, UseShellExecute = false };
+            processInfo.Environment.Remove("MSSQL_SA_PASSWORD");
+            processInfo.Environment["ConnectionStrings__IO"] = cliConnection;
+            processInfo.ArgumentList.Add("tests/IO.Infrastructure.SqlTests/bootstrap-terminal-check.py");
+            using var process = Process.Start(processInfo) ?? throw new InvalidOperationException("Cannot start terminal bootstrap test.");
+            var stdout = process.StandardOutput.ReadToEndAsync();
+            var stderr = process.StandardError.ReadToEndAsync();
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+            try { await process.WaitForExitAsync(timeout.Token); }
+            catch (OperationCanceledException) { process.Kill(entireProcessTree: true); throw; }
+            var output = await stdout; var error = await stderr;
+            if (process.ExitCode != 0) throw new InvalidOperationException("Terminal bootstrap test failed: " + error);
+            Check(output.Contains("PASS terminal bootstrap", StringComparison.Ordinal) && await cliIdentity.Users.CountAsync() == 1 &&
+                await cliFoundation.Users.CountAsync() == 1 && await cliIdentity.SecurityAudit.CountAsync() == 1,
+                "interactive bootstrap hides password, creates one linked account, rejects redirect and repeat");
+        }
+        finally { await cliFoundation.Database.EnsureDeletedAsync(); }
     }
     Console.WriteLine("PASS disposable SQL Server integration checks");
     return 0;
