@@ -745,6 +745,7 @@ async function main() {
     await page.locator('#schedule-assignment input[name=calendarId]').fill(selfCalendar);
     await page.locator('#schedule-assignment input[name=shiftId]').fill(selfShift);
     await page.locator('#schedule-assignment input[name=validFrom]').fill('2027-03-01');
+    await page.locator('#schedule-assignment input[name=validUntilExclusive]').fill('2027-03-02');
     await submit('schedule-assignment');
     await clearResult();
     await page.locator('#logout').click();
