@@ -150,6 +150,17 @@ async function main() {
     if ((await deniedPreflight).status() !== 403 || await deniedPeriods.locator('#preflight-result').isVisible())
       throw new Error('Period preflight exposed data without its permission');
     await deniedPeriods.close();
+    const deniedOwnRequests = await context.newPage();
+    await deniedOwnRequests.goto(address + '/workspace/my-requests');
+    await deniedOwnRequests.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
+    if (await deniedOwnRequests.locator('#body tr').count() !== 0 || await deniedOwnRequests.locator('#cancel-section').isVisible())
+      throw new Error('Own requests exposed data without permission');
+    await deniedOwnRequests.goto(address + '/workspace/new-request');
+    await deniedOwnRequests.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
+    if (await deniedOwnRequests.locator('#create-form button').isEnabled() || await deniedOwnRequests.locator('#create-form select[name=policyId] option').count() !== 1)
+      throw new Error('New request exposed data without permission');
+    await deniedOwnRequests.close();
+
 
     const deniedHistory = await context.newPage();
     await deniedHistory.goto(address + '/workspace/employee-history');
@@ -696,6 +707,37 @@ async function main() {
     await page.locator('#logout').click();
     await waitText('عملیات انجام شد.');
     await login('web-self');
+    const newRequestPage = await context.newPage();
+    await newRequestPage.goto(address + '/workspace/new-request');
+    await newRequestPage.waitForFunction(id => [...document.querySelector('#create-form select[name=policyId]').options].some(o=>o.value===id), employeePolicy);
+    await newRequestPage.locator('#create-form select[name=policyId]').selectOption(employeePolicy);
+    await newRequestPage.locator('#create-form input[name=workDate]').fill('2027-03-02');
+    await newRequestPage.locator('#create-form input[name=proposedAt]').fill('2027-03-02T08:00:00Z');
+    await newRequestPage.locator('#create-form select[name=punchKind]').selectOption('0');
+    await newRequestPage.locator('#create-form input[name=reason]').fill('درخواست آزمایشی من');
+    await newRequestPage.locator('#create-form button').click();
+    await newRequestPage.waitForFunction(() => document.getElementById('notice').textContent.includes('درخواست ثبت شد'));
+    await newRequestPage.close();
+    const myRequestsPage = await context.newPage(), staleRequestsPage = await context.newPage();
+    await myRequestsPage.goto(address + '/workspace/my-requests');
+    await staleRequestsPage.goto(address + '/workspace/my-requests');
+    const ownRequestRow = myRequestsPage.locator('#body tr').filter({hasText:'درخواست آزمایشی من'});
+    const staleRequestRow = staleRequestsPage.locator('#body tr').filter({hasText:'درخواست آزمایشی من'});
+    await ownRequestRow.waitFor(); await staleRequestRow.waitFor();
+    const ownRequestId = await ownRequestRow.locator('td').nth(6).textContent();
+    await ownRequestRow.locator('button').click(); await staleRequestRow.locator('button').click();
+    await myRequestsPage.locator('#cancel-form input[name=reason]').fill('لغو آزمایشی');
+    await myRequestsPage.locator('#cancel-form button[type=submit]').click();
+    await myRequestsPage.waitForFunction(() => document.getElementById('notice').textContent.includes('درخواست لغو شد'));
+    if (!(await ownRequestRow.textContent()).includes('لغوشده') || await ownRequestRow.locator('button').count() !== 0)
+      throw new Error('Cancelled request state was not persisted');
+    await staleRequestsPage.locator('#cancel-form input[name=reason]').fill('لغو دوباره');
+    await staleRequestsPage.locator('#cancel-form button[type=submit]').click();
+    await staleRequestsPage.waitForFunction(() => document.getElementById('notice').textContent.includes('تعارض'));
+    if (await staleRequestsPage.locator('#cancel-section').isVisible()) throw new Error('Conflict retained stale cancellation selection');
+    const ownHistory = await myRequestsPage.evaluate(async () => (await (await fetch('/corrections/own')).json()).items);
+    if (!ownHistory.some(x=>x.id===ownRequestId && x.state===3 && x.decisionReason==='لغو آزمایشی')) throw new Error('Own cancellation history was not saved');
+    await staleRequestsPage.close(); await myRequestsPage.close();
     await clearResult();
     await page.locator('#correction-policies button').click();
     await waitText(employeePolicy);

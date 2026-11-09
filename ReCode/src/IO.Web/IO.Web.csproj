@@ -10,6 +10,8 @@
     <EmbeddedResource Include="Ui/Conflicts.html" />
     <EmbeddedResource Include="Ui/Calculations.html" />
     <EmbeddedResource Include="Ui/Periods.html" />
+    <EmbeddedResource Include="Ui/MyRequests.html" />
+    <EmbeddedResource Include="Ui/my-requests.js" />
     <EmbeddedResource Include="Ui/periods.js" />
     <EmbeddedResource Include="Ui/calculations.js" />
     <EmbeddedResource Include="Ui/conflicts.js" />
