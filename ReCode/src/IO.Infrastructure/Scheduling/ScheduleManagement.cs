@@ -31,9 +31,9 @@ public sealed class ScheduleManagement(IoDbContext db, PermissionTransaction tra
             await transaction.LockAsync("IO.Calendar." + calendarId.ToString("N"), token);
             if (!await db.Calendars.AnyAsync(x => x.Id == calendarId, token)) throw new ArgumentException("Unknown calendar.");
             if (await db.WorkScheduleAssignments.AnyAsync(x => x.CalendarId == calendarId, token))
-                throw new InvalidOperationException("An assigned calendar cannot be modified; create a new version.");
+                throw new DomainConflictException("An assigned calendar cannot be modified; create a new version.");
             if (await db.CalendarDays.AnyAsync(x => x.CalendarId == calendarId && x.Date == date, token))
-                throw new InvalidOperationException("Calendar day already exists; create a new calendar version instead of overwriting.");
+                throw new DomainConflictException("Calendar day already exists; create a new calendar version instead of overwriting.");
             var id = Guid.NewGuid();
             db.CalendarDays.Add(new() { Id = id, CalendarId = calendarId, Date = date, Kind = kind, Note = note, RecordedAtUtc = DateTimeOffset.UtcNow });
             return (id, id);
@@ -67,7 +67,7 @@ public sealed class ScheduleManagement(IoDbContext db, PermissionTransaction tra
                 throw new ArgumentException("Unknown calendar or shift, or different company.");
             if (await db.WorkScheduleAssignments.AnyAsync(x => x.EmployeeId == employeeId &&
                 (until == null || x.ValidFrom < until) && (x.ValidUntilExclusive == null || from < x.ValidUntilExclusive), token))
-                throw new InvalidOperationException("Overlapping work schedule assignment.");
+                throw new DomainConflictException("Overlapping work schedule assignment.");
             var id = Guid.NewGuid();
             db.WorkScheduleAssignments.Add(new() { Id = id, CompanyId = employee.CompanyId, EmployeeId = employeeId,
                 CalendarId = calendarId, ShiftId = shiftId, ValidFrom = from, ValidUntilExclusive = until });

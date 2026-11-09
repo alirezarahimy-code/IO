@@ -79,7 +79,7 @@ public sealed class OrganizationManagement(IoDbContext db, PermissionTransaction
                 throw new ArgumentException("Unknown unit or different company.");
             if (await db.EmployeeAssignments.AnyAsync(x => x.EmployeeId == employeeId &&
                 (until == null || x.ValidFrom < until) && (x.ValidUntilExclusive == null || from < x.ValidUntilExclusive), token))
-                throw new InvalidOperationException("Overlapping primary assignment.");
+                throw new DomainConflictException("Overlapping primary assignment.");
             db.EmployeeAssignments.Add(new() { Id = id, EmployeeId = employeeId, CompanyId = employee.CompanyId,
                 OrgUnitId = unitId, ValidFrom = from, ValidUntilExclusive = until });
             return (id, id);
@@ -93,12 +93,12 @@ public sealed class OrganizationManagement(IoDbContext db, PermissionTransaction
             var original = await db.EmployeeAssignments.SingleOrDefaultAsync(x => x.Id == assignmentId && x.EmployeeId == employeeId, token)
                 ?? throw new ArgumentException("Unknown employee assignment.");
             if (original.ValidUntilExclusive is not null || effective <= original.ValidFrom)
-                throw new InvalidOperationException("Transfer requires an open assignment and a later effective date.");
+                throw new DomainConflictException("Transfer requires an open assignment and a later effective date.");
             if (!await db.OrgUnits.AnyAsync(x => x.Id == newUnitId && x.CompanyId == original.CompanyId, token))
                 throw new ArgumentException("Unknown unit or different company.");
             if (await db.EmployeeAssignments.AnyAsync(x => x.EmployeeId == employeeId && x.Id != assignmentId &&
                 (x.ValidUntilExclusive == null || effective < x.ValidUntilExclusive), token))
-                throw new InvalidOperationException("Transfer overlaps an existing assignment.");
+                throw new DomainConflictException("Transfer overlaps an existing assignment.");
             original.ValidUntilExclusive = effective;
             var newId = Guid.NewGuid();
             db.EmployeeAssignments.Add(new() { Id = newId, EmployeeId = employeeId, CompanyId = original.CompanyId,

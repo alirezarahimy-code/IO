@@ -1,4 +1,7 @@
 using IO.Infrastructure.Security;
+using IO.Infrastructure.Organization;
+using IO.Infrastructure.Scheduling;
+using IO.Domain.Scheduling;
 using IO.Infrastructure.Storage;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
@@ -165,6 +168,48 @@ public static class IoWebHost
             var employee = await reader.FindAuthorizedAsync(actor, id, date, cancellationToken);
             return employee is null ? Results.NotFound() : Results.Ok(employee);
         });
+        app.MapGet("/dates/jalali/{year:int}/{month:int}/{day:int}", (int year, int month, int day) =>
+        {
+            try { return Results.Ok(new { date = PersianDates.ToGregorian(year, month, day) }); }
+            catch (ArgumentOutOfRangeException) { return Results.BadRequest(); }
+        });
+        app.MapGet("/dates/gregorian/{date}", (DateOnly date) =>
+        {
+            try { var j = PersianDates.FromGregorian(date); return Results.Ok(new { j.Year, j.Month, j.Day }); }
+            catch (ArgumentOutOfRangeException) { return Results.BadRequest(); }
+        });
+        app.MapGet("/schedules/{employeeId:guid}/{workDate}", async (Guid employeeId, DateOnly workDate, HttpContext context, ScheduleReader reader) =>
+        {
+            if (!Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var actor)) return Results.Unauthorized();
+            try
+            {
+                var day = await reader.FindAsync(actor, employeeId, workDate, DateOnly.FromDateTime(DateTime.UtcNow), context.RequestAborted);
+                return day is null ? Results.NotFound() : Results.Ok(day);
+            }
+            catch (InvalidOperationException) { return Results.Conflict(); }
+        });
+        app.MapPost("/org/organizations", (OrganizationInput input, HttpContext c, IAntiforgery csrf, OrganizationManagement service) =>
+            Admin(c, csrf, actor => service.CreateOrganizationAsync(actor, input.Name, c.RequestAborted)));
+        app.MapPost("/org/companies", (CompanyInput input, HttpContext c, IAntiforgery csrf, OrganizationManagement service) =>
+            Admin(c, csrf, actor => service.CreateCompanyAsync(actor, input.OrganizationId, input.Name, c.RequestAborted)));
+        app.MapPost("/org/sites", (SiteInput input, HttpContext c, IAntiforgery csrf, OrganizationManagement service) =>
+            Admin(c, csrf, actor => service.CreateSiteAsync(actor, input.CompanyId, input.Name, input.TimeZoneId, c.RequestAborted)));
+        app.MapPost("/org/units", (UnitInput input, HttpContext c, IAntiforgery csrf, OrganizationManagement service) =>
+            Admin(c, csrf, actor => service.CreateUnitAsync(actor, input.CompanyId, input.ParentId, input.Name, c.RequestAborted)));
+        app.MapPost("/org/employees", (EmployeeInput input, HttpContext c, IAntiforgery csrf, OrganizationManagement service) =>
+            Admin(c, csrf, actor => service.CreateEmployeeAsync(actor, input.CompanyId, input.PersonnelNumber, input.DisplayName, c.RequestAborted)));
+        app.MapPost("/org/assignments", (AssignmentInput input, HttpContext c, IAntiforgery csrf, OrganizationManagement service) =>
+            Admin(c, csrf, actor => service.AddAssignmentAsync(actor, input.EmployeeId, input.UnitId, input.ValidFrom, input.ValidUntilExclusive, c.RequestAborted)));
+        app.MapPost("/org/transfers", (TransferInput input, HttpContext c, IAntiforgery csrf, OrganizationManagement service) =>
+            Admin(c, csrf, actor => service.TransferAsync(actor, input.EmployeeId, input.AssignmentId, input.UnitId, input.Effective, c.RequestAborted)));
+        app.MapPost("/scheduling/calendars", (CalendarInput input, HttpContext c, IAntiforgery csrf, ScheduleManagement service) =>
+            Admin(c, csrf, actor => service.CreateCalendarAsync(actor, input.CompanyId, input.Name, c.RequestAborted)));
+        app.MapPost("/scheduling/calendar-days", (CalendarDayInput input, HttpContext c, IAntiforgery csrf, ScheduleManagement service) =>
+            Admin(c, csrf, actor => service.AddCalendarDayAsync(actor, input.CalendarId, input.Date, input.Kind, input.Note, c.RequestAborted)));
+        app.MapPost("/scheduling/shifts", (ShiftInput input, HttpContext c, IAntiforgery csrf, ScheduleManagement service) =>
+            Admin(c, csrf, actor => service.CreateShiftAsync(actor, input.CompanyId, input.SiteId, input.Name, input.StartsAt, input.EndsAt, input.EndDayOffset, c.RequestAborted)));
+        app.MapPost("/scheduling/assignments", (ScheduleInput input, HttpContext c, IAntiforgery csrf, ScheduleManagement service) =>
+            Admin(c, csrf, actor => service.AssignAsync(actor, input.EmployeeId, input.CalendarId, input.ShiftId, input.ValidFrom, input.ValidUntilExclusive, c.RequestAborted)));
         app.MapGet("/admin/catalog/{kind}", async (string kind, int? offset, HttpContext context, IdentityAdministration admin) =>
         {
             if (!Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var actor)) return Results.Unauthorized();
@@ -209,6 +254,7 @@ public static class IoWebHost
         if (!Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var actor)) return Results.Unauthorized();
         try { return Results.Ok(new { result = await action(actor) }); }
         catch (UnauthorizedAccessException) { return Results.StatusCode(403); }
+        catch (DomainConflictException) { return Results.Conflict(); }
         catch (ArgumentException) { return Results.BadRequest(); }
     }
 
@@ -226,3 +272,15 @@ public sealed record NewRoleInput(string Name);
 public sealed record UserRoleInput(Guid UserId, Guid RoleId);
 public sealed record RolePermissionInput(Guid RoleId, string Code);
 public sealed record UserScopeInput(Guid UserId, Guid UnitId, DateOnly ValidFrom, DateOnly? ValidUntilExclusive);
+
+public sealed record OrganizationInput(string Name);
+public sealed record CompanyInput(Guid OrganizationId, string Name);
+public sealed record SiteInput(Guid CompanyId, string Name, string TimeZoneId);
+public sealed record UnitInput(Guid CompanyId, Guid? ParentId, string Name);
+public sealed record EmployeeInput(Guid CompanyId, string PersonnelNumber, string DisplayName);
+public sealed record AssignmentInput(Guid EmployeeId, Guid UnitId, DateOnly ValidFrom, DateOnly? ValidUntilExclusive);
+public sealed record TransferInput(Guid EmployeeId, Guid AssignmentId, Guid UnitId, DateOnly Effective);
+public sealed record CalendarInput(Guid CompanyId, string Name);
+public sealed record CalendarDayInput(Guid CalendarId, DateOnly Date, int Kind, string? Note);
+public sealed record ShiftInput(Guid CompanyId, Guid SiteId, string Name, TimeOnly StartsAt, TimeOnly EndsAt, int EndDayOffset);
+public sealed record ScheduleInput(Guid EmployeeId, Guid CalendarId, Guid ShiftId, DateOnly ValidFrom, DateOnly? ValidUntilExclusive);

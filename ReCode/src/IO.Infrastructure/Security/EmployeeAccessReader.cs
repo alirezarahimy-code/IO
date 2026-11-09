@@ -24,12 +24,14 @@ public sealed class EmployeeAccessReader(IoDbContext db)
             return Task.FromResult<EmployeeView?>(null);
 
         return AuthorizedEmployees(actorId, businessDate, ReadSelf, ReadScoped, ReadAll)
-            .Where(employee => employee.Id == employeeId).SingleOrDefaultAsync(cancellationToken);
+            .Where(employee => employee.Id == employeeId)
+            .Select(employee => new EmployeeView(employee.Id, employee.CompanyId, employee.PersonnelNumber, employee.DisplayName))
+            .SingleOrDefaultAsync(cancellationToken);
     }
 
     // Internal so callers must select fixed server-defined permission codes, not
     // client input. Composable as a subquery in the protected data read.
-    internal IQueryable<EmployeeView> AuthorizedEmployees(Guid actorId, DateOnly businessDate, string readSelf, string readScoped, string readAll)
+    internal IQueryable<EmployeeRecord> AuthorizedEmployees(Guid actorId, DateOnly businessDate, string readSelf, string readScoped, string readAll)
     {
         // Permission and scope checks are part of the same SQL statement as the
         // projection, so an unauthorized target is never materialized here.
@@ -61,7 +63,7 @@ public sealed class EmployeeAccessReader(IoDbContext db)
                                   assignment.OrgUnitId == scope.OrgUnitId &&
                                   assignment.ValidFrom <= businessDate &&
                                   (assignment.ValidUntilExclusive == null || businessDate < assignment.ValidUntilExclusive))))))
-                    select new EmployeeView(employee.Id, employee.CompanyId, employee.PersonnelNumber, employee.DisplayName);
+                    select employee;
         return query;
     }
 }
