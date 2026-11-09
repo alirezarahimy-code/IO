@@ -1396,12 +1396,35 @@ async function main() {
     const homeInbox = await managerHome.evaluate(async () => ({user:await (await fetch('/auth/me')).json(), inbox:await (await fetch('/corrections/inbox?offset=0')).json()}));
     if (await managerHome.locator('#account-id').textContent() !== homeInbox.user.id || await managerHome.locator('#body tr').count() !== Math.min(5,homeInbox.inbox.items.length) || !(await managerHome.locator('#body tr').first().textContent()).includes(homeInbox.inbox.items[0].id)) throw new Error('Manager home did not show scoped actionable inbox');
     await managerHome.close();
+    const readOnlyInboxPage=await context.newPage();
+    await readOnlyInboxPage.route('**/corrections/inbox?offset=*',async route=>{
+      const response=await route.fetch();const data=await response.json();data.canDecide=false;
+      await route.fulfill({response,json:data});
+    });
+    await readOnlyInboxPage.goto(address+'/workspace/inbox');
+    const readOnlyInboxRow=readOnlyInboxPage.locator('#body tr').filter({hasText:'بررسی مدیر آزمایشی'});
+    await readOnlyInboxRow.waitFor();
+    if(await readOnlyInboxRow.locator('button').count() || !(await readOnlyInboxRow.textContent()).includes('First'))
+      throw new Error('Read-only inbox rendered a decision button or omitted employee name');
+    await readOnlyInboxPage.close();
     const managerInbox = await context.newPage(), staleManagerInbox = await context.newPage();
     await managerInbox.goto(address + '/workspace/inbox');
     await staleManagerInbox.goto(address + '/workspace/inbox');
     const managerRow = managerInbox.locator('#body tr').filter({hasText:'بررسی مدیر آزمایشی'});
     const staleManagerRow = staleManagerInbox.locator('#body tr').filter({hasText:'بررسی مدیر آزمایشی'});
     await managerRow.waitFor(); await staleManagerRow.waitFor();
+    if(!(await managerRow.textContent()).includes('First') || !(await managerRow.textContent()).includes('WEB-1')) throw new Error('Inbox omitted employee identity');
+    await managerInbox.locator('#inbox-filter input[name=employeeId]').fill('invalid');
+    if(await managerInbox.locator('#body tr').count() || await managerInbox.locator('#next').isEnabled()) throw new Error('Edited inbox filter kept stale rows');
+    await managerInbox.locator('#inbox-filter button[type=submit]').click();
+    await managerInbox.waitForFunction(()=>document.getElementById('notice').textContent.includes('شناسهٔ کارمند معتبر نیست'));
+    await managerInbox.locator('#inbox-filter input[name=employeeId]').fill(second);
+    await managerInbox.locator('#inbox-filter button[type=submit]').click();
+    await managerInbox.waitForFunction(()=>document.getElementById('notice').textContent.includes('فیلتر اعمال شد'));
+    if(await managerRow.count())throw new Error('Employee filter returned a different employee');
+    await managerInbox.locator('#inbox-filter-reset').click();
+    await managerInbox.waitForFunction(()=>document.getElementById('notice').textContent.includes('فیلتر اعمال شد'));
+    await managerRow.waitFor();
     const managerRequestId = await managerRow.locator('td').nth(6).textContent();
     await managerRow.locator('button').click(); await staleManagerRow.locator('button').click();
     await managerInbox.locator('#decision-form select[name=decision]').selectOption('reject');

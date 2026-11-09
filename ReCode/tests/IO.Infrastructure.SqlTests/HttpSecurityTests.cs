@@ -323,6 +323,26 @@ internal static class HttpSecurityTests
                   (await own.GetAsync("/corrections/own?fromDate=not-a-date&toDate=2027-05-05")).StatusCode == HttpStatusCode.BadRequest &&
                   (await scoped.GetAsync("/corrections/own?fromDate=2027-05-05&toDate=2027-05-05")).StatusCode == HttpStatusCode.Forbidden,
                   "HTTP correction history filters are validated and never select another employee");
+            var readInboxGrant = await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = testManagerRole, Code = "correction.inbox.read" });
+            var decideRevoke = await PostAdmin(adminClient, "/admin/role-permissions/revoke", new { RoleId = testManagerRole, Code = "correction.decide" });
+            using var filteredInbox = await scoped.GetAsync($"/corrections/inbox?employeeId={first}");
+            using var deniedTargetInbox = await scoped.GetAsync($"/corrections/inbox?employeeId={second}");
+            using var inboxJson = JsonDocument.Parse(await filteredInbox.Content.ReadAsStringAsync());
+            using var deniedTargetJson = JsonDocument.Parse(await deniedTargetInbox.Content.ReadAsStringAsync());
+            var readOnlyDecision = await PostAdmin(scoped, $"/corrections/requests/{correctionId}/decision", new { Approve = true, Reason = (string?)null });
+            var readOnlyDecisionHistory = await scoped.GetAsync("/corrections/decisions");
+            var invalidInbox = await scoped.GetAsync("/corrections/inbox?employeeId=00000000-0000-0000-0000-000000000000");
+            var malformedInbox = await scoped.GetAsync("/corrections/inbox?employeeId=invalid");
+            var restoredDecide = await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = testManagerRole, Code = "correction.decide" });
+            var removedReadInbox = await PostAdmin(adminClient, "/admin/role-permissions/revoke", new { RoleId = testManagerRole, Code = "correction.inbox.read" });
+            check(readInboxGrant.StatusCode == HttpStatusCode.OK && decideRevoke.StatusCode == HttpStatusCode.OK && filteredInbox.StatusCode == HttpStatusCode.OK &&
+                  inboxJson.RootElement.GetProperty("canDecide").GetBoolean() == false &&
+                  inboxJson.RootElement.GetProperty("items").EnumerateArray().Any(x => x.GetProperty("id").GetGuid() == correctionId && x.GetProperty("employeeName").GetString() == "First") &&
+                  deniedTargetInbox.StatusCode == HttpStatusCode.OK && !deniedTargetJson.RootElement.GetProperty("items").EnumerateArray().Any() &&
+                  readOnlyDecision.StatusCode == HttpStatusCode.Forbidden && readOnlyDecisionHistory.StatusCode == HttpStatusCode.Forbidden &&
+                  invalidInbox.StatusCode == HttpStatusCode.BadRequest && malformedInbox.StatusCode == HttpStatusCode.BadRequest &&
+                  restoredDecide.StatusCode == HttpStatusCode.OK && removedReadInbox.StatusCode == HttpStatusCode.OK,
+                  "HTTP inbox read-only grant preserves employee scope and cannot decide");
             var inboxStatus = (await scoped.GetAsync("/corrections/inbox")).StatusCode;
             var ownDecisionStatus = (await PostAdmin(own, $"/corrections/requests/{correctionId}/decision", new { Approve = true, Reason = (string?)null })).StatusCode;
             var managerDecisionStatus = (await PostAdmin(scoped, $"/corrections/requests/{correctionId}/decision", new { Approve = true, Reason = (string?)null })).StatusCode;

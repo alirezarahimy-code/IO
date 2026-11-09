@@ -13,6 +13,7 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
     public const string Submit = "correction.submit.self";
     public const string ReadOwn = "correction.requests.read.self";
     public const string Decide = "correction.decide";
+    public const string ReadInbox = "correction.inbox.read";
     public const string DecideScoped = "correction.decide.scoped";
     public const string DecideAll = "correction.decide.all";
     private static void Reason(string? value, bool required)
@@ -218,19 +219,23 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
             return (new { offset, pageSize = 50, items }, actor);
         }, ct);
 
-    public Task<object> InboxAsync(Guid actor, int offset, CancellationToken ct = default) =>
-        transaction.ExecuteAsync<object>(actor, Decide, "correction.inbox.viewed", async token =>
+    public Task<object> InboxAsync(Guid actor, int offset, CancellationToken ct = default, Guid? employeeId = null) =>
+        transaction.ExecuteEitherAsync<object>(actor, ReadInbox, Decide, "correction.inbox.viewed", async token =>
         {
-            if (offset is < 0 or > 100000) throw new ArgumentException("Invalid page.");
+            if (offset is < 0 or > 100000 || employeeId == Guid.Empty) throw new ArgumentException("Invalid page or employee filter.");
             var authorized = access.AuthorizedEmployees(actor, DateOnly.FromDateTime(DateTime.UtcNow), "correction.never-self", DecideScoped, DecideAll);
-            var items = await (from request in db.CorrectionRequests.AsNoTracking()
+            var requests = db.CorrectionRequests.AsNoTracking();
+            if (employeeId.HasValue) requests = requests.Where(x => x.EmployeeId == employeeId.Value);
+            var items = await (from request in requests
                                join policy in db.CorrectionPolicies on request.PolicyId equals policy.Id
+                               join employee in authorized on request.EmployeeId equals employee.Id
                                where policy.ApproverUserId == actor && request.State == 0 && request.RequesterUserId != actor &&
-                                     authorized.Any(x => x.Id == request.EmployeeId) &&
                                      !db.Users.Any(x => x.Id == actor && x.EmployeeId == request.EmployeeId)
                                orderby request.CreatedAtUtc, request.Id
-                               select new { request.Id, request.EmployeeId, request.WorkDate, request.ProposedAtUtc, request.PunchKind, request.Reason, request.CreatedAtUtc })
+                               select new { request.Id, request.EmployeeId, EmployeeName = employee.DisplayName, employee.PersonnelNumber,
+                                   request.WorkDate, request.ProposedAtUtc, request.PunchKind, request.Reason, request.CreatedAtUtc })
                                .Skip(offset).Take(50).ToListAsync(token);
-            return (new { offset, pageSize = 50, items }, actor);
+            var canDecide = await transaction.HasPermissionAsync(actor, Decide, token);
+            return (new { offset, pageSize = 50, employeeId, items, canDecide }, actor);
         }, ct);
 }

@@ -136,6 +136,64 @@ internal static class CorrectionWorkflowTests
               readOnlyHistory.Contains("\"canCancel\":false", StringComparison.OrdinalIgnoreCase) && readOnlyDenied && inactiveDenied && caseDenied && paddingDenied &&
               legacyHistory.Contains(identical.ToString(), StringComparison.OrdinalIgnoreCase) && legacyHistory.Contains("\"canCancel\":true", StringComparison.OrdinalIgnoreCase),
               "own correction read-only permission is exact, active, isolated and preserves legacy submit access");
+        Guid managerRoleId, decidePermissionId, scopedPermissionId, inboxReadId;
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            managerRoleId = (await db.Roles.SingleAsync(x => x.Name == "web manager role")).Id;
+            decidePermissionId = (await db.Permissions.SingleAsync(x => x.Code == CorrectionWorkflow.Decide)).Id;
+            scopedPermissionId = (await db.Permissions.SingleAsync(x => x.Code == CorrectionWorkflow.DecideScoped)).Id;
+            var read = await db.Permissions.SingleOrDefaultAsync(x => x.Code == CorrectionWorkflow.ReadInbox);
+            if (read is null) { read = new() { Id = Guid.NewGuid(), Code = CorrectionWorkflow.ReadInbox }; db.Permissions.Add(read); }
+            inboxReadId = read.Id;
+            db.RolePermissions.Remove(await db.RolePermissions.SingleAsync(x => x.RoleId == managerRoleId && x.PermissionId == decidePermissionId));
+            db.RolePermissions.Add(new() { RoleId = managerRoleId, PermissionId = inboxReadId });
+            await db.SaveChangesAsync();
+        }
+        var readInbox = JsonSerializer.Serialize(await Run(s => s.InboxAsync(manager, 0, employeeId: employee)));
+        Guid otherEmployeeId;
+        await using (var scope = provider.CreateAsyncScope())
+            otherEmployeeId = (await scope.ServiceProvider.GetRequiredService<IoDbContext>().Employees.SingleAsync(x => x.CompanyId == company && x.PersonnelNumber == "WEB-2")).Id;
+        var outsideInbox = JsonSerializer.Serialize(await Run(s => s.InboxAsync(manager, 0, employeeId: otherEmployeeId)));
+        var noDecision = await Reject<UnauthorizedAccessException>(() => Run(s => s.DecideAsync(manager, identical, true, "denied"))) &&
+            await Reject<UnauthorizedAccessException>(() => Run(s => s.ListDecisionsAsync(manager, 0)));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            db.RolePermissions.Remove(await db.RolePermissions.SingleAsync(x => x.RoleId == managerRoleId && x.PermissionId == scopedPermissionId));
+            await db.SaveChangesAsync();
+        }
+        var noScopeInbox = JsonSerializer.Serialize(await Run(s => s.InboxAsync(manager, 0, employeeId: employee)));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            db.RolePermissions.Add(new() { RoleId = managerRoleId, PermissionId = scopedPermissionId });
+            (await db.Users.SingleAsync(x => x.Id == manager)).IsActive = false;
+            await db.SaveChangesAsync();
+        }
+        var inactiveInbox = await Reject<UnauthorizedAccessException>(() => Run(s => s.InboxAsync(manager, 0)));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            (await db.Users.SingleAsync(x => x.Id == manager)).IsActive = true;
+            db.RolePermissions.Remove(await db.RolePermissions.SingleAsync(x => x.RoleId == managerRoleId && x.PermissionId == inboxReadId));
+            await db.SaveChangesAsync();
+        }
+        var revokedInbox = await Reject<UnauthorizedAccessException>(() => Run(s => s.InboxAsync(manager, 0)));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            db.RolePermissions.Add(new() { RoleId = managerRoleId, PermissionId = decidePermissionId });
+            await db.SaveChangesAsync();
+        }
+        var legacyInbox = JsonSerializer.Serialize(await Run(s => s.InboxAsync(manager, 0, employeeId: employee)));
+        check(readInbox.Contains(identical.ToString(), StringComparison.OrdinalIgnoreCase) &&
+              readInbox.Contains("\"EmployeeName\":\"First\"", StringComparison.Ordinal) && readInbox.Contains("WEB-1", StringComparison.Ordinal) &&
+              readInbox.Contains("\"canDecide\":false", StringComparison.OrdinalIgnoreCase) && !outsideInbox.Contains(outside.ToString(), StringComparison.OrdinalIgnoreCase) &&
+              !noScopeInbox.Contains(identical.ToString(), StringComparison.OrdinalIgnoreCase) && noDecision && inactiveInbox && revokedInbox &&
+              legacyInbox.Contains(identical.ToString(), StringComparison.OrdinalIgnoreCase) && legacyInbox.Contains("\"canDecide\":true", StringComparison.OrdinalIgnoreCase) &&
+              await Reject<ArgumentException>(() => Run(s => s.InboxAsync(manager, 0, employeeId: Guid.Empty))),
+              "inbox read permission requires assigned approver and scope, filters employees and never grants decisions");
         var scopedInbox = JsonSerializer.Serialize(await Run(s => s.InboxAsync(manager, 0)));
         check(!scopedInbox.Contains(outside.ToString(), StringComparison.OrdinalIgnoreCase) &&
               await Reject<UnauthorizedAccessException>(() => Run(s => s.DecideAsync(manager, outside, true, null))) &&
