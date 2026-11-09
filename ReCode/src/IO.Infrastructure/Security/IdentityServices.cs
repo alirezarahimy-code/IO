@@ -35,6 +35,8 @@ public static class IdentityServices
         services.AddScoped<PermissionTransaction>();
         services.AddScoped<OrganizationManagement>();
         services.AddScoped<ScheduleManagement>();
+        services.AddScoped<EmployeeAccessReader>();
+        services.AddScoped<ScheduleReader>();
         return services;
     }
 }

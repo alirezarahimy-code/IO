@@ -23,6 +23,14 @@ public sealed class EmployeeAccessReader(IoDbContext db)
         if (actorId == Guid.Empty || employeeId == Guid.Empty)
             return Task.FromResult<EmployeeView?>(null);
 
+        return AuthorizedEmployees(actorId, businessDate, ReadSelf, ReadScoped, ReadAll)
+            .Where(employee => employee.Id == employeeId).SingleOrDefaultAsync(cancellationToken);
+    }
+
+    // Internal so callers must select fixed server-defined permission codes, not
+    // client input. Composable as a subquery in the protected data read.
+    internal IQueryable<EmployeeView> AuthorizedEmployees(Guid actorId, DateOnly businessDate, string readSelf, string readScoped, string readAll)
+    {
         // Permission and scope checks are part of the same SQL statement as the
         // projection, so an unauthorized target is never materialized here.
         var codes = from ur in db.UserRoles
@@ -32,18 +40,18 @@ public sealed class EmployeeAccessReader(IoDbContext db)
                     select p.Code;
 
         var query = from employee in db.Employees.AsNoTracking()
-                    where employee.Id == employeeId && db.Users.Any(user =>
+                    where actorId != Guid.Empty && db.Users.Any(user =>
                         user.Id == actorId && user.IsActive &&
                         // Permission codes are protocol identifiers, not human names.
                         // Binary collation plus byte length avoids SQL's case and
                         // trailing-space comparison rules granting a different code.
-                        (codes.Any(code => EF.Functions.Collate(code, "Latin1_General_100_BIN2") == ReadAll &&
-                                           EF.Functions.DataLength(code) == ReadAll.Length * 2) ||
+                        (codes.Any(code => EF.Functions.Collate(code, "Latin1_General_100_BIN2") == readAll &&
+                                           EF.Functions.DataLength(code) == readAll.Length * 2) ||
                          (user.EmployeeId == employee.Id &&
-                          codes.Any(code => EF.Functions.Collate(code, "Latin1_General_100_BIN2") == ReadSelf &&
-                                            EF.Functions.DataLength(code) == ReadSelf.Length * 2)) ||
-                         (codes.Any(code => EF.Functions.Collate(code, "Latin1_General_100_BIN2") == ReadScoped &&
-                                           EF.Functions.DataLength(code) == ReadScoped.Length * 2) &&
+                          codes.Any(code => EF.Functions.Collate(code, "Latin1_General_100_BIN2") == readSelf &&
+                                            EF.Functions.DataLength(code) == readSelf.Length * 2)) ||
+                         (codes.Any(code => EF.Functions.Collate(code, "Latin1_General_100_BIN2") == readScoped &&
+                                           EF.Functions.DataLength(code) == readScoped.Length * 2) &&
                           db.UserOrgScopes.Any(scope =>
                               scope.UserId == user.Id &&
                               scope.ValidFrom <= businessDate &&
@@ -54,6 +62,6 @@ public sealed class EmployeeAccessReader(IoDbContext db)
                                   assignment.ValidFrom <= businessDate &&
                                   (assignment.ValidUntilExclusive == null || businessDate < assignment.ValidUntilExclusive))))))
                     select new EmployeeView(employee.Id, employee.CompanyId, employee.PersonnelNumber, employee.DisplayName);
-        return query.SingleOrDefaultAsync(cancellationToken);
+        return query;
     }
 }

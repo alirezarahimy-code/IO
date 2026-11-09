@@ -70,6 +70,43 @@ internal static class SchedulingServiceTests
                   await audit.SecurityAudit.AnyAsync(x => x.Action == "schedule.assignment.created:" + id.ToString("N")),
                 "schedule assignment persisted with audit");
         }
+        Guid self;
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var adminRole = await db.Roles.SingleAsync(x => x.Name == "Initial administrator");
+            var unit = await db.OrgUnits.Where(x => x.CompanyId == company && x.Name == "First unit").Select(x => x.Id).SingleAsync();
+            self = await db.Users.Where(x => x.UserName == "web-created").Select(x => x.Id).SingleAsync();
+            (await db.Users.SingleAsync(x => x.Id == self)).EmployeeId = employee;
+            db.EmployeeAssignments.Add(new() { Id = Guid.NewGuid(), EmployeeId = employee, CompanyId = company, OrgUnitId = unit,
+                ValidFrom = new DateOnly(2026, 3, 1), ValidUntilExclusive = new DateOnly(2027, 1, 1) });
+            db.UserOrgScopes.Add(new() { Id = Guid.NewGuid(), UserId = limited, OrgUnitId = unit, ValidFrom = new DateOnly(2026, 1, 1) });
+            var selfRole = Guid.NewGuid(); var scopedRole = Guid.NewGuid();
+            var selfPermission = Guid.NewGuid(); var scopedPermission = Guid.NewGuid(); var allPermission = Guid.NewGuid();
+            db.Roles.AddRange(new RoleRecord { Id = selfRole, Name = "schedule self test" }, new RoleRecord { Id = scopedRole, Name = "schedule scoped test" });
+            db.Permissions.AddRange(new PermissionRecord { Id = selfPermission, Code = ScheduleReader.ReadSelf },
+                new PermissionRecord { Id = scopedPermission, Code = ScheduleReader.ReadScoped }, new PermissionRecord { Id = allPermission, Code = ScheduleReader.ReadAll });
+            db.UserRoles.AddRange(new UserRoleRecord { UserId = self, RoleId = selfRole }, new UserRoleRecord { UserId = limited, RoleId = scopedRole });
+            db.RolePermissions.AddRange(new RolePermissionRecord { RoleId = selfRole, PermissionId = selfPermission },
+                new RolePermissionRecord { RoleId = scopedRole, PermissionId = scopedPermission }, new RolePermissionRecord { RoleId = adminRole.Id, PermissionId = allPermission });
+            await db.SaveChangesAsync();
+        }
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var reader = scope.ServiceProvider.GetRequiredService<ScheduleReader>();
+            var authorizationDate = new DateOnly(2026, 4, 1);
+            var own = await reader.FindAsync(self, employee, date, authorizationDate);
+            var scoped = await reader.FindAsync(limited, employee, date, authorizationDate);
+            var global = await reader.FindAsync(admin, employee, date, authorizationDate);
+            check(own?.DayKind == 1 && scoped is not null && global is not null &&
+                  own.StartUtc == new DateTimeOffset(2027, 1, 1, 18, 30, 0, TimeSpan.Zero) &&
+                  own.EndUtc == new DateTimeOffset(2027, 1, 2, 2, 30, 0, TimeSpan.Zero),
+                "authorized schedule read resolves holiday and overnight site time");
+            check(await reader.FindAsync(limited, employee, date, new DateOnly(2026, 2, 1)) is null &&
+                  await reader.FindAsync(Guid.NewGuid(), employee, date, authorizationDate) is null &&
+                  await reader.FindAsync(self, Guid.NewGuid(), date, authorizationDate) is null,
+                "schedule read denies absent scope, actor and different employee");
+        }
         await using (var scope = provider.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
