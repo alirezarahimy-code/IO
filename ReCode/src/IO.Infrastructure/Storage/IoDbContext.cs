@@ -27,6 +27,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
     public DbSet<RawAttendanceEventRecord> RawAttendanceEvents => Set<RawAttendanceEventRecord>();
     public DbSet<SourceEmployeeMappingRecord> SourceEmployeeMappings => Set<SourceEmployeeMappingRecord>();
     public DbSet<RawEventConflictRecord> RawEventConflicts => Set<RawEventConflictRecord>();
+    public DbSet<RawConflictNoteRecord> RawConflictNotes => Set<RawConflictNoteRecord>();
     public DbSet<ObservedRuleVersionRecord> ObservedRuleVersions => Set<ObservedRuleVersionRecord>();
     public DbSet<DailyCalculationRunRecord> DailyCalculationRuns => Set<DailyCalculationRunRecord>();
     public DbSet<CorrectionPolicyRecord> CorrectionPolicies => Set<CorrectionPolicyRecord>();
@@ -285,6 +286,19 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
                 .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<EventSourceRecord>().WithMany().HasForeignKey(x => x.SourceId).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<WorkScheduleAssignmentRecord>().WithMany().HasForeignKey(x => x.ScheduleAssignmentId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<RawConflictNoteRecord>(b =>
+        {
+            b.ToTable("RawConflictNotes", t =>
+            {
+                t.HasCheckConstraint("CK_RawConflictNotes_Utc", "DATEPART(TZOFFSET, [CreatedAtUtc]) = 0");
+                t.HasTrigger("TR_RawConflictNotes_Immutable"); t.UseSqlOutputClause(false);
+            });
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
+            b.Property(x => x.Note).HasMaxLength(500).IsRequired();
+            b.HasIndex(x => new { x.ConflictId, x.CreatedAtUtc });
+            b.HasOne<RawEventConflictRecord>().WithMany().HasForeignKey(x => x.ConflictId).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
         });
         model.Entity<SourceEmployeeMappingRecord>(b =>

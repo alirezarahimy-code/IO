@@ -29,3 +29,13 @@ public sealed class RawEventConflictRecord
     public string? ReportedEventType { get; set; }
     public byte[] SourcePayload { get; set; } = null!;
 }
+
+/// <summary>Append-only operator note; a note does not resolve a collision.</summary>
+public sealed class RawConflictNoteRecord
+{
+    public Guid Id { get; set; }
+    public Guid ConflictId { get; set; }
+    public Guid CreatedByUserId { get; set; }
+    public DateTimeOffset CreatedAtUtc { get; set; }
+    public string Note { get; set; } = null!;
+}
