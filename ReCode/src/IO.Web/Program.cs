@@ -209,6 +209,14 @@ public static class IoWebHost
             Admin(c, csrf, actor => service.ReparentUnitAsync(actor, input.CompanyId, id, input.ParentId, ParseVersion(input.ExpectedVersion), c.RequestAborted)));
         app.MapPost("/org/assignments", (AssignmentInput input, HttpContext c, IAntiforgery csrf, OrganizationManagement service) =>
             Admin(c, csrf, actor => service.AddAssignmentAsync(actor, input.EmployeeId, input.UnitId, input.ValidFrom, input.ValidUntilExclusive, c.RequestAborted)));
+        app.MapPost("/org/site-assignments", (EmployeeSiteInput input, HttpContext c, IAntiforgery csrf, OrganizationManagement service) =>
+            Admin(c, csrf, actor => service.AddSiteAssignmentAsync(actor, input.EmployeeId, input.SiteId, input.ValidFrom, input.ValidUntilExclusive, c.RequestAborted)));
+        app.MapPost("/org/site-transfers", (EmployeeSiteTransferInput input, HttpContext c, IAntiforgery csrf, OrganizationManagement service) =>
+            Admin(c, csrf, actor => service.MoveSiteAsync(actor, input.EmployeeId, input.AssignmentId, input.SiteId, input.Effective, c.RequestAborted)));
+        app.MapPost("/org/employment-profiles", (EmploymentInput input, HttpContext c, IAntiforgery csrf, OrganizationManagement service) =>
+            Admin(c, csrf, actor => service.AddEmploymentProfileAsync(actor, input.EmployeeId, input.StatusCode, input.Title, input.ValidFrom, input.ValidUntilExclusive, c.RequestAborted)));
+        app.MapPost("/org/employment-changes", (EmploymentChangeInput input, HttpContext c, IAntiforgery csrf, OrganizationManagement service) =>
+            Admin(c, csrf, actor => service.ChangeEmploymentProfileAsync(actor, input.EmployeeId, input.ProfileId, input.StatusCode, input.Title, input.Effective, c.RequestAborted)));
         app.MapPost("/org/transfers", (TransferInput input, HttpContext c, IAntiforgery csrf, OrganizationManagement service) =>
             Admin(c, csrf, actor => service.TransferAsync(actor, input.EmployeeId, input.AssignmentId, input.UnitId, input.Effective, c.RequestAborted)));
         app.MapPost("/scheduling/calendars", (CalendarInput input, HttpContext c, IAntiforgery csrf, ScheduleManagement service) =>
@@ -318,3 +326,7 @@ public sealed record ScheduleReplacementInput(Guid EmployeeId, Guid AssignmentId
 public sealed record EmployeeRenameInput(string DisplayName, string ExpectedVersion);
 public sealed record ReparentUnitInput(Guid CompanyId, Guid? ParentId, string ExpectedVersion);
 public sealed record CalendarForkInput(string Name);
+public sealed record EmployeeSiteInput(Guid EmployeeId, Guid SiteId, DateOnly ValidFrom, DateOnly? ValidUntilExclusive);
+public sealed record EmployeeSiteTransferInput(Guid EmployeeId, Guid AssignmentId, Guid SiteId, DateOnly Effective);
+public sealed record EmploymentInput(Guid EmployeeId, string StatusCode, string? Title, DateOnly ValidFrom, DateOnly? ValidUntilExclusive);
+public sealed record EmploymentChangeInput(Guid EmployeeId, Guid ProfileId, string StatusCode, string? Title, DateOnly Effective);

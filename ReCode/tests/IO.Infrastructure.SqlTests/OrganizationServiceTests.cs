@@ -80,6 +80,45 @@ internal static class OrganizationServiceTests
         }
         var moves = await Task.WhenAll(TryMove(unit, secondUnit, rootVersion), TryMove(secondUnit, unit, childVersion));
         check(moves.Count(x => x) == 1, "concurrent opposing unit moves cannot create a cycle");
+        var newSite = await Execute(s => s.CreateSiteAsync(admin, company, "Second site", "Asia/Tehran"));
+        var foreignSite = await Execute(s => s.CreateSiteAsync(admin, otherCompany, "Foreign site", "Asia/Tehran"));
+        var historyStart = new DateOnly(2026, 1, 1);
+        check(await Reject<ArgumentException>(() => Execute(s => s.AddSiteAssignmentAsync(admin, employee, foreignSite, historyStart, null))) &&
+            await Reject<ArgumentException>(() => Execute(s => s.AddEmploymentProfileAsync(admin, employee, "", null, historyStart, null))),
+            "employment history rejects cross-company site and blank status code");
+        async Task<Guid?> TrySite()
+        {
+            try { return await Execute(s => s.AddSiteAssignmentAsync(admin, employee, site, historyStart, null)); }
+            catch (DomainConflictException) { return null; }
+        }
+        async Task<Guid?> TryEmployment()
+        {
+            try { return await Execute(s => s.AddEmploymentProfileAsync(admin, employee, "synthetic-status", "Synthetic title", historyStart, null)); }
+            catch (DomainConflictException) { return null; }
+        }
+        var siteAttempts = await Task.WhenAll(TrySite(), TrySite());
+        var profileAttempts = await Task.WhenAll(TryEmployment(), TryEmployment());
+        check(siteAttempts.Count(x => x.HasValue) == 1 && profileAttempts.Count(x => x.HasValue) == 1,
+            "concurrent primary site and employment profile writes each allow exactly one");
+        var oldSite = siteAttempts.Single(x => x.HasValue)!.Value;
+        var oldProfile = profileAttempts.Single(x => x.HasValue)!.Value;
+        var effective = new DateOnly(2026, 2, 1);
+        var movedSite = await Execute(s => s.MoveSiteAsync(admin, employee, oldSite, newSite, effective));
+        var changedProfile = await Execute(s => s.ChangeEmploymentProfileAsync(admin, employee, oldProfile, "another-synthetic-status", null, effective));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var beforeSite = await db.EmployeeSiteAssignments.SingleAsync(x => x.Id == oldSite);
+            var afterSite = await db.EmployeeSiteAssignments.SingleAsync(x => x.Id == movedSite);
+            var beforeProfile = await db.EmploymentProfiles.SingleAsync(x => x.Id == oldProfile);
+            var afterProfile = await db.EmploymentProfiles.SingleAsync(x => x.Id == changedProfile);
+            check(beforeSite.ValidUntilExclusive == effective && afterSite.ValidFrom == effective && afterSite.SiteId == newSite &&
+                beforeProfile.ValidUntilExclusive == effective && afterProfile.ValidFrom == effective && afterProfile.StatusCode == "another-synthetic-status",
+                "site and employment changes preserve half-open history atomically");
+        }
+        check(await Reject<DomainConflictException>(() => Execute(s => s.MoveSiteAsync(admin, employee, oldSite, site, effective.AddDays(1)))) &&
+              await Reject<DomainConflictException>(() => Execute(s => s.ChangeEmploymentProfileAsync(admin, employee, oldProfile, "status", null, effective.AddDays(1)))),
+            "closed site and employment history cannot be replaced again");
         var jan = new DateOnly(2026, 1, 1); var feb = new DateOnly(2026, 2, 1); var march = new DateOnly(2026, 3, 1);
         await Execute(s => s.AddAssignmentAsync(admin, employee, unit, jan, feb));
         await Execute(s => s.AddAssignmentAsync(admin, employee, secondUnit, feb, march));

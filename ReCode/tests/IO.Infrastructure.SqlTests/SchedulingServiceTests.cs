@@ -21,7 +21,7 @@ internal static class SchedulingServiceTests
             limited = await db.Users.Where(x => x.UserName == "web-manager").Select(x => x.Id).SingleAsync();
             company = await db.Companies.Where(x => x.Name == "Synthetic company").Select(x => x.Id).SingleAsync();
             otherCompany = await db.Companies.Where(x => x.Name == "Other synthetic company").Select(x => x.Id).SingleAsync();
-            site = await db.Sites.Where(x => x.CompanyId == company).Select(x => x.Id).SingleAsync();
+            site = await db.Sites.Where(x => x.CompanyId == company && x.Name == "Synthetic site").Select(x => x.Id).SingleAsync();
             employee = await db.Employees.Where(x => x.PersonnelNumber == "ORG-SYN-1").Select(x => x.Id).SingleAsync();
             var existingPermission = await db.Permissions.SingleOrDefaultAsync(x => x.Code == ScheduleManagement.Manage);
             var permissionId = existingPermission?.Id ?? Guid.NewGuid();

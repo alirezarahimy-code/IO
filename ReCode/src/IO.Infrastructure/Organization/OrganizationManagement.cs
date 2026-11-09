@@ -33,6 +33,8 @@ public sealed class OrganizationManagement(IoDbContext db, PermissionTransaction
                 "units" => await db.OrgUnits.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(size).Select(x => new { x.Id, x.CompanyId, x.ParentId, x.Name, x.Version }).ToListAsync(token),
                 "employees" => await db.Employees.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(size).Select(x => new { x.Id, x.CompanyId, x.PersonnelNumber, x.DisplayName, x.Version }).ToListAsync(token),
                 "assignments" => await db.EmployeeAssignments.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(size).Select(x => new { x.Id, x.EmployeeId, x.CompanyId, x.OrgUnitId, x.ValidFrom, x.ValidUntilExclusive }).ToListAsync(token),
+                "site-assignments" => await db.EmployeeSiteAssignments.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(size).Select(x => new { x.Id, x.EmployeeId, x.CompanyId, x.SiteId, x.ValidFrom, x.ValidUntilExclusive }).ToListAsync(token),
+                "employment-profiles" => await db.EmploymentProfiles.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(size).Select(x => new { x.Id, x.EmployeeId, x.CompanyId, x.StatusCode, x.Title, x.ValidFrom, x.ValidUntilExclusive }).ToListAsync(token),
                 _ => throw new ArgumentException("Unknown catalog type.")
             };
             return (new { kind, offset, pageSize = size, items }, actor);
@@ -137,6 +139,79 @@ public sealed class OrganizationManagement(IoDbContext db, PermissionTransaction
                 throw new DomainConflictException("Overlapping primary assignment.");
             db.EmployeeAssignments.Add(new() { Id = id, EmployeeId = employeeId, CompanyId = employee.CompanyId,
                 OrgUnitId = unitId, ValidFrom = from, ValidUntilExclusive = until });
+            return (id, id);
+        }, ct);
+
+    public Task<Guid> AddSiteAssignmentAsync(Guid actor, Guid employeeId, Guid siteId, DateOnly from, DateOnly? until, CancellationToken ct = default) =>
+        transaction.ExecuteAsync(actor, Manage, "org.site-assignment.created", async token =>
+        {
+            if (employeeId == Guid.Empty || siteId == Guid.Empty || (until is not null && until <= from)) throw new ArgumentException("Invalid site assignment.");
+            await transaction.LockAsync("IO.EmployeeSites." + employeeId.ToString("N"), token);
+            var employee = await db.Employees.SingleOrDefaultAsync(x => x.Id == employeeId, token) ?? throw new ArgumentException("Unknown employee.");
+            if (!await db.Sites.AnyAsync(x => x.Id == siteId && x.CompanyId == employee.CompanyId, token))
+                throw new ArgumentException("Unknown site or different company.");
+            if (await db.EmployeeSiteAssignments.AnyAsync(x => x.EmployeeId == employeeId &&
+                (until == null || x.ValidFrom < until) && (x.ValidUntilExclusive == null || from < x.ValidUntilExclusive), token))
+                throw new DomainConflictException("Overlapping primary site assignment.");
+            var id = Guid.NewGuid();
+            db.EmployeeSiteAssignments.Add(new() { Id = id, CompanyId = employee.CompanyId, EmployeeId = employeeId,
+                SiteId = siteId, ValidFrom = from, ValidUntilExclusive = until });
+            return (id, id);
+        }, ct);
+
+    public Task<Guid> MoveSiteAsync(Guid actor, Guid employeeId, Guid assignmentId, Guid siteId, DateOnly effective, CancellationToken ct = default) =>
+        transaction.ExecuteAsync(actor, Manage, "org.site-move." + assignmentId.ToString("N"), async token =>
+        {
+            if (employeeId == Guid.Empty || siteId == Guid.Empty) throw new ArgumentException("Invalid identifier.");
+            await transaction.LockAsync("IO.EmployeeSites." + employeeId.ToString("N"), token);
+            var current = await db.EmployeeSiteAssignments.SingleOrDefaultAsync(x => x.Id == assignmentId && x.EmployeeId == employeeId, token)
+                ?? throw new ArgumentException("Unknown site assignment.");
+            if (current.ValidUntilExclusive is not null || effective <= current.ValidFrom) throw new DomainConflictException("Site assignment is not open or date is invalid.");
+            if (!await db.Sites.AnyAsync(x => x.Id == siteId && x.CompanyId == current.CompanyId, token)) throw new ArgumentException("Unknown site or different company.");
+            if (await db.EmployeeSiteAssignments.AnyAsync(x => x.EmployeeId == employeeId && x.Id != assignmentId &&
+                (x.ValidUntilExclusive == null || effective < x.ValidUntilExclusive), token))
+                throw new DomainConflictException("Site transfer overlaps an existing assignment.");
+            current.ValidUntilExclusive = effective;
+            var id = Guid.NewGuid();
+            db.EmployeeSiteAssignments.Add(new() { Id = id, CompanyId = current.CompanyId, EmployeeId = employeeId,
+                SiteId = siteId, ValidFrom = effective });
+            return (id, id);
+        }, ct);
+
+    public Task<Guid> AddEmploymentProfileAsync(Guid actor, Guid employeeId, string statusCode, string? title, DateOnly from, DateOnly? until, CancellationToken ct = default) =>
+        transaction.ExecuteAsync(actor, Manage, "org.employment.created", async token =>
+        {
+            ValidateName(statusCode, 80);
+            if (title is not null) ValidateName(title, 200);
+            if (employeeId == Guid.Empty || (until is not null && until <= from)) throw new ArgumentException("Invalid employment interval.");
+            await transaction.LockAsync("IO.EmploymentProfiles." + employeeId.ToString("N"), token);
+            var employee = await db.Employees.SingleOrDefaultAsync(x => x.Id == employeeId, token) ?? throw new ArgumentException("Unknown employee.");
+            if (await db.EmploymentProfiles.AnyAsync(x => x.EmployeeId == employeeId &&
+                (until == null || x.ValidFrom < until) && (x.ValidUntilExclusive == null || from < x.ValidUntilExclusive), token))
+                throw new DomainConflictException("Overlapping employment profile.");
+            var id = Guid.NewGuid();
+            db.EmploymentProfiles.Add(new() { Id = id, CompanyId = employee.CompanyId, EmployeeId = employeeId,
+                StatusCode = statusCode, Title = title, ValidFrom = from, ValidUntilExclusive = until });
+            return (id, id);
+        }, ct);
+
+    public Task<Guid> ChangeEmploymentProfileAsync(Guid actor, Guid employeeId, Guid profileId, string statusCode, string? title, DateOnly effective, CancellationToken ct = default) =>
+        transaction.ExecuteAsync(actor, Manage, "org.employment-change." + profileId.ToString("N"), async token =>
+        {
+            ValidateName(statusCode, 80);
+            if (title is not null) ValidateName(title, 200);
+            if (employeeId == Guid.Empty) throw new ArgumentException("Invalid employee.");
+            await transaction.LockAsync("IO.EmploymentProfiles." + employeeId.ToString("N"), token);
+            var current = await db.EmploymentProfiles.SingleOrDefaultAsync(x => x.Id == profileId && x.EmployeeId == employeeId, token)
+                ?? throw new ArgumentException("Unknown employment profile.");
+            if (current.ValidUntilExclusive is not null || effective <= current.ValidFrom) throw new DomainConflictException("Profile is not open or date is invalid.");
+            if (await db.EmploymentProfiles.AnyAsync(x => x.EmployeeId == employeeId && x.Id != profileId &&
+                (x.ValidUntilExclusive == null || effective < x.ValidUntilExclusive), token))
+                throw new DomainConflictException("Employment change overlaps an existing profile.");
+            current.ValidUntilExclusive = effective;
+            var id = Guid.NewGuid();
+            db.EmploymentProfiles.Add(new() { Id = id, CompanyId = current.CompanyId, EmployeeId = employeeId,
+                StatusCode = statusCode, Title = title, ValidFrom = effective });
             return (id, id);
         }, ct);
 
