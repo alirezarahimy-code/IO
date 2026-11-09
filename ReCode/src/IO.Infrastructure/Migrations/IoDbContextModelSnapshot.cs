@@ -108,6 +108,80 @@ namespace IO.Infrastructure.Migrations
                     b.ToTable("Companies", (string)null);
                 });
 
+            modelBuilder.Entity("IO.Infrastructure.Storage.DailyCalculationRunRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AnomaliesJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("InputSnapshotJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("ObservedTicks")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("RuleVersionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ScheduleAssignmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SourceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("WindowEndUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("WindowStartUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateOnly>("WorkDate")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("ScheduleAssignmentId");
+
+                    b.HasIndex("SourceId");
+
+                    b.HasIndex("EmployeeId", "CompanyId");
+
+                    b.HasIndex("RuleVersionId", "CompanyId");
+
+                    b.HasIndex("EmployeeId", "WorkDate", "CreatedAtUtc");
+
+                    b.ToTable("DailyCalculationRuns", null, t =>
+                        {
+                            t.HasTrigger("TR_DailyCalculationRuns_Immutable");
+
+                            t.HasCheckConstraint("CK_CalculationRuns_Ticks", "[ObservedTicks] IS NULL OR [ObservedTicks] >= 0");
+
+                            t.HasCheckConstraint("CK_CalculationRuns_Utc", "DATEPART(TZOFFSET, [WindowStartUtc]) = 0 AND DATEPART(TZOFFSET, [WindowEndUtc]) = 0 AND DATEPART(TZOFFSET, [CreatedAtUtc]) = 0");
+
+                            t.HasCheckConstraint("CK_CalculationRuns_Window", "[WindowEndUtc] > [WindowStartUtc]");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
             modelBuilder.Entity("IO.Infrastructure.Storage.EmployeeAssignmentRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -288,6 +362,56 @@ namespace IO.Infrastructure.Migrations
                     b.HasIndex("SiteId");
 
                     b.ToTable("EventSources", (string)null);
+                });
+
+            modelBuilder.Entity("IO.Infrastructure.Storage.ObservedRuleVersionRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("AfterMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Algorithm")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<int>("BeforeMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.ToTable("ObservedRuleVersions", null, t =>
+                        {
+                            t.HasTrigger("TR_ObservedRuleVersions_Immutable");
+
+                            t.HasCheckConstraint("CK_ObservedRules_Algorithm", "[Algorithm] = N'paired-v1'");
+
+                            t.HasCheckConstraint("CK_ObservedRules_CreatedUtc", "DATEPART(TZOFFSET, [CreatedAtUtc]) = 0");
+
+                            t.HasCheckConstraint("CK_ObservedRules_Margins", "[BeforeMinutes] BETWEEN 0 AND 720 AND [AfterMinutes] BETWEEN 0 AND 720");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("IO.Infrastructure.Storage.OrgUnitRecord", b =>
@@ -817,6 +941,41 @@ namespace IO.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("IO.Infrastructure.Storage.DailyCalculationRunRecord", b =>
+                {
+                    b.HasOne("IO.Infrastructure.Storage.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IO.Infrastructure.Storage.WorkScheduleAssignmentRecord", null)
+                        .WithMany()
+                        .HasForeignKey("ScheduleAssignmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IO.Infrastructure.Storage.EventSourceRecord", null)
+                        .WithMany()
+                        .HasForeignKey("SourceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IO.Infrastructure.Storage.EmployeeRecord", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeeId", "CompanyId")
+                        .HasPrincipalKey("Id", "CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IO.Infrastructure.Storage.ObservedRuleVersionRecord", null)
+                        .WithMany()
+                        .HasForeignKey("RuleVersionId", "CompanyId")
+                        .HasPrincipalKey("Id", "CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("IO.Infrastructure.Storage.EmployeeAssignmentRecord", b =>
                 {
                     b.HasOne("IO.Infrastructure.Storage.EmployeeRecord", null)
@@ -876,6 +1035,21 @@ namespace IO.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("SiteId")
                         .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("IO.Infrastructure.Storage.ObservedRuleVersionRecord", b =>
+                {
+                    b.HasOne("IO.Infrastructure.Storage.CompanyRecord", null)
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IO.Infrastructure.Storage.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("IO.Infrastructure.Storage.OrgUnitRecord", b =>
