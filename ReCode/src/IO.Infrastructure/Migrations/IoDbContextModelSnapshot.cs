@@ -22,6 +22,26 @@ namespace IO.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("IO.Infrastructure.Storage.CalculationInputRevisionRecord", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<long>("Revision")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CalculationInputRevision", null, t =>
+                        {
+                            t.HasTrigger("TR_CalculationInputRevision_Monotonic");
+
+                            t.HasCheckConstraint("CK_CalculationInputRevision_Singleton", "[Id] = 1 AND [Revision] >= 0");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
             modelBuilder.Entity("IO.Infrastructure.Storage.CalendarDayRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -50,10 +70,14 @@ namespace IO.Infrastructure.Migrations
 
                     b.ToTable("CalendarDays", null, t =>
                         {
+                            t.HasTrigger("TR_Revision_CalendarDays");
+
                             t.HasCheckConstraint("CK_CalendarDays_Kind", "[Kind] IN (0, 1, 2)");
 
                             t.HasCheckConstraint("CK_CalendarDays_RecordedUtc", "DATEPART(TZOFFSET, [RecordedAtUtc]) = 0");
                         });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("IO.Infrastructure.Storage.CalendarRecord", b =>
@@ -79,7 +103,12 @@ namespace IO.Infrastructure.Migrations
 
                     b.HasIndex("CompanyId");
 
-                    b.ToTable("Calendars", (string)null);
+                    b.ToTable("Calendars", null, t =>
+                        {
+                            t.HasTrigger("TR_Revision_Calendars");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("IO.Infrastructure.Storage.CompanyRecord", b =>
@@ -105,7 +134,12 @@ namespace IO.Infrastructure.Migrations
 
                     b.HasIndex("OrganizationId");
 
-                    b.ToTable("Companies", (string)null);
+                    b.ToTable("Companies", null, t =>
+                        {
+                            t.HasTrigger("TR_Revision_Companies");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("IO.Infrastructure.Storage.CorrectionDecisionRecord", b =>
@@ -139,6 +173,8 @@ namespace IO.Infrastructure.Migrations
                     b.ToTable("CorrectionDecisions", null, t =>
                         {
                             t.HasTrigger("TR_CorrectionDecisions_Immutable");
+
+                            t.HasTrigger("TR_Revision_CorrectionDecisions");
 
                             t.HasCheckConstraint("CK_CorrectionDecisions_Decision", "[Decision] IN (1,2,3)");
 
@@ -181,6 +217,8 @@ namespace IO.Infrastructure.Migrations
                     b.ToTable("CorrectionPolicies", null, t =>
                         {
                             t.HasTrigger("TR_CorrectionPolicies_Immutable");
+
+                            t.HasTrigger("TR_Revision_CorrectionPolicies");
 
                             t.HasCheckConstraint("CK_CorrectionPolicies_Utc", "DATEPART(TZOFFSET, [CreatedAtUtc]) = 0");
                         });
@@ -245,6 +283,8 @@ namespace IO.Infrastructure.Migrations
                         {
                             t.HasTrigger("TR_CorrectionRequests_ImmutablePayload");
 
+                            t.HasTrigger("TR_Revision_CorrectionRequests");
+
                             t.HasCheckConstraint("CK_CorrectionRequests_Kind", "[PunchKind] IN (0,1)");
 
                             t.HasCheckConstraint("CK_CorrectionRequests_State", "[State] IN (0,1,2,3)");
@@ -275,6 +315,9 @@ namespace IO.Infrastructure.Migrations
 
                     b.Property<Guid>("EmployeeId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<long?>("InputRevision")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("InputSnapshotJson")
                         .IsRequired()
@@ -318,6 +361,8 @@ namespace IO.Infrastructure.Migrations
                     b.ToTable("DailyCalculationRuns", null, t =>
                         {
                             t.HasTrigger("TR_DailyCalculationRuns_Immutable");
+
+                            t.HasCheckConstraint("CK_CalculationRuns_Revision", "[InputRevision] IS NULL OR [InputRevision] >= 0");
 
                             t.HasCheckConstraint("CK_CalculationRuns_Ticks", "[ObservedTicks] IS NULL OR [ObservedTicks] >= 0");
 
@@ -398,7 +443,12 @@ namespace IO.Infrastructure.Migrations
                     b.HasIndex("CompanyId", "PersonnelNumber")
                         .IsUnique();
 
-                    b.ToTable("Employees", (string)null);
+                    b.ToTable("Employees", null, t =>
+                        {
+                            t.HasTrigger("TR_Revision_Employees");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("IO.Infrastructure.Storage.EmployeeSiteAssignmentRecord", b =>
@@ -508,7 +558,12 @@ namespace IO.Infrastructure.Migrations
 
                     b.HasIndex("SiteId");
 
-                    b.ToTable("EventSources", (string)null);
+                    b.ToTable("EventSources", null, t =>
+                        {
+                            t.HasTrigger("TR_Revision_EventSources");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("IO.Infrastructure.Storage.ObservedRuleVersionRecord", b =>
@@ -550,6 +605,8 @@ namespace IO.Infrastructure.Migrations
                     b.ToTable("ObservedRuleVersions", null, t =>
                         {
                             t.HasTrigger("TR_ObservedRuleVersions_Immutable");
+
+                            t.HasTrigger("TR_Revision_ObservedRuleVersions");
 
                             t.HasCheckConstraint("CK_ObservedRules_Algorithm", "[Algorithm] = N'paired-v1'");
 
@@ -740,6 +797,8 @@ namespace IO.Infrastructure.Migrations
                         {
                             t.HasTrigger("TR_RawAttendanceEvents_Immutable");
 
+                            t.HasTrigger("TR_Revision_RawAttendanceEvents");
+
                             t.HasCheckConstraint("CK_RawEvents_ExternalIdNotEmpty", "[ExternalEventId] IS NULL OR DATALENGTH([ExternalEventId]) > 0");
 
                             t.HasCheckConstraint("CK_RawEvents_OccurredUtc", "[OccurredAtUtc] IS NULL OR DATEPART(TZOFFSET, [OccurredAtUtc]) = 0");
@@ -833,6 +892,8 @@ namespace IO.Infrastructure.Migrations
                         {
                             t.HasTrigger("TR_RawEventConflicts_Immutable");
 
+                            t.HasTrigger("TR_Revision_RawEventConflicts");
+
                             t.HasCheckConstraint("CK_RawEventConflicts_OccurredUtc", "[OccurredAtUtc] IS NULL OR DATEPART(TZOFFSET, [OccurredAtUtc]) = 0");
 
                             t.HasCheckConstraint("CK_RawEventConflicts_ReceivedUtc", "DATEPART(TZOFFSET, [ReceivedAtUtc]) = 0");
@@ -917,8 +978,12 @@ namespace IO.Infrastructure.Migrations
 
                     b.ToTable("ShiftDefinitions", null, t =>
                         {
+                            t.HasTrigger("TR_Revision_ShiftDefinitions");
+
                             t.HasCheckConstraint("CK_ShiftDefinitions_Interval", "([EndDayOffset] = 0 AND [EndsAt] > [StartsAt]) OR ([EndDayOffset] = 1 AND [EndsAt] <= [StartsAt])");
                         });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("IO.Infrastructure.Storage.SiteRecord", b =>
@@ -949,7 +1014,12 @@ namespace IO.Infrastructure.Migrations
 
                     b.HasIndex("CompanyId");
 
-                    b.ToTable("Sites", (string)null);
+                    b.ToTable("Sites", null, t =>
+                        {
+                            t.HasTrigger("TR_Revision_Sites");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("IO.Infrastructure.Storage.SourceEmployeeMappingRecord", b =>
@@ -1001,6 +1071,8 @@ namespace IO.Infrastructure.Migrations
 
                     b.ToTable("SourceEmployeeMappings", null, t =>
                         {
+                            t.HasTrigger("TR_Revision_SourceEmployeeMappings");
+
                             t.HasCheckConstraint("CK_SourceEmployeeMappings_EndUtc", "[ValidUntilUtcExclusive] IS NULL OR DATEPART(TZOFFSET, [ValidUntilUtcExclusive]) = 0");
 
                             t.HasCheckConstraint("CK_SourceEmployeeMappings_Identifier", "DATALENGTH([SourcePersonId]) > 0");
@@ -1009,6 +1081,8 @@ namespace IO.Infrastructure.Migrations
 
                             t.HasCheckConstraint("CK_SourceEmployeeMappings_StartUtc", "DATEPART(TZOFFSET, [ValidFromUtc]) = 0");
                         });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("IO.Infrastructure.Storage.SourceMappingChangeRecord", b =>
@@ -1183,8 +1257,12 @@ namespace IO.Infrastructure.Migrations
 
                     b.ToTable("WorkScheduleAssignments", null, t =>
                         {
+                            t.HasTrigger("TR_Revision_WorkScheduleAssignments");
+
                             t.HasCheckConstraint("CK_WorkScheduleAssignments_Interval", "[ValidUntilExclusive] IS NULL OR [ValidUntilExclusive] > [ValidFrom]");
                         });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("IO.Infrastructure.Storage.CalendarDayRecord", b =>
