@@ -302,10 +302,12 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
                 t.HasCheckConstraint("CK_CalculationRuns_Utc", "DATEPART(TZOFFSET, [WindowStartUtc]) = 0 AND DATEPART(TZOFFSET, [WindowEndUtc]) = 0 AND DATEPART(TZOFFSET, [CreatedAtUtc]) = 0");
                 t.HasCheckConstraint("CK_CalculationRuns_Ticks", "[ObservedTicks] IS NULL OR [ObservedTicks] >= 0");
                 t.HasCheckConstraint("CK_CalculationRuns_Revision", "[InputRevision] IS NULL OR [InputRevision] >= 0");
+                t.HasCheckConstraint("CK_CalculationRuns_MonitorState", "[InputMonitorState] IS NULL OR [InputMonitorState] IN (N'present', N'unverified')");
                 t.HasTrigger("TR_DailyCalculationRuns_Immutable"); t.UseSqlOutputClause(false);
             });
             b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
             b.Property(x => x.InputSnapshotJson).IsRequired(); b.Property(x => x.AnomaliesJson).IsRequired();
+            b.Property(x => x.InputMonitorState).HasMaxLength(16);
             b.HasIndex(x => new { x.EmployeeId, x.WorkDate, x.CreatedAtUtc });
             b.HasOne<EmployeeRecord>().WithMany().HasForeignKey(x => new { x.EmployeeId, x.CompanyId })
                 .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);

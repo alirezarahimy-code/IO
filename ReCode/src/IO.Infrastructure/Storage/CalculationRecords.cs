@@ -29,6 +29,8 @@ public sealed class DailyCalculationRunRecord
     public string AnomaliesJson { get; set; } = null!;
     // Null for historical runs created before input-change monitoring existed.
     public long? InputRevision { get; set; }
+    // Null for runs produced before monitor health was captured.
+    public string? InputMonitorState { get; set; }
     public long? ObservedTicks { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }
     public Guid CreatedByUserId { get; set; }
