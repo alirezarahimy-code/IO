@@ -86,7 +86,7 @@ public sealed class PeriodDiagnostics(IoDbContext db, PermissionTransaction tran
             // Verify every recorded ID and captured value against its immutable run;
             // malformed or externally fabricated evidence must not look consistent.
             var byId = runs.ToDictionary(x => x.Id);
-            var days = evidence!.Days;
+            var days = evidence!.Days!;
             valid = days.All(day => day.RunId is null
                 ? day.InputRevision is null && day.ObservedTicks is null && day.AnomaliesJson is null
                 : byId.TryGetValue(day.RunId.Value, out var run) && run.WorkDate == day.Date &&
