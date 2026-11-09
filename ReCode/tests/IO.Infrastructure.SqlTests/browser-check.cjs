@@ -760,6 +760,11 @@ async function main() {
     if (!scheduleText.includes('Browser self shift') || !scheduleText.includes('تعطیل') || !scheduleText.includes('Asia/Tehran')) throw new Error('Own schedule did not display stored calendar and shift');
     if ((await mySchedule.evaluate(async id => (await fetch('/schedules/' + id + '/2027-01-01')).status, employee)) !== 404)
       throw new Error('Self schedule grant exposed another employee schedule');
+    const ownWithForgedTarget = await mySchedule.evaluate(async id => {
+      const response = await fetch('/schedules/own/2027-03-01?employeeId=' + encodeURIComponent(id));
+      return response.ok ? (await response.json()).employeeId : null;
+    }, employee);
+    if (ownWithForgedTarget !== first) throw new Error('Own schedule accepted a client-selected employee');
     await mySchedule.locator('#filter input[name=workDate]').fill('2026-01-01');
     if (await mySchedule.locator('#result').isVisible()) throw new Error('Changing day left stale schedule visible');
     await mySchedule.locator('#filter button').click();

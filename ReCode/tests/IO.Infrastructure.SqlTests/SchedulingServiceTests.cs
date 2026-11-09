@@ -72,7 +72,7 @@ internal static class SchedulingServiceTests
                   await audit.SecurityAudit.AnyAsync(x => x.Action == "schedule.assignment.created:" + id.ToString("N")),
                 "schedule assignment persisted with audit");
         }
-        Guid self;
+        Guid self; var otherGlobalActor = Guid.NewGuid();
         await using (var scope = provider.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
@@ -93,6 +93,12 @@ internal static class SchedulingServiceTests
             if (existingReadSelf is null) db.Permissions.Add(new PermissionRecord { Id = selfPermission, Code = ScheduleReader.ReadSelf });
             if (existingReadScoped is null) db.Permissions.Add(new PermissionRecord { Id = scopedPermission, Code = ScheduleReader.ReadScoped });
             if (existingReadAll is null) db.Permissions.Add(new PermissionRecord { Id = allPermission, Code = ScheduleReader.ReadAll });
+            var otherEmployee = await db.Employees.Where(x => x.PersonnelNumber == "WEB-2").Select(x => x.Id).SingleAsync();
+            var globalRole = Guid.NewGuid();
+            db.Roles.Add(new RoleRecord { Id = globalRole, Name = "schedule own global actor test" });
+            db.Users.Add(new UserRecord { Id = otherGlobalActor, UserName = "schedule-own-global-test", EmployeeId = otherEmployee, IsActive = true });
+            db.UserRoles.Add(new UserRoleRecord { UserId = otherGlobalActor, RoleId = globalRole });
+            db.RolePermissions.Add(new RolePermissionRecord { RoleId = globalRole, PermissionId = allPermission });
             db.UserRoles.AddRange(new UserRoleRecord { UserId = self, RoleId = selfRole }, new UserRoleRecord { UserId = limited, RoleId = scopedRole });
             db.RolePermissions.AddRange(new RolePermissionRecord { RoleId = selfRole, PermissionId = selfPermission },
                 new RolePermissionRecord { RoleId = scopedRole, PermissionId = scopedPermission }, new RolePermissionRecord { RoleId = adminRole.Id, PermissionId = allPermission });
@@ -114,8 +120,10 @@ internal static class SchedulingServiceTests
                 "authorized schedule read resolves holiday and overnight site time");
             check(await reader.FindAsync(limited, employee, date, new DateOnly(2026, 2, 1)) is null &&
                   await reader.FindAsync(Guid.NewGuid(), employee, date, authorizationDate) is null &&
-                  await reader.FindAsync(self, Guid.NewGuid(), date, authorizationDate) is null,
-                "schedule read denies absent scope, actor and different employee");
+                  await reader.FindAsync(self, Guid.NewGuid(), date, authorizationDate) is null &&
+                  await reader.FindAsync(otherGlobalActor, employee, date, authorizationDate) is not null &&
+                  await reader.FindOwnAsync(otherGlobalActor, date, authorizationDate) is null,
+                "schedule read denies absent scope, actor and different employee; own view never uses global access for another employee");
         }
         await using (var scope = provider.CreateAsyncScope())
         {
