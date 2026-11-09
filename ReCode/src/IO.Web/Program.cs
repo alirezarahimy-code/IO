@@ -143,6 +143,8 @@ public static class IoWebHost
         app.MapGet("/assets/employee-home.js", () => Results.Content(Resource("IO.Web.Ui.employee-home.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/workflow", () => Results.Content(Resource("IO.Web.Ui.Workflow.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/workflow.js", () => Results.Content(Resource("IO.Web.Ui.workflow.js"), "text/javascript; charset=utf-8"));
+        app.MapGet("/workspace/my-reports", () => Results.Content(Resource("IO.Web.Ui.MyReports.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/my-reports.js", () => Results.Content(Resource("IO.Web.Ui.my-reports.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/my-attendance", () => Results.Content(Resource("IO.Web.Ui.MyAttendance.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/my-attendance.js", () => Results.Content(Resource("IO.Web.Ui.my-attendance.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/my-schedule", () => Results.Content(Resource("IO.Web.Ui.MySchedule.html"), "text/html; charset=utf-8"));
@@ -260,6 +262,8 @@ public static class IoWebHost
             catch (InvalidOperationException) { return Results.Conflict(); }
             catch (ArgumentOutOfRangeException) { return Results.BadRequest(); }
         });
+        app.MapGet("/calculations/own-report", (DateOnly start, DateOnly endExclusive, HttpContext c, PersonalReports service) =>
+            AdminRead(c, async actor => await service.InspectAsync(actor, start, endExclusive, c.RequestAborted)));
         app.MapGet("/attendance/own", (string fromUtc, string untilUtcExclusive, int? offset, HttpContext c, PersonalAttendance service) =>
             AdminRead(c, async actor => await service.ListAsync(actor, ParseExplicitTime(fromUtc), ParseExplicitTime(untilUtcExclusive), offset ?? 0, c.RequestAborted)));
         app.MapGet("/attendance/raw/{sourceId:guid}", (Guid sourceId, int? offset, HttpContext c, AttendanceIngestion service) =>

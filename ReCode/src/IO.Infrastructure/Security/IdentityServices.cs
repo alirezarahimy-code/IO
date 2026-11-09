@@ -41,6 +41,7 @@ public static class IdentityServices
         services.AddScoped<AttendanceIngestion>();
         services.AddScoped<PersonalAttendance>();
         services.AddScoped<ObservedCalculation>();
+        services.AddScoped<PersonalReports>();
         services.AddScoped<CorrectionWorkflow>();
         services.AddScoped<PeriodPreflight>();
         services.AddScoped<PeriodDrafts>();

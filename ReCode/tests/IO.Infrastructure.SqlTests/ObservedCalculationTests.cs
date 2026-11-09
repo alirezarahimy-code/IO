@@ -265,5 +265,32 @@ internal static class ObservedCalculationTests
               await Reject<ArgumentException>(() => Period(s => s.InspectAsync(admin, employee, date, date.AddDays(63)))) &&
               await Reject<ArgumentException>(() => Period(s => s.InspectAsync(admin, employee, date, date))),
               "period preflight requires explicit permission and a bounded nonempty interval");
+        var reportActor=Guid.NewGuid(); var otherReportActor=Guid.NewGuid(); var unlinkedActor=Guid.NewGuid(); var reportRole=Guid.NewGuid();
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db=scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var p=await db.Permissions.SingleOrDefaultAsync(x=>x.Code==PersonalReports.ReadSelf);
+            if(p is null){p=new PermissionRecord{Id=Guid.NewGuid(),Code=PersonalReports.ReadSelf};db.Permissions.Add(p);}
+            db.Roles.Add(new RoleRecord{Id=reportRole,Name="synthetic personal report role"});
+            db.Users.AddRange(new UserRecord{Id=reportActor,UserName="synthetic report actor",EmployeeId=employee,IsActive=true},
+                new UserRecord{Id=otherReportActor,UserName="synthetic other report actor",EmployeeId=replacementEmployee,IsActive=true},
+                new UserRecord{Id=unlinkedActor,UserName="synthetic unlinked report actor",IsActive=true});
+            db.RolePermissions.Add(new RolePermissionRecord{RoleId=reportRole,PermissionId=p.Id});
+            db.UserRoles.AddRange(new UserRoleRecord{UserId=reportActor,RoleId=reportRole},new UserRoleRecord{UserId=otherReportActor,RoleId=reportRole},new UserRoleRecord{UserId=unlinkedActor,RoleId=reportRole});
+            await db.SaveChangesAsync();
+        }
+        async Task<PersonalReports.Report> OwnReport(Guid who, DateOnly start, DateOnly until)
+        { await using var scope=provider.CreateAsyncScope();return await scope.ServiceProvider.GetRequiredService<PersonalReports>().InspectAsync(who,start,until); }
+        var personalReport=await OwnReport(reportActor,date,date.AddDays(2));
+        var otherReport=await OwnReport(otherReportActor,date,date.AddDays(1));
+        check(personalReport.Days.Count==2 && personalReport.Days[0].LatestRun?.Id==afterRemap && personalReport.Days[1].LatestRun is null &&
+              !personalReport.Approvable && personalReport.Freshness=="unknown" && otherReport.Days[0].LatestRun is null,
+              "personal report shows only linked employee latest historical runs and empty days");
+        check(await Reject<UnauthorizedAccessException>(()=>OwnReport(limited,date,date.AddDays(1))) &&
+              await Reject<UnauthorizedAccessException>(()=>OwnReport(unlinkedActor,date,date.AddDays(1))) &&
+              await Reject<ArgumentException>(()=>OwnReport(reportActor,date,date.AddDays(63))) &&
+              await Reject<ArgumentException>(()=>OwnReport(reportActor,date,date)),
+              "personal report requires explicit permission, linked employee and bounded interval");
+
     }
 }
