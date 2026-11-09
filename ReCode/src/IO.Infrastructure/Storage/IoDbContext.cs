@@ -36,6 +36,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
     public DbSet<CorrectionRequestRecord> CorrectionRequests => Set<CorrectionRequestRecord>();
     public DbSet<CorrectionDecisionRecord> CorrectionDecisions => Set<CorrectionDecisionRecord>();
     public DbSet<PeriodDraftRecord> PeriodDrafts => Set<PeriodDraftRecord>();
+    public DbSet<PeriodDiagnosticRecord> PeriodDiagnostics => Set<PeriodDiagnosticRecord>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
@@ -197,6 +198,20 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.ToTable("EventSources"); b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
             b.Property(x => x.Name).HasMaxLength(200).IsRequired(); b.Property(x => x.Version).IsRowVersion();
             b.HasOne<SiteRecord>().WithMany().HasForeignKey(x => x.SiteId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<PeriodDiagnosticRecord>(b =>
+        {
+            b.ToTable("PeriodDiagnostics", t =>
+            {
+                t.HasCheckConstraint("CK_PeriodDiagnostics_Revision", "[InputRevision] IS NULL OR [InputRevision] >= 0");
+                t.HasCheckConstraint("CK_PeriodDiagnostics_Json", "ISJSON([EvidenceJson]) = 1");
+                t.HasCheckConstraint("CK_PeriodDiagnostics_Utc", "DATEPART(TZOFFSET, [CreatedAtUtc]) = 0");
+                t.HasTrigger("TR_PeriodDiagnostics_Immutable"); t.UseSqlOutputClause(false);
+            });
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever(); b.Property(x => x.EvidenceJson).IsRequired();
+            b.HasIndex(x => new { x.DraftId, x.CreatedAtUtc });
+            b.HasOne<PeriodDraftRecord>().WithMany().HasForeignKey(x => x.DraftId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
         });
         model.Entity<PeriodDraftRecord>(b =>
         {

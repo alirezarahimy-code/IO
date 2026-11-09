@@ -11,3 +11,14 @@ public sealed class PeriodDraftRecord
     public Guid CreatedByUserId { get; set; }
     public DateTimeOffset CreatedAtUtc { get; set; }
 }
+
+/// <summary>Immutable diagnostic evidence, never a period approval or lock.</summary>
+public sealed class PeriodDiagnosticRecord
+{
+    public Guid Id { get; set; }
+    public Guid DraftId { get; set; }
+    public long? InputRevision { get; set; }
+    public string EvidenceJson { get; set; } = null!;
+    public Guid CreatedByUserId { get; set; }
+    public DateTimeOffset CreatedAtUtc { get; set; }
+}
