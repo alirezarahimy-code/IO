@@ -188,6 +188,12 @@ async function main() {
     if (await deniedUsers.locator('#body tr').count() !== 0 || await deniedUsers.locator('#create-form button').isEnabled())
       throw new Error('User workspace exposed accounts without identity management permission');
     await deniedUsers.close();
+    const deniedRoles = await context.newPage();
+    await deniedRoles.goto(address + '/workspace/roles');
+    await deniedRoles.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
+    if (await deniedRoles.locator('#body tr').count() !== 0 || await deniedRoles.locator('#role-form button').isEnabled()) throw new Error('Role workspace exposed data without permission');
+    await deniedRoles.close();
+
 
 
 
@@ -288,6 +294,26 @@ async function main() {
     if (!(await userRow.textContent()).includes('فعال') || (await userLogin.evaluate(async()=> (await fetch('/auth/me')).status)) !== 401)
       throw new Error('Re-enabling user resurrected an old session');
     await userContext.close(); await usersPage.close();
+    const rolesPage = await context.newPage();
+    await rolesPage.goto(address + '/workspace/roles');
+    await rolesPage.waitForFunction(() => !document.querySelector('#role-form button').disabled);
+    await rolesPage.locator('#role-form input[name=name]').fill('workspace-browser-role');
+    await rolesPage.locator('#role-form button').click();
+    await rolesPage.waitForFunction(() => document.getElementById('notice').textContent.includes('نقش ثبت شد'));
+    const workspaceRole = (await rolesPage.locator('#notice').textContent()).split('شناسه: ')[1];
+    await rolesPage.locator('#permission-form input[name=roleId]').fill(workspaceRole);
+    await rolesPage.locator('#permission-form select[name=code]').selectOption('schedule.read.self');
+    await rolesPage.locator('#permission-form button').click();
+    await rolesPage.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز اعطا شد'));
+    await rolesPage.locator('[data-kind=role-permissions]').click();
+    await rolesPage.locator('#body tr').filter({hasText:workspaceRole}).waitFor();
+    await rolesPage.locator('#permission-form input[name=roleId]').fill(workspaceRole);
+    await rolesPage.locator('#permission-form select[name=code]').selectOption('schedule.read.self');
+    await rolesPage.locator('#permission-form select[name=operation]').selectOption('revoke');
+    await rolesPage.locator('#permission-form button').click();
+    await rolesPage.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز لغو شد'));
+    if (await rolesPage.locator('#body tr').filter({hasText:workspaceRole}).count()) throw new Error('Role permission revoke was not persisted');
+    await rolesPage.close();
     const adminId = await page.evaluate(async () => (await (await fetch('/auth/me')).json()).id);
     async function submit(formId) {
       await clearResult();
@@ -443,6 +469,25 @@ async function main() {
     await page.locator('#unit input[name=companyId]').fill(company);
     await page.locator('#unit input[name=name]').fill('Workspace history unit');
     const historyUnit = await submit('unit');
+    const scopePage = await context.newPage();
+    await scopePage.goto(address + '/workspace/roles');
+    await scopePage.waitForFunction(() => !document.querySelector('#scope-form button').disabled);
+    await scopePage.locator('[data-kind=user-scopes]').click();
+    await scopePage.waitForFunction(() => !document.querySelector('#scope-form button').disabled);
+    await scopePage.locator('#scope-form input[name=userId]').fill(workspaceUserId);
+    await scopePage.locator('#scope-form input[name=unitId]').fill(historyUnit);
+    await scopePage.locator('#scope-form input[name=validFrom]').fill('2027-01-01');
+    await scopePage.locator('#scope-form input[name=validUntilExclusive]').fill('2027-02-01');
+    await scopePage.locator('#scope-form button').click();
+    await scopePage.waitForFunction(() => document.getElementById('notice').textContent.includes('محدوده اعطا شد'));
+    const scopeId = (await scopePage.locator('#notice').textContent()).split('شناسه: ')[1];
+    await scopePage.locator('#body tr').filter({hasText:scopeId}).waitFor();
+    await scopePage.locator('#revoke-form input').fill(scopeId);
+    await scopePage.locator('#revoke-form button').click();
+    await scopePage.waitForFunction(() => document.getElementById('notice').textContent.includes('محدوده لغو شد'));
+    if (await scopePage.locator('#body tr').filter({hasText:scopeId}).count()) throw new Error('Scope revoke was not persisted');
+    await scopePage.close();
+
     const historyPage = await context.newPage();
     await historyPage.goto(address + '/workspace/employee-history');
     await historyPage.waitForFunction(() => !document.querySelector('#create-form button').disabled);

@@ -131,6 +131,8 @@ public static class IoWebHost
         // enforce organization.manage in the service, never merely in the UI.
         foreach (var page in new[] { "/workspace/calendars", "/workspace/shifts", "/workspace/schedules", "/workspace/employee-history", "/workspace/sources" })
             app.MapGet(page, () => Results.Content(Resource("IO.Web.Ui.Scheduling.html"), "text/html; charset=utf-8"));
+        app.MapGet("/workspace/roles", () => Results.Content(Resource("IO.Web.Ui.Roles.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/roles.js", () => Results.Content(Resource("IO.Web.Ui.roles.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/users", () => Results.Content(Resource("IO.Web.Ui.Users.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/users.js", () => Results.Content(Resource("IO.Web.Ui.users.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/audit", () => Results.Content(Resource("IO.Web.Ui.Audit.html"), "text/html; charset=utf-8"));
