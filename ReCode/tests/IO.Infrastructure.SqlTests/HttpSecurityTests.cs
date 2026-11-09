@@ -133,6 +133,8 @@ internal static class HttpSecurityTests
                   (await anon.GetAsync("/workspace/organization")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/workspace/employee-history")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/workspace/rules")).StatusCode == HttpStatusCode.Unauthorized &&
+                  (await anon.GetAsync("/workspace/sources")).StatusCode == HttpStatusCode.Unauthorized &&
+                  (await anon.GetAsync("/attendance/sources")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/workspace/calendars")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/workspace/shifts")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/workspace/schedules")).StatusCode == HttpStatusCode.Unauthorized &&
@@ -241,11 +243,16 @@ internal static class HttpSecurityTests
             var newCompany = await CreateId("/org/companies", new { OrganizationId = newOrg, Name = "HTTP synthetic company" });
             var newSite = await CreateId("/org/sites", new { CompanyId = newCompany, Name = "HTTP site", TimeZoneId = "Asia/Tehran" });
             var rawSource = await CreateId("/attendance/sources", new { SiteId = newSite, Name = "HTTP synthetic source" });
+            using var sourceListing = await adminClient.GetAsync("/attendance/sources?offset=0");
+            var sourceListingText = await sourceListing.Content.ReadAsStringAsync();
             var rawEvent = new { SourceId = rawSource, ExternalId = "http-1", PersonId = "test-person", OccurredAt = "2026-01-01T08:00:00Z", SourceZone = "Asia/Tehran", EventType = "in", Payload = Convert.ToBase64String(new byte[] { 1, 2 }) };
             check((await PostAdmin(scoped, "/attendance/simulated-events", rawEvent)).StatusCode == HttpStatusCode.Forbidden &&
                   (await adminClient.PostAsJsonAsync("/attendance/simulated-events", rawEvent)).StatusCode == HttpStatusCode.BadRequest &&
-                  (await scoped.GetAsync($"/attendance/raw/{rawSource}")).StatusCode == HttpStatusCode.Forbidden,
-                "HTTP raw ingestion requires permission and CSRF");
+                  (await scoped.GetAsync($"/attendance/raw/{rawSource}")).StatusCode == HttpStatusCode.Forbidden &&
+                  (await scoped.GetAsync("/attendance/sources")).StatusCode == HttpStatusCode.Forbidden &&
+                  (await adminClient.GetAsync("/attendance/sources?offset=-1")).StatusCode == HttpStatusCode.BadRequest &&
+                  sourceListing.StatusCode == HttpStatusCode.OK && sourceListingText.Contains(rawSource.ToString(), StringComparison.OrdinalIgnoreCase),
+                "HTTP raw ingestion and source listing require permission and CSRF");
             using var firstRaw = await PostAdmin(adminClient, "/attendance/simulated-events", rawEvent);
             using var retryRaw = await PostAdmin(adminClient, "/attendance/simulated-events", rawEvent);
             using var firstRawJson = JsonDocument.Parse(await firstRaw.Content.ReadAsStringAsync());

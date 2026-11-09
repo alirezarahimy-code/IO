@@ -38,7 +38,15 @@ internal static class AttendanceIngestionTests
         bool denied = false;
         try { await Use(s => s.AppendAsync(limited, source, "x", null, null, null, null, [])); }
         catch (UnauthorizedAccessException) { denied = true; }
-        check(denied, "raw ingestion requires explicit permission");
+        bool listDenied = false; bool invalidPage = false;
+        try { await Use(s => s.ListSourcesAsync(limited, 0)); }
+        catch (UnauthorizedAccessException) { listDenied = true; }
+        try { await Use(s => s.ListSourcesAsync(admin, -1)); }
+        catch (ArgumentException) { invalidPage = true; }
+        var sourceListing = JsonSerializer.SerializeToElement(await Use(s => s.ListSourcesAsync(admin, 0)));
+        check(denied && listDenied && invalidPage && sourceListing.GetProperty("pageSize").GetInt32() == 50 &&
+              sourceListing.GetProperty("items").EnumerateArray().Any(x => x.GetProperty("Id").GetGuid() == source),
+              "raw ingestion and bounded source listing require explicit permission");
         var concurrent = await Task.WhenAll(Append("concurrent", [1, 2]), Append("concurrent", [1, 2]));
         check(concurrent.Count(x => x.Outcome == RawEventAppendResult.Appended) == 1 &&
             concurrent.Count(x => x.Outcome == RawEventAppendResult.AlreadyRecorded) == 1 && concurrent[0].EventId == concurrent[1].EventId,

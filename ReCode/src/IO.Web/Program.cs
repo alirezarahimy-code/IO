@@ -123,7 +123,7 @@ public static class IoWebHost
         app.MapGet("/panel", () => Results.Content(Resource("IO.Web.Ui.Panel.html"), "text/html; charset=utf-8")).AllowAnonymous();
         // Shell and assets are authenticated; all data operations additionally
         // enforce organization.manage in the service, never merely in the UI.
-        foreach (var page in new[] { "/workspace/calendars", "/workspace/shifts", "/workspace/schedules", "/workspace/employee-history" })
+        foreach (var page in new[] { "/workspace/calendars", "/workspace/shifts", "/workspace/schedules", "/workspace/employee-history", "/workspace/sources" })
             app.MapGet(page, () => Results.Content(Resource("IO.Web.Ui.Scheduling.html"), "text/html; charset=utf-8"));
         app.MapGet("/workspace/rules", () => Results.Content(Resource("IO.Web.Ui.Rules.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/rules.js", () => Results.Content(Resource("IO.Web.Ui.rules.js"), "text/javascript; charset=utf-8"));
@@ -233,6 +233,8 @@ public static class IoWebHost
         app.MapPost("/attendance/mappings", (SourceMappingInput input, HttpContext c, IAntiforgery csrf, AttendanceIngestion service) =>
             Admin(c, csrf, actor => service.AddMappingAsync(actor, input.SourceId, input.SourcePersonId, input.EmployeeId,
                 ParseExplicitTime(input.ValidFrom).ToUniversalTime(), input.ValidUntilExclusive is null ? null : ParseExplicitTime(input.ValidUntilExclusive).ToUniversalTime(), c.RequestAborted)));
+        app.MapGet("/attendance/sources", (int? offset, HttpContext c, AttendanceIngestion service) =>
+            AdminRead(c, actor => service.ListSourcesAsync(actor, offset ?? 0, c.RequestAborted)));
         app.MapPost("/attendance/sources", (AttendanceSourceInput input, HttpContext c, IAntiforgery csrf, AttendanceIngestion service) =>
             Admin(c, csrf, actor => service.CreateSourceAsync(actor, input.SiteId, input.Name, c.RequestAborted)));
         app.MapPost("/attendance/simulated-events", (SimulatedEventInput input, HttpContext c, IAntiforgery csrf, AttendanceIngestion service) =>

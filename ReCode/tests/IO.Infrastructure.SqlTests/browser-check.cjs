@@ -97,6 +97,12 @@ async function main() {
     if (await deniedSchedule.locator('#body tr').count() !== 0 || await deniedSchedule.locator('#create-form button').isEnabled())
       throw new Error('Schedule workspace exposed data without permission');
     await deniedSchedule.close();
+    const deniedSources = await context.newPage();
+    await deniedSources.goto(address + '/workspace/sources');
+    await deniedSources.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
+    if (await deniedSources.locator('#body tr').count() !== 0 || await deniedSources.locator('#create-form button').isEnabled())
+      throw new Error('Source workspace exposed data without permission');
+    await deniedSources.close();
     const deniedHistory = await context.newPage();
     await deniedHistory.goto(address + '/workspace/employee-history');
     await deniedHistory.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
@@ -229,6 +235,17 @@ async function main() {
     await page.locator('#site input[name=name]').fill('Browser synthetic site');
     await page.locator('#site input[name=timeZoneId]').fill('Asia/Tehran');
     const site = await submit('site');
+    const sourcePage = await context.newPage();
+    await sourcePage.goto(address + '/workspace/sources');
+    await sourcePage.waitForFunction(() => !document.querySelector('#create-form button').disabled);
+    await sourcePage.locator('[name=name]').fill('Workspace source');
+    await sourcePage.locator('[name=siteId]').fill(site);
+    await sourcePage.locator('#create-form button').click();
+    const workspaceSourceRow = sourcePage.locator('#body tr').filter({hasText:'Workspace source'});
+    await workspaceSourceRow.waitFor();
+    const workspaceSource = await workspaceSourceRow.locator('td').last().textContent();
+    await sourcePage.close();
+
     const schedulePage = await context.newPage();
     await schedulePage.goto(address + '/workspace/calendars');
     await schedulePage.waitForFunction(() => !document.querySelector('#create-form button').disabled);
