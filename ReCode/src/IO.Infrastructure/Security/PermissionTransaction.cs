@@ -35,6 +35,11 @@ public sealed class PermissionTransaction(LoginIdentityDbContext identity, IoDbC
             await transaction.CommitAsync(ct);
             return result;
         }
+        catch (DbUpdateConcurrencyException)
+        {
+            // The write matched no rowversion; no audit or partial data may commit.
+            throw new DomainConflictException("The record changed; refresh and retry.");
+        }
         catch (Exception error) when (IsRetryableConcurrency(error))
         {
             // SQL Server chose this transaction as the deadlock victim or the

@@ -49,5 +49,29 @@ internal static class TransactionDeadlockTests
             check(results.Count(x => x) == 1 && await identity.SecurityAudit.CountAsync(x => x.Action == "test.deadlock:" + target.ToString("N")) == 1,
                 "real SQL deadlock rolls back one transaction and returns a retryable conflict with one audit");
         }
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var identity = scope.ServiceProvider.GetRequiredService<LoginIdentityDbContext>();
+            var transaction = scope.ServiceProvider.GetRequiredService<PermissionTransaction>();
+            var employeeId = await db.Employees.AsNoTracking().Select(x => x.Id).FirstAsync();
+            var originalName = await db.Employees.AsNoTracking().Where(x => x.Id == employeeId).Select(x => x.DisplayName).SingleAsync();
+            var conflicted = false;
+            try
+            {
+                await transaction.ExecuteAsync(actor, ObservedCalculation.Manage, "test.rowversion-conflict", async ct =>
+                {
+                    var employee = await db.Employees.SingleAsync(x => x.Id == employeeId, ct);
+                    employee.DisplayName = "must not commit";
+                    db.Entry(employee).Property(x => x.Version).OriginalValue = new byte[8];
+                    return (true, employeeId);
+                });
+            }
+            catch (DomainConflictException) { conflicted = true; }
+            db.ChangeTracker.Clear();
+            check(conflicted && await db.Employees.AsNoTracking().Where(x => x.Id == employeeId).Select(x => x.DisplayName).SingleAsync() == originalName &&
+                  !await identity.SecurityAudit.AnyAsync(x => x.Action == "test.rowversion-conflict:" + employeeId.ToString("N")),
+                  "optimistic concurrency failure returns conflict without committing data or audit");
+        }
     }
 }
