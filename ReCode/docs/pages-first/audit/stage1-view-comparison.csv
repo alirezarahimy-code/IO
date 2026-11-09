@@ -1,0 +1,75 @@
+relative_view,twf_original_path,aria_path,path_comparison,behavior_review
+AcceptRequest/Index.cshtml,TWF 4.28/App/Views/AcceptRequest/Index.cshtml,src/TWF/TWF.Web/Views/AcceptRequest/Index.cshtml,both,inventory-only
+AcceptRequest/_RequestsList.cshtml,TWF 4.28/App/Views/AcceptRequest/_RequestsList.cshtml,src/TWF/TWF.Web/Views/AcceptRequest/_RequestsList.cshtml,both,inventory-only
+ConstOT/Edit.cshtml,TWF 4.28/App/Views/ConstOT/Edit.cshtml,src/TWF/TWF.Web/Views/ConstOT/Edit.cshtml,both,inventory-only
+ConstOT/Index.cshtml,TWF 4.28/App/Views/ConstOT/Index.cshtml,src/TWF/TWF.Web/Views/ConstOT/Index.cshtml,both,inventory-only
+DailyDuty/Add.cshtml,TWF 4.28/App/Views/DailyDuty/Add.cshtml,src/TWF/TWF.Web/Views/DailyDuty/Add.cshtml,both,inventory-only
+DailyDuty/Edit.cshtml,TWF 4.28/App/Views/DailyDuty/Edit.cshtml,src/TWF/TWF.Web/Views/DailyDuty/Edit.cshtml,both,inventory-only
+DailyLeave/Add.cshtml,TWF 4.28/App/Views/DailyLeave/Add.cshtml,src/TWF/TWF.Web/Views/DailyLeave/Add.cshtml,both,inventory-only
+DailyLeave/Edit.cshtml,TWF 4.28/App/Views/DailyLeave/Edit.cshtml,src/TWF/TWF.Web/Views/DailyLeave/Edit.cshtml,both,inventory-only
+Deputy/Index.cshtml,TWF 4.28/App/Views/Deputy/Index.cshtml,src/TWF/TWF.Web/Views/Deputy/Index.cshtml,both,inventory-only
+Deputy/_CurrentDeputy.cshtml,TWF 4.28/App/Views/Deputy/_CurrentDeputy.cshtml,src/TWF/TWF.Web/Views/Deputy/_CurrentDeputy.cshtml,both,inventory-only
+Diagnostics/Schema.cshtml,,src/TWF/TWF.Web/Views/Diagnostics/Schema.cshtml,aria-only,inventory-only
+Early/Add.cshtml,TWF 4.28/App/Views/Early/Add.cshtml,src/TWF/TWF.Web/Views/Early/Add.cshtml,both,inventory-only
+Early/Edit.cshtml,TWF 4.28/App/Views/Early/Edit.cshtml,src/TWF/TWF.Web/Views/Early/Edit.cshtml,both,inventory-only
+EditRequest/Index.cshtml,TWF 4.28/App/Views/EditRequest/Index.cshtml,src/TWF/TWF.Web/Views/EditRequest/Index.cshtml,both,inventory-only
+Home/About.cshtml,TWF 4.28/App/Views/Home/About.cshtml,src/TWF/TWF.Web/Views/Home/About.cshtml,both,inventory-only
+Home/Index.cshtml,TWF 4.28/App/Views/Home/Index.cshtml,src/TWF/TWF.Web/Views/Home/Index.cshtml,both,inventory-only
+Home/NoUserInfoError.cshtml,,src/TWF/TWF.Web/Views/Home/NoUserInfoError.cshtml,aria-only,inventory-only
+Home/WorkReport.cshtml,,src/TWF/TWF.Web/Views/Home/WorkReport.cshtml,aria-only,inventory-only
+Home/WorkReport2.cshtml,,src/TWF/TWF.Web/Views/Home/WorkReport2.cshtml,aria-only,inventory-only
+HourlyDuty/Add.cshtml,TWF 4.28/App/Views/HourlyDuty/Add.cshtml,src/TWF/TWF.Web/Views/HourlyDuty/Add.cshtml,both,inventory-only
+HourlyDuty/Edit.cshtml,TWF 4.28/App/Views/HourlyDuty/Edit.cshtml,src/TWF/TWF.Web/Views/HourlyDuty/Edit.cshtml,both,inventory-only
+HourlyLeave/Add.cshtml,TWF 4.28/App/Views/HourlyLeave/Add.cshtml,src/TWF/TWF.Web/Views/HourlyLeave/Add.cshtml,both,inventory-only
+HourlyLeave/Edit.cshtml,TWF 4.28/App/Views/HourlyLeave/Edit.cshtml,src/TWF/TWF.Web/Views/HourlyLeave/Edit.cshtml,both,inventory-only
+Late/Add.cshtml,TWF 4.28/App/Views/Late/Add.cshtml,src/TWF/TWF.Web/Views/Late/Add.cshtml,both,inventory-only
+Late/Edit.cshtml,TWF 4.28/App/Views/Late/Edit.cshtml,src/TWF/TWF.Web/Views/Late/Edit.cshtml,both,inventory-only
+LeavesReport/Index.cshtml,TWF 4.28/App/Views/LeavesReport/Index.cshtml,src/TWF/TWF.Web/Views/LeavesReport/Index.cshtml,both,inventory-only
+LocationReport/Index.cshtml,TWF 4.28/App/Views/LocationReport/Index.cshtml,src/TWF/TWF.Web/Views/LocationReport/Index.cshtml,both,inventory-only
+Login/ChangePassword.cshtml,TWF 4.28/App/Views/Login/ChangePassword.cshtml,src/TWF/TWF.Web/Views/Login/ChangePassword.cshtml,both,inventory-only
+Login/ChangePasswordForce.cshtml,TWF 4.28/App/Views/Login/ChangePasswordForce.cshtml,src/TWF/TWF.Web/Views/Login/ChangePasswordForce.cshtml,both,inventory-only
+Login/CheckLock.cshtml,TWF 4.28/App/Views/Login/CheckLock.cshtml,src/TWF/TWF.Web/Views/Login/CheckLock.cshtml,both,inventory-only
+Login/Login.cshtml,TWF 4.28/App/Views/Login/Login.cshtml,src/TWF/TWF.Web/Views/Login/Login.cshtml,both,inventory-only
+OverTime/Add.cshtml,TWF 4.28/App/Views/OverTime/Add.cshtml,src/TWF/TWF.Web/Views/OverTime/Add.cshtml,both,inventory-only
+OverTime/Edit.cshtml,,src/TWF/TWF.Web/Views/OverTime/Edit.cshtml,aria-only,inventory-only
+OverTimeReport/Index.cshtml,TWF 4.28/App/Views/OverTimeReport/Index.cshtml,src/TWF/TWF.Web/Views/OverTimeReport/Index.cshtml,both,inventory-only
+OverTimeReport/Show.cshtml,TWF 4.28/App/Views/OverTimeReport/Show.cshtml,src/TWF/TWF.Web/Views/OverTimeReport/Show.cshtml,both,inventory-only
+PersonnelStatus/Index.cshtml,TWF 4.28/App/Views/PersonnelStatus/Index.cshtml,src/TWF/TWF.Web/Views/PersonnelStatus/Index.cshtml,both,inventory-only
+Record/Add.cshtml,TWF 4.28/App/Views/Record/Add.cshtml,src/TWF/TWF.Web/Views/Record/Add.cshtml,both,inventory-only
+Record/Edit.cshtml,TWF 4.28/App/Views/Record/Edit.cshtml,src/TWF/TWF.Web/Views/Record/Edit.cshtml,both,inventory-only
+RemainLeave/AllUsersRemainLeave.cshtml,,src/TWF/TWF.Web/Views/RemainLeave/AllUsersRemainLeave.cshtml,aria-only,inventory-only
+RemainLeave/ForPersonnel.cshtml,TWF 4.28/App/Views/RemainLeave/ForPersonnel.cshtml,src/TWF/TWF.Web/Views/RemainLeave/ForPersonnel.cshtml,both,inventory-only
+RemainLeave/GetForUser.cshtml,TWF 4.28/App/Views/RemainLeave/GetForUser.cshtml,src/TWF/TWF.Web/Views/RemainLeave/GetForUser.cshtml,both,inventory-only
+RemainLeave/Index.cshtml,TWF 4.28/App/Views/RemainLeave/Index.cshtml,src/TWF/TWF.Web/Views/RemainLeave/Index.cshtml,both,inventory-only
+Report/Index.cshtml,TWF 4.28/App/Views/Report/Index.cshtml,src/TWF/TWF.Web/Views/Report/Index.cshtml,both,inventory-only
+Request/FromUser.cshtml,TWF 4.28/App/Views/Request/FromUser.cshtml,src/TWF/TWF.Web/Views/Request/FromUser.cshtml,both,inventory-only
+Request/New.cshtml,TWF 4.28/App/Views/Request/New.cshtml,src/TWF/TWF.Web/Views/Request/New.cshtml,both,inventory-only
+Request/ShowPhoto.cshtml,TWF 4.28/App/Views/Request/ShowPhoto.cshtml,src/TWF/TWF.Web/Views/Request/ShowPhoto.cshtml,both,inventory-only
+Reward/Add.cshtml,TWF 4.28/App/Views/Reward/Add.cshtml,src/TWF/TWF.Web/Views/Reward/Add.cshtml,both,inventory-only
+SelectArea/Index.cshtml,TWF 4.28/App/Views/SelectArea/Index.cshtml,src/TWF/TWF.Web/Views/SelectArea/Index.cshtml,both,inventory-only
+Settings/Index.cshtml,TWF 4.28/App/Views/Settings/Index.cshtml,src/TWF/TWF.Web/Views/Settings/Index.cshtml,both,inventory-only
+Shared/EditorTemplates/DescriptionCombo.cshtml,,src/TWF/TWF.Web/Views/Shared/EditorTemplates/DescriptionCombo.cshtml,aria-only,inventory-only
+Shared/EditorTemplates/DutyDescriptionCombo.cshtml,,src/TWF/TWF.Web/Views/Shared/EditorTemplates/DutyDescriptionCombo.cshtml,aria-only,inventory-only
+Shared/EditorTemplates/LeaveDescriptionCombo.cshtml,,src/TWF/TWF.Web/Views/Shared/EditorTemplates/LeaveDescriptionCombo.cshtml,aria-only,inventory-only
+Shared/EditorTemplates/TimeSpanTemplate.cshtml,,src/TWF/TWF.Web/Views/Shared/EditorTemplates/TimeSpanTemplate.cshtml,aria-only,inventory-only
+Shared/EditorTemplates/TimeSpanTemplate2.cshtml,,src/TWF/TWF.Web/Views/Shared/EditorTemplates/TimeSpanTemplate2.cshtml,aria-only,inventory-only
+Shared/Error.cshtml,TWF 4.28/App/Views/Shared/Error.cshtml,src/TWF/TWF.Web/Views/Shared/Error.cshtml,both,inventory-only
+Shared/LockExpires.cshtml,,src/TWF/TWF.Web/Views/Shared/LockExpires.cshtml,aria-only,inventory-only
+Shared/LockPage.cshtml,,src/TWF/TWF.Web/Views/Shared/LockPage.cshtml,aria-only,inventory-only
+Shared/_CurrentTime.cshtml,TWF 4.28/App/Views/Shared/_CurrentTime.cshtml,src/TWF/TWF.Web/Views/Shared/_CurrentTime.cshtml,both,inventory-only
+Shared/_HomeStatus.cshtml,TWF 4.28/App/Views/Shared/_HomeStatus.cshtml,src/TWF/TWF.Web/Views/Shared/_HomeStatus.cshtml,both,inventory-only
+Shared/_Layout.cshtml,TWF 4.28/App/Views/Shared/_Layout.cshtml,src/TWF/TWF.Web/Views/Shared/_Layout.cshtml,both,inventory-only
+Shared/_Layout1.cshtml,,src/TWF/TWF.Web/Views/Shared/_Layout1.cshtml,aria-only,inventory-only
+Shared/_LogedInLayout.cshtml,,src/TWF/TWF.Web/Views/Shared/_LogedInLayout.cshtml,aria-only,inventory-only
+Shared/_Menu.cshtml,TWF 4.28/App/Views/Shared/_Menu.cshtml,src/TWF/TWF.Web/Views/Shared/_Menu.cshtml,both,inventory-only
+Shared/_RemainLeave.cshtml,TWF 4.28/App/Views/Shared/_RemainLeave.cshtml,src/TWF/TWF.Web/Views/Shared/_RemainLeave.cshtml,both,inventory-only
+Shared/_RequestForm.cshtml,TWF 4.28/App/Views/Shared/_RequestForm.cshtml,src/TWF/TWF.Web/Views/Shared/_RequestForm.cshtml,both,inventory-only
+Shared/_SelectMultiUser.cshtml,TWF 4.28/App/Views/Shared/_SelectMultiUser.cshtml,src/TWF/TWF.Web/Views/Shared/_SelectMultiUser.cshtml,both,inventory-only
+Shared/_Toolbar.cshtml,TWF 4.28/App/Views/Shared/_Toolbar.cshtml,src/TWF/TWF.Web/Views/Shared/_Toolbar.cshtml,both,inventory-only
+Shared/_ToolbarSettings.cshtml,TWF 4.28/App/Views/Shared/_ToolbarSettings.cshtml,src/TWF/TWF.Web/Views/Shared/_ToolbarSettings.cshtml,both,inventory-only
+Shared/_UserName.cshtml,TWF 4.28/App/Views/Shared/_UserName.cshtml,src/TWF/TWF.Web/Views/Shared/_UserName.cshtml,both,inventory-only
+ShowRequest/Index.cshtml,TWF 4.28/App/Views/ShowRequest/Index.cshtml,src/TWF/TWF.Web/Views/ShowRequest/Index.cshtml,both,inventory-only
+ShowUsersRequest/Index.cshtml,TWF 4.28/App/Views/ShowUsersRequest/Index.cshtml,src/TWF/TWF.Web/Views/ShowUsersRequest/Index.cshtml,both,inventory-only
+Undo/Index.cshtml,TWF 4.28/App/Views/Undo/Index.cshtml,src/TWF/TWF.Web/Views/Undo/Index.cshtml,both,inventory-only
+ViewR/Index.cshtml,TWF 4.28/App/Views/ViewR/Index.cshtml,src/TWF/TWF.Web/Views/ViewR/Index.cshtml,both,inventory-only
+_ViewStart.cshtml,TWF 4.28/App/Views/_ViewStart.cshtml,src/TWF/TWF.Web/Views/_ViewStart.cshtml,both,inventory-only

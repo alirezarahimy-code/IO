@@ -214,3 +214,24 @@ REQ.area.manage,organization,مدیریت مناطق مرتبط؛ مدل و دا
 REQ.account.password.change.self,identity,تغییر گذرواژه خود,planned-not-grantable,,determine-and-enforce,needs-action-level-review
 REQ.system.diagnostics.read,identity,مشاهده وضعیت و تشخیص سامانه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
 REQ.data.integrity.check,identity,بررسی یکپارچگی داده‌ها,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.self.history.filter,workflow,فیلتر تاریخ و نوع درخواست شخصی,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.team.edit,workflow,ویرایش درخواست دیگران در محدودهٔ مجاز,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.team.cancel,workflow,لغو درخواست دیگران در محدودهٔ مجاز,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.history.read,workflow,مشاهدهٔ تاریخچهٔ مراحل و تصمیم درخواست,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.attachment.read,workflow,مشاهدهٔ پیوست درخواست با محدودهٔ مجاز,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.attachment.write,workflow,ثبت پیوست درخواست,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.location.capture,workflow,ثبت موقعیت برای درخواست با سیاست مصوب,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.location.read,workflow,مشاهدهٔ موقعیت درخواست با محدودهٔ مجاز,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.review.single,workflow,مشاهدهٔ جزئیات درخواست قابل بررسی,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.approve.overtime-value,workflow,تعیین مقدار اضافه‌کار در تصمیم,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.policy.auto-finalize,workflow,تنظیم سیاست تعیین تکلیف خودکار در نبود مرحله,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.policy.time-lock.read,workflow,مشاهده قفل زمانی درخواست,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.delegation.candidates.read,workflow,مشاهده واجدان شرایط جانشینی,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.delegation.decisions.history,workflow,مشاهدهٔ تاریخچهٔ تصمیم جانشین,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.report.guard-leave.read,report,مشاهدهٔ مرخصی روز جاری در محدودهٔ ناظر,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.report.location.photo.read,report,مشاهده تصویر موقعیت در محدودهٔ مجاز,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.report.team-status.read,report,مشاهده وضعیت کارمندان در محدوده,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.notification.delivery.manage,settings,مدیریت کانال و تحویل اعلان,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.notification.read.self,settings,مشاهده اعلان‌های حساب خود,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.account.sessions.read.self,identity,مشاهده نشست‌های خود,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.account.sessions.revoke.self,identity,لغو نشست‌های خود,planned-not-grantable,,determine-and-enforce,needs-action-level-review

@@ -1,0 +1,355 @@
+source,controller,method,line,path,area_fa,method_review,linked_capability,implementation_status
+TWF-original-decompiled,AcceptRequest,Index,21,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/AcceptRequestController.cs,تصمیم و کارتابل,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,AcceptRequest,Accept,111,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/AcceptRequestController.cs,تصمیم و کارتابل,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,AcceptRequest,AcceptRequest,134,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/AcceptRequestController.cs,تصمیم و کارتابل,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,AcceptRequest,CancelRequest,149,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/AcceptRequestController.cs,تصمیم و کارتابل,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,AcceptRequest,Accept,813,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/AcceptRequestController.cs,تصمیم و کارتابل,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,AcceptRequest,AcceptAll,900,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/AcceptRequestController.cs,تصمیم و کارتابل,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,AcceptRequest,Cancel,974,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/AcceptRequestController.cs,تصمیم و کارتابل,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,AcceptRequest,AcceptAllRequests,1052,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/AcceptRequestController.cs,تصمیم و کارتابل,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,AcceptRequest,CancelAllRequests,1077,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/AcceptRequestController.cs,تصمیم و کارتابل,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,ChangePass,ChangePassCheck,26,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/ChangePassController.cs,حساب و امنیت,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,ChangePass,PassChanged,78,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/ChangePassController.cs,حساب و امنیت,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,ConstOT,Index,22,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/ConstOTController.cs,اضافه‌کار ثابت,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,ConstOT,Edit,60,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/ConstOTController.cs,اضافه‌کار ثابت,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,ConstOT,Edit,92,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/ConstOTController.cs,اضافه‌کار ثابت,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,ConstOT,EditAll,147,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/ConstOTController.cs,اضافه‌کار ثابت,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,ConstOT,GetOwnedTitles,237,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/ConstOTController.cs,اضافه‌کار ثابت,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,ConstOT,GetOverTimeSubUsers,256,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/ConstOTController.cs,اضافه‌کار ثابت,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,DailyDuty,Add,17,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/DailyDutyController.cs,مأموریت روزانه,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,DailyDuty,Add,32,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/DailyDutyController.cs,مأموریت روزانه,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,DailyDuty,Edit,42,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/DailyDutyController.cs,مأموریت روزانه,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,DailyDuty,Edit,68,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/DailyDutyController.cs,مأموریت روزانه,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,DailyDuty,EditRequestDaily,76,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/DailyDutyController.cs,مأموریت روزانه,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,DailyDuty,AddRequest,150,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/DailyDutyController.cs,مأموریت روزانه,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,DailyLeave,Add,21,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/DailyLeaveController.cs,مرخصی روزانه,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,DailyLeave,Add,36,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/DailyLeaveController.cs,مرخصی روزانه,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,DailyLeave,Edit,46,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/DailyLeaveController.cs,مرخصی روزانه,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,DailyLeave,Edit,71,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/DailyLeaveController.cs,مرخصی روزانه,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,DailyLeave,EditRequestDaily,79,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/DailyLeaveController.cs,مرخصی روزانه,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,DailyLeave,AddRequest,153,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/DailyLeaveController.cs,مرخصی روزانه,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Deputy,Index,14,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/DeputyController.cs,جانشینی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Deputy,GetState,39,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/DeputyController.cs,جانشینی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Deputy,Delete,77,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/DeputyController.cs,جانشینی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Deputy,Add,89,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/DeputyController.cs,جانشینی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Early,Add,16,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/EarlyController.cs,درخواست تعجیل,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Early,Add,29,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/EarlyController.cs,درخواست تعجیل,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Early,Edit,37,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/EarlyController.cs,درخواست تعجیل,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Early,Edit,58,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/EarlyController.cs,درخواست تعجیل,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Early,EditRequestEarly,64,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/EarlyController.cs,درخواست تعجیل,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Early,RequestEarly,102,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/EarlyController.cs,درخواست تعجیل,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,EditRequest,Index,20,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/EditRequestController.cs,ویرایش و حذف درخواست,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,EditRequest,GetRequests,79,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/EditRequestController.cs,ویرایش و حذف درخواست,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,EditRequest,CancelRequest,101,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/EditRequestController.cs,ویرایش و حذف درخواست,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,EditRequest,EditByID,119,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/EditRequestController.cs,ویرایش و حذف درخواست,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,EditRequest,Delete,215,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/EditRequestController.cs,ویرایش و حذف درخواست,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,EditRequest,CheckRequestTime,235,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/EditRequestController.cs,ویرایش و حذف درخواست,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Home,CheckLock,75,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Home,Index,87,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Home,IsAdmin,139,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Home,MakeCount,148,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Home,RenderRazorViewToString,202,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Home,GetTableData,216,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Home,GetDailyDetailsReport,249,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Home,GetPositionsList,277,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Home,GetStatusList,327,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Home,GetValidLeaveTypes,345,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Home,CalculateDailyAbsence,374,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Home,CalculateDailyDetailsReport,383,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Home,GetSuspendRequests,685,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Home,About,764,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Home,MyBanner,770,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Home,RequestLockValuee,827,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Home,SetRequestsLock,843,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Home,CanDownloadNoti5,879,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Home,GetNoti5,903,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Home,SetToolbar,910,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Home,GetToolbars,928,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Home,SideMenu,955,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Home,ToolbarShow,978,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,HourlyDuty,Add,19,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HourlyDutyController.cs,مأموریت ساعتی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,HourlyDuty,Add,36,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HourlyDutyController.cs,مأموریت ساعتی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,HourlyDuty,Edit,46,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HourlyDutyController.cs,مأموریت ساعتی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,HourlyDuty,Edit,77,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HourlyDutyController.cs,مأموریت ساعتی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,HourlyDuty,EditRequestHourly,85,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HourlyDutyController.cs,مأموریت ساعتی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,HourlyDuty,AddRequest,246,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HourlyDutyController.cs,مأموریت ساعتی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,HourlyLeave,Add,23,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HourlyLeaveController.cs,مرخصی ساعتی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,HourlyLeave,Add,40,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HourlyLeaveController.cs,مرخصی ساعتی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,HourlyLeave,Edit,50,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HourlyLeaveController.cs,مرخصی ساعتی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,HourlyLeave,Edit,81,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HourlyLeaveController.cs,مرخصی ساعتی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,HourlyLeave,EditRequestHourly,89,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HourlyLeaveController.cs,مرخصی ساعتی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,HourlyLeave,AddRequestTest,246,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HourlyLeaveController.cs,مرخصی ساعتی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,HourlyLeave,AddRequest,437,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/HourlyLeaveController.cs,مرخصی ساعتی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Late,Add,16,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/LateController.cs,درخواست تأخیر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Late,Add,29,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/LateController.cs,درخواست تأخیر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Late,Edit,37,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/LateController.cs,درخواست تأخیر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Late,Edit,58,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/LateController.cs,درخواست تأخیر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Late,EditRequestLate,64,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/LateController.cs,درخواست تأخیر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Late,RequestLate,102,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/LateController.cs,درخواست تأخیر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,LeavesReport,Index,52,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/LeavesReportController.cs,نمای مرخصی ناظر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,LeavesReport,isObs,129,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/LeavesReportController.cs,نمای مرخصی ناظر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,LocationReport,Index,19,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/LocationReportController.cs,موقعیت و تصویر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,LocationReport,GetImage,28,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/LocationReportController.cs,موقعیت و تصویر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,LocationReport,GetReport,42,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/LocationReportController.cs,موقعیت و تصویر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,LocationReport,Report,109,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/LocationReportController.cs,موقعیت و تصویر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,LocationReport,ShowPhoto,155,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/LocationReportController.cs,موقعیت و تصویر,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Login,Login,20,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/LoginController.cs,ورود و نشست,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Login,CheckLock,48,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/LoginController.cs,ورود و نشست,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Login,RetryCheck,62,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/LoginController.cs,ورود و نشست,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Login,TestUserPass,73,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/LoginController.cs,ورود و نشست,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Login,Login,87,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/LoginController.cs,ورود و نشست,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Login,ChangePassword,144,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/LoginController.cs,ورود و نشست,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Login,ChangePasswordForce,151,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/LoginController.cs,ورود و نشست,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Login,ChangePasswordForce,158,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/LoginController.cs,ورود و نشست,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Login,Change,190,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/LoginController.cs,ورود و نشست,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Login,ChangePassword,214,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/LoginController.cs,ورود و نشست,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Login,Logout,247,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/LoginController.cs,ورود و نشست,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Notify,Index,19,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/NotifyController.cs,اعلان,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Notify,SetViewed,152,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/NotifyController.cs,اعلان,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,OverTime,Add,17,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/OverTimeController.cs,درخواست اضافه‌کار,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,OverTime,Add,39,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/OverTimeController.cs,درخواست اضافه‌کار,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,OverTime,Edit,48,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/OverTimeController.cs,درخواست اضافه‌کار,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,OverTime,RequestOverTime,68,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/OverTimeController.cs,درخواست اضافه‌کار,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,OverTimeReport,Index,21,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/OverTimeReportController.cs,گزارش و تأیید اضافه‌کار,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,OverTimeReport,HasAnyUsers,37,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/OverTimeReportController.cs,گزارش و تأیید اضافه‌کار,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,OverTimeReport,Show,47,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/OverTimeReportController.cs,گزارش و تأیید اضافه‌کار,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,OverTimeReport,ChangeBefore,122,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/OverTimeReportController.cs,گزارش و تأیید اضافه‌کار,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,OverTimeReport,ChangeAfter,159,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/OverTimeReportController.cs,گزارش و تأیید اضافه‌کار,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,OverTimeReport,AcceptBefore,196,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/OverTimeReportController.cs,گزارش و تأیید اضافه‌کار,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,OverTimeReport,CancelBefore,216,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/OverTimeReportController.cs,گزارش و تأیید اضافه‌کار,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,OverTimeReport,AcceptAfter,235,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/OverTimeReportController.cs,گزارش و تأیید اضافه‌کار,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,OverTimeReport,CancelAfter,255,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/OverTimeReportController.cs,گزارش و تأیید اضافه‌کار,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,PersonnelStatus,Index,20,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/PersonnelStatusController.cs,وضعیت کارکنان,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Record,Add,19,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RecordController.cs,تردد فراموش‌شده,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Record,Add,33,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RecordController.cs,تردد فراموش‌شده,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Record,Edit,41,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RecordController.cs,تردد فراموش‌شده,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Record,Edit,63,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RecordController.cs,تردد فراموش‌شده,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Record,EditRequestRecord,69,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RecordController.cs,تردد فراموش‌شده,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Record,RequestForRecord,184,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RecordController.cs,تردد فراموش‌شده,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,RemainLeave,GetRemain,21,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RemainLeaveController.cs,مانده مرخصی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,RemainLeave,RemainLeaveJ,163,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RemainLeaveController.cs,مانده مرخصی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,RemainLeave,RemainLeaveJj,232,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RemainLeaveController.cs,مانده مرخصی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,RemainLeave,RemainLeave,301,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RemainLeaveController.cs,مانده مرخصی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,RemainLeave,GetForUser,335,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RemainLeaveController.cs,مانده مرخصی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,RemainLeave,RenderRazorViewToString,374,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RemainLeaveController.cs,مانده مرخصی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,RemainLeave,Index,389,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RemainLeaveController.cs,مانده مرخصی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,RemainLeave,ForPersonnel,421,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RemainLeaveController.cs,مانده مرخصی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,RemainLeave,GetLeaveSubUsers,539,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RemainLeaveController.cs,مانده مرخصی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Report,Index,177,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/ReportController.cs,گزارش شخصی و مدیریتی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Report,Report,188,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/ReportController.cs,گزارش شخصی و مدیریتی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Report,GetPersonnel,242,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/ReportController.cs,گزارش شخصی و مدیریتی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Report,TotalCalcsReport,273,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/ReportController.cs,گزارش شخصی و مدیریتی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Report,DailyReport,422,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/ReportController.cs,گزارش شخصی و مدیریتی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Report,GetSchema,540,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/ReportController.cs,گزارش شخصی و مدیریتی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Report,GetData,576,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/ReportController.cs,گزارش شخصی و مدیریتی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Request,New,20,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RequestController.cs,فرم درخواست و موقعیت,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Request,FromUser,34,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RequestController.cs,فرم درخواست و موقعیت,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Request,SendPosition,62,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RequestController.cs,فرم درخواست و موقعیت,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Request,Edit,74,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RequestController.cs,فرم درخواست و موقعیت,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Request,GeneralRequestWeb,82,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RequestController.cs,فرم درخواست و موقعیت,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Request,GeneralRequest,112,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RequestController.cs,فرم درخواست و موقعیت,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Request,ShowPhoto,389,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RequestController.cs,فرم درخواست و موقعیت,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Request,AddPersonnelToViewBag,425,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RequestController.cs,فرم درخواست و موقعیت,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Reward,Add,17,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RewardController.cs,پاداش و جریمه؛ تصمیم دامنه,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Reward,Add,62,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/RewardController.cs,پاداش و جریمه؛ تصمیم دامنه,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,SelectArea,Index,17,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/SelectAreaController.cs,منطقه مکانی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,SelectArea,GetAreas,45,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/SelectAreaController.cs,منطقه مکانی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,SelectArea,GetArea,60,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/SelectAreaController.cs,منطقه مکانی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,SelectArea,DeleteArea,72,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/SelectAreaController.cs,منطقه مکانی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,SelectArea,InsertNew,85,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/SelectAreaController.cs,منطقه مکانی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,SelectArea,GetUserAreas,125,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/SelectAreaController.cs,منطقه مکانی,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Settings,Index,16,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/SettingsController.cs,تنظیمات,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Settings,Change,23,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/SettingsController.cs,تنظیمات,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Settings,LoadValue,303,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/SettingsController.cs,تنظیمات,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,ShowRequest,Index,27,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/ShowRequestController.cs,تاریخچه درخواست‌ها,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,ShowRequest,GetRequests,185,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/ShowRequestController.cs,تاریخچه درخواست‌ها,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,ShowUsersRequest,Index,19,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/ShowUsersRequestController.cs,درخواست کارکنان,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,ShowUsersRequest,AddPersonnelToViewBag,37,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/ShowUsersRequestController.cs,درخواست کارکنان,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,ShowUsersRequest,GetForUser,89,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/ShowUsersRequestController.cs,درخواست کارکنان,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,ShowUsersRequest,getStatus,104,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/ShowUsersRequestController.cs,درخواست کارکنان,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Undo,Index,17,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/UndoController.cs,بازگردانی تصمیم,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,Undo,Undo,45,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/UndoController.cs,بازگردانی تصمیم,inventory-only,,not-assessed-per-method
+TWF-original-decompiled,ViewR,Index,7,src/TWF/OriginalDecompiled/MyTime3/MyTime3.Controllers/ViewRController.cs,نمای گزارش نامشخص,inventory-only,,not-assessed-per-method
+Aria,AcceptRequest,Index,22,src/TWF/TWF.Web/Controllers/AcceptRequestController.cs,تصمیم و کارتابل,inventory-only,,not-assessed-per-method
+Aria,AcceptRequest,Accept,163,src/TWF/TWF.Web/Controllers/AcceptRequestController.cs,تصمیم و کارتابل,inventory-only,,not-assessed-per-method
+Aria,AcceptRequest,AcceptRequest,218,src/TWF/TWF.Web/Controllers/AcceptRequestController.cs,تصمیم و کارتابل,inventory-only,,not-assessed-per-method
+Aria,AcceptRequest,CancelRequest,240,src/TWF/TWF.Web/Controllers/AcceptRequestController.cs,تصمیم و کارتابل,inventory-only,,not-assessed-per-method
+Aria,AcceptRequest,Accept,564,src/TWF/TWF.Web/Controllers/AcceptRequestController.cs,تصمیم و کارتابل,inventory-only,,not-assessed-per-method
+Aria,AcceptRequest,AcceptAll,653,src/TWF/TWF.Web/Controllers/AcceptRequestController.cs,تصمیم و کارتابل,inventory-only,,not-assessed-per-method
+Aria,AcceptRequest,Cancel,747,src/TWF/TWF.Web/Controllers/AcceptRequestController.cs,تصمیم و کارتابل,inventory-only,,not-assessed-per-method
+Aria,AcceptRequest,AcceptAllRequests,866,src/TWF/TWF.Web/Controllers/AcceptRequestController.cs,تصمیم و کارتابل,inventory-only,,not-assessed-per-method
+Aria,AcceptRequest,CancelAllRequests,894,src/TWF/TWF.Web/Controllers/AcceptRequestController.cs,تصمیم و کارتابل,inventory-only,,not-assessed-per-method
+Aria,ChangePass,ChangePassCheck,29,src/TWF/TWF.Web/Controllers/ChangePassController.cs,حساب و امنیت,inventory-only,,not-assessed-per-method
+Aria,ChangePass,CheckPassMonthly,60,src/TWF/TWF.Web/Controllers/ChangePassController.cs,حساب و امنیت,inventory-only,,not-assessed-per-method
+Aria,ChangePass,CheckPassForce,91,src/TWF/TWF.Web/Controllers/ChangePassController.cs,حساب و امنیت,inventory-only,,not-assessed-per-method
+Aria,ChangePass,PassChanged,108,src/TWF/TWF.Web/Controllers/ChangePassController.cs,حساب و امنیت,inventory-only,,not-assessed-per-method
+Aria,ConstOT,Index,48,src/TWF/TWF.Web/Controllers/ConstOTController.cs,اضافه‌کار ثابت,inventory-only,,not-assessed-per-method
+Aria,ConstOT,Edit,113,src/TWF/TWF.Web/Controllers/ConstOTController.cs,اضافه‌کار ثابت,inventory-only,,not-assessed-per-method
+Aria,ConstOT,Edit,134,src/TWF/TWF.Web/Controllers/ConstOTController.cs,اضافه‌کار ثابت,inventory-only,,not-assessed-per-method
+Aria,ConstOT,EditAll,222,src/TWF/TWF.Web/Controllers/ConstOTController.cs,اضافه‌کار ثابت,inventory-only,,not-assessed-per-method
+Aria,ConstOT,GetOwnedTitles,326,src/TWF/TWF.Web/Controllers/ConstOTController.cs,اضافه‌کار ثابت,inventory-only,,not-assessed-per-method
+Aria,ConstOT,GetOverTimeSubUsers,362,src/TWF/TWF.Web/Controllers/ConstOTController.cs,اضافه‌کار ثابت,inventory-only,,not-assessed-per-method
+Aria,DailyDuty,Add,23,src/TWF/TWF.Web/Controllers/DailyDutyController.cs,مأموریت روزانه,inventory-only,,not-assessed-per-method
+Aria,DailyDuty,Add,38,src/TWF/TWF.Web/Controllers/DailyDutyController.cs,مأموریت روزانه,inventory-only,,not-assessed-per-method
+Aria,DailyDuty,Edit,48,src/TWF/TWF.Web/Controllers/DailyDutyController.cs,مأموریت روزانه,inventory-only,,not-assessed-per-method
+Aria,DailyDuty,Edit,100,src/TWF/TWF.Web/Controllers/DailyDutyController.cs,مأموریت روزانه,inventory-only,,not-assessed-per-method
+Aria,DailyDuty,EditRequestDaily,108,src/TWF/TWF.Web/Controllers/DailyDutyController.cs,مأموریت روزانه,inventory-only,,not-assessed-per-method
+Aria,DailyDuty,AddRequest,192,src/TWF/TWF.Web/Controllers/DailyDutyController.cs,مأموریت روزانه,inventory-only,,not-assessed-per-method
+Aria,DailyLeave,Add,31,src/TWF/TWF.Web/Controllers/DailyLeaveController.cs,مرخصی روزانه,inventory-only,,not-assessed-per-method
+Aria,DailyLeave,Add,46,src/TWF/TWF.Web/Controllers/DailyLeaveController.cs,مرخصی روزانه,inventory-only,,not-assessed-per-method
+Aria,DailyLeave,Edit,56,src/TWF/TWF.Web/Controllers/DailyLeaveController.cs,مرخصی روزانه,inventory-only,,not-assessed-per-method
+Aria,DailyLeave,Edit,109,src/TWF/TWF.Web/Controllers/DailyLeaveController.cs,مرخصی روزانه,inventory-only,,not-assessed-per-method
+Aria,DailyLeave,EditRequestDaily,138,src/TWF/TWF.Web/Controllers/DailyLeaveController.cs,مرخصی روزانه,inventory-only,,not-assessed-per-method
+Aria,DailyLeave,AddRequest,228,src/TWF/TWF.Web/Controllers/DailyLeaveController.cs,مرخصی روزانه,inventory-only,,not-assessed-per-method
+Aria,Deputy,Index,14,src/TWF/TWF.Web/Controllers/DeputyController.cs,جانشینی,inventory-only,,not-assessed-per-method
+Aria,Deputy,GetState,47,src/TWF/TWF.Web/Controllers/DeputyController.cs,جانشینی,inventory-only,,not-assessed-per-method
+Aria,Deputy,Delete,111,src/TWF/TWF.Web/Controllers/DeputyController.cs,جانشینی,inventory-only,,not-assessed-per-method
+Aria,Deputy,Add,136,src/TWF/TWF.Web/Controllers/DeputyController.cs,جانشینی,inventory-only,,not-assessed-per-method
+Aria,Diagnostics,Schema,22,src/TWF/TWF.Web/Controllers/DiagnosticsController.cs,تشخیص سامانه,inventory-only,,not-assessed-per-method
+Aria,Diagnostics,Recheck,42,src/TWF/TWF.Web/Controllers/DiagnosticsController.cs,تشخیص سامانه,inventory-only,,not-assessed-per-method
+Aria,Diagnostics,Health,50,src/TWF/TWF.Web/Controllers/DiagnosticsController.cs,تشخیص سامانه,inventory-only,,not-assessed-per-method
+Aria,Early,Add,22,src/TWF/TWF.Web/Controllers/EarlyController.cs,درخواست تعجیل,inventory-only,,not-assessed-per-method
+Aria,Early,Add,36,src/TWF/TWF.Web/Controllers/EarlyController.cs,درخواست تعجیل,inventory-only,,not-assessed-per-method
+Aria,Early,Edit,44,src/TWF/TWF.Web/Controllers/EarlyController.cs,درخواست تعجیل,inventory-only,,not-assessed-per-method
+Aria,Early,Edit,86,src/TWF/TWF.Web/Controllers/EarlyController.cs,درخواست تعجیل,inventory-only,,not-assessed-per-method
+Aria,Early,EditRequestEarly,92,src/TWF/TWF.Web/Controllers/EarlyController.cs,درخواست تعجیل,inventory-only,,not-assessed-per-method
+Aria,Early,RequestEarly,148,src/TWF/TWF.Web/Controllers/EarlyController.cs,درخواست تعجیل,inventory-only,,not-assessed-per-method
+Aria,EditRequest,Index,28,src/TWF/TWF.Web/Controllers/EditRequestController.cs,ویرایش و حذف درخواست,inventory-only,,not-assessed-per-method
+Aria,EditRequest,GetRequests,104,src/TWF/TWF.Web/Controllers/EditRequestController.cs,ویرایش و حذف درخواست,inventory-only,,not-assessed-per-method
+Aria,EditRequest,CancelRequest,141,src/TWF/TWF.Web/Controllers/EditRequestController.cs,ویرایش و حذف درخواست,inventory-only,,not-assessed-per-method
+Aria,EditRequest,EditByID,183,src/TWF/TWF.Web/Controllers/EditRequestController.cs,ویرایش و حذف درخواست,inventory-only,,not-assessed-per-method
+Aria,EditRequest,Delete,231,src/TWF/TWF.Web/Controllers/EditRequestController.cs,ویرایش و حذف درخواست,inventory-only,,not-assessed-per-method
+Aria,EditRequest,CheckRequestTime,273,src/TWF/TWF.Web/Controllers/EditRequestController.cs,ویرایش و حذف درخواست,inventory-only,,not-assessed-per-method
+Aria,EditRequest,MapDtoToT5Request,381,src/TWF/TWF.Web/Controllers/EditRequestController.cs,ویرایش و حذف درخواست,inventory-only,,not-assessed-per-method
+Aria,EditRequest,MapDtoToModelRequest,410,src/TWF/TWF.Web/Controllers/EditRequestController.cs,ویرایش و حذف درخواست,inventory-only,,not-assessed-per-method
+Aria,Home,CheckLock,59,src/TWF/TWF.Web/Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+Aria,Home,Index,70,src/TWF/TWF.Web/Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+Aria,Home,IsAdmin,190,src/TWF/TWF.Web/Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+Aria,Home,MakeCount,221,src/TWF/TWF.Web/Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+Aria,Home,RenderRazorViewToString,293,src/TWF/TWF.Web/Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+Aria,Home,GetTableData,307,src/TWF/TWF.Web/Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+Aria,Home,GetDailyDetailsReport,328,src/TWF/TWF.Web/Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+Aria,Home,GetPositionsList,357,src/TWF/TWF.Web/Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+Aria,Home,GetStatusList,424,src/TWF/TWF.Web/Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+Aria,Home,GetValidLeaveTypes,460,src/TWF/TWF.Web/Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+Aria,Home,CalculateDailyAbsence,505,src/TWF/TWF.Web/Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+Aria,Home,CalculateDailyDetailsReport,518,src/TWF/TWF.Web/Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+Aria,Home,GetSuspendRequests,761,src/TWF/TWF.Web/Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+Aria,Home,About,890,src/TWF/TWF.Web/Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+Aria,Home,MyBanner,896,src/TWF/TWF.Web/Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+Aria,Home,RequestLockValuee,946,src/TWF/TWF.Web/Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+Aria,Home,SetRequestsLock,971,src/TWF/TWF.Web/Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+Aria,Home,CanDownloadNoti5,1004,src/TWF/TWF.Web/Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+Aria,Home,GetNoti5,1038,src/TWF/TWF.Web/Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+Aria,Home,SetToolbar,1045,src/TWF/TWF.Web/Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+Aria,Home,GetToolbars,1064,src/TWF/TWF.Web/Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+Aria,Home,SideMenu,1085,src/TWF/TWF.Web/Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+Aria,Home,ToolbarShow,1103,src/TWF/TWF.Web/Controllers/HomeController.cs,نمای اصلی و میانبر,inventory-only,,not-assessed-per-method
+Aria,HourlyDuty,Add,26,src/TWF/TWF.Web/Controllers/HourlyDutyController.cs,مأموریت ساعتی,inventory-only,,not-assessed-per-method
+Aria,HourlyDuty,Add,44,src/TWF/TWF.Web/Controllers/HourlyDutyController.cs,مأموریت ساعتی,inventory-only,,not-assessed-per-method
+Aria,HourlyDuty,Edit,54,src/TWF/TWF.Web/Controllers/HourlyDutyController.cs,مأموریت ساعتی,inventory-only,,not-assessed-per-method
+Aria,HourlyDuty,Edit,108,src/TWF/TWF.Web/Controllers/HourlyDutyController.cs,مأموریت ساعتی,inventory-only,,not-assessed-per-method
+Aria,HourlyDuty,EditRequestHourly,116,src/TWF/TWF.Web/Controllers/HourlyDutyController.cs,مأموریت ساعتی,inventory-only,,not-assessed-per-method
+Aria,HourlyDuty,AddRequest,256,src/TWF/TWF.Web/Controllers/HourlyDutyController.cs,مأموریت ساعتی,inventory-only,,not-assessed-per-method
+Aria,HourlyLeave,Add,33,src/TWF/TWF.Web/Controllers/HourlyLeaveController.cs,مرخصی ساعتی,inventory-only,,not-assessed-per-method
+Aria,HourlyLeave,Add,51,src/TWF/TWF.Web/Controllers/HourlyLeaveController.cs,مرخصی ساعتی,inventory-only,,not-assessed-per-method
+Aria,HourlyLeave,Edit,61,src/TWF/TWF.Web/Controllers/HourlyLeaveController.cs,مرخصی ساعتی,inventory-only,,not-assessed-per-method
+Aria,HourlyLeave,Edit,115,src/TWF/TWF.Web/Controllers/HourlyLeaveController.cs,مرخصی ساعتی,inventory-only,,not-assessed-per-method
+Aria,HourlyLeave,EditRequestHourly,124,src/TWF/TWF.Web/Controllers/HourlyLeaveController.cs,مرخصی ساعتی,inventory-only,,not-assessed-per-method
+Aria,HourlyLeave,AddRequestTest,277,src/TWF/TWF.Web/Controllers/HourlyLeaveController.cs,مرخصی ساعتی,inventory-only,,not-assessed-per-method
+Aria,HourlyLeave,AddRequest,291,src/TWF/TWF.Web/Controllers/HourlyLeaveController.cs,مرخصی ساعتی,inventory-only,,not-assessed-per-method
+Aria,Late,Add,22,src/TWF/TWF.Web/Controllers/LateController.cs,درخواست تأخیر,inventory-only,,not-assessed-per-method
+Aria,Late,Add,36,src/TWF/TWF.Web/Controllers/LateController.cs,درخواست تأخیر,inventory-only,,not-assessed-per-method
+Aria,Late,Edit,44,src/TWF/TWF.Web/Controllers/LateController.cs,درخواست تأخیر,inventory-only,,not-assessed-per-method
+Aria,Late,Edit,86,src/TWF/TWF.Web/Controllers/LateController.cs,درخواست تأخیر,inventory-only,,not-assessed-per-method
+Aria,Late,EditRequestLate,92,src/TWF/TWF.Web/Controllers/LateController.cs,درخواست تأخیر,inventory-only,,not-assessed-per-method
+Aria,Late,RequestLate,148,src/TWF/TWF.Web/Controllers/LateController.cs,درخواست تأخیر,inventory-only,,not-assessed-per-method
+Aria,LeavesReport,Index,29,src/TWF/TWF.Web/Controllers/LeavesReportController.cs,نمای مرخصی ناظر,inventory-only,,not-assessed-per-method
+Aria,LeavesReport,isObs,132,src/TWF/TWF.Web/Controllers/LeavesReportController.cs,نمای مرخصی ناظر,inventory-only,,not-assessed-per-method
+Aria,LocationReport,Index,19,src/TWF/TWF.Web/Controllers/LocationReportController.cs,موقعیت و تصویر,inventory-only,,not-assessed-per-method
+Aria,LocationReport,GetImage,30,src/TWF/TWF.Web/Controllers/LocationReportController.cs,موقعیت و تصویر,inventory-only,,not-assessed-per-method
+Aria,LocationReport,GetReport,55,src/TWF/TWF.Web/Controllers/LocationReportController.cs,موقعیت و تصویر,inventory-only,,not-assessed-per-method
+Aria,LocationReport,Report,160,src/TWF/TWF.Web/Controllers/LocationReportController.cs,موقعیت و تصویر,inventory-only,,not-assessed-per-method
+Aria,LocationReport,ShowPhoto,234,src/TWF/TWF.Web/Controllers/LocationReportController.cs,موقعیت و تصویر,inventory-only,,not-assessed-per-method
+Aria,Login,Login,31,src/TWF/TWF.Web/Controllers/LoginController.cs,ورود و نشست,inventory-only,,not-assessed-per-method
+Aria,Login,CheckLock,42,src/TWF/TWF.Web/Controllers/LoginController.cs,ورود و نشست,inventory-only,,not-assessed-per-method
+Aria,Login,Login,66,src/TWF/TWF.Web/Controllers/LoginController.cs,ورود و نشست,inventory-only,,not-assessed-per-method
+Aria,Login,RetryCheck,215,src/TWF/TWF.Web/Controllers/LoginController.cs,ورود و نشست,inventory-only,,not-assessed-per-method
+Aria,Login,TestUserPass,222,src/TWF/TWF.Web/Controllers/LoginController.cs,ورود و نشست,inventory-only,,not-assessed-per-method
+Aria,Login,ChangePassword,281,src/TWF/TWF.Web/Controllers/LoginController.cs,ورود و نشست,inventory-only,,not-assessed-per-method
+Aria,Login,ChangePasswordForce,288,src/TWF/TWF.Web/Controllers/LoginController.cs,ورود و نشست,inventory-only,,not-assessed-per-method
+Aria,Login,ChangePasswordForce,309,src/TWF/TWF.Web/Controllers/LoginController.cs,ورود و نشست,inventory-only,,not-assessed-per-method
+Aria,Login,ChangePassword,322,src/TWF/TWF.Web/Controllers/LoginController.cs,ورود و نشست,inventory-only,,not-assessed-per-method
+Aria,Login,Change,329,src/TWF/TWF.Web/Controllers/LoginController.cs,ورود و نشست,inventory-only,,not-assessed-per-method
+Aria,Login,Logout,471,src/TWF/TWF.Web/Controllers/LoginController.cs,ورود و نشست,inventory-only,,not-assessed-per-method
+Aria,Notify,Index,21,src/TWF/TWF.Web/Controllers/NotifyController.cs,اعلان,inventory-only,,not-assessed-per-method
+Aria,Notify,SetViewed,244,src/TWF/TWF.Web/Controllers/NotifyController.cs,اعلان,inventory-only,,not-assessed-per-method
+Aria,OverTime,Add,25,src/TWF/TWF.Web/Controllers/OverTimeController.cs,درخواست اضافه‌کار,inventory-only,,not-assessed-per-method
+Aria,OverTime,Add,49,src/TWF/TWF.Web/Controllers/OverTimeController.cs,درخواست اضافه‌کار,inventory-only,,not-assessed-per-method
+Aria,OverTime,Edit,58,src/TWF/TWF.Web/Controllers/OverTimeController.cs,درخواست اضافه‌کار,inventory-only,,not-assessed-per-method
+Aria,OverTime,RequestOverTime,99,src/TWF/TWF.Web/Controllers/OverTimeController.cs,درخواست اضافه‌کار,inventory-only,,not-assessed-per-method
+Aria,OverTimeReport,Index,23,src/TWF/TWF.Web/Controllers/OverTimeReportController.cs,گزارش و تأیید اضافه‌کار,inventory-only,,not-assessed-per-method
+Aria,OverTimeReport,HasAnyUsers,63,src/TWF/TWF.Web/Controllers/OverTimeReportController.cs,گزارش و تأیید اضافه‌کار,inventory-only,,not-assessed-per-method
+Aria,OverTimeReport,Show,88,src/TWF/TWF.Web/Controllers/OverTimeReportController.cs,گزارش و تأیید اضافه‌کار,inventory-only,,not-assessed-per-method
+Aria,OverTimeReport,ChangeBefore,190,src/TWF/TWF.Web/Controllers/OverTimeReportController.cs,گزارش و تأیید اضافه‌کار,inventory-only,,not-assessed-per-method
+Aria,OverTimeReport,ChangeAfter,229,src/TWF/TWF.Web/Controllers/OverTimeReportController.cs,گزارش و تأیید اضافه‌کار,inventory-only,,not-assessed-per-method
+Aria,OverTimeReport,AcceptBefore,268,src/TWF/TWF.Web/Controllers/OverTimeReportController.cs,گزارش و تأیید اضافه‌کار,inventory-only,,not-assessed-per-method
+Aria,OverTimeReport,CancelBefore,289,src/TWF/TWF.Web/Controllers/OverTimeReportController.cs,گزارش و تأیید اضافه‌کار,inventory-only,,not-assessed-per-method
+Aria,OverTimeReport,AcceptAfter,310,src/TWF/TWF.Web/Controllers/OverTimeReportController.cs,گزارش و تأیید اضافه‌کار,inventory-only,,not-assessed-per-method
+Aria,OverTimeReport,CancelAfter,331,src/TWF/TWF.Web/Controllers/OverTimeReportController.cs,گزارش و تأیید اضافه‌کار,inventory-only,,not-assessed-per-method
+Aria,PersonnelStatus,Index,21,src/TWF/TWF.Web/Controllers/PersonnelStatusController.cs,وضعیت کارکنان,inventory-only,,not-assessed-per-method
+Aria,Record,Add,27,src/TWF/TWF.Web/Controllers/RecordController.cs,تردد فراموش‌شده,inventory-only,,not-assessed-per-method
+Aria,Record,Add,42,src/TWF/TWF.Web/Controllers/RecordController.cs,تردد فراموش‌شده,inventory-only,,not-assessed-per-method
+Aria,Record,Edit,50,src/TWF/TWF.Web/Controllers/RecordController.cs,تردد فراموش‌شده,inventory-only,,not-assessed-per-method
+Aria,Record,Edit,94,src/TWF/TWF.Web/Controllers/RecordController.cs,تردد فراموش‌شده,inventory-only,,not-assessed-per-method
+Aria,Record,EditRequestRecord,100,src/TWF/TWF.Web/Controllers/RecordController.cs,تردد فراموش‌شده,inventory-only,,not-assessed-per-method
+Aria,Record,RequestForRecord,254,src/TWF/TWF.Web/Controllers/RecordController.cs,تردد فراموش‌شده,inventory-only,,not-assessed-per-method
+Aria,RemainLeave,GetRemain,27,src/TWF/TWF.Web/Controllers/RemainLeaveController.cs,مانده مرخصی,inventory-only,,not-assessed-per-method
+Aria,RemainLeave,RemainLeaveJ,171,src/TWF/TWF.Web/Controllers/RemainLeaveController.cs,مانده مرخصی,inventory-only,,not-assessed-per-method
+Aria,RemainLeave,RemainLeaveJj,178,src/TWF/TWF.Web/Controllers/RemainLeaveController.cs,مانده مرخصی,inventory-only,,not-assessed-per-method
+Aria,RemainLeave,RemainLeave,226,src/TWF/TWF.Web/Controllers/RemainLeaveController.cs,مانده مرخصی,inventory-only,,not-assessed-per-method
+Aria,RemainLeave,GetForUser,267,src/TWF/TWF.Web/Controllers/RemainLeaveController.cs,مانده مرخصی,inventory-only,,not-assessed-per-method
+Aria,RemainLeave,RenderRazorViewToString,301,src/TWF/TWF.Web/Controllers/RemainLeaveController.cs,مانده مرخصی,inventory-only,,not-assessed-per-method
+Aria,RemainLeave,Index,316,src/TWF/TWF.Web/Controllers/RemainLeaveController.cs,مانده مرخصی,inventory-only,,not-assessed-per-method
+Aria,RemainLeave,ForPersonnel,352,src/TWF/TWF.Web/Controllers/RemainLeaveController.cs,مانده مرخصی,inventory-only,,not-assessed-per-method
+Aria,RemainLeave,GetLeaveSubUsers,382,src/TWF/TWF.Web/Controllers/RemainLeaveController.cs,مانده مرخصی,inventory-only,,not-assessed-per-method
+Aria,Report,Index,112,src/TWF/TWF.Web/Controllers/ReportController.cs,گزارش شخصی و مدیریتی,inventory-only,,not-assessed-per-method
+Aria,Report,Report,125,src/TWF/TWF.Web/Controllers/ReportController.cs,گزارش شخصی و مدیریتی,inventory-only,,not-assessed-per-method
+Aria,Report,GetPersonnel,229,src/TWF/TWF.Web/Controllers/ReportController.cs,گزارش شخصی و مدیریتی,inventory-only,,not-assessed-per-method
+Aria,Report,TotalCalcsReport,277,src/TWF/TWF.Web/Controllers/ReportController.cs,گزارش شخصی و مدیریتی,inventory-only,,not-assessed-per-method
+Aria,Report,DailyReport,471,src/TWF/TWF.Web/Controllers/ReportController.cs,گزارش شخصی و مدیریتی,inventory-only,,not-assessed-per-method
+Aria,Report,GetSchema,647,src/TWF/TWF.Web/Controllers/ReportController.cs,گزارش شخصی و مدیریتی,inventory-only,,not-assessed-per-method
+Aria,Report,GetData,677,src/TWF/TWF.Web/Controllers/ReportController.cs,گزارش شخصی و مدیریتی,inventory-only,,not-assessed-per-method
+Aria,Request,New,26,src/TWF/TWF.Web/Controllers/RequestController.cs,فرم درخواست و موقعیت,inventory-only,,not-assessed-per-method
+Aria,Request,AddRequest,39,src/TWF/TWF.Web/Controllers/RequestController.cs,فرم درخواست و موقعیت,inventory-only,,not-assessed-per-method
+Aria,Request,AddRequestForUser,73,src/TWF/TWF.Web/Controllers/RequestController.cs,فرم درخواست و موقعیت,inventory-only,,not-assessed-per-method
+Aria,Request,Form,109,src/TWF/TWF.Web/Controllers/RequestController.cs,فرم درخواست و موقعیت,inventory-only,,not-assessed-per-method
+Aria,Request,FromUser,165,src/TWF/TWF.Web/Controllers/RequestController.cs,فرم درخواست و موقعیت,inventory-only,,not-assessed-per-method
+Aria,Request,SendPosition,226,src/TWF/TWF.Web/Controllers/RequestController.cs,فرم درخواست و موقعیت,inventory-only,,not-assessed-per-method
+Aria,Request,Edit,238,src/TWF/TWF.Web/Controllers/RequestController.cs,فرم درخواست و موقعیت,inventory-only,,not-assessed-per-method
+Aria,Request,GeneralRequestWeb,250,src/TWF/TWF.Web/Controllers/RequestController.cs,فرم درخواست و موقعیت,inventory-only,,not-assessed-per-method
+Aria,Request,GeneralRequest,288,src/TWF/TWF.Web/Controllers/RequestController.cs,فرم درخواست و موقعیت,inventory-only,,not-assessed-per-method
+Aria,Request,ShowPhoto,627,src/TWF/TWF.Web/Controllers/RequestController.cs,فرم درخواست و موقعیت,inventory-only,,not-assessed-per-method
+Aria,Request,AddPersonnelToViewBag,673,src/TWF/TWF.Web/Controllers/RequestController.cs,فرم درخواست و موقعیت,inventory-only,,not-assessed-per-method
+Aria,Reward,Add,26,src/TWF/TWF.Web/Controllers/RewardController.cs,پاداش و جریمه؛ تصمیم دامنه,inventory-only,,not-assessed-per-method
+Aria,Reward,Add,50,src/TWF/TWF.Web/Controllers/RewardController.cs,پاداش و جریمه؛ تصمیم دامنه,inventory-only,,not-assessed-per-method
+Aria,Reward,RequestReward,97,src/TWF/TWF.Web/Controllers/RewardController.cs,پاداش و جریمه؛ تصمیم دامنه,inventory-only,,not-assessed-per-method
+Aria,SelectArea,Index,21,src/TWF/TWF.Web/Controllers/SelectAreaController.cs,منطقه مکانی,inventory-only,,not-assessed-per-method
+Aria,SelectArea,GetAreas,63,src/TWF/TWF.Web/Controllers/SelectAreaController.cs,منطقه مکانی,inventory-only,,not-assessed-per-method
+Aria,SelectArea,GetArea,94,src/TWF/TWF.Web/Controllers/SelectAreaController.cs,منطقه مکانی,inventory-only,,not-assessed-per-method
+Aria,SelectArea,DeleteArea,112,src/TWF/TWF.Web/Controllers/SelectAreaController.cs,منطقه مکانی,inventory-only,,not-assessed-per-method
+Aria,SelectArea,InsertNew,136,src/TWF/TWF.Web/Controllers/SelectAreaController.cs,منطقه مکانی,inventory-only,,not-assessed-per-method
+Aria,SelectArea,GetUserAreas,217,src/TWF/TWF.Web/Controllers/SelectAreaController.cs,منطقه مکانی,inventory-only,,not-assessed-per-method
+Aria,Settings,Index,22,src/TWF/TWF.Web/Controllers/SettingsController.cs,تنظیمات,inventory-only,,not-assessed-per-method
+Aria,Settings,Index,29,src/TWF/TWF.Web/Controllers/SettingsController.cs,تنظیمات,inventory-only,,not-assessed-per-method
+Aria,Settings,LoadSettings,163,src/TWF/TWF.Web/Controllers/SettingsController.cs,تنظیمات,inventory-only,,not-assessed-per-method
+Aria,Settings,LoadValue,232,src/TWF/TWF.Web/Controllers/SettingsController.cs,تنظیمات,inventory-only,,not-assessed-per-method
+Aria,ShowRequest,Index,25,src/TWF/TWF.Web/Controllers/ShowRequestController.cs,تاریخچه درخواست‌ها,inventory-only,,not-assessed-per-method
+Aria,ShowRequest,GetRequests,212,src/TWF/TWF.Web/Controllers/ShowRequestController.cs,تاریخچه درخواست‌ها,inventory-only,,not-assessed-per-method
+Aria,ShowUsersRequest,Index,19,src/TWF/TWF.Web/Controllers/ShowUsersRequestController.cs,درخواست کارکنان,inventory-only,,not-assessed-per-method
+Aria,ShowUsersRequest,AddPersonnelToViewBag,62,src/TWF/TWF.Web/Controllers/ShowUsersRequestController.cs,درخواست کارکنان,inventory-only,,not-assessed-per-method
+Aria,ShowUsersRequest,GetForUser,108,src/TWF/TWF.Web/Controllers/ShowUsersRequestController.cs,درخواست کارکنان,inventory-only,,not-assessed-per-method
+Aria,ShowUsersRequest,getStatus,139,src/TWF/TWF.Web/Controllers/ShowUsersRequestController.cs,درخواست کارکنان,inventory-only,,not-assessed-per-method
+Aria,Undo,Index,18,src/TWF/TWF.Web/Controllers/UndoController.cs,بازگردانی تصمیم,inventory-only,,not-assessed-per-method
+Aria,Undo,Undo,77,src/TWF/TWF.Web/Controllers/UndoController.cs,بازگردانی تصمیم,inventory-only,,not-assessed-per-method
+Aria,ViewR,Index,7,src/TWF/TWF.Web/Controllers/ViewRController.cs,نمای گزارش نامشخص,inventory-only,,not-assessed-per-method

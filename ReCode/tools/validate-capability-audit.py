@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Check audit inventory integrity without interpreting it as authorization."""
 import csv
+from collections import Counter
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[1] / 'docs/pages-first/audit'
@@ -22,4 +23,16 @@ reviewed = [(r['controller'], r['action']) for r in review]
 assert len(reviewed) == len(set(reviewed)) and set(reviewed) == target
 assert all(r['review_status'] == 'initial-review-contract-unverified' for r in review)
 assert all(set(r['requirements'].split(';')) <= set(ids) for r in review)
-print('PASS capability inventory: unique proposed requirements and complete initial device action crosswalk')
+stage1 = read('stage1-twf-actions.csv')
+expected = Counter((r['source'], r['path'], r['line'], r['method']) for r in legacy
+                   if r['source'] in ('TWF-original-decompiled', 'Aria'))
+actual = Counter((r['source'], r['path'], r['line'], r['method']) for r in stage1)
+assert actual == expected
+assert all(r['area_fa'] and r['method_review'] == 'inventory-only' and
+           r['implementation_status'] == 'not-assessed-per-method' for r in stage1)
+views = read('stage1-view-comparison.csv')
+assert views and len({r['relative_view'] for r in views}) == len(views)
+assert all(r['behavior_review'] == 'inventory-only' for r in views)
+assert all(r['path_comparison'] == ('both' if r['twf_original_path'] and r['aria_path'] else
+           'twf-only' if r['twf_original_path'] else 'aria-only') for r in views)
+print('PASS capability inventory: proposed requirements, device crosswalk, stage-one declaration and view coverage')
