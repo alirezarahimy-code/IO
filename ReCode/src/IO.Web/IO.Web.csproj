@@ -12,6 +12,8 @@
     <EmbeddedResource Include="Ui/Periods.html" />
     <EmbeddedResource Include="Ui/MyRequests.html" />
     <EmbeddedResource Include="Ui/MySchedule.html" />
+    <EmbeddedResource Include="Ui/MyAttendance.html" />
+    <EmbeddedResource Include="Ui/my-attendance.js" />
     <EmbeddedResource Include="Ui/Audit.html" />
     <EmbeddedResource Include="Ui/Users.html" />
     <EmbeddedResource Include="Ui/Roles.html" />

@@ -214,6 +214,14 @@ async function main() {
     if (await deniedRules.locator('#body tr').count() !== 0 || await deniedRules.locator('#create-form button').isEnabled())
       throw new Error('Rules workspace exposed data without permission');
     await deniedRules.close();
+    const deniedAttendance = await context.newPage();
+    await deniedAttendance.goto(address + '/workspace/my-attendance');
+    await deniedAttendance.locator('#filter input[name=from]').fill('2027-03-01');
+    await deniedAttendance.locator('#filter input[name=until]').fill('2027-03-02');
+    await deniedAttendance.locator('#filter button').click();
+    await deniedAttendance.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
+    if (await deniedAttendance.locator('#body tr').count() || await deniedAttendance.locator('#results').isVisible()) throw new Error('Personal attendance exposed without permission');
+    await deniedAttendance.close();
     const selfId = await page.evaluate(async () => (await (await fetch('/auth/me')).json()).id);
     const selfCompany = await page.evaluate(async id => (await (await fetch('/employees/' + encodeURIComponent(id))).json()).companyId, first);
     await clearResult();
@@ -832,6 +840,8 @@ async function main() {
     await submit('permission');
     await page.locator('#permission select[name=code]').selectOption('schedule.read.self');
     await submit('permission');
+    await page.locator('#permission select[name=code]').selectOption('attendance.read.self');
+    await submit('permission');
     await page.locator('#grant input[name=userId]').fill(selfId);
     await page.locator('#grant input[name=roleId]').fill(selfRole);
     await submit('grant');
@@ -843,6 +853,27 @@ async function main() {
     await page.locator('#site input[name=name]').fill('Browser self schedule site');
     await page.locator('#site input[name=timeZoneId]').fill('Asia/Tehran');
     const selfSite = await submit('site');
+    await page.locator('#attendance-source input[name=name]').fill('Browser personal source');
+    await page.locator('#attendance-source input[name=siteId]').fill(selfSite);
+    const personalSource = await submit('attendance-source');
+    await page.locator('#attendance-mapping input[name=sourceId]').fill(personalSource);
+    await page.locator('#attendance-mapping input[name=personId]').fill('Self-ID');
+    await page.locator('#attendance-mapping input[name=employeeId]').fill(first);
+    await page.locator('#attendance-mapping input[name=validFrom]').fill('2027-03-01T00:00:00Z');
+    await page.locator('#attendance-mapping input[name=validUntilExclusive]').fill('2027-03-02T00:00:00Z');
+    await submit('attendance-mapping');
+    await page.locator('#attendance-event input[name=sourceId]').fill(personalSource);
+    await page.locator('#attendance-event input[name=externalId]').fill('personal-event');
+    await page.locator('#attendance-event input[name=personId]').fill('Self-ID');
+    await page.locator('#attendance-event input[name=occurredAt]').fill('2027-03-01T08:00:00Z');
+    await page.locator('#attendance-event input[name=sourceZone]').fill('Asia/Tehran');
+    await page.locator('#attendance-event input[name=eventType]').fill('in');
+    await page.locator('#attendance-event textarea[name=payload]').fill('private raw payload');
+    await submit('attendance-event');
+    await page.locator('#attendance-event input[name=externalId]').fill('personal-case-mismatch');
+    await page.locator('#attendance-event input[name=personId]').fill('self-id');
+    await submit('attendance-event');
+
     await page.locator('#calendar input[name=companyId]').fill(selfCompany);
     await page.locator('#calendar input[name=name]').fill('Browser self calendar');
     const selfCalendar = await submit('calendar');
@@ -867,6 +898,22 @@ async function main() {
     await page.locator('#logout').click();
     await waitText('عملیات انجام شد.');
     await login('web-self');
+    const myAttendance = await context.newPage();
+    await myAttendance.goto(address + '/workspace/my-attendance');
+    await myAttendance.locator('#filter input[name=from]').fill('2027-03-01');
+    await myAttendance.locator('#filter input[name=until]').fill('2027-03-02');
+    await myAttendance.locator('#filter button').click();
+    await myAttendance.locator('#results').waitFor();
+    const attendanceText = await myAttendance.locator('#body').textContent();
+    if (await myAttendance.locator('#body tr').count() !== 1 || !attendanceText.includes('Browser personal source') || !attendanceText.includes('Asia/Tehran') || attendanceText.includes('private raw payload')) throw new Error('Personal attendance rendered incorrect or sensitive data');
+    const response = await myAttendance.evaluate(async id => {
+      const base='/attendance/own?fromUtc=2027-03-01T00%3A00%3A00Z&untilUtcExclusive=2027-03-02T00%3A00%3A00Z';
+      return {data:await (await fetch(base+'&employeeId='+encodeURIComponent(id))).json(), invalid:(await fetch('/attendance/own?fromUtc=2027-03-01T00%3A00%3A00&untilUtcExclusive=2027-03-02T00%3A00%3A00Z')).status};
+    }, employee);
+    if (response.invalid!==400 || response.data.items.length!==1 || Object.keys(response.data.items[0]).some(k=>['sourcePayload','sourceEmployeeIdentifier','employeeId'].includes(k))) throw new Error('Personal endpoint accepted implicit time or exposed identity/payload');
+    await myAttendance.locator('#filter input[name=from]').fill('2027-03-02');
+    if (await myAttendance.locator('#results').isVisible() || await myAttendance.locator('#body tr').count()) throw new Error('Changing attendance range left stale data visible');
+    await myAttendance.close();
     const mySchedule = await context.newPage();
     await mySchedule.goto(address + '/workspace/my-schedule');
     await mySchedule.locator('#filter input[name=workDate]').fill('2027-03-01');

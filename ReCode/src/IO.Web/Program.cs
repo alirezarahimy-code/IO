@@ -137,6 +137,8 @@ public static class IoWebHost
         app.MapGet("/assets/users.js", () => Results.Content(Resource("IO.Web.Ui.users.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/audit", () => Results.Content(Resource("IO.Web.Ui.Audit.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/audit.js", () => Results.Content(Resource("IO.Web.Ui.audit.js"), "text/javascript; charset=utf-8"));
+        app.MapGet("/workspace/my-attendance", () => Results.Content(Resource("IO.Web.Ui.MyAttendance.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/my-attendance.js", () => Results.Content(Resource("IO.Web.Ui.my-attendance.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/my-schedule", () => Results.Content(Resource("IO.Web.Ui.MySchedule.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/my-schedule.js", () => Results.Content(Resource("IO.Web.Ui.my-schedule.js"), "text/javascript; charset=utf-8"));
         foreach (var page in new[] { "/workspace/inbox", "/workspace/decision-history" })
@@ -252,6 +254,8 @@ public static class IoWebHost
             catch (InvalidOperationException) { return Results.Conflict(); }
             catch (ArgumentOutOfRangeException) { return Results.BadRequest(); }
         });
+        app.MapGet("/attendance/own", (string fromUtc, string untilUtcExclusive, int? offset, HttpContext c, PersonalAttendance service) =>
+            AdminRead(c, async actor => await service.ListAsync(actor, ParseExplicitTime(fromUtc), ParseExplicitTime(untilUtcExclusive), offset ?? 0, c.RequestAborted)));
         app.MapGet("/attendance/raw/{sourceId:guid}", (Guid sourceId, int? offset, HttpContext c, AttendanceIngestion service) =>
             AdminRead(c, actor => service.ListAsync(actor, sourceId, offset ?? 0, c.RequestAborted)));
         app.MapGet("/attendance/mapping-changes/{sourceId:guid}", (Guid sourceId, int? offset, HttpContext c, AttendanceIngestion service) =>
