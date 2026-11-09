@@ -357,6 +357,15 @@ internal static class HttpSecurityTests
             using var deniedTargetJson = JsonDocument.Parse(await deniedTargetInbox.Content.ReadAsStringAsync());
             var readOnlyDecision = await PostAdmin(scoped, $"/corrections/requests/{correctionId}/decision", new { Approve = true, Reason = (string?)null });
             var readOnlyDecisionHistory = await scoped.GetAsync("/corrections/decisions");
+            using var pickerResponse = await scoped.GetAsync("/corrections/inbox/employees?offset=0");
+            using var pickerJson = JsonDocument.Parse(await pickerResponse.Content.ReadAsStringAsync());
+            var pickerItems = pickerJson.RootElement.GetProperty("items").EnumerateArray().ToArray();
+            check(pickerResponse.StatusCode == HttpStatusCode.OK && pickerItems.Count(x => x.GetProperty("id").GetGuid() == first) == 1 &&
+                  pickerItems.All(x => x.GetProperty("id").GetGuid() != second) &&
+                  pickerItems.Single(x => x.GetProperty("id").GetGuid() == first).GetProperty("displayName").GetString() == "First" &&
+                  (await own.GetAsync("/corrections/inbox/employees")).StatusCode == HttpStatusCode.Forbidden &&
+                  (await scoped.GetAsync("/corrections/inbox/employees?offset=-1")).StatusCode == HttpStatusCode.BadRequest,
+                  "HTTP inbox employee picker exposes only assigned scoped personnel");
             var invalidInbox = await scoped.GetAsync("/corrections/inbox?employeeId=00000000-0000-0000-0000-000000000000");
             var malformedInbox = await scoped.GetAsync("/corrections/inbox?employeeId=invalid");
             var approvalGrant = await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = testManagerRole, Code = "correction.approve" });

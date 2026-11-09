@@ -178,6 +178,7 @@ internal static class CorrectionWorkflowTests
             await db.SaveChangesAsync();
         }
         var readInbox = JsonSerializer.Serialize(await Run(s => s.InboxAsync(manager, 0, employeeId: employee)));
+        var inboxEmployees = JsonSerializer.SerializeToElement(await Run(s => s.InboxEmployeesAsync(manager, 0)));
         Guid otherEmployeeId;
         await using (var scope = provider.CreateAsyncScope())
             otherEmployeeId = (await scope.ServiceProvider.GetRequiredService<IoDbContext>().Employees.SingleAsync(x => x.CompanyId == company && x.PersonnelNumber == "WEB-2")).Id;
@@ -239,6 +240,7 @@ internal static class CorrectionWorkflowTests
         }
         var noScopeInbox = JsonSerializer.Serialize(await Run(s => s.InboxAsync(manager, 0, employeeId: employee)));
         var noScopeHistory = JsonSerializer.Serialize(await Run(s => s.ListDecisionsAsync(manager, 0)));
+        var noScopeEmployees = JsonSerializer.SerializeToElement(await Run(s => s.InboxEmployeesAsync(manager, 0)));
         await using (var scope = provider.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
@@ -257,12 +259,21 @@ internal static class CorrectionWorkflowTests
             await db.SaveChangesAsync();
         }
         var revokedInbox = await Reject<UnauthorizedAccessException>(() => Run(s => s.InboxAsync(manager, 0)));
+        var revokedEmployees = await Reject<UnauthorizedAccessException>(() => Run(s => s.InboxEmployeesAsync(manager, 0)));
         await using (var scope = provider.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
             db.RolePermissions.Add(new() { RoleId = managerRoleId, PermissionId = decidePermissionId });
             await db.SaveChangesAsync();
         }
+        var employeeChoices = inboxEmployees.GetProperty("items").EnumerateArray().ToArray();
+        check(employeeChoices.Count(x => x.GetProperty("Id").GetGuid() == employee) == 1 &&
+              employeeChoices.All(x => x.GetProperty("Id").GetGuid() != otherEmployeeId) &&
+              employeeChoices.Single(x => x.GetProperty("Id").GetGuid() == employee).GetProperty("PersonnelNumber").GetString() == "WEB-1" &&
+              !noScopeEmployees.GetProperty("items").EnumerateArray().Any() && revokedEmployees &&
+              await Reject<ArgumentException>(() => Run(s => s.InboxEmployeesAsync(manager, -1))) &&
+              await Reject<UnauthorizedAccessException>(() => Run(s => s.InboxEmployeesAsync(outsider, 0))),
+              "inbox employee picker is deduplicated and limited to assigned pending requests within scope");
         var legacyInbox = JsonSerializer.Serialize(await Run(s => s.InboxAsync(manager, 0, employeeId: employee)));
         check(readInbox.Contains(identical.ToString(), StringComparison.OrdinalIgnoreCase) &&
               readInbox.Contains("\"EmployeeName\":\"First\"", StringComparison.Ordinal) && readInbox.Contains("WEB-1", StringComparison.Ordinal) &&

@@ -224,6 +224,24 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
             return (new { offset, pageSize = 50, items }, actor);
         }, ct);
 
+    // Only employees with a pending request actually assigned to this actor and
+    // in the actor's current scope are exposed; this is not a personnel catalog.
+    public Task<object> InboxEmployeesAsync(Guid actor, int offset, CancellationToken ct = default) =>
+        transaction.ExecuteEitherAsync<object>(actor, ReadInbox, Decide, "correction.inbox-employees.viewed", async token =>
+        {
+            if (offset is < 0 or > 100000) throw new ArgumentException("Invalid page.");
+            var authorized = access.AuthorizedEmployees(actor, DateOnly.FromDateTime(DateTime.UtcNow), "correction.never-self", DecideScoped, DecideAll);
+            var query = (from request in db.CorrectionRequests.AsNoTracking()
+                         join policy in db.CorrectionPolicies on request.PolicyId equals policy.Id
+                         join employee in authorized on request.EmployeeId equals employee.Id
+                         where policy.ApproverUserId == actor && request.State == 0 && request.RequesterUserId != actor &&
+                               !db.Users.Any(x => x.Id == actor && x.EmployeeId == request.EmployeeId)
+                         select new { employee.Id, employee.DisplayName, employee.PersonnelNumber }).Distinct();
+            var items = await query.OrderBy(x => x.DisplayName).ThenBy(x => x.PersonnelNumber).ThenBy(x => x.Id)
+                .Skip(offset).Take(50).ToListAsync(token);
+            return (new { offset, pageSize = 50, items }, actor);
+        }, ct);
+
     public Task<object> InboxAsync(Guid actor, int offset, CancellationToken ct = default, Guid? employeeId = null, string? sort = null) =>
         transaction.ExecuteEitherAsync<object>(actor, ReadInbox, Decide, "correction.inbox.viewed", async token =>
         {

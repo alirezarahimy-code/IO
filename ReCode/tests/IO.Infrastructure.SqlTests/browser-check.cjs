@@ -1429,6 +1429,16 @@ async function main() {
     const managerRow = managerInbox.locator('#body tr').filter({hasText:'بررسی مدیر آزمایشی'});
     const staleManagerRow = staleManagerInbox.locator('#body tr').filter({hasText:'بررسی مدیر آزمایشی'});
     await managerRow.waitFor(); await staleManagerRow.waitFor();
+    await managerInbox.waitForFunction(id=>[...document.querySelector('#inbox-employee-choice').options].some(x=>x.value===id),first);
+    await managerInbox.locator('#inbox-employee-choice').selectOption(first);
+    if(await managerInbox.locator('#inbox-filter input[name=employeeId]').inputValue()!==first || await managerInbox.locator('#body tr').count())
+      throw new Error('Inbox employee picker did not set the filter or clear stale rows');
+    await managerInbox.locator('#inbox-filter button[type=submit]').click();
+    await managerInbox.waitForFunction(()=>document.getElementById('notice').textContent.includes('فیلتر اعمال شد'));
+    await managerRow.waitFor();
+    await managerInbox.locator('#inbox-filter-reset').click();
+    await managerInbox.waitForFunction(()=>document.getElementById('notice').textContent.includes('فیلتر اعمال شد'));
+    await managerRow.waitFor();
     if(!(await managerRow.textContent()).includes('First') || !(await managerRow.textContent()).includes('WEB-1')) throw new Error('Inbox omitted employee identity');
     await managerInbox.locator('#inbox-filter input[name=employeeId]').fill('invalid');
     if(await managerInbox.locator('#body tr').count() || await managerInbox.locator('#next').isEnabled()) throw new Error('Edited inbox filter kept stale rows');
