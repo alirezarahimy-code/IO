@@ -81,6 +81,7 @@ internal static class CorrectionWorkflowTests
               await Reject<ArgumentException>(() => Run(s => s.SubmitAsync(self, policy, workDate, at.ToOffset(TimeSpan.FromHours(1)), 0, "test"))) &&
               await Reject<UnauthorizedAccessException>(() => Run(s => s.SubmitAsync(outsider, policy, workDate, at, 0, "test"))), "self approval, non-UTC and unauthorized correction submissions are rejected");
         var outside = await Run(s => s.SubmitAsync(otherActor, policy, workDate, at, 0, "outside unit"));
+        var otherToCancel = await Run(s => s.SubmitAsync(otherActor, policy, workDate.AddDays(2), at.AddDays(2), 1, "cancel independently"));
         // A separate role exercises the split without changing the other actor's identity.
         Guid testReadRole, readPermission, submitPermission, legacySelfRole;
         await using (var scope = provider.CreateAsyncScope())
@@ -101,6 +102,30 @@ internal static class CorrectionWorkflowTests
         var readOnlyDenied = await Reject<UnauthorizedAccessException>(() => Run(s => s.SubmitAsync(otherActor, policy, workDate, at, 0, "denied"))) &&
             await Reject<UnauthorizedAccessException>(() => Run(s => s.CancelAsync(otherActor, outside, "denied"))) &&
             await Reject<UnauthorizedAccessException>(() => Run(s => s.ListPoliciesAsync(otherActor, 0)));
+        Guid cancelPermission;
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var cancelGrant = await db.Permissions.SingleOrDefaultAsync(x => x.Code == CorrectionWorkflow.CancelOwn);
+            if (cancelGrant is null) { cancelGrant = new() { Id = Guid.NewGuid(), Code = CorrectionWorkflow.CancelOwn }; db.Permissions.Add(cancelGrant); }
+            cancelPermission = cancelGrant.Id;
+            db.RolePermissions.Add(new() { RoleId = testReadRole, PermissionId = cancelPermission });
+            await db.SaveChangesAsync();
+        }
+        var cancellableHistory = JsonSerializer.Serialize(await Run(s => s.ListOwnAsync(otherActor, 0)));
+        var independentCancel = await Run(s => s.CancelAsync(otherActor, otherToCancel, "no longer needed"));
+        var cancelCannotSubmit = await Reject<UnauthorizedAccessException>(() => Run(s => s.SubmitAsync(otherActor, policy, workDate, at, 0, "denied"))) &&
+            await Reject<UnauthorizedAccessException>(() => Run(s => s.ListPoliciesAsync(otherActor, 0))) &&
+            await Reject<UnauthorizedAccessException>(() => Run(s => s.CancelAsync(otherActor, identical, "not mine")));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            db.RolePermissions.Remove(await db.RolePermissions.SingleAsync(x => x.RoleId == testReadRole && x.PermissionId == cancelPermission));
+            await db.SaveChangesAsync();
+        }
+        var revokedCancel = await Reject<UnauthorizedAccessException>(() => Run(s => s.CancelAsync(otherActor, outside, "denied")));
+        check(cancellableHistory.Contains("\"canCancel\":true", StringComparison.OrdinalIgnoreCase) && independentCancel && cancelCannotSubmit && revokedCancel,
+              "own cancellation is separately grantable and revocable without granting submission");
         await using (var scope = provider.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();

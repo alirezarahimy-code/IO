@@ -289,6 +289,10 @@ internal static class HttpSecurityTests
                   (await PostAdmin(own, "/corrections/requests", new { correctionInput.OperationId, correctionInput.PolicyId, correctionInput.WorkDate, correctionInput.ProposedAt, correctionInput.PunchKind, Reason = "changed" })).StatusCode == HttpStatusCode.Conflict &&
                   (await PostAdmin(own, "/corrections/requests", new { correctionInput.PolicyId, correctionInput.WorkDate, correctionInput.ProposedAt, correctionInput.PunchKind, correctionInput.Reason })).StatusCode == HttpStatusCode.BadRequest,
                   "HTTP correction requires operation id and rejects changed idempotent replay");
+            using var cancellableResponse = await PostAdmin(own, "/corrections/requests", new { OperationId = Guid.NewGuid(), PolicyId = correctionPolicy, WorkDate = "2027-05-07", ProposedAt = "2027-05-07T08:00:00Z", PunchKind = 0, Reason = "cancel independently" });
+            cancellableResponse.EnsureSuccessStatusCode();
+            using var cancellableJson = JsonDocument.Parse(await cancellableResponse.Content.ReadAsStringAsync());
+            var cancellableId = cancellableJson.RootElement.GetProperty("result").GetGuid();
             var readGrant = await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = testSelfRole, Code = "correction.requests.read.self" });
             var submitRevoke = await PostAdmin(adminClient, "/admin/role-permissions/revoke", new { RoleId = testSelfRole, Code = "correction.submit.self" });
             // The browser fixture also grants submit through a separate role; revoke it
@@ -302,6 +306,19 @@ internal static class HttpSecurityTests
             var readOnlySubmit = await PostAdmin(own, "/corrections/requests", correctionInput);
             var readOnlyCancel = await PostAdmin(own, $"/corrections/requests/{correctionId}/cancel", new { Reason = "denied" });
             var readOnlyPolicies = await own.GetAsync("/corrections/policies");
+            var cancelGrant = await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = testSelfRole, Code = "correction.cancel.self" });
+            using var cancelEnabled = await own.GetAsync("/corrections/own");
+            var cancelEnabledText = await cancelEnabled.Content.ReadAsStringAsync();
+            var cancelWithoutSubmit = await PostAdmin(own, $"/corrections/requests/{cancellableId}/cancel", new { Reason = "cancel independently" });
+            var stillNoSubmit = await PostAdmin(own, "/corrections/requests", correctionInput);
+            var cannotCancelOthers = await PostAdmin(own, $"/corrections/requests/{Guid.NewGuid()}/cancel", new { Reason = "not mine" });
+            var cancelRevoke = await PostAdmin(adminClient, "/admin/role-permissions/revoke", new { RoleId = testSelfRole, Code = "correction.cancel.self" });
+            var cancellationAfterRevoke = await PostAdmin(own, $"/corrections/requests/{correctionId}/cancel", new { Reason = "revoked" });
+            check(cancelGrant.StatusCode == HttpStatusCode.OK && cancelEnabled.StatusCode == HttpStatusCode.OK &&
+                  cancelEnabledText.Contains("\"canCancel\":true", StringComparison.Ordinal) && cancelWithoutSubmit.StatusCode == HttpStatusCode.OK &&
+                  stillNoSubmit.StatusCode == HttpStatusCode.Forbidden && cannotCancelOthers.StatusCode == HttpStatusCode.Forbidden &&
+                  cancelRevoke.StatusCode == HttpStatusCode.OK && cancellationAfterRevoke.StatusCode == HttpStatusCode.Forbidden,
+                  "HTTP cancellation grant acts on own requests without submission and revoke is immediate");
             var restore = await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = testSelfRole, Code = "correction.submit.self" });
             var browserRestore = await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = browserSelfRole, Code = "correction.submit.self" });
             check(readGrant.StatusCode == HttpStatusCode.OK && submitRevoke.StatusCode == HttpStatusCode.OK && browserRevoke.StatusCode == HttpStatusCode.OK &&

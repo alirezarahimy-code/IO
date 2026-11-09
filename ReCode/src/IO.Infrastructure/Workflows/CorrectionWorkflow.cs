@@ -12,6 +12,7 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
     public const string Configure = "correction.configure";
     public const string Submit = "correction.submit.self";
     public const string ReadOwn = "correction.requests.read.self";
+    public const string CancelOwn = "correction.cancel.self";
     public const string Decide = "correction.decide";
     public const string ReadInbox = "correction.inbox.read";
     public const string DecideScoped = "correction.decide.scoped";
@@ -126,7 +127,7 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
         }, ct);
 
     public Task<bool> CancelAsync(Guid actor, Guid requestId, string reason, CancellationToken ct = default) =>
-        transaction.ExecuteAsync(actor, Submit, "correction.request.cancelled", async token =>
+        transaction.ExecuteEitherAsync(actor, CancelOwn, Submit, "correction.request.cancelled", async token =>
         {
             Reason(reason, true);
             await transaction.LockAsync("IO.Correction." + requestId.ToString("N"), token);
@@ -197,7 +198,8 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
                                    DecisionReason = decision == null ? null : decision.Reason,
                                    DecisionAtUtc = decision == null ? (DateTimeOffset?)null : decision.AtUtc })
                                .Skip(offset).Take(50).ToListAsync(token);
-            var canCancel = await transaction.HasPermissionAsync(actor, Submit, token);
+            var canCancel = await transaction.HasPermissionAsync(actor, CancelOwn, token) ||
+                            await transaction.HasPermissionAsync(actor, Submit, token);
             return (new { offset, pageSize = 50, fromDate, toDate, state, items, canCancel }, actor);
         }, ct);
 
