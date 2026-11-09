@@ -224,6 +224,11 @@ internal static class HttpSecurityTests
             check(converted.StatusCode == HttpStatusCode.OK && (await converted.Content.ReadAsStringAsync()).Contains("2024-03-20", StringComparison.Ordinal) &&
                 (await adminClient.GetAsync("/dates/jalali/1402/12/30")).StatusCode == HttpStatusCode.BadRequest,
                 "HTTP Persian date conversion validates leap boundaries");
+            var gregorian = await adminClient.GetAsync("/dates/gregorian/2024-03-20");
+            using var gregorianJson = JsonDocument.Parse(await gregorian.Content.ReadAsStringAsync());
+            check(gregorian.StatusCode == HttpStatusCode.OK && gregorianJson.RootElement.GetProperty("year").GetInt32() == 1403 &&
+                gregorianJson.RootElement.GetProperty("month").GetInt32() == 1 && gregorianJson.RootElement.GetProperty("day").GetInt32() == 1,
+                "HTTP Gregorian date converts to Persian year boundary");
             Guid administratorRole;
             await using (var scope = provider.CreateAsyncScope())
                 administratorRole = await scope.ServiceProvider.GetRequiredService<IoDbContext>().Roles

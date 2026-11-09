@@ -187,6 +187,7 @@ public static class IoWebHost
                 return day is null ? Results.NotFound() : Results.Ok(day);
             }
             catch (InvalidOperationException) { return Results.Conflict(); }
+            catch (ArgumentOutOfRangeException) { return Results.BadRequest(); }
         });
         app.MapGet("/org/catalog/{kind}", (string kind, int? offset, HttpContext context, OrganizationManagement service) =>
             AdminRead(context, actor => service.ListAsync(actor, kind, offset ?? 0, context.RequestAborted)));

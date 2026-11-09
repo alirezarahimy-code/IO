@@ -11,8 +11,8 @@ public sealed class ScheduleReader(IoDbContext db, EmployeeAccessReader access)
     public const string ReadSelf = "schedule.read.self";
     public const string ReadScoped = "schedule.read.scoped";
     public const string ReadAll = "schedule.read.all";
-    public sealed record ScheduleView(Guid EmployeeId, DateOnly WorkDate, string Calendar, int? DayKind,
-        string Shift, string TimeZoneId, DateTimeOffset StartUtc, DateTimeOffset EndUtc);
+    public sealed record ScheduleView(Guid EmployeeId, DateOnly WorkDate, int JalaliYear, int JalaliMonth, int JalaliDay,
+        string Calendar, int? DayKind, string Shift, string TimeZoneId, DateTimeOffset StartUtc, DateTimeOffset EndUtc);
 
     public async Task<ScheduleView?> FindAsync(Guid actor, Guid employeeId, DateOnly workDate,
         DateOnly trustedAuthorizationDate, CancellationToken ct = default)
@@ -39,7 +39,8 @@ public sealed class ScheduleReader(IoDbContext db, EmployeeAccessReader access)
         if (!TimeZoneInfo.TryFindSystemTimeZoneById(item.TimeZoneId, out var zone))
             throw new InvalidOperationException("The site time zone is unavailable.");
         var interval = new FixedShift(item.StartsAt, item.EndsAt, item.EndDayOffset).Resolve(workDate, zone);
-        return new ScheduleView(item.EmployeeId, workDate, item.Calendar, item.DayKind, item.Shift,
-            item.TimeZoneId, interval.StartUtc, interval.EndUtc);
+        var jalali = PersianDates.FromGregorian(workDate);
+        return new ScheduleView(item.EmployeeId, workDate, jalali.Year, jalali.Month, jalali.Day, item.Calendar,
+            item.DayKind, item.Shift, item.TimeZoneId, interval.StartUtc, interval.EndUtc);
     }
 }

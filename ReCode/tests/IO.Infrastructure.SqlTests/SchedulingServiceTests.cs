@@ -1,3 +1,4 @@
+using IO.Domain.Scheduling;
 using IO.Infrastructure.Scheduling;
 using IO.Infrastructure.Security;
 using IO.Infrastructure.Storage;
@@ -102,7 +103,9 @@ internal static class SchedulingServiceTests
             var own = await reader.FindAsync(self, employee, date, authorizationDate);
             var scoped = await reader.FindAsync(limited, employee, date, authorizationDate);
             var global = await reader.FindAsync(admin, employee, date, authorizationDate);
+            var jalali = PersianDates.FromGregorian(date);
             check(own?.DayKind == 1 && scoped is not null && global is not null &&
+                  own.JalaliYear == jalali.Year && own.JalaliMonth == jalali.Month && own.JalaliDay == jalali.Day &&
                   own.StartUtc == new DateTimeOffset(2027, 1, 1, 18, 30, 0, TimeSpan.Zero) &&
                   own.EndUtc == new DateTimeOffset(2027, 1, 2, 2, 30, 0, TimeSpan.Zero),
                 "authorized schedule read resolves holiday and overnight site time");
