@@ -119,6 +119,18 @@ internal static class OrganizationServiceTests
         check(await Reject<DomainConflictException>(() => Execute(s => s.MoveSiteAsync(admin, employee, oldSite, site, effective.AddDays(1)))) &&
               await Reject<DomainConflictException>(() => Execute(s => s.ChangeEmploymentProfileAsync(admin, employee, oldProfile, "status", null, effective.AddDays(1)))),
             "closed site and employment history cannot be replaced again");
+        check(await Reject<UnauthorizedAccessException>(() => Execute(s => s.AddSiteAssignmentAsync(limited, employee, site, historyStart, null))) &&
+              await Reject<UnauthorizedAccessException>(() => Execute(s => s.ChangeEmploymentProfileAsync(limited, employee, changedProfile, "status", null, effective.AddDays(1)))),
+            "site and employment mutations require explicit management permission");
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var audit = scope.ServiceProvider.GetRequiredService<LoginIdentityDbContext>().SecurityAudit;
+            check(await audit.AnyAsync(x => x.ActorUserId == admin && x.Action == "org.site-assignment.created:" + oldSite.ToString("N")) &&
+                  await audit.AnyAsync(x => x.ActorUserId == admin && x.Action == "org.site-move." + oldSite.ToString("N") + ":" + movedSite.ToString("N")) &&
+                  await audit.AnyAsync(x => x.ActorUserId == admin && x.Action == "org.employment.created:" + oldProfile.ToString("N")) &&
+                  await audit.AnyAsync(x => x.ActorUserId == admin && x.Action == "org.employment-change." + oldProfile.ToString("N") + ":" + changedProfile.ToString("N")),
+                "site and employment changes record actor and old and new identifiers in audit");
+        }
         var jan = new DateOnly(2026, 1, 1); var feb = new DateOnly(2026, 2, 1); var march = new DateOnly(2026, 3, 1);
         await Execute(s => s.AddAssignmentAsync(admin, employee, unit, jan, feb));
         await Execute(s => s.AddAssignmentAsync(admin, employee, secondUnit, feb, march));

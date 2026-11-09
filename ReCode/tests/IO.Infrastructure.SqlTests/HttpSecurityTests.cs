@@ -208,6 +208,27 @@ internal static class HttpSecurityTests
                 (await PostAdmin(adminClient, $"/org/employees/{newEmployee}/rename", new { DisplayName = "invalid", ExpectedVersion = "not-base64" })).StatusCode == HttpStatusCode.BadRequest,
                 "HTTP employee update rejects unauthorized and malformed version");
             var workDay = DateOnly.FromDateTime(DateTime.UtcNow);
+            var siteInput = new { EmployeeId = newEmployee, SiteId = newSite, ValidFrom = workDay, ValidUntilExclusive = (DateOnly?)null };
+            var profileInput = new { EmployeeId = newEmployee, StatusCode = "test-status", Title = "test title", ValidFrom = workDay, ValidUntilExclusive = (DateOnly?)null };
+            check((await PostAdmin(scoped, "/org/site-assignments", siteInput)).StatusCode == HttpStatusCode.Forbidden &&
+                  (await PostAdmin(scoped, "/org/employment-profiles", profileInput)).StatusCode == HttpStatusCode.Forbidden,
+                "HTTP site and employment writes deny users without management permission");
+            var firstSite = await CreateId("/org/site-assignments", siteInput);
+            var firstProfile = await CreateId("/org/employment-profiles", profileInput);
+            check((await PostAdmin(adminClient, "/org/site-assignments", siteInput)).StatusCode == HttpStatusCode.Conflict &&
+                  (await PostAdmin(adminClient, "/org/employment-profiles", profileInput)).StatusCode == HttpStatusCode.Conflict,
+                "HTTP overlapping site and employment history rejected");
+            var nextSite = await CreateId("/org/sites", new { CompanyId = newCompany, Name = "HTTP second site", TimeZoneId = "Asia/Tehran" });
+            var siteMove = new { EmployeeId = newEmployee, AssignmentId = firstSite, SiteId = nextSite, Effective = workDay.AddDays(1) };
+            var profileChange = new { EmployeeId = newEmployee, ProfileId = firstProfile, StatusCode = "other-test-status", Title = (string?)null, Effective = workDay.AddDays(1) };
+            await CreateId("/org/site-transfers", siteMove);
+            await CreateId("/org/employment-changes", profileChange);
+            check((await PostAdmin(adminClient, "/org/site-transfers", siteMove)).StatusCode == HttpStatusCode.Conflict &&
+                  (await PostAdmin(adminClient, "/org/employment-changes", profileChange)).StatusCode == HttpStatusCode.Conflict &&
+                  (await adminClient.GetAsync("/org/catalog/site-assignments")).StatusCode == HttpStatusCode.OK &&
+                  (await adminClient.GetAsync("/org/catalog/employment-profiles")).StatusCode == HttpStatusCode.OK &&
+                  (await scoped.GetAsync("/org/catalog/employment-profiles")).StatusCode == HttpStatusCode.Forbidden,
+                "HTTP history changes close old records and catalogs require authorization");
             var initialOrgAssignment = await CreateId("/org/assignments", new { EmployeeId = newEmployee, UnitId = newUnit, ValidFrom = workDay, ValidUntilExclusive = (DateOnly?)null });
             check((await PostAdmin(adminClient, "/org/assignments", new { EmployeeId = newEmployee, UnitId = newUnit, ValidFrom = workDay, ValidUntilExclusive = (DateOnly?)null })).StatusCode == HttpStatusCode.Conflict,
                 "HTTP duplicate employee assignment returns conflict");
