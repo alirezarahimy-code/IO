@@ -673,6 +673,47 @@ namespace IO.Infrastructure.Migrations
                     b.ToTable("Organizations", (string)null);
                 });
 
+            modelBuilder.Entity("IO.Infrastructure.Storage.PeriodDiagnosticRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("DraftId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("EvidenceJson")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long?>("InputRevision")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DraftId", "CreatedAtUtc");
+
+                    b.ToTable("PeriodDiagnostics", null, t =>
+                        {
+                            t.HasTrigger("TR_PeriodDiagnostics_Immutable");
+
+                            t.HasCheckConstraint("CK_PeriodDiagnostics_Json", "ISJSON([EvidenceJson]) = 1");
+
+                            t.HasCheckConstraint("CK_PeriodDiagnostics_Revision", "[InputRevision] IS NULL OR [InputRevision] >= 0");
+
+                            t.HasCheckConstraint("CK_PeriodDiagnostics_Utc", "DATEPART(TZOFFSET, [CreatedAtUtc]) = 0");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
             modelBuilder.Entity("IO.Infrastructure.Storage.PeriodDraftRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1475,6 +1516,21 @@ namespace IO.Infrastructure.Migrations
                         .HasForeignKey("ParentId", "CompanyId")
                         .HasPrincipalKey("Id", "CompanyId")
                         .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("IO.Infrastructure.Storage.PeriodDiagnosticRecord", b =>
+                {
+                    b.HasOne("IO.Infrastructure.Storage.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IO.Infrastructure.Storage.PeriodDraftRecord", null)
+                        .WithMany()
+                        .HasForeignKey("DraftId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("IO.Infrastructure.Storage.PeriodDraftRecord", b =>
