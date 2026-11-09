@@ -37,9 +37,45 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
     public DbSet<CorrectionDecisionRecord> CorrectionDecisions => Set<CorrectionDecisionRecord>();
     public DbSet<PeriodDraftRecord> PeriodDrafts => Set<PeriodDraftRecord>();
     public DbSet<PeriodDiagnosticRecord> PeriodDiagnostics => Set<PeriodDiagnosticRecord>();
+    public DbSet<LeaveTypeRecord> LeaveTypes => Set<LeaveTypeRecord>();
+    public DbSet<LeaveLedgerEntryRecord> LeaveLedgerEntries => Set<LeaveLedgerEntryRecord>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
+        model.Entity<LeaveTypeRecord>(b =>
+        {
+            b.ToTable("LeaveTypes", t =>
+            {
+                t.HasCheckConstraint("CK_LeaveTypes_MinutesPerDay", "[MinutesPerDay] BETWEEN 1 AND 1440");
+                t.HasCheckConstraint("CK_LeaveTypes_Utc", "DATEPART(TZOFFSET, [CreatedAtUtc]) = 0");
+                t.HasTrigger("TR_LeaveTypes_Immutable"); t.UseSqlOutputClause(false);
+            });
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
+            b.Property(x => x.Name).HasMaxLength(200).IsRequired(); b.Property(x => x.Symbol).HasMaxLength(40).IsRequired();
+            b.HasAlternateKey(x => new { x.Id, x.CompanyId });
+            b.HasIndex(x => new { x.CompanyId, x.Symbol }).IsUnique();
+            b.HasOne<CompanyRecord>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<LeaveLedgerEntryRecord>(b =>
+        {
+            b.ToTable("LeaveLedgerEntries", t =>
+            {
+                t.HasCheckConstraint("CK_LeaveLedgerEntries_Year", "[PersianYear] BETWEEN 1300 AND 1500");
+                t.HasCheckConstraint("CK_LeaveLedgerEntries_Minutes", "[Minutes] BETWEEN -527040 AND 527040 AND (([Kind] = 0 AND [Minutes] >= 0) OR ([Kind] = 1 AND [Minutes] > 0) OR ([Kind] = 2 AND [Minutes] < 0) OR ([Kind] = 3 AND [Minutes] <> 0))");
+                t.HasCheckConstraint("CK_LeaveLedgerEntries_Utc", "DATEPART(TZOFFSET, [CreatedAtUtc]) = 0");
+                t.HasTrigger("TR_LeaveLedgerEntries_Immutable"); t.UseSqlOutputClause(false);
+            });
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
+            b.Property(x => x.DocumentNumber).HasMaxLength(80).IsRequired(); b.Property(x => x.Description).HasMaxLength(500).IsRequired();
+            b.HasIndex(x => new { x.EmployeeId, x.LeaveTypeId, x.PersianYear, x.EffectiveDate });
+            b.HasIndex(x => new { x.EmployeeId, x.LeaveTypeId, x.PersianYear }).IsUnique().HasFilter("[Kind] = 0");
+            b.HasOne<EmployeeRecord>().WithMany().HasForeignKey(x => new { x.EmployeeId, x.CompanyId })
+                .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<LeaveTypeRecord>().WithMany().HasForeignKey(x => new { x.LeaveTypeId, x.CompanyId })
+                .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
         model.Entity<OrganizationRecord>(b =>
         {
             b.ToTable("Organizations"); b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
