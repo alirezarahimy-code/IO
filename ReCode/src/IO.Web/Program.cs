@@ -225,6 +225,8 @@ public static class IoWebHost
             Admin(c, csrf, actor => service.CreateSourceAsync(actor, input.SiteId, input.Name, c.RequestAborted)));
         app.MapPost("/attendance/simulated-events", (SimulatedEventInput input, HttpContext c, IAntiforgery csrf, AttendanceIngestion service) =>
             ReceiveEvent(c, csrf, service, input));
+        app.MapGet("/calculations/revision/{id:guid}", (Guid id, HttpContext c, ObservedCalculation service) =>
+            AdminRead(c, actor => service.AssessDatabaseChangesAsync(actor, id, c.RequestAborted)));
         app.MapGet("/calculations/compare/{firstId:guid}/{secondId:guid}", (Guid firstId, Guid secondId, HttpContext c, ObservedCalculation service) =>
             AdminRead(c, actor => service.CompareAsync(actor, firstId, secondId, c.RequestAborted)));
         app.MapGet("/calculations/rules/{companyId:guid}", (Guid companyId, int? offset, HttpContext c, ObservedCalculation service) =>

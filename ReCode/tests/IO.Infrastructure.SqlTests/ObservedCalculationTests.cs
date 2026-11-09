@@ -59,7 +59,48 @@ internal static class ObservedCalculationTests
                   await scope.ServiceProvider.GetRequiredService<LoginIdentityDbContext>().SecurityAudit.AnyAsync(x => x.Action == "calculation.run.created:" + first.ToString("N")),
                 "calculation resolves schedule, exact boundary, mapped punches and audit");
         }
+        var baselineStatus = JsonSerializer.SerializeToElement(await Calc(s => s.AssessDatabaseChangesAsync(admin, first)));
+        check(baselineStatus.GetProperty("databaseChange").GetString() == "no-monitored-database-change-detected" &&
+              baselineStatus.GetProperty("freshness").GetString() == "unknown" && !baselineStatus.GetProperty("approvable").GetBoolean() &&
+              baselineStatus.GetProperty("InputRevision").GetInt64() == baselineStatus.GetProperty("CurrentRevision").GetInt64(),
+              "revision baseline detects no monitored database write but never declares freshness");
+        await Raw(s => s.AppendAsync(admin, source, "in-1", "person-1", midnight.AddHours(7).AddMinutes(55), null, "in", [1]));
+        var replayStatus = JsonSerializer.SerializeToElement(await Calc(s => s.AssessDatabaseChangesAsync(admin, first)));
+        check(replayStatus.GetProperty("databaseChange").GetString() == "no-monitored-database-change-detected" &&
+              await Reject<UnauthorizedAccessException>(() => Calc(s => s.AssessDatabaseChangesAsync(limited, first))) &&
+              await Reject<ArgumentException>(() => Calc(s => s.AssessDatabaseChangesAsync(admin, Guid.NewGuid()))),
+              "identical raw retry does not change revision and assessment requires permission");
+        var legacyId = Guid.NewGuid();
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var original = await db.DailyCalculationRuns.AsNoTracking().SingleAsync(x => x.Id == first);
+            db.DailyCalculationRuns.Add(new() { Id = legacyId, CompanyId = original.CompanyId, EmployeeId = original.EmployeeId,
+                RuleVersionId = original.RuleVersionId, SourceId = original.SourceId, ScheduleAssignmentId = original.ScheduleAssignmentId,
+                WorkDate = original.WorkDate, WindowStartUtc = original.WindowStartUtc, WindowEndUtc = original.WindowEndUtc,
+                InputSnapshotJson = original.InputSnapshotJson, AnomaliesJson = original.AnomaliesJson, ObservedTicks = original.ObservedTicks,
+                InputRevision = null, CreatedAtUtc = original.CreatedAtUtc.AddTicks(-1), CreatedByUserId = original.CreatedByUserId });
+            await db.SaveChangesAsync();
+            var noDelete = false; var noReset = false;
+            try { await db.Database.ExecuteSqlRawAsync("DELETE FROM dbo.CalculationInputRevision WHERE Id = 1"); }
+            catch (SqlException e) when (e.Number == 51012) { noDelete = true; }
+            try { await db.Database.ExecuteSqlRawAsync("UPDATE dbo.CalculationInputRevision SET Revision = 0 WHERE Id = 1"); }
+            catch (SqlException e) when (e.Number == 51012) { noReset = true; }
+            await db.Database.OpenConnectionAsync();
+            await using var cmd = db.Database.GetDbConnection().CreateCommand();
+            cmd.CommandText = "SELECT COUNT(*) FROM sys.triggers WHERE name LIKE N'TR[_]Revision[_]%' AND is_disabled = 0";
+            var triggerCount = Convert.ToInt32(await cmd.ExecuteScalarAsync());
+            check(noDelete && noReset && triggerCount == 15 && CalculationInputRevisionStatus.Evaluate(3, null) == "unavailable" &&
+                CalculationInputRevisionStatus.Evaluate(3, 2) == "inconsistent", "revision singleton is monotonic and monitored table triggers are enabled");
+        }
+        var legacyStatus = JsonSerializer.SerializeToElement(await Calc(s => s.AssessDatabaseChangesAsync(admin, legacyId)));
+        check(legacyStatus.GetProperty("databaseChange").GetString() == "untracked" && !legacyStatus.GetProperty("approvable").GetBoolean(),
+            "historical runs without a revision baseline remain untracked");
         await Raw(s => s.AppendAsync(admin, source, "extra", "person-1", midnight.AddHours(12), null, "in", [3]));
+        var changedStatus = JsonSerializer.SerializeToElement(await Calc(s => s.AssessDatabaseChangesAsync(admin, first)));
+        check(changedStatus.GetProperty("databaseChange").GetString() == "monitored-database-changed" &&
+              changedStatus.GetProperty("CurrentRevision").GetInt64() > changedStatus.GetProperty("InputRevision").GetInt64(),
+              "new raw event invalidates the previous database revision baseline");
         var second = await Calc(s => s.CalculateAsync(admin, employee, date, source, rule));
         await using (var scope = provider.CreateAsyncScope())
         {
@@ -95,7 +136,11 @@ internal static class ObservedCalculationTests
                 "unmapped source event prevents numeric result and remains in snapshot");
         }
         var collision = await Raw(s => s.AppendAsync(admin, source, "in-1", "person-1", midnight.AddHours(7).AddMinutes(55), null, "in", [99]));
+        var beforeNote = await Calc(s => s.CalculateAsync(admin, employee, date, source, rule));
         await Raw(s => s.AddConflictNoteAsync(admin, collision.ConflictId!.Value, "reviewed but not resolved"));
+        var noteStatus = JsonSerializer.SerializeToElement(await Calc(s => s.AssessDatabaseChangesAsync(admin, beforeNote)));
+        check(noteStatus.GetProperty("databaseChange").GetString() == "no-monitored-database-change-detected",
+            "review notes alone do not change the monitored calculation input revision");
         var afterNote = await Calc(s => s.CalculateAsync(admin, employee, date, source, rule));
         await using (var scope = provider.CreateAsyncScope())
         {
@@ -152,7 +197,11 @@ internal static class ObservedCalculationTests
             await db.SaveChangesAsync();
             mappingVersion = (await db.SourceEmployeeMappings.SingleAsync(x => x.Id == sourceMapping)).Version;
         }
+        var beforeRemap = await Calc(s => s.CalculateAsync(admin, employee, date, source, rule));
         await Raw(s => s.ReplaceMappingAsync(admin, source, "person-1", sourceMapping, replacementEmployee, midnight.AddHours(12), mappingVersion, "historical correction"));
+        var remapStatus = JsonSerializer.SerializeToElement(await Calc(s => s.AssessDatabaseChangesAsync(admin, beforeRemap)));
+        check(remapStatus.GetProperty("databaseChange").GetString() == "monitored-database-changed",
+            "mapping replacement advances the monitored database input revision");
         var afterRemap = await Calc(s => s.CalculateAsync(admin, employee, date, source, rule));
         await using (var scope = provider.CreateAsyncScope())
         {

@@ -359,6 +359,12 @@ internal static class HttpSecurityTests
                   (await scoped.GetAsync($"/calculations/runs/{newEmployee}")).StatusCode == HttpStatusCode.Forbidden &&
                   (await adminClient.GetAsync($"/calculations/rules/{newCompany}")).StatusCode == HttpStatusCode.OK,
                 "HTTP calculation runs and rules expose only authorized historical snapshots");
+            using var revisionResponse = await adminClient.GetAsync($"/calculations/revision/{httpRun}");
+            var revisionText = await revisionResponse.Content.ReadAsStringAsync();
+            check(revisionResponse.StatusCode == HttpStatusCode.OK && revisionText.Contains("\"freshness\":\"unknown\"", StringComparison.Ordinal) &&
+                  revisionText.Contains("databaseChange", StringComparison.Ordinal) &&
+                  (await scoped.GetAsync($"/calculations/revision/{httpRun}")).StatusCode == HttpStatusCode.Forbidden,
+                  "HTTP revision assessment is authorized and does not promise freshness");
             var comparison = await adminClient.GetAsync($"/calculations/compare/{httpRun}/{httpRun}");
             check(comparison.StatusCode == HttpStatusCode.OK && (await comparison.Content.ReadAsStringAsync()).Contains("\"freshness\":\"unknown\"", StringComparison.Ordinal) &&
                   (await scoped.GetAsync($"/calculations/compare/{httpRun}/{httpRun}")).StatusCode == HttpStatusCode.Forbidden,

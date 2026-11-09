@@ -131,6 +131,9 @@ internal static class CorrectionWorkflowTests
                 "pending correction blocks a numerical calculation");
         }
         await Run(s => s.DecideAsync(manager, pending, true, "verified"));
+        var revision = JsonSerializer.SerializeToElement(await Calc(s => s.AssessDatabaseChangesAsync(admin, before)));
+        check(revision.GetProperty("databaseChange").GetString() == "monitored-database-changed",
+            "approval changes monitored database revision for earlier calculation");
         var after = await Calc(s => s.CalculateAsync(admin, employee, integratedDate, source, calculationRule));
         await using (var scope = provider.CreateAsyncScope())
         {

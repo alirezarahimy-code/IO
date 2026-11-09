@@ -142,16 +142,37 @@ public sealed class ObservedCalculation(IoDbContext db, PermissionTransaction tr
             }
             var calculated = ObservedAttendance.Calculate(employeeId, workDate, ruleId, start, end, points, []);
             foreach (var anomaly in calculated.Anomalies) anomalies.Add(anomaly);
+            // Capture after all serializable reads. SQL triggers advance this global
+            // revision on committed changes to monitored calculation input tables.
+            // This cannot detect tzdata, code or external data changes.
+            var revision = await db.CalculationInputRevisions.AsNoTracking().Where(x => x.Id == 1)
+                .Select(x => (long?)x.Revision).SingleOrDefaultAsync(token)
+                ?? throw new DomainConflictException("Calculation input revision unavailable.");
             var id = Guid.NewGuid();
             db.DailyCalculationRuns.Add(new() { Id = id, CompanyId = employee.CompanyId, EmployeeId = employeeId,
                 RuleVersionId = ruleId, SourceId = sourceId, ScheduleAssignmentId = schedule.Id, WorkDate = workDate,
                 WindowStartUtc = start, WindowEndUtc = end, CreatedAtUtc = DateTimeOffset.UtcNow, CreatedByUserId = actor,
-                ObservedTicks = anomalies.Count == 0 ? calculated.ObservedPresence?.Ticks : null,
+                InputRevision = revision, ObservedTicks = anomalies.Count == 0 ? calculated.ObservedPresence?.Ticks : null,
                 InputSnapshotJson = JsonSerializer.Serialize(new { rule.Algorithm, rule.BeforeMinutes, rule.AfterMinutes,
                     schedule.Id, schedule.CalendarId, schedule.SiteId, schedule.TimeZoneId, ShiftStartUtc = shiftStart, ShiftEndUtc = shiftEnd,
                     DayKind = dayKind, Events = snapshot, Corrections = corrections }),
                 AnomaliesJson = JsonSerializer.Serialize(anomalies.Order(StringComparer.Ordinal)) });
             return (id, id);
+        }, ct);
+
+    public Task<object> AssessDatabaseChangesAsync(Guid actor, Guid runId, CancellationToken ct = default) =>
+        transaction.ExecuteAsync<object>(actor, Manage, "calculation.revision.viewed", async token =>
+        {
+            if (runId == Guid.Empty) throw new ArgumentException("Invalid run identifier.");
+            var run = await db.DailyCalculationRuns.AsNoTracking().Where(x => x.Id == runId)
+                .Select(x => new { x.Id, x.EmployeeId, x.WorkDate, x.InputRevision }).SingleOrDefaultAsync(token)
+                ?? throw new ArgumentException("Unknown run.");
+            var current = await db.CalculationInputRevisions.AsNoTracking().Where(x => x.Id == 1)
+                .Select(x => (long?)x.Revision).SingleOrDefaultAsync(token);
+            return (new { run.Id, run.EmployeeId, run.WorkDate, run.InputRevision, CurrentRevision = current,
+                databaseChange = CalculationInputRevisionStatus.Evaluate(run.InputRevision, current),
+                freshness = "unknown", approvable = false,
+                warning = "Global database-wide signal only. No monitored change does not prove freshness or correctness." }, runId);
         }, ct);
 
     // A comparison of two historical snapshots detects recorded differences only.

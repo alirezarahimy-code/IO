@@ -238,6 +238,10 @@ async function main() {
     await page.locator('#calculation-run input[name=ruleVersionId]').fill(rule);
     await page.locator('#calculation-run input[name=workDate]').fill('2027-01-01');
     const run = await submit('calculation-run');
+    await page.locator('#calculation-revision input[name=id]').fill(run);
+    await clearResult();
+    await page.locator('#calculation-revision button').click();
+    await waitText('databaseChange');
     await page.locator('#calculation-compare input[name=firstId]').fill(run);
     await page.locator('#calculation-compare input[name=secondId]').fill(run);
     await clearResult();
