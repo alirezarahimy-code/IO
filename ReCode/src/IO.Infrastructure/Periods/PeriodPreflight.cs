@@ -19,19 +19,20 @@ public sealed class PeriodPreflight(IoDbContext db, PermissionTransaction transa
             var runs = await db.DailyCalculationRuns.AsNoTracking()
                 .Where(x => x.EmployeeId == employeeId && x.WorkDate >= start && x.WorkDate < endExclusive)
                 .OrderByDescending(x => x.CreatedAtUtc).ThenBy(x => x.Id)
-                .Select(x => new { x.Id, x.WorkDate, x.CreatedAtUtc, x.ObservedTicks, x.AnomaliesJson, x.InputRevision })
+                .Select(x => new { x.Id, x.WorkDate, x.CreatedAtUtc, x.ObservedTicks, x.AnomaliesJson, x.InputRevision, x.InputMonitorState })
                 .Take(1001).ToListAsync(token);
             if (runs.Count > 1000) throw new DomainConflictException("Too many historical runs for this diagnostic.");
             var revision = await db.CalculationInputRevisions.AsNoTracking().Where(x => x.Id == 1)
                 .Select(x => (long?)x.Revision).SingleOrDefaultAsync(token);
+            var monitor = await CalculationMonitorHealth.InspectAsync(db, token);
             var latest = runs.GroupBy(x => x.WorkDate).ToDictionary(x => x.Key, x => x.First());
             var days = Enumerable.Range(0, length).Select(i =>
             {
                 var day = start.AddDays(i);
                 var run = latest.GetValueOrDefault(day);
-                return new { date = day, latestRun = run, databaseChange = run is null ? "no-run" : CalculationInputRevisionStatus.Evaluate(run.InputRevision, revision) };
+                return new { date = day, latestRun = run, databaseChange = run is null ? "no-run" : CalculationInputRevisionStatus.Evaluate(run.InputRevision, revision, run.InputMonitorState, monitor) };
             }).ToArray();
-            return (new { employeeId, start, endExclusive, currentRevision = revision, monitorScope = "database-wide", freshness = "unknown", approvable = false,
+            return (new { employeeId, start, endExclusive, currentRevision = revision, currentMonitor = monitor, monitorScope = "database-wide", freshness = "unknown", approvable = false,
                 warning = "Historical diagnostic only; no freshness, policy coverage or payroll validation.", days }, employeeId);
         }, ct);
 }

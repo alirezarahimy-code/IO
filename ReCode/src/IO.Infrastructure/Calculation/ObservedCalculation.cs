@@ -145,6 +145,7 @@ public sealed class ObservedCalculation(IoDbContext db, PermissionTransaction tr
             // Capture after all serializable reads. SQL triggers advance this global
             // revision on committed changes to monitored calculation input tables.
             // This cannot detect tzdata, code or external data changes.
+            var monitorAtCapture = await CalculationMonitorHealth.InspectAsync(db, token);
             var revision = await db.CalculationInputRevisions.AsNoTracking().Where(x => x.Id == 1)
                 .Select(x => (long?)x.Revision).SingleOrDefaultAsync(token)
                 ?? throw new DomainConflictException("Calculation input revision unavailable.");
@@ -152,7 +153,7 @@ public sealed class ObservedCalculation(IoDbContext db, PermissionTransaction tr
             db.DailyCalculationRuns.Add(new() { Id = id, CompanyId = employee.CompanyId, EmployeeId = employeeId,
                 RuleVersionId = ruleId, SourceId = sourceId, ScheduleAssignmentId = schedule.Id, WorkDate = workDate,
                 WindowStartUtc = start, WindowEndUtc = end, CreatedAtUtc = DateTimeOffset.UtcNow, CreatedByUserId = actor,
-                InputRevision = revision, ObservedTicks = anomalies.Count == 0 ? calculated.ObservedPresence?.Ticks : null,
+                InputRevision = revision, InputMonitorState = monitorAtCapture, ObservedTicks = anomalies.Count == 0 ? calculated.ObservedPresence?.Ticks : null,
                 InputSnapshotJson = JsonSerializer.Serialize(new { rule.Algorithm, rule.BeforeMinutes, rule.AfterMinutes,
                     schedule.Id, schedule.CalendarId, schedule.SiteId, schedule.TimeZoneId, ShiftStartUtc = shiftStart, ShiftEndUtc = shiftEnd,
                     DayKind = dayKind, Events = snapshot, Corrections = corrections }),
@@ -165,14 +166,15 @@ public sealed class ObservedCalculation(IoDbContext db, PermissionTransaction tr
         {
             if (runId == Guid.Empty) throw new ArgumentException("Invalid run identifier.");
             var run = await db.DailyCalculationRuns.AsNoTracking().Where(x => x.Id == runId)
-                .Select(x => new { x.Id, x.EmployeeId, x.WorkDate, x.InputRevision }).SingleOrDefaultAsync(token)
+                .Select(x => new { x.Id, x.EmployeeId, x.WorkDate, x.InputRevision, x.InputMonitorState }).SingleOrDefaultAsync(token)
                 ?? throw new ArgumentException("Unknown run.");
             var current = await db.CalculationInputRevisions.AsNoTracking().Where(x => x.Id == 1)
                 .Select(x => (long?)x.Revision).SingleOrDefaultAsync(token);
-            return (new { run.Id, run.EmployeeId, run.WorkDate, run.InputRevision, CurrentRevision = current,
-                databaseChange = CalculationInputRevisionStatus.Evaluate(run.InputRevision, current), monitorScope = "database-wide",
+            var currentMonitor = await CalculationMonitorHealth.InspectAsync(db, token);
+            return (new { run.Id, run.EmployeeId, run.WorkDate, run.InputRevision, run.InputMonitorState, CurrentRevision = current, currentMonitor,
+                databaseChange = CalculationInputRevisionStatus.Evaluate(run.InputRevision, current, run.InputMonitorState, currentMonitor), monitorScope = "database-wide",
                 freshness = "unknown", approvable = false,
-                warning = "Global database-wide signal only, assuming monitoring triggers remain enabled and all writes fire them. No monitored change proves neither freshness nor correctness." }, runId);
+                warning = "Database-wide signal only. Trigger metadata checks at two instants do not detect a disabled interval, skipped triggers, or verify definitions. No detected change proves neither freshness nor correctness." }, runId);
         }, ct);
 
     // A comparison of two historical snapshots detects recorded differences only.

@@ -11,17 +11,17 @@ public sealed class PeriodDiagnostics(IoDbContext db, PermissionTransaction tran
 {
     public const string Manage = "period.diagnostic.manage";
     private const string Format = "diagnostic-v1";
-    private sealed record RunView(Guid Id, DateOnly WorkDate, DateTimeOffset CreatedAtUtc, long? InputRevision, long? ObservedTicks, string AnomaliesJson);
-    private sealed record EvidenceDay(DateOnly Date, Guid? RunId, long? InputRevision, long? ObservedTicks, string? AnomaliesJson);
+    private sealed record RunView(Guid Id, DateOnly WorkDate, DateTimeOffset CreatedAtUtc, long? InputRevision, long? ObservedTicks, string AnomaliesJson, string? InputMonitorState);
+    private sealed record EvidenceDay(DateOnly Date, Guid? RunId, long? InputRevision, long? ObservedTicks, string? AnomaliesJson, string? MonitorAtCapture = null);
     private sealed record Evidence(string Version, Guid DraftId, Guid EmployeeId, DateOnly Start, DateOnly EndExclusive,
-        long? InputRevision, EvidenceDay[] Days);
+        long? InputRevision, EvidenceDay[] Days, string? MonitorAtCapture = null);
 
     private async Task<List<RunView>> RunsAsync(PeriodDraftRecord draft, CancellationToken ct)
     {
         var rows = await db.DailyCalculationRuns.AsNoTracking().Where(x => x.EmployeeId == draft.EmployeeId &&
                 x.WorkDate >= draft.Start && x.WorkDate < draft.EndExclusive)
             .OrderByDescending(x => x.CreatedAtUtc).ThenBy(x => x.Id)
-            .Select(x => new RunView(x.Id, x.WorkDate, x.CreatedAtUtc, x.InputRevision, x.ObservedTicks, x.AnomaliesJson))
+            .Select(x => new RunView(x.Id, x.WorkDate, x.CreatedAtUtc, x.InputRevision, x.ObservedTicks, x.AnomaliesJson, x.InputMonitorState))
             .Take(1001).ToListAsync(ct);
         if (rows.Count > 1000) throw new DomainConflictException("Too many runs in the diagnostic interval.");
         return rows;
@@ -41,13 +41,14 @@ public sealed class PeriodDiagnostics(IoDbContext db, PermissionTransaction tran
             var draft = await db.PeriodDrafts.AsNoTracking().SingleOrDefaultAsync(x => x.Id == draftId, token)
                 ?? throw new ArgumentException("Unknown draft.");
             var latest = Latest(await RunsAsync(draft, token));
+            var monitor = await CalculationMonitorHealth.InspectAsync(db, token);
             var revision = await RevisionAsync(token) ?? throw new DomainConflictException("Calculation input revision unavailable.");
             var days = Enumerable.Range(0, draft.EndExclusive.DayNumber - draft.Start.DayNumber).Select(i =>
             {
                 var date = draft.Start.AddDays(i); var run = latest.GetValueOrDefault(date);
-                return new EvidenceDay(date, run?.Id, run?.InputRevision, run?.ObservedTicks, run?.AnomaliesJson);
+                return new EvidenceDay(date, run?.Id, run?.InputRevision, run?.ObservedTicks, run?.AnomaliesJson, run?.InputMonitorState);
             }).ToArray();
-            var evidence = new Evidence(Format, draft.Id, draft.EmployeeId, draft.Start, draft.EndExclusive, revision, days);
+            var evidence = new Evidence(Format, draft.Id, draft.EmployeeId, draft.Start, draft.EndExclusive, revision, days, monitor);
             var id = Guid.NewGuid();
             db.PeriodDiagnostics.Add(new() { Id = id, DraftId = draftId, InputRevision = revision,
                 EvidenceJson = JsonSerializer.Serialize(evidence), CreatedAtUtc = DateTimeOffset.UtcNow, CreatedByUserId = actor });
@@ -88,25 +89,26 @@ public sealed class PeriodDiagnostics(IoDbContext db, PermissionTransaction tran
             var byId = runs.ToDictionary(x => x.Id);
             var days = evidence!.Days!;
             valid = days.All(day => day.RunId is null
-                ? day.InputRevision is null && day.ObservedTicks is null && day.AnomaliesJson is null
+                ? day.InputRevision is null && day.ObservedTicks is null && day.AnomaliesJson is null && day.MonitorAtCapture is null
                 : byId.TryGetValue(day.RunId.Value, out var run) && run.WorkDate == day.Date &&
-                  run.InputRevision == day.InputRevision && run.ObservedTicks == day.ObservedTicks &&
+                  run.InputRevision == day.InputRevision && run.ObservedTicks == day.ObservedTicks && run.InputMonitorState == day.MonitorAtCapture &&
                   string.Equals(run.AnomaliesJson, day.AnomaliesJson, StringComparison.Ordinal));
             if (!valid)
                 return (new { diagnosticId, status = "unrecognized-evidence", freshness = "unknown", approvable = false }, diagnosticId);
             var changedDays = days.Count(day => latest.GetValueOrDefault(day.Date)?.Id != day.RunId);
             var current = await RevisionAsync(token);
-            var databaseChange = CalculationInputRevisionStatus.Evaluate(record.InputRevision, current);
+            var monitor = await CalculationMonitorHealth.InspectAsync(db, token);
+            var databaseChange = CalculationInputRevisionStatus.Evaluate(record.InputRevision, current, evidence.MonitorAtCapture, monitor);
             var status = changedDays > 0 ? "latest-results-changed" :
                 databaseChange == "no-monitored-database-change-detected" ? "no-monitored-diagnostic-change-detected" : databaseChange;
-            var assessedDays = days.Select(day => new { day.Date, day.RunId, day.InputRevision, day.ObservedTicks, day.AnomaliesJson,
-                databaseChange = day.RunId is null ? "no-run" : CalculationInputRevisionStatus.Evaluate(day.InputRevision, current) }).ToArray();
+            var assessedDays = days.Select(day => new { day.Date, day.RunId, day.InputRevision, day.ObservedTicks, day.AnomaliesJson, day.MonitorAtCapture,
+                databaseChange = day.RunId is null ? "no-run" : CalculationInputRevisionStatus.Evaluate(day.InputRevision, current, day.MonitorAtCapture, monitor) }).ToArray();
             return (new { diagnosticId, draftId = draft.Id, status, databaseChange, changedDays, monitorScope = "database-wide",
-                record.CreatedAtUtc, record.CreatedByUserId, record.InputRevision, currentRevision = current,
+                record.CreatedAtUtc, record.CreatedByUserId, record.InputRevision, monitorAtCapture = evidence.MonitorAtCapture, currentRevision = current, currentMonitor = monitor,
                 missingDays = days.Count(x => x.RunId is null),
                 daysWithAnomaliesOrNoValue = days.Count(x => x.RunId is not null && (x.ObservedTicks is null || x.AnomaliesJson != "[]")),
                 runsWithChangeOrUnknown = assessedDays.Count(x => x.RunId is not null && x.databaseChange != "no-monitored-database-change-detected"),
                 days = assessedDays, freshness = "unknown", approvable = false,
-                warning = "Diagnostic only; no detected difference does not prove freshness or authorize approval." }, diagnosticId);
+                warning = "Diagnostic only; trigger metadata checks do not detect disabled intervals or skipped writes. No detected difference does not prove freshness or authorize approval." }, diagnosticId);
         }, ct);
 }

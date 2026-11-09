@@ -70,6 +70,29 @@ internal static class ObservedCalculationTests
               await Reject<UnauthorizedAccessException>(() => Calc(s => s.AssessDatabaseChangesAsync(limited, first))) &&
               await Reject<ArgumentException>(() => Calc(s => s.AssessDatabaseChangesAsync(admin, Guid.NewGuid()))),
               "identical raw retry does not change revision and assessment requires permission");
+        // Metadata is checked both at capture and assessment. Restoring a trigger
+        // does not reconstruct writes that happened while it was disabled.
+        Guid capturedUnverified;
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            await db.Database.ExecuteSqlRawAsync("DISABLE TRIGGER dbo.TR_Revision_Employees ON dbo.Employees");
+            try
+            {
+                var status = JsonSerializer.SerializeToElement(await Calc(s => s.AssessDatabaseChangesAsync(admin, first)));
+                capturedUnverified = await Calc(s => s.CalculateAsync(admin, employee, date, source, rule));
+                check(status.GetProperty("databaseChange").GetString() == "monitor-unverified" &&
+                      status.GetProperty("currentMonitor").GetString() == "unverified" &&
+                      !status.GetProperty("approvable").GetBoolean(),
+                    "disabled input trigger makes the current monitor unverified");
+            }
+            finally { await db.Database.ExecuteSqlRawAsync("ENABLE TRIGGER dbo.TR_Revision_Employees ON dbo.Employees"); }
+        }
+        var unverifiedCapture = JsonSerializer.SerializeToElement(await Calc(s => s.AssessDatabaseChangesAsync(admin, capturedUnverified)));
+        check(unverifiedCapture.GetProperty("databaseChange").GetString() == "unverified-at-capture" &&
+              unverifiedCapture.GetProperty("currentMonitor").GetString() == "present" &&
+              !unverifiedCapture.GetProperty("approvable").GetBoolean(),
+              "restoring a trigger does not validate a run captured while monitoring was unverified");
         var legacyId = Guid.NewGuid();
         await using (var scope = provider.CreateAsyncScope())
         {
@@ -90,8 +113,8 @@ internal static class ObservedCalculationTests
             await using var cmd = db.Database.GetDbConnection().CreateCommand();
             cmd.CommandText = "SELECT COUNT(*) FROM sys.triggers WHERE name LIKE N'TR[_]Revision[_]%' AND is_disabled = 0";
             var triggerCount = Convert.ToInt32(await cmd.ExecuteScalarAsync());
-            check(noDelete && noReset && triggerCount == 15 && CalculationInputRevisionStatus.Evaluate(3, null) == "unavailable" &&
-                CalculationInputRevisionStatus.Evaluate(3, 2) == "inconsistent", "revision singleton is monotonic and monitored table triggers are enabled");
+            check(noDelete && noReset && triggerCount == 15 && CalculationInputRevisionStatus.Evaluate(3, null, "present", "present") == "unavailable" &&
+                CalculationInputRevisionStatus.Evaluate(3, 2, "present", "present") == "inconsistent", "revision singleton is monotonic and monitored table triggers are enabled");
         }
         var legacyStatus = JsonSerializer.SerializeToElement(await Calc(s => s.AssessDatabaseChangesAsync(admin, legacyId)));
         check(legacyStatus.GetProperty("databaseChange").GetString() == "untracked" && !legacyStatus.GetProperty("approvable").GetBoolean(),

@@ -316,6 +316,10 @@ namespace IO.Infrastructure.Migrations
                     b.Property<Guid>("EmployeeId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("InputMonitorState")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
                     b.Property<long?>("InputRevision")
                         .HasColumnType("bigint");
 
@@ -361,6 +365,8 @@ namespace IO.Infrastructure.Migrations
                     b.ToTable("DailyCalculationRuns", null, t =>
                         {
                             t.HasTrigger("TR_DailyCalculationRuns_Immutable");
+
+                            t.HasCheckConstraint("CK_CalculationRuns_MonitorState", "[InputMonitorState] IS NULL OR [InputMonitorState] IN (N'present', N'unverified')");
 
                             t.HasCheckConstraint("CK_CalculationRuns_Revision", "[InputRevision] IS NULL OR [InputRevision] >= 0");
 

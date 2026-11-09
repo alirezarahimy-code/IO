@@ -45,6 +45,24 @@ internal static class PeriodDiagnosticTests
               firstReport.GetProperty("missingDays").GetInt32() == 1 && firstReport.GetProperty("daysWithAnomaliesOrNoValue").GetInt32() == 1 &&
               firstReport.GetProperty("runsWithChangeOrUnknown").GetInt32() == 1 && firstReport.GetProperty("days").GetArrayLength() == 2,
               "period diagnostic captures missing days and stale run signal without claiming approval");
+        Guid unverifiedEvidence;
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            await db.Database.ExecuteSqlRawAsync("DISABLE TRIGGER dbo.TR_Revision_Employees ON dbo.Employees");
+            try
+            {
+                var disabledReport = JsonSerializer.SerializeToElement(await Use(s => s.AssessAsync(admin, first)));
+                unverifiedEvidence = await Use(s => s.RecordAsync(admin, draft));
+                check(disabledReport.GetProperty("databaseChange").GetString() == "monitor-unverified" &&
+                      disabledReport.GetProperty("freshness").GetString() == "unknown" && !disabledReport.GetProperty("approvable").GetBoolean(),
+                      "period evidence assessment reports disabled monitoring");
+            }
+            finally { await db.Database.ExecuteSqlRawAsync("ENABLE TRIGGER dbo.TR_Revision_Employees ON dbo.Employees"); }
+        }
+        var restoredReport = JsonSerializer.SerializeToElement(await Use(s => s.AssessAsync(admin, unverifiedEvidence)));
+        check(restoredReport.GetProperty("databaseChange").GetString() == "unverified-at-capture" &&
+              !restoredReport.GetProperty("approvable").GetBoolean(), "period evidence retains unverified capture after trigger restoration");
         var listing = JsonSerializer.SerializeToElement(await Use(s => s.ListAsync(admin, draft, 0)));
         await using (var scope = provider.CreateAsyncScope())
         {
@@ -54,7 +72,7 @@ internal static class PeriodDiagnosticTests
             catch (SqlException e) when (e.Number == 51014) { blockedDelete = true; }
             try { await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.PeriodDiagnostics SET EvidenceJson = {'{'.ToString() + '}'} WHERE Id = {first}"); }
             catch (SqlException e) when (e.Number == 51014) { blockedUpdate = true; }
-            check(blockedDelete && blockedUpdate && !listing.GetProperty("approvable").GetBoolean() && listing.GetProperty("items").GetArrayLength() == 1 &&
+            check(blockedDelete && blockedUpdate && !listing.GetProperty("approvable").GetBoolean() && listing.GetProperty("items").GetArrayLength() == 2 &&
                   await scope.ServiceProvider.GetRequiredService<LoginIdentityDbContext>().SecurityAudit.AnyAsync(x => x.Action == "period.diagnostic.recorded:" + first.ToString("N")) &&
                   await scope.ServiceProvider.GetRequiredService<LoginIdentityDbContext>().SecurityAudit.AnyAsync(x => x.Action == "period.diagnostic.assessed:" + first.ToString("N")),
                   "period diagnostic evidence is immutable, listed and audited");
