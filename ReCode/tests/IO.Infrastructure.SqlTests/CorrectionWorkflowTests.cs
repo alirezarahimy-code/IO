@@ -51,6 +51,12 @@ internal static class CorrectionWorkflowTests
         check(await Reject<UnauthorizedAccessException>(() => Run(s => s.CreatePolicyAsync(self, company, manager, "denied"))) &&
               await Reject<ArgumentException>(() => Run(s => s.CreatePolicyAsync(admin, company, Guid.NewGuid(), "invalid"))), "correction policy requires configured permission and existing active approver");
         var policy = await Run(s => s.CreatePolicyAsync(admin, company, manager, "synthetic single approver"));
+        var configured = JsonSerializer.Serialize(await Run(s => s.ListConfiguredPoliciesAsync(admin, company, 0)));
+        check(configured.Contains(policy.ToString(), StringComparison.OrdinalIgnoreCase) && configured.Contains(manager.ToString(), StringComparison.OrdinalIgnoreCase) &&
+              await Reject<UnauthorizedAccessException>(() => Run(s => s.ListConfiguredPoliciesAsync(self, company, 0))) &&
+              await Reject<ArgumentException>(() => Run(s => s.ListConfiguredPoliciesAsync(admin, Guid.NewGuid(), 0))) &&
+              await Reject<ArgumentException>(() => Run(s => s.ListConfiguredPoliciesAsync(admin, company, -1))),
+              "configured correction policy catalog requires configure permission and valid bounded company query");
         var selfPolicy = await Run(s => s.CreatePolicyAsync(admin, company, self, "self forbidden"));
         var duplicatePolicy = await Run(s => s.CreatePolicyAsync(admin, company, duplicateActor, "same employee forbidden"));
         check(await Reject<ArgumentException>(() => Run(s => s.SubmitAsync(self, selfPolicy, workDate, at, 0, "test"))) &&

@@ -222,6 +222,13 @@ async function main() {
     await deniedAttendance.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
     if (await deniedAttendance.locator('#body tr').count() || await deniedAttendance.locator('#results').isVisible()) throw new Error('Personal attendance exposed without permission');
     await deniedAttendance.close();
+    const deniedWorkflow = await context.newPage();
+    await deniedWorkflow.goto(address + '/workspace/workflow');
+    await deniedWorkflow.locator('#filter input[name=companyId]').fill(first);
+    await deniedWorkflow.locator('#filter button').click();
+    await deniedWorkflow.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
+    if (await deniedWorkflow.locator('#body tr').count() || await deniedWorkflow.locator('#create-form button').isEnabled()) throw new Error('Workflow catalog exposed without permission');
+    await deniedWorkflow.close();
     const selfId = await page.evaluate(async () => (await (await fetch('/auth/me')).json()).id);
     const selfCompany = await page.evaluate(async id => (await (await fetch('/employees/' + encodeURIComponent(id))).json()).companyId, first);
     await clearResult();
@@ -342,6 +349,24 @@ async function main() {
     await page.locator('#company input[name=organizationId]').fill(org);
     await page.locator('#company input[name=name]').fill('Browser synthetic company');
     const company = await submit('company');
+    const workflowPage = await context.newPage();
+    await workflowPage.goto(address + '/workspace/workflow');
+    await workflowPage.locator('#filter input[name=companyId]').fill(company);
+    await workflowPage.locator('#filter button').click();
+    await workflowPage.waitForFunction(() => !document.querySelector('#create-form button').disabled);
+    const noCsrf = await workflowPage.evaluate(async ({company,adminId}) => (await fetch('/corrections/policies',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({companyId:company,approverUserId:adminId,name:'no csrf'})})).status, {company,adminId});
+    if (noCsrf !== 400) throw new Error('Workflow policy creation accepted missing CSRF');
+    await workflowPage.locator('#create-form input[name=name]').fill('Workspace correction policy');
+    await workflowPage.locator('#create-form input[name=approverUserId]').fill(adminId);
+    await workflowPage.locator('#create-form button').click();
+    await workflowPage.waitForFunction(() => document.getElementById('notice').textContent.includes('سیاست ثبت شد'));
+    const workflowRow = workflowPage.locator('#body tr').filter({hasText:'Workspace correction policy'});
+    await workflowRow.waitFor();
+    if (!(await workflowRow.textContent()).includes(adminId)) throw new Error('Workflow policy did not persist approver');
+    await workflowPage.locator('#filter input[name=companyId]').fill(first);
+    if (await workflowPage.locator('#body tr').count() || await workflowPage.locator('#create-form button').isEnabled()) throw new Error('Changing company left stale workflow information active');
+    await workflowPage.close();
+
     const employeePage = await context.newPage();
     await employeePage.goto(address + '/workspace/employees');
     await employeePage.waitForFunction(id => [...document.querySelector('#company').options].some(o => o.value === id), company);

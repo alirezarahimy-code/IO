@@ -13,6 +13,8 @@
     <EmbeddedResource Include="Ui/MyRequests.html" />
     <EmbeddedResource Include="Ui/MySchedule.html" />
     <EmbeddedResource Include="Ui/MyAttendance.html" />
+    <EmbeddedResource Include="Ui/Workflow.html" />
+    <EmbeddedResource Include="Ui/workflow.js" />
     <EmbeddedResource Include="Ui/my-attendance.js" />
     <EmbeddedResource Include="Ui/Audit.html" />
     <EmbeddedResource Include="Ui/Users.html" />

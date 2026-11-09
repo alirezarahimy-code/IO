@@ -137,6 +137,8 @@ public static class IoWebHost
         app.MapGet("/assets/users.js", () => Results.Content(Resource("IO.Web.Ui.users.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/audit", () => Results.Content(Resource("IO.Web.Ui.Audit.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/audit.js", () => Results.Content(Resource("IO.Web.Ui.audit.js"), "text/javascript; charset=utf-8"));
+        app.MapGet("/workspace/workflow", () => Results.Content(Resource("IO.Web.Ui.Workflow.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/workflow.js", () => Results.Content(Resource("IO.Web.Ui.workflow.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/my-attendance", () => Results.Content(Resource("IO.Web.Ui.MyAttendance.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/my-attendance.js", () => Results.Content(Resource("IO.Web.Ui.my-attendance.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/my-schedule", () => Results.Content(Resource("IO.Web.Ui.MySchedule.html"), "text/html; charset=utf-8"));
@@ -296,6 +298,8 @@ public static class IoWebHost
             Admin(c, csrf, actor => service.CreateRuleAsync(actor, input.CompanyId, input.Name, input.BeforeMinutes, input.AfterMinutes, c.RequestAborted)));
         app.MapPost("/calculations/runs", (CalculationRunInput input, HttpContext c, IAntiforgery csrf, ObservedCalculation service) =>
             Admin(c, csrf, actor => service.CalculateAsync(actor, input.EmployeeId, input.WorkDate, input.SourceId, input.RuleVersionId, c.RequestAborted)));
+        app.MapGet("/corrections/configured-policies/{companyId:guid}", (Guid companyId, int? offset, HttpContext c, CorrectionWorkflow service) =>
+            AdminRead(c, actor => service.ListConfiguredPoliciesAsync(actor, companyId, offset ?? 0, c.RequestAborted)));
         app.MapGet("/corrections/policies", (int? offset, HttpContext c, CorrectionWorkflow service) =>
             AdminRead(c, actor => service.ListPoliciesAsync(actor, offset ?? 0, c.RequestAborted)));
         app.MapGet("/corrections/own", (int? offset, HttpContext c, CorrectionWorkflow service) =>

@@ -141,6 +141,9 @@ internal static class HttpSecurityTests
                   (await anon.GetAsync("/workspace/periods")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/workspace/my-schedule")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/workspace/my-attendance")).StatusCode == HttpStatusCode.Unauthorized &&
+                  (await anon.GetAsync("/workspace/workflow")).StatusCode == HttpStatusCode.Unauthorized &&
+                  (await anon.GetAsync("/assets/workflow.js")).StatusCode == HttpStatusCode.Unauthorized &&
+                  (await anon.GetAsync($"/corrections/configured-policies/{Guid.NewGuid()}")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/assets/my-attendance.js")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/attendance/own?fromUtc=2027-03-01T00%3A00%3A00Z&untilUtcExclusive=2027-03-02T00%3A00%3A00Z")).StatusCode == HttpStatusCode.Unauthorized &&
                   (await anon.GetAsync("/workspace/audit")).StatusCode == HttpStatusCode.Unauthorized &&

@@ -30,6 +30,22 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
             return (id, id);
         }, ct);
 
+    // Administrative catalog is separate from the requester's own eligible-policy list.
+    public Task<object> ListConfiguredPoliciesAsync(Guid actor, Guid companyId, int offset, CancellationToken ct = default) =>
+        transaction.ExecuteAsync<object>(actor, Configure, "correction.configured-policies.viewed", async token =>
+        {
+            if (companyId == Guid.Empty || offset is < 0 or > 100000 || !await db.Companies.AnyAsync(x => x.Id == companyId, token))
+                throw new ArgumentException("Invalid company or page.");
+            var items = await (from policy in db.CorrectionPolicies.AsNoTracking()
+                               join approver in db.Users on policy.ApproverUserId equals approver.Id
+                               where policy.CompanyId == companyId
+                               orderby policy.CreatedAtUtc, policy.Id
+                               select new { policy.Id, policy.CompanyId, policy.Name, policy.ApproverUserId,
+                                   ApproverName = approver.UserName, ApproverActive = approver.IsActive,
+                                   policy.CreatedByUserId, policy.CreatedAtUtc }).Skip(offset).Take(50).ToListAsync(token);
+            return (new { companyId, offset, pageSize = 50, items }, companyId);
+        }, ct);
+
     public Task<Guid> SubmitAsync(Guid actor, Guid policyId, DateOnly workDate, DateTimeOffset proposedUtc, int kind, string reason, CancellationToken ct = default) =>
         transaction.ExecuteAsync(actor, Submit, "correction.request.created", async token =>
         {
