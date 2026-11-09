@@ -187,7 +187,10 @@ jobs:
       - name: Test isolated SQL Server Developer
         shell: bash
         run: |
-          set -euo pipefail
+          set -Eeuo pipefail
+          # If setup fails before the test log exists, expose the failing shell line
+          # without including commands, environment variables or credentials.
+          trap 'status=$?; echo "::error title=SQL step failure::Exit status $status at line $LINENO"' ERR
           export MSSQL_SA_PASSWORD="$(python3 -c 'import secrets; print("Io9!" + secrets.token_hex(24))')"
           echo "::add-mask::$MSSQL_SA_PASSWORD"
           container_started=0
