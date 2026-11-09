@@ -214,8 +214,25 @@ internal static class HttpSecurityTests
             check((await PostAdmin(adminClient, "/attendance/simulated-events", new { SourceId = rawSource, ExternalId = "http-1", PersonId = "test-person", OccurredAt = "2026-01-01T08:00:00Z", SourceZone = "Asia/Tehran", EventType = "in", Payload = Convert.ToBase64String(new byte[] { 9 }) })).StatusCode == HttpStatusCode.Conflict &&
                   (await PostAdmin(adminClient, "/attendance/simulated-events", new { SourceId = rawSource, ExternalId = "http-2", OccurredAt = "2026-01-01T08:00:00", Payload = "" })).StatusCode == HttpStatusCode.BadRequest,
                 "HTTP raw identity collision and timestamp without offset fail closed");
+            using var repeatedConflict = await PostAdmin(adminClient, "/attendance/simulated-events", new { SourceId = rawSource, ExternalId = "http-1", PersonId = "test-person", OccurredAt = "2026-01-01T08:00:00Z", SourceZone = "Asia/Tehran", EventType = "in", Payload = Convert.ToBase64String(new byte[] { 9 }) });
+            using var conflictJson = JsonDocument.Parse(await repeatedConflict.Content.ReadAsStringAsync());
+            var conflictId = conflictJson.RootElement.GetProperty("result").GetProperty("conflictId").GetGuid();
+            using var conflictDetail = await adminClient.GetAsync($"/attendance/conflict/{conflictId}");
+            check(repeatedConflict.StatusCode == HttpStatusCode.Conflict && conflictDetail.StatusCode == HttpStatusCode.OK &&
+                  (await conflictDetail.Content.ReadAsStringAsync()).Contains("CQ==", StringComparison.Ordinal) &&
+                  (await scoped.GetAsync($"/attendance/conflict/{conflictId}")).StatusCode == HttpStatusCode.Forbidden &&
+                  (await adminClient.GetAsync($"/attendance/conflicts/{rawSource}")).StatusCode == HttpStatusCode.OK,
+                "HTTP collision response identifies stored restricted payload for review");
             var newUnit = await CreateId("/org/units", new { CompanyId = newCompany, ParentId = (Guid?)null, Name = "HTTP unit" });
             var newEmployee = await CreateId("/org/employees", new { CompanyId = newCompany, PersonnelNumber = "HTTP-1", DisplayName = "HTTP synthetic employee" });
+            var map = new { SourceId = rawSource, SourcePersonId = "test-person", EmployeeId = newEmployee, ValidFrom = "2026-01-01T00:00:00Z", ValidUntilExclusive = (string?)null };
+            check((await PostAdmin(scoped, "/attendance/mappings", map)).StatusCode == HttpStatusCode.Forbidden &&
+                  (await PostAdmin(adminClient, "/attendance/mappings", new { SourceId = rawSource, SourcePersonId = "test-person", EmployeeId = newEmployee, ValidFrom = "2026-01-01T00:00:00", ValidUntilExclusive = (string?)null })).StatusCode == HttpStatusCode.BadRequest &&
+                  (await PostAdmin(adminClient, "/attendance/mappings", map)).StatusCode == HttpStatusCode.OK &&
+                  (await PostAdmin(adminClient, "/attendance/mappings", map)).StatusCode == HttpStatusCode.Conflict &&
+                  (await adminClient.GetAsync($"/attendance/resolution/{rawSource}")).StatusCode == HttpStatusCode.OK &&
+                  (await scoped.GetAsync($"/attendance/resolution/{rawSource}")).StatusCode == HttpStatusCode.Forbidden,
+                "HTTP identity mapping checks permission, UTC offset, overlap and review access");
             async Task<string> CatalogVersion(string kind, Guid id)
             {
                 using var response = await adminClient.GetAsync("/org/catalog/" + kind);

@@ -198,6 +198,15 @@ public static class IoWebHost
         });
         app.MapGet("/attendance/raw/{sourceId:guid}", (Guid sourceId, int? offset, HttpContext c, AttendanceIngestion service) =>
             AdminRead(c, actor => service.ListAsync(actor, sourceId, offset ?? 0, c.RequestAborted)));
+        app.MapGet("/attendance/resolution/{sourceId:guid}", (Guid sourceId, int? offset, HttpContext c, AttendanceIngestion service) =>
+            AdminRead(c, actor => service.ListResolutionAsync(actor, sourceId, offset ?? 0, c.RequestAborted)));
+        app.MapGet("/attendance/conflicts/{sourceId:guid}", (Guid sourceId, int? offset, HttpContext c, AttendanceIngestion service) =>
+            AdminRead(c, actor => service.ListConflictsAsync(actor, sourceId, offset ?? 0, c.RequestAborted)));
+        app.MapGet("/attendance/conflict/{id:guid}", (Guid id, HttpContext c, AttendanceIngestion service) =>
+            AdminRead(c, actor => service.GetConflictAsync(actor, id, c.RequestAborted)));
+        app.MapPost("/attendance/mappings", (SourceMappingInput input, HttpContext c, IAntiforgery csrf, AttendanceIngestion service) =>
+            Admin(c, csrf, actor => service.AddMappingAsync(actor, input.SourceId, input.SourcePersonId, input.EmployeeId,
+                ParseExplicitTime(input.ValidFrom).ToUniversalTime(), input.ValidUntilExclusive is null ? null : ParseExplicitTime(input.ValidUntilExclusive).ToUniversalTime(), c.RequestAborted)));
         app.MapPost("/attendance/sources", (AttendanceSourceInput input, HttpContext c, IAntiforgery csrf, AttendanceIngestion service) =>
             Admin(c, csrf, actor => service.CreateSourceAsync(actor, input.SiteId, input.Name, c.RequestAborted)));
         app.MapPost("/attendance/simulated-events", (SimulatedEventInput input, HttpContext c, IAntiforgery csrf, AttendanceIngestion service) =>
@@ -291,20 +300,21 @@ public static class IoWebHost
         catch (ArgumentNullException) { throw new ArgumentException("Missing rowversion."); }
     }
 
+    private static DateTimeOffset ParseExplicitTime(string value)
+    {
+        if (value is null || !Regex.IsMatch(value, @"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?(?:Z|[+-]\d{2}:\d{2})$", RegexOptions.CultureInvariant) ||
+            !DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed))
+            throw new ArgumentException("Timestamp must have an explicit offset.");
+        return parsed;
+    }
+
     private static async Task<IResult> ReceiveEvent(HttpContext context, IAntiforgery antiforgery, AttendanceIngestion service, SimulatedEventInput input)
     {
         if (!await ValidCsrf(context, antiforgery)) return Results.BadRequest();
         if (!Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var actor)) return Results.Unauthorized();
         try
         {
-            DateTimeOffset? occurred = null;
-            if (input.OccurredAt is not null)
-            {
-                if (!Regex.IsMatch(input.OccurredAt, @"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?(?:Z|[+-]\d{2}:\d{2})$", RegexOptions.CultureInvariant) ||
-                    !DateTimeOffset.TryParse(input.OccurredAt, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed))
-                    return Results.BadRequest();
-                occurred = parsed;
-            }
+            DateTimeOffset? occurred = input.OccurredAt is null ? null : ParseExplicitTime(input.OccurredAt);
             var result = await service.AppendAsync(actor, input.SourceId, input.ExternalId, input.PersonId,
                 occurred, input.SourceZone, input.EventType, input.Payload, context.RequestAborted);
             return result.Outcome == RawEventAppendResult.ConflictingExternalIdentity
@@ -369,3 +379,5 @@ public sealed record EmploymentChangeInput(Guid EmployeeId, Guid ProfileId, stri
 
 public sealed record AttendanceSourceInput(Guid? SiteId, string Name);
 public sealed record SimulatedEventInput(Guid SourceId, string? ExternalId, string? PersonId, string? OccurredAt, string? SourceZone, string? EventType, byte[] Payload);
+
+public sealed record SourceMappingInput(Guid SourceId, string SourcePersonId, Guid EmployeeId, string ValidFrom, string? ValidUntilExclusive);

@@ -140,6 +140,16 @@ async function main() {
     await page.locator('#new-employee input[name=personnelNumber]').fill('BROWSER-1');
     await page.locator('#new-employee input[name=displayName]').fill('Browser synthetic employee');
     const employee = await submit('new-employee');
+    await page.locator('#attendance-mapping input[name=sourceId]').fill(rawSource);
+    await page.locator('#attendance-mapping input[name=personId]').fill('browser-person');
+    await page.locator('#attendance-mapping input[name=employeeId]').fill(employee);
+    await page.locator('#attendance-mapping input[name=validFrom]').fill('2026-01-01T00:00:00Z');
+    await submit('attendance-mapping');
+    await clearResult();
+    await page.locator('#attendance-resolution input[name=sourceId]').fill(rawSource);
+    await page.locator('#attendance-resolution button').click();
+    await waitText('requires-review');
+
     await page.locator('#employee-site input[name=employeeId]').fill(employee);
     await page.locator('#employee-site input[name=siteId]').fill(site);
     await page.locator('#employee-site input[name=validFrom]').fill('2027-01-01');
