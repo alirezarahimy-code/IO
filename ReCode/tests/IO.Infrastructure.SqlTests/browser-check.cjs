@@ -160,6 +160,15 @@ async function main() {
     if (await deniedOwnRequests.locator('#create-form button').isEnabled() || await deniedOwnRequests.locator('#create-form select[name=policyId] option').count() !== 1)
       throw new Error('New request exposed data without permission');
     await deniedOwnRequests.close();
+    const deniedManagerRequests = await context.newPage();
+    for (const route of ['/workspace/inbox', '/workspace/decision-history']) {
+      await deniedManagerRequests.goto(address + route);
+      await deniedManagerRequests.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
+      if (await deniedManagerRequests.locator('#body tr').count() !== 0 || await deniedManagerRequests.locator('#decision-section').isVisible())
+        throw new Error('Manager request workspace exposed data without permission');
+    }
+    await deniedManagerRequests.close();
+
 
 
     const deniedHistory = await context.newPage();
@@ -717,6 +726,13 @@ async function main() {
     await newRequestPage.locator('#create-form input[name=reason]').fill('درخواست آزمایشی من');
     await newRequestPage.locator('#create-form button').click();
     await newRequestPage.waitForFunction(() => document.getElementById('notice').textContent.includes('درخواست ثبت شد'));
+    await newRequestPage.locator('#notice').evaluate(el=>{el.textContent='';});
+    await newRequestPage.locator('#create-form select[name=policyId]').selectOption(employeePolicy);
+    await newRequestPage.locator('#create-form input[name=workDate]').fill('2027-03-03');
+    await newRequestPage.locator('#create-form input[name=proposedAt]').fill('2027-03-03T08:00:00Z');
+    await newRequestPage.locator('#create-form input[name=reason]').fill('بررسی مدیر آزمایشی');
+    await newRequestPage.locator('#create-form button').click();
+    await newRequestPage.waitForFunction(() => document.getElementById('notice').textContent.includes('درخواست ثبت شد'));
     await newRequestPage.close();
     const myRequestsPage = await context.newPage(), staleRequestsPage = await context.newPage();
     await myRequestsPage.goto(address + '/workspace/my-requests');
@@ -753,6 +769,29 @@ async function main() {
     await page.locator('#logout').click();
     await waitText('عملیات انجام شد.');
     await login(adminName);
+    const managerInbox = await context.newPage(), staleManagerInbox = await context.newPage();
+    await managerInbox.goto(address + '/workspace/inbox');
+    await staleManagerInbox.goto(address + '/workspace/inbox');
+    const managerRow = managerInbox.locator('#body tr').filter({hasText:'بررسی مدیر آزمایشی'});
+    const staleManagerRow = staleManagerInbox.locator('#body tr').filter({hasText:'بررسی مدیر آزمایشی'});
+    await managerRow.waitFor(); await staleManagerRow.waitFor();
+    const managerRequestId = await managerRow.locator('td').nth(6).textContent();
+    await managerRow.locator('button').click(); await staleManagerRow.locator('button').click();
+    await managerInbox.locator('#decision-form select[name=decision]').selectOption('reject');
+    if (!(await managerInbox.locator('#decision-form input[name=reason]').getAttribute('required') === '')) throw new Error('Rejection reason is not required');
+    await managerInbox.locator('#decision-form input[name=reason]').fill('رد آزمایشی');
+    await managerInbox.locator('#decision-form button[type=submit]').click();
+    await managerInbox.waitForFunction(() => document.getElementById('notice').textContent.includes('تصمیم ثبت شد'));
+    if (await managerInbox.locator('#body tr').filter({hasText:managerRequestId}).count() !== 0) throw new Error('Decided request remained in inbox');
+    await staleManagerInbox.locator('#decision-form button[type=submit]').click();
+    await staleManagerInbox.waitForFunction(() => document.getElementById('notice').textContent.includes('تعارض'));
+    if (await staleManagerInbox.locator('#decision-section').isVisible()) throw new Error('Conflicting decision retained selection');
+    const managerHistory = await context.newPage();
+    await managerHistory.goto(address + '/workspace/decision-history');
+    const historyRow = managerHistory.locator('#body tr').filter({hasText:managerRequestId});
+    await historyRow.waitFor();
+    if (!(await historyRow.textContent()).includes('رد آزمایشی') || !(await historyRow.textContent()).includes('ردشده')) throw new Error('Decision history was not persisted');
+    await managerHistory.close(); await staleManagerInbox.close(); await managerInbox.close();
     await clearResult();
     await page.locator('#correction-inbox button').click();
     await waitText(requestId);
