@@ -48,6 +48,38 @@ internal static class OrganizationServiceTests
         check(await Reject<ArgumentException>(() => Execute(s => s.CreateSiteAsync(admin, company, "Invalid", "Not/AZone"))) &&
               await Reject<ArgumentException>(() => Execute(s => s.CreateUnitAsync(admin, company, otherUnit, "Invalid parent"))),
             "invalid site time zone and cross-company parent denied");
+        byte[] employeeVersion; byte[] rootVersion; byte[] childVersion;
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            employeeVersion = (await db.Employees.SingleAsync(x => x.Id == employee)).Version;
+            rootVersion = (await db.OrgUnits.SingleAsync(x => x.Id == unit)).Version;
+            childVersion = (await db.OrgUnits.SingleAsync(x => x.Id == secondUnit)).Version;
+        }
+        check(await Reject<InvalidOperationException>(() => Execute(s => s.ReparentUnitAsync(admin, company, unit, secondUnit, rootVersion))) &&
+              await Reject<ArgumentException>(() => Execute(s => s.ReparentUnitAsync(admin, company, unit, otherUnit, rootVersion))),
+            "organizational cycles and cross-company parent changes rejected");
+        async Task<bool> TryRename(string name)
+        {
+            try { return await Execute(s => s.RenameEmployeeAsync(admin, employee, name, employeeVersion)); }
+            catch (DomainConflictException) { return false; }
+        }
+        var renamed = await Task.WhenAll(TryRename("First concurrent name"), TryRename("Second concurrent name"));
+        check(renamed.Count(x => x) == 1, "concurrent employee edits reject stale rowversion");
+        await Execute(s => s.ReparentUnitAsync(admin, company, secondUnit, null, childVersion));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            rootVersion = (await db.OrgUnits.SingleAsync(x => x.Id == unit)).Version;
+            childVersion = (await db.OrgUnits.SingleAsync(x => x.Id == secondUnit)).Version;
+        }
+        async Task<bool> TryMove(Guid id, Guid parent, byte[] version)
+        {
+            try { return await Execute(s => s.ReparentUnitAsync(admin, company, id, parent, version)); }
+            catch (DomainConflictException) { return false; }
+        }
+        var moves = await Task.WhenAll(TryMove(unit, secondUnit, rootVersion), TryMove(secondUnit, unit, childVersion));
+        check(moves.Count(x => x) == 1, "concurrent opposing unit moves cannot create a cycle");
         var jan = new DateOnly(2026, 1, 1); var feb = new DateOnly(2026, 2, 1); var march = new DateOnly(2026, 3, 1);
         await Execute(s => s.AddAssignmentAsync(admin, employee, unit, jan, feb));
         await Execute(s => s.AddAssignmentAsync(admin, employee, secondUnit, feb, march));

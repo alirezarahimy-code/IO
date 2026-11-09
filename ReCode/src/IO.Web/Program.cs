@@ -203,6 +203,10 @@ public static class IoWebHost
             Admin(c, csrf, actor => service.CreateUnitAsync(actor, input.CompanyId, input.ParentId, input.Name, c.RequestAborted)));
         app.MapPost("/org/employees", (EmployeeInput input, HttpContext c, IAntiforgery csrf, OrganizationManagement service) =>
             Admin(c, csrf, actor => service.CreateEmployeeAsync(actor, input.CompanyId, input.PersonnelNumber, input.DisplayName, c.RequestAborted)));
+        app.MapPost("/org/employees/{id:guid}/rename", (Guid id, EmployeeRenameInput input, HttpContext c, IAntiforgery csrf, OrganizationManagement service) =>
+            Admin(c, csrf, actor => service.RenameEmployeeAsync(actor, id, input.DisplayName, ParseVersion(input.ExpectedVersion), c.RequestAborted)));
+        app.MapPost("/org/units/{id:guid}/reparent", (Guid id, ReparentUnitInput input, HttpContext c, IAntiforgery csrf, OrganizationManagement service) =>
+            Admin(c, csrf, actor => service.ReparentUnitAsync(actor, input.CompanyId, id, input.ParentId, ParseVersion(input.ExpectedVersion), c.RequestAborted)));
         app.MapPost("/org/assignments", (AssignmentInput input, HttpContext c, IAntiforgery csrf, OrganizationManagement service) =>
             Admin(c, csrf, actor => service.AddAssignmentAsync(actor, input.EmployeeId, input.UnitId, input.ValidFrom, input.ValidUntilExclusive, c.RequestAborted)));
         app.MapPost("/org/transfers", (TransferInput input, HttpContext c, IAntiforgery csrf, OrganizationManagement service) =>
@@ -255,6 +259,13 @@ public static class IoWebHost
         return reader.ReadToEnd();
     }
 
+    private static byte[] ParseVersion(string value)
+    {
+        try { return Convert.FromBase64String(value); }
+        catch (FormatException) { throw new ArgumentException("Invalid rowversion."); }
+        catch (ArgumentNullException) { throw new ArgumentException("Missing rowversion."); }
+    }
+
     private static async Task<IResult> AdminRead(HttpContext context, Func<Guid, Task<object>> action)
     {
         if (!Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var actor)) return Results.Unauthorized();
@@ -300,3 +311,5 @@ public sealed record CalendarDayInput(Guid CalendarId, DateOnly Date, int Kind, 
 public sealed record ShiftInput(Guid CompanyId, Guid SiteId, string Name, TimeOnly StartsAt, TimeOnly EndsAt, int EndDayOffset);
 public sealed record ScheduleInput(Guid EmployeeId, Guid CalendarId, Guid ShiftId, DateOnly ValidFrom, DateOnly? ValidUntilExclusive);
 public sealed record ScheduleReplacementInput(Guid EmployeeId, Guid AssignmentId, Guid CalendarId, Guid ShiftId, DateOnly Effective);
+public sealed record EmployeeRenameInput(string DisplayName, string ExpectedVersion);
+public sealed record ReparentUnitInput(Guid CompanyId, Guid? ParentId, string ExpectedVersion);

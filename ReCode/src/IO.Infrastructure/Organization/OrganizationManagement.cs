@@ -30,8 +30,8 @@ public sealed class OrganizationManagement(IoDbContext db, PermissionTransaction
                 "organizations" => await db.Organizations.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(size).Select(x => new { x.Id, x.Name }).ToListAsync(token),
                 "companies" => await db.Companies.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(size).Select(x => new { x.Id, x.OrganizationId, x.Name }).ToListAsync(token),
                 "sites" => await db.Sites.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(size).Select(x => new { x.Id, x.CompanyId, x.Name, x.TimeZoneId }).ToListAsync(token),
-                "units" => await db.OrgUnits.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(size).Select(x => new { x.Id, x.CompanyId, x.ParentId, x.Name }).ToListAsync(token),
-                "employees" => await db.Employees.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(size).Select(x => new { x.Id, x.CompanyId, x.PersonnelNumber, x.DisplayName }).ToListAsync(token),
+                "units" => await db.OrgUnits.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(size).Select(x => new { x.Id, x.CompanyId, x.ParentId, x.Name, x.Version }).ToListAsync(token),
+                "employees" => await db.Employees.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(size).Select(x => new { x.Id, x.CompanyId, x.PersonnelNumber, x.DisplayName, x.Version }).ToListAsync(token),
                 "assignments" => await db.EmployeeAssignments.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(size).Select(x => new { x.Id, x.EmployeeId, x.CompanyId, x.OrgUnitId, x.ValidFrom, x.ValidUntilExclusive }).ToListAsync(token),
                 _ => throw new ArgumentException("Unknown catalog type.")
             };
@@ -84,6 +84,43 @@ public sealed class OrganizationManagement(IoDbContext db, PermissionTransaction
             var id = Guid.NewGuid();
             db.Employees.Add(new() { Id = id, CompanyId = companyId, PersonnelNumber = personnelNumber, DisplayName = displayName });
             return (id, id);
+        }, ct);
+
+    public Task<bool> RenameEmployeeAsync(Guid actor, Guid employeeId, string displayName, byte[] expectedVersion, CancellationToken ct = default) =>
+        transaction.ExecuteAsync(actor, Manage, "org.employee.renamed", async token =>
+        {
+            ValidateName(displayName, 200);
+            if (employeeId == Guid.Empty || expectedVersion is not { Length: 8 }) throw new ArgumentException("Invalid employee or rowversion.");
+            await transaction.LockAsync("IO.EmployeeRecord." + employeeId.ToString("N"), token);
+            var employee = await db.Employees.SingleOrDefaultAsync(x => x.Id == employeeId, token) ?? throw new ArgumentException("Unknown employee.");
+            if (!employee.Version.SequenceEqual(expectedVersion)) throw new DomainConflictException("Employee has changed.");
+            employee.DisplayName = displayName;
+            return (true, employeeId);
+        }, ct);
+
+    public Task<bool> ReparentUnitAsync(Guid actor, Guid companyId, Guid unitId, Guid? parentId, byte[] expectedVersion, CancellationToken ct = default) =>
+        transaction.ExecuteAsync(actor, Manage, "org.unit.reparented", async token =>
+        {
+            if (companyId == Guid.Empty || unitId == Guid.Empty || expectedVersion is not { Length: 8 })
+                throw new ArgumentException("Invalid company, unit or rowversion.");
+            // All reparenting within the company shares this lock, so opposing
+            // concurrent moves cannot each validate an outdated hierarchy.
+            await transaction.LockAsync("IO.OrgTree." + companyId.ToString("N"), token);
+            var unit = await db.OrgUnits.SingleOrDefaultAsync(x => x.Id == unitId && x.CompanyId == companyId, token)
+                ?? throw new ArgumentException("Unknown unit or different company.");
+            if (!unit.Version.SequenceEqual(expectedVersion)) throw new DomainConflictException("Unit has changed.");
+            var cursor = parentId;
+            var seen = new HashSet<Guid>();
+            while (cursor is not null)
+            {
+                if (cursor == unitId || !seen.Add(cursor.Value)) throw new DomainConflictException("Organizational cycle detected.");
+                var parent = await db.OrgUnits.AsNoTracking().Where(x => x.Id == cursor && x.CompanyId == companyId)
+                    .Select(x => new { x.ParentId }).SingleOrDefaultAsync(token)
+                    ?? throw new ArgumentException("Unknown parent or different company.");
+                cursor = parent.ParentId;
+            }
+            unit.ParentId = parentId;
+            return (true, unitId);
         }, ct);
 
     public Task<Guid> AddAssignmentAsync(Guid actor, Guid employeeId, Guid unitId, DateOnly from, DateOnly? until, CancellationToken ct = default) =>
