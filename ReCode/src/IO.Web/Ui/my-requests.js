@@ -1,10 +1,11 @@
 'use strict';
 (() => {
-  const $=id=>document.getElementById(id), form=$('create-form'), cancelForm=$('cancel-form'), mode=location.pathname.endsWith('/new-request')?'new':'list';
-  let busy=false,authorized=false,offset=0,count=0,policyOffset=0,policyCount=0,selected=null;
+  const $=id=>document.getElementById(id), form=$('create-form'), cancelForm=$('cancel-form'), filterForm=$('history-filter'), mode=location.pathname.endsWith('/new-request')?'new':'list';
+  let busy=false,authorized=false,offset=0,count=0,policyOffset=0,policyCount=0,selected=null,filterDirty=false,activeFilter={};
   form.elements.operationId.value=crypto.randomUUID();
   document.title=(mode==='new'?'درخواست جدید':'درخواست‌های من')+' | سامانهٔ حضور';$('title').textContent=mode==='new'?'درخواست جدید':'درخواست‌های من';$('new-section').hidden=mode!=='new';$('list-section').hidden=mode!=='list';
-  function controls(){ $('refresh').disabled=busy; $('previous').disabled=busy||!authorized||offset===0; $('next').disabled=busy||!authorized||count<50||offset>=100000; $('policy-previous').disabled=busy||!authorized||policyOffset===0; $('policy-next').disabled=busy||!authorized||policyCount<50||policyOffset>=100000;
+  function controls(){ $('refresh').disabled=busy; $('previous').disabled=busy||!authorized||filterDirty||offset===0; $('next').disabled=busy||!authorized||filterDirty||count<50||offset>=100000; $('policy-previous').disabled=busy||!authorized||policyOffset===0; $('policy-next').disabled=busy||!authorized||policyCount<50||policyOffset>=100000;
+    for(const e of filterForm.querySelectorAll('input,select,button'))e.disabled=busy;
     for(const e of form.querySelectorAll('input,select,button'))e.disabled=busy||!authorized;form.querySelector('button').disabled=busy||!authorized||!form.elements.policyId.value;
     for(const e of cancelForm.querySelectorAll('input,button'))e.disabled=busy||!authorized||!selected; }
   function cancelSelection(){selected=null;$('cancel-section').hidden=true;$('selected-request').textContent='';cancelForm.reset();}
@@ -14,11 +15,32 @@
   async function post(url,data){const token=await request('/auth/csrf');return request(url,{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':token.token},body:JSON.stringify(data)});}
   async function run(action){if(busy)return;busy=true;controls();try{await action();}catch(e){show(e instanceof TypeError?'ارتباط قطع شد؛ وضعیت ثبت نامعلوم است. بدون تغییر داده‌ها با همین شناسه تلاش کنید؛ پس از نوسازی وضعیت را بررسی کنید.':e.message);}finally{busy=false;controls();}}
   async function loadPolicies(){const data=await request('/corrections/policies?offset='+policyOffset);authorized=true;policyCount=data.items.length;form.elements.policyId.replaceChildren(new Option('انتخاب سیاست',''));for(const item of data.items)form.elements.policyId.add(new Option(item.name+' — '+item.id,item.id));$('policy-empty').hidden=policyCount!==0;$('policy-label').textContent='از ردیف '+(policyOffset+1).toLocaleString('fa-IR');}
-  async function loadRequests(){const data=await request('/corrections/own?offset='+offset);authorized=true;count=data.items.length;$('body').replaceChildren();$('empty').hidden=count!==0;$('page-label').textContent='از ردیف '+(offset+1).toLocaleString('fa-IR');for(const item of data.items){const tr=document.createElement('tr');const values=[item.workDate,item.proposedAtUtc,item.punchKind===0?'ورود':item.punchKind===1?'خروج':'نامشخص',item.reason,['در انتظار','تأییدشده','ردشده','لغوشده'][item.state]??'نامشخص',item.settingsRevision??'ثبت نشده',item.decisionReason??'—',item.id];for(const value of values){const td=document.createElement('td');td.textContent=value;tr.append(td);}const td=document.createElement('td');if(item.state===0 && data.canCancel===true){const button=document.createElement('button');button.type='button';button.textContent='لغو';button.setAttribute('aria-label','لغو درخواست '+item.id);button.addEventListener('click',()=>{if(busy)return;selected=item.id;$('selected-request').textContent='درخواست: '+item.id;cancelForm.reset();$('cancel-section').hidden=false;controls();cancelForm.elements.reason.focus();});td.append(button);}tr.append(td);$('body').append(tr);}}
+  async function loadRequests(){const query=new URLSearchParams({offset:String(offset),...activeFilter});const data=await request('/corrections/own?'+query);authorized=true;count=data.items.length;$('body').replaceChildren();$('empty').hidden=count!==0;$('page-label').textContent='از ردیف '+(offset+1).toLocaleString('fa-IR');for(const item of data.items){const tr=document.createElement('tr');const values=[item.workDate,item.proposedAtUtc,item.punchKind===0?'ورود':item.punchKind===1?'خروج':'نامشخص',item.reason,['در انتظار','تأییدشده','ردشده','لغوشده'][item.state]??'نامشخص',item.settingsRevision??'ثبت نشده',item.decisionReason??'—',item.id];for(const value of values){const td=document.createElement('td');td.textContent=value;tr.append(td);}const td=document.createElement('td');if(item.state===0 && data.canCancel===true){const button=document.createElement('button');button.type='button';button.textContent='لغو';button.setAttribute('aria-label','لغو درخواست '+item.id);button.addEventListener('click',()=>{if(busy)return;selected=item.id;$('selected-request').textContent='درخواست: '+item.id;cancelForm.reset();$('cancel-section').hidden=false;controls();cancelForm.elements.reason.focus();});td.append(button);}tr.append(td);$('body').append(tr);}}
   async function load(){if(mode==='new'){await loadPolicies();const setting=await request('/settings/correction-own');$('request-age').textContent=setting.maxRequestAgeDays===0?'محدودیت سن درخواست برای شرکت شما تنظیم نشده یا صفر است.':'حداکثر سن روز کاری در زمان ثبت: '+setting.maxRequestAgeDays+' روز، بر اساس روز UTC سرور.';$('request-age').textContent+=' سقف روزانه: '+(setting.dailyRequestLimit||'نامحدود')+'؛ سقف ماه شمسی: '+(setting.monthlyRequestLimit||'نامحدود')+'.';}else await loadRequests();}
-  $('refresh').addEventListener('click',()=>run(async()=>{cancelSelection();await load();show('اطلاعات به‌روزرسانی شد.');}));
+  $('refresh').addEventListener('click',()=>run(async()=>{cancelSelection();if(mode==='list'&&filterDirty){show('ابتدا فیلتر تغییر یافته را اعمال یا پاک کنید.');return;}await load();show('اطلاعات به‌روزرسانی شد.');}));
   $('previous').addEventListener('click',()=>run(async()=>{offset-=50;cancelSelection();try{await loadRequests();show('');}catch(e){offset+=50;throw e;}}));$('next').addEventListener('click',()=>run(async()=>{offset+=50;cancelSelection();try{await loadRequests();show('');}catch(e){offset-=50;throw e;}}));
   $('policy-previous').addEventListener('click',()=>run(async()=>{policyOffset-=50;try{await loadPolicies();show('');}catch(e){policyOffset+=50;throw e;}}));$('policy-next').addEventListener('click',()=>run(async()=>{policyOffset+=50;try{await loadPolicies();show('');}catch(e){policyOffset-=50;throw e;}}));
+  function invalidateFilter(){filterDirty=true;count=0;cancelSelection();$('body').replaceChildren();$('page-label').textContent='';$('empty').hidden=true;show('برای مشاهده، فیلتر تغییر یافته را اعمال کنید.');controls();}
+  filterForm.addEventListener('input',invalidateFilter);
+  filterForm.addEventListener('change',invalidateFilter);
+  $('filter-reset').addEventListener('click',()=>{filterForm.reset();invalidateFilter();filterForm.requestSubmit();});
+  function asciiDigits(value){return value.trim().replace(/[۰-۹٠-٩]/g,c=>String(c.charCodeAt(0)-(c>='۰'&&c<='۹'?0x06f0:0x0660)));}
+  async function jalali(value){
+    const match=/^(\d{4})\/(\d{1,2})\/(\d{1,2})$/.exec(asciiDigits(value));
+    if(!match)throw new Error('تاریخ شمسی را به صورت ۱۴۰۵/۰۱/۰۱ وارد کنید.');
+    const r=await fetch('/dates/jalali/'+match.slice(1).map(encodeURIComponent).join('/'),{credentials:'same-origin',cache:'no-store'});
+    if(!r.ok)throw new Error('تاریخ شمسی معتبر نیست.');
+    return (await r.json()).date;
+  }
+  filterForm.addEventListener('submit',e=>{e.preventDefault();run(async()=>{
+    const from=filterForm.elements.fromDate.value.trim(),to=filterForm.elements.toDate.value.trim();
+    if(Boolean(from)!==Boolean(to))throw new Error('هر دو تاریخ شمسی را وارد کنید یا هر دو را خالی بگذارید.');
+    const next={};
+    if(from){next.fromDate=await jalali(from);next.toDate=await jalali(to);if(next.fromDate>next.toDate)throw new Error('روز شروع نباید بعد از روز پایان باشد.');}
+    if(filterForm.elements.state.value!=='')next.state=filterForm.elements.state.value;
+    activeFilter=next;offset=0;cancelSelection();
+    await loadRequests();filterDirty=false;show('فیلتر اعمال شد.');
+  });});
   form.elements.policyId.addEventListener('change',controls);$('cancel-close').addEventListener('click',()=>{cancelSelection();controls();});
   form.addEventListener('submit',e=>{e.preventDefault();run(async()=>{if(!authorized||!form.elements.policyId.value)return;const result=await post('/corrections/requests',{policyId:form.elements.policyId.value,workDate:form.elements.workDate.value,proposedAt:form.elements.proposedAt.value.trim(),punchKind:Number(form.elements.punchKind.value),reason:form.elements.reason.value,operationId:form.elements.operationId.value});form.reset();form.elements.operationId.value=crypto.randomUUID();show('درخواست ثبت شد؛ شناسه: '+result.result+'؛ وضعیت را در «درخواست‌های من» ببینید.');});});
   cancelForm.addEventListener('submit',e=>{e.preventDefault();run(async()=>{if(!authorized||!selected)return;try{await post('/corrections/requests/'+encodeURIComponent(selected)+'/cancel',{reason:cancelForm.elements.reason.value});}catch(e){if(e.status===409)cancelSelection();throw e;}cancelSelection();try{await loadRequests();show('درخواست لغو شد.');}catch{show('درخواست لغو شد، اما دریافت فهرست ناموفق بود.');}});});

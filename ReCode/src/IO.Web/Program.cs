@@ -362,8 +362,8 @@ public static class IoWebHost
             AdminRead(c, actor => service.ListConfiguredPoliciesAsync(actor, companyId, offset ?? 0, c.RequestAborted)));
         app.MapGet("/corrections/policies", (int? offset, HttpContext c, CorrectionWorkflow service) =>
             AdminRead(c, actor => service.ListPoliciesAsync(actor, offset ?? 0, c.RequestAborted)));
-        app.MapGet("/corrections/own", (int? offset, HttpContext c, CorrectionWorkflow service) =>
-            AdminRead(c, actor => service.ListOwnAsync(actor, offset ?? 0, c.RequestAborted)));
+        app.MapGet("/corrections/own", (int? offset, DateOnly? fromDate, DateOnly? toDate, int? state, HttpContext c, CorrectionWorkflow service) =>
+            AdminRead(c, actor => service.ListOwnAsync(actor, offset ?? 0, c.RequestAborted, fromDate, toDate, state)));
         app.MapGet("/corrections/decisions", (int? offset, HttpContext c, CorrectionWorkflow service) =>
             AdminRead(c, actor => service.ListDecisionsAsync(actor, offset ?? 0, c.RequestAborted)));
         app.MapGet("/corrections/inbox", (int? offset, HttpContext c, CorrectionWorkflow service) =>

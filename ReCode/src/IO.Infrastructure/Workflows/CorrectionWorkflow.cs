@@ -153,16 +153,29 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
             return (new { offset, pageSize = 50, items }, actor);
         }, ct);
 
-    public Task<object> ListOwnAsync(Guid actor, int offset, CancellationToken ct = default) =>
+    public Task<object> ListOwnAsync(Guid actor, int offset, CancellationToken ct = default,
+        DateOnly? fromDate = null, DateOnly? toDate = null, int? state = null) =>
         transaction.ExecuteEitherAsync<object>(actor, ReadOwn, Submit, "correction.own.viewed", async token =>
         {
-            if (offset is < 0 or > 100000) throw new ArgumentException("Invalid page.");
-            var items = await (from request in db.CorrectionRequests.AsNoTracking()
+            if (offset is < 0 or > 100000 || fromDate.HasValue != toDate.HasValue ||
+                (fromDate.HasValue && fromDate > toDate) || state is < 0 or > 3)
+                throw new ArgumentException("Invalid page or filter.");
+            var ownRequests = db.CorrectionRequests.AsNoTracking().Where(x => x.RequesterUserId == actor);
+            if (fromDate.HasValue && toDate.HasValue)
+            {
+                var from = fromDate.Value; var to = toDate.Value;
+                ownRequests = ownRequests.Where(x => x.WorkDate >= from && x.WorkDate <= to);
+            }
+            if (state.HasValue)
+            {
+                var requestedState = state.Value;
+                ownRequests = ownRequests.Where(x => x.State == requestedState);
+            }
+            var items = await (from request in ownRequests
                                join decision in db.CorrectionDecisions on request.Id equals decision.RequestId into decisions
                                from decision in decisions.DefaultIfEmpty()
                                join settings in db.CorrectionSettings on request.CorrectionSettingsId equals (Guid?)settings.Id into settingsVersions
                                from settings in settingsVersions.DefaultIfEmpty()
-                               where request.RequesterUserId == actor
                                orderby request.CreatedAtUtc descending, request.Id
                                select new { request.Id, request.EmployeeId, request.PolicyId, request.WorkDate, request.ProposedAtUtc,
                                    request.PunchKind, request.Reason, request.State, request.CreatedAtUtc,
@@ -171,7 +184,7 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
                                    DecisionAtUtc = decision == null ? (DateTimeOffset?)null : decision.AtUtc })
                                .Skip(offset).Take(50).ToListAsync(token);
             var canCancel = await transaction.HasPermissionAsync(actor, Submit, token);
-            return (new { offset, pageSize = 50, items, canCancel }, actor);
+            return (new { offset, pageSize = 50, fromDate, toDate, state, items, canCancel }, actor);
         }, ct);
 
     public Task<object> ListDecisionsAsync(Guid actor, int offset, CancellationToken ct = default) =>

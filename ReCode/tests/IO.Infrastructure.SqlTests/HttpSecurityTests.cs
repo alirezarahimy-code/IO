@@ -310,6 +310,19 @@ internal static class HttpSecurityTests
                   readOnlyCancel.StatusCode == HttpStatusCode.Forbidden && readOnlyPolicies.StatusCode == HttpStatusCode.Forbidden &&
                   restore.StatusCode == HttpStatusCode.OK && browserRestore.StatusCode == HttpStatusCode.OK,
                   "HTTP own correction read-only grant cannot submit, cancel or list policies");
+            using var filteredOwn = await own.GetAsync("/corrections/own?fromDate=2027-05-05&toDate=2027-05-05&state=0&employeeId=" + second);
+            using var excludedOwn = await own.GetAsync("/corrections/own?fromDate=2027-05-06&toDate=2027-05-06&state=0");
+            using var filteredJson = JsonDocument.Parse(await filteredOwn.Content.ReadAsStringAsync());
+            using var excludedJson = JsonDocument.Parse(await excludedOwn.Content.ReadAsStringAsync());
+            check(filteredOwn.StatusCode == HttpStatusCode.OK && filteredJson.RootElement.GetProperty("items").EnumerateArray().Any(x => x.GetProperty("id").GetGuid() == correctionId) &&
+                  filteredJson.RootElement.GetProperty("items").EnumerateArray().All(x => x.GetProperty("employeeId").GetGuid() == first) &&
+                  excludedOwn.StatusCode == HttpStatusCode.OK && !excludedJson.RootElement.GetProperty("items").EnumerateArray().Any(x => x.GetProperty("id").GetGuid() == correctionId) &&
+                  (await own.GetAsync("/corrections/own?fromDate=2027-05-05")).StatusCode == HttpStatusCode.BadRequest &&
+                  (await own.GetAsync("/corrections/own?fromDate=2027-05-06&toDate=2027-05-05")).StatusCode == HttpStatusCode.BadRequest &&
+                  (await own.GetAsync("/corrections/own?state=4")).StatusCode == HttpStatusCode.BadRequest &&
+                  (await own.GetAsync("/corrections/own?fromDate=not-a-date&toDate=2027-05-05")).StatusCode == HttpStatusCode.BadRequest &&
+                  (await scoped.GetAsync("/corrections/own?fromDate=2027-05-05&toDate=2027-05-05")).StatusCode == HttpStatusCode.Forbidden,
+                  "HTTP correction history filters are validated and never select another employee");
             var inboxStatus = (await scoped.GetAsync("/corrections/inbox")).StatusCode;
             var ownDecisionStatus = (await PostAdmin(own, $"/corrections/requests/{correctionId}/decision", new { Approve = true, Reason = (string?)null })).StatusCode;
             var managerDecisionStatus = (await PostAdmin(scoped, $"/corrections/requests/{correctionId}/decision", new { Approve = true, Reason = (string?)null })).StatusCode;

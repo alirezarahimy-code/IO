@@ -180,6 +180,19 @@ internal static class CorrectionWorkflowTests
         var cancel = await Run(s => s.SubmitAsync(self, policy, workDate, at.AddMinutes(1), 1, "missing exit"));
         check(await Run(s => s.CancelAsync(self, cancel, "not needed")) &&
               await Reject<DomainConflictException>(() => Run(s => s.DecideAsync(manager, cancel, true, null))), "cancelled request cannot later be approved");
+        var nextDayRequest = await Run(s => s.SubmitAsync(self, policy, workDate.AddDays(1), at.AddDays(1), 0, "next day filter"));
+        var exactApproved = JsonSerializer.Serialize(await Run(s => s.ListOwnAsync(self, 0, fromDate: workDate, toDate: workDate, state: 1)));
+        var rangePending = JsonSerializer.Serialize(await Run(s => s.ListOwnAsync(self, 0, fromDate: workDate, toDate: workDate.AddDays(1), state: 0)));
+        var exactCancelled = JsonSerializer.Serialize(await Run(s => s.ListOwnAsync(self, 0, fromDate: workDate, toDate: workDate, state: 3)));
+        check(exactApproved.Contains(request.ToString(), StringComparison.OrdinalIgnoreCase) && !exactApproved.Contains(cancel.ToString(), StringComparison.OrdinalIgnoreCase) &&
+              !exactApproved.Contains(outside.ToString(), StringComparison.OrdinalIgnoreCase) && !exactApproved.Contains(nextDayRequest.ToString(), StringComparison.OrdinalIgnoreCase) &&
+              rangePending.Contains(nextDayRequest.ToString(), StringComparison.OrdinalIgnoreCase) && rangePending.Contains(identical.ToString(), StringComparison.OrdinalIgnoreCase) &&
+              exactCancelled.Contains(cancel.ToString(), StringComparison.OrdinalIgnoreCase) && !exactCancelled.Contains(request.ToString(), StringComparison.OrdinalIgnoreCase) &&
+              await Reject<ArgumentException>(() => Run(s => s.ListOwnAsync(self, 0, fromDate: workDate))) &&
+              await Reject<ArgumentException>(() => Run(s => s.ListOwnAsync(self, 0, fromDate: workDate.AddDays(1), toDate: workDate))) &&
+              await Reject<ArgumentException>(() => Run(s => s.ListOwnAsync(self, 0, state: 4))) &&
+              await Reject<UnauthorizedAccessException>(() => Run(s => s.ListOwnAsync(outsider, 0, fromDate: workDate, toDate: workDate))),
+              "own correction filters include both dates, state and actor and reject invalid ranges");
         var integratedDate = new DateOnly(2028, 6, 6);
         var integratedAt = new DateTimeOffset(2028, 6, 6, 8, 0, 0, TimeSpan.Zero);
         var site = Guid.NewGuid(); var source = Guid.NewGuid(); var calendar = Guid.NewGuid(); var shift = Guid.NewGuid();
