@@ -27,6 +27,8 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
     public DbSet<RawAttendanceEventRecord> RawAttendanceEvents => Set<RawAttendanceEventRecord>();
     public DbSet<SourceEmployeeMappingRecord> SourceEmployeeMappings => Set<SourceEmployeeMappingRecord>();
     public DbSet<RawEventConflictRecord> RawEventConflicts => Set<RawEventConflictRecord>();
+    public DbSet<ObservedRuleVersionRecord> ObservedRuleVersions => Set<ObservedRuleVersionRecord>();
+    public DbSet<DailyCalculationRunRecord> DailyCalculationRuns => Set<DailyCalculationRunRecord>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
@@ -188,6 +190,41 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.ToTable("EventSources"); b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
             b.Property(x => x.Name).HasMaxLength(200).IsRequired(); b.Property(x => x.Version).IsRowVersion();
             b.HasOne<SiteRecord>().WithMany().HasForeignKey(x => x.SiteId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<ObservedRuleVersionRecord>(b =>
+        {
+            b.ToTable("ObservedRuleVersions", t =>
+            {
+                t.HasCheckConstraint("CK_ObservedRules_Margins", "[BeforeMinutes] BETWEEN 0 AND 720 AND [AfterMinutes] BETWEEN 0 AND 720");
+                t.HasCheckConstraint("CK_ObservedRules_Algorithm", "[Algorithm] = N'paired-v1'");
+                t.HasCheckConstraint("CK_ObservedRules_CreatedUtc", "DATEPART(TZOFFSET, [CreatedAtUtc]) = 0");
+                t.HasTrigger("TR_ObservedRuleVersions_Immutable"); t.UseSqlOutputClause(false);
+            });
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
+            b.Property(x => x.Name).HasMaxLength(200).IsRequired(); b.Property(x => x.Algorithm).HasMaxLength(32).IsRequired();
+            b.HasAlternateKey(x => new { x.Id, x.CompanyId });
+            b.HasOne<CompanyRecord>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<DailyCalculationRunRecord>(b =>
+        {
+            b.ToTable("DailyCalculationRuns", t =>
+            {
+                t.HasCheckConstraint("CK_CalculationRuns_Window", "[WindowEndUtc] > [WindowStartUtc]");
+                t.HasCheckConstraint("CK_CalculationRuns_Utc", "DATEPART(TZOFFSET, [WindowStartUtc]) = 0 AND DATEPART(TZOFFSET, [WindowEndUtc]) = 0 AND DATEPART(TZOFFSET, [CreatedAtUtc]) = 0");
+                t.HasCheckConstraint("CK_CalculationRuns_Ticks", "[ObservedTicks] IS NULL OR [ObservedTicks] >= 0");
+                t.HasTrigger("TR_DailyCalculationRuns_Immutable"); t.UseSqlOutputClause(false);
+            });
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
+            b.Property(x => x.InputSnapshotJson).IsRequired(); b.Property(x => x.AnomaliesJson).IsRequired();
+            b.HasIndex(x => new { x.EmployeeId, x.WorkDate, x.CreatedAtUtc });
+            b.HasOne<EmployeeRecord>().WithMany().HasForeignKey(x => new { x.EmployeeId, x.CompanyId })
+                .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<ObservedRuleVersionRecord>().WithMany().HasForeignKey(x => new { x.RuleVersionId, x.CompanyId })
+                .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<EventSourceRecord>().WithMany().HasForeignKey(x => x.SourceId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<WorkScheduleAssignmentRecord>().WithMany().HasForeignKey(x => x.ScheduleAssignmentId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
         });
         model.Entity<SourceEmployeeMappingRecord>(b =>
         {
