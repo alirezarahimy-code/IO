@@ -107,7 +107,7 @@ async function main() {
       await waitText('result');
       return JSON.parse(await page.locator('#result').textContent()).result;
     }
-    for (const code of ['organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.calculate']) {
+    for (const code of ['organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.calculate', 'correction.configure']) {
       await page.locator('#permission input[name=roleId]').fill(role);
       await page.locator('#permission select[name=code]').selectOption(code);
       await submit('permission');
@@ -120,6 +120,10 @@ async function main() {
     await page.locator('#company input[name=organizationId]').fill(org);
     await page.locator('#company input[name=name]').fill('Browser synthetic company');
     const company = await submit('company');
+    await page.locator('#correction-policy input[name=companyId]').fill(company);
+    await page.locator('#correction-policy input[name=approverUserId]').fill(adminId);
+    await page.locator('#correction-policy input[name=name]').fill('Browser synthetic correction policy');
+    await submit('correction-policy');
     await page.locator('#site input[name=companyId]').fill(company);
     await page.locator('#site input[name=name]').fill('Browser synthetic site');
     await page.locator('#site input[name=timeZoneId]').fill('Asia/Tehran');

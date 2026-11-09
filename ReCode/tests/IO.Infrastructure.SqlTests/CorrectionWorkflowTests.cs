@@ -14,7 +14,7 @@ internal static class CorrectionWorkflowTests
     {
         var services = new ServiceCollection(); services.AddLogging(); services.AddIoIdentityStorage(connection);
         await using var provider = services.BuildServiceProvider();
-        Guid admin, self, manager, company, employee, outsider;
+        Guid admin, self, manager, company, employee, outsider, otherActor = Guid.NewGuid();
         await using (var scope = provider.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
@@ -31,6 +31,9 @@ internal static class CorrectionWorkflowTests
                 db.UserRoles.Add(new() { UserId = manager, RoleId = managerRole.Id });
             employee = selfUser.EmployeeId!.Value;
             company = (await db.Employees.SingleAsync(x => x.Id == employee)).CompanyId;
+            var otherEmployee = await db.Employees.SingleAsync(x => x.CompanyId == company && x.PersonnelNumber == "WEB-2");
+            db.Users.Add(new() { Id = otherActor, UserName = "synthetic-other-correction-user", EmployeeId = otherEmployee.Id, IsActive = true });
+            db.UserRoles.Add(new() { UserId = otherActor, RoleId = selfRole.Id });
             foreach (var (role, code) in new[] { (adminRole.Id, CorrectionWorkflow.Configure), (selfRole.Id, CorrectionWorkflow.Submit),
                 (managerRole.Id, CorrectionWorkflow.Decide), (managerRole.Id, CorrectionWorkflow.DecideScoped) })
             {
@@ -51,6 +54,12 @@ internal static class CorrectionWorkflowTests
         check(await Reject<ArgumentException>(() => Run(s => s.SubmitAsync(self, selfPolicy, workDate, at, 0, "test"))) &&
               await Reject<ArgumentException>(() => Run(s => s.SubmitAsync(self, policy, workDate, at.ToOffset(TimeSpan.FromHours(1)), 0, "test"))) &&
               await Reject<UnauthorizedAccessException>(() => Run(s => s.SubmitAsync(outsider, policy, workDate, at, 0, "test"))), "self approval, non-UTC and unauthorized correction submissions are rejected");
+        var outside = await Run(s => s.SubmitAsync(otherActor, policy, workDate, at, 0, "outside unit"));
+        var scopedInbox = JsonSerializer.Serialize(await Run(s => s.InboxAsync(manager, 0)));
+        check(!scopedInbox.Contains(outside.ToString(), StringComparison.OrdinalIgnoreCase) &&
+              await Reject<UnauthorizedAccessException>(() => Run(s => s.DecideAsync(manager, outside, true, null))) &&
+              await Reject<UnauthorizedAccessException>(() => Run(s => s.CancelAsync(self, outside, "not mine"))),
+              "correction inbox and decisions exclude employees outside exact unit and other users' requests");
         var request = await Run(s => s.SubmitAsync(self, policy, workDate, at, 0, "missed punch"));
         var inbox = JsonSerializer.Serialize(await Run(s => s.InboxAsync(manager, 0)));
         check(inbox.Contains(request.ToString(), StringComparison.OrdinalIgnoreCase) &&
