@@ -1064,6 +1064,13 @@ async function main() {
     await settingsPage.setViewportSize({width:1280,height:720});
     const invalidCsrf=await settingsPage.evaluate(async company=>(await fetch('/settings/correction',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({operationId:crypto.randomUUID(),companyId:company,expectedRevision:0,maxRequestAgeDays:5,dailyRequestLimit:0,monthlyRequestLimit:0,reason:'test'})})).status,selfCompany);
     if(invalidCsrf!==400)throw new Error('Settings accepted missing CSRF');
+    const missingFields=await settingsPage.evaluate(async company=>{
+      const csrf=(await (await fetch('/auth/csrf')).json()).token;
+      const base={operationId:crypto.randomUUID(),companyId:company,reason:'missing fields',dailyRequestLimit:0,monthlyRequestLimit:0};
+      const post=x=>fetch('/settings/correction',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf},body:JSON.stringify(x)});
+      return [(await post({...base,expectedRevision:0})).status,(await post({...base,maxRequestAgeDays:0})).status];
+    },selfCompany);
+    if(missingFields.some(status=>status!==400))throw new Error('Settings accepted missing age or expected revision');
     await settingsPage.locator('#save input[name=maxRequestAgeDays]').fill('5');
     await settingsPage.locator('#save input[name=dailyRequestLimit]').fill('1');
     await settingsPage.locator('#save input[name=monthlyRequestLimit]').fill('3');
