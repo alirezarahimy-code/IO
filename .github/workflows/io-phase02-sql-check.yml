@@ -18,11 +18,20 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          dotnet tool install dotnet-ef --tool-path "$RUNNER_TEMP/ef" --version 10.0.0
+          dotnet restore IO.slnx
+          dotnet tool install dotnet-ef --tool-path "$RUNNER_TEMP/ef" --version 10.0.11
           "$RUNNER_TEMP/ef/dotnet-ef" migrations add DelegationRegistry --project src/IO.Infrastructure --startup-project src/IO.Infrastructure --context IoDbContext --output-dir Migrations
           python3 - <<'PY'
-          import base64, glob, pathlib
-          for path in sorted(glob.glob('src/IO.Infrastructure/Migrations/*_DelegationRegistry*') + ['src/IO.Infrastructure/Migrations/IoDbContextModelSnapshot.cs']):
-              data=base64.b64encode(pathlib.Path(path).read_bytes()).decode()
-              print(f'::notice title={path}::{data}')
+          import base64,gzip,io,tarfile
+          from pathlib import Path
+          root=Path('src/IO.Infrastructure/Migrations')
+          files=sorted(root.glob('*_DelegationRegistry*.cs'))+[root/'IoDbContextModelSnapshot.cs']
+          assert len(files)==3 and all(f.is_file() for f in files)
+          buf=io.BytesIO()
+          with tarfile.open(fileobj=buf,mode='w') as archive:
+              for f in files: archive.add(f,arcname=f.name)
+          encoded=base64.b64encode(gzip.compress(buf.getvalue())).decode('ascii')
+          chunks=[encoded[i:i+3000] for i in range(0,len(encoded),3000)]
+          print(f'::notice title=DELEGATION_SCAFFOLD_COUNT::{len(chunks)}')
+          for i,chunk in enumerate(chunks): print(f'::notice title=DELEGATION_SCAFFOLD_{i:03}::{chunk}')
           PY
