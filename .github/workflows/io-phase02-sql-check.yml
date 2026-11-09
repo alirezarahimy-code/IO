@@ -188,6 +188,9 @@ jobs:
           compgen -G 'src/IO.Infrastructure/Migrations/*_DelegatedCorrectionDecisions.cs' >/dev/null || {
             echo '::error::Delegated correction evidence migration missing.'; exit 1;
           }
+      - name: Validate capability audit inventory
+        working-directory: ReCode
+        run: python3 tools/validate-capability-audit.py
       - name: Generate migration scripts offline
         working-directory: ReCode
         shell: bash

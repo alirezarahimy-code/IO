@@ -387,6 +387,11 @@ async function main() {
     const rolesPage = await context.newPage();
     await rolesPage.goto(address + '/workspace/roles');
     await rolesPage.waitForFunction(() => !document.querySelector('#role-form button').disabled);
+    await rolesPage.locator('#permission-form select[name=code]').selectOption('attendance.ingest');
+    if (!(await rolesPage.locator('#permission-warning').textContent()).includes('مدیریت دستگاه واقعی نیست'))
+      throw new Error('Permission scope warning missing');
+    if (!(await rolesPage.locator('main').textContent()).includes('دسترسی حاصل از نقش دیگر'))
+      throw new Error('Role union warning missing');
     await rolesPage.locator('#role-form input[name=name]').fill('workspace-browser-role');
     await rolesPage.locator('#role-form button').click();
     await rolesPage.waitForFunction(() => document.getElementById('notice').textContent.includes('نقش ثبت شد'));

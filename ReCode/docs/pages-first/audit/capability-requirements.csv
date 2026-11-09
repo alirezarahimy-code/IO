@@ -1,0 +1,195 @@
+requirement_id,domain,title_fa,implementation,existing_coarse_reference,scope_requirement,legacy_review
+REQ.user.read,identity,مشاهده حساب‌ها,planned-not-grantable,identity.manage,determine-and-enforce,needs-action-level-review
+REQ.user.create,identity,ایجاد حساب,planned-not-grantable,identity.manage,determine-and-enforce,needs-action-level-review
+REQ.user.enable,identity,فعال کردن حساب,planned-not-grantable,identity.manage,determine-and-enforce,needs-action-level-review
+REQ.user.disable,identity,غیرفعال کردن حساب,planned-not-grantable,identity.manage,determine-and-enforce,needs-action-level-review
+REQ.user.reset-password,identity,بازنشانی گذرواژه دیگران,planned-not-grantable,identity.manage,determine-and-enforce,needs-action-level-review
+REQ.user.role.grant,identity,اعطای نقش به حساب,planned-not-grantable,identity.manage,determine-and-enforce,needs-action-level-review
+REQ.user.role.revoke,identity,لغو نقش از حساب,planned-not-grantable,identity.manage,determine-and-enforce,needs-action-level-review
+REQ.role.read,identity,مشاهده نقش‌ها,planned-not-grantable,identity.manage,determine-and-enforce,needs-action-level-review
+REQ.role.create,identity,ایجاد نقش,planned-not-grantable,identity.manage,determine-and-enforce,needs-action-level-review
+REQ.role.edit,identity,ویرایش نقش,planned-not-grantable,identity.manage,determine-and-enforce,needs-action-level-review
+REQ.role.delete,identity,حذف یا غیرفعال‌سازی نقش,planned-not-grantable,identity.manage,determine-and-enforce,needs-action-level-review
+REQ.permission.read,identity,مشاهده فهرست دسترسی‌ها,planned-not-grantable,identity.manage,determine-and-enforce,needs-action-level-review
+REQ.permission.grant,identity,اعطای دسترسی به نقش,planned-not-grantable,identity.manage,determine-and-enforce,needs-action-level-review
+REQ.permission.revoke,identity,لغو دسترسی از نقش,planned-not-grantable,identity.manage,determine-and-enforce,needs-action-level-review
+REQ.user.permission.grant,identity,اعطای استثنایی دسترسی به حساب,planned-not-grantable,identity.manage,determine-and-enforce,needs-action-level-review
+REQ.user.permission.revoke,identity,لغو استثنایی دسترسی حساب,planned-not-grantable,identity.manage,determine-and-enforce,needs-action-level-review
+REQ.scope.read,identity,مشاهده محدوده‌ها,planned-not-grantable,identity.manage,determine-and-enforce,needs-action-level-review
+REQ.scope.grant,identity,اعطای محدوده,planned-not-grantable,identity.manage,determine-and-enforce,needs-action-level-review
+REQ.scope.revoke,identity,لغو محدوده,planned-not-grantable,identity.manage,determine-and-enforce,needs-action-level-review
+REQ.access.effective.read,identity,مشاهده علت و مجوز مؤثر حساب,planned-not-grantable,identity.manage,determine-and-enforce,needs-action-level-review
+REQ.security.audit.read,identity,مشاهده حسابرسی امنیتی,planned-not-grantable,identity.manage,determine-and-enforce,needs-action-level-review
+REQ.security.audit.export,identity,خروجی حسابرسی,planned-not-grantable,identity.manage,determine-and-enforce,needs-action-level-review
+REQ.organization.read,organization,مشاهده سازمان و شرکت,planned-not-grantable,organization.manage,determine-and-enforce,needs-action-level-review
+REQ.organization.create,organization,ایجاد سازمان و شرکت,planned-not-grantable,organization.manage,determine-and-enforce,needs-action-level-review
+REQ.organization.update,organization,ویرایش سازمان و شرکت,planned-not-grantable,organization.manage,determine-and-enforce,needs-action-level-review
+REQ.site.read,organization,مشاهده سایت‌ها,planned-not-grantable,organization.manage,determine-and-enforce,needs-action-level-review
+REQ.site.manage,organization,مدیریت سایت‌ها,planned-not-grantable,organization.manage,determine-and-enforce,needs-action-level-review
+REQ.unit.read,organization,مشاهده واحد و چارت,planned-not-grantable,organization.manage,determine-and-enforce,needs-action-level-review
+REQ.unit.create,organization,ایجاد واحد,planned-not-grantable,organization.manage,determine-and-enforce,needs-action-level-review
+REQ.unit.edit,organization,ویرایش و انتقال واحد,planned-not-grantable,organization.manage,determine-and-enforce,needs-action-level-review
+REQ.employee.read,organization,مشاهده فهرست کارکنان,planned-not-grantable,organization.manage,determine-and-enforce,needs-action-level-review
+REQ.employee.create,organization,ایجاد کارمند,planned-not-grantable,organization.manage,determine-and-enforce,needs-action-level-review
+REQ.employee.edit,organization,ویرایش اطلاعات کارمند,planned-not-grantable,organization.manage,determine-and-enforce,needs-action-level-review
+REQ.employee.terminate,organization,ثبت پایان همکاری,planned-not-grantable,organization.manage,determine-and-enforce,needs-action-level-review
+REQ.employee.transfer,organization,انتقال کارمند,planned-not-grantable,organization.manage,determine-and-enforce,needs-action-level-review
+REQ.employee.photo.read,organization,مشاهده تصویر پرسنل,planned-not-grantable,organization.manage,determine-and-enforce,needs-action-level-review
+REQ.employee.photo.manage,organization,مدیریت تصویر پرسنل,planned-not-grantable,organization.manage,determine-and-enforce,needs-action-level-review
+REQ.employee.sensitive.read,organization,مشاهده اطلاعات حساس پرونده,planned-not-grantable,organization.manage,determine-and-enforce,needs-action-level-review
+REQ.employee.import.preview,organization,پیش‌نمایش ورود گروهی پرسنل,planned-not-grantable,organization.manage,determine-and-enforce,needs-action-level-review
+REQ.employee.import.commit,organization,ثبت ورود گروهی پرسنل,planned-not-grantable,organization.manage,determine-and-enforce,needs-action-level-review
+REQ.employee.export,organization,خروجی اطلاعات کارکنان,planned-not-grantable,organization.manage,determine-and-enforce,needs-action-level-review
+REQ.employment.read,organization,مشاهده سوابق استخدام,planned-not-grantable,organization.manage,determine-and-enforce,needs-action-level-review
+REQ.employment.manage,organization,ثبت و تغییر سوابق استخدام,planned-not-grantable,organization.manage,determine-and-enforce,needs-action-level-review
+REQ.site-assignment.manage,organization,مدیریت انتساب سایت,planned-not-grantable,organization.manage,determine-and-enforce,needs-action-level-review
+REQ.unit-assignment.manage,organization,مدیریت انتساب واحد,planned-not-grantable,organization.manage,determine-and-enforce,needs-action-level-review
+REQ.base-data.manage,organization,مدیریت نوع استخدام سمت مدارک و ویژگی‌ها,planned-not-grantable,organization.manage,determine-and-enforce,needs-action-level-review
+REQ.device.read,device,مشاهده دستگاه‌ها,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.create,device,تعریف دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.edit,device,ویرایش پیکربندی دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.disable,device,غیرفعال کردن دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.secret.manage,device,مدیریت اسرار ارتباطی دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.health.read,device,مشاهده وضعیت و ظرفیت دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.connect,device,اتصال یا قطع ارتباط دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.time.read,device,خواندن ساعت دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.time.sync,device,تنظیم ساعت دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.restart,device,راه‌اندازی مجدد دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.settings.read,device,خواندن تنظیمات دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.settings.change,device,تغییر تنظیمات دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.enrollment.remote,device,آغاز ثبت زیست‌سنجی از راه دور,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.personnel.read,device,دریافت فهرست پرسنل از دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.personnel.compare,device,مقایسه پرسنل دستگاه و سامانه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.personnel.send,device,ارسال پرسنل سامانه به دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.personnel.delete,device,حذف پرسنل از دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.photo.receive,device,دریافت عکس از دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.photo.send,device,ارسال عکس به دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.fingerprint.receive,device,دریافت قالب اثر انگشت از دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.fingerprint.send,device,ارسال قالب اثر انگشت به دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.fingerprint.delete,device,حذف اثر انگشت دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.face.receive,device,دریافت قالب چهره از دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.face.send,device,ارسال قالب چهره به دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.face.delete,device,حذف چهره دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.attendance.pull,device,فراخوانی تردد از دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.attendance.schedule,device,زمان‌بندی دریافت تردد,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.attendance.live.read,device,مشاهده تردد زنده,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.push.configure,device,پیکربندی دریافت push,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.attendance.clear,device,پاک‌سازی تردد دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.factory-reset,device,بازنشانی داده‌های دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.admin.delete,device,حذف مدیران دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.job.read,device,مشاهده کارها و نتیجه دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.job.retry,device,تلاش مجدد کار دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.job.cancel,device,لغو کار دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.agent.read,device,مشاهده عامل‌ها,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.agent.register,device,ثبت عامل,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.agent.disable,device,غیرفعال کردن عامل,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.agent.credentials.rotate,device,چرخش هویت عامل,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.source.read,attendance,مشاهده منابع تردد,planned-not-grantable,attendance.ingest,determine-and-enforce,needs-action-level-review
+REQ.source.create,attendance,تعریف منبع تردد,planned-not-grantable,attendance.ingest,determine-and-enforce,needs-action-level-review
+REQ.source.edit,attendance,ویرایش منبع تردد,planned-not-grantable,attendance.ingest,determine-and-enforce,needs-action-level-review
+REQ.raw.read,attendance,مشاهده تردد خام,planned-not-grantable,attendance.ingest,determine-and-enforce,needs-action-level-review
+REQ.raw.ingest,attendance,ثبت تردد خام,planned-not-grantable,attendance.ingest,determine-and-enforce,needs-action-level-review
+REQ.raw.payload.read,attendance,مشاهده payload حساس تردد,planned-not-grantable,attendance.ingest,determine-and-enforce,needs-action-level-review
+REQ.raw.export,attendance,خروجی تردد خام,planned-not-grantable,attendance.ingest,determine-and-enforce,needs-action-level-review
+REQ.mapping.read,attendance,مشاهده نگاشت,planned-not-grantable,attendance.ingest,determine-and-enforce,needs-action-level-review
+REQ.mapping.create,attendance,ایجاد نگاشت,planned-not-grantable,attendance.ingest,determine-and-enforce,needs-action-level-review
+REQ.mapping.replace,attendance,جایگزینی نگاشت,planned-not-grantable,attendance.ingest,determine-and-enforce,needs-action-level-review
+REQ.conflict.read,attendance,مشاهده برخورد و خطا,planned-not-grantable,attendance.ingest,determine-and-enforce,needs-action-level-review
+REQ.conflict.note,attendance,ثبت یادداشت بررسی برخورد,planned-not-grantable,attendance.ingest,determine-and-enforce,needs-action-level-review
+REQ.conflict.resolve,attendance,حل برخورد تردد,planned-not-grantable,attendance.ingest,determine-and-enforce,needs-action-level-review
+REQ.correction.manual.create,attendance,ثبت دستی تردد مستند,planned-not-grantable,attendance.ingest,determine-and-enforce,needs-action-level-review
+REQ.correction.manual.change,attendance,اصلاح دستی تردد مستند,planned-not-grantable,attendance.ingest,determine-and-enforce,needs-action-level-review
+REQ.calendar.read,schedule,مشاهده تقویم,planned-not-grantable,schedule.manage,determine-and-enforce,needs-action-level-review
+REQ.calendar.create,schedule,ایجاد تقویم,planned-not-grantable,schedule.manage,determine-and-enforce,needs-action-level-review
+REQ.calendar.edit,schedule,ویرایش نسخه تقویم,planned-not-grantable,schedule.manage,determine-and-enforce,needs-action-level-review
+REQ.calendar.holiday.manage,schedule,مدیریت تعطیلات,planned-not-grantable,schedule.manage,determine-and-enforce,needs-action-level-review
+REQ.calendar.version.create,schedule,ایجاد نسخه تقویم,planned-not-grantable,schedule.manage,determine-and-enforce,needs-action-level-review
+REQ.shift.read,schedule,مشاهده شیفت,planned-not-grantable,schedule.manage,determine-and-enforce,needs-action-level-review
+REQ.shift.create,schedule,تعریف شیفت,planned-not-grantable,schedule.manage,determine-and-enforce,needs-action-level-review
+REQ.shift.edit,schedule,ویرایش نسخه شیفت,planned-not-grantable,schedule.manage,determine-and-enforce,needs-action-level-review
+REQ.assignment.read,schedule,مشاهده انتساب برنامه,planned-not-grantable,schedule.manage,determine-and-enforce,needs-action-level-review
+REQ.assignment.create,schedule,انتساب برنامه,planned-not-grantable,schedule.manage,determine-and-enforce,needs-action-level-review
+REQ.assignment.replace,schedule,جایگزینی برنامه,planned-not-grantable,schedule.manage,determine-and-enforce,needs-action-level-review
+REQ.assignment.group,schedule,انتساب گروهی برنامه,planned-not-grantable,schedule.manage,determine-and-enforce,needs-action-level-review
+REQ.temporary.manage,schedule,مدیریت برنامه موقت,planned-not-grantable,schedule.manage,determine-and-enforce,needs-action-level-review
+REQ.schedule.self.read,schedule,مشاهده برنامه شخصی,planned-not-grantable,schedule.manage,determine-and-enforce,needs-action-level-review
+REQ.rule.read,rules,مشاهده قواعد,planned-not-grantable,attendance.calculate,determine-and-enforce,needs-action-level-review
+REQ.rule.create,rules,تعریف قاعده,planned-not-grantable,attendance.calculate,determine-and-enforce,needs-action-level-review
+REQ.rule.edit,rules,ویرایش یا نسخه‌سازی قاعده,planned-not-grantable,attendance.calculate,determine-and-enforce,needs-action-level-review
+REQ.rule.assign,rules,انتساب قاعده,planned-not-grantable,attendance.calculate,determine-and-enforce,needs-action-level-review
+REQ.rule.override,rules,مدیریت استثنای قاعده,planned-not-grantable,attendance.calculate,determine-and-enforce,needs-action-level-review
+REQ.calculation.run,rules,اجرای محاسبه,planned-not-grantable,attendance.calculate,determine-and-enforce,needs-action-level-review
+REQ.calculation.read,rules,مشاهده نتایج محاسبه,planned-not-grantable,attendance.calculate,determine-and-enforce,needs-action-level-review
+REQ.calculation.compare,rules,مقایسه اجراهای محاسبه,planned-not-grantable,attendance.calculate,determine-and-enforce,needs-action-level-review
+REQ.calculation.input.read,rules,مشاهده شواهد ورودی محاسبه,planned-not-grantable,attendance.calculate,determine-and-enforce,needs-action-level-review
+REQ.calculation.self.read,rules,مشاهده نتیجه محاسبه شخصی,planned-not-grantable,attendance.calculate,determine-and-enforce,needs-action-level-review
+REQ.period.read,rules,مشاهده دوره,planned-not-grantable,attendance.calculate,determine-and-enforce,needs-action-level-review
+REQ.period.draft.create,rules,ایجاد پیش‌نویس دوره,planned-not-grantable,attendance.calculate,determine-and-enforce,needs-action-level-review
+REQ.period.diagnostic.create,rules,ثبت بررسی تشخیصی دوره,planned-not-grantable,attendance.calculate,determine-and-enforce,needs-action-level-review
+REQ.period.approve,rules,تأیید دوره,planned-not-grantable,attendance.calculate,determine-and-enforce,needs-action-level-review
+REQ.period.lock,rules,قفل دوره,planned-not-grantable,attendance.calculate,determine-and-enforce,needs-action-level-review
+REQ.period.unlock,rules,بازگشایی دوره,planned-not-grantable,attendance.calculate,determine-and-enforce,needs-action-level-review
+REQ.request.self.read,workflow,مشاهده درخواست شخصی,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.self.create.record,workflow,ثبت درخواست تردد فراموش‌شده,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.self.create.daily-leave,workflow,ثبت درخواست مرخصی روزانه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.self.create.hourly-leave,workflow,ثبت درخواست مرخصی ساعتی,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.self.create.daily-duty,workflow,ثبت درخواست مأموریت روزانه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.self.create.hourly-duty,workflow,ثبت درخواست مأموریت ساعتی,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.self.create.overtime,workflow,ثبت درخواست اضافه‌کار,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.self.edit,workflow,ویرایش درخواست شخصی,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.self.cancel,workflow,لغو درخواست شخصی,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.team.read,workflow,مشاهده درخواست دیگران,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.approve,workflow,تأیید درخواست,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.reject,workflow,رد درخواست,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.return,workflow,ارجاع یا بازگرداندن درخواست,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.workflow.read,workflow,مشاهده تعریف گردش,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.workflow.configure,workflow,تعریف و تغییر گردش,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.delegation.read.self,workflow,مشاهده جانشینی شخصی,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.delegation.create.self,workflow,ثبت جانشینی شخصی,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.delegation.revoke.self,workflow,لغو جانشینی شخصی,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.delegation.receive,workflow,واجد شرایط دریافت جانشینی,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.delegation.correction.grant,workflow,اعطای جداگانه اختیار تصمیم اصلاح تردد,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.delegation.correction.decide,workflow,تصمیم جانشین برای اصلاح تردد,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.leave.type.read,leave,مشاهده انواع مرخصی,planned-not-grantable,leave.manage,determine-and-enforce,needs-action-level-review
+REQ.leave.type.create,leave,تعریف نوع مرخصی,planned-not-grantable,leave.manage,determine-and-enforce,needs-action-level-review
+REQ.leave.type.edit,leave,ویرایش نوع مرخصی,planned-not-grantable,leave.manage,determine-and-enforce,needs-action-level-review
+REQ.leave.balance.self.read,leave,مشاهده مانده شخصی,planned-not-grantable,leave.manage,determine-and-enforce,needs-action-level-review
+REQ.leave.balance.other.read,leave,مشاهده مانده دیگران,planned-not-grantable,leave.manage,determine-and-enforce,needs-action-level-review
+REQ.leave.ledger.read,leave,مشاهده دفتر مرخصی,planned-not-grantable,leave.manage,determine-and-enforce,needs-action-level-review
+REQ.leave.ledger.open,leave,ثبت مانده آغاز,planned-not-grantable,leave.manage,determine-and-enforce,needs-action-level-review
+REQ.leave.ledger.grant,leave,ثبت اعطای مرخصی,planned-not-grantable,leave.manage,determine-and-enforce,needs-action-level-review
+REQ.leave.ledger.consume,leave,ثبت مصرف دستی مرخصی,planned-not-grantable,leave.manage,determine-and-enforce,needs-action-level-review
+REQ.leave.ledger.adjust,leave,تعدیل دفتر مرخصی,planned-not-grantable,leave.manage,determine-and-enforce,needs-action-level-review
+REQ.leave.entitlement.manage,leave,مدیریت استحقاق مرخصی,planned-not-grantable,leave.manage,determine-and-enforce,needs-action-level-review
+REQ.leave.transfer.preview,leave,پیش‌نمایش انتقال سال,planned-not-grantable,leave.manage,determine-and-enforce,needs-action-level-review
+REQ.leave.transfer.commit,leave,ثبت انتقال سال,planned-not-grantable,leave.manage,determine-and-enforce,needs-action-level-review
+REQ.report.personal.read,report,مشاهده گزارش شخصی,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.report.daily.read,report,مشاهده گزارش روزانه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.report.period.read,report,مشاهده گزارش دوره,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.report.cardex.read,report,مشاهده کاردکس,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.report.late-early.read,report,مشاهده تأخیر و تعجیل,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.report.overtime.read,report,مشاهده اضافه‌کار,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.report.leave.read,report,مشاهده گزارش مرخصی,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.report.requests.read,report,مشاهده گزارش درخواست‌ها,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.report.personnel.read,report,مشاهده گزارش پرسنل,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.report.export,report,خروجی گزارش,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.report.design.read,report,مشاهده طرح گزارش,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.report.design.create,report,ایجاد طرح گزارش,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.report.design.edit,report,ویرایش طرح گزارش,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.report.design.publish,report,انتشار طرح گزارش,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.dashboard.employee.read,report,مشاهده نمای کارمند,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.dashboard.manager.read,report,مشاهده نمای مدیر,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.dashboard.executive.read,report,مشاهده نمای مدیر ارشد,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.dashboard.device.read,report,مشاهده میزکار دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.settings.correction.read,settings,مشاهده تنظیمات درخواست تردد,planned-not-grantable,settings.correction.manage,determine-and-enforce,needs-action-level-review
+REQ.settings.correction.edit,settings,تغییر تنظیمات درخواست تردد,planned-not-grantable,settings.correction.manage,determine-and-enforce,needs-action-level-review
+REQ.settings.request-type.manage,settings,مدیریت انواع درخواست,planned-not-grantable,settings.correction.manage,determine-and-enforce,needs-action-level-review
+REQ.settings.request-time.manage,settings,مدیریت محدودیت زمانی درخواست,planned-not-grantable,settings.correction.manage,determine-and-enforce,needs-action-level-review
+REQ.settings.password.manage,settings,مدیریت سیاست گذرواژه,planned-not-grantable,settings.correction.manage,determine-and-enforce,needs-action-level-review
+REQ.notification.read,settings,مشاهده اعلان‌ها,planned-not-grantable,settings.correction.manage,determine-and-enforce,needs-action-level-review
+REQ.notification.manage,settings,مدیریت تنظیمات اعلان,planned-not-grantable,settings.correction.manage,determine-and-enforce,needs-action-level-review
+REQ.notification.send,settings,ارسال اعلان,planned-not-grantable,settings.correction.manage,determine-and-enforce,needs-action-level-review
+REQ.device.push.ingest,device,دریافت رویداد push با هویت عامل یا دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.push.command-poll,device,دریافت دستور عامل یا دستگاه با هویت مجاز,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.key.read,device,خواندن تنظیمات کلید دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.device.key.manage,device,تغییر تنظیمات کلید دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review

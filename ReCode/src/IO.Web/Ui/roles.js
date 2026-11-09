@@ -3,9 +3,29 @@
   const $=id=>document.getElementById(id),forms=[$('role-form'),$('permission-form'),$('scope-form'),$('revoke-form')];
   const specs={roles:{title:'نقش‌ها',columns:[['name','نام نقش'],['id','شناسهٔ نقش']]},permissions:{title:'مجوزها',columns:[['code','کد مجوز'],['id','شناسهٔ مجوز']]},'role-permissions':{title:'مجوزهای نقش‌ها',columns:[['roleId','شناسهٔ نقش'],['permissionId','شناسهٔ مجوز']]},'user-roles':{title:'نقش‌های حساب‌ها',columns:[['userId','شناسهٔ حساب'],['roleId','شناسهٔ نقش']]},'user-scopes':{title:'محدوده‌های واحد حساب‌ها',columns:[['userId','شناسهٔ حساب'],['orgUnitId','شناسهٔ واحد'],['validFrom','شروع میلادی'],['validUntilExclusive','پایان انحصاری'],['id','شناسهٔ محدوده']]}};
   const codes=['employees.read.self','employees.read.scoped','employees.read.all','identity.manage','leave.manage','leave.read.self','delegation.manage.self','delegation.receive','settings.correction.manage','executive.dashboard.read','organization.manage','attendance.ingest','attendance.read.self','attendance.read.team','attendance.read.scoped','attendance.read.all','attendance.results.read.self','attendance.calculate','correction.configure','correction.submit.self','correction.decide','correction.decide.scoped','correction.decide.all','period.preflight','period.draft.manage','period.diagnostic.manage','schedule.manage','schedule.read.self','schedule.read.scoped','schedule.read.all'];for(const code of codes)$('permission-form').elements.code.add(new Option(code,code));
+  // These are descriptions of the existing coarse server permissions, not new grants.
+  const broadWarnings={
+    'identity.manage':'این مجوز گسترده است: مدیریت حساب، نقش، مجوز، محدوده و مشاهدهٔ حسابرسی را شامل می‌شود؛ تفکیک این عملیات هنوز وجود ندارد.',
+    'organization.manage':'این مجوز گسترده است: مشاهده و تغییر سازمان، کارکنان و انتساب‌ها را شامل می‌شود؛ دسترسی جداگانهٔ هر عملیات هنوز وجود ندارد.',
+    'schedule.manage':'این مجوز گسترده است: مشاهده و مدیریت تقویم، شیفت و انتساب برنامه را شامل می‌شود.',
+    'attendance.ingest':'این مجوز گسترده است: ثبت و مشاهدهٔ منبع و تردد خام، نگاشت و جزئیات برخوردها را شامل می‌شود؛ مدیریت دستگاه واقعی نیست.',
+    'attendance.calculate':'این مجوز گسترده است: مدیریت قواعد و ثبت و مشاهدهٔ اجراهای آزمایشی محاسبه را شامل می‌شود.',
+    'leave.manage':'این مجوز سراسری و گسترده است: مدیریت نوع مرخصی و ثبت و مشاهدهٔ دفتر دستی را شامل می‌شود.',
+    'settings.correction.manage':'این مجوز سراسری است و مشاهده و تغییر تنظیم محدود درخواست تردد فراموش‌شده را شامل می‌شود.',
+    'period.preflight':'این مجوز سراسری است و گزارش تشخیصی دوره را در اختیار می‌گذارد، نه تأیید نهایی دوره.',
+    'executive.dashboard.read':'این مجوز سراسری است و آمار محدود شرکت انتخاب‌شده را نمایش می‌دهد.',
+    'correction.decide':'برای تصمیم، مجوز محدودهٔ تصمیم نیز لازم است؛ این مجوز خودبه‌خود اختیار همهٔ کارکنان را نمی‌دهد.',
+    'attendance.read.team':'برای مشاهدهٔ تردد تیم، مجوز محدودهٔ تردد نیز لازم است.',
+    'correction.decide.scoped':'فقط همراه مجوز تصمیم و محدودهٔ معتبر واحد کاربرد دارد؛ به‌تنهایی مجوز تصمیم نیست.',
+    'correction.decide.all':'فقط همراه مجوز تصمیم کاربرد دارد و دامنهٔ آن سراسری است.',
+    'attendance.read.scoped':'فقط همراه مجوز تردد تیم و محدودهٔ معتبر واحد کاربرد دارد.',
+    'attendance.read.all':'فقط همراه مجوز تردد تیم کاربرد دارد و دامنهٔ آن سراسری است.'
+  };
+  function explainPermission(){const code=$('permission-form').elements.code.value;$('permission-warning').textContent=broadWarnings[code]||'این مجوز و محدودهٔ آن را قبل از اعطا بررسی کنید؛ هیچ مجوزی اختیارات دستگاه یا قابلیت ساخته‌نشده را فعال نمی‌کند.';}
+  $('permission-form').elements.code.addEventListener('change',explainPermission);explainPermission();
   let kind='roles',offset=0,count=0,busy=false,authorized=false;
   function controls(){$('refresh').disabled=busy;$('previous').disabled=busy||!authorized||offset===0;$('next').disabled=busy||!authorized||count<100||offset>=1000000;for(const tab of $('tabs').querySelectorAll('button'))tab.disabled=busy;for(const form of forms)for(const e of form.querySelectorAll('input,select,button'))e.disabled=busy||!authorized;}
-  function clear(){authorized=false;count=0;$('body').replaceChildren();$('page-label').textContent='';$('empty').hidden=true;for(const form of forms)form.reset();}
+  function clear(){authorized=false;count=0;$('body').replaceChildren();$('page-label').textContent='';$('empty').hidden=true;for(const form of forms)form.reset();explainPermission();}
   function show(s){$('notice').textContent=s;}
   async function request(url,options={}){const r=await fetch(url,{...options,credentials:'same-origin',cache:'no-store'});if(!r.ok){if(r.status===401||r.status===403)clear();throw new Error(r.status===401?'نشست پایان یافته؛ دوباره وارد شوید.':r.status===403?'مجوز مدیریت هویت ندارید یا باید گذرواژه را تغییر دهید.':r.status===400?'شناسه یا بازه معتبر نیست، تغییر تکراری است یا مجاز نیست.':r.status===409?'تعارض رخ داد؛ فهرست را بررسی کنید.':'درخواست انجام نشد؛ پیش از تلاش مجدد وضعیت را بررسی کنید.');}return r.json();}
   async function post(url,data){const token=await request('/auth/csrf');return request(url,{method:'POST',headers:{'X-CSRF-TOKEN':token.token,...(data===null?{}:{'Content-Type':'application/json'})},body:data===null?null:JSON.stringify(data)});}

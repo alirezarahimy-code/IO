@@ -1,0 +1,41 @@
+source,controller,action,requirements,review_status,evidence_and_limits
+T5Web-original-metadata,Device,Delete,REQ.device.disable,initial-review-contract-unverified,حذف در نسخهٔ جدید باید با حفظ سابقه و تعیین سیاست جایگزین شود.
+T5Web-original-metadata,Device,DeleteAll,REQ.device.disable,initial-review-contract-unverified,عملیات گروهی پرخطر؛ هر دستگاه و نتیجه جداگانه کنترل شود.
+T5Web-original-metadata,Device,Edit,REQ.device.create;REQ.device.edit;REQ.device.secret.manage,initial-review-contract-unverified,فرم قدیمی ایجاد و ویرایش و کلید ارتباط را نشان می‌دهد؛ بررسی دقیق رفتار سرور باقی است.
+T5Web-original-metadata,Device,GetAllDevicesTree,REQ.device.read,initial-review-contract-unverified,فهرست و ساختار درختی با محدودهٔ مجاز.
+T5Web-original-metadata,Device,Index,REQ.device.read,initial-review-contract-unverified,مشاهده فهرست و فرم؛ مجوز تغییر جداست.
+T5Web-original-metadata,DeviceOperations,Index,REQ.device.read;REQ.device.health.read,initial-review-contract-unverified,نمای عملیات و وضعیت؛ فرمان‌ها مجوز مستقل دارند.
+T5Web-original-metadata,DeviceOperations,DeviceProperties,REQ.device.read;REQ.device.health.read,initial-review-contract-unverified,صفحهٔ مشخصات؛ دکمه‌ها مجوزهای جدا دارند.
+T5Web-original-metadata,DeviceOperations,DeviceStates,REQ.device.health.read,initial-review-contract-unverified,وضعیت و زمان آخرین heartbeat از آخرین تردد متمایز است.
+T5Web-original-metadata,DeviceOperations,Connect,REQ.device.connect,initial-review-contract-unverified,ارتباط فقط برای عامل و دستگاه مجاز.
+T5Web-original-metadata,DeviceOperations,Disconnect,REQ.device.connect,initial-review-contract-unverified,قطع ارتباط با مجوز عملیات و محدودهٔ دستگاه.
+T5Web-original-metadata,DeviceOperations,GetCapacity,REQ.device.health.read,initial-review-contract-unverified,مدل سریال و ظرفیت‌های دستگاه.
+T5Web-original-metadata,DeviceOperations,GetAdvanced,REQ.device.settings.read,initial-review-contract-unverified,خواندن گزینه‌های اثرانگشتی.
+T5Web-original-metadata,DeviceOperations,GetAdvanced2,REQ.device.settings.read,initial-review-contract-unverified,خواندن گزینه‌های پیشرفته.
+T5Web-original-metadata,DeviceOperations,GetRecords,REQ.device.attendance.pull,initial-review-contract-unverified,دریافت تردد؛ دریافت و ثبت پایدار را جدا نشان بده.
+T5Web-original-metadata,DeviceOperations,GetTimeRecords,REQ.device.attendance.pull,initial-review-contract-unverified,دریافت بازه‌ای در صورت پشتیبانی سخت‌افزار.
+T5Web-original-metadata,DeviceOperations,DownloadUsers,REQ.device.personnel.read;REQ.device.fingerprint.receive;REQ.device.face.receive,initial-review-contract-unverified,نمای کاربران دستگاه؛ انتخاب دریافت الگو در فرم مجزا کنترل می‌شود.
+T5Web-original-metadata,DeviceOperations,ShowUsers,REQ.device.personnel.read,initial-review-contract-unverified,نمایش فهرست کاربران خوانده‌شده از دستگاه.
+T5Web-original-metadata,DeviceOperations,ModifyUsers,REQ.device.personnel.read;REQ.device.fingerprint.receive;REQ.device.face.receive;REQ.device.personnel.delete;REQ.device.fingerprint.delete,initial-review-contract-unverified,فرم از یک endpoint برای دریافت یا حذف استفاده می‌کند؛ مجوز بر اساس عملیات و داده بررسی شود؛ رفتار دقیق سرور نیازمند بررسی.
+T5Web-original-metadata,DeviceOperations,UploadUsers,REQ.device.personnel.send;REQ.device.fingerprint.send;REQ.device.face.send;REQ.device.photo.send,initial-review-contract-unverified,ارسال از سامانه به دستگاه؛ مجوز هر نوع داده و هر فرد/دستگاه مستقل است.
+T5Web-original-metadata,DeviceOperations,RemoteEnroll,REQ.device.enrollment.remote,initial-review-contract-unverified,شروع ثبت از راه دور فقط با پشتیبانی دستگاه.
+T5Web-original-metadata,DeviceOperations,SyncTimeData,REQ.device.time.sync,initial-review-contract-unverified,تنظیم زمان؛ قرارداد دقیق زمان و منطقه تأیید شود.
+T5Web-original-metadata,DeviceOperations,TimeSync,REQ.device.time.sync,initial-review-contract-unverified,همگام‌سازی ساعت؛ پاسخ دستگاه ثبت شود.
+T5Web-original-metadata,DeviceOperations,Restart,REQ.device.restart,initial-review-contract-unverified,عملیات حساس؛ نتیجهٔ نامعلوم تکرار خودکار نشود.
+T5Web-original-metadata,DeviceOperations,DeleteAdmins,REQ.device.admin.delete,initial-review-contract-unverified,مخرب؛ پیش‌فرض غیرفعال و نیازمند تصمیم.
+T5Web-original-metadata,DeviceOperations,DeleteAllData,REQ.device.factory-reset,initial-review-contract-unverified,مخرب؛ پیش‌فرض غیرفعال و نیازمند تصمیم.
+T5Web-original-metadata,DeviceOperations,DeleteAllRecords,REQ.device.attendance.clear,initial-review-contract-unverified,مخرب؛ پیش‌فرض غیرفعال؛ تأیید مستقل دریافت کافی است ولی شرط منحصر نیست.
+T5Web-original-metadata,DeviceOperations,RemoveTimeRecords,REQ.device.attendance.clear,initial-review-contract-unverified,حذف بازه‌ای مخرب؛ سیاست و تأیید مستقل لازم است.
+T5Web-original-metadata,DeviceOperations,Set1_1,REQ.device.settings.change,initial-review-contract-unverified,تغییر آستانهٔ تطبیق؛ فقط در دستگاه سازگار و پس از بازبینی.
+T5Web-original-metadata,DeviceOperations,Set1_N,REQ.device.settings.change,initial-review-contract-unverified,تغییر آستانهٔ تطبیق؛ فقط در دستگاه سازگار و پس از بازبینی.
+T5Web-original-metadata,DeviceOperations,SetAlgorithm,REQ.device.settings.change,initial-review-contract-unverified,تغییر الگوریتم و خطر ناسازگاری الگوهای بیومتریک.
+T5Web-original-metadata,DeviceOperations,SetCardReg,REQ.device.settings.change,initial-review-contract-unverified,ثبت اجباری کارت؛ رفتار مدل و سیاست نیازمند بررسی.
+T5Web-original-metadata,DeviceOperations,SetDLST,REQ.device.settings.change;REQ.device.time.sync,initial-review-contract-unverified,سیاست ساعت تابستانی و منطقهٔ زمانی به‌صورت صریح تعیین شود.
+T5Web-original-metadata,DeviceOperations,SetIP,REQ.device.settings.change,initial-review-contract-unverified,تغییر نشانی شبکه و خطر قطع دسترسی؛ مجوز/تأیید مجزا.
+T5Web-original-metadata,DeviceOperations,SetRepeatTime,REQ.device.settings.change,initial-review-contract-unverified,تغییر زمان تکرار؛ أثر بر تردد نیازمند آزمون.
+T5Web-original-metadata,DeviceOperations,SetSector,REQ.device.settings.change,initial-review-contract-unverified,تنظیم sector فقط با شناخت دقیق مدل/سیاست و دامنه.
+T5Web-original-metadata,DeviceOperations,SetSleepTime,REQ.device.settings.change,initial-review-contract-unverified,تغییر زمان خواب دستگاه با ثبت نتیجه.
+T5Web-original-metadata,DeviceOperations,ReadKey,REQ.device.key.read,initial-review-contract-unverified,کلید عملیاتی دستگاه در فرم قدیمی؛ نوع و دامنهٔ آن نیازمند بررسی.
+T5Web-original-metadata,DeviceOperations,ChangeKey,REQ.device.key.manage,initial-review-contract-unverified,تغییر کلید عملیاتی دستگاه؛ از اسرار ارتباطی مستقل است.
+T5Web-original-metadata,iclock,cdata,REQ.device.push.ingest,initial-review-contract-unverified,وجود متد طبق گزارش متادیتا/مستند آریا ادمین؛ قرارداد، احراز هویت و payload هنوز تأیید نشده‌اند.
+T5Web-original-metadata,iclock,getrequest,REQ.device.push.command-poll,initial-review-contract-unverified,متد در فهرست متادیتا؛ رفتار و جهت پروتکل باید مستقل بررسی شوند.
