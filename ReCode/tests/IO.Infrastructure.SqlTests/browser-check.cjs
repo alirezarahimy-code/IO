@@ -107,7 +107,7 @@ async function main() {
       await waitText('result');
       return JSON.parse(await page.locator('#result').textContent()).result;
     }
-    for (const code of ['organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.calculate', 'correction.configure']) {
+    for (const code of ['organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.calculate', 'correction.configure', 'period.preflight']) {
       await page.locator('#permission input[name=roleId]').fill(role);
       await page.locator('#permission select[name=code]').selectOption(code);
       await submit('permission');
@@ -199,6 +199,12 @@ async function main() {
     await page.locator('#calculation-run input[name=ruleVersionId]').fill(rule);
     await page.locator('#calculation-run input[name=workDate]').fill('2027-01-01');
     await submit('calculation-run');
+    await page.locator('#period-preflight input[name=employeeId]').fill(employee);
+    await page.locator('#period-preflight input[name=start]').fill('2027-01-01');
+    await page.locator('#period-preflight input[name=endExclusive]').fill('2027-01-02');
+    await clearResult();
+    await page.locator('#period-preflight button').click();
+    await waitText('approvable');
     await clearResult();
     await page.locator('#calculation-results input[name=employeeId]').fill(employee);
     await page.locator('#calculation-results button').click();

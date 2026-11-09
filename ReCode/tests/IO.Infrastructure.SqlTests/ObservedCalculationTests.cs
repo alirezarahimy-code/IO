@@ -2,6 +2,7 @@ using System.Text.Json;
 using IO.Infrastructure.Attendance;
 using IO.Infrastructure.Calculation;
 using IO.Infrastructure.Security;
+using IO.Infrastructure.Periods;
 using IO.Infrastructure.Storage;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -91,5 +92,26 @@ internal static class ObservedCalculationTests
               "calculation execution and results enforce permission and source identity");
         var concurrent = await Task.WhenAll(Calc(s => s.CalculateAsync(admin, employee, date, source, rule)), Calc(s => s.CalculateAsync(admin, employee, date, source, rule)));
         check(concurrent.Distinct().Count() == 2, "concurrent recomputations preserve distinct run history");
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var role = await db.Roles.SingleAsync(x => x.Name == "Initial administrator");
+            var permission = await db.Permissions.SingleOrDefaultAsync(x => x.Code == PeriodPreflight.Read);
+            if (permission is null) { permission = new() { Id = Guid.NewGuid(), Code = PeriodPreflight.Read }; db.Permissions.Add(permission); }
+            if (!await db.RolePermissions.AnyAsync(x => x.RoleId == role.Id && x.PermissionId == permission.Id))
+                db.RolePermissions.Add(new() { RoleId = role.Id, PermissionId = permission.Id });
+            await db.SaveChangesAsync();
+        }
+        async Task<T> Period<T>(Func<PeriodPreflight, Task<T>> f) { await using var scope = provider.CreateAsyncScope(); return await f(scope.ServiceProvider.GetRequiredService<PeriodPreflight>()); }
+        var report = JsonSerializer.SerializeToElement(await Period(s => s.InspectAsync(admin, employee, date, date.AddDays(2))));
+        var days = report.GetProperty("days");
+        check(!report.GetProperty("approvable").GetBoolean() && report.GetProperty("freshness").GetString() == "unknown" &&
+              days.GetArrayLength() == 2 && days[0].GetProperty("latestRun").ValueKind == JsonValueKind.Object &&
+              days[1].GetProperty("latestRun").ValueKind == JsonValueKind.Null,
+              "period preflight displays historical coverage without claiming freshness or approval");
+        check(await Reject<UnauthorizedAccessException>(() => Period(s => s.InspectAsync(limited, employee, date, date.AddDays(1)))) &&
+              await Reject<ArgumentException>(() => Period(s => s.InspectAsync(admin, employee, date, date.AddDays(63)))) &&
+              await Reject<ArgumentException>(() => Period(s => s.InspectAsync(admin, employee, date, date))),
+              "period preflight requires explicit permission and a bounded nonempty interval");
     }
 }

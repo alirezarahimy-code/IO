@@ -2,6 +2,7 @@ using IO.Infrastructure.Security;
 using IO.Infrastructure.Organization;
 using IO.Infrastructure.Attendance;
 using IO.Infrastructure.Workflows;
+using IO.Infrastructure.Periods;
 using IO.Infrastructure.Calculation;
 using IO.Domain.Attendance;
 using IO.Infrastructure.Scheduling;
@@ -235,6 +236,8 @@ public static class IoWebHost
             Admin(c, csrf, actor => service.DecideAsync(actor, id, input.Approve, input.Reason, c.RequestAborted)));
         app.MapPost("/corrections/requests/{id:guid}/cancel", (Guid id, CorrectionCancelInput input, HttpContext c, IAntiforgery csrf, CorrectionWorkflow service) =>
             Admin(c, csrf, actor => service.CancelAsync(actor, id, input.Reason, c.RequestAborted)));
+        app.MapGet("/periods/preflight/{employeeId:guid}", (Guid employeeId, DateOnly start, DateOnly endExclusive, HttpContext c, PeriodPreflight service) =>
+            AdminRead(c, actor => service.InspectAsync(actor, employeeId, start, endExclusive, c.RequestAborted)));
         app.MapGet("/org/catalog/{kind}", (string kind, int? offset, HttpContext context, OrganizationManagement service) =>
             AdminRead(context, actor => service.ListAsync(actor, kind, offset ?? 0, context.RequestAborted)));
         app.MapGet("/scheduling/catalog/{kind}", (string kind, int? offset, HttpContext context, ScheduleManagement service) =>
@@ -353,6 +356,7 @@ public static class IoWebHost
         if (!Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var actor)) return Results.Unauthorized();
         try { return Results.Ok(await action(actor)); }
         catch (UnauthorizedAccessException) { return Results.StatusCode(403); }
+        catch (DomainConflictException) { return Results.Conflict(); }
         catch (ArgumentException) { return Results.BadRequest(); }
     }
 
