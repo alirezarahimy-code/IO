@@ -25,6 +25,8 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
     public DbSet<WorkScheduleAssignmentRecord> WorkScheduleAssignments => Set<WorkScheduleAssignmentRecord>();
     public DbSet<EventSourceRecord> EventSources => Set<EventSourceRecord>();
     public DbSet<RawAttendanceEventRecord> RawAttendanceEvents => Set<RawAttendanceEventRecord>();
+    public DbSet<SourceEmployeeMappingRecord> SourceEmployeeMappings => Set<SourceEmployeeMappingRecord>();
+    public DbSet<RawEventConflictRecord> RawEventConflicts => Set<RawEventConflictRecord>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
@@ -186,6 +188,42 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.ToTable("EventSources"); b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
             b.Property(x => x.Name).HasMaxLength(200).IsRequired(); b.Property(x => x.Version).IsRowVersion();
             b.HasOne<SiteRecord>().WithMany().HasForeignKey(x => x.SiteId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<SourceEmployeeMappingRecord>(b =>
+        {
+            b.ToTable("SourceEmployeeMappings", t =>
+            {
+                t.HasCheckConstraint("CK_SourceEmployeeMappings_Interval", "[ValidUntilUtcExclusive] IS NULL OR [ValidUntilUtcExclusive] > [ValidFromUtc]");
+                t.HasCheckConstraint("CK_SourceEmployeeMappings_StartUtc", "DATEPART(TZOFFSET, [ValidFromUtc]) = 0");
+                t.HasCheckConstraint("CK_SourceEmployeeMappings_EndUtc", "[ValidUntilUtcExclusive] IS NULL OR DATEPART(TZOFFSET, [ValidUntilUtcExclusive]) = 0");
+                t.HasCheckConstraint("CK_SourceEmployeeMappings_Identifier", "DATALENGTH([SourcePersonId]) > 0");
+            });
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever(); b.Property(x => x.Version).IsRowVersion();
+            b.Property(x => x.SourcePersonId).HasMaxLength(100).IsRequired();
+            b.Property<byte[]>("SourcePersonIdBytes").HasColumnType("varbinary(200)")
+                .HasComputedColumnSql("CONVERT(varbinary(200), [SourcePersonId])", stored: true);
+            b.Property<int>("SourcePersonIdByteLength").HasComputedColumnSql("DATALENGTH([SourcePersonId])", stored: true);
+            b.HasIndex(nameof(SourceEmployeeMappingRecord.SourceId), "SourcePersonIdBytes", "SourcePersonIdByteLength", nameof(SourceEmployeeMappingRecord.ValidFromUtc));
+            b.HasOne<EventSourceRecord>().WithMany().HasForeignKey(x => x.SourceId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<EmployeeRecord>().WithMany().HasForeignKey(x => new { x.EmployeeId, x.CompanyId })
+                .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<RawEventConflictRecord>(b =>
+        {
+            b.ToTable("RawEventConflicts", t =>
+            {
+                t.HasCheckConstraint("CK_RawEventConflicts_ReceivedUtc", "DATEPART(TZOFFSET, [ReceivedAtUtc]) = 0");
+                t.HasCheckConstraint("CK_RawEventConflicts_OccurredUtc", "[OccurredAtUtc] IS NULL OR DATEPART(TZOFFSET, [OccurredAtUtc]) = 0");
+                t.HasTrigger("TR_RawEventConflicts_Immutable");
+                t.UseSqlOutputClause(false);
+            });
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
+            b.Property(x => x.ExternalEventId).HasMaxLength(180).IsRequired();
+            b.Property(x => x.SourceEmployeeIdentifier).HasMaxLength(100); b.Property(x => x.SourceTimeZoneId).HasMaxLength(100);
+            b.Property(x => x.ReportedEventType).HasMaxLength(80); b.Property(x => x.SourcePayload).IsRequired();
+            b.HasIndex(x => new { x.SourceId, x.ReceivedAtUtc });
+            b.HasOne<RawAttendanceEventRecord>().WithMany().HasForeignKey(x => x.OriginalEventId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<EventSourceRecord>().WithMany().HasForeignKey(x => x.SourceId).OnDelete(DeleteBehavior.Restrict);
         });
         model.Entity<RawAttendanceEventRecord>(b =>
         {
