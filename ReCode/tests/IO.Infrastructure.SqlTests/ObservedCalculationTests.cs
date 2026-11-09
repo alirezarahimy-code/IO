@@ -96,6 +96,29 @@ internal static class ObservedCalculationTests
         var legacyStatus = JsonSerializer.SerializeToElement(await Calc(s => s.AssessDatabaseChangesAsync(admin, legacyId)));
         check(legacyStatus.GetProperty("databaseChange").GetString() == "untracked" && !legacyStatus.GetProperty("approvable").GetBoolean(),
             "historical runs without a revision baseline remain untracked");
+        // Hold a real uncommitted input write and revision update. The calculation
+        // must wait, then capture both the committed event and the matching epoch.
+        var racingEvent = Guid.NewGuid();
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var writerDb = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            await using var writer = await writerDb.Database.BeginTransactionAsync();
+            writerDb.RawAttendanceEvents.Add(new() { Id = racingEvent, SourceId = source, ExternalEventId = "race-uncommitted",
+                SourceEmployeeIdentifier = "person-1", OccurredAtUtc = midnight.AddHours(9), ReceivedAtUtc = DateTimeOffset.UtcNow,
+                ReportedEventType = "in", SourcePayload = [5] });
+            await writerDb.SaveChangesAsync();
+            var racingRun = Calc(s => s.CalculateAsync(admin, employee, date, source, rule));
+            var waiting = await Task.WhenAny(racingRun, Task.Delay(300)) != racingRun;
+            await writer.CommitAsync();
+            var racingRunId = await racingRun;
+            var status = JsonSerializer.SerializeToElement(await Calc(s => s.AssessDatabaseChangesAsync(admin, racingRunId)));
+            await using var reader = provider.CreateAsyncScope();
+            var run = await reader.ServiceProvider.GetRequiredService<IoDbContext>().DailyCalculationRuns.SingleAsync(x => x.Id == racingRunId);
+            using var snap = JsonDocument.Parse(run.InputSnapshotJson);
+            check(waiting && status.GetProperty("databaseChange").GetString() == "no-monitored-database-change-detected" &&
+                  snap.RootElement.GetProperty("Events").EnumerateArray().Any(x => x.GetProperty("Id").GetGuid() == racingEvent),
+                  "calculation waits for uncommitted input and captures the committed event with its revision");
+        }
         await Raw(s => s.AppendAsync(admin, source, "extra", "person-1", midnight.AddHours(12), null, "in", [3]));
         var changedStatus = JsonSerializer.SerializeToElement(await Calc(s => s.AssessDatabaseChangesAsync(admin, first)));
         check(changedStatus.GetProperty("databaseChange").GetString() == "monitored-database-changed" &&

@@ -170,9 +170,9 @@ public sealed class ObservedCalculation(IoDbContext db, PermissionTransaction tr
             var current = await db.CalculationInputRevisions.AsNoTracking().Where(x => x.Id == 1)
                 .Select(x => (long?)x.Revision).SingleOrDefaultAsync(token);
             return (new { run.Id, run.EmployeeId, run.WorkDate, run.InputRevision, CurrentRevision = current,
-                databaseChange = CalculationInputRevisionStatus.Evaluate(run.InputRevision, current),
+                databaseChange = CalculationInputRevisionStatus.Evaluate(run.InputRevision, current), monitorScope = "database-wide",
                 freshness = "unknown", approvable = false,
-                warning = "Global database-wide signal only. No monitored change does not prove freshness or correctness." }, runId);
+                warning = "Global database-wide signal only, assuming monitoring triggers remain enabled and all writes fire them. No monitored change proves neither freshness nor correctness." }, runId);
         }, ct);
 
     // A comparison of two historical snapshots detects recorded differences only.

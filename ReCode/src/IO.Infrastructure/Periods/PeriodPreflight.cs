@@ -31,7 +31,7 @@ public sealed class PeriodPreflight(IoDbContext db, PermissionTransaction transa
                 var run = latest.GetValueOrDefault(day);
                 return new { date = day, latestRun = run, databaseChange = run is null ? "no-run" : CalculationInputRevisionStatus.Evaluate(run.InputRevision, revision) };
             }).ToArray();
-            return (new { employeeId, start, endExclusive, currentRevision = revision, freshness = "unknown", approvable = false,
+            return (new { employeeId, start, endExclusive, currentRevision = revision, monitorScope = "database-wide", freshness = "unknown", approvable = false,
                 warning = "Historical diagnostic only; no freshness, policy coverage or payroll validation.", days }, employeeId);
         }, ct);
 }
