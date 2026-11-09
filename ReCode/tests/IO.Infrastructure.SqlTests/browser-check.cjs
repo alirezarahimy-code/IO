@@ -1461,6 +1461,18 @@ async function main() {
     await managerInbox.waitForFunction(()=>document.getElementById('notice').textContent.includes('فیلتر اعمال شد'));
     const ascendingDates=await managerInbox.locator('#body tr td:nth-child(2)').allTextContents();
     if(ascendingDates.join('|')!==[...ascendingDates].sort().join('|')) throw new Error('Inbox ascending work-date sort failed');
+    await managerInbox.locator('#inbox-filter input[name=fromDate]').fill('۱۴۰۵/۱۲/۱۱');
+    await managerInbox.locator('#inbox-filter button[type=submit]').click();
+    await managerInbox.waitForFunction(()=>document.getElementById('notice').textContent.includes('هر دو روز شمسی'));
+    await managerInbox.locator('#inbox-filter input[name=toDate]').fill('۱۴۰۵/۱۲/۱۱');
+    await managerInbox.locator('#inbox-filter button[type=submit]').click();
+    await managerInbox.waitForFunction(()=>document.getElementById('notice').textContent.includes('فیلتر اعمال شد'));
+    const datedRows=await managerInbox.locator('#body tr td:nth-child(2)').allTextContents();
+    if(datedRows.join('|')!=='2027-03-03' || !(await managerInbox.locator('#body').textContent()).includes('بررسی مدیر آزمایشی')) throw new Error('Inbox Persian date filter returned wrong work dates');
+    await managerInbox.locator('#inbox-filter-reset').click();
+    await managerInbox.waitForFunction(()=>document.getElementById('notice').textContent.includes('فیلتر اعمال شد'));
+    await managerRow.waitFor();
+    if(await managerInbox.locator('#body tr td:nth-child(2)').count()<2) throw new Error('Inbox date filter reset did not restore rows');
     const managerRequestId = await managerRow.locator('td').nth(6).textContent();
     await managerRow.locator('button').click(); await staleManagerRow.locator('button').click();
     await managerInbox.locator('#decision-form select[name=decision]').selectOption('reject');

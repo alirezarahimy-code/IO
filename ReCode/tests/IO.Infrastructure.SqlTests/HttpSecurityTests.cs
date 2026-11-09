@@ -412,6 +412,18 @@ internal static class HttpSecurityTests
                   (await scoped.GetAsync("/corrections/inbox?sort=invalid")).StatusCode == HttpStatusCode.BadRequest &&
                   (await own.GetAsync("/corrections/inbox?sort=work-asc")).StatusCode == HttpStatusCode.Forbidden,
                   "HTTP inbox sort is validated and remains permissioned");
+            using var datedInbox = await scoped.GetAsync("/corrections/inbox?fromDate=2027-05-05&toDate=2027-05-05");
+            using var datedInboxJson = JsonDocument.Parse(await datedInbox.Content.ReadAsStringAsync());
+            using var datedOutsideInbox = await scoped.GetAsync("/corrections/inbox?fromDate=2027-05-06&toDate=2027-05-30");
+            using var datedOutsideJson = JsonDocument.Parse(await datedOutsideInbox.Content.ReadAsStringAsync());
+            check(datedInbox.StatusCode == HttpStatusCode.OK &&
+                  datedInboxJson.RootElement.GetProperty("items").EnumerateArray().Any(x => x.GetProperty("id").GetGuid() == correctionId) &&
+                  datedOutsideInbox.StatusCode == HttpStatusCode.OK && !datedOutsideJson.RootElement.GetProperty("items").EnumerateArray().Any() &&
+                  (await scoped.GetAsync("/corrections/inbox?fromDate=2027-05-05")).StatusCode == HttpStatusCode.BadRequest &&
+                  (await scoped.GetAsync("/corrections/inbox?fromDate=2027-05-06&toDate=2027-05-05")).StatusCode == HttpStatusCode.BadRequest &&
+                  (await scoped.GetAsync("/corrections/inbox?fromDate=not-a-date&toDate=2027-05-05")).StatusCode == HttpStatusCode.BadRequest &&
+                  (await own.GetAsync("/corrections/inbox?fromDate=2027-05-05&toDate=2027-05-05")).StatusCode == HttpStatusCode.Forbidden,
+                  "HTTP inbox date filter narrows pending work dates and rejects invalid ranges");
             var inboxStatus = (await scoped.GetAsync("/corrections/inbox")).StatusCode;
             var ownDecisionStatus = (await PostAdmin(own, $"/corrections/requests/{correctionId}/decision", new { Approve = true, Reason = (string?)null })).StatusCode;
             var managerDecisionStatus = (await PostAdmin(scoped, $"/corrections/requests/{correctionId}/decision", new { Approve = true, Reason = (string?)null })).StatusCode;

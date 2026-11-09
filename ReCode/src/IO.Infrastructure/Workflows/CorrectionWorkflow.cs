@@ -242,15 +242,22 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
             return (new { offset, pageSize = 50, items }, actor);
         }, ct);
 
-    public Task<object> InboxAsync(Guid actor, int offset, CancellationToken ct = default, Guid? employeeId = null, string? sort = null) =>
+    public Task<object> InboxAsync(Guid actor, int offset, CancellationToken ct = default, Guid? employeeId = null, string? sort = null,
+        DateOnly? fromDate = null, DateOnly? toDate = null) =>
         transaction.ExecuteEitherAsync<object>(actor, ReadInbox, Decide, "correction.inbox.viewed", async token =>
         {
             sort ??= "created";
-            if (offset is < 0 or > 100000 || employeeId == Guid.Empty || sort is not ("created" or "work-asc" or "work-desc"))
-                throw new ArgumentException("Invalid page, employee filter or sort.");
+            if (offset is < 0 or > 100000 || employeeId == Guid.Empty || sort is not ("created" or "work-asc" or "work-desc") ||
+                fromDate.HasValue != toDate.HasValue || (fromDate.HasValue && fromDate > toDate))
+                throw new ArgumentException("Invalid page, employee filter, sort or date range.");
             var authorized = access.AuthorizedEmployees(actor, DateOnly.FromDateTime(DateTime.UtcNow), "correction.never-self", DecideScoped, DecideAll);
             var requests = db.CorrectionRequests.AsNoTracking();
             if (employeeId.HasValue) requests = requests.Where(x => x.EmployeeId == employeeId.Value);
+            if (fromDate.HasValue && toDate.HasValue)
+            {
+                var from = fromDate.Value; var to = toDate.Value;
+                requests = requests.Where(x => x.WorkDate >= from && x.WorkDate <= to);
+            }
             var query = from request in requests
                         join policy in db.CorrectionPolicies on request.PolicyId equals policy.Id
                         join employee in authorized on request.EmployeeId equals employee.Id
@@ -269,6 +276,6 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
             var canApprove = legacyDecision || await transaction.HasPermissionAsync(actor, Approve, token);
             var canReject = legacyDecision || await transaction.HasPermissionAsync(actor, Reject, token);
             var canDecide = canApprove || canReject;
-            return (new { offset, pageSize = 50, employeeId, sort, items, canDecide, canApprove, canReject }, actor);
+            return (new { offset, pageSize = 50, employeeId, sort, fromDate, toDate, items, canDecide, canApprove, canReject }, actor);
         }, ct);
 }

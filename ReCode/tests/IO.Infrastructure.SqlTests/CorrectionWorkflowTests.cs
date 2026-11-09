@@ -340,6 +340,15 @@ internal static class CorrectionWorkflowTests
               !ascendingItems.Any(x => x.GetProperty("Id").GetGuid() == outside) &&
               await Reject<ArgumentException>(() => Run(s => s.InboxAsync(manager, 0, sort: "unknown"))),
               "inbox work-date ordering is applied before pagination and preserves scope");
+        var datedInbox = JsonSerializer.SerializeToElement(await Run(s => s.InboxAsync(manager, 0, employeeId: employee, fromDate: workDate, toDate: workDate)));
+        var datedItems = datedInbox.GetProperty("items").EnumerateArray().ToArray();
+        check(datedInbox.GetProperty("fromDate").GetString() == workDate.ToString("yyyy-MM-dd") &&
+              datedItems.Any(x => x.GetProperty("Id").GetGuid() == identical) &&
+              !datedItems.Any(x => x.GetProperty("Id").GetGuid() == nextDayRequest) &&
+              datedItems.All(x => x.GetProperty("WorkDate").GetString() == workDate.ToString("yyyy-MM-dd")) &&
+              await Reject<ArgumentException>(() => Run(s => s.InboxAsync(manager, 0, fromDate: workDate))) &&
+              await Reject<ArgumentException>(() => Run(s => s.InboxAsync(manager, 0, fromDate: workDate.AddDays(1), toDate: workDate))),
+              "inbox work-date filter is inclusive, applies before pagination and rejects invalid ranges");
         var exactApproved = JsonSerializer.Serialize(await Run(s => s.ListOwnAsync(self, 0, fromDate: workDate, toDate: workDate, state: 1)));
         var rangePending = JsonSerializer.Serialize(await Run(s => s.ListOwnAsync(self, 0, fromDate: workDate, toDate: workDate.AddDays(1), state: 0)));
         var exactCancelled = JsonSerializer.Serialize(await Run(s => s.ListOwnAsync(self, 0, fromDate: workDate, toDate: workDate, state: 3)));
