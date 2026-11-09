@@ -183,7 +183,7 @@ internal static class HttpSecurityTests
                 return json.RootElement.GetProperty("result").GetGuid();
             }
             var featureRole = await CreateId("/admin/roles", new { Name = "phase five six test role" });
-            foreach (var code in new[] { "organization.manage", "schedule.manage", "schedule.read.all", "attendance.ingest", "attendance.calculate" })
+            foreach (var code in new[] { "organization.manage", "schedule.manage", "schedule.read.all", "attendance.ingest", "attendance.calculate", "correction.configure" })
                 if ((await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = featureRole, Code = code })).StatusCode != HttpStatusCode.OK)
                     throw new InvalidOperationException("Synthetic feature permission grant failed.");
             Guid globalActor;
@@ -192,6 +192,36 @@ internal static class HttpSecurityTests
                     .Where(x => x.UserName == adminName).Select(x => x.Id).SingleAsync();
             if ((await PostAdmin(adminClient, "/admin/user-roles", new { UserId = globalActor, RoleId = featureRole })).StatusCode != HttpStatusCode.OK)
                 throw new InvalidOperationException("Synthetic feature role grant failed.");
+            Guid testCompany, testSelfRole, testManagerRole;
+            await using (var correctionScope = provider.CreateAsyncScope())
+            {
+                var db = correctionScope.ServiceProvider.GetRequiredService<IoDbContext>();
+                testCompany = (await db.Employees.SingleAsync(x => x.Id == first)).CompanyId;
+                testSelfRole = (await db.Roles.SingleAsync(x => x.Name == "web self role")).Id;
+                testManagerRole = (await db.Roles.SingleAsync(x => x.Name == "web manager role")).Id;
+            }
+            foreach (var (roleId, code) in new[] { (testSelfRole, "correction.submit.self"), (testManagerRole, "correction.decide"), (testManagerRole, "correction.decide.scoped") })
+                if ((await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = roleId, Code = code })).StatusCode != HttpStatusCode.OK)
+                    throw new InvalidOperationException("Synthetic correction permission grant failed.");
+            var policyInput = new { CompanyId = testCompany, ApproverUserId = manager, Name = "HTTP correction policy" };
+            check((await PostAdmin(own, "/corrections/policies", policyInput)).StatusCode == HttpStatusCode.Forbidden &&
+                  (await adminClient.PostAsJsonAsync("/corrections/policies", policyInput)).StatusCode == HttpStatusCode.BadRequest,
+                "HTTP correction policy requires permission and antiforgery");
+            var correctionPolicy = await CreateId("/corrections/policies", policyInput);
+            var correctionInput = new { PolicyId = correctionPolicy, WorkDate = "2027-05-05", ProposedAt = "2027-05-05T08:00:00Z", PunchKind = 0, Reason = "test" };
+            check((await own.PostAsJsonAsync("/corrections/requests", correctionInput)).StatusCode == HttpStatusCode.BadRequest &&
+                  (await PostAdmin(own, "/corrections/requests", new { PolicyId = correctionPolicy, WorkDate = "2027-05-05", ProposedAt = "2027-05-05T08:00:00", PunchKind = 0, Reason = "test" })).StatusCode == HttpStatusCode.BadRequest,
+                "HTTP correction requires antiforgery and an explicit timestamp offset");
+            using var correctionResponse = await PostAdmin(own, "/corrections/requests", correctionInput);
+            correctionResponse.EnsureSuccessStatusCode();
+            using var correctionJson = JsonDocument.Parse(await correctionResponse.Content.ReadAsStringAsync());
+            var correctionId = correctionJson.RootElement.GetProperty("result").GetGuid();
+            check((await scoped.GetAsync("/corrections/inbox")).StatusCode == HttpStatusCode.OK &&
+                  (await PostAdmin(own, $"/corrections/requests/{correctionId}/decision", new { Approve = true, Reason = (string?)null })).StatusCode == HttpStatusCode.Forbidden &&
+                  (await PostAdmin(scoped, $"/corrections/requests/{correctionId}/decision", new { Approve = true, Reason = (string?)null })).StatusCode == HttpStatusCode.OK &&
+                  (await PostAdmin(own, $"/corrections/requests/{correctionId}/cancel", new { Reason = "late" })).StatusCode == HttpStatusCode.Conflict &&
+                  (await own.GetAsync("/corrections/own")).StatusCode == HttpStatusCode.OK,
+                "HTTP scoped approval and own history enforce state and identity");
             var newOrg = await CreateId("/org/organizations", new { Name = "HTTP synthetic org" });
             var newCompany = await CreateId("/org/companies", new { OrganizationId = newOrg, Name = "HTTP synthetic company" });
             var newSite = await CreateId("/org/sites", new { CompanyId = newCompany, Name = "HTTP site", TimeZoneId = "Asia/Tehran" });

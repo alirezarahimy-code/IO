@@ -55,14 +55,15 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
             Reason(reason, !approve);
             if (requestId == Guid.Empty) throw new ArgumentException("Invalid request.");
             await transaction.LockAsync("IO.Correction." + requestId.ToString("N"), token);
-            var request = await db.CorrectionRequests.SingleOrDefaultAsync(x => x.Id == requestId, token)
-                ?? throw new ArgumentException("Unknown request.");
-            var policy = await db.CorrectionPolicies.AsNoTracking().SingleAsync(x => x.Id == request.PolicyId, token);
-            if (actor == request.RequesterUserId || actor != policy.ApproverUserId ||
-                await db.Users.AnyAsync(x => x.Id == actor && x.EmployeeId == request.EmployeeId, token)) throw new UnauthorizedAccessException();
             var authorized = access.AuthorizedEmployees(actor, DateOnly.FromDateTime(DateTime.UtcNow),
                 "correction.never-self", DecideScoped, DecideAll);
-            if (!await authorized.AnyAsync(x => x.Id == request.EmployeeId, token)) throw new UnauthorizedAccessException();
+            var request = await (from candidate in db.CorrectionRequests
+                                 join policy in db.CorrectionPolicies on candidate.PolicyId equals policy.Id
+                                 where candidate.Id == requestId && policy.ApproverUserId == actor && candidate.RequesterUserId != actor &&
+                                       !db.Users.Any(x => x.Id == actor && x.EmployeeId == candidate.EmployeeId) &&
+                                       authorized.Any(x => x.Id == candidate.EmployeeId)
+                                 select candidate).SingleOrDefaultAsync(token)
+                ?? throw new UnauthorizedAccessException();
             if (request.State != 0) throw new DomainConflictException("Request has already been decided or cancelled.");
             request.State = approve ? 1 : 2;
             db.CorrectionDecisions.Add(new() { Id = Guid.NewGuid(), RequestId = requestId, ActorUserId = actor,
@@ -75,9 +76,8 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
         {
             Reason(reason, true);
             await transaction.LockAsync("IO.Correction." + requestId.ToString("N"), token);
-            var request = await db.CorrectionRequests.SingleOrDefaultAsync(x => x.Id == requestId, token)
-                ?? throw new ArgumentException("Unknown request.");
-            if (request.RequesterUserId != actor) throw new UnauthorizedAccessException();
+            var request = await db.CorrectionRequests.SingleOrDefaultAsync(x => x.Id == requestId && x.RequesterUserId == actor, token)
+                ?? throw new UnauthorizedAccessException();
             if (request.State != 0) throw new DomainConflictException("Request has already been decided or cancelled.");
             request.State = 3;
             db.CorrectionDecisions.Add(new() { Id = Guid.NewGuid(), RequestId = requestId, ActorUserId = actor,

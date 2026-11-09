@@ -30,7 +30,8 @@ internal static class CorrectionWorkflowTests
             {
                 var permission = await db.Permissions.SingleOrDefaultAsync(x => x.Code == code);
                 if (permission is null) { permission = new() { Id = Guid.NewGuid(), Code = code }; db.Permissions.Add(permission); }
-                db.RolePermissions.Add(new() { RoleId = role, PermissionId = permission.Id });
+                if (!await db.RolePermissions.AnyAsync(x => x.RoleId == role && x.PermissionId == permission.Id))
+                    db.RolePermissions.Add(new() { RoleId = role, PermissionId = permission.Id });
             }
             await db.SaveChangesAsync();
         }
