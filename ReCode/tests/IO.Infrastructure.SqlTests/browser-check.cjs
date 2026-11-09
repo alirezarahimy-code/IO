@@ -30,9 +30,10 @@ async function main() {
         const contrast = (a, b) => { const x = lum(root.getPropertyValue(a)), y = lum(root.getPropertyValue(b)); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
         return { selected: document.documentElement.dataset.ioTheme, background: root.getPropertyValue('--io-bg').trim(),
           text: contrast('--io-text', '--io-surface'), muted: contrast('--io-muted', '--io-surface'),
-          button: contrast('--io-on-primary', '--io-primary'), header: contrast('--io-on-header', '--io-header') };
+          button: contrast('--io-on-primary', '--io-primary'), header: contrast('--io-on-header', '--io-header'),
+          border: contrast('--io-border', '--io-surface'), focus: contrast('--io-focus', '--io-surface-alt') };
       });
-      if (result.selected !== name || !result.background || Math.min(result.text, result.muted, result.button, result.header) < 4.5)
+      if (result.selected !== name || !result.background || Math.min(result.text, result.muted, result.button, result.header) < 4.5 || Math.min(result.border, result.focus) < 3)
         throw new Error('Theme tokens or text contrast are invalid: ' + name);
       backgrounds.push(result.background);
     }
@@ -50,6 +51,15 @@ async function main() {
     await page.waitForFunction(() => document.documentElement.dataset.ioTheme === 'forest');
     if (await themeSelector.inputValue() !== 'forest') throw new Error('Theme did not synchronize between pages');
     await secondPage.close();
+    const blockedPage = await context.newPage();
+    await blockedPage.addInitScript(() => Object.defineProperty(window, 'localStorage', { get() { throw new Error('disabled'); } }));
+    await blockedPage.goto(address + '/theme-fixture');
+    if (await blockedPage.locator('.io-theme-picker select').inputValue() !== 'ocean') throw new Error('Unavailable storage did not fall back');
+    await blockedPage.locator('.io-theme-picker select').selectOption('sand');
+    if (await blockedPage.evaluate(() => document.documentElement.dataset.ioTheme) !== 'sand') throw new Error('Theme failed with unavailable storage');
+    await blockedPage.reload();
+    if (await blockedPage.locator('.io-theme-picker select').inputValue() !== 'ocean') throw new Error('Unavailable storage was incorrectly persisted');
+    await blockedPage.close();
     await page.evaluate(() => localStorage.setItem('io.theme.v1', 'unknown'));
     await page.reload();
     if (await themeSelector.inputValue() !== 'ocean') throw new Error('Unknown saved theme did not fall back safely');
