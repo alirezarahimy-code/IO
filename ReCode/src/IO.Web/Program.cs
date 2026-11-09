@@ -10,6 +10,7 @@ using IO.Domain.Scheduling;
 using IO.Infrastructure.Storage;
 using IO.Infrastructure.Reports;
 using IO.Infrastructure.Leaves;
+using IO.Infrastructure.Delegation;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -157,6 +158,8 @@ public static class IoWebHost
         app.MapGet("/assets/team-attendance.js", () => Results.Content(Resource("IO.Web.Ui.team-attendance.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/leave-admin", () => Results.Content(Resource("IO.Web.Ui.LeaveAdmin.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/leave-admin.js", () => Results.Content(Resource("IO.Web.Ui.leave-admin.js"), "text/javascript; charset=utf-8"));
+        app.MapGet("/workspace/delegation", () => Results.Content(Resource("IO.Web.Ui.Delegation.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/delegation.js", () => Results.Content(Resource("IO.Web.Ui.delegation.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/my-leave", () => Results.Content(Resource("IO.Web.Ui.MyLeave.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/my-leave.js", () => Results.Content(Resource("IO.Web.Ui.my-leave.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/my-attendance", () => Results.Content(Resource("IO.Web.Ui.MyAttendance.html"), "text/html; charset=utf-8"));
@@ -276,6 +279,14 @@ public static class IoWebHost
             catch (InvalidOperationException) { return Results.Conflict(); }
             catch (ArgumentOutOfRangeException) { return Results.BadRequest(); }
         });
+        app.MapGet("/delegations/candidates", (int? offset,HttpContext c,DelegationRegistry service) =>
+            AdminRead(c, actor => service.CandidatesAsync(actor,offset ?? 0,c.RequestAborted)));
+        app.MapGet("/delegations/own", (int? offset,HttpContext c,DelegationRegistry service) =>
+            AdminRead(c, actor => service.ListAsync(actor,offset ?? 0,c.RequestAborted)));
+        app.MapPost("/delegations", (DelegationInput input,HttpContext c,IAntiforgery csrf,DelegationRegistry service) =>
+            Admin(c,csrf,actor => service.AssignAsync(actor,input.OperationId,input.DelegateUserId,input.ValidFrom,input.ValidUntilExclusive,c.RequestAborted)));
+        app.MapPost("/delegations/{id:guid}/revoke", (Guid id,DelegationRevokeInput input,HttpContext c,IAntiforgery csrf,DelegationRegistry service) =>
+            Admin(c,csrf,actor => service.RevokeAsync(actor,id,input.Reason,c.RequestAborted)));
         app.MapPost("/leave/types", (LeaveTypeInput input, HttpContext c, IAntiforgery csrf, LeaveLedger service) =>
             Admin(c, csrf, actor => service.CreateTypeAsync(actor,input.CompanyId,input.Name,input.Symbol,input.MinutesPerDay,input.CarryOverAllowed,c.RequestAborted)));
         app.MapGet("/leave/types/{companyId:guid}", (Guid companyId, int? offset, HttpContext c, LeaveLedger service) =>
@@ -557,3 +568,6 @@ public sealed record SourceMappingReplacementInput(Guid SourceId, string SourceP
 
 public sealed record LeaveTypeInput(Guid CompanyId,string Name,string Symbol,int MinutesPerDay,bool CarryOverAllowed);
 public sealed record LeaveEntryInput(Guid OperationId,Guid EmployeeId,Guid LeaveTypeId,DateOnly EffectiveDate,int Kind,int Minutes,string DocumentNumber,string Description);
+
+public sealed record DelegationInput(Guid OperationId,Guid DelegateUserId,DateOnly ValidFrom,DateOnly ValidUntilExclusive);
+public sealed record DelegationRevokeInput(string Reason);

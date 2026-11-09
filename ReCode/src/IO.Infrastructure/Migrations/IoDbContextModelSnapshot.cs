@@ -380,6 +380,89 @@ namespace IO.Infrastructure.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
+            modelBuilder.Entity("IO.Infrastructure.Storage.DelegationRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("DelegateEmployeeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("DelegateUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PrincipalEmployeeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PrincipalUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly>("ValidFrom")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly>("ValidUntilExclusive")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DelegateUserId");
+
+                    b.HasIndex("DelegateEmployeeId", "CompanyId");
+
+                    b.HasIndex("PrincipalEmployeeId", "CompanyId");
+
+                    b.HasIndex("PrincipalUserId", "ValidFrom", "ValidUntilExclusive");
+
+                    b.ToTable("Delegations", null, t =>
+                        {
+                            t.HasTrigger("TR_Delegations_Immutable");
+
+                            t.HasCheckConstraint("CK_Delegations_DifferentPeople", "[PrincipalUserId] <> [DelegateUserId] AND [PrincipalEmployeeId] <> [DelegateEmployeeId]");
+
+                            t.HasCheckConstraint("CK_Delegations_Interval", "[ValidFrom] < [ValidUntilExclusive]");
+
+                            t.HasCheckConstraint("CK_Delegations_Utc", "DATEPART(TZOFFSET, [CreatedAtUtc]) = 0");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
+            modelBuilder.Entity("IO.Infrastructure.Storage.DelegationRevocationRecord", b =>
+                {
+                    b.Property<Guid>("DelegationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ActorUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTimeOffset>("RevokedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("DelegationId");
+
+                    b.HasIndex("ActorUserId");
+
+                    b.ToTable("DelegationRevocations", null, t =>
+                        {
+                            t.HasTrigger("TR_DelegationRevocations_Immutable");
+
+                            t.HasCheckConstraint("CK_DelegationRevocations_Utc", "DATEPART(TZOFFSET, [RevokedAtUtc]) = 0");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
             modelBuilder.Entity("IO.Infrastructure.Storage.EmployeeAssignmentRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1548,6 +1631,50 @@ namespace IO.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("RuleVersionId", "CompanyId")
                         .HasPrincipalKey("Id", "CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("IO.Infrastructure.Storage.DelegationRecord", b =>
+                {
+                    b.HasOne("IO.Infrastructure.Storage.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("DelegateUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IO.Infrastructure.Storage.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("PrincipalUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IO.Infrastructure.Storage.EmployeeRecord", null)
+                        .WithMany()
+                        .HasForeignKey("DelegateEmployeeId", "CompanyId")
+                        .HasPrincipalKey("Id", "CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IO.Infrastructure.Storage.EmployeeRecord", null)
+                        .WithMany()
+                        .HasForeignKey("PrincipalEmployeeId", "CompanyId")
+                        .HasPrincipalKey("Id", "CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("IO.Infrastructure.Storage.DelegationRevocationRecord", b =>
+                {
+                    b.HasOne("IO.Infrastructure.Storage.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("ActorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IO.Infrastructure.Storage.DelegationRecord", null)
+                        .WithMany()
+                        .HasForeignKey("DelegationId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
