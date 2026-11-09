@@ -40,3 +40,44 @@
   [data-theme=sand] .request-card { grid-area:request; }
   [data-theme=sand] .app-footer { grid-area:footer; }
 }
+/* Shared right-hand sidebar behavior across every visual concept. */
+.showcase[data-theme] .app-shell { display:grid; grid-template-columns:232px minmax(0,1fr); }
+.showcase[data-theme] .sidebar { display:flex; flex-direction:column; align-items:stretch; gap:0; padding:25px 15px 18px; border-left:1px solid var(--line); border-bottom:0; }
+.showcase[data-theme] .brand { display:flex; width:100%; padding:0 5px 27px; margin:0; }
+.showcase[data-theme] .brand>div,.showcase[data-theme] .brand small,.showcase[data-theme] .nav-title,.showcase[data-theme] .nav-item span,.showcase[data-theme] .help-card,.showcase[data-theme] .sidebar-bottom { display:block; }
+.showcase[data-theme] .workspace { display:flex; }
+.showcase[data-theme] .nav-list,.showcase[data-theme] .secondary-nav { display:flex; flex-direction:column; align-items:stretch; width:100%; overflow:visible; }
+.showcase[data-theme] .nav-item { padding:11px 10px; }
+.showcase[data-theme] .sidebar-bottom { margin-top:auto; }
+.showcase[data-theme=sand] .sidebar { border-left:0; }
+.showcase[data-theme=night] .brand strong { color:var(--text); }
+.showcase[data-theme=night] .help-card b { color:var(--text); }
+.showcase[data-theme=night] .workspace { color:var(--text); }
+.sidebar-close { margin-right:auto; flex:none; width:27px; height:27px; border:1px solid var(--line); border-radius:7px; display:grid; place-items:center; background:var(--surface2); color:var(--accent-text); }
+.sidebar-close .icon { width:15px; height:15px; }
+.topbar-leading { display:flex; align-items:center; gap:15px; min-width:0; }
+.topbar-toggle { display:flex; align-items:center; gap:6px; background:var(--surface2); color:var(--accent-text); border:1px solid var(--line); border-radius:8px; padding:7px 9px; white-space:nowrap; font-size:11px; font-weight:600; }
+.topbar-toggle .icon { width:16px; height:16px; }
+.sidebar-veil { display:none; }
+.showcase[data-theme][data-sidebar=closed] .app-shell { grid-template-columns:74px minmax(0,1fr); }
+.showcase[data-theme][data-sidebar=closed] .sidebar { align-items:center; padding:25px 9px 18px; }
+.showcase[data-theme][data-sidebar=closed] .brand { justify-content:center; padding:0 0 27px; }
+.showcase[data-theme][data-sidebar=closed] .brand>div,
+.showcase[data-theme][data-sidebar=closed] .sidebar-close,
+.showcase[data-theme][data-sidebar=closed] .workspace,
+.showcase[data-theme][data-sidebar=closed] .nav-title,
+.showcase[data-theme][data-sidebar=closed] .nav-item span,
+.showcase[data-theme][data-sidebar=closed] .nav-item i,
+.showcase[data-theme][data-sidebar=closed] .nav-item em,
+.showcase[data-theme][data-sidebar=closed] .help-card { display:none; }
+.showcase[data-theme][data-sidebar=closed] .nav-list { align-items:center; }
+.showcase[data-theme][data-sidebar=closed] .nav-item { padding:12px; }
+@media(max-width:700px) {
+ .showcase[data-theme] .app-shell,.showcase[data-theme][data-sidebar=closed] .app-shell { display:block; }
+ .showcase[data-theme] .sidebar { display:none; }
+ .showcase[data-theme][data-sidebar=open] .sidebar { display:flex; position:fixed; top:0; right:0; bottom:0; z-index:20; width:min(290px,85vw); overflow-y:auto; box-shadow:-15px 0 40px #0003; }
+ .showcase[data-theme][data-sidebar=open] .sidebar-veil { display:block; position:fixed; inset:0; z-index:19; border:0; background:#0d1b25a6; }
+ .topbar-leading { gap:8px; }
+ .topbar-toggle { padding:7px; }
+ .sidebar-toggle-label { display:none; }
+}
