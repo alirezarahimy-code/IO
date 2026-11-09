@@ -94,7 +94,7 @@ public static class IoWebHost
             if (!context.Request.IsHttps) { context.Response.StatusCode = 400; return; }
             context.Response.Headers.CacheControl = "no-store";
             context.Response.Headers["X-Content-Type-Options"] = "nosniff";
-            context.Response.Headers.ContentSecurityPolicy = "default-src 'none'; script-src 'self'; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'";
+            context.Response.Headers.ContentSecurityPolicy = "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'";
             await next(context);
         });
         app.UseAuthentication();
@@ -107,6 +107,7 @@ public static class IoWebHost
                 context.Request.Path != "/auth/change-password" && context.Request.Path != "/auth/logout" &&
                 context.Request.Path != "/auth/csrf" && context.Request.Path != "/auth/me" &&
                 context.Request.Path != "/panel" && context.Request.Path != "/assets/panel.js" &&
+                context.Request.Path != "/assets/theme.js" && context.Request.Path != "/assets/theme.css" &&
                 context.Request.Path != "/health/live")
             {
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
@@ -118,6 +119,8 @@ public static class IoWebHost
 
         app.MapGet("/panel", () => Results.Content(Resource("IO.Web.Ui.Panel.html"), "text/html; charset=utf-8")).AllowAnonymous();
         app.MapGet("/assets/panel.js", () => Results.Content(Resource("IO.Web.Ui.panel.js"), "text/javascript; charset=utf-8")).AllowAnonymous();
+        app.MapGet("/assets/theme.js", () => Results.Content(Resource("IO.Web.Ui.theme.js"), "text/javascript; charset=utf-8")).AllowAnonymous();
+        app.MapGet("/assets/theme.css", () => Results.Content(Resource("IO.Web.Ui.theme.css"), "text/css; charset=utf-8")).AllowAnonymous();
         app.MapGet("/auth/csrf", (HttpContext context, IAntiforgery antiforgery) =>
             Results.Ok(new { token = antiforgery.GetAndStoreTokens(context).RequestToken })).AllowAnonymous();
         app.MapPost("/auth/login", async (LoginInput input, HttpContext context, IAntiforgery antiforgery,

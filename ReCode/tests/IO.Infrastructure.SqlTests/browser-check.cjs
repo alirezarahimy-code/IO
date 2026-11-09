@@ -9,7 +9,54 @@ async function main() {
   try {
     const context = await browser.newContext({ ignoreHTTPSErrors: true });
     const page = await context.newPage();
+    await page.addInitScript(() => {
+      window.__cspViolations = [];
+      document.addEventListener('securitypolicyviolation', e => window.__cspViolations.push(e.violatedDirective));
+    });
     await page.goto(address + '/panel');
+    const themeSelector = page.locator('.io-theme-picker select');
+    const themeNames = ['ocean', 'forest', 'sand', 'night'];
+    if (await themeSelector.locator('option').count() !== 4) throw new Error('Expected exactly four central themes');
+    const backgrounds = [];
+    for (const name of themeNames) {
+      await themeSelector.selectOption(name);
+      const result = await page.evaluate(() => {
+        const root = getComputedStyle(document.documentElement);
+        const rgb = value => {
+          const hex = value.trim().replace('#', '');
+          return [0, 2, 4].map(i => parseInt(hex.slice(i, i + 2), 16) / 255).map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4);
+        };
+        const lum = value => { const c = rgb(value); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; };
+        const contrast = (a, b) => { const x = lum(root.getPropertyValue(a)), y = lum(root.getPropertyValue(b)); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
+        return { selected: document.documentElement.dataset.ioTheme, background: root.getPropertyValue('--io-bg').trim(),
+          text: contrast('--io-text', '--io-surface'), muted: contrast('--io-muted', '--io-surface'),
+          button: contrast('--io-on-primary', '--io-primary'), header: contrast('--io-on-header', '--io-header') };
+      });
+      if (result.selected !== name || !result.background || Math.min(result.text, result.muted, result.button, result.header) < 4.5)
+        throw new Error('Theme tokens or text contrast are invalid: ' + name);
+      backgrounds.push(result.background);
+    }
+    if (new Set(backgrounds).size !== 4 || await page.evaluate(() => window.IOTheme.set('invalid')) !== false)
+      throw new Error('Theme variants or validation failed');
+    await page.reload();
+    if (await themeSelector.inputValue() !== 'night') throw new Error('Theme did not persist after reload');
+    // Exercise a second page that only imports the shared theme assets.
+    await context.route('**/theme-fixture', route => route.fulfill({ contentType: 'text/html', body:
+      '<!doctype html><html lang="fa" dir="rtl"><head><script src="/assets/theme.js"></script><link rel="stylesheet" href="/assets/theme.css"></head><body><h1>صفحهٔ دوم آزمایشی</h1></body></html>' }));
+    const secondPage = await context.newPage();
+    await secondPage.goto(address + '/theme-fixture');
+    if (await secondPage.locator('.io-theme-picker select').inputValue() !== 'night') throw new Error('Theme did not carry to another page');
+    await secondPage.locator('.io-theme-picker select').selectOption('forest');
+    await page.waitForFunction(() => document.documentElement.dataset.ioTheme === 'forest');
+    if (await themeSelector.inputValue() !== 'forest') throw new Error('Theme did not synchronize between pages');
+    await secondPage.close();
+    await page.evaluate(() => localStorage.setItem('io.theme.v1', 'unknown'));
+    await page.reload();
+    if (await themeSelector.inputValue() !== 'ocean') throw new Error('Unknown saved theme did not fall back safely');
+    await page.setViewportSize({ width: 375, height: 812 });
+    if (await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)) throw new Error('Theme causes mobile horizontal overflow');
+    await page.setViewportSize({ width: 1280, height: 720 });
+    if ((await page.evaluate(() => window.__cspViolations)).length) throw new Error('Theme violates Content Security Policy');
     async function waitText(text) {
       await page.waitForFunction(expected => document.getElementById('result').textContent.includes(expected), text, { timeout: 10000 });
     }

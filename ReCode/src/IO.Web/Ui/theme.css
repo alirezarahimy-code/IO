@@ -1,0 +1,66 @@
+/* Shared semantic tokens. Pages should consume these instead of hard-coding a palette. */
+:root, :root[data-io-theme="ocean"] {
+  color-scheme: light;
+  --io-bg: #eff4f8; --io-surface: #ffffff; --io-surface-alt: #f5f9fc;
+  --io-text: #152b42; --io-muted: #475e70; --io-border: #bdcbd5;
+  --io-primary: #174c72; --io-primary-hover: #103b5a; --io-on-primary: #ffffff;
+  --io-focus: #b15000; --io-header: #12314e; --io-on-header: #ffffff;
+  --io-shadow: 0 5px 20px rgba(20, 45, 65, .07);
+}
+:root[data-io-theme="forest"] {
+  color-scheme: light;
+  --io-bg: #eef5f0; --io-surface: #ffffff; --io-surface-alt: #f3f8f4;
+  --io-text: #17362a; --io-muted: #405d4c; --io-border: #b6cdbd;
+  --io-primary: #206341; --io-primary-hover: #174c32; --io-on-primary: #ffffff;
+  --io-focus: #924300; --io-header: #173f2d; --io-on-header: #ffffff;
+  --io-shadow: 0 5px 20px rgba(22, 59, 39, .07);
+}
+:root[data-io-theme="sand"] {
+  color-scheme: light;
+  --io-bg: #f8f3eb; --io-surface: #fffefa; --io-surface-alt: #fbf6ec;
+  --io-text: #392b22; --io-muted: #685547; --io-border: #d7c7b2;
+  --io-primary: #814822; --io-primary-hover: #623518; --io-on-primary: #ffffff;
+  --io-focus: #075e8a; --io-header: #493024; --io-on-header: #ffffff;
+  --io-shadow: 0 5px 20px rgba(83, 55, 29, .07);
+}
+:root[data-io-theme="night"] {
+  color-scheme: dark;
+  --io-bg: #101923; --io-surface: #1b2835; --io-surface-alt: #233444;
+  --io-text: #f2f6f8; --io-muted: #c4d2dc; --io-border: #71889a;
+  --io-primary: #a9d6ed; --io-primary-hover: #d0ecf8; --io-on-primary: #102a3b;
+  --io-focus: #ffd486; --io-header: #263f54; --io-on-header: #ffffff;
+  --io-shadow: 0 5px 20px rgba(0, 0, 0, .2);
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--io-bg); color: var(--io-text); }
+body {
+  margin: 0 auto; max-width: 90rem; padding: 0 clamp(1rem, 3vw, 2.5rem) 3rem;
+  font-family: Tahoma, Arial, sans-serif; line-height: 1.8; overflow-wrap: anywhere;
+}
+.io-theme-toolbar {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .75rem;
+  margin: 0 calc(-1 * clamp(1rem, 3vw, 2.5rem)) 2rem; padding: .8rem clamp(1rem, 3vw, 2.5rem);
+  background: var(--io-header); color: var(--io-on-header);
+}
+.io-theme-brand { font-weight: 700; }
+.io-theme-picker { display: flex; align-items: center; gap: .6rem; }
+.io-theme-picker select { min-width: 10rem; }
+h1 { font-size: clamp(1.5rem, 3vw, 2rem); margin: 0 0 .25rem; }
+h2 { font-size: 1.2rem; margin: 0 0 .5rem; }
+h3 { flex-basis: 100%; font-size: 1rem; margin: 0; }
+p { color: var(--io-muted); margin: .4rem 0 1rem; }
+section { background: var(--io-surface); border: 1px solid var(--io-border); border-radius: .8rem; padding: 1.25rem; margin: 1rem 0; box-shadow: var(--io-shadow); }
+form { display: flex; align-items: end; flex-wrap: wrap; gap: .65rem; padding: 1rem; margin: .8rem 0; border: 1px solid var(--io-border); border-radius: .6rem; background: var(--io-surface-alt); }
+label { display: inline-flex; flex-wrap: wrap; align-items: center; gap: .35rem; }
+input, select, textarea, button { font: inherit; max-width: 100%; min-height: 2.75rem; border-radius: .4rem; }
+input, select, textarea { color: var(--io-text); background: var(--io-surface); border: 1px solid var(--io-border); padding: .35rem .6rem; }
+textarea { min-height: 5rem; }
+button { cursor: pointer; border: 1px solid var(--io-primary); background: var(--io-primary); color: var(--io-on-primary); padding: .35rem 1rem; font-weight: 700; }
+button:hover { background: var(--io-primary-hover); }
+:focus-visible { outline: 3px solid var(--io-focus); outline-offset: 2px; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; direction: ltr; text-align: left; background: var(--io-surface); border: 1px solid var(--io-border); border-radius: .6rem; padding: 1rem; min-height: 3rem; }
+@media (max-width: 38rem) {
+  form { align-items: stretch; }
+  form > input, form > select, form > textarea, form > button, form > label { width: 100%; }
+  form > label input, form > label select, form > label textarea { flex: 1 1 12rem; }
+}

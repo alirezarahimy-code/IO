@@ -121,8 +121,13 @@ internal static class HttpSecurityTests
             using var anon = Client();
             var panel = await anon.GetAsync("/panel");
             var script = await anon.GetAsync("/assets/panel.js");
+            var themeScript = await anon.GetAsync("/assets/theme.js");
+            var themeStyle = await anon.GetAsync("/assets/theme.css");
             check(panel.StatusCode == HttpStatusCode.OK && script.StatusCode == HttpStatusCode.OK &&
-                panel.Headers.Contains("Content-Security-Policy"), "HTTP experimental UI and security policy served");
+                themeScript.StatusCode == HttpStatusCode.OK && themeStyle.StatusCode == HttpStatusCode.OK &&
+                themeStyle.Content.Headers.ContentType?.MediaType == "text/css" &&
+                panel.Headers.GetValues("Content-Security-Policy").Single().Contains("style-src 'self'", StringComparison.Ordinal),
+                "HTTP experimental UI shared theme assets and security policy served");
             check((await anon.GetAsync($"/employees/{first}")).StatusCode == HttpStatusCode.Unauthorized,
                 "HTTP anonymous direct employee access denied");
             check((await anon.PostAsJsonAsync("/auth/login", new { UserName = "web-self", Password })).StatusCode == HttpStatusCode.BadRequest,
@@ -317,6 +322,8 @@ internal static class HttpSecurityTests
             using var createdClient = Client();
             check((await Login(createdClient, "web-created", Password)).StatusCode == HttpStatusCode.NoContent &&
                 (await createdClient.GetAsync($"/employees/{first}")).StatusCode == HttpStatusCode.Forbidden &&
+                (await createdClient.GetAsync("/assets/theme.js")).StatusCode == HttpStatusCode.OK &&
+                (await createdClient.GetAsync("/assets/theme.css")).StatusCode == HttpStatusCode.OK &&
                 (await PostAdmin(createdClient, "/auth/change-password", new { CurrentPassword = Password, NewPassword = Password })).StatusCode == HttpStatusCode.BadRequest,
                 "HTTP provisioned user must change temporary password before access");
             const string changedCreatedPassword = "Synthetic!Created-Password-2026";

@@ -2,6 +2,8 @@
   <ItemGroup>
     <EmbeddedResource Include="Ui/Panel.html" />
     <EmbeddedResource Include="Ui/panel.js" />
+    <EmbeddedResource Include="Ui/theme.js" />
+    <EmbeddedResource Include="Ui/theme.css" />
     <ProjectReference Include="../IO.Domain/IO.Domain.csproj" />
     <ProjectReference Include="../IO.Infrastructure/IO.Infrastructure.csproj" />
   </ItemGroup>
