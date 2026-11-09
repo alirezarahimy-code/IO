@@ -74,7 +74,6 @@ internal static class HttpSecurityTests
             builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?> {
                 ["IO:EnableExperimentalIdentity"] = "true", ["ConnectionStrings:IO"] = connection });
             builder.Logging.ClearProviders();
-            builder.Logging.AddConsole().SetMinimumLevel(LogLevel.Error);
             builder.WebHost.ConfigureKestrel(k => k.Listen(IPAddress.Loopback, 0, listen => listen.UseHttps(certificate)));
         });
         try

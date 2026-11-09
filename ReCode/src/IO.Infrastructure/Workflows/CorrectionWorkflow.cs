@@ -62,9 +62,10 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
                                  where candidate.Id == requestId && policy.ApproverUserId == actor && candidate.RequesterUserId != actor &&
                                        !db.Users.Any(x => x.Id == actor && x.EmployeeId == candidate.EmployeeId) &&
                                        authorized.Any(x => x.Id == candidate.EmployeeId)
-                                 select candidate).SingleOrDefaultAsync(token)
+                                 select candidate).AsTracking().SingleOrDefaultAsync(token)
                 ?? throw new UnauthorizedAccessException();
-            if (request.State != 0) throw new DomainConflictException("Request has already been decided or cancelled.");
+            if (request.State != 0 || await db.CorrectionDecisions.AnyAsync(x => x.RequestId == requestId, token))
+                throw new DomainConflictException("Request has already been decided or cancelled.");
             request.State = approve ? 1 : 2;
             db.CorrectionDecisions.Add(new() { Id = Guid.NewGuid(), RequestId = requestId, ActorUserId = actor,
                 Decision = request.State, Reason = reason, AtUtc = DateTimeOffset.UtcNow });
@@ -78,7 +79,8 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
             await transaction.LockAsync("IO.Correction." + requestId.ToString("N"), token);
             var request = await db.CorrectionRequests.SingleOrDefaultAsync(x => x.Id == requestId && x.RequesterUserId == actor, token)
                 ?? throw new UnauthorizedAccessException();
-            if (request.State != 0) throw new DomainConflictException("Request has already been decided or cancelled.");
+            if (request.State != 0 || await db.CorrectionDecisions.AnyAsync(x => x.RequestId == requestId, token))
+                throw new DomainConflictException("Request has already been decided or cancelled.");
             request.State = 3;
             db.CorrectionDecisions.Add(new() { Id = Guid.NewGuid(), RequestId = requestId, ActorUserId = actor,
                 Decision = 3, Reason = reason, AtUtc = DateTimeOffset.UtcNow });

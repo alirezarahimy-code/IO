@@ -74,7 +74,10 @@ internal static class CorrectionWorkflowTests
             try { await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.CorrectionRequests SET Reason = {'x'.ToString()} WHERE Id = {request}"); } catch (SqlException e) when (e.Number == 51008) { payloadBlocked = true; }
             try { await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM dbo.CorrectionDecisions WHERE RequestId = {request}"); } catch (SqlException e) when (e.Number == 51007) { decisionBlocked = true; }
             try { await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.CorrectionPolicies SET Name = {'x'.ToString()} WHERE Id = {policy}"); } catch (SqlException e) when (e.Number == 51006) { policyBlocked = true; }
-            check(payloadBlocked && decisionBlocked && policyBlocked && await db.RawAttendanceEvents.CountAsync() > 0 &&
+            check(payloadBlocked && decisionBlocked && policyBlocked &&
+                  (await db.CorrectionRequests.AsNoTracking().SingleAsync(x => x.Id == request)).State == 1 &&
+                  (await db.CorrectionRequests.AsNoTracking().SingleAsync(x => x.Id == cancel)).State == 3 &&
+                  await db.RawAttendanceEvents.CountAsync() > 0 &&
                   await scope.ServiceProvider.GetRequiredService<LoginIdentityDbContext>().SecurityAudit.AnyAsync(x => x.Action == "correction.request.decided:" + request.ToString("N")),
                 "SQL protects correction payload, decisions and policy while decisions are audited");
         }
