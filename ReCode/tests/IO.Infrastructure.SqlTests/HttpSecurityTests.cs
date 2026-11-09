@@ -270,6 +270,10 @@ internal static class HttpSecurityTests
                   (await adminClient.GetAsync($"/attendance/resolution/{rawSource}")).StatusCode == HttpStatusCode.OK &&
                   (await scoped.GetAsync($"/attendance/resolution/{rawSource}")).StatusCode == HttpStatusCode.Forbidden,
                 "HTTP identity mapping checks permission, UTC offset, overlap and review access");
+            check((await adminClient.GetAsync($"/attendance/mappings/{rawSource}")).StatusCode == HttpStatusCode.OK &&
+                  (await scoped.GetAsync($"/attendance/mappings/{rawSource}")).StatusCode == HttpStatusCode.Forbidden &&
+                  (await adminClient.GetAsync($"/attendance/mappings/{rawSource}?offset=-1")).StatusCode == HttpStatusCode.BadRequest,
+                  "HTTP mapping history requires ingestion permission and bounded paging");
             async Task<string> CatalogVersion(string kind, Guid id)
             {
                 using var response = await adminClient.GetAsync("/org/catalog/" + kind);

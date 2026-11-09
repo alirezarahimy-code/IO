@@ -201,6 +201,8 @@ public static class IoWebHost
         });
         app.MapGet("/attendance/raw/{sourceId:guid}", (Guid sourceId, int? offset, HttpContext c, AttendanceIngestion service) =>
             AdminRead(c, actor => service.ListAsync(actor, sourceId, offset ?? 0, c.RequestAborted)));
+        app.MapGet("/attendance/mappings/{sourceId:guid}", (Guid sourceId, int? offset, HttpContext c, AttendanceIngestion service) =>
+            AdminRead(c, actor => service.ListMappingsAsync(actor, sourceId, offset ?? 0, c.RequestAborted)));
         app.MapGet("/attendance/resolution/{sourceId:guid}", (Guid sourceId, int? offset, HttpContext c, AttendanceIngestion service) =>
             AdminRead(c, actor => service.ListResolutionAsync(actor, sourceId, offset ?? 0, c.RequestAborted)));
         app.MapGet("/attendance/conflicts/{sourceId:guid}", (Guid sourceId, int? offset, HttpContext c, AttendanceIngestion service) =>

@@ -70,6 +70,7 @@ form('attendance-event', f => {
 });
 form('attendance-list', async f => show(await fetch('/attendance/raw/' + encodeURIComponent(f.elements.sourceId.value) + '?offset=' + encodeURIComponent(f.elements.offset.value), { credentials: 'same-origin', cache: 'no-store' })));
 form('attendance-mapping', f => send('/attendance/mappings', { sourceId: f.elements.sourceId.value, sourcePersonId: f.elements.personId.value, employeeId: f.elements.employeeId.value, validFrom: f.elements.validFrom.value, validUntilExclusive: f.elements.validUntilExclusive.value || null }));
+form('attendance-mappings', async f => show(await fetch('/attendance/mappings/' + encodeURIComponent(f.elements.sourceId.value) + '?offset=' + encodeURIComponent(f.elements.offset.value), { credentials: 'same-origin', cache: 'no-store' })));
 form('attendance-resolution', async f => show(await fetch('/attendance/resolution/' + encodeURIComponent(f.elements.sourceId.value) + '?offset=' + encodeURIComponent(f.elements.offset.value), { credentials: 'same-origin', cache: 'no-store' })));
 form('attendance-conflicts', async f => show(await fetch('/attendance/conflicts/' + encodeURIComponent(f.elements.sourceId.value) + '?offset=' + encodeURIComponent(f.elements.offset.value), { credentials: 'same-origin', cache: 'no-store' })));
 form('attendance-conflict', async f => show(await fetch('/attendance/conflict/' + encodeURIComponent(f.elements.id.value), { credentials: 'same-origin', cache: 'no-store' })));

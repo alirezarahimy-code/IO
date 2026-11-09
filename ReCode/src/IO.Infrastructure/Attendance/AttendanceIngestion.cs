@@ -98,6 +98,17 @@ public sealed class AttendanceIngestion(IoDbContext db, PermissionTransaction tr
             return (id, id);
         }, ct);
 
+    public Task<object> ListMappingsAsync(Guid actor, Guid sourceId, int offset, CancellationToken ct = default) =>
+        transaction.ExecuteAsync<object>(actor, Manage, "attendance.mappings.viewed", async token =>
+        {
+            if (sourceId == Guid.Empty || offset is < 0 or > 100000) throw new ArgumentException("Invalid page.");
+            var items = await db.SourceEmployeeMappings.AsNoTracking().Where(x => x.SourceId == sourceId)
+                .OrderBy(x => x.ValidFromUtc).ThenBy(x => x.Id).Skip(offset).Take(50)
+                .Select(x => new { x.Id, x.SourceId, x.SourcePersonId, x.EmployeeId, x.CompanyId, x.ValidFromUtc, x.ValidUntilUtcExclusive })
+                .ToListAsync(token);
+            return (new { sourceId, offset, pageSize = 50, items }, sourceId);
+        }, ct);
+
     // Unknown, malformed or ambiguous identities never resolve by guessing.
     public Task<object> ListResolutionAsync(Guid actor, Guid sourceId, int offset, CancellationToken ct = default) =>
         transaction.ExecuteAsync<object>(actor, Manage, "attendance.resolution.viewed", async token =>

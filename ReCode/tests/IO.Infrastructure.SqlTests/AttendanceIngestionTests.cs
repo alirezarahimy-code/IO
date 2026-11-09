@@ -107,6 +107,11 @@ internal static class AttendanceIngestionTests
               items[differentCase.EventId].GetProperty("Status").GetString() == "requires-review" &&
               items[missingTime.EventId].GetProperty("Status").GetString() == "requires-review",
               "mapping resolves exact identifiers and half-open UTC boundaries without guessing");
+        var mappings = JsonSerializer.SerializeToElement(await Use(s => s.ListMappingsAsync(admin, mappedSource, 0)));
+        check(mappings.GetProperty("items").GetArrayLength() == 2 &&
+              await Reject<UnauthorizedAccessException>(() => Use(s => s.ListMappingsAsync(limited, mappedSource, 0))) &&
+              await Reject<ArgumentException>(() => Use(s => s.ListMappingsAsync(admin, mappedSource, -1))),
+              "source mapping history is paginated and restricted to ingestion operators");
         check(await Reject<UnauthorizedAccessException>(() => Use(s => s.ListResolutionAsync(limited, mappedSource, 0))) &&
               await Reject<UnauthorizedAccessException>(() => Use(s => s.GetConflictAsync(limited, conflict.ConflictId!.Value))) &&
               (await Use(s => s.GetConflictAsync(admin, conflict.ConflictId!.Value))) is not null,
