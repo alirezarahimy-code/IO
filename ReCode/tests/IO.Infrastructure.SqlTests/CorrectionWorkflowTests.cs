@@ -92,6 +92,11 @@ internal static class CorrectionWorkflowTests
         check(await Reject<ArgumentException>(() => Run(s => s.DecideAsync(manager, request, false, null))) &&
               await Run(s => s.DecideAsync(manager, request, true, "checked")) &&
               await Reject<DomainConflictException>(() => Run(s => s.CancelAsync(self, request, "late"))), "rejection needs a reason and approved requests cannot be cancelled");
+        var decisions = JsonSerializer.Serialize(await Run(s => s.ListDecisionsAsync(manager, 0)));
+        check(decisions.Contains(request.ToString(), StringComparison.OrdinalIgnoreCase) &&
+              !decisions.Contains(outside.ToString(), StringComparison.OrdinalIgnoreCase) &&
+              await Reject<UnauthorizedAccessException>(() => Run(s => s.ListDecisionsAsync(self, 0))),
+              "decision history is limited to the approver and current authorized scope");
         var own = JsonSerializer.Serialize(await Run(s => s.ListOwnAsync(self, 0)));
         check(own.Contains(request.ToString(), StringComparison.OrdinalIgnoreCase) && own.Contains("checked", StringComparison.Ordinal), "requester sees own decision and reason");
         var cancel = await Run(s => s.SubmitAsync(self, policy, workDate, at.AddMinutes(1), 1, "missing exit"));

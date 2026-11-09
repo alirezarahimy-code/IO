@@ -224,6 +224,11 @@ internal static class HttpSecurityTests
             check(inboxStatus == HttpStatusCode.OK && ownDecisionStatus == HttpStatusCode.Forbidden && managerDecisionStatus == HttpStatusCode.OK &&
                   lateCancelStatus == HttpStatusCode.Conflict && ownHistoryStatus == HttpStatusCode.OK,
                 $"HTTP scoped approval and own history enforce state and identity ({inboxStatus}, {ownDecisionStatus}, {managerDecisionStatus}, {lateCancelStatus}, {ownHistoryStatus})");
+            using var decisionHistory = await scoped.GetAsync("/corrections/decisions");
+            check(decisionHistory.StatusCode == HttpStatusCode.OK &&
+                  (await decisionHistory.Content.ReadAsStringAsync()).Contains(correctionId.ToString(), StringComparison.OrdinalIgnoreCase) &&
+                  (await own.GetAsync("/corrections/decisions")).StatusCode == HttpStatusCode.Forbidden,
+                  "HTTP approver decision history is scoped and permissioned");
             var newOrg = await CreateId("/org/organizations", new { Name = "HTTP synthetic org" });
             var newCompany = await CreateId("/org/companies", new { OrganizationId = newOrg, Name = "HTTP synthetic company" });
             var newSite = await CreateId("/org/sites", new { CompanyId = newCompany, Name = "HTTP site", TimeZoneId = "Asia/Tehran" });

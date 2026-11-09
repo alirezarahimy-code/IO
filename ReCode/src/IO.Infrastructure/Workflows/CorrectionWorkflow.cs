@@ -120,6 +120,24 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
             return (new { offset, pageSize = 50, items }, actor);
         }, ct);
 
+    public Task<object> ListDecisionsAsync(Guid actor, int offset, CancellationToken ct = default) =>
+        transaction.ExecuteAsync<object>(actor, Decide, "correction.decisions.viewed", async token =>
+        {
+            if (offset is < 0 or > 100000) throw new ArgumentException("Invalid page.");
+            var authorized = access.AuthorizedEmployees(actor, DateOnly.FromDateTime(DateTime.UtcNow), "correction.never-self", DecideScoped, DecideAll);
+            var items = await (from decision in db.CorrectionDecisions.AsNoTracking()
+                               join request in db.CorrectionRequests on decision.RequestId equals request.Id
+                               join policy in db.CorrectionPolicies on request.PolicyId equals policy.Id
+                               where decision.ActorUserId == actor && policy.ApproverUserId == actor &&
+                                     decision.Decision != 3 && request.RequesterUserId != actor && authorized.Any(x => x.Id == request.EmployeeId) &&
+                                     !db.Users.Any(x => x.Id == actor && x.EmployeeId == request.EmployeeId)
+                               orderby decision.AtUtc descending, decision.Id
+                               select new { decision.RequestId, request.EmployeeId, request.WorkDate, request.ProposedAtUtc, request.PunchKind,
+                                   RequestReason = request.Reason, decision.Decision, DecisionReason = decision.Reason, decision.AtUtc })
+                               .Skip(offset).Take(50).ToListAsync(token);
+            return (new { offset, pageSize = 50, items }, actor);
+        }, ct);
+
     public Task<object> InboxAsync(Guid actor, int offset, CancellationToken ct = default) =>
         transaction.ExecuteAsync<object>(actor, Decide, "correction.inbox.viewed", async token =>
         {
@@ -128,7 +146,8 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
             var items = await (from request in db.CorrectionRequests.AsNoTracking()
                                join policy in db.CorrectionPolicies on request.PolicyId equals policy.Id
                                where policy.ApproverUserId == actor && request.State == 0 && request.RequesterUserId != actor &&
-                                     authorized.Any(x => x.Id == request.EmployeeId)
+                                     authorized.Any(x => x.Id == request.EmployeeId) &&
+                                     !db.Users.Any(x => x.Id == actor && x.EmployeeId == request.EmployeeId)
                                orderby request.CreatedAtUtc, request.Id
                                select new { request.Id, request.EmployeeId, request.WorkDate, request.ProposedAtUtc, request.PunchKind, request.Reason, request.CreatedAtUtc })
                                .Skip(offset).Take(50).ToListAsync(token);
