@@ -193,3 +193,24 @@ REQ.device.push.ingest,device,دریافت رویداد push با هویت عا�
 REQ.device.push.command-poll,device,دریافت دستور عامل یا دستگاه با هویت مجاز,planned-not-grantable,,determine-and-enforce,needs-action-level-review
 REQ.device.key.read,device,خواندن تنظیمات کلید دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
 REQ.device.key.manage,device,تغییر تنظیمات کلید دستگاه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.self.create.early,workflow,ثبت درخواست تعجیل,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.self.create.late,workflow,ثبت درخواست تأخیر,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.self.create.reward,workflow,درخواست پاداش یا جریمه؛ تصمیم دامنه لازم است,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.create.on-behalf,workflow,ثبت درخواست برای دیگری با مجوز و محدوده,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.approve.bulk,workflow,تأیید گروهی درخواست‌ها,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.reject.bulk,workflow,رد گروهی درخواست‌ها,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.undo,workflow,بازگردانی تصمیم درخواست,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.overtime.fixed.read,workflow,مشاهده اضافه‌کار ثابت,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.overtime.fixed.manage,workflow,تغییر اضافه‌کار ثابت؛ بررسی دامنه لازم است,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.overtime.before-after.manage,workflow,بررسی و تغییر اضافه‌کار قبل و بعد,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.location-report.read,report,مشاهده گزارش مکان و تصاویر؛ نیازمند تصمیم دامنه و محرمانگی,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.personnel-status.read,report,مشاهده وضعیت کارکنان در بازه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.report.schema.read,report,مشاهده فراداده و ساختار گزارش مجاز,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.notification.mark-read,settings,ثبت وضعیت خوانده‌شدن اعلان,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.ui.toolbar.personalize,settings,تنظیم شخصی نوار و میانبرها,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.request.lock.manage,settings,مدیریت قفل زمانی درخواست‌ها,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.area.read,organization,مشاهده مناطق مرتبط؛ مدل و دامنه نیازمند بررسی,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.area.manage,organization,مدیریت مناطق مرتبط؛ مدل و دامنه نیازمند بررسی,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.account.password.change.self,identity,تغییر گذرواژه خود,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.system.diagnostics.read,identity,مشاهده وضعیت و تشخیص سامانه,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.data.integrity.check,identity,بررسی یکپارچگی داده‌ها,planned-not-grantable,,determine-and-enforce,needs-action-level-review
