@@ -377,7 +377,7 @@ public static class IoWebHost
         app.MapPost("/corrections/requests/{id:guid}/decision", (Guid id, CorrectionDecisionInput input, HttpContext c, IAntiforgery csrf, CorrectionWorkflow service) =>
             Admin(c, csrf, actor => service.DecideAsync(actor, id, input.Approve, input.Reason, c.RequestAborted)));
         app.MapPost("/corrections/requests/{id:guid}/edit", (Guid id, CorrectionEditInput input, HttpContext c, IAntiforgery csrf, CorrectionWorkflow service) =>
-            Admin(c, csrf, actor => service.EditAsync(actor, id, input.ProposedAt, input.PunchKind, input.Reason, c.RequestAborted)));
+            Admin(c, csrf, actor => service.EditAsync(actor, id, ParseExplicitTime(input.ProposedAt).ToUniversalTime(), input.PunchKind, input.Reason, c.RequestAborted)));
         app.MapPost("/corrections/requests/{id:guid}/cancel", (Guid id, CorrectionCancelInput input, HttpContext c, IAntiforgery csrf, CorrectionWorkflow service) =>
             Admin(c, csrf, actor => service.CancelAsync(actor, id, input.Reason, c.RequestAborted)));
         app.MapPost("/periods/drafts/{draftId:guid}/diagnostics", (Guid draftId, HttpContext c, IAntiforgery csrf, PeriodDiagnostics service) =>
