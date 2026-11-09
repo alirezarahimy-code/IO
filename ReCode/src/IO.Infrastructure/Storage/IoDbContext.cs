@@ -17,6 +17,10 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
     public DbSet<UserRoleRecord> UserRoles => Set<UserRoleRecord>();
     public DbSet<RolePermissionRecord> RolePermissions => Set<RolePermissionRecord>();
     public DbSet<UserOrgScopeRecord> UserOrgScopes => Set<UserOrgScopeRecord>();
+    public DbSet<CalendarRecord> Calendars => Set<CalendarRecord>();
+    public DbSet<CalendarDayRecord> CalendarDays => Set<CalendarDayRecord>();
+    public DbSet<ShiftDefinitionRecord> ShiftDefinitions => Set<ShiftDefinitionRecord>();
+    public DbSet<WorkScheduleAssignmentRecord> WorkScheduleAssignments => Set<WorkScheduleAssignmentRecord>();
     public DbSet<EventSourceRecord> EventSources => Set<EventSourceRecord>();
     public DbSet<RawAttendanceEventRecord> RawAttendanceEvents => Set<RawAttendanceEventRecord>();
 
@@ -38,6 +42,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.ToTable("Sites"); b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
             b.Property(x => x.Name).HasMaxLength(200).IsRequired();
             b.Property(x => x.TimeZoneId).HasMaxLength(100).IsRequired(); b.Property(x => x.Version).IsRowVersion();
+            b.HasAlternateKey(x => new { x.Id, x.CompanyId });
             b.HasOne<CompanyRecord>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
         });
         model.Entity<OrgUnitRecord>(b =>
@@ -110,6 +115,48 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.HasIndex(x => new { x.UserId, x.OrgUnitId, x.ValidFrom });
             b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<OrgUnitRecord>().WithMany().HasForeignKey(x => x.OrgUnitId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<CalendarRecord>(b =>
+        {
+            b.ToTable("Calendars"); b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
+            b.Property(x => x.Name).HasMaxLength(200).IsRequired(); b.Property(x => x.Version).IsRowVersion();
+            b.HasAlternateKey(x => new { x.Id, x.CompanyId });
+            b.HasOne<CompanyRecord>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<CalendarDayRecord>(b =>
+        {
+            b.ToTable("CalendarDays", t =>
+            {
+                t.HasCheckConstraint("CK_CalendarDays_Kind", "[Kind] IN (0, 1, 2)");
+                t.HasCheckConstraint("CK_CalendarDays_RecordedUtc", "DATEPART(TZOFFSET, [RecordedAtUtc]) = 0");
+            });
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
+            b.Property(x => x.Note).HasMaxLength(500);
+            b.HasIndex(x => new { x.CalendarId, x.Date }).IsUnique();
+            b.HasOne<CalendarRecord>().WithMany().HasForeignKey(x => x.CalendarId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<ShiftDefinitionRecord>(b =>
+        {
+            b.ToTable("ShiftDefinitions", t => t.HasCheckConstraint("CK_ShiftDefinitions_Interval",
+                "([EndDayOffset] = 0 AND [EndsAt] > [StartsAt]) OR ([EndDayOffset] = 1 AND [EndsAt] <= [StartsAt])"));
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
+            b.Property(x => x.Name).HasMaxLength(200).IsRequired(); b.Property(x => x.Version).IsRowVersion();
+            b.HasAlternateKey(x => new { x.Id, x.CompanyId });
+            b.HasOne<SiteRecord>().WithMany().HasForeignKey(x => new { x.SiteId, x.CompanyId })
+                .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<WorkScheduleAssignmentRecord>(b =>
+        {
+            b.ToTable("WorkScheduleAssignments", t => t.HasCheckConstraint("CK_WorkScheduleAssignments_Interval",
+                "[ValidUntilExclusive] IS NULL OR [ValidUntilExclusive] > [ValidFrom]"));
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever(); b.Property(x => x.Version).IsRowVersion();
+            b.HasIndex(x => new { x.EmployeeId, x.ValidFrom });
+            b.HasOne<EmployeeRecord>().WithMany().HasForeignKey(x => new { x.EmployeeId, x.CompanyId })
+                .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<ShiftDefinitionRecord>().WithMany().HasForeignKey(x => new { x.ShiftId, x.CompanyId })
+                .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<CalendarRecord>().WithMany().HasForeignKey(x => new { x.CalendarId, x.CompanyId })
+                .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
         });
         model.Entity<EventSourceRecord>(b =>
         {
