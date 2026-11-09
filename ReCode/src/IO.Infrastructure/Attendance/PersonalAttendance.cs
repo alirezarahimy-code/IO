@@ -36,7 +36,7 @@ public sealed class PersonalAttendance(IoDbContext db, PermissionTransaction tra
                                 mapping.ValidFromUtc <= raw.OccurredAtUtc &&
                                 (mapping.ValidUntilUtcExclusive == null || raw.OccurredAtUtc < mapping.ValidUntilUtcExclusive))
                         orderby raw.OccurredAtUtc, raw.Id
-                        select new EventView(raw.Id, source.Name, raw.OccurredAtUtc.Value, raw.SourceTimeZoneId, raw.ReportedEventType);
+                        select new EventView(raw.Id, source.Name, raw.OccurredAtUtc!.Value, raw.SourceTimeZoneId, raw.ReportedEventType);
             var items = await query.Skip(offset).Take(50).ToListAsync(token);
             return (new EventPage(offset, 50, items), employee.Value);
         }, ct);
