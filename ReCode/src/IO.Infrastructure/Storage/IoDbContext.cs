@@ -43,8 +43,25 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
     public DbSet<DelegationRecord> Delegations => Set<DelegationRecord>();
     public DbSet<DelegationRevocationRecord> DelegationRevocations => Set<DelegationRevocationRecord>();
 
+    public DbSet<CorrectionSettingsRecord> CorrectionSettings => Set<CorrectionSettingsRecord>();
+
     protected override void OnModelCreating(ModelBuilder model)
     {
+        model.Entity<CorrectionSettingsRecord>(b =>
+        {
+            b.ToTable("CorrectionSettings", t =>
+            {
+                t.HasCheckConstraint("CK_CorrectionSettings_Revision", "[Revision] > 0");
+                t.HasCheckConstraint("CK_CorrectionSettings_Age", "[MaxRequestAgeDays] BETWEEN 0 AND 3650");
+                t.HasCheckConstraint("CK_CorrectionSettings_Utc", "DATEPART(TZOFFSET, [CreatedAtUtc]) = 0");
+                t.HasTrigger("TR_CorrectionSettings_Immutable"); t.UseSqlOutputClause(false);
+            });
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
+            b.Property(x => x.Reason).HasMaxLength(500).IsRequired();
+            b.HasIndex(x => new {x.CompanyId,x.Revision}).IsUnique();
+            b.HasOne<CompanyRecord>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
         model.Entity<DelegationRecord>(b =>
         {
             b.ToTable("Delegations", t =>
