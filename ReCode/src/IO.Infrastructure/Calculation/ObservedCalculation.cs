@@ -121,7 +121,7 @@ public sealed class ObservedCalculation(IoDbContext db, PermissionTransaction tr
                                      from decision in decisions.DefaultIfEmpty()
                                      where request.EmployeeId == employeeId && request.WorkDate == workDate && (request.State == 0 || request.State == 1)
                                      orderby request.CreatedAtUtc, request.Id
-                                     select new { request.Id, request.CompanyId, request.PolicyId, request.RequesterUserId, request.State,
+                                     select new { request.Id, request.CompanyId, request.PolicyId, request.CorrectionSettingsId, request.RequesterUserId, request.State,
                                          request.ProposedAtUtc, request.PunchKind, request.Reason, request.CreatedAtUtc,
                                          policy.ApproverUserId, DecisionId = decision == null ? (Guid?)null : decision.Id,
                                          Decision = decision == null ? (int?)null : decision.Decision,

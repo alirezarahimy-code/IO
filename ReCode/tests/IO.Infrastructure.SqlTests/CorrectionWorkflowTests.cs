@@ -168,7 +168,9 @@ internal static class CorrectionWorkflowTests
             var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
             var run = await db.DailyCalculationRuns.SingleAsync(x => x.Id == after);
             var prior = await db.DailyCalculationRuns.SingleAsync(x => x.Id == before);
-            check(run.ObservedTicks == TimeSpan.FromHours(8).Ticks && run.AnomaliesJson == "[]" &&
+            var appliedSettings = (await db.CorrectionRequests.AsNoTracking().SingleAsync(x => x.Id == pending)).CorrectionSettingsId;
+            check(run.ObservedTicks == TimeSpan.FromHours(8).Ticks && run.AnomaliesJson == "[]" && appliedSettings.HasValue &&
+                run.InputSnapshotJson.Contains(appliedSettings.Value.ToString(), StringComparison.OrdinalIgnoreCase) &&
                 run.InputSnapshotJson.Contains(pending.ToString(), StringComparison.OrdinalIgnoreCase) &&
                 run.InputSnapshotJson.Contains("verified", StringComparison.Ordinal) && prior.ObservedTicks is null &&
                 await db.RawAttendanceEvents.CountAsync(x => x.Id == rawExit.EventId) == 1,
