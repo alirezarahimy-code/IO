@@ -314,11 +314,15 @@ internal static class HttpSecurityTests
                   (await adminClient.PostAsJsonAsync("/calculations/rules", ruleInput)).StatusCode == HttpStatusCode.BadRequest,
                 "HTTP calculation rules require explicit permission and CSRF");
             var calcRule = await CreateId("/calculations/rules", ruleInput);
-            await CreateId("/calculations/runs", new { EmployeeId = newEmployee, WorkDate = workDay, SourceId = rawSource, RuleVersionId = calcRule });
+            var httpRun = await CreateId("/calculations/runs", new { EmployeeId = newEmployee, WorkDate = workDay, SourceId = rawSource, RuleVersionId = calcRule });
             check((await adminClient.GetAsync($"/calculations/runs/{newEmployee}")).StatusCode == HttpStatusCode.OK &&
                   (await scoped.GetAsync($"/calculations/runs/{newEmployee}")).StatusCode == HttpStatusCode.Forbidden &&
                   (await adminClient.GetAsync($"/calculations/rules/{newCompany}")).StatusCode == HttpStatusCode.OK,
                 "HTTP calculation runs and rules expose only authorized historical snapshots");
+            var comparison = await adminClient.GetAsync($"/calculations/compare/{httpRun}/{httpRun}");
+            check(comparison.StatusCode == HttpStatusCode.OK && (await comparison.Content.ReadAsStringAsync()).Contains("\"freshness\":\"unknown\"", StringComparison.Ordinal) &&
+                  (await scoped.GetAsync($"/calculations/compare/{httpRun}/{httpRun}")).StatusCode == HttpStatusCode.Forbidden,
+                  "HTTP historical comparison remains permissioned and never asserts freshness");
             var draftInput = new { EmployeeId = newEmployee, Start = workDay, EndExclusive = workDay.AddDays(2) };
             check((await PostAdmin(scoped, "/periods/drafts", draftInput)).StatusCode == HttpStatusCode.Forbidden &&
                   (await adminClient.PostAsJsonAsync("/periods/drafts", draftInput)).StatusCode == HttpStatusCode.BadRequest,

@@ -198,7 +198,12 @@ async function main() {
     await page.locator('#calculation-run input[name=sourceId]').fill(rawSource);
     await page.locator('#calculation-run input[name=ruleVersionId]').fill(rule);
     await page.locator('#calculation-run input[name=workDate]').fill('2027-01-01');
-    await submit('calculation-run');
+    const run = await submit('calculation-run');
+    await page.locator('#calculation-compare input[name=firstId]').fill(run);
+    await page.locator('#calculation-compare input[name=secondId]').fill(run);
+    await clearResult();
+    await page.locator('#calculation-compare button').click();
+    await waitText('snapshotDifferent');
     await page.locator('#period-draft input[name=employeeId]').fill(employee);
     await page.locator('#period-draft input[name=start]').fill('2027-01-01');
     await page.locator('#period-draft input[name=endExclusive]').fill('2027-01-02');

@@ -75,6 +75,7 @@ form('attendance-conflicts', async f => show(await fetch('/attendance/conflicts/
 form('attendance-conflict', async f => show(await fetch('/attendance/conflict/' + encodeURIComponent(f.elements.id.value), { credentials: 'same-origin', cache: 'no-store' })));
 form('calculation-rule', f => send('/calculations/rules', { companyId: f.elements.companyId.value, name: f.elements.name.value, beforeMinutes: Number(f.elements.beforeMinutes.value), afterMinutes: Number(f.elements.afterMinutes.value) }));
 form('calculation-run', f => send('/calculations/runs', { employeeId: f.elements.employeeId.value, sourceId: f.elements.sourceId.value, ruleVersionId: f.elements.ruleVersionId.value, workDate: f.elements.workDate.value }));
+form('calculation-compare', async f => show(await fetch('/calculations/compare/' + encodeURIComponent(f.elements.firstId.value) + '/' + encodeURIComponent(f.elements.secondId.value), { credentials: 'same-origin', cache: 'no-store' })));
 form('calculation-results', async f => show(await fetch('/calculations/runs/' + encodeURIComponent(f.elements.employeeId.value) + '?offset=' + encodeURIComponent(f.elements.offset.value), { credentials: 'same-origin', cache: 'no-store' })));
 form('correction-policy', f => send('/corrections/policies', { companyId: f.elements.companyId.value, approverUserId: f.elements.approverUserId.value, name: f.elements.name.value }));
 for (const [id, path] of [['correction-policies', 'policies'], ['correction-own', 'own'], ['correction-inbox', 'inbox']])

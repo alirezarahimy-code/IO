@@ -76,6 +76,14 @@ internal static class ObservedCalculationTests
             catch (SqlException e) when (e.Number == 51004) { ruleBlocked = true; }
             check(runBlocked && ruleBlocked, "SQL blocks mutation of calculation runs and rule versions");
         }
+        var compared = JsonSerializer.SerializeToElement(await Calc(s => s.CompareAsync(admin, first, second)));
+        var same = JsonSerializer.SerializeToElement(await Calc(s => s.CompareAsync(admin, first, first)));
+        check(compared.GetProperty("snapshotDifferent").GetBoolean() && compared.GetProperty("resultDifferent").GetBoolean() &&
+              !same.GetProperty("snapshotDifferent").GetBoolean() && !same.GetProperty("approvable").GetBoolean() &&
+              same.GetProperty("freshness").GetString() == "unknown", "historical run comparison detects differences without asserting freshness");
+        check(await Reject<UnauthorizedAccessException>(() => Calc(s => s.CompareAsync(limited, first, second))) &&
+              await Reject<ArgumentException>(() => Calc(s => s.CompareAsync(admin, first, Guid.NewGuid()))),
+              "historical run comparison requires permission and valid identities");
         var unknown = await Raw(s => s.AppendAsync(admin, source, "unknown", "unmapped", midnight.AddHours(10), null, "in", [4]));
         var third = await Calc(s => s.CalculateAsync(admin, employee, date, source, rule));
         await using (var scope = provider.CreateAsyncScope())

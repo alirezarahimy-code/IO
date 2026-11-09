@@ -154,6 +154,26 @@ public sealed class ObservedCalculation(IoDbContext db, PermissionTransaction tr
             return (id, id);
         }, ct);
 
+    // A comparison of two historical snapshots detects recorded differences only.
+    // Equality is not a freshness guarantee and does not authorize period approval.
+    public Task<object> CompareAsync(Guid actor, Guid firstId, Guid secondId, CancellationToken ct = default) =>
+        transaction.ExecuteAsync<object>(actor, Manage, "calculation.runs.compared", async token =>
+        {
+            if (firstId == Guid.Empty || secondId == Guid.Empty) throw new ArgumentException("Invalid run identifier.");
+            var first = await db.DailyCalculationRuns.AsNoTracking().SingleOrDefaultAsync(x => x.Id == firstId, token)
+                ?? throw new ArgumentException("Unknown run.");
+            var second = await db.DailyCalculationRuns.AsNoTracking().SingleOrDefaultAsync(x => x.Id == secondId, token)
+                ?? throw new ArgumentException("Unknown run.");
+            if (first.EmployeeId != second.EmployeeId || first.WorkDate != second.WorkDate)
+                throw new ArgumentException("Runs must refer to the same employee and work date.");
+            var contextDifferent = first.RuleVersionId != second.RuleVersionId || first.SourceId != second.SourceId ||
+                first.ScheduleAssignmentId != second.ScheduleAssignmentId || first.WindowStartUtc != second.WindowStartUtc || first.WindowEndUtc != second.WindowEndUtc;
+            var snapshotDifferent = !string.Equals(first.InputSnapshotJson, second.InputSnapshotJson, StringComparison.Ordinal);
+            var resultDifferent = first.ObservedTicks != second.ObservedTicks || !string.Equals(first.AnomaliesJson, second.AnomaliesJson, StringComparison.Ordinal);
+            return (new { firstId, secondId, first.EmployeeId, first.WorkDate, contextDifferent, snapshotDifferent, resultDifferent,
+                freshness = "unknown", approvable = false, warning = "Historical comparison only; equality does not prove freshness." }, firstId);
+        }, ct);
+
     public Task<object> ListRulesAsync(Guid actor, Guid companyId, int offset, CancellationToken ct = default) =>
         transaction.ExecuteAsync<object>(actor, Manage, "calculation.rules.viewed", async token =>
         {
