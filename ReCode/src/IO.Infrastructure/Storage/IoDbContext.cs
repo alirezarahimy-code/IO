@@ -11,6 +11,8 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
     public DbSet<OrgUnitRecord> OrgUnits => Set<OrgUnitRecord>();
     public DbSet<EmployeeRecord> Employees => Set<EmployeeRecord>();
     public DbSet<EmployeeAssignmentRecord> EmployeeAssignments => Set<EmployeeAssignmentRecord>();
+    public DbSet<EmploymentProfileRecord> EmploymentProfiles => Set<EmploymentProfileRecord>();
+    public DbSet<EmployeeSiteAssignmentRecord> EmployeeSiteAssignments => Set<EmployeeSiteAssignmentRecord>();
     public DbSet<UserRecord> Users => Set<UserRecord>();
     public DbSet<RoleRecord> Roles => Set<RoleRecord>();
     public DbSet<PermissionRecord> Permissions => Set<PermissionRecord>();
@@ -73,6 +75,27 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.HasOne<EmployeeRecord>().WithMany().HasForeignKey(x => new { x.EmployeeId, x.CompanyId })
                 .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<OrgUnitRecord>().WithMany().HasForeignKey(x => new { x.OrgUnitId, x.CompanyId })
+                .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<EmploymentProfileRecord>(b =>
+        {
+            b.ToTable("EmploymentProfiles", t => t.HasCheckConstraint("CK_EmploymentProfiles_Interval",
+                "[ValidUntilExclusive] IS NULL OR [ValidUntilExclusive] > [ValidFrom]"));
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever(); b.Property(x => x.Version).IsRowVersion();
+            b.Property(x => x.StatusCode).HasMaxLength(80).IsRequired(); b.Property(x => x.Title).HasMaxLength(200);
+            b.HasIndex(x => new { x.EmployeeId, x.ValidFrom });
+            b.HasOne<EmployeeRecord>().WithMany().HasForeignKey(x => new { x.EmployeeId, x.CompanyId })
+                .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<EmployeeSiteAssignmentRecord>(b =>
+        {
+            b.ToTable("EmployeeSiteAssignments", t => t.HasCheckConstraint("CK_EmployeeSiteAssignments_Interval",
+                "[ValidUntilExclusive] IS NULL OR [ValidUntilExclusive] > [ValidFrom]"));
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever(); b.Property(x => x.Version).IsRowVersion();
+            b.HasIndex(x => new { x.EmployeeId, x.ValidFrom });
+            b.HasOne<EmployeeRecord>().WithMany().HasForeignKey(x => new { x.EmployeeId, x.CompanyId })
+                .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<SiteRecord>().WithMany().HasForeignKey(x => new { x.SiteId, x.CompanyId })
                 .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
         });
         model.Entity<UserRecord>(b =>
