@@ -32,6 +32,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
     public DbSet<CorrectionPolicyRecord> CorrectionPolicies => Set<CorrectionPolicyRecord>();
     public DbSet<CorrectionRequestRecord> CorrectionRequests => Set<CorrectionRequestRecord>();
     public DbSet<CorrectionDecisionRecord> CorrectionDecisions => Set<CorrectionDecisionRecord>();
+    public DbSet<PeriodDraftRecord> PeriodDrafts => Set<PeriodDraftRecord>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
@@ -193,6 +194,20 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.ToTable("EventSources"); b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
             b.Property(x => x.Name).HasMaxLength(200).IsRequired(); b.Property(x => x.Version).IsRowVersion();
             b.HasOne<SiteRecord>().WithMany().HasForeignKey(x => x.SiteId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<PeriodDraftRecord>(b =>
+        {
+            b.ToTable("PeriodDrafts", t =>
+            {
+                t.HasCheckConstraint("CK_PeriodDrafts_Interval", "[EndExclusive] > [Start] AND DATEDIFF(day, [Start], [EndExclusive]) <= 62");
+                t.HasCheckConstraint("CK_PeriodDrafts_Utc", "DATEPART(TZOFFSET, [CreatedAtUtc]) = 0");
+                t.HasTrigger("TR_PeriodDrafts_Immutable"); t.UseSqlOutputClause(false);
+            });
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
+            b.HasIndex(x => new { x.EmployeeId, x.Start, x.EndExclusive });
+            b.HasOne<EmployeeRecord>().WithMany().HasForeignKey(x => new { x.EmployeeId, x.CompanyId })
+                .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
         });
         model.Entity<CorrectionPolicyRecord>(b =>
         {
