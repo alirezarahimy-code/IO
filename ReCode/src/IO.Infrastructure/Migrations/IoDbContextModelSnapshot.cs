@@ -435,6 +435,62 @@ namespace IO.Infrastructure.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
+            modelBuilder.Entity("IO.Infrastructure.Storage.RawEventConflictRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ExternalEventId")
+                        .IsRequired()
+                        .HasMaxLength(180)
+                        .HasColumnType("nvarchar(180)");
+
+                    b.Property<DateTimeOffset?>("OccurredAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("OriginalEventId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("ReceivedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("ReportedEventType")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<string>("SourceEmployeeIdentifier")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<Guid>("SourceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("SourcePayload")
+                        .IsRequired()
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("SourceTimeZoneId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OriginalEventId");
+
+                    b.HasIndex("SourceId", "ReceivedAtUtc");
+
+                    b.ToTable("RawEventConflicts", null, t =>
+                        {
+                            t.HasTrigger("TR_RawEventConflicts_Immutable");
+
+                            t.HasCheckConstraint("CK_RawEventConflicts_OccurredUtc", "[OccurredAtUtc] IS NULL OR DATEPART(TZOFFSET, [OccurredAtUtc]) = 0");
+
+                            t.HasCheckConstraint("CK_RawEventConflicts_ReceivedUtc", "DATEPART(TZOFFSET, [ReceivedAtUtc]) = 0");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
             modelBuilder.Entity("IO.Infrastructure.Storage.RolePermissionRecord", b =>
                 {
                     b.Property<Guid>("RoleId")
@@ -544,6 +600,65 @@ namespace IO.Infrastructure.Migrations
                     b.HasIndex("CompanyId");
 
                     b.ToTable("Sites", (string)null);
+                });
+
+            modelBuilder.Entity("IO.Infrastructure.Storage.SourceEmployeeMappingRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SourceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SourcePersonId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("SourcePersonIdByteLength")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("int")
+                        .HasComputedColumnSql("DATALENGTH([SourcePersonId])", true);
+
+                    b.Property<byte[]>("SourcePersonIdBytes")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("varbinary(200)")
+                        .HasComputedColumnSql("CONVERT(varbinary(200), [SourcePersonId])", true);
+
+                    b.Property<DateTimeOffset>("ValidFromUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("ValidUntilUtcExclusive")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<byte[]>("Version")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId", "CompanyId");
+
+                    b.HasIndex("SourceId", "SourcePersonIdBytes", "SourcePersonIdByteLength", "ValidFromUtc");
+
+                    b.ToTable("SourceEmployeeMappings", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_SourceEmployeeMappings_EndUtc", "[ValidUntilUtcExclusive] IS NULL OR DATEPART(TZOFFSET, [ValidUntilUtcExclusive]) = 0");
+
+                            t.HasCheckConstraint("CK_SourceEmployeeMappings_Identifier", "DATALENGTH([SourcePersonId]) > 0");
+
+                            t.HasCheckConstraint("CK_SourceEmployeeMappings_Interval", "[ValidUntilUtcExclusive] IS NULL OR [ValidUntilUtcExclusive] > [ValidFromUtc]");
+
+                            t.HasCheckConstraint("CK_SourceEmployeeMappings_StartUtc", "DATEPART(TZOFFSET, [ValidFromUtc]) = 0");
+                        });
                 });
 
             modelBuilder.Entity("IO.Infrastructure.Storage.UserOrgScopeRecord", b =>
@@ -787,6 +902,21 @@ namespace IO.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("IO.Infrastructure.Storage.RawEventConflictRecord", b =>
+                {
+                    b.HasOne("IO.Infrastructure.Storage.RawAttendanceEventRecord", null)
+                        .WithMany()
+                        .HasForeignKey("OriginalEventId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IO.Infrastructure.Storage.EventSourceRecord", null)
+                        .WithMany()
+                        .HasForeignKey("SourceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("IO.Infrastructure.Storage.RolePermissionRecord", b =>
                 {
                     b.HasOne("IO.Infrastructure.Storage.PermissionRecord", null)
@@ -817,6 +947,22 @@ namespace IO.Infrastructure.Migrations
                     b.HasOne("IO.Infrastructure.Storage.CompanyRecord", null)
                         .WithMany()
                         .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("IO.Infrastructure.Storage.SourceEmployeeMappingRecord", b =>
+                {
+                    b.HasOne("IO.Infrastructure.Storage.EventSourceRecord", null)
+                        .WithMany()
+                        .HasForeignKey("SourceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IO.Infrastructure.Storage.EmployeeRecord", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeeId", "CompanyId")
+                        .HasPrincipalKey("Id", "CompanyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
