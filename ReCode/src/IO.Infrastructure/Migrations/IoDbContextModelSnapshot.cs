@@ -572,6 +572,125 @@ namespace IO.Infrastructure.Migrations
                     b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
+            modelBuilder.Entity("IO.Infrastructure.Storage.LeaveLedgerEntryRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("DocumentNumber")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<DateOnly>("EffectiveDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("EmployeeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("LeaveTypeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Minutes")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PersianYear")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("EmployeeId", "CompanyId");
+
+                    b.HasIndex("LeaveTypeId", "CompanyId");
+
+                    b.HasIndex("EmployeeId", "LeaveTypeId", "PersianYear")
+                        .IsUnique()
+                        .HasFilter("[Kind] = 0");
+
+                    b.HasIndex("EmployeeId", "LeaveTypeId", "PersianYear", "EffectiveDate");
+
+                    b.ToTable("LeaveLedgerEntries", null, t =>
+                        {
+                            t.HasTrigger("TR_LeaveLedgerEntries_Immutable");
+
+                            t.HasCheckConstraint("CK_LeaveLedgerEntries_Minutes", "[Minutes] BETWEEN -527040 AND 527040 AND (([Kind] = 0 AND [Minutes] >= 0) OR ([Kind] = 1 AND [Minutes] > 0) OR ([Kind] = 2 AND [Minutes] < 0) OR ([Kind] = 3 AND [Minutes] <> 0))");
+
+                            t.HasCheckConstraint("CK_LeaveLedgerEntries_Utc", "DATEPART(TZOFFSET, [CreatedAtUtc]) = 0");
+
+                            t.HasCheckConstraint("CK_LeaveLedgerEntries_Year", "[PersianYear] BETWEEN 1300 AND 1500");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
+            modelBuilder.Entity("IO.Infrastructure.Storage.LeaveTypeRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("CarryOverAllowed")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("MinutesPerDay")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Symbol")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("CompanyId", "Symbol")
+                        .IsUnique();
+
+                    b.ToTable("LeaveTypes", null, t =>
+                        {
+                            t.HasTrigger("TR_LeaveTypes_Immutable");
+
+                            t.HasCheckConstraint("CK_LeaveTypes_MinutesPerDay", "[MinutesPerDay] BETWEEN 1 AND 1440");
+
+                            t.HasCheckConstraint("CK_LeaveTypes_Utc", "DATEPART(TZOFFSET, [CreatedAtUtc]) = 0");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
             modelBuilder.Entity("IO.Infrastructure.Storage.ObservedRuleVersionRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1492,6 +1611,44 @@ namespace IO.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("SiteId")
                         .OnDelete(DeleteBehavior.Restrict);
+                });
+
+            modelBuilder.Entity("IO.Infrastructure.Storage.LeaveLedgerEntryRecord", b =>
+                {
+                    b.HasOne("IO.Infrastructure.Storage.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IO.Infrastructure.Storage.EmployeeRecord", null)
+                        .WithMany()
+                        .HasForeignKey("EmployeeId", "CompanyId")
+                        .HasPrincipalKey("Id", "CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IO.Infrastructure.Storage.LeaveTypeRecord", null)
+                        .WithMany()
+                        .HasForeignKey("LeaveTypeId", "CompanyId")
+                        .HasPrincipalKey("Id", "CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("IO.Infrastructure.Storage.LeaveTypeRecord", b =>
+                {
+                    b.HasOne("IO.Infrastructure.Storage.CompanyRecord", null)
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IO.Infrastructure.Storage.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("IO.Infrastructure.Storage.ObservedRuleVersionRecord", b =>

@@ -58,7 +58,7 @@ var unitId = Guid.NewGuid(); var otherUnitId = Guid.NewGuid(); var employeeId = 
 var sourceId = Guid.NewGuid(); var otherSourceId = Guid.NewGuid();
 string[] expectedTables = ["Organizations", "Companies", "Sites", "OrgUnits", "Employees", "EmployeeAssignments",
     "Users", "Roles", "Permissions", "UserRoles", "RolePermissions", "UserOrgScopes", "EventSources", "RawAttendanceEvents",
-    "Calendars", "CalendarDays", "ShiftDefinitions", "WorkScheduleAssignments", "EmploymentProfiles", "EmployeeSiteAssignments", "SourceEmployeeMappings", "RawEventConflicts", "ObservedRuleVersions", "DailyCalculationRuns", "CorrectionPolicies", "CorrectionRequests", "CorrectionDecisions", "PeriodDrafts", "RawConflictNotes", "SourceMappingChanges", "CalculationInputRevision", "PeriodDiagnostics"];
+    "Calendars", "CalendarDays", "ShiftDefinitions", "WorkScheduleAssignments", "EmploymentProfiles", "EmployeeSiteAssignments", "SourceEmployeeMappings", "RawEventConflicts", "ObservedRuleVersions", "DailyCalculationRuns", "CorrectionPolicies", "CorrectionRequests", "CorrectionDecisions", "PeriodDrafts", "RawConflictNotes", "SourceMappingChanges", "CalculationInputRevision", "PeriodDiagnostics", "LeaveTypes", "LeaveLedgerEntries"];
 try
 {
     await using (var db = NewDb())
@@ -66,10 +66,10 @@ try
         Check(!db.Database.HasPendingModelChanges(), "model matches migration snapshot");
         await db.Database.MigrateAsync();
         await db.Database.MigrateAsync();
-        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 12, "foundation and eleven later migrations applied idempotently");
+        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 13, "foundation and twelve later migrations applied idempotently");
         var created = 0;
         foreach (var table in expectedTables) if (await HasTable(table)) created++;
-        Check(created == expectedTables.Length, "all 32 foundation and later tables created");
+        Check(created == expectedTables.Length, "all 34 foundation and later tables created");
         db.Organizations.Add(new() { Id = orgId, Name = "Synthetic organization" });
         db.Companies.AddRange(new CompanyRecord { Id = companyId, OrganizationId = orgId, Name = "Synthetic company" },
             new CompanyRecord { Id = otherCompanyId, OrganizationId = orgId, Name = "Other synthetic company" });
@@ -271,12 +271,12 @@ try
         await migrator.MigrateAsync("0");
         var remaining = 0;
         foreach (var table in expectedTables) if (await HasTable(table)) remaining++;
-        Check(remaining == 0, "rollback removed all 32 foundation and later tables");
+        Check(remaining == 0, "rollback removed all 34 foundation and later tables");
         await migrator.MigrateAsync();
         var recreated = 0;
         foreach (var table in expectedTables) if (await HasTable(table)) recreated++;
-        Check(recreated == expectedTables.Length, "migrations recreated all 32 foundation and later tables");
-        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 12, "migration history restored");
+        Check(recreated == expectedTables.Length, "migrations recreated all 34 foundation and later tables");
+        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 13, "migration history restored");
     }
     // Independent Identity schema and bootstrap: the foundation DB was just
     // recreated empty above. Never run this against non-disposable data.
