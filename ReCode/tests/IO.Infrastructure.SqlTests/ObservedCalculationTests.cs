@@ -86,6 +86,24 @@ internal static class ObservedCalculationTests
                   run.InputSnapshotJson.Contains(unknown.EventId.ToString(), StringComparison.OrdinalIgnoreCase),
                 "unmapped source event prevents numeric result and remains in snapshot");
         }
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var site = Guid.NewGuid(); var shift = Guid.NewGuid();
+            var calendar = (await db.WorkScheduleAssignments.SingleAsync(x => x.EmployeeId == employee)).CalendarId;
+            db.Sites.Add(new() { Id = site, CompanyId = company, Name = "adjacent other site", TimeZoneId = "Etc/UTC" });
+            db.ShiftDefinitions.Add(new() { Id = shift, CompanyId = company, SiteId = site, Name = "adjacent overnight", StartsAt = new(23, 0), EndsAt = new(8, 0), EndDayOffset = 1 });
+            db.WorkScheduleAssignments.Add(new() { Id = Guid.NewGuid(), CompanyId = company, EmployeeId = employee,
+                CalendarId = calendar, ShiftId = shift, ValidFrom = date.AddDays(-1), ValidUntilExclusive = date });
+            await db.SaveChangesAsync();
+        }
+        var overlapping = await Calc(s => s.CalculateAsync(admin, employee, date, source, rule));
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var run = await scope.ServiceProvider.GetRequiredService<IoDbContext>().DailyCalculationRuns.SingleAsync(x => x.Id == overlapping);
+            check(run.ObservedTicks is null && run.AnomaliesJson.Contains("overlapping-work-windows", StringComparison.Ordinal),
+                "overlapping adjacent shifts at different sites block a numerical result");
+        }
         check(await Reject<UnauthorizedAccessException>(() => Calc(s => s.CalculateAsync(limited, employee, date, source, rule))) &&
               await Reject<UnauthorizedAccessException>(() => Calc(s => s.ListRunsAsync(limited, employee, 0))) &&
               await Reject<ArgumentException>(() => Calc(s => s.CalculateAsync(admin, employee, date, Guid.NewGuid(), rule))),

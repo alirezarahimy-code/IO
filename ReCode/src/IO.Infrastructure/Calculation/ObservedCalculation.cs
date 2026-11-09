@@ -67,7 +67,7 @@ public sealed class ObservedCalculation(IoDbContext db, PermissionTransaction tr
                 var adjacent = await (from assignment in db.WorkScheduleAssignments.AsNoTracking()
                                       join shift in db.ShiftDefinitions on assignment.ShiftId equals shift.Id
                                       join site in db.Sites on shift.SiteId equals site.Id
-                                      where assignment.EmployeeId == employeeId && shift.SiteId == source.SiteId &&
+                                      where assignment.EmployeeId == employeeId &&
                                           assignment.ValidFrom <= adjacentDate && (assignment.ValidUntilExclusive == null || adjacentDate < assignment.ValidUntilExclusive)
                                       select new { shift.StartsAt, shift.EndsAt, shift.EndDayOffset, site.TimeZoneId }).Take(2).ToListAsync(token);
                 if (adjacent.Count > 1) { anomalies.Add("ambiguous-adjacent-schedule"); continue; }
