@@ -229,6 +229,11 @@ async function main() {
     await deniedWorkflow.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
     if (await deniedWorkflow.locator('#body tr').count() || await deniedWorkflow.locator('#create-form button').isEnabled()) throw new Error('Workflow catalog exposed without permission');
     await deniedWorkflow.close();
+    const deniedManagerHome = await context.newPage();
+    await deniedManagerHome.goto(address + '/workspace/manager-home');
+    await deniedManagerHome.waitForFunction(() => document.getElementById('requests-message').textContent.includes('مجوز'));
+    if (await deniedManagerHome.locator('#body tr').count()) throw new Error('Manager home exposed inbox without permission');
+    await deniedManagerHome.close();
     const deniedHome = await context.newPage();
     await deniedHome.goto(address + '/workspace/employee-home');
     await deniedHome.waitForFunction(() => document.getElementById('requests-message').textContent.includes('مجوز'));
@@ -1022,6 +1027,12 @@ async function main() {
     await page.locator('#logout').click();
     await waitText('عملیات انجام شد.');
     await login(adminName);
+    const managerHome = await context.newPage();
+    await managerHome.goto(address + '/workspace/manager-home');
+    await managerHome.locator('#body tr').first().waitFor();
+    const homeInbox = await managerHome.evaluate(async () => ({user:await (await fetch('/auth/me')).json(), inbox:await (await fetch('/corrections/inbox?offset=0')).json()}));
+    if (await managerHome.locator('#account-id').textContent() !== homeInbox.user.id || await managerHome.locator('#body tr').count() !== Math.min(5,homeInbox.inbox.items.length) || !(await managerHome.locator('#body tr').first().textContent()).includes(homeInbox.inbox.items[0].id)) throw new Error('Manager home did not show scoped actionable inbox');
+    await managerHome.close();
     const managerInbox = await context.newPage(), staleManagerInbox = await context.newPage();
     await managerInbox.goto(address + '/workspace/inbox');
     await staleManagerInbox.goto(address + '/workspace/inbox');
