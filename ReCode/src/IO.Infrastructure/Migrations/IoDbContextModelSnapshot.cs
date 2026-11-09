@@ -1011,6 +1011,53 @@ namespace IO.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("IO.Infrastructure.Storage.SourceMappingChangeRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ActorUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("EffectiveAtUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<Guid>("NewMappingId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("PreviousMappingId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ActorUserId");
+
+                    b.HasIndex("NewMappingId")
+                        .IsUnique();
+
+                    b.HasIndex("PreviousMappingId")
+                        .IsUnique();
+
+                    b.ToTable("SourceMappingChanges", null, t =>
+                        {
+                            t.HasTrigger("TR_SourceMappingChanges_Immutable");
+
+                            t.HasCheckConstraint("CK_SourceMappingChanges_Distinct", "[PreviousMappingId] <> [NewMappingId]");
+
+                            t.HasCheckConstraint("CK_SourceMappingChanges_Utc", "DATEPART(TZOFFSET, [EffectiveAtUtc]) = 0 AND DATEPART(TZOFFSET, [CreatedAtUtc]) = 0");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                });
+
             modelBuilder.Entity("IO.Infrastructure.Storage.UserOrgScopeRecord", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1453,6 +1500,27 @@ namespace IO.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("EmployeeId", "CompanyId")
                         .HasPrincipalKey("Id", "CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("IO.Infrastructure.Storage.SourceMappingChangeRecord", b =>
+                {
+                    b.HasOne("IO.Infrastructure.Storage.UserRecord", null)
+                        .WithMany()
+                        .HasForeignKey("ActorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IO.Infrastructure.Storage.SourceEmployeeMappingRecord", null)
+                        .WithMany()
+                        .HasForeignKey("NewMappingId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("IO.Infrastructure.Storage.SourceEmployeeMappingRecord", null)
+                        .WithMany()
+                        .HasForeignKey("PreviousMappingId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
