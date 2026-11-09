@@ -19,6 +19,8 @@ public sealed class CorrectionRequestRecord
     public Guid EmployeeId { get; set; }
     public Guid RequesterUserId { get; set; }
     public Guid PolicyId { get; set; }
+    // Null means no recorded setting reference (unconfigured or predates this feature).
+    public Guid? CorrectionSettingsId { get; set; }
     public DateOnly WorkDate { get; set; }
     public DateTimeOffset ProposedAtUtc { get; set; }
     public int PunchKind { get; set; }

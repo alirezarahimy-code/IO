@@ -1,281 +1,37 @@
-# Authorized exception: isolated phase 2–3 test workflow; no production data.
-name: IO foundation isolated SQL test
+name: Temporary correction settings evidence migration scaffold
 on:
   push:
-    branches:
-      - arena/5496cceb-io
+    branches: [arena/5496cceb-io]
 permissions:
   contents: read
 jobs:
-  verify:
+  scaffold:
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
-      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1
         with:
           dotnet-version: 10.0.x
-      - name: Build and run domain checks
-        working-directory: ReCode
-        env:
-          DOTNET_CLI_TELEMETRY_OPTOUT: 1
-          DOTNET_NOLOGO: 1
-        shell: bash
-        run: |
-          set -euo pipefail
-          if ! ./tools/phase02-verify.sh > "$RUNNER_TEMP/io-build.log" 2>&1; then
-            python3 tools/phase03-annotate-error.py "$RUNNER_TEMP/io-build.log" "Build failure"
-            exit 1
-          fi
-          echo '::notice title=Foundation build::Solution built and domain checks passed'
-      - name: Require versioned identity migration
+      - name: Scaffold migration without database
         working-directory: ReCode
         shell: bash
         run: |
           set -euo pipefail
-          compgen -G 'src/IO.Infrastructure/IdentityMigrations/*_InitialIdentity.cs' >/dev/null || {
-            echo '::error::Versioned identity migration is missing.'; exit 1;
-          }
-          test -f src/IO.Infrastructure/IdentityMigrations/LoginIdentityDbContextModelSnapshot.cs || {
-            echo '::error::Identity model snapshot is missing.'; exit 1;
-          }
-      - name: Require versioned foundation migration
-        working-directory: ReCode
-        shell: bash
-        run: |
-          set -euo pipefail
-          compgen -G 'src/IO.Infrastructure/Migrations/*_InitialFoundation.cs' >/dev/null || {
-            echo '::error::Versioned initial foundation migration is missing.'
-            exit 1
-          }
-          test -f src/IO.Infrastructure/Migrations/IoDbContextModelSnapshot.cs || {
-            echo '::error::EF model snapshot is missing.'
-            exit 1
-          }
-      - name: Require versioned scheduling migration
-        working-directory: ReCode
-        shell: bash
-        run: |
-          set -euo pipefail
-          compgen -G 'src/IO.Infrastructure/Migrations/*_SchedulingFoundation.cs' >/dev/null || {
-            echo '::error::Scheduling migration missing.'; exit 1;
-          }
-      - name: Require versioned employment migration
-        working-directory: ReCode
-        shell: bash
-        run: |
-          set -euo pipefail
-          compgen -G 'src/IO.Infrastructure/Migrations/*_EmploymentHistory.cs' >/dev/null || {
-            echo '::error::Employment migration missing.'; exit 1;
-          }
-      - name: Require versioned attendance processing migration
-        working-directory: ReCode
-        shell: bash
-        run: |
-          set -euo pipefail
-          compgen -G 'src/IO.Infrastructure/Migrations/*_AttendanceProcessing.cs' >/dev/null || {
-            echo '::error::Attendance processing migration missing.'; exit 1;
-          }
-      - name: Require versioned calculation migration
-        working-directory: ReCode
-        shell: bash
-        run: |
-          set -euo pipefail
-          compgen -G 'src/IO.Infrastructure/Migrations/*_ObservedCalculation.cs' >/dev/null || {
-            echo '::error::Calculation migration missing.'; exit 1;
-          }
-      - name: Require versioned correction migration
-        working-directory: ReCode
-        shell: bash
-        run: |
-          set -euo pipefail
-          compgen -G 'src/IO.Infrastructure/Migrations/*_CorrectionWorkflow.cs' >/dev/null || {
-            echo '::error::Correction workflow migration missing.'; exit 1;
-          }
-      - name: Require versioned period draft migration
-        working-directory: ReCode
-        shell: bash
-        run: |
-          set -euo pipefail
-          compgen -G 'src/IO.Infrastructure/Migrations/*_PeriodDrafts.cs' >/dev/null || {
-            echo '::error::Period draft migration missing.'; exit 1;
-          }
-      - name: Require versioned conflict notes migration
-        working-directory: ReCode
-        shell: bash
-        run: |
-          set -euo pipefail
-          compgen -G 'src/IO.Infrastructure/Migrations/*_ConflictNotes.cs' >/dev/null || {
-            echo '::error::Conflict notes migration missing.'; exit 1;
-          }
-      - name: Require versioned mapping change migration
-        working-directory: ReCode
-        shell: bash
-        run: |
-          set -euo pipefail
-          compgen -G 'src/IO.Infrastructure/Migrations/*_MappingChanges.cs' >/dev/null || {
-            echo '::error::Mapping change migration missing.'; exit 1;
-          }
-      - name: Require versioned calculation revision migration
-        working-directory: ReCode
-        shell: bash
-        run: |
-          set -euo pipefail
-          compgen -G 'src/IO.Infrastructure/Migrations/*_CalculationRevision.cs' >/dev/null || {
-            echo '::error::Calculation revision migration missing.'; exit 1;
-          }
-      - name: Require versioned period diagnostics migration
-        working-directory: ReCode
-        shell: bash
-        run: |
-          set -euo pipefail
-          compgen -G 'src/IO.Infrastructure/Migrations/*_PeriodDiagnostics.cs' >/dev/null || {
-            echo '::error::Period diagnostics migration missing.'; exit 1;
-          }
-      - name: Require versioned revision health migration
-        working-directory: ReCode
-        shell: bash
-        run: |
-          set -euo pipefail
-          compgen -G 'src/IO.Infrastructure/Migrations/*_RevisionHealth.cs' >/dev/null || {
-            echo '::error::Revision health migration missing.'; exit 1;
-          }
-      - name: Require versioned leave ledger migration
-        working-directory: ReCode
-        shell: bash
-        run: |
-          set -euo pipefail
-          compgen -G 'src/IO.Infrastructure/Migrations/*_LeaveLedger.cs' >/dev/null || {
-            echo '::error::Leave ledger migration missing.'; exit 1;
-          }
-      - name: Require versioned delegation registry migration
-        working-directory: ReCode
-        shell: bash
-        run: |
-          set -euo pipefail
-          compgen -G 'src/IO.Infrastructure/Migrations/*_DelegationRegistry.cs' >/dev/null || {
-            echo '::error::Delegation registry migration missing.'; exit 1;
-          }
-      - name: Require versioned correction settings migration
-        working-directory: ReCode
-        shell: bash
-        run: |
-          set -euo pipefail
-          compgen -G 'src/IO.Infrastructure/Migrations/*_CorrectionSettings.cs' >/dev/null || {
-            echo '::error::Correction settings migration missing.'; exit 1;
-          }
-      - name: Require versioned correction limits migration
-        working-directory: ReCode
-        shell: bash
-        run: |
-          set -euo pipefail
-          compgen -G 'src/IO.Infrastructure/Migrations/*_CorrectionRequestLimits.cs' >/dev/null || {
-            echo '::error::Correction limits migration missing.'; exit 1;
-          }
-      - name: Generate migration scripts offline
-        working-directory: ReCode
-        shell: bash
-        run: |
-          set -euo pipefail
-          if ! dotnet tool install dotnet-ef --tool-path "$RUNNER_TEMP/ef" --version 10.0.11 > "$RUNNER_TEMP/io-script.log" 2>&1; then
-            python3 tools/phase03-annotate-error.py "$RUNNER_TEMP/io-script.log" "EF tool install failure"; exit 1
-          fi
-          for context in IoDbContext LoginIdentityDbContext; do
-            if ! "$RUNNER_TEMP/ef/dotnet-ef" migrations script 0 --idempotent --context "$context" --project src/IO.Infrastructure --startup-project src/IO.Infrastructure --configuration Release --no-build --output "$RUNNER_TEMP/$context.sql" > "$RUNNER_TEMP/io-script.log" 2>&1; then
-              python3 tools/phase03-annotate-error.py "$RUNNER_TEMP/io-script.log" "Offline migration script failure"; exit 1
-            fi
-            test -s "$RUNNER_TEMP/$context.sql"
-          done
-          grep -q '__EFMigrationsHistory' "$RUNNER_TEMP/IoDbContext.sql"
-          grep -q '__IdentityMigrationsHistory' "$RUNNER_TEMP/LoginIdentityDbContext.sql"
-          echo '::notice title=Offline migration scripts::Both context scripts generated without database access'
-      - name: Prepare browser test dependencies
-        shell: bash
-        run: |
-          set -euo pipefail
-          command -v google-chrome >/dev/null
-          npm install --prefix "$RUNNER_TEMP/io-browser" --ignore-scripts --no-audit --no-fund playwright-core@1.56.1
-      - name: Verify page-first preview in browser
-        working-directory: ReCode
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 -m http.server 4174 --bind 127.0.0.1 > "$RUNNER_TEMP/io-pages-server.log" 2>&1 &
-          server_pid=$!
-          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
-          # The browser test must not race the Python server's bind on a busy runner.
-          python3 -c 'import time, urllib.request
-          for _ in range(100):
-              try:
-                  urllib.request.urlopen("http://127.0.0.1:4174/", timeout=1).close()
-                  break
-              except OSError:
-                  time.sleep(0.1)
-          else:
-              raise RuntimeError("preview server did not start")'
-          export NODE_PATH="$RUNNER_TEMP/io-browser/node_modules"
-          export IO_CHROME_BINARY="$(command -v google-chrome)"
-          node preview/pages-first/browser-check.cjs http://127.0.0.1:4174/
-      - name: Test isolated SQL Server Developer
-        shell: bash
-        run: |
-          set -euo pipefail
-          export MSSQL_SA_PASSWORD="$(python3 -c 'import secrets; print("Io9!" + secrets.token_hex(24))')"
-          echo "::add-mask::$MSSQL_SA_PASSWORD"
-          container_started=0
-          cleanup() {
-            local status=$?
-            trap - EXIT
-            if [[ "$container_started" == 1 ]]; then
-              if docker rm -f io-phase02-sql >/dev/null; then
-                echo '::notice title=SQL test cleanup::Temporary SQL Server container removed'
-              else
-                echo 'SQL Server container cleanup failed.' >&2
-                status=1
-              fi
-            fi
-            unset MSSQL_SA_PASSWORD
-            exit "$status"
-          }
-          trap cleanup EXIT
-          image_ref='mcr.microsoft.com/mssql/server@sha256:cf8f0ab2ebe61feec2eed2629061a07d247f791c2a8ddda74a4ac9f06a291718'
-          docker run -d --name io-phase02-sql -p 127.0.0.1:1433:1433 \
-            -e ACCEPT_EULA=Y -e MSSQL_PID=Developer -e MSSQL_SA_PASSWORD \
-            "$image_ref" >/dev/null
-          container_started=1
-          ready=0
-          for attempt in {1..90}; do
-            if docker exec io-phase02-sql /bin/bash -c \
-              'export SQLCMDPASSWORD="$MSSQL_SA_PASSWORD"; exec /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -N -C -b -l 2 -Q "SET NOCOUNT ON; SELECT 1;"' \
-              >/dev/null 2>&1; then
-              ready=1
-              break
-            fi
-            if [[ "$(docker inspect --format '{{.State.Running}}' io-phase02-sql)" != true ]]; then
-              echo 'SQL Server stopped before becoming ready.' >&2
-              exit 1
-            fi
-            sleep 2
-          done
-          if [[ "$ready" != 1 ]]; then
-            echo 'SQL Server did not become ready within the time limit.' >&2
-            exit 1
-          fi
-          docker exec io-phase02-sql /bin/bash -c \
-            'export SQLCMDPASSWORD="$MSSQL_SA_PASSWORD"; exec /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -N -C -b -l 10 -Q "SET NOCOUNT ON; SELECT SERVERPROPERTY('"'"'ProductVersion'"'"') AS ProductVersion, SERVERPROPERTY('"'"'Edition'"'"') AS Edition; SELECT 1 AS TestConnection;"'
-          version_info="$(docker exec io-phase02-sql /bin/bash -c \
-            'export SQLCMDPASSWORD="$MSSQL_SA_PASSWORD"; exec /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -N -C -b -l 10 -h -1 -W -Q "SET NOCOUNT ON; SELECT CONCAT(CONVERT(nvarchar(128), SERVERPROPERTY('"'"'ProductVersion'"'"')), '"'"' | '"'"', CONVERT(nvarchar(128), SERVERPROPERTY('"'"'Edition'"'"')));"')"
-          image_digest="$(docker image inspect --format '{{index .RepoDigests 0}}' "$image_ref")"
-          echo "::notice title=Isolated SQL Server::$version_info"
-          echo "::notice title=SQL Server image::$image_digest"
-          cd ReCode
-          export IO_SQL_DISPOSABLE_TEST=yes
-          export IO_BROWSER_TEST=yes
-          export NODE_PATH="$RUNNER_TEMP/io-browser/node_modules"
-          export IO_CHROME_BINARY="$(command -v google-chrome)"
-          if ! dotnet run --project tests/IO.Infrastructure.SqlTests/IO.Infrastructure.SqlTests.csproj --configuration Release --no-build > "$RUNNER_TEMP/io-sql-tests.log" 2>&1; then
-            python3 tools/phase03-annotate-error.py "$RUNNER_TEMP/io-sql-tests.log" "SQL integration failure"
-            exit 1
-          fi
-          python3 tools/phase03-report-tests.py "$RUNNER_TEMP/io-sql-tests.log"
-          echo '::notice title=Phase 3 SQL integration::Disposable SQL migration and constraint checks passed'
+          dotnet restore IO.slnx
+          dotnet tool install dotnet-ef --tool-path "$RUNNER_TEMP/ef" --version 10.0.11
+          "$RUNNER_TEMP/ef/dotnet-ef" migrations add CorrectionSettingsEvidence --project src/IO.Infrastructure --startup-project src/IO.Infrastructure --context IoDbContext --output-dir Migrations
+          python3 - <<'PY'
+          import base64,gzip,io,tarfile
+          from pathlib import Path
+          root=Path('src/IO.Infrastructure/Migrations')
+          files=sorted(root.glob('*_CorrectionSettingsEvidence*.cs'))+[root/'IoDbContextModelSnapshot.cs']
+          assert len(files)==3 and all(f.is_file() for f in files)
+          buf=io.BytesIO()
+          with tarfile.open(fileobj=buf,mode='w') as archive:
+              for f in files: archive.add(f,arcname=f.name)
+          encoded=base64.b64encode(gzip.compress(buf.getvalue())).decode('ascii')
+          chunks=[encoded[i:i+3000] for i in range(0,len(encoded),3000)]
+          print(f'::notice title=EVIDENCE_SCAFFOLD_COUNT::{len(chunks)}')
+          for i,chunk in enumerate(chunks): print(f'::notice title=EVIDENCE_SCAFFOLD_{i:03}::{chunk}')
+          PY

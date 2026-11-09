@@ -59,6 +59,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             });
             b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
             b.Property(x => x.Reason).HasMaxLength(500).IsRequired();
+            b.HasAlternateKey(x => new {x.Id,x.CompanyId});
             b.HasIndex(x => new {x.CompanyId,x.Revision}).IsUnique();
             b.HasOne<CompanyRecord>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
@@ -339,6 +340,8 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.HasOne<EmployeeRecord>().WithMany().HasForeignKey(x => new { x.EmployeeId, x.CompanyId })
                 .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<CorrectionPolicyRecord>().WithMany().HasForeignKey(x => new { x.PolicyId, x.CompanyId })
+                .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<CorrectionSettingsRecord>().WithMany().HasForeignKey(x => new { x.CorrectionSettingsId, x.CompanyId })
                 .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.RequesterUserId).OnDelete(DeleteBehavior.Restrict);
         });
