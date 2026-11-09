@@ -108,6 +108,11 @@ internal static class CorrectionWorkflowTests
         await using (var scope = provider.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            // The integration fixture owns exactly this day. Earlier browser fixtures
+            // must not leave an open-ended assignment that collides with it.
+            if (await db.WorkScheduleAssignments.AnyAsync(x => x.EmployeeId == employee &&
+                x.ValidFrom <= integratedDate && (x.ValidUntilExclusive == null || integratedDate < x.ValidUntilExclusive)))
+                throw new InvalidOperationException("Correction integration fixture has a pre-existing schedule on its test day.");
             db.Sites.Add(new() { Id = site, CompanyId = company, Name = "correction site", TimeZoneId = "Etc/UTC" });
             db.EventSources.Add(new() { Id = source, SiteId = site, Name = "correction source" });
             db.Calendars.Add(new() { Id = calendar, CompanyId = company, Name = "correction calendar" });
