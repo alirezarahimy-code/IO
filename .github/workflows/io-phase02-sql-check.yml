@@ -52,6 +52,23 @@ jobs:
             echo '::error::EF model snapshot is missing.'
             exit 1
           }
+      - name: Generate migration scripts offline
+        working-directory: ReCode
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! dotnet tool install dotnet-ef --tool-path "$RUNNER_TEMP/ef" --version 10.0.11 > "$RUNNER_TEMP/io-script.log" 2>&1; then
+            python3 tools/phase03-annotate-error.py "$RUNNER_TEMP/io-script.log" "EF tool install failure"; exit 1
+          fi
+          for context in IoDbContext LoginIdentityDbContext; do
+            if ! "$RUNNER_TEMP/ef/dotnet-ef" migrations script 0 --idempotent --context "$context" --project src/IO.Infrastructure --startup-project src/IO.Infrastructure --configuration Release --no-build --output "$RUNNER_TEMP/$context.sql" > "$RUNNER_TEMP/io-script.log" 2>&1; then
+              python3 tools/phase03-annotate-error.py "$RUNNER_TEMP/io-script.log" "Offline migration script failure"; exit 1
+            fi
+            test -s "$RUNNER_TEMP/$context.sql"
+          done
+          grep -q '__EFMigrationsHistory' "$RUNNER_TEMP/IoDbContext.sql"
+          grep -q '__IdentityMigrationsHistory' "$RUNNER_TEMP/LoginIdentityDbContext.sql"
+          echo '::notice title=Offline migration scripts::Both context scripts generated without database access'
       - name: Prepare browser test dependencies
         shell: bash
         run: |
