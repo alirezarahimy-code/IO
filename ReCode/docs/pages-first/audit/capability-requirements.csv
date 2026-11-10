@@ -235,3 +235,8 @@ REQ.notification.delivery.manage,settings,مدیریت کانال و تحویل 
 REQ.notification.read.self,settings,مشاهده اعلان‌های حساب خود,planned-not-grantable,,determine-and-enforce,needs-action-level-review
 REQ.account.sessions.read.self,identity,مشاهده نشست‌های خود,planned-not-grantable,,determine-and-enforce,needs-action-level-review
 REQ.account.sessions.revoke.self,identity,لغو نشست‌های خود,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.leave.request.create,workflow,ثبت درخواست مرخصی روزانه/ساعتی,planned-not-grantable,leave.request.submit,determine-and-enforce,needs-action-level-review
+REQ.leave.request.read.self,workflow,مشاهده درخواست‌های مرخصی خود,planned-not-grantable,leave.request.submit,determine-and-enforce,needs-action-level-review
+REQ.leave.request.cancel.self,workflow,لغو درخواست معلق خود,planned-not-grantable,leave.request.submit,determine-and-enforce,needs-action-level-review
+REQ.leave.request.inbox.read,workflow,مشاهده کارتابل مرخصی دامنه,planned-not-grantable,leave.request.decide,determine-and-enforce,needs-action-level-review
+REQ.leave.request.decide,workflow,تأیید یا رد درخواست مرخصی,planned-not-grantable,leave.request.decide,determine-and-enforce,needs-action-level-review

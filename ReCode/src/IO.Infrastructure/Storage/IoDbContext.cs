@@ -39,6 +39,8 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
     public DbSet<PeriodDiagnosticRecord> PeriodDiagnostics => Set<PeriodDiagnosticRecord>();
     public DbSet<LeaveTypeRecord> LeaveTypes => Set<LeaveTypeRecord>();
     public DbSet<LeaveLedgerEntryRecord> LeaveLedgerEntries => Set<LeaveLedgerEntryRecord>();
+    public DbSet<LeaveRequestRecord> LeaveRequests => Set<LeaveRequestRecord>();
+    public DbSet<LeaveDecisionRecord> LeaveDecisions => Set<LeaveDecisionRecord>();
 
     public DbSet<DelegationRecord> Delegations => Set<DelegationRecord>();
     public DbSet<DelegationRevocationRecord> DelegationRevocations => Set<DelegationRevocationRecord>();
@@ -148,6 +150,43 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.HasOne<LeaveTypeRecord>().WithMany().HasForeignKey(x => new { x.LeaveTypeId, x.CompanyId })
                 .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<LeaveRequestRecord>(b =>
+        {
+            b.ToTable("LeaveRequests", t =>
+            {
+                t.HasCheckConstraint("CK_LeaveRequests_Kind", "[Kind] IN (0,1)");
+                t.HasCheckConstraint("CK_LeaveRequests_Minutes", "[Minutes] BETWEEN 1 AND 1440");
+                t.HasCheckConstraint("CK_LeaveRequests_State", "[State] IN (0,1,2,3)");
+                t.HasCheckConstraint("CK_LeaveRequests_Utc", "DATEPART(TZOFFSET, [CreatedAtUtc]) = 0 AND DATEPART(TZOFFSET, [FromAtUtc]) = 0 AND DATEPART(TZOFFSET, [UntilAtUtcExclusive]) = 0");
+                t.HasTrigger("TR_LeaveRequests_ImmutablePayload"); t.UseSqlOutputClause(false);
+            });
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever(); b.Property(x => x.Version).IsRowVersion();
+            b.Property(x => x.Reason).HasMaxLength(500).IsRequired();
+            b.HasIndex(x => x.OperationId).IsUnique();
+            b.HasIndex(x => x.RequesterUserId);
+            b.HasIndex(x => new { x.EmployeeId, x.CompanyId });
+            b.HasIndex(x => new { x.LeaveTypeId, x.CompanyId });
+            b.HasIndex(x => new { x.EmployeeId, x.WorkDate, x.State });
+            b.HasOne<EmployeeRecord>().WithMany().HasForeignKey(x => new { x.EmployeeId, x.CompanyId })
+                .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<LeaveTypeRecord>().WithMany().HasForeignKey(x => new { x.LeaveTypeId, x.CompanyId })
+                .HasPrincipalKey(x => new { x.Id, x.CompanyId }).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.RequesterUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<LeaveDecisionRecord>(b =>
+        {
+            b.ToTable("LeaveDecisions", t =>
+            {
+                t.HasCheckConstraint("CK_LeaveDecisions_Decision", "[Decision] IN (1,2,3)");
+                t.HasCheckConstraint("CK_LeaveDecisions_Utc", "DATEPART(TZOFFSET, [AtUtc]) = 0");
+                t.HasTrigger("TR_LeaveDecisions_Immutable"); t.UseSqlOutputClause(false);
+            });
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever(); b.Property(x => x.Reason).HasMaxLength(500);
+            b.HasIndex(x => x.ActorUserId);
+            b.HasIndex(x => x.RequestId).IsUnique();
+            b.HasOne<LeaveRequestRecord>().WithMany().HasForeignKey(x => x.RequestId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.ActorUserId).OnDelete(DeleteBehavior.Restrict);
         });
         model.Entity<OrganizationRecord>(b =>
         {

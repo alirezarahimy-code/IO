@@ -19,3 +19,32 @@
   $('entry-prev').addEventListener('click',()=>run(async()=>{entryOffset-=50;try{await loadEntries();}catch(e){entryOffset+=50;throw e;}}));$('entry-next').addEventListener('click',()=>run(async()=>{entryOffset+=50;try{await loadEntries();}catch(e){entryOffset-=50;throw e;}}));
   entryForm.addEventListener('submit',e=>{e.preventDefault();run(async()=>{if(!selection)return;const operationId=entryForm.elements.operationId.value;const result=await post('/leave/entries',{operationId,employeeId:selection.employee,leaveTypeId:selection.type,effectiveDate:entryForm.elements.effectiveDate.value,kind:Number(entryForm.elements.kind.value),minutes:Number(entryForm.elements.minutes.value),documentNumber:entryForm.elements.documentNumber.value.trim(),description:entryForm.elements.description.value.trim()});entryForm.reset();entryForm.elements.operationId.value=crypto.randomUUID();entryOffset=0;try{await loadEntries();show('رویداد ثبت شد یا همان عملیات قبلی بود؛ شناسه: '+result.result);}catch(e){show('رویداد ثبت شد اما دریافت دفتر ناموفق بود: '+e.message);}});});controls();
 })();
+
+// Leave request inbox: scoped pending requests with approve/reject decisions.
+(() => {
+  const $=id=>document.getElementById(id);let busy=false,offset=0,items=[];
+  const kindText=k=>k===0?'روزانه':'ساعتی';
+  async function request(url,options={}){const r=await fetch(url,{...options,credentials:'same-origin',cache:'no-store'});if(!r.ok)
+    throw new Error(r.status===401?'نشست پایان یافته؛ دوباره وارد شوید.':r.status===403?'مجوز تصمیم مرخصی ندارید یا باید گذرواژه را تغییر دهید.':r.status===400?'اطلاعات معتبر نیست یا درخواست تصمیم‌گرفته است.':r.status===409?'تعارض رخ داد؛ کارتابل را دوباره بگیرید.':'درخواست انجام نشد.');return r.status===204?null:r.json();}
+  async function post(url,data){const token=await request('/auth/csrf');return request(url,{method:'POST',headers:{'X-CSRF-TOKEN':token.token,'Content-Type':'application/json'},body:JSON.stringify(data)});}
+  function controls(){$('inbox-previous').disabled=busy||offset===0;$('inbox-next').disabled=busy||items.length<50||offset>=100000;}
+  function decide(id,decision){return async()=>{if(busy)return;busy=true;controls();
+    try{const reason=decision===2?window.prompt('دلیل رد (اختیاری):')??'':null;
+      await post('/leave/requests/'+encodeURIComponent(id)+'/decision',{decision,reason});
+      $('notice').textContent=decision===1?'درخواست تأیید و از دفتر مرخصی کسر شد.':'درخواست رد شد.';
+      await load();}
+    catch(e){$('notice').textContent=e instanceof TypeError?'ارتباط قطع شد؛ وضعیت تصمیم نامعلوم است، کارتابل را دوباره بگیرید.':e.message;}
+    finally{busy=false;controls();}};}
+  function rows(){$('inbox-body').replaceChildren();$('inbox-empty').hidden=items.length!==0;
+    for(const item of items){const tr=document.createElement('tr');
+      for(const v of [item.workDate,kindText(item.kind),item.minutes.toLocaleString('fa-IR'),item.reason]){
+        const td=document.createElement('td');td.textContent=v;tr.append(td);}
+      const td=document.createElement('td'),ok=document.createElement('button'),no=document.createElement('button');
+      ok.type='button';no.type='button';ok.textContent='تأیید';no.textContent='رد';
+      ok.addEventListener('click',decide(item.id,1));no.addEventListener('click',decide(item.id,2));
+      td.append(ok,no);tr.append(td);$('inbox-body').append(tr);}}
+  async function load(){const data=await request('/leave/inbox?offset='+offset);items=data.items;rows();controls();}
+  $('inbox-previous').addEventListener('click',async()=>{if(busy)return;busy=true;controls();offset-=50;try{await load();}catch(e){offset+=50;busy=false;controls();$('notice').textContent=e.message;}});
+  $('inbox-next').addEventListener('click',async()=>{if(busy)return;busy=true;controls();offset+=50;try{await load();}catch(e){offset-=50;busy=false;controls();$('notice').textContent=e.message;}});
+  (async()=>{try{await load();}catch(e){$('notice').textContent=e instanceof TypeError?'ارتباط قطع شد.':e.message;controls();}})();
+})();

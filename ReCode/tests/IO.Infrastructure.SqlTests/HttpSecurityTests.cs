@@ -976,6 +976,51 @@ internal static class HttpSecurityTests
                 executiveJson.RootElement.GetProperty("correctionDecisionCount").GetInt32() >= 1 &&
                 (await adminClient.GetAsync(Window(-100, -30))).StatusCode == HttpStatusCode.BadRequest,
                 "HTTP executive company list and enriched overview restricted to executive permission");
+            if ((await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = featureRole, Code = "leave.manage" })).StatusCode != HttpStatusCode.OK)
+                throw new InvalidOperationException("Synthetic leave permission grant failed.");
+            Guid leaveType = await CreateId("/leave/types", new { CompanyId = testCompany, Name = "HTTP leave type", Symbol = "http-leave", MinutesPerDay = 480, CarryOverAllowed = false });
+            if ((await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = testSelfRole, Code = "leave.request.submit" })).StatusCode != HttpStatusCode.OK ||
+                (await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = testManagerRole, Code = "leave.request.decide" })).StatusCode != HttpStatusCode.OK)
+                throw new InvalidOperationException("Synthetic leave workflow permission grant failed.");
+            var leaveOperation = Guid.NewGuid();
+            using var leaveSubmitResponse = await PostAdmin(own, "/leave/requests", new { OperationId = leaveOperation, LeaveTypeId = leaveType, Kind = 0, WorkDate = "2027-06-01", FromAtUtc = (string?)null, UntilAtUtcExclusive = (string?)null, Reason = "daily leave flow" });
+            using var leaveSubmitJson = await ParseOrThrow(leaveSubmitResponse);
+            var leaveRequestId = leaveSubmitJson.RootElement.GetProperty("result").GetGuid();
+            using var leaveReplayResponse = await PostAdmin(own, "/leave/requests", new { OperationId = leaveOperation, LeaveTypeId = leaveType, Kind = 0, WorkDate = "2027-06-01", FromAtUtc = (string?)null, UntilAtUtcExclusive = (string?)null, Reason = "daily leave flow" });
+            using var leaveReplayJson = await ParseOrThrow(leaveReplayResponse);
+            using var ownInbox = await own.GetAsync("/leave/inbox");
+            check(leaveSubmitResponse.StatusCode == HttpStatusCode.OK &&
+                leaveReplayResponse.StatusCode == HttpStatusCode.OK && leaveReplayJson.RootElement.GetProperty("result").GetGuid() == leaveRequestId &&
+                (await PostAdmin(own, "/leave/requests", new { OperationId = leaveOperation, LeaveTypeId = leaveType, Kind = 0, WorkDate = "2027-06-01", FromAtUtc = (string?)null, UntilAtUtcExclusive = (string?)null, Reason = "changed" })).StatusCode == HttpStatusCode.Conflict &&
+                (await PostAdmin(own, "/leave/requests", new { OperationId = Guid.NewGuid(), LeaveTypeId = leaveType, Kind = 1, WorkDate = "2027-06-02", FromAtUtc = "2027-06-02T10:00:00Z", UntilAtUtcExclusive = "2027-06-02T08:00:00Z", Reason = "inverted" })).StatusCode == HttpStatusCode.BadRequest &&
+                (await own.GetAsync("/leave/requests?offset=0")).StatusCode == HttpStatusCode.OK &&
+                ownInbox.StatusCode == HttpStatusCode.Forbidden,
+                "HTTP leave submission is idempotent, validated and workflow inbox is permission bound");
+            using var hourlyResponse = await PostAdmin(own, "/leave/requests", new { OperationId = Guid.NewGuid(), LeaveTypeId = leaveType, Kind = 1, WorkDate = "2027-06-02", FromAtUtc = "2027-06-02T08:00:00Z", UntilAtUtcExclusive = "2027-06-02T10:00:00Z", Reason = "hourly leave flow" });
+            using var hourlyJson = await ParseOrThrow(hourlyResponse);
+            var hourlyRequestId = hourlyJson.RootElement.GetProperty("result").GetGuid();
+            check((await PostAdmin(own, "/leave/requests/" + leaveRequestId + "/decision", new { Decision = 1, Reason = "self" })).StatusCode == HttpStatusCode.BadRequest &&
+                (await PostAdmin(scoped, "/leave/requests/" + leaveRequestId + "/decision", new { Decision = 1, Reason = "approve daily" })).StatusCode == HttpStatusCode.OK &&
+                (await PostAdmin(scoped, "/leave/requests/" + leaveRequestId + "/decision", new { Decision = 2, Reason = "second time" })).StatusCode == HttpStatusCode.Conflict &&
+                (await PostAdmin(scoped, "/leave/requests/" + hourlyRequestId + "/decision", new { Decision = 2, Reason = "reject hourly" })).StatusCode == HttpStatusCode.OK,
+                "HTTP leave decisions forbid self-approval, allow the scoped manager once and reject afterwards");
+            await using (var leaveScope = provider.CreateAsyncScope())
+            {
+                var db = leaveScope.ServiceProvider.GetRequiredService<IoDbContext>();
+                check(await db.LeaveLedgerEntries.AnyAsync(x => x.EmployeeId == first && x.Kind == 2 && x.Minutes == -480 &&
+                        x.EffectiveDate == new DateOnly(2027, 6, 1)) &&
+                    !await db.LeaveLedgerEntries.AnyAsync(x => x.EmployeeId == first && x.Kind == 2 &&
+                        x.EffectiveDate == new DateOnly(2027, 6, 2)) &&
+                    await db.LeaveDecisions.AnyAsync(x => x.RequestId == leaveRequestId && x.Decision == 1) &&
+                    await db.LeaveDecisions.AnyAsync(x => x.RequestId == hourlyRequestId && x.Decision == 2),
+                    "HTTP leave approval posts one ledger usage movement while rejection posts none");
+            }
+            var cancelOperation = Guid.NewGuid();
+            using var cancelTargetResponse = await PostAdmin(own, "/leave/requests", new { OperationId = cancelOperation, LeaveTypeId = leaveType, Kind = 0, WorkDate = "2027-06-03", FromAtUtc = (string?)null, UntilAtUtcExclusive = (string?)null, Reason = "cancellable leave" });
+            using var cancelTargetJson = await ParseOrThrow(cancelTargetResponse);
+            check((await PostAdmin(own, "/leave/requests/" + cancelTargetJson.RootElement.GetProperty("result").GetGuid() + "/cancel", new { Reason = "plans changed" })).StatusCode == HttpStatusCode.OK &&
+                (await PostAdmin(own, "/leave/requests/" + cancelTargetJson.RootElement.GetProperty("result").GetGuid() + "/cancel", new { Reason = "again" })).StatusCode == HttpStatusCode.Conflict,
+                "HTTP requester cancels a pending leave request exactly once");
         }
         finally
         {

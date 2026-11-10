@@ -49,6 +49,7 @@ public static class IdentityServices
         services.AddScoped<PersonalReports>();
         services.AddScoped<ExecutiveOverview>();
         services.AddScoped<LeaveLedger>();
+        services.AddScoped<LeaveRequests>();
         services.AddScoped<DelegationRegistry>();
         services.AddScoped<CorrectionSettings>();
         services.AddScoped<CorrectionWorkflow>();
