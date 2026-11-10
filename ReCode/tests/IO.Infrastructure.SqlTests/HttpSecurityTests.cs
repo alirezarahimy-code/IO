@@ -925,12 +925,22 @@ internal static class HttpSecurityTests
             check((await PostAdmin(deputyClient, "/admin/users/" + deputyUserId + "/password", new { NewPassword = "Reset!Password-2026z" })).StatusCode == HttpStatusCode.Forbidden &&
                 (await PostAdmin(adminClient, "/admin/users/" + deputyUserId + "/password", new { NewPassword = "" })).StatusCode == HttpStatusCode.BadRequest,
                 "HTTP password reset restricted to identity administrators with a real password");
-            check((await PostAdmin(adminClient, "/admin/users/" + deputyUserId + "/password", new { NewPassword = "Reset!Password-2026z" })).StatusCode == HttpStatusCode.OK &&
-                (await deputyClient.GetAsync("/auth/me")).StatusCode == HttpStatusCode.Unauthorized &&
-                (await Login(deputyClient, deputyName, "Deputy!Password-2027x")).StatusCode == HttpStatusCode.Unauthorized &&
-                (await Login(deputyClient, deputyName, "Reset!Password-2026z")).StatusCode == HttpStatusCode.NoContent &&
-                (await deputyClient.GetAsync("/corrections/inbox")).StatusCode == HttpStatusCode.Forbidden,
-                "HTTP admin password reset rotates stamp and enforces the temporary password");
+            using var resetHttpResponse = await PostAdmin(adminClient, "/admin/users/" + deputyUserId + "/password", new { NewPassword = "Reset!Password-2026z" });
+            if (resetHttpResponse.StatusCode != HttpStatusCode.OK)
+                throw new InvalidOperationException("Reset HTTP " + (int)resetHttpResponse.StatusCode + ": " + await resetHttpResponse.Content.ReadAsStringAsync());
+            var meAfterReset = await deputyClient.GetAsync("/auth/me");
+            var oldPasswordLogin = await Login(deputyClient, deputyName, "Deputy!Password-2027x");
+            var tempLogin = await Login(deputyClient, deputyName, "Reset!Password-2026z");
+            var tempInbox = await deputyClient.GetAsync("/corrections/inbox");
+            if (meAfterReset.StatusCode != HttpStatusCode.Unauthorized)
+                throw new InvalidOperationException("After reset /auth/me was " + (int)meAfterReset.StatusCode + ", expected 401.");
+            if (oldPasswordLogin.StatusCode != HttpStatusCode.Unauthorized)
+                throw new InvalidOperationException("Old password login after reset was " + (int)oldPasswordLogin.StatusCode + ", expected 401.");
+            if (tempLogin.StatusCode != HttpStatusCode.NoContent)
+                throw new InvalidOperationException("Temporary password login was " + (int)tempLogin.StatusCode + ", expected 204.");
+            if (tempInbox.StatusCode != HttpStatusCode.Forbidden)
+                throw new InvalidOperationException("Temporary password inbox was " + (int)tempInbox.StatusCode + ", expected 403.");
+            check(true, "HTTP admin password reset rotates stamp and enforces the temporary password");
             await using (var resetAudit = provider.CreateAsyncScope())
                 check(await resetAudit.ServiceProvider.GetRequiredService<LoginIdentityDbContext>().SecurityAudit
                     .AnyAsync(x => x.Action == "identity.user.password.reset:" + deputyUserId.ToString("N")), "HTTP password reset audited without credentials");
