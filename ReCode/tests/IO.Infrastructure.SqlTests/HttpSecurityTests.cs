@@ -1014,11 +1014,17 @@ internal static class HttpSecurityTests
             using var hourlyResponse = await PostAdmin(own, "/leave/requests", new { OperationId = Guid.NewGuid(), LeaveTypeId = leaveType, Kind = 1, WorkDate = "2027-06-02", FromAtUtc = "2027-06-02T08:00:00Z", UntilAtUtcExclusive = "2027-06-02T10:00:00Z", Reason = "hourly leave flow" });
             using var hourlyJson = await ParseOrThrow(hourlyResponse);
             var hourlyRequestId = hourlyJson.RootElement.GetProperty("result").GetGuid();
-            check((await PostAdmin(own, "/leave/requests/" + leaveRequestId + "/decision", new { Decision = 1, Reason = "self" })).StatusCode == HttpStatusCode.BadRequest &&
-                (await PostAdmin(scoped, "/leave/requests/" + leaveRequestId + "/decision", new { Decision = 1, Reason = "approve daily" })).StatusCode == HttpStatusCode.OK &&
-                (await PostAdmin(scoped, "/leave/requests/" + leaveRequestId + "/decision", new { Decision = 2, Reason = "second time" })).StatusCode == HttpStatusCode.Conflict &&
-                (await PostAdmin(scoped, "/leave/requests/" + hourlyRequestId + "/decision", new { Decision = 2, Reason = "reject hourly" })).StatusCode == HttpStatusCode.OK,
-                "HTTP leave decisions forbid self-approval, allow the scoped manager once and reject afterwards");
+            // The manager session dates from the password scenarios; refresh it.
+            if ((await LoginWithRetry(scoped, "web-manager", "Synthetic!Changed-Password-2026")).StatusCode != HttpStatusCode.NoContent)
+                throw new InvalidOperationException("Synthetic manager decision re-login failed.");
+            var selfDecisionStatus = (int)(await PostAdmin(own, "/leave/requests/" + leaveRequestId + "/decision", new { Decision = 1, Reason = "self" })).StatusCode;
+            var approveStatus = (int)(await PostAdmin(scoped, "/leave/requests/" + leaveRequestId + "/decision", new { Decision = 1, Reason = "approve daily" })).StatusCode;
+            var reDecisionStatus = (int)(await PostAdmin(scoped, "/leave/requests/" + leaveRequestId + "/decision", new { Decision = 2, Reason = "second time" })).StatusCode;
+            var hourlyStatus = (int)(await PostAdmin(scoped, "/leave/requests/" + hourlyRequestId + "/decision", new { Decision = 2, Reason = "reject hourly" })).StatusCode;
+            if (selfDecisionStatus != 400 || approveStatus != 200 || reDecisionStatus != 409 || hourlyStatus != 200)
+                throw new InvalidOperationException("Leave decision statuses self=" + selfDecisionStatus + " approve=" + approveStatus +
+                    " second=" + reDecisionStatus + " hourly=" + hourlyStatus);
+            check(true, "HTTP leave decisions forbid self-approval, allow the scoped manager once and reject afterwards");
             await using (var leaveScope = provider.CreateAsyncScope())
             {
                 var db = leaveScope.ServiceProvider.GetRequiredService<IoDbContext>();
