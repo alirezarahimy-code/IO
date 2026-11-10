@@ -384,6 +384,55 @@ internal static class CorrectionWorkflowTests
         await using (var scope = provider.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
+            var delegation = scope.ServiceProvider.GetRequiredService<DelegationRegistry>();
+            var managerRole = await db.Roles.SingleAsync(x => x.Name == "web manager role");
+            foreach (var code in new[] { DelegationRegistry.Receive, DelegationRegistry.ManageSelf })
+            {
+                var permission = await db.Permissions.SingleOrDefaultAsync(x => x.Code == code);
+                if (permission is null) { permission = new() { Id = Guid.NewGuid(), Code = code }; db.Permissions.Add(permission); }
+                db.RolePermissions.Add(new() { RoleId = managerRole.Id, PermissionId = permission.Id });
+            }
+            if (!await db.UserRoles.AnyAsync(x => x.UserId == otherActor && x.RoleId == managerRole.Id))
+                db.UserRoles.Add(new() { UserId = otherActor, RoleId = managerRole.Id });
+            var managerUnit = await db.UserOrgScopes.Where(x => x.UserId == manager).Select(x => x.OrgUnitId).FirstAsync();
+            if (!await db.UserOrgScopes.AnyAsync(x => x.UserId == otherActor && x.OrgUnitId == managerUnit))
+                db.UserOrgScopes.Add(new() { Id = Guid.NewGuid(), UserId = otherActor, OrgUnitId = managerUnit, ValidFrom = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1) });
+            var managerEmployee = new EmployeeRecord { Id = Guid.NewGuid(), CompanyId = company, PersonnelNumber = "WEB-3", DisplayName = "Manager" };
+            db.Employees.Add(managerEmployee);
+            (await db.Users.SingleAsync(x => x.Id == manager)).EmployeeId = managerEmployee.Id;
+            await db.SaveChangesAsync();
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var delegationId = await delegation.AssignAsync(manager, Guid.NewGuid(), otherActor, today, today.AddDays(7));
+            var pendingForDeputy = await Run(s => s.SubmitAsync(self, policy, workDate.AddDays(2), at.AddDays(2), 0, "deputy target"));
+            var afterRevocation = await Run(s => s.SubmitAsync(self, policy, workDate.AddDays(5), at.AddDays(5), 0, "after revoke"));
+            check(await Reject<UnauthorizedAccessException>(() => delegation.GrantCorrectionDelegationAsync(otherActor, delegationId)) &&
+                  await delegation.GrantCorrectionDelegationAsync(manager, delegationId) &&
+                  await delegation.GrantCorrectionDelegationAsync(manager, delegationId),
+                  "delegated correction grant is explicit, principal-only and idempotent");
+            var deputyInbox = JsonSerializer.SerializeToElement(await Run(s => s.InboxAsync(otherActor, 0)));
+            check(deputyInbox.GetProperty("items").EnumerateArray().Any(x => x.GetProperty("Id").GetGuid() == pendingForDeputy) &&
+                  await Run(s => s.DecideAsync(otherActor, pendingForDeputy, true, null)),
+                  "active delegated approver sees and decides the principal pending inbox");
+            await using (var verify = provider.CreateAsyncScope())
+            {
+                var evidenceDb = verify.ServiceProvider.GetRequiredService<IoDbContext>();
+                var evidence = await (from e in evidenceDb.DelegatedCorrectionDecisions
+                                      join d in evidenceDb.CorrectionDecisions on e.DecisionId equals d.Id
+                                      where d.RequestId == pendingForDeputy
+                                      select new { e.DelegationId, Actor = d.ActorUserId }).SingleAsync();
+                var deputyHistory = JsonSerializer.SerializeToElement(await Run(s => s.ListDecisionsAsync(otherActor, 0)));
+                check(evidence.DelegationId == delegationId && evidence.Actor == otherActor &&
+                      deputyHistory.GetProperty("items").EnumerateArray().Any(x => x.GetProperty("RequestId").GetGuid() == pendingForDeputy),
+                      "delegated decision records the real actor and immutable delegation evidence");
+            }
+            check(await delegation.RevokeAsync(manager, delegationId, "test revoke") &&
+                  await Reject<UnauthorizedAccessException>(() => Run(s => s.DecideAsync(otherActor, afterRevocation, true, null))) &&
+                  !JsonSerializer.Serialize(await Run(s => s.InboxAsync(otherActor, 0))).Contains(afterRevocation.ToString(), StringComparison.OrdinalIgnoreCase),
+                  "delegation revocation immediately removes deputy authority");
+        }
+        await using (var scope = provider.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
             (await db.Users.SingleAsync(x => x.Id == manager)).IsActive = false;
             await db.SaveChangesAsync();
         }

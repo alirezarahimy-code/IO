@@ -107,6 +107,34 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
             return (id, id);
         }, ct);
 
+    // A registered delegation alone conveys no authority; the principal must hold
+    // decision authority and explicitly grant this workflow to the deputy while the
+    // delegation window is active and unrevoked.
+    public Task<bool> GrantCorrectionDelegationAsync(Guid actor, Guid delegationId, CancellationToken ct = default) =>
+        transaction.ExecuteEitherAsync(actor, Decide, Approve, "correction.delegation-grant.created", async token =>
+        {
+            if (delegationId == Guid.Empty) throw new ArgumentException("Invalid delegation.");
+            var delegation = await db.Delegations.AsNoTracking().SingleOrDefaultAsync(x => x.Id == delegationId && x.PrincipalUserId == actor, token)
+                ?? throw new UnauthorizedAccessException();
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            if (delegation.ValidFrom > today || today >= delegation.ValidUntilExclusive ||
+                await db.DelegationRevocations.AnyAsync(x => x.DelegationId == delegationId, token) ||
+                !await db.Users.AnyAsync(x => x.Id == delegation.DelegateUserId && x.IsActive, token))
+                throw new DomainConflictException("Delegation is not currently active.");
+            if (await db.CorrectionDelegationGrants.AnyAsync(x => x.DelegationId == delegationId, token)) return (true, delegationId);
+            db.CorrectionDelegationGrants.Add(new() { DelegationId = delegationId, PrincipalUserId = actor, GrantedAtUtc = DateTimeOffset.UtcNow });
+            return (true, delegationId);
+        }, ct);
+
+    // Principals of active unrevoked delegations explicitly granted to this actor.
+    private IQueryable<Guid> DelegatedPrincipals(Guid actor, DateOnly today) =>
+        from grant in db.CorrectionDelegationGrants.AsNoTracking()
+        join delegation in db.Delegations.AsNoTracking() on grant.DelegationId equals delegation.Id
+        where delegation.DelegateUserId == actor && delegation.ValidFrom <= today && today < delegation.ValidUntilExclusive &&
+              !db.DelegationRevocations.Any(r => r.DelegationId == delegation.Id) &&
+              db.Users.Any(u => u.Id == delegation.PrincipalUserId && u.IsActive)
+        select delegation.PrincipalUserId;
+
     public Task<bool> DecideAsync(Guid actor, Guid requestId, bool approve, string? reason, CancellationToken ct = default) =>
         transaction.ExecuteEitherAsync(actor, approve ? Approve : Reject, Decide, "correction.request.decided", async token =>
         {
@@ -115,18 +143,35 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
             await transaction.LockAsync("IO.Correction." + requestId.ToString("N"), token);
             var authorized = access.AuthorizedEmployees(actor, DateOnly.FromDateTime(DateTime.UtcNow),
                 "correction.never-self", DecideScoped, DecideAll);
-            var request = await (from candidate in db.CorrectionRequests
-                                 join policy in db.CorrectionPolicies on candidate.PolicyId equals policy.Id
-                                 where candidate.Id == requestId && policy.ApproverUserId == actor && candidate.RequesterUserId != actor &&
-                                       !db.Users.Any(x => x.Id == actor && x.EmployeeId == candidate.EmployeeId) &&
-                                       authorized.Any(x => x.Id == candidate.EmployeeId)
-                                 select candidate).AsTracking().SingleOrDefaultAsync(token)
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var delegated = DelegatedPrincipals(actor, today);
+            var match = await (from candidate in db.CorrectionRequests
+                               join policy in db.CorrectionPolicies on candidate.PolicyId equals policy.Id
+                               where candidate.Id == requestId && candidate.RequesterUserId != actor &&
+                                     !db.Users.Any(x => x.Id == actor && x.EmployeeId == candidate.EmployeeId) &&
+                                     authorized.Any(x => x.Id == candidate.EmployeeId) &&
+                                     (policy.ApproverUserId == actor || delegated.Contains(policy.ApproverUserId))
+                               select new { Candidate = candidate,
+                                   DelegationId = policy.ApproverUserId == actor ? (Guid?)null :
+                                       (from grant in db.CorrectionDelegationGrants
+                                        join delegation in db.Delegations on grant.DelegationId equals delegation.Id
+                                        where delegation.DelegateUserId == actor && delegation.PrincipalUserId == policy.ApproverUserId &&
+                                              delegation.ValidFrom <= today && today < delegation.ValidUntilExclusive &&
+                                              !db.DelegationRevocations.Any(r => r.DelegationId == delegation.Id) &&
+                                              db.Users.Any(u => u.Id == delegation.PrincipalUserId && u.IsActive)
+                                        select (Guid?)delegation.Id).FirstOrDefault() })
+                              .AsTracking().SingleOrDefaultAsync(token)
                 ?? throw new UnauthorizedAccessException();
+            var request = match.Candidate;
             if (request.State != 0 || await db.CorrectionDecisions.AnyAsync(x => x.RequestId == requestId, token))
                 throw new DomainConflictException("Request has already been decided or cancelled.");
             request.State = approve ? 1 : 2;
-            db.CorrectionDecisions.Add(new() { Id = Guid.NewGuid(), RequestId = requestId, ActorUserId = actor,
+            var decisionId = Guid.NewGuid();
+            db.CorrectionDecisions.Add(new() { Id = decisionId, RequestId = requestId, ActorUserId = actor,
                 Decision = request.State, Reason = reason, AtUtc = DateTimeOffset.UtcNow });
+            // The real actor stays on the decision; the evidence links it to the delegation.
+            if (match.DelegationId.HasValue)
+                db.DelegatedCorrectionDecisions.Add(new() { DecisionId = decisionId, DelegationId = match.DelegationId.Value });
             return (true, requestId);
         }, ct);
 
@@ -239,10 +284,11 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
                 (fromDate.HasValue && fromDate > toDate))
                 throw new ArgumentException("Invalid page or date range.");
             var authorized = access.AuthorizedEmployees(actor, DateOnly.FromDateTime(DateTime.UtcNow), "correction.never-self", DecideScoped, DecideAll);
+            var delegated = DelegatedPrincipals(actor, DateOnly.FromDateTime(DateTime.UtcNow));
             var query = from decision in db.CorrectionDecisions.AsNoTracking()
                         join request in db.CorrectionRequests on decision.RequestId equals request.Id
                         join policy in db.CorrectionPolicies on request.PolicyId equals policy.Id
-                        where decision.ActorUserId == actor && policy.ApproverUserId == actor &&
+                        where decision.ActorUserId == actor && (policy.ApproverUserId == actor || delegated.Contains(policy.ApproverUserId)) &&
                               decision.Decision != 3 && request.RequesterUserId != actor && authorized.Any(x => x.Id == request.EmployeeId) &&
                               !db.Users.Any(x => x.Id == actor && x.EmployeeId == request.EmployeeId)
                         select new { decision.RequestId, request.EmployeeId, request.WorkDate, request.ProposedAtUtc, request.PunchKind,
@@ -263,10 +309,11 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
         {
             if (offset is < 0 or > 100000) throw new ArgumentException("Invalid page.");
             var authorized = access.AuthorizedEmployees(actor, DateOnly.FromDateTime(DateTime.UtcNow), "correction.never-self", DecideScoped, DecideAll);
+            var delegated = DelegatedPrincipals(actor, DateOnly.FromDateTime(DateTime.UtcNow));
             var query = (from request in db.CorrectionRequests.AsNoTracking()
                          join policy in db.CorrectionPolicies on request.PolicyId equals policy.Id
                          join employee in authorized on request.EmployeeId equals employee.Id
-                         where policy.ApproverUserId == actor && request.State == 0 && request.RequesterUserId != actor &&
+                         where (policy.ApproverUserId == actor || delegated.Contains(policy.ApproverUserId)) && request.State == 0 && request.RequesterUserId != actor &&
                                !db.Users.Any(x => x.Id == actor && x.EmployeeId == request.EmployeeId)
                          select new { employee.Id, employee.DisplayName, employee.PersonnelNumber }).Distinct();
             var items = await query.OrderBy(x => x.DisplayName).ThenBy(x => x.PersonnelNumber).ThenBy(x => x.Id)
@@ -290,10 +337,11 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
                 var from = fromDate.Value; var to = toDate.Value;
                 requests = requests.Where(x => x.WorkDate >= from && x.WorkDate <= to);
             }
+            var delegated = DelegatedPrincipals(actor, DateOnly.FromDateTime(DateTime.UtcNow));
             var query = from request in requests
                         join policy in db.CorrectionPolicies on request.PolicyId equals policy.Id
                         join employee in authorized on request.EmployeeId equals employee.Id
-                        where policy.ApproverUserId == actor && request.State == 0 && request.RequesterUserId != actor &&
+                        where (policy.ApproverUserId == actor || delegated.Contains(policy.ApproverUserId)) && request.State == 0 && request.RequesterUserId != actor &&
                               !db.Users.Any(x => x.Id == actor && x.EmployeeId == request.EmployeeId)
                         select new { request.Id, request.EmployeeId, EmployeeName = employee.DisplayName, employee.PersonnelNumber,
                             request.WorkDate, request.ProposedAtUtc, request.PunchKind, request.Reason, request.CreatedAtUtc };

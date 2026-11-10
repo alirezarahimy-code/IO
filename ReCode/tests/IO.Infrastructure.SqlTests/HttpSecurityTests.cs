@@ -452,6 +452,37 @@ internal static class HttpSecurityTests
                 $"HTTP scoped approval and own history enforce state and identity ({inboxStatus}, {ownDecisionStatus}, {managerDecisionStatus}, {lateCancelStatus}, {ownHistoryStatus})");
             var editDecided = await PostAdmin(own, $"/corrections/requests/{correctionId}/edit", new { ProposedAt = "2027-05-05T09:30:00Z", PunchKind = 1, Reason = "late edit" });
             check(editDecided.StatusCode == HttpStatusCode.Conflict, "HTTP editing a decided request conflicts");
+            var delegationToday = DateOnly.FromDateTime(DateTime.UtcNow);
+            var receiveGrantHttp = await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = testManagerRole, Code = "delegation.receive" });
+            var manageGrantHttp = await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = testManagerRole, Code = "delegation.manage.self" });
+            var deputyName = "web-deputy-" + Guid.NewGuid().ToString("N")[..8];
+            using var deputyUserResponse = await PostAdmin(adminClient, "/admin/users", new { UserName = deputyName, Password = "Deputy!Password-2026x", EmployeeId = second });
+            var deputyUserId = JsonDocument.Parse(await deputyUserResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("result").GetGuid();
+            var deputyRoleGrant = await PostAdmin(adminClient, "/admin/user-roles", new { UserId = deputyUserId, RoleId = testManagerRole });
+            var deputyScopeGrant = await PostAdmin(adminClient, "/admin/user-scopes", new { UserId = deputyUserId, UnitId = unit, ValidFrom = delegationToday.AddDays(-1), ValidUntilExclusive = (DateTime?)null });
+            using var deputyPendingResponse = await PostAdmin(own, "/corrections/requests", new { OperationId = Guid.NewGuid(), PolicyId = correctionPolicy, WorkDate = "2027-05-10", ProposedAt = "2027-05-10T08:00:00Z", PunchKind = 0, Reason = "deputy flow" });
+            var deputyTarget = JsonDocument.Parse(await deputyPendingResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("result").GetGuid();
+            using var postDelegation = await scoped.PostAsJsonAsync("/delegations", new { OperationId = Guid.NewGuid(), DelegateUserId = deputyUserId, ValidFrom = delegationToday, ValidUntilExclusive = delegationToday.AddDays(7) });
+            var delegationId = JsonDocument.Parse(await postDelegation.Content.ReadAsStringAsync()).RootElement.GetProperty("result").GetGuid();
+            using var deputyClient = Client();
+            await Login(deputyClient, deputyName, "Deputy!Password-2026x");
+            var preGrantInbox = await deputyClient.GetAsync("/corrections/inbox");
+            var grantResponse = await scoped.PostAsJsonAsync("/corrections/delegation-grants", new { DelegationId = delegationId });
+            var grantResponseAgain = await scoped.PostAsJsonAsync("/corrections/delegation-grants", new { DelegationId = delegationId });
+            using var deputyInboxJson = JsonDocument.Parse(await (await deputyClient.GetAsync("/corrections/inbox")).Content.ReadAsStringAsync());
+            var deputyDecision = await PostAdmin(deputyClient, $"/corrections/requests/{deputyTarget}/decision", new { Approve = true, Reason = (string?)null });
+            using var deputyHistoryJson = JsonDocument.Parse(await (await deputyClient.GetAsync("/corrections/decisions")).Content.ReadAsStringAsync());
+            var delegationRevoke = await PostAdmin(scoped, $"/delegations/{delegationId}/revoke", new { Reason = "http revoke" });
+            var decisionAfterRevoke = await PostAdmin(deputyClient, $"/corrections/requests/{splitRejectionId}/decision", new { Approve = true, Reason = (string?)null });
+            check(receiveGrantHttp.StatusCode == HttpStatusCode.OK && manageGrantHttp.StatusCode == HttpStatusCode.OK &&
+                  deputyUserResponse.StatusCode == HttpStatusCode.OK && deputyRoleGrant.StatusCode == HttpStatusCode.OK && deputyScopeGrant.StatusCode == HttpStatusCode.OK &&
+                  deputyPendingResponse.StatusCode == HttpStatusCode.OK && postDelegation.StatusCode == HttpStatusCode.OK &&
+                  preGrantInbox.StatusCode == HttpStatusCode.OK && grantResponse.StatusCode == HttpStatusCode.OK && grantResponseAgain.StatusCode == HttpStatusCode.OK &&
+                  deputyInboxJson.RootElement.GetProperty("items").EnumerateArray().Any(x => x.GetProperty("id").GetGuid() == deputyTarget) &&
+                  deputyDecision.StatusCode == HttpStatusCode.OK &&
+                  deputyHistoryJson.RootElement.GetProperty("items").EnumerateArray().Any(x => x.GetProperty("requestId").GetGuid() == deputyTarget) &&
+                  delegationRevoke.StatusCode == HttpStatusCode.OK && decisionAfterRevoke.StatusCode == HttpStatusCode.Forbidden,
+                  "HTTP delegated approver grant authorizes the named deputy and revocation is immediate");
             using var datedHistory = await scoped.GetAsync("/corrections/decisions?fromDate=2027-05-08&toDate=2027-05-08");
             using var datedHistoryJson = JsonDocument.Parse(await datedHistory.Content.ReadAsStringAsync());
             using var rejectionDayHistory = await scoped.GetAsync("/corrections/decisions?fromDate=2027-05-09&toDate=2027-05-09");
