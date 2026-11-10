@@ -412,9 +412,24 @@ internal static class CorrectionWorkflowTests
                   await Run(s => s.GrantCorrectionDelegationAsync(manager, delegationId)),
                   "delegated correction grant is explicit, principal-only and idempotent");
             var deputyInbox = JsonSerializer.SerializeToElement(await Run(s => s.InboxAsync(otherActor, 0)));
+            string deputyDiag;
+            await using (var diag = provider.CreateAsyncScope())
+            {
+                var ddb = diag.ServiceProvider.GetRequiredService<IoDbContext>();
+                deputyDiag = JsonSerializer.Serialize(new
+                {
+                    delegation = await ddb.Delegations.Where(x => x.Id == delegationId).Select(x => new { x.DelegateUserId, x.PrincipalUserId, x.ValidFrom, x.ValidUntilExclusive }).SingleAsync(),
+                    grants = await ddb.CorrectionDelegationGrants.CountAsync(x => x.DelegationId == delegationId),
+                    deputyActive = await ddb.Users.AnyAsync(x => x.Id == otherActor && x.IsActive),
+                    pendingState = await ddb.CorrectionRequests.Where(x => x.Id == pendingForDeputy).Select(x => x.State).SingleAsync(),
+                    inboxItems = deputyInbox.GetProperty("items").EnumerateArray().Count(),
+                    actorHasDecide = await ddb.RolePermissions.AnyAsync(rp => rp.Permission.Code == CorrectionWorkflow.Decide &&
+                        ddb.UserRoles.Any(ur => ur.UserId == otherActor && ur.RoleId == rp.RoleId))
+                });
+            }
             check(deputyInbox.GetProperty("items").EnumerateArray().Any(x => x.GetProperty("Id").GetGuid() == pendingForDeputy) &&
                   await Run(s => s.DecideAsync(otherActor, pendingForDeputy, true, null)),
-                  "active delegated approver sees and decides the principal pending inbox");
+                  "active delegated approver sees and decides the principal pending inbox " + deputyDiag);
             await using (var verify = provider.CreateAsyncScope())
             {
                 var evidenceDb = verify.ServiceProvider.GetRequiredService<IoDbContext>();
