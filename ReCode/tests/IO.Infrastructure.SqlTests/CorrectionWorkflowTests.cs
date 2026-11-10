@@ -414,31 +414,9 @@ internal static class CorrectionWorkflowTests
                   await Run(s => s.GrantCorrectionDelegationAsync(manager, delegationId)),
                   "delegated correction grant is explicit, principal-only and idempotent");
             var deputyInbox = JsonSerializer.SerializeToElement(await Run(s => s.InboxAsync(otherActor, 0)));
-            string deputyDiag;
-            await using (var diag = provider.CreateAsyncScope())
-            {
-                var ddb = diag.ServiceProvider.GetRequiredService<IoDbContext>();
-                var probeToday = DateOnly.FromDateTime(DateTime.UtcNow);
-                var delegatedProbe = await (from grant in ddb.CorrectionDelegationGrants
-                                            join dl in ddb.Delegations on grant.DelegationId equals dl.Id
-                                            where dl.DelegateUserId == otherActor && dl.ValidFrom <= probeToday && probeToday < dl.ValidUntilExclusive &&
-                                                  !ddb.DelegationRevocations.Any(r => r.DelegationId == dl.Id) &&
-                                                  ddb.Users.Any(u => u.Id == dl.PrincipalUserId && u.IsActive)
-                                            select dl.PrincipalUserId).ToListAsync();
-                deputyDiag = JsonSerializer.Serialize(new
-                {
-                    delegatedProbe,
-                    approverMatch = delegatedProbe.Contains(policy),
-                    scopeProbe = await ddb.UserOrgScopes.AnyAsync(sc => sc.UserId == otherActor && sc.ValidFrom <= probeToday &&
-                        (sc.ValidUntilExclusive == null || probeToday < sc.ValidUntilExclusive) &&
-                        ddb.EmployeeAssignments.Any(a => a.EmployeeId == employee && a.OrgUnitId == sc.OrgUnitId && a.ValidFrom <= probeToday)),
-                    pendingApprover = await (from r in ddb.CorrectionRequests where r.Id == pendingForDeputy join p2 in ddb.CorrectionPolicies on r.PolicyId equals p2.Id select p2.ApproverUserId).SingleAsync(),
-                    inboxItems = deputyInbox.GetProperty("items").EnumerateArray().Count()
-                });
-            }
             check(deputyInbox.GetProperty("items").EnumerateArray().Any(x => x.GetProperty("Id").GetGuid() == pendingForDeputy) &&
                   await Run(s => s.DecideAsync(otherActor, pendingForDeputy, true, null)),
-                  "active delegated approver sees and decides the principal pending inbox " + deputyDiag);
+                  "active delegated approver sees and decides the principal pending inbox");
             await using (var verify = provider.CreateAsyncScope())
             {
                 var evidenceDb = verify.ServiceProvider.GetRequiredService<IoDbContext>();
