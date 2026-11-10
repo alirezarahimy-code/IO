@@ -1353,7 +1353,7 @@ async function main() {
     if(!pendingTracking.includes('Browser employee correction policy') || !pendingTracking.includes(adminId) || !pendingTracking.includes('ثبت نشده'))
       throw new Error('Pending request did not show its configured approver and absent decision');
     const ownRequestId = await ownRequestRow.locator('td').nth(7).textContent();
-    await ownRequestRow.locator('button').click(); await staleRequestRow.locator('button').click();
+    await ownRequestRow.locator('button').filter({hasText:'لغو'}).click(); await staleRequestRow.locator('button').filter({hasText:'لغو'}).click();
     await myRequestsPage.locator('#cancel-form input[name=reason]').fill('لغو آزمایشی');
     await myRequestsPage.locator('#cancel-form button[type=submit]').click();
     await myRequestsPage.waitForFunction(() => document.getElementById('notice').textContent.includes('درخواست لغو شد'));
