@@ -1014,9 +1014,13 @@ internal static class HttpSecurityTests
             using var hourlyResponse = await PostAdmin(own, "/leave/requests", new { OperationId = Guid.NewGuid(), LeaveTypeId = leaveType, Kind = 1, WorkDate = "2027-06-02", FromAtUtc = "2027-06-02T08:00:00Z", UntilAtUtcExclusive = "2027-06-02T10:00:00Z", Reason = "hourly leave flow" });
             using var hourlyJson = await ParseOrThrow(hourlyResponse);
             var hourlyRequestId = hourlyJson.RootElement.GetProperty("result").GetGuid();
-            // The manager session dates from the password scenarios; refresh it.
+            // The manager session dates from the password scenarios; refresh it. The
+            // role-revocation scenario removed the manager's only role grant, so the
+            // decide role is granted again for the workflow checks.
             if ((await LoginWithRetry(scoped, "web-manager", "Synthetic!Changed-Password-2026")).StatusCode != HttpStatusCode.NoContent)
                 throw new InvalidOperationException("Synthetic manager decision re-login failed.");
+            if ((await PostAdmin(adminClient, "/admin/user-roles", new { UserId = manager, RoleId = testManagerRole })).StatusCode != HttpStatusCode.OK)
+                throw new InvalidOperationException("Synthetic manager role re-grant failed.");
             using var managerInboxJson = await ParseOrThrow(await scoped.GetAsync("/leave/inbox?offset=0"));
             var selfDecisionStatus = (int)(await PostAdmin(own, "/leave/requests/" + leaveRequestId + "/decision", new { Decision = 1, Reason = "self" })).StatusCode;
             var approveStatus = (int)(await PostAdmin(scoped, "/leave/requests/" + leaveRequestId + "/decision", new { Decision = 1, Reason = "approve daily" })).StatusCode;
