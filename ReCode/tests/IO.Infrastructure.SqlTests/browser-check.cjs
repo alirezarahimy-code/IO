@@ -1617,4 +1617,4 @@ async function main() {
     await browser.close();
   }
 }
-main().catch(e => { console.error(e.message); process.exitCode = 1; });
+main().catch(e => { console.error(e.stack || e.message); process.exitCode = 1; });
