@@ -1,3 +1,6 @@
+using IO.Infrastructure.Storage;
+using IO.Infrastructure.Security;
+
 namespace IO.Infrastructure.Reports;
 
 /// <summary>Executive overview of one company inside an explicit UTC window; caller must hold the executive permission.</summary>
