@@ -502,7 +502,7 @@ internal static class HttpSecurityTests
             var deputyHistoryHasTarget = deputyHistoryJson.RootElement.GetProperty("items").EnumerateArray().Any(x => x.GetProperty("requestId").GetGuid() == deputyTarget);
             check(receiveGrantHttp.StatusCode == HttpStatusCode.OK && manageGrantHttp.StatusCode == HttpStatusCode.OK &&
                   deputyUserResponse.StatusCode == HttpStatusCode.OK && deputyRoleGrant.StatusCode == HttpStatusCode.OK && deputyScopeGrant.StatusCode == HttpStatusCode.OK &&
-                  deputyPasswordChange.StatusCode == HttpStatusCode.OK &&
+                  deputyPasswordChange.StatusCode == HttpStatusCode.NoContent &&
                   deputyPendingResponse.StatusCode == HttpStatusCode.OK && secondDeputyTargetResponse.StatusCode == HttpStatusCode.OK && postDelegation.StatusCode == HttpStatusCode.OK &&
                   preGrantInbox.StatusCode == HttpStatusCode.OK && grantResponse.StatusCode == HttpStatusCode.OK && grantResponseAgain.StatusCode == HttpStatusCode.OK &&
                   deputyInboxHasTarget && deputyDecision.StatusCode == HttpStatusCode.OK && deputyHistoryHasTarget &&
