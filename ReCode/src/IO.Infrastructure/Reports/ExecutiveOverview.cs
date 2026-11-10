@@ -17,8 +17,11 @@ public sealed class ExecutiveOverview(IoDbContext db, PermissionTransaction tran
 
     public Task<IReadOnlyList<CompanyItem>> CompaniesAsync(Guid actor, CancellationToken ct = default) =>
         transaction.ExecuteAsync(actor, Read, "executive.companies.viewed", async token =>
-            (IReadOnlyList<CompanyItem>)await db.Companies.AsNoTracking().OrderBy(x => x.Name)
-                .Select(x => new CompanyItem(x.Id, x.Name)).ToListAsync(token), ct);
+        {
+            var items = await db.Companies.AsNoTracking().OrderBy(x => x.Name)
+                .Select(x => new CompanyItem(x.Id, x.Name)).ToListAsync(token);
+            return ((IReadOnlyList<CompanyItem>)items, actor);
+        }, ct);
 
     public Task<Summary> InspectAsync(Guid actor, Guid companyId, DateTimeOffset fromUtc, DateTimeOffset untilUtcExclusive, CancellationToken ct = default) =>
         transaction.ExecuteAsync(actor, Read, "executive.overview.viewed", async token =>
