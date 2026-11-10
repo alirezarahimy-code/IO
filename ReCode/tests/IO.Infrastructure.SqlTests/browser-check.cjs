@@ -384,7 +384,7 @@ async function main() {
     if (!(await userRow.textContent()).includes('فعال') || (await userLogin.evaluate(async()=> (await fetch('/auth/me')).status)) !== 401)
       throw new Error('Re-enabling user resurrected an old session');
     await usersPage.locator('#search-form input[name=q]').fill('workspace-browser-account');
-    await usersPage.locator('#search-form button').click();
+    await usersPage.locator('#search-form button[type=submit]').click();
     await usersPage.locator('#body tr').filter({hasText:'workspace-browser-account'}).waitFor();
     await usersPage.locator('#clear-search').click();
     await usersPage.locator('#body tr').first().waitFor();
