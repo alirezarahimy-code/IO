@@ -904,6 +904,10 @@ internal static class HttpSecurityTests
                     throw new InvalidOperationException("Failed login did not return unauthorized.");
             check((await Login(lockClient, "web-locked", Password)).StatusCode == HttpStatusCode.Unauthorized,
                 "HTTP lockout blocks correct password after repeated failures");
+            // The administration cookie has a fixed 30-minute lifetime without sliding
+            // renewal; re-authenticate before the late user-administration checks.
+            if ((await Login(adminClient, adminName, Password)).StatusCode != HttpStatusCode.NoContent)
+                throw new InvalidOperationException("Synthetic administrator re-login failed.");
             using var userDetailResponse = await adminClient.GetAsync("/admin/users/" + deputyUserId);
             using var userDetailJson = await ParseOrThrow(userDetailResponse);
             using var userSearchResponse = await adminClient.GetAsync("/admin/catalog/users?q=" + Uri.EscapeDataString(deputyName));
