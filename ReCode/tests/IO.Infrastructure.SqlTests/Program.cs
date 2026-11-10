@@ -290,7 +290,7 @@ try
         var recreated = 0;
         foreach (var table in expectedTables) if (await HasTable(table)) recreated++;
         Check(recreated == expectedTables.Length, "migrations recreated all 39 foundation and later tables");
-        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 18, "migration history restored");
+        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 19, "migration history restored");
     }
     // Independent Identity schema and bootstrap: the foundation DB was just
     // recreated empty above. Never run this against non-disposable data.
