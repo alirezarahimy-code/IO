@@ -391,7 +391,8 @@ internal static class CorrectionWorkflowTests
             {
                 var permission = await db.Permissions.SingleOrDefaultAsync(x => x.Code == code);
                 if (permission is null) { permission = new() { Id = Guid.NewGuid(), Code = code }; db.Permissions.Add(permission); }
-                db.RolePermissions.Add(new() { RoleId = managerRole.Id, PermissionId = permission.Id });
+                if (!await db.RolePermissions.AnyAsync(x => x.RoleId == managerRole.Id && x.PermissionId == permission.Id))
+                    db.RolePermissions.Add(new() { RoleId = managerRole.Id, PermissionId = permission.Id });
             }
             if (!await db.UserRoles.AnyAsync(x => x.UserId == otherActor && x.RoleId == managerRole.Id))
                 db.UserRoles.Add(new() { UserId = otherActor, RoleId = managerRole.Id });
