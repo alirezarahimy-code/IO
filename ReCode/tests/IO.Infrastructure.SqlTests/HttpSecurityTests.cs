@@ -948,23 +948,17 @@ internal static class HttpSecurityTests
             if ((await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = featureRole, Code = "executive.dashboard.read" })).StatusCode != HttpStatusCode.OK)
                 throw new InvalidOperationException("Synthetic executive permission grant failed.");
             using var executiveDenied = Client();
-            var deniedLogin = await Login(executiveDenied, "web-self", Password);
-            if (deniedLogin.StatusCode != HttpStatusCode.NoContent)
+            // The inactive-account scenario above deactivates web-self; restore the
+            // seeded state so the executive denial reflects permission, not activity.
+            await using (var reactivate = provider.CreateAsyncScope())
             {
-                await using (var deniedDiag = provider.CreateAsyncScope())
-                {
-                    var identityDb = deniedDiag.ServiceProvider.GetRequiredService<LoginIdentityDbContext>();
-                    var selfRow = await identityDb.Users.SingleOrDefaultAsync(x => x.UserName == "web-self");
-                    var identityManager = deniedDiag.ServiceProvider.GetRequiredService<UserManager<LoginAccount>>();
-                    var loginRow = await identityManager.FindByNameAsync("web-self");
-                    var hashOk = loginRow is not null && await identityManager.CheckPasswordAsync(loginRow, Password);
-                    var foundationActive = loginRow is not null && await deniedDiag.ServiceProvider.GetRequiredService<IoDbContext>()
-                        .Users.AnyAsync(x => x.Id == loginRow.Id && x.IsActive);
-                    throw new InvalidOperationException("Synthetic executive denied login status " + (int)deniedLogin.StatusCode +
-                        " failed=" + (selfRow?.AccessFailedCount ?? -1) + " lockout=" + (selfRow?.LockoutEnd is null ? "no" : "yes") +
-                        " found=" + (loginRow is not null) + " hashOk=" + hashOk + " foundationActive=" + foundationActive);
-                }
+                var db = reactivate.ServiceProvider.GetRequiredService<IoDbContext>();
+                var selfRecord = await db.Users.SingleAsync(x => x.Id == self);
+                selfRecord.IsActive = true;
+                await db.SaveChangesAsync();
             }
+            if ((await Login(executiveDenied, "web-self", Password)).StatusCode != HttpStatusCode.NoContent)
+                throw new InvalidOperationException("Synthetic executive denied re-login failed.");
             using var companiesResponse = await adminClient.GetAsync("/executive/companies");
             using var companiesJson = await ParseOrThrow(companiesResponse);
             var now = DateTimeOffset.UtcNow;
