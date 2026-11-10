@@ -453,6 +453,13 @@ internal static class HttpSecurityTests
             var editDecided = await PostAdmin(own, $"/corrections/requests/{correctionId}/edit", new { ProposedAt = "2027-05-05T09:30:00Z", PunchKind = 1, Reason = "late edit" });
             check(editDecided.StatusCode == HttpStatusCode.Conflict, "HTTP editing a decided request conflicts");
             var delegationToday = DateOnly.FromDateTime(DateTime.UtcNow);
+            async Task<JsonDocument> ParseOrThrow(HttpResponseMessage response)
+            {
+                var text = await response.Content.ReadAsStringAsync();
+                if (!response.IsSuccessStatusCode || string.IsNullOrWhiteSpace(text))
+                    throw new InvalidOperationException("Deputy flow HTTP " + (int)response.StatusCode + " " + response.RequestMessage?.RequestUri + ": " + text);
+                return JsonDocument.Parse(text);
+            }
             await using (var scope = provider.CreateAsyncScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
@@ -466,13 +473,16 @@ internal static class HttpSecurityTests
             var manageGrantHttp = await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = testManagerRole, Code = "delegation.manage.self" });
             var deputyName = "web-deputy-" + Guid.NewGuid().ToString("N")[..8];
             using var deputyUserResponse = await PostAdmin(adminClient, "/admin/users", new { UserName = deputyName, Password = "Deputy!Password-2026x", EmployeeId = second });
-            var deputyUserId = JsonDocument.Parse(await deputyUserResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("result").GetGuid();
+            using var deputyUserJson = await ParseOrThrow(deputyUserResponse);
+            var deputyUserId = deputyUserJson.RootElement.GetProperty("result").GetGuid();
             var deputyRoleGrant = await PostAdmin(adminClient, "/admin/user-roles", new { UserId = deputyUserId, RoleId = testManagerRole });
             var deputyScopeGrant = await PostAdmin(adminClient, "/admin/user-scopes", new { UserId = deputyUserId, UnitId = unit, ValidFrom = delegationToday.AddDays(-1), ValidUntilExclusive = (DateTime?)null });
             using var deputyPendingResponse = await PostAdmin(own, "/corrections/requests", new { OperationId = Guid.NewGuid(), PolicyId = correctionPolicy, WorkDate = "2027-05-10", ProposedAt = "2027-05-10T08:00:00Z", PunchKind = 0, Reason = "deputy flow" });
-            var deputyTarget = JsonDocument.Parse(await deputyPendingResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("result").GetGuid();
+            using var deputyTargetJson = await ParseOrThrow(deputyPendingResponse);
+            var deputyTarget = deputyTargetJson.RootElement.GetProperty("result").GetGuid();
             using var postDelegation = await scoped.PostAsJsonAsync("/delegations", new { OperationId = Guid.NewGuid(), DelegateUserId = deputyUserId, ValidFrom = delegationToday, ValidUntilExclusive = delegationToday.AddDays(7) });
-            var delegationId = JsonDocument.Parse(await postDelegation.Content.ReadAsStringAsync()).RootElement.GetProperty("result").GetGuid();
+            using var delegationJson = await ParseOrThrow(postDelegation);
+            var delegationId = delegationJson.RootElement.GetProperty("result").GetGuid();
             using var deputyClient = Client();
             await Login(deputyClient, deputyName, "Deputy!Password-2026x");
             var deputyPasswordChange = await PostAdmin(deputyClient, "/auth/change-password", new { CurrentPassword = "Deputy!Password-2026x", NewPassword = "Deputy!Password-2027x" });
@@ -481,10 +491,11 @@ internal static class HttpSecurityTests
             var grantResponse = await scoped.PostAsJsonAsync("/corrections/delegation-grants", new { DelegationId = delegationId });
             var grantResponseAgain = await scoped.PostAsJsonAsync("/corrections/delegation-grants", new { DelegationId = delegationId });
             using var secondDeputyTargetResponse = await PostAdmin(own, "/corrections/requests", new { OperationId = Guid.NewGuid(), PolicyId = correctionPolicy, WorkDate = "2027-05-11", ProposedAt = "2027-05-11T08:00:00Z", PunchKind = 1, Reason = "after revoke" });
-            var secondDeputyTarget = JsonDocument.Parse(await secondDeputyTargetResponse.Content.ReadAsStringAsync()).RootElement.GetProperty("result").GetGuid();
-            using var deputyInboxJson = JsonDocument.Parse(await (await deputyClient.GetAsync("/corrections/inbox")).Content.ReadAsStringAsync());
+            using var secondDeputyTargetJson = await ParseOrThrow(secondDeputyTargetResponse);
+            var secondDeputyTarget = secondDeputyTargetJson.RootElement.GetProperty("result").GetGuid();
+            using var deputyInboxJson = await ParseOrThrow(await deputyClient.GetAsync("/corrections/inbox"));
             var deputyDecision = await PostAdmin(deputyClient, $"/corrections/requests/{deputyTarget}/decision", new { Approve = true, Reason = (string?)null });
-            using var deputyHistoryJson = JsonDocument.Parse(await (await deputyClient.GetAsync("/corrections/decisions")).Content.ReadAsStringAsync());
+            using var deputyHistoryJson = await ParseOrThrow(await deputyClient.GetAsync("/corrections/decisions"));
             var delegationRevoke = await PostAdmin(scoped, $"/delegations/{delegationId}/revoke", new { Reason = "http revoke" });
             var decisionAfterRevoke = await PostAdmin(deputyClient, $"/corrections/requests/{secondDeputyTarget}/decision", new { Approve = true, Reason = (string?)null });
             check(receiveGrantHttp.StatusCode == HttpStatusCode.OK && manageGrantHttp.StatusCode == HttpStatusCode.OK &&
