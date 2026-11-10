@@ -1568,6 +1568,7 @@ async function main() {
     await loginPage.locator('#login-form input[name=password]').fill('Synthetic!Password-2026');
     await loginPage.locator('#login-form button').click();
     await loginPage.waitForURL('**/workspace');
+    await loginPage.goto(address + '/workspace/account');
     await loginPage.waitForFunction(() => !document.querySelector('#password-form button').disabled);
     if (await loginPage.locator('#account-id').textContent() !== selfId) throw new Error('Account page showed wrong user');
     const requesterTracking=await context.newPage();
@@ -1597,6 +1598,7 @@ async function main() {
     await loginPage.locator('#login-form input[name=password]').fill('Synthetic!Browser-Changed-2026');
     await loginPage.locator('#login-form button').click();
     await loginPage.waitForURL('**/workspace');
+    await loginPage.goto(address + '/workspace/account');
     await loginPage.waitForFunction(() => !document.querySelector('#password-form button').disabled);
     await changePassword('Synthetic!Browser-Changed-2026','Synthetic!Password-2026','Synthetic!Password-2026');
     await loginPage.waitForFunction(() => document.getElementById('notice').textContent.includes('گذرواژه تغییر کرد'));
