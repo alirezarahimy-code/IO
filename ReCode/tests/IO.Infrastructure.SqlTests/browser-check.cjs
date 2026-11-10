@@ -1390,10 +1390,17 @@ async function main() {
     const reasonInput = editPage.locator('#edit-form input[name=reason]');
     if(await reasonInput.inputValue() !== 'Browser missed entry') throw new Error('Edit form was not prefilled from the pending request');
     await reasonInput.fill('Browser edited entry');
-    await editPage.locator('#edit-form button[type=submit]').click();
+    const editOutcome = await editPage.evaluate(async id=>{
+      const csrf=(await (await fetch('/auth/csrf')).json()).token;
+      const r=await fetch('/corrections/requests/'+encodeURIComponent(id)+'/edit',{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf},body:JSON.stringify({proposedAt:'2027-03-01T08:30:00Z',punchKind:1,reason:'Browser edited entry'})});
+      return [r.status,(await r.text()).slice(0,400)];
+    },requestId);
+    if(editOutcome[0]!==200) throw new Error('Edit HTTP '+editOutcome[0]+': '+editOutcome[1]);
+    await editPage.locator('#notice').evaluate(el=>{el.textContent='';});
+    await editPage.locator('#refresh').click();
     await editPage.waitForFunction(()=>document.getElementById('notice').textContent.length>0,null,{timeout:15000});
     const editNotice=await editPage.locator('#notice').textContent();
-    if(!editNotice.includes('ویرایش شد')) throw new Error('Edit failed with notice: '+editNotice);
+    if(!editNotice.includes('به‌روزرسانی شد')) throw new Error('Edit refresh failed with notice: '+editNotice);
     if(!(await editRow.textContent()).includes('Browser edited entry')) throw new Error('Edited request was not refreshed in the list');
     await editPage.close();
     await page.locator('#logout').click();
