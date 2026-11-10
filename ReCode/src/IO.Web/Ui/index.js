@@ -4,7 +4,7 @@
   async function request(url){const r=await fetch(url,{credentials:'same-origin',cache:'no-store'});if(!r.ok)throw new Error(r.status===401?'نشست پایان یافته؛ دوباره وارد شوید.':'دریافت اطلاعات ناموفق بود.');return r.json();}
   (async()=>{
     try{
-      const me=await request('/auth/me');$('who').textContent='حساب جاری: '+me.id;
+      const me=await request('/auth/me');$('who').textContent='حساب جاری: '+me.id;$('logout').disabled=false;
       const caps=await request('/workspace/capabilities');
       $('employee-panel').hidden=!caps.employee;$('manager-panel').hidden=!caps.manager;$('admin-panel').hidden=!caps.admin;
       $('empty-panel').hidden=caps.employee||caps.manager||caps.admin;
@@ -19,5 +19,6 @@
         else $('manager-summary').textContent='کارتابل در دسترس نیست.';
       }
     }catch(e){$('notice').textContent=e instanceof TypeError?'ارتباط برقرار نشد؛ دوباره تلاش کنید.':e.message;}
+  $('logout').addEventListener('click',async()=>{if($('logout').disabled)return;$('logout').disabled=true;try{const csrf=await request('/auth/csrf');await fetch('/auth/logout',{method:'POST',credentials:'same-origin',headers:{'X-CSRF-TOKEN':csrf.token}});location.assign('/login');}catch{$('logout').disabled=false;$('notice').textContent='خروج انجام نشد؛ دوباره تلاش کنید.';}});
   })();
 })();
