@@ -1,4 +1,5 @@
 using System.Text.Json;
+using IO.Infrastructure.Delegation;
 using IO.Infrastructure.Security;
 using IO.Infrastructure.Attendance;
 using IO.Infrastructure.Calculation;
