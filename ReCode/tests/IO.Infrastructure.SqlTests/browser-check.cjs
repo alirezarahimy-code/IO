@@ -360,7 +360,7 @@ async function main() {
     await userLogin.locator('#login-form input[name=userName]').fill('workspace-browser-account');
     await userLogin.locator('#login-form input[name=password]').fill('Synthetic!Workspace-Password-2026');
     await userLogin.locator('#login-form button').click();
-    await userLogin.waitForURL('**/workspace');
+    await userLogin.waitForURL('**/workspace/account');
     await userLogin.waitForFunction(() => !document.getElementById('logout').disabled);
     if ((await userLogin.evaluate(async()=> (await fetch('/workspace/employees')).status)) !== 403) throw new Error('Temporary password was not enforced');
     await userRow.locator('button').click();

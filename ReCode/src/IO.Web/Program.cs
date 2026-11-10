@@ -243,7 +243,8 @@ public static class IoWebHost
             await signIn.SignOutAsync();
             return updated.Succeeded ? Results.NoContent() : Results.StatusCode(503);
         });
-        app.MapGet("/auth/me", (ClaimsPrincipal user) => Results.Ok(new { id = user.FindFirstValue(ClaimTypes.NameIdentifier) }));
+        app.MapGet("/auth/me", (ClaimsPrincipal user) => Results.Ok(new { id = user.FindFirstValue(ClaimTypes.NameIdentifier),
+            mustChangePassword = user.HasClaim(IdentityServices.MustChangePasswordClaim, "1") }));
         app.MapPost("/auth/change-password", async (ChangePasswordInput input, HttpContext context, IAntiforgery csrf,
             PersonalCredentials credentials, SignInManager<LoginAccount> signIn) =>
         {
