@@ -1,5 +1,6 @@
 using IO.Infrastructure.Storage;
 using IO.Infrastructure.Security;
+using Microsoft.EntityFrameworkCore;
 
 namespace IO.Infrastructure.Reports;
 
