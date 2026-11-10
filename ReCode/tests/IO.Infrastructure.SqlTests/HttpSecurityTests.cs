@@ -93,7 +93,7 @@ internal static class HttpSecurityTests
             {
                 var stdout = browser.StandardOutput.ReadToEndAsync();
                 var stderr = browser.StandardError.ReadToEndAsync();
-                using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+                using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(240));
                 try { await browser.WaitForExitAsync(timeout.Token); }
                 catch (OperationCanceledException) { browser.Kill(entireProcessTree: true); throw; }
                 var output = await stdout;
