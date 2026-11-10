@@ -19,6 +19,6 @@
         else $('manager-summary').textContent='کارتابل در دسترس نیست.';
       }
     }catch(e){$('notice').textContent=e instanceof TypeError?'ارتباط برقرار نشد؛ دوباره تلاش کنید.':e.message;}
-  $('logout').addEventListener('click',async()=>{if($('logout').disabled)return;$('logout').disabled=true;try{const csrf=await request('/auth/csrf');await fetch('/auth/logout',{method:'POST',credentials:'same-origin',headers:{'X-CSRF-TOKEN':csrf.token}});location.assign('/login');}catch{$('logout').disabled=false;$('notice').textContent='خروج انجام نشد؛ دوباره تلاش کنید.';}});
+  $('logout').addEventListener('click',async()=>{if($('logout').disabled)return;$('logout').disabled=true;try{const csrf=await request('/auth/csrf');await fetch('/auth/logout',{method:'POST',credentials:'same-origin',headers:{'X-CSRF-TOKEN':csrf.token}});$('notice').textContent='از حساب خارج شدید؛ برای ورود دوباره به صفحهٔ ورود بروید.';}catch{$('logout').disabled=false;$('notice').textContent='خروج انجام نشد؛ دوباره تلاش کنید.';}});
   })();
 })();
