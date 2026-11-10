@@ -950,7 +950,16 @@ internal static class HttpSecurityTests
             using var executiveDenied = Client();
             var deniedLogin = await Login(executiveDenied, "web-self", Password);
             if (deniedLogin.StatusCode != HttpStatusCode.NoContent)
-                throw new InvalidOperationException("Synthetic executive denied login status " + (int)deniedLogin.StatusCode + ".");
+            {
+                await using (var deniedDiag = provider.CreateAsyncScope())
+                {
+                    var identityDb = deniedDiag.ServiceProvider.GetRequiredService<LoginIdentityDbContext>();
+                    var selfRow = await identityDb.Users.SingleOrDefaultAsync(x => x.UserName == "web-self");
+                    throw new InvalidOperationException("Synthetic executive denied login status " + (int)deniedLogin.StatusCode +
+                        " failed=" + (selfRow?.AccessFailedCount ?? -1) + " lockout=" + (selfRow?.LockoutEnd is null ? "no" : "yes") +
+                        " active=" + selfRow?.LockoutEnabled);
+                }
+            }
             using var companiesResponse = await adminClient.GetAsync("/executive/companies");
             using var companiesJson = await ParseOrThrow(companiesResponse);
             var now = DateTimeOffset.UtcNow;
