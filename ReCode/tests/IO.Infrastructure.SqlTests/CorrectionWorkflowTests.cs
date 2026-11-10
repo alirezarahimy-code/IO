@@ -368,7 +368,7 @@ internal static class CorrectionWorkflowTests
               editedItem.GetProperty("PunchKind").GetInt32() == 1 && editedItem.GetProperty("State").GetInt32() == 0 &&
               await Reject<UnauthorizedAccessException>(() => Run(s => s.EditAsync(otherActor, nextDayRequest, at, 0, "not mine"))) &&
               await Reject<DomainConflictException>(() => Run(s => s.EditAsync(self, cancel, at, 0, "cancelled"))) &&
-              await Reject<ArgumentException>(() => Run(s => s.EditAsync(self, nextDayRequest, at.AddMinutes(30), 0, "local offset"))) &&
+              await Reject<ArgumentException>(() => Run(s => s.EditAsync(self, nextDayRequest, new DateTimeOffset(2027, 5, 5, 11, 30, 0, TimeSpan.FromHours(3)), 0, "local offset"))) &&
               await Reject<ArgumentException>(() => Run(s => s.EditAsync(self, nextDayRequest, at.AddDays(1), 2, "kind"))) &&
               await Reject<ArgumentException>(() => Run(s => s.EditAsync(self, nextDayRequest, at.AddDays(1), 0, " "))),
               "own pending request edits touch only time, kind and reason and reject others and invalid input");
