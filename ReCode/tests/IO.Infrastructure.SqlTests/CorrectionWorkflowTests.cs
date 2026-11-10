@@ -469,7 +469,7 @@ internal static class CorrectionWorkflowTests
         check(detailItems.All(x => x.GetProperty("Id").GetGuid() != outside) &&
               approvedDetail.GetProperty("PolicyName").GetString() == "synthetic single approver" &&
               approvedDetail.GetProperty("ApproverUserId").GetGuid() == manager &&
-              approvedDetail.GetProperty("ApproverDisplayName").ValueKind == JsonValueKind.Null &&
+              approvedDetail.GetProperty("ApproverDisplayName").GetString() == "Manager" &&
               approvedDetail.GetProperty("DecisionKind").GetInt32() == 1 && approvedDetail.GetProperty("DecisionActorUserId").GetGuid() == manager &&
               approvedDetail.GetProperty("DecisionReason").GetString() == "checked" && approvedDetail.GetProperty("DecisionAtUtc").ValueKind == JsonValueKind.String &&
               rejectedDetail.GetProperty("DecisionKind").GetInt32() == 2 && rejectedDetail.GetProperty("DecisionActorUserId").GetGuid() == manager &&
