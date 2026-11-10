@@ -1017,10 +1017,17 @@ internal static class HttpSecurityTests
             // The manager session dates from the password scenarios; refresh it.
             if ((await LoginWithRetry(scoped, "web-manager", "Synthetic!Changed-Password-2026")).StatusCode != HttpStatusCode.NoContent)
                 throw new InvalidOperationException("Synthetic manager decision re-login failed.");
+            using var managerInboxJson = await ParseOrThrow(await scoped.GetAsync("/leave/inbox?offset=0"));
             var selfDecisionStatus = (int)(await PostAdmin(own, "/leave/requests/" + leaveRequestId + "/decision", new { Decision = 1, Reason = "self" })).StatusCode;
             var approveStatus = (int)(await PostAdmin(scoped, "/leave/requests/" + leaveRequestId + "/decision", new { Decision = 1, Reason = "approve daily" })).StatusCode;
             var reDecisionStatus = (int)(await PostAdmin(scoped, "/leave/requests/" + leaveRequestId + "/decision", new { Decision = 2, Reason = "second time" })).StatusCode;
             var hourlyStatus = (int)(await PostAdmin(scoped, "/leave/requests/" + hourlyRequestId + "/decision", new { Decision = 2, Reason = "reject hourly" })).StatusCode;
+            // The requester lacks decide, so its self-approval stops at the permission
+            // boundary (403) before the explicit self-approval guard (400).
+            if (selfDecisionStatus != 403 || approveStatus != 200 || reDecisionStatus != 409 || hourlyStatus != 200)
+                throw new InvalidOperationException("Leave decision statuses self=" + selfDecisionStatus + " approve=" + approveStatus +
+                    " second=" + reDecisionStatus + " hourly=" + hourlyStatus + " inbox=" +
+                    managerInboxJson.RootElement.GetProperty("items").GetRawText()[..Math.Min(300, managerInboxJson.RootElement.GetProperty("items").GetRawText().Length)]);
             if (selfDecisionStatus != 400 || approveStatus != 200 || reDecisionStatus != 409 || hourlyStatus != 200)
                 throw new InvalidOperationException("Leave decision statuses self=" + selfDecisionStatus + " approve=" + approveStatus +
                     " second=" + reDecisionStatus + " hourly=" + hourlyStatus);
