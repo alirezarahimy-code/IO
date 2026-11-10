@@ -396,9 +396,11 @@ internal static class CorrectionWorkflowTests
             }
             if (!await db.UserRoles.AnyAsync(x => x.UserId == otherActor && x.RoleId == managerRole.Id))
                 db.UserRoles.Add(new() { UserId = otherActor, RoleId = managerRole.Id });
-            var managerUnit = await db.UserOrgScopes.Where(x => x.UserId == manager).Select(x => x.OrgUnitId).FirstAsync();
-            if (!await db.UserOrgScopes.AnyAsync(x => x.UserId == otherActor && x.OrgUnitId == managerUnit))
-                db.UserOrgScopes.Add(new() { Id = Guid.NewGuid(), UserId = otherActor, OrgUnitId = managerUnit, ValidFrom = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1) });
+            var deputyUnit = Guid.NewGuid();
+            var deputyDay = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(-1);
+            db.OrgUnits.Add(new OrgUnitRecord { Id = deputyUnit, CompanyId = company, Name = "deputy unit" });
+            db.EmployeeAssignments.Add(new() { Id = Guid.NewGuid(), EmployeeId = employee, CompanyId = company, OrgUnitId = deputyUnit, ValidFrom = deputyDay });
+            db.UserOrgScopes.Add(new() { Id = Guid.NewGuid(), UserId = otherActor, OrgUnitId = deputyUnit, ValidFrom = deputyDay });
             var managerEmployee = new EmployeeRecord { Id = Guid.NewGuid(), CompanyId = company, PersonnelNumber = "WEB-3", DisplayName = "Manager" };
             db.Employees.Add(managerEmployee);
             (await db.Users.SingleAsync(x => x.Id == manager)).EmployeeId = managerEmployee.Id;
