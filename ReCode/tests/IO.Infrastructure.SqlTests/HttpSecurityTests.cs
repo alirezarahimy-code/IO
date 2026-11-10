@@ -904,6 +904,29 @@ internal static class HttpSecurityTests
                     throw new InvalidOperationException("Failed login did not return unauthorized.");
             check((await Login(lockClient, "web-locked", Password)).StatusCode == HttpStatusCode.Unauthorized,
                 "HTTP lockout blocks correct password after repeated failures");
+            using var userDetailResponse = await adminClient.GetAsync("/admin/users/" + deputyUserId);
+            using var userDetailJson = await ParseOrThrow(userDetailResponse);
+            using var userSearchResponse = await adminClient.GetAsync("/admin/catalog/users?q=" + Uri.EscapeDataString(deputyName));
+            using var userSearchJson = await ParseOrThrow(userSearchResponse);
+            check(userDetailResponse.StatusCode == HttpStatusCode.OK &&
+                userDetailJson.RootElement.GetProperty("userName").GetString() == deputyName &&
+                userDetailJson.RootElement.GetProperty("employeeId").GetGuid() == second &&
+                userDetailJson.RootElement.GetProperty("roles").EnumerateArray().Any(x => x.GetProperty("roleId").GetGuid() == testManagerRole) &&
+                userSearchJson.RootElement.GetProperty("items").EnumerateArray().Any(x => x.GetProperty("id").GetGuid() == deputyUserId) &&
+                (await deputyClient.GetAsync("/admin/users/" + deputyUserId)).StatusCode == HttpStatusCode.Forbidden &&
+                (await deputyClient.GetAsync("/admin/catalog/users?q=deputy")).StatusCode == HttpStatusCode.Forbidden,
+                "HTTP user detail and user search restricted to identity administrators");
+            check((await PostAdmin(deputyClient, "/admin/users/" + deputyUserId + "/password", new { NewPassword = "Reset!Password-2026z" })).StatusCode == HttpStatusCode.Forbidden &&
+                (await PostAdmin(adminClient, "/admin/users/" + deputyUserId + "/password", new { NewPassword = "" })).StatusCode == HttpStatusCode.BadRequest &&
+                (await PostAdmin(adminClient, "/admin/users/" + deputyUserId + "/password", new { NewPassword = "Reset!Password-2026z" })).StatusCode == HttpStatusCode.OK &&
+                (await deputyClient.GetAsync("/auth/me")).StatusCode == HttpStatusCode.Unauthorized &&
+                (await Login(deputyClient, deputyName, "Deputy!Password-2027x")).StatusCode == HttpStatusCode.Unauthorized &&
+                (await Login(deputyClient, deputyName, "Reset!Password-2026z")).StatusCode == HttpStatusCode.NoContent &&
+                (await deputyClient.GetAsync("/corrections/inbox")).StatusCode == HttpStatusCode.Forbidden,
+                "HTTP admin password reset rotates stamp and enforces the temporary password");
+            await using (var resetAudit = provider.CreateAsyncScope())
+                check(await resetAudit.ServiceProvider.GetRequiredService<LoginIdentityDbContext>().SecurityAudit
+                    .AnyAsync(x => x.Action == "identity.user.password.reset:" + deputyUserId.ToString("N")), "HTTP password reset audited without credentials");
         }
         finally
         {

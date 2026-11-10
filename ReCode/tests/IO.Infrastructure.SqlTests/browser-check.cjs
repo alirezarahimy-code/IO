@@ -383,6 +383,11 @@ async function main() {
     await usersPage.waitForFunction(() => document.getElementById('notice').textContent.includes('وضعیت حساب تغییر کرد'));
     if (!(await userRow.textContent()).includes('فعال') || (await userLogin.evaluate(async()=> (await fetch('/auth/me')).status)) !== 401)
       throw new Error('Re-enabling user resurrected an old session');
+    await usersPage.locator('#search-form input[name=q]').fill('workspace-browser-account');
+    await usersPage.locator('#search-form button').click();
+    await usersPage.locator('#body tr').filter({hasText:'workspace-browser-account'}).waitFor();
+    await usersPage.locator('#clear-search').click();
+    await usersPage.locator('#body tr').first().waitFor();
     await userContext.close(); await usersPage.close();
     const rolesPage = await context.newPage();
     await rolesPage.goto(address + '/workspace/roles');

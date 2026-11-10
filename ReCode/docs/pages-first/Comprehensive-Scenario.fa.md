@@ -31,8 +31,7 @@
 | `/workspace/inbox`, `/workspace/decision-history` | مدیر | `correction.inbox.read` و مشتقات تصمیم | کامل |
 | `/workspace/team-attendance` | مدیر | `attendance.read.team`/scoped | کامل |
 | `/workspace/organization` | مدیریت | `organization.manage` | کامل |
-| `/workspace/users`, `/workspace/roles`, `/workspace/audit` | مدیریت | `identity.manage` | کامل |
-| `/workspace/scheduling` | مدیریت | `schedule.manage` | کامل |
+| `/workspace/users`, `/workspace/roles`, `/workspace/audit` | مدیریت | `identity.manage` | کامل || `/workspace/scheduling` | مدیریت | `schedule.manage` | کامل |
 | `/workspace/settings` | مدیریت | `settings.correction.manage` | کامل |
 | `/workspace/raw-events`, `/workspace/mappings`, `/workspace/conflicts` | مدیریت | `attendance.ingest` | کامل |
 | `/workspace/calculations`, `/workspace/rules` | مدیریت | `attendance.calculate` | کامل |
@@ -48,6 +47,10 @@
 ## پنل هر نقش (معماری ورود)
 
 پس از ورود، کاربر به `/workspace` یعنی «پنل من» می‌رسد. سطح پنل با مجوزهای واقعی حساب در سرور (`GET /workspace/capabilities`) تعیین می‌شود، نه با حدس مرورگر: کاربر عادی پنل کارمند را می‌بیند، مدیرِ دارای مجوز کارتابل/تردد تیم بخش پنل مدیر را به‌علاوهٔ ابزارهای کارمند می‌بیند، و مدیر اداری/ادمین اصلی بخش پنل مدیریت سامانه را. هر بخش فقط لینک ابزارهای همان سطح است و دادهٔ هر صفحه همچنان با مجوز خودش در سرور کنترل می‌شود؛ نمایش لینک مرز امنیتی نیست. خانه‌های نقش (employee-home/manager-home/executive-home) خلاصهٔ داده‌ای همان سطح را نشان می‌دهند و مکمل پنل‌اند.
+
+## بخش کاربران سامانه (کامل)
+
+صفحهٔ `/workspace/users` چرخهٔ کامل حساب را می‌پوشاند و همهٔ آن سمت سرور با `identity.manage` مجوزدار است: ساخت حساب با گذرواژهٔ موقتِ الزام‌شده به تغییر، فهرست صفحه‌بندی‌شده، جست‌وجوی نام کاربری در سرور (`q=`)، انتخاب حساب با جزئیات زندهٔ آن (`GET /admin/users/{id}` شامل نقش‌ها و دامنه‌های سازمانی)، اعطا/لغو نقش با فهرست پیشنهادی نقش‌ها، اعطا/لغو دامنهٔ سازمانی از UI، فعال/غیرفعال‌سازی با ابطال نشست‌ها، و بازنشانی گذرواژهٔ موقت توسط ادمین (`POST /admin/users/{id}/password`) که Security Stamp را می‌چرخاند (همهٔ نشست‌ها فوراً باطل)، ادعای «تغییر اجباری گذرواژه» را تازه می‌کند و در ورود بعدی کاربر را به صفحهٔ حساب محبوس می‌کند. هر عمل در `SecurityAudit` ثبت می‌شود؛ لغو نقشِ خود و غیرفعال‌سازی حساب خود ممنوع است.
 
 ## تضمین «بدون خطا»
 

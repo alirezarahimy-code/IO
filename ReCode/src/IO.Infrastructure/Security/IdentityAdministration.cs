@@ -54,9 +54,15 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
     }
 
     /// <summary>Returns one bounded page of non-credential administration data.</summary>
-    public async Task<object> ListAsync(Guid actor, string kind, int offset, CancellationToken ct = default)
+    public async Task<object> ListAsync(Guid actor, string kind, int offset, string? query = null, CancellationToken ct = default)
     {
         if (offset < 0 || offset > 1_000_000) throw new ArgumentException("Invalid page offset.");
+        if (query is not null)
+        {
+            query = query.Trim();
+            if (query.Length == 0) query = null;
+            else if (query.Length > 100) throw new ArgumentException("Invalid search text.");
+        }
         await using var tx = await identity.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
         await foundation.Database.CloseConnectionAsync();
         foundation.Database.SetDbConnection(identity.Database.GetDbConnection());
@@ -69,8 +75,7 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
                 .Skip(offset).Take(pageSize).Select(x => new { x.Id, x.ActorUserId, x.Action, x.OccurredAtUtc }).ToListAsync(ct),
             "org-units" => await foundation.OrgUnits.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(pageSize)
                 .Select(x => new { x.Id, x.CompanyId, x.Name }).ToListAsync(ct),
-            "users" => await foundation.Users.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(pageSize)
-                .Select(x => new { x.Id, x.UserName, x.EmployeeId, x.IsActive }).ToListAsync(ct),
+            "users" => await UsersPage(query, offset, pageSize, ct),
             "roles" => await foundation.Roles.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(pageSize)
                 .Select(x => new { x.Id, x.Name }).ToListAsync(ct),
             "permissions" => await foundation.Permissions.AsNoTracking().OrderBy(x => x.Id).Skip(offset).Take(pageSize)
@@ -92,6 +97,58 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
         await tx.CommitAsync(ct);
         return new { kind, offset, pageSize, items = page };
     }
+
+    private async Task<object> UsersPage(string? query, int offset, int pageSize, CancellationToken ct)
+    {
+        var source = foundation.Users.AsNoTracking();
+        if (query is not null) source = source.Where(x => x.UserName.Contains(query));
+        return await source.OrderBy(x => x.Id).Skip(offset).Take(pageSize)
+            .Select(x => new { x.Id, x.UserName, x.EmployeeId, x.IsActive }).ToListAsync(ct);
+    }
+
+    /// <summary>Returns one user's non-credential administration detail with roles and scopes.</summary>
+    public async Task<object> GetUserAsync(Guid actor, Guid userId, CancellationToken ct = default)
+    {
+        await using var tx = await identity.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        await foundation.Database.CloseConnectionAsync();
+        foundation.Database.SetDbConnection(identity.Database.GetDbConnection());
+        await foundation.Database.UseTransactionAsync(tx.GetDbTransaction(), ct);
+        await RequireManagementAsync(actor, ct);
+        var user = await foundation.Users.AsNoTracking().Where(x => x.Id == userId)
+            .Select(x => new { x.Id, x.UserName, x.EmployeeId, x.IsActive }).SingleOrDefaultAsync(ct)
+            ?? throw new ArgumentException("Unknown user.");
+        var roles = await (from grant in foundation.UserRoles.AsNoTracking()
+                           join role in foundation.Roles.AsNoTracking() on grant.RoleId equals role.Id
+                           where grant.UserId == userId
+                           orderby grant.RoleId
+                           select new { roleId = grant.RoleId, roleName = role.Name }).ToListAsync(ct);
+        var scopes = await foundation.UserOrgScopes.AsNoTracking().Where(x => x.UserId == userId).OrderBy(x => x.Id)
+            .Select(x => new { x.Id, x.OrgUnitId, x.ValidFrom, x.ValidUntilExclusive }).ToListAsync(ct);
+        await tx.CommitAsync(ct);
+        return new { user.Id, user.UserName, user.EmployeeId, user.IsActive, roles, scopes };
+    }
+
+    /// <summary>Replaces a user's password with a temporary one that must be changed at next sign-in.</summary>
+    public Task<bool> ResetPasswordAsync(Guid actor, Guid userId, string newPassword, CancellationToken ct = default) =>
+        ExecuteAsync(actor, "identity.user.password.reset", async () =>
+        {
+            if (string.IsNullOrEmpty(newPassword) || newPassword.Length > 256) throw new ArgumentException("Invalid password.");
+            var user = await foundation.Users.SingleOrDefaultAsync(x => x.Id == userId, ct)
+                ?? throw new ArgumentException("Unknown user.");
+            if (!user.IsActive) throw new ArgumentException("Cannot reset a disabled account.");
+            var login = await users.FindByIdAsync(userId.ToString()) ?? throw new ArgumentException("Unknown user login.");
+            var token = await users.GeneratePasswordResetTokenAsync(login);
+            if (!(await users.ResetPasswordAsync(login, token, newPassword)).Succeeded)
+                throw new ArgumentException("Password rejected by identity validation.");
+            foreach (var claim in await users.GetClaimsAsync(login))
+                if (claim.Type == IdentityServices.MustChangePasswordClaim)
+                    await users.RemoveClaimAsync(login, claim);
+            if (!(await users.AddClaimAsync(login, new System.Security.Claims.Claim(IdentityServices.MustChangePasswordClaim, "1"))).Succeeded)
+                throw new InvalidOperationException("Unable to enforce temporary password change.");
+            if (!(await users.UpdateSecurityStampAsync(login)).Succeeded)
+                throw new InvalidOperationException("Unable to invalidate account sessions.");
+            return (true, userId);
+        }, ct);
 
     public Task<Guid> CreateUserAsync(Guid actor, string username, string password, Guid? employeeId, CancellationToken ct = default) =>
         ExecuteAsync(actor, "identity.user.created", async () =>

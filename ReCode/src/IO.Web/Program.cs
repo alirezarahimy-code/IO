@@ -457,10 +457,10 @@ public static class IoWebHost
             Admin(c, csrf, actor => service.AssignAsync(actor, input.EmployeeId, input.CalendarId, input.ShiftId, input.ValidFrom, input.ValidUntilExclusive, c.RequestAborted)));
         app.MapPost("/scheduling/replacements", (ScheduleReplacementInput input, HttpContext c, IAntiforgery csrf, ScheduleManagement service) =>
             Admin(c, csrf, actor => service.RescheduleAsync(actor, input.EmployeeId, input.AssignmentId, input.CalendarId, input.ShiftId, input.Effective, c.RequestAborted)));
-        app.MapGet("/admin/catalog/{kind}", async (string kind, int? offset, HttpContext context, IdentityAdministration admin) =>
+        app.MapGet("/admin/catalog/{kind}", async (string kind, int? offset, string? q, HttpContext context, IdentityAdministration admin) =>
         {
             if (!Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var actor)) return Results.Unauthorized();
-            try { return Results.Ok(await admin.ListAsync(actor, kind, offset ?? 0, context.RequestAborted)); }
+            try { return Results.Ok(await admin.ListAsync(actor, kind, offset ?? 0, q, context.RequestAborted)); }
             catch (UnauthorizedAccessException) { return Results.StatusCode(403); }
             catch (ArgumentException) { return Results.BadRequest(); }
         });
@@ -484,6 +484,10 @@ public static class IoWebHost
             Admin(context, csrf, actor => admin.DisableUserAsync(actor, id, context.RequestAborted)));
         app.MapPost("/admin/users/{id:guid}/enable", (Guid id, HttpContext context, IAntiforgery csrf, IdentityAdministration admin) =>
             Admin(context, csrf, actor => admin.EnableUserAsync(actor, id, context.RequestAborted)));
+        app.MapGet("/admin/users/{id:guid}", (Guid id, HttpContext context, IdentityAdministration admin) =>
+            AdminRead(context, actor => admin.GetUserAsync(actor, id, context.RequestAborted)));
+        app.MapPost("/admin/users/{id:guid}/password", (Guid id, ResetPasswordInput input, HttpContext context, IAntiforgery csrf, IdentityAdministration admin) =>
+            Admin(context, csrf, actor => admin.ResetPasswordAsync(actor, id, input.NewPassword, context.RequestAborted)));
         return app;
     }
 
@@ -556,6 +560,7 @@ public static class IoWebHost
 public sealed record LoginInput(string UserName, string Password);
 public sealed record ChangePasswordInput(string CurrentPassword, string NewPassword);
 public sealed record NewUserInput(string UserName, string Password, Guid? EmployeeId);
+public sealed record ResetPasswordInput(string NewPassword);
 public sealed record NewRoleInput(string Name);
 public sealed record UserRoleInput(Guid UserId, Guid RoleId);
 public sealed record RolePermissionInput(Guid RoleId, string Code);
