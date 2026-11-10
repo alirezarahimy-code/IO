@@ -416,18 +416,22 @@ internal static class CorrectionWorkflowTests
             await using (var diag = provider.CreateAsyncScope())
             {
                 var ddb = diag.ServiceProvider.GetRequiredService<IoDbContext>();
+                var probeToday = DateOnly.FromDateTime(DateTime.UtcNow);
+                var delegatedProbe = await (from grant in ddb.CorrectionDelegationGrants
+                                            join dl in ddb.Delegations on grant.DelegationId equals dl.Id
+                                            where dl.DelegateUserId == otherActor && dl.ValidFrom <= probeToday && probeToday < dl.ValidUntilExclusive &&
+                                                  !ddb.DelegationRevocations.Any(r => r.DelegationId == dl.Id) &&
+                                                  ddb.Users.Any(u => u.Id == dl.PrincipalUserId && u.IsActive)
+                                            select dl.PrincipalUserId).ToListAsync();
                 deputyDiag = JsonSerializer.Serialize(new
                 {
-                    delegation = await ddb.Delegations.Where(x => x.Id == delegationId).Select(x => new { x.DelegateUserId, x.PrincipalUserId, x.ValidFrom, x.ValidUntilExclusive }).SingleAsync(),
-                    grants = await ddb.CorrectionDelegationGrants.CountAsync(x => x.DelegationId == delegationId),
-                    deputyActive = await ddb.Users.AnyAsync(x => x.Id == otherActor && x.IsActive),
-                    pendingState = await ddb.CorrectionRequests.Where(x => x.Id == pendingForDeputy).Select(x => x.State).SingleAsync(),
-                    inboxItems = deputyInbox.GetProperty("items").EnumerateArray().Count(),
-                    actorHasDecide = await (from rp in ddb.RolePermissions
-                                            join p in ddb.Permissions on rp.PermissionId equals p.Id
-                                            join ur in ddb.UserRoles on rp.RoleId equals ur.RoleId
-                                            where p.Code == CorrectionWorkflow.Decide && ur.UserId == otherActor
-                                            select rp.RoleId).AnyAsync()
+                    delegatedProbe,
+                    approverMatch = delegatedProbe.Contains(policy),
+                    scopeProbe = await ddb.UserOrgScopes.AnyAsync(sc => sc.UserId == otherActor && sc.ValidFrom <= probeToday &&
+                        (sc.ValidUntilExclusive == null || probeToday < sc.ValidUntilExclusive) &&
+                        ddb.EmployeeAssignments.Any(a => a.EmployeeId == employee && a.OrgUnitId == sc.OrgUnitId && a.ValidFrom <= probeToday)),
+                    pendingApprover = await (from r in ddb.CorrectionRequests where r.Id == pendingForDeputy join p2 in ddb.CorrectionPolicies on r.PolicyId equals p2.Id select p2.ApproverUserId).SingleAsync(),
+                    inboxItems = deputyInbox.GetProperty("items").EnumerateArray().Count()
                 });
             }
             check(deputyInbox.GetProperty("items").EnumerateArray().Any(x => x.GetProperty("Id").GetGuid() == pendingForDeputy) &&
