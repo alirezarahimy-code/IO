@@ -406,9 +406,9 @@ internal static class CorrectionWorkflowTests
             var delegationId = await delegation.AssignAsync(manager, Guid.NewGuid(), otherActor, today, today.AddDays(7));
             var pendingForDeputy = await Run(s => s.SubmitAsync(self, policy, workDate.AddDays(2), at.AddDays(2), 0, "deputy target"));
             var afterRevocation = await Run(s => s.SubmitAsync(self, policy, workDate.AddDays(5), at.AddDays(5), 0, "after revoke"));
-            check(await Reject<UnauthorizedAccessException>(() => delegation.GrantCorrectionDelegationAsync(otherActor, delegationId)) &&
-                  await delegation.GrantCorrectionDelegationAsync(manager, delegationId) &&
-                  await delegation.GrantCorrectionDelegationAsync(manager, delegationId),
+            check(await Reject<UnauthorizedAccessException>(() => Run(s => s.GrantCorrectionDelegationAsync(otherActor, delegationId))) &&
+                  await Run(s => s.GrantCorrectionDelegationAsync(manager, delegationId)) &&
+                  await Run(s => s.GrantCorrectionDelegationAsync(manager, delegationId)),
                   "delegated correction grant is explicit, principal-only and idempotent");
             var deputyInbox = JsonSerializer.SerializeToElement(await Run(s => s.InboxAsync(otherActor, 0)));
             check(deputyInbox.GetProperty("items").EnumerateArray().Any(x => x.GetProperty("Id").GetGuid() == pendingForDeputy) &&
