@@ -41,11 +41,10 @@ public sealed class ExecutiveOverview(IoDbContext db, PermissionTransaction tran
                               join site in db.Sites on source.SiteId equals (Guid?)site.Id
                               where site.CompanyId==companyId && raw.OccurredAtUtc>=fromUtc && raw.OccurredAtUtc<untilUtcExclusive
                               select raw.Id).CountAsync(token);
-            var runs=db.DailyCalculationRuns.Where(x=>x.CompanyId==companyId && x.WorkDate>=fromDay && x.WorkDate<untilDay);
-            var runCount=await runs.CountAsync(token);
-            var anomalyCount=await runs.CountAsync(x=>x.AnomaliesJson!="[]",token);
-            var ticks=await runs.SumAsync(x=>x.ObservedTicks,token);
-            var latest=await runs.MaxAsync(x=>(DateOnly?)x.WorkDate,token);
+            var runCount=await db.DailyCalculationRuns.CountAsync(x=>x.CompanyId==companyId && x.WorkDate>=fromDay && x.WorkDate<untilDay,token);
+            var anomalyCount=await db.DailyCalculationRuns.CountAsync(x=>x.CompanyId==companyId && x.WorkDate>=fromDay && x.WorkDate<untilDay && x.AnomaliesJson!="[]",token);
+            var ticks=await db.DailyCalculationRuns.SumAsync(x=>x.CompanyId==companyId && x.WorkDate>=fromDay && x.WorkDate<untilDay?x.ObservedTicks:null,token);
+            var latest=await db.DailyCalculationRuns.MaxAsync(x=>x.CompanyId==companyId && x.WorkDate>=fromDay && x.WorkDate<untilDay?(DateOnly?)x.WorkDate:null,token);
             return (new Summary(companyId,fromUtc,untilUtcExclusive,employees,accounts,pending,events,
                 approved,rejected,cancelled,decisions,runCount,anomalyCount,(long)(ticks??0)/600_000_000L,latest),companyId);
         },ct);
