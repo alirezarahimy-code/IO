@@ -480,7 +480,7 @@ internal static class HttpSecurityTests
             using var deputyPendingResponse = await PostAdmin(own, "/corrections/requests", new { OperationId = Guid.NewGuid(), PolicyId = correctionPolicy, WorkDate = "2027-05-10", ProposedAt = "2027-05-10T08:00:00Z", PunchKind = 0, Reason = "deputy flow" });
             using var deputyTargetJson = await ParseOrThrow(deputyPendingResponse);
             var deputyTarget = deputyTargetJson.RootElement.GetProperty("result").GetGuid();
-            using var postDelegation = await scoped.PostAsJsonAsync("/delegations", new { OperationId = Guid.NewGuid(), DelegateUserId = deputyUserId, ValidFrom = delegationToday, ValidUntilExclusive = delegationToday.AddDays(7) });
+            using var postDelegation = await PostAdmin(scoped, "/delegations", new { OperationId = Guid.NewGuid(), DelegateUserId = deputyUserId, ValidFrom = delegationToday, ValidUntilExclusive = delegationToday.AddDays(7) });
             using var delegationJson = await ParseOrThrow(postDelegation);
             var delegationId = delegationJson.RootElement.GetProperty("result").GetGuid();
             using var deputyClient = Client();
@@ -488,8 +488,8 @@ internal static class HttpSecurityTests
             var deputyPasswordChange = await PostAdmin(deputyClient, "/auth/change-password", new { CurrentPassword = "Deputy!Password-2026x", NewPassword = "Deputy!Password-2027x" });
             await Login(deputyClient, deputyName, "Deputy!Password-2027x");
             var preGrantInbox = await deputyClient.GetAsync("/corrections/inbox");
-            var grantResponse = await scoped.PostAsJsonAsync("/corrections/delegation-grants", new { DelegationId = delegationId });
-            var grantResponseAgain = await scoped.PostAsJsonAsync("/corrections/delegation-grants", new { DelegationId = delegationId });
+            var grantResponse = await PostAdmin(scoped, "/corrections/delegation-grants", new { DelegationId = delegationId });
+            var grantResponseAgain = await PostAdmin(scoped, "/corrections/delegation-grants", new { DelegationId = delegationId });
             using var secondDeputyTargetResponse = await PostAdmin(own, "/corrections/requests", new { OperationId = Guid.NewGuid(), PolicyId = correctionPolicy, WorkDate = "2027-05-11", ProposedAt = "2027-05-11T08:00:00Z", PunchKind = 1, Reason = "after revoke" });
             using var secondDeputyTargetJson = await ParseOrThrow(secondDeputyTargetResponse);
             var secondDeputyTarget = secondDeputyTargetJson.RootElement.GetProperty("result").GetGuid();
