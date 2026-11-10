@@ -232,6 +232,17 @@ internal static class HttpSecurityTests
             await using (var scope = provider.CreateAsyncScope())
                 check(await scope.ServiceProvider.GetRequiredService<LoginIdentityDbContext>().SecurityAudit
                     .AnyAsync(x => x.Action.StartsWith("identity.audit.viewed:")), "HTTP audit access is itself recorded");
+            // The login rate limiter allows 30 attempts per IP per minute; the dense
+            // tail of synthetic logins can exhaust one window, so re-authentications retry.
+            async Task<HttpResponseMessage> LoginWithRetry(HttpClient client, string name, string password)
+            {
+                for (var attempt = 0; ; attempt++)
+                {
+                    var response = await Login(client, name, password);
+                    if (response.StatusCode != HttpStatusCode.TooManyRequests || attempt >= 3) return response;
+                    await Task.Delay(TimeSpan.FromSeconds(25));
+                }
+            }
             async Task<HttpResponseMessage> PostAdmin(HttpClient client, string path, object? input = null)
             {
                 var csrf = await Csrf(client);
@@ -907,9 +918,9 @@ internal static class HttpSecurityTests
                 "HTTP lockout blocks correct password after repeated failures");
             // The administration cookie has a fixed 30-minute lifetime without sliding
             // renewal; re-authenticate before the late user-administration checks.
-            if ((await Login(adminClient, adminName, Password)).StatusCode != HttpStatusCode.NoContent)
+            if ((await LoginWithRetry(adminClient, adminName, Password)).StatusCode != HttpStatusCode.NoContent)
                 throw new InvalidOperationException("Synthetic administrator re-login failed.");
-            if ((await Login(deputyClient, deputyName, "Deputy!Password-2027x")).StatusCode != HttpStatusCode.NoContent)
+            if ((await LoginWithRetry(deputyClient, deputyName, "Deputy!Password-2027x")).StatusCode != HttpStatusCode.NoContent)
                 throw new InvalidOperationException("Synthetic deputy re-login failed.");
             using var userDetailResponse = await adminClient.GetAsync("/admin/users/" + deputyUserId);
             using var userDetailJson = await ParseOrThrow(userDetailResponse);
@@ -957,7 +968,7 @@ internal static class HttpSecurityTests
                 selfRecord.IsActive = true;
                 await db.SaveChangesAsync();
             }
-            if ((await Login(executiveDenied, "web-self", Password)).StatusCode != HttpStatusCode.NoContent)
+            if ((await LoginWithRetry(executiveDenied, "web-self", Password)).StatusCode != HttpStatusCode.NoContent)
                 throw new InvalidOperationException("Synthetic executive denied re-login failed.");
             using var companiesResponse = await adminClient.GetAsync("/executive/companies");
             using var companiesJson = await ParseOrThrow(companiesResponse);
@@ -983,7 +994,7 @@ internal static class HttpSecurityTests
                 (await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = testManagerRole, Code = "leave.request.decide" })).StatusCode != HttpStatusCode.OK)
                 throw new InvalidOperationException("Synthetic leave workflow permission grant failed.");
             // The requester cookie has the fixed 30-minute lifetime too; re-authenticate.
-            var ownReLogin = await Login(own, "web-self", Password);
+            var ownReLogin = await LoginWithRetry(own, "web-self", Password);
             if (ownReLogin.StatusCode != HttpStatusCode.NoContent)
                 throw new InvalidOperationException("Synthetic requester re-login status " + (int)ownReLogin.StatusCode + ".");
             var leaveOperation = Guid.NewGuid();
