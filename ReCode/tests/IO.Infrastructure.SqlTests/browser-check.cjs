@@ -360,7 +360,7 @@ async function main() {
     await userLogin.locator('#login-form input[name=userName]').fill('workspace-browser-account');
     await userLogin.locator('#login-form input[name=password]').fill('Synthetic!Workspace-Password-2026');
     await userLogin.locator('#login-form button').click();
-    await userLogin.waitForURL('**/workspace/account');
+    await userLogin.waitForURL('**/workspace');
     await userLogin.waitForFunction(() => !document.getElementById('logout').disabled);
     if ((await userLogin.evaluate(async()=> (await fetch('/workspace/employees')).status)) !== 403) throw new Error('Temporary password was not enforced');
     await userRow.locator('button').click();
@@ -1567,7 +1567,7 @@ async function main() {
     await loginPage.locator('#login-form input[name=userName]').fill('web-self');
     await loginPage.locator('#login-form input[name=password]').fill('Synthetic!Password-2026');
     await loginPage.locator('#login-form button').click();
-    await loginPage.waitForURL('**/workspace/account');
+    await loginPage.waitForURL('**/workspace');
     await loginPage.waitForFunction(() => !document.querySelector('#password-form button').disabled);
     if (await loginPage.locator('#account-id').textContent() !== selfId) throw new Error('Account page showed wrong user');
     const requesterTracking=await context.newPage();
@@ -1596,7 +1596,7 @@ async function main() {
     await loginPage.locator('#login-form input[name=userName]').fill('web-self');
     await loginPage.locator('#login-form input[name=password]').fill('Synthetic!Browser-Changed-2026');
     await loginPage.locator('#login-form button').click();
-    await loginPage.waitForURL('**/workspace/account');
+    await loginPage.waitForURL('**/workspace');
     await loginPage.waitForFunction(() => !document.querySelector('#password-form button').disabled);
     await changePassword('Synthetic!Browser-Changed-2026','Synthetic!Password-2026','Synthetic!Password-2026');
     await loginPage.waitForFunction(() => document.getElementById('notice').textContent.includes('گذرواژه تغییر کرد'));
@@ -1604,7 +1604,7 @@ async function main() {
     await loginPage.locator('#login-form input[name=userName]').fill('web-self');
     await loginPage.locator('#login-form input[name=password]').fill('Synthetic!Password-2026');
     await loginPage.locator('#login-form button').click();
-    await loginPage.waitForURL('**/workspace/account');
+    await loginPage.waitForURL('**/workspace');
     await loginPage.waitForFunction(() => !document.getElementById('logout').disabled);
     await loginPage.locator('#logout').click();
     await loginPage.waitForFunction(() => document.getElementById('notice').textContent.includes('خارج شدید'));
