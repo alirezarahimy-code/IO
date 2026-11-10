@@ -948,8 +948,9 @@ internal static class HttpSecurityTests
             if ((await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = featureRole, Code = "executive.dashboard.read" })).StatusCode != HttpStatusCode.OK)
                 throw new InvalidOperationException("Synthetic executive permission grant failed.");
             using var executiveDenied = Client();
-            if ((await Login(executiveDenied, "web-self", Password)).StatusCode != HttpStatusCode.NoContent)
-                throw new InvalidOperationException("Synthetic executive denied re-login failed.");
+            var deniedLogin = await Login(executiveDenied, "web-self", Password);
+            if (deniedLogin.StatusCode != HttpStatusCode.NoContent)
+                throw new InvalidOperationException("Synthetic executive denied login status " + (int)deniedLogin.StatusCode + ".");
             using var companiesResponse = await adminClient.GetAsync("/executive/companies");
             using var companiesJson = await ParseOrThrow(companiesResponse);
             var now = DateTimeOffset.UtcNow;
