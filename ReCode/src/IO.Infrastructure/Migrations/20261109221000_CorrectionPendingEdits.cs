@@ -33,7 +33,7 @@ namespace IO.Infrastructure.Migrations
                     AND EXISTS (SELECT 1 FROM deleted d JOIN inserted i ON d.Id = i.Id WHERE d.State <> 0 OR i.State <> 0
                         OR EXISTS (SELECT 1 FROM CorrectionDecisions cd WHERE cd.RequestId = d.Id))
                     THROW 51008, ''Correction request payload is immutable after a decision.'', 1;
-                IF EXISTS (SELECT 1 FROM deleted d JOIN inserted i ON d.Id = i.Id WHERE d.State <> 0 OR i.State NOT IN (1,2,3))
+                IF EXISTS (SELECT 1 FROM deleted d JOIN inserted i ON d.Id = i.Id WHERE d.State <> 0 OR i.State NOT IN (0,1,2,3))
                     THROW 51008, ''Invalid correction request transition.'', 1;
                 END');
                 """);
