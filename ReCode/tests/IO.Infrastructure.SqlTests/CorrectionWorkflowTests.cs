@@ -423,8 +423,11 @@ internal static class CorrectionWorkflowTests
                     deputyActive = await ddb.Users.AnyAsync(x => x.Id == otherActor && x.IsActive),
                     pendingState = await ddb.CorrectionRequests.Where(x => x.Id == pendingForDeputy).Select(x => x.State).SingleAsync(),
                     inboxItems = deputyInbox.GetProperty("items").EnumerateArray().Count(),
-                    actorHasDecide = await ddb.RolePermissions.AnyAsync(rp => rp.Permission.Code == CorrectionWorkflow.Decide &&
-                        ddb.UserRoles.Any(ur => ur.UserId == otherActor && ur.RoleId == rp.RoleId))
+                    actorHasDecide = await (from rp in ddb.RolePermissions
+                                            join p in ddb.Permissions on rp.PermissionId equals p.Id
+                                            join ur in ddb.UserRoles on rp.RoleId equals ur.RoleId
+                                            where p.Code == CorrectionWorkflow.Decide && ur.UserId == otherActor
+                                            select rp.RoleId).AnyAsync()
                 });
             }
             check(deputyInbox.GetProperty("items").EnumerateArray().Any(x => x.GetProperty("Id").GetGuid() == pendingForDeputy) &&
