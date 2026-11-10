@@ -137,8 +137,9 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
                 ?? throw new ArgumentException("Unknown user.");
             if (!user.IsActive) throw new ArgumentException("Cannot reset a disabled account.");
             var login = await users.FindByIdAsync(userId.ToString()) ?? throw new ArgumentException("Unknown user login.");
-            var token = await users.GeneratePasswordResetTokenAsync(login);
-            if (!(await users.ResetPasswordAsync(login, token, newPassword)).Succeeded)
+            // IdentityCore registers no default token providers, so the reset-token
+            // flow is unavailable; direct hash replacement enforces the same policy.
+            if (!(await users.RemovePasswordAsync(login)).Succeeded || !(await users.AddPasswordAsync(login, newPassword)).Succeeded)
                 throw new ArgumentException("Password rejected by identity validation.");
             foreach (var claim in await users.GetClaimsAsync(login))
                 if (claim.Type == IdentityServices.MustChangePasswordClaim)
