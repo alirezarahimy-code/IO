@@ -58,7 +58,7 @@ public sealed class PermissionTransaction(LoginIdentityDbContext identity, IoDbC
     }
 
     // Must be used inside the same Execute transaction as the protected operation.
-    internal Task<bool> HasPermissionAsync(Guid actor, string permission, CancellationToken ct) =>
+    public Task<bool> HasPermissionAsync(Guid actor, string permission, CancellationToken ct) =>
         (from user in db.Users
          join ur in db.UserRoles on user.Id equals ur.UserId
          join rp in db.RolePermissions on ur.RoleId equals rp.RoleId

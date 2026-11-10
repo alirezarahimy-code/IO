@@ -130,6 +130,23 @@ public static class IoWebHost
         app.MapGet("/login", () => Results.Content(Resource("IO.Web.Ui.Login.html"), "text/html; charset=utf-8")).AllowAnonymous();
         app.MapGet("/assets/login.js", () => Results.Content(Resource("IO.Web.Ui.login.js"), "text/javascript; charset=utf-8")).AllowAnonymous();
         app.MapGet("/workspace", () => Results.Content(Resource("IO.Web.Ui.Index.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/index.js", () => Results.Content(Resource("IO.Web.Ui.index.js"), "text/javascript; charset=utf-8"));
+        // The role panel is chosen by effective server-side permissions, never by
+        // client claims; a flag here only reveals which tool sections may render.
+        app.MapGet("/workspace/capabilities", async (HttpContext context, PermissionTransaction transaction, CancellationToken token) =>
+        {
+            if (!Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var actor)) return Results.Unauthorized();
+            var employee = await transaction.HasPermissionAsync(actor, CorrectionWorkflow.Submit, token) || await transaction.HasPermissionAsync(actor, CorrectionWorkflow.ReadOwn, token);
+            var manager = await transaction.HasPermissionAsync(actor, CorrectionWorkflow.ReadInbox, token) || await transaction.HasPermissionAsync(actor, CorrectionWorkflow.Decide, token) ||
+                await transaction.HasPermissionAsync(actor, CorrectionWorkflow.Approve, token) || await transaction.HasPermissionAsync(actor, CorrectionWorkflow.Reject, token) ||
+                await transaction.HasPermissionAsync(actor, CorrectionWorkflow.ReadDecisions, token) || await transaction.HasPermissionAsync(actor, TeamAttendance.Scoped, token) ||
+                await transaction.HasPermissionAsync(actor, TeamAttendance.All, token);
+            var admin = await transaction.HasPermissionAsync(actor, InitialAdministrator.ManageIdentity, token) || await transaction.HasPermissionAsync(actor, OrganizationManagement.Manage, token) ||
+                await transaction.HasPermissionAsync(actor, AttendanceIngestion.Manage, token) || await transaction.HasPermissionAsync(actor, ObservedCalculation.Manage, token) ||
+                await transaction.HasPermissionAsync(actor, CorrectionSettings.Manage, token) || await transaction.HasPermissionAsync(actor, CorrectionWorkflow.Configure, token) ||
+                await transaction.HasPermissionAsync(actor, LeaveLedger.Manage, token) || await transaction.HasPermissionAsync(actor, ScheduleManagement.Manage, token);
+            return Results.Ok(new { employee, manager, admin });
+        });
         app.MapGet("/workspace/account", () => Results.Content(Resource("IO.Web.Ui.Account.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/account.js", () => Results.Content(Resource("IO.Web.Ui.account.js"), "text/javascript; charset=utf-8"));
         // Shell and assets are authenticated; all data operations additionally

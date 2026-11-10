@@ -1,41 +1,24 @@
-<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>فهرست صفحات</title><script src="/assets/theme.js"></script><link rel="stylesheet" href="/assets/theme.css"><link rel="stylesheet" href="/assets/employees.css"></head><body><nav class="page-nav" aria-label="ناوبری"><a href="/panel">پنل ابزار</a> / فهرست صفحات</nav><main>
-<header class="page-heading"><div><p class="eyebrow">هاب سامانه · آزمایشی</p><h1>فهرست صفحات سامانهٔ حضور</h1><p>هر صفحه دادهٔ خود را از API مجوزدار می‌گیرد؛ نمایش لینک به معنی دسترسی به داده نیست و هر صفحه در سرور کنترل می‌شود.</p></div></header><div id="notice" role="status" aria-live="polite"></div>
-<section><h2>کارمند (الگوی آریا و TWF)</h2><ul class="page-list">
-<li><a href="/workspace/employee-home">خانهٔ کارمند</a> — حساب جاری و آخرین درخواست‌ها</li>
-<li><a href="/workspace/my-attendance">تردد من</a> — رویدادهای خام و جمع خود</li>
-<li><a href="/workspace/my-schedule">برنامهٔ کاری من</a> — شیفت روزهای من</li>
-<li><a href="/workspace/my-leave">مرخصی من</a> — مانده و دفتر مرخصی</li>
-<li><a href="/workspace/my-reports">گزارش‌های من</a> — گزارش شخصی دوره</li>
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>پنل من</title><script src="/assets/theme.js"></script><link rel="stylesheet" href="/assets/theme.css"><link rel="stylesheet" href="/assets/employees.css"><script src="/assets/index.js" defer></script></head><body><nav class="page-nav" aria-label="ناوبری"><a href="/workspace/account">حساب من</a> / <a href="/panel">پنل ابزار</a></nav><main>
+<header class="page-heading"><div><p class="eyebrow">پنل نقش · آزمایشی</p><h1>پنل من</h1><p id="who">در حال تشخیص سطح دسترسی…</p><p>سطح پنل با مجوزهای واقعی حساب در سرور تعیین می‌شود؛ پنهان‌بودن یک بخش یعنی حساب فعلی مجوز آن داده را ندارد.</p></div></header><div id="notice" role="status" aria-live="polite"></div>
+<section id="employee-panel" hidden><h2>پنل کارمند</h2><p id="employee-summary" role="status">در حال دریافت وضعیت درخواست‌ها…</p><ul class="page-list">
 <li><a href="/workspace/new-request">درخواست جدید</a> — ثبت تردد فراموش‌شده</li>
-<li><a href="/workspace/my-requests">درخواست‌های من</a> — فیلتر، لغو، ویرایش، پیگیری</li>
-<li><a href="/workspace/delegation">جانشینی من</a> — ثبت و لغو جانشین</li>
-<li><a href="/workspace/account">حساب من</a> — تغییر گذرواژه و خروج</li>
+<li><a href="/workspace/my-requests">درخواست‌های من</a> — فیلتر شمسی، لغو، ویرایش، پیگیری</li>
+<li><a href="/workspace/my-attendance">تردد من</a> · <a href="/workspace/my-schedule">برنامهٔ من</a> · <a href="/workspace/my-leave">مرخصی من</a> · <a href="/workspace/my-reports">گزارش‌های من</a></li>
+<li><a href="/workspace/delegation">جانشینی من</a> — ثبت جانشین و اعطای تصمیم اصلاح</li>
+<li><a href="/workspace/employee-home">خانهٔ کارمند</a></li>
 </ul></section>
-<section><h2>مدیر واحد و بررسی‌کننده (الگوی کارتابل)</h2><ul class="page-list">
-<li><a href="/workspace/manager-home">خانهٔ مدیر</a> — صف اقدام امروز</li>
-<li><a href="/workspace/inbox">کارتابل بررسی</a> — فیلتر کارمند و تاریخ، تصمیم</li>
-<li><a href="/workspace/decision-history">تاریخچهٔ تصمیم‌ها</a> — تصمیم‌های ثبت‌شدهٔ من</li>
-<li><a href="/workspace/team-attendance">تردد تیم</a> — حضور اعضای محدوده</li>
+<section id="manager-panel" hidden><h2>پنل مدیر واحد</h2><p id="manager-summary" role="status">در حال دریافت کارتابل…</p><ul class="page-list">
+<li><a href="/workspace/inbox">کارتابل بررسی</a> — انتخاب کارمند، تاریخ شمسی، تأیید/رد</li>
+<li><a href="/workspace/decision-history">تاریخچهٔ تصمیم‌های من</a></li>
+<li><a href="/workspace/team-attendance">تردد تیم</a> — اعضای محدودهٔ من</li>
+<li><a href="/workspace/manager-home">خانهٔ مدیر</a> — صف اقدام</li>
+</ul><p>ابزارهای کارمند هم برای شما فعال است؛ بخش پنل کارمند بالا را ببینید.</p></section>
+<section id="admin-panel" hidden><h2>پنل مدیریت سامانه</h2><ul class="page-list">
+<li>ساختار: <a href="/workspace/organization">سازمان</a> · <a href="/workspace/employees">کارمندان</a> · <a href="/workspace/users">کاربران</a> · <a href="/workspace/roles">نقش‌ها و مجوزها</a> · <a href="/workspace/audit">آدیت</a></li>
+<li>شیفت و تقویم: <a href="/workspace/calendars">تقویم‌ها</a> · <a href="/workspace/shifts">شیفت‌ها</a> · <a href="/workspace/schedules">برنامه‌ها</a> · <a href="/workspace/employee-history">تاریخچهٔ کارمند</a> · <a href="/workspace/sources">منابع</a></li>
+<li>دادهٔ تردد: <a href="/workspace/raw-events">رویدادهای خام</a> · <a href="/workspace/mappings">نگاشت‌ها</a> · <a href="/workspace/conflicts">تعارض‌ها</a></li>
+<li>محاسبه و دوره: <a href="/workspace/calculations">محاسبات</a> · <a href="/workspace/rules">قواعد</a> · <a href="/workspace/periods">دوره‌ها</a></li>
+<li>سایر: <a href="/workspace/settings">تنظیمات اصلاح</a> · <a href="/workspace/workflow">گردش اصلاح</a> · <a href="/workspace/leave-admin">دفتر مرخصی</a> · <a href="/workspace/reports">گزارش‌ها</a> · <a href="/workspace/report-builder">سازندهٔ گزارش</a> · <a href="/workspace/executive-home">نمای مدیریت</a></li>
 </ul></section>
-<section><h2>مدیریت سامانه (الگوی T5Web و T5V3)</h2><ul class="page-list">
-<li><a href="/workspace/organization">سازمان</a> — شرکت، واحدها، کارمندان، انتساب‌ها</li>
-<li><a href="/workspace/users">کاربران</a> — حساب‌ها و فعال‌سازی</li>
-<li><a href="/workspace/roles">نقش‌ها و مجوزها</a> — اعطا و لغو واقعی</li>
-<li><a href="/workspace/scheduling">شیفت‌بندی</a> — تقویم، شیفت، برنامه و جانشین شیفت</li>
-<li><a href="/workspace/settings">تنظیمات</a> — سقف‌ها و محدودیت‌های اصلاح</li>
-<li><a href="/workspace/raw-events">رویدادهای خام</a> — منابع و رویدادهای تردد</li>
-<li><a href="/workspace/mappings">نگاشت‌ها</a> — نگاشت منبع به کارمند و تغییرات</li>
-<li><a href="/workspace/conflicts">تعارض‌ها</a> — حل تعارض رویداد خام</li>
-<li><a href="/workspace/calculations">محاسبات</a> — اجرا، نسخه‌ها و مقایسه</li>
-<li><a href="/workspace/rules">قواعد</a> — نسخه‌های قاعدهٔ محاسبه</li>
-<li><a href="/workspace/periods">دوره‌ها</a> — preflight، draft و عیب‌یابی</li>
-<li><a href="/workspace/leave-admin">دفتر مرخصی</a> — انواع و رکوردها</li>
-<li><a href="/workspace/reports">گزارش‌ها</a> — گزارش‌های دوره</li>
-<li><a href="/workspace/report-builder">سازندهٔ گزارش</a> — گزارش دلخواه</li>
-<li><a href="/workspace/workflow">گردش اصلاح</a> — سیاست‌ها و گردش</li>
-<li><a href="/workspace/audit">آدیت</a> — رخدادهای امنیتی</li>
-<li><a href="/workspace/executive-home">نمای مدیریت</a> — نمای کلی سازمان</li>
-<li><a href="/panel">پنل ابزار</a> — فرم‌های مدیریتی سریع</li>
-</ul></section>
-<p class="footnote">صفحات دستگاه فیزیکی و همگام‌سازی بیومتریک در محدودهٔ فعلی نیستند؛ ورود داده از منابع از طریق همین صفحات رویداد خام و نگاشت انجام می‌شود.</p>
+<p id="empty-panel" hidden>حساب شما هیچ سطح دسترسی فعالی ندارد؛ با مدیر سامانه تماس بگیرید.</p>
 </main></body></html>

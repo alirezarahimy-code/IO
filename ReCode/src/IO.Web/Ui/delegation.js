@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const $=id=>document.getElementById(id),assign=$('assign'),revoke=$('revoke');
+  const $=id=>document.getElementById(id),assign=$('assign'),revoke=$('revoke'),grantCorrection=$('grant-correction');
   let busy=false,allowed=false,co=0,cc=0,ho=0,hc=0;
   assign.elements.operationId.value=crypto.randomUUID();
   function controls(){for(const e of [...assign.querySelectorAll('input,select,button'),...revoke.querySelectorAll('input,button')])e.disabled=busy||!allowed;$('refresh').disabled=busy;$('candidate-prev').disabled=busy||!allowed||co===0;$('candidate-next').disabled=busy||!allowed||cc<50||co>=100000;$('prev').disabled=busy||!allowed||ho===0;$('next').disabled=busy||!allowed||hc<50||ho>=100000;}
@@ -17,5 +17,10 @@
   $('prev').addEventListener('click',()=>run(async()=>{ho-=50;try{await history();}catch(e){ho+=50;throw e;}}));$('next').addEventListener('click',()=>run(async()=>{ho+=50;try{await history();}catch(e){ho-=50;throw e;}}));
   assign.addEventListener('submit',e=>{e.preventDefault();run(async()=>{const result=await post('/delegations',{operationId:assign.elements.operationId.value,delegateUserId:assign.elements.delegateUserId.value,validFrom:assign.elements.validFrom.value,validUntilExclusive:assign.elements.validUntilExclusive.value});assign.reset();assign.elements.operationId.value=crypto.randomUUID();ho=0;try{await history();show('ثبت آزمایشی انجام شد: '+result.result+'؛ هیچ اختیاری منتقل نشد.');}catch(e){show('ثبت انجام شد، ولی دریافت سوابق ناموفق بود: '+e.message);}});});
   revoke.addEventListener('submit',e=>{e.preventDefault();run(async()=>{await post('/delegations/'+encodeURIComponent(revoke.elements.id.value.trim())+'/revoke',{reason:revoke.elements.reason.value.trim()});revoke.reset();ho=0;try{await history();show('لغو ثبت شد؛ تاریخچه حفظ شده است.');}catch(e){show('لغو ثبت شد، ولی دریافت سوابق ناموفق بود: '+e.message);}});});
+  grantCorrection.addEventListener('submit',e=>{e.preventDefault();if(busy||!allowed)return;run(async()=>{const id=grantCorrection.elements.delegationId.value.trim();let response;try{const csrf=await request('/auth/csrf');response=await fetch('/corrections/delegation-grants',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf.token},body:JSON.stringify({delegationId:id})});}catch{throw new TypeError('network');}
+if(response.status===403)throw new Error('شما مجوز تصمیم اصلاح فعال ندارید؛ اعطا ممکن نیست.');
+if(response.status===409)throw new Error('جانشینی فعال و لغونشده در بازهٔ جاری نیست.');
+if(!response.ok)throw new Error('شناسهٔ جانشینی معتبر نیست یا اعطا انجام نشد.');
+grantCorrection.reset();show('اعطای تصمیم اصلاح ثبت شد؛ جانشین اکنون (با مجوز و محدودهٔ خودش) کارتابل را می‌بیند.');});});
   controls();run(reload);
 })();

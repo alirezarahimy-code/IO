@@ -1539,6 +1539,13 @@ async function main() {
     await page.locator('#logout').click();
     await waitText('عملیات انجام شد.');
     await login(adminName);
+    const panelPage = await context.newPage();
+    await panelPage.goto(address + '/workspace');
+    await panelPage.waitForFunction(() => document.querySelector('h1')?.textContent.includes('پنل من'));
+    await panelPage.waitForFunction(() => !document.getElementById('admin-panel').hidden);
+    if(!await panelPage.locator('a[href="/workspace/organization"]').count() || !await panelPage.locator('a[href="/workspace/inbox"]').count())
+      throw new Error('Role panel did not list admin and manager tools');
+    await panelPage.close();
     const routes = ['/workspace','/workspace/employee-home','/workspace/my-attendance','/workspace/my-schedule','/workspace/my-leave','/workspace/my-reports','/workspace/new-request','/workspace/my-requests','/workspace/delegation','/workspace/account','/workspace/manager-home','/workspace/inbox','/workspace/decision-history','/workspace/team-attendance','/workspace/organization','/workspace/employees','/workspace/users','/workspace/roles','/workspace/calendars','/workspace/shifts','/workspace/schedules','/workspace/employee-history','/workspace/sources','/workspace/settings','/workspace/raw-events','/workspace/mappings','/workspace/conflicts','/workspace/calculations','/workspace/rules','/workspace/periods','/workspace/leave-admin','/workspace/reports','/workspace/report-builder','/workspace/workflow','/workspace/audit','/workspace/executive-home','/panel'];
     const scriptFailures = [];
     for (const route of routes) {

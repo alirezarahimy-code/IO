@@ -2,6 +2,7 @@
   <ItemGroup>
     <EmbeddedResource Include="Ui/Panel.html" />
     <EmbeddedResource Include="Ui/Index.html" />
+    <EmbeddedResource Include="Ui/index.js" />
     <EmbeddedResource Include="Ui/Employees.html" />
     <EmbeddedResource Include="Ui/Organization.html" />
     <EmbeddedResource Include="Ui/Scheduling.html" />
