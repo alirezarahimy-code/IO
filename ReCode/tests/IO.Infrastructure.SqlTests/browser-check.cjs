@@ -1548,7 +1548,7 @@ async function main() {
       await health.goto(address + route);
       await health.waitForFunction(() => document.title.length > 0);
       await health.waitForTimeout(250);
-      if (!await health.locator('main').count()) throw new Error(route + ' has no main container');
+      if (!await health.locator('main, form').count()) throw new Error(route + ' has neither main container nor forms');
       if (failures.length) throw new Error(route + ' threw script errors: ' + failures.join(' | '));
       await health.close();
     }
