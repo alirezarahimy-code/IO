@@ -129,6 +129,7 @@ public static class IoWebHost
         app.MapGet("/panel", () => Results.Content(Resource("IO.Web.Ui.Panel.html"), "text/html; charset=utf-8")).AllowAnonymous();
         app.MapGet("/login", () => Results.Content(Resource("IO.Web.Ui.Login.html"), "text/html; charset=utf-8")).AllowAnonymous();
         app.MapGet("/assets/login.js", () => Results.Content(Resource("IO.Web.Ui.login.js"), "text/javascript; charset=utf-8")).AllowAnonymous();
+        app.MapGet("/workspace", () => Results.Content(Resource("IO.Web.Ui.Index.html"), "text/html; charset=utf-8"));
         app.MapGet("/workspace/account", () => Results.Content(Resource("IO.Web.Ui.Account.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/account.js", () => Results.Content(Resource("IO.Web.Ui.account.js"), "text/javascript; charset=utf-8"));
         // Shell and assets are authenticated; all data operations additionally

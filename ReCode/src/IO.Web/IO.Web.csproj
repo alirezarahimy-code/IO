@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <ItemGroup>
     <EmbeddedResource Include="Ui/Panel.html" />
+    <EmbeddedResource Include="Ui/Index.html" />
     <EmbeddedResource Include="Ui/Employees.html" />
     <EmbeddedResource Include="Ui/Organization.html" />
     <EmbeddedResource Include="Ui/Scheduling.html" />
