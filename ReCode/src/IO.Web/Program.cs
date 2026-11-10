@@ -376,17 +376,8 @@ public static class IoWebHost
             Admin(c, csrf, actor => service.SubmitAsync(actor, input.PolicyId, input.WorkDate, ParseExplicitTime(input.ProposedAt).ToUniversalTime(), input.PunchKind, input.Reason, c.RequestAborted, input.OperationId)));
         app.MapPost("/corrections/requests/{id:guid}/decision", (Guid id, CorrectionDecisionInput input, HttpContext c, IAntiforgery csrf, CorrectionWorkflow service) =>
             Admin(c, csrf, actor => service.DecideAsync(actor, id, input.Approve, input.Reason, c.RequestAborted)));
-        app.MapPost("/corrections/requests/{id:guid}/edit", async (Guid id, CorrectionEditInput input, HttpContext c, IAntiforgery csrf, CorrectionWorkflow service) =>
-        {
-            if (!await ValidCsrf(c, csrf)) return Results.BadRequest();
-            if (!Guid.TryParse(c.User.FindFirstValue(ClaimTypes.NameIdentifier), out var editor)) return Results.Unauthorized();
-            try { return Results.Ok(new { result = await service.EditAsync(editor, id, ParseExplicitTime(input.ProposedAt).ToUniversalTime(), input.PunchKind, input.Reason, c.RequestAborted) }); }
-            catch (UnauthorizedAccessException) { return Results.StatusCode(403); }
-            catch (DomainConflictException) { return Results.Conflict(); }
-            catch (ArgumentException) { return Results.BadRequest(); }
-            // Temporary diagnostic for the failing browser slice; removed once the cause is found.
-            catch (Exception failure) { return Results.Json(new { diagnostic = failure.GetType().Name + ": " + failure.Message + (failure.InnerException is null ? "" : " | inner " + failure.InnerException.GetType().Name + ": " + failure.InnerException.Message) }, statusCode: 500); }
-        });
+        app.MapPost("/corrections/requests/{id:guid}/edit", (Guid id, CorrectionEditInput input, HttpContext c, IAntiforgery csrf, CorrectionWorkflow service) =>
+            Admin(c, csrf, actor => service.EditAsync(actor, id, ParseExplicitTime(input.ProposedAt).ToUniversalTime(), input.PunchKind, input.Reason, c.RequestAborted)));
         app.MapPost("/corrections/requests/{id:guid}/cancel", (Guid id, CorrectionCancelInput input, HttpContext c, IAntiforgery csrf, CorrectionWorkflow service) =>
             Admin(c, csrf, actor => service.CancelAsync(actor, id, input.Reason, c.RequestAborted)));
         app.MapPost("/periods/drafts/{draftId:guid}/diagnostics", (Guid draftId, HttpContext c, IAntiforgery csrf, PeriodDiagnostics service) =>
