@@ -50,7 +50,7 @@ public sealed class LeaveRequests(IoDbContext db, PermissionTransaction transact
                     DateOnly.FromDateTime(fromAtUtc.Value.UtcDateTime)!=workDate) throw new ArgumentException("Invalid hourly leave window.");
                 var end = DateOnly.FromDateTime(untilAtUtcExclusive.Value.UtcDateTime);
                 var windowMinutes = (int)(untilAtUtcExclusive.Value-fromAtUtc.Value).TotalMinutes;
-                if (end!=workDate && end!=workDate.AddDays(1) || windowMinutes is < 1 or > type.MinutesPerDay)
+                if (end!=workDate && end!=workDate.AddDays(1) || windowMinutes < 1 || windowMinutes > type.MinutesPerDay)
                     throw new ArgumentException("Invalid hourly leave window.");
             }
             var minutes = kind==0 ? type.MinutesPerDay : (int)(untilAtUtcExclusive!.Value-fromAtUtc!.Value).TotalMinutes;
