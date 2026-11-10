@@ -1,5 +1,6 @@
 using System.Net;
 using System.Diagnostics;
+using System.Globalization;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -944,6 +945,28 @@ internal static class HttpSecurityTests
             await using (var resetAudit = provider.CreateAsyncScope())
                 check(await resetAudit.ServiceProvider.GetRequiredService<LoginIdentityDbContext>().SecurityAudit
                     .AnyAsync(x => x.Action == "identity.user.password.reset:" + deputyUserId.ToString("N")), "HTTP password reset audited without credentials");
+            if ((await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = featureRole, Code = "executive.dashboard.read" })).StatusCode != HttpStatusCode.OK)
+                throw new InvalidOperationException("Synthetic executive permission grant failed.");
+            using var executiveDenied = Client();
+            if ((await Login(executiveDenied, "web-self", Password)).StatusCode != HttpStatusCode.NoContent)
+                throw new InvalidOperationException("Synthetic executive denied re-login failed.");
+            using var companiesResponse = await adminClient.GetAsync("/executive/companies");
+            using var companiesJson = await ParseOrThrow(companiesResponse);
+            var now = DateTimeOffset.UtcNow;
+            string Window(int fromOffset, int untilOffset) => "/executive/overview/" + testCompany +
+                "?fromUtc=" + now.AddDays(fromOffset).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + "T00:00:00Z" +
+                "&untilUtcExclusive=" + now.AddDays(untilOffset).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) + "T00:00:00Z";
+            using var executiveWindow = await adminClient.GetAsync(Window(-10, 10));
+            using var executiveJson = await ParseOrThrow(executiveWindow);
+            check(companiesResponse.StatusCode == HttpStatusCode.OK &&
+                companiesJson.RootElement.EnumerateArray().Any(x => x.GetProperty("id").GetGuid() == testCompany) &&
+                (await executiveDenied.GetAsync("/executive/companies")).StatusCode == HttpStatusCode.Forbidden &&
+                executiveWindow.StatusCode == HttpStatusCode.OK &&
+                executiveJson.RootElement.GetProperty("companyId").GetGuid() == testCompany &&
+                executiveJson.RootElement.GetProperty("employeeCount").GetInt32() >= 1 &&
+                executiveJson.RootElement.GetProperty("correctionDecisionCount").GetInt32() >= 1 &&
+                (await adminClient.GetAsync(Window(-100, -30))).StatusCode == HttpStatusCode.BadRequest,
+                "HTTP executive company list and enriched overview restricted to executive permission");
         }
         finally
         {

@@ -1153,7 +1153,8 @@ async function main() {
     await executivePage.locator('#result').waitFor();
     const execData=await executivePage.evaluate(async company=>(await (await fetch('/executive/overview/'+company+'?fromUtc=2027-03-01T00%3A00%3A00Z&untilUtcExclusive=2027-03-02T00%3A00%3A00Z')).json()),selfCompany);
     const displayed=await executivePage.locator('#body tr td').allTextContents();
-    if (displayed.join(',')!==[execData.employeeCount,execData.activeLinkedAccountCount,execData.pendingCorrectionCount,execData.rawEventCount].join(',') || execData.rawEventCount!==2) throw new Error('Executive aggregate did not match persisted records');
+    const expected=[execData.employeeCount,execData.activeLinkedAccountCount,execData.pendingCorrectionCount,execData.approvedCorrectionCount,execData.rejectedCorrectionCount,execData.cancelledCorrectionCount,execData.correctionDecisionCount,execData.rawEventCount,execData.calculationRunCount,execData.anomalyRunCount,execData.workedMinutes,execData.latestCalculationWorkDate??'—'].join(',');
+    if (displayed.join(',')!==expected || execData.rawEventCount!==2) throw new Error('Executive aggregate did not match persisted records');
     await executivePage.locator('#filter input[name=companyId]').fill(company);
     if (await executivePage.locator('#result').isVisible() || await executivePage.locator('#body tr').count()) throw new Error('Changing executive company left stale counts');
     await executivePage.close();

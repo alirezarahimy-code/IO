@@ -329,6 +329,8 @@ public static class IoWebHost
             AdminRead(c, async actor => await service.GetBalanceAsync(actor,employeeId,leaveTypeId,asOf,c.RequestAborted)));
         app.MapGet("/leave/own-balance/{leaveTypeId:guid}", (Guid leaveTypeId, DateOnly asOf, HttpContext c, LeaveLedger service) =>
             AdminRead(c, async actor => await service.GetOwnBalanceAsync(actor,leaveTypeId,asOf,c.RequestAborted)));
+        app.MapGet("/executive/companies", (HttpContext c, ExecutiveOverview service) =>
+            AdminRead(c, async actor => (object)await service.CompaniesAsync(actor, c.RequestAborted)));
         app.MapGet("/executive/overview/{companyId:guid}", (Guid companyId, string fromUtc, string untilUtcExclusive, HttpContext c, ExecutiveOverview service) =>
             AdminRead(c, async actor => await service.InspectAsync(actor, companyId, ParseExplicitTime(fromUtc), ParseExplicitTime(untilUtcExclusive), c.RequestAborted)));
         app.MapGet("/calculations/own-report", (DateOnly start, DateOnly endExclusive, HttpContext c, PersonalReports service) =>
