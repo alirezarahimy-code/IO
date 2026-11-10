@@ -982,6 +982,9 @@ internal static class HttpSecurityTests
             if ((await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = testSelfRole, Code = "leave.request.submit" })).StatusCode != HttpStatusCode.OK ||
                 (await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = testManagerRole, Code = "leave.request.decide" })).StatusCode != HttpStatusCode.OK)
                 throw new InvalidOperationException("Synthetic leave workflow permission grant failed.");
+            // The requester cookie has the fixed 30-minute lifetime too; re-authenticate.
+            if ((await Login(own, "web-self", Password)).StatusCode != HttpStatusCode.NoContent)
+                throw new InvalidOperationException("Synthetic requester re-login failed.");
             var leaveOperation = Guid.NewGuid();
             using var leaveSubmitResponse = await PostAdmin(own, "/leave/requests", new { OperationId = leaveOperation, LeaveTypeId = leaveType, Kind = 0, WorkDate = "2027-06-01", FromAtUtc = (string?)null, UntilAtUtcExclusive = (string?)null, Reason = "daily leave flow" });
             using var leaveSubmitJson = await ParseOrThrow(leaveSubmitResponse);
