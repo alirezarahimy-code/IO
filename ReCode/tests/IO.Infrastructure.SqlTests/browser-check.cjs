@@ -1538,6 +1538,7 @@ async function main() {
     await clearResult();
     await page.locator('#logout').click();
     await waitText('عملیات انجام شد.');
+    await login(adminName);
     const routes = ['/workspace','/workspace/employee-home','/workspace/my-attendance','/workspace/my-schedule','/workspace/my-leave','/workspace/my-reports','/workspace/new-request','/workspace/my-requests','/workspace/delegation','/workspace/account','/workspace/manager-home','/workspace/inbox','/workspace/decision-history','/workspace/team-attendance','/workspace/organization','/workspace/users','/workspace/roles','/workspace/scheduling','/workspace/settings','/workspace/raw-events','/workspace/mappings','/workspace/conflicts','/workspace/calculations','/workspace/rules','/workspace/periods','/workspace/leave-admin','/workspace/reports','/workspace/report-builder','/workspace/workflow','/workspace/audit','/workspace/executive-home','/panel'];
     const scriptFailures = [];
     for (const route of routes) {
@@ -1551,6 +1552,9 @@ async function main() {
       if (failures.length) throw new Error(route + ' threw script errors: ' + failures.join(' | '));
       await health.close();
     }
+    await clearResult();
+    await page.locator('#logout').click();
+    await waitText('عملیات انجام شد.');
     const loginPage = await context.newPage();
     await loginPage.goto(address + '/login');
     await loginPage.locator('#login-form input[name=userName]').fill('web-self');
