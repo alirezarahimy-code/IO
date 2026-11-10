@@ -1391,7 +1391,9 @@ async function main() {
     if(await reasonInput.inputValue() !== 'Browser missed entry') throw new Error('Edit form was not prefilled from the pending request');
     await reasonInput.fill('Browser edited entry');
     await editPage.locator('#edit-form button[type=submit]').click();
-    await editPage.waitForFunction(()=>document.getElementById('notice').textContent.includes('ویرایش شد'));
+    await editPage.waitForFunction(()=>document.getElementById('notice').textContent.length>0,null,{timeout:15000});
+    const editNotice=await editPage.locator('#notice').textContent();
+    if(!editNotice.includes('ویرایش شد')) throw new Error('Edit failed with notice: '+editNotice);
     if(!(await editRow.textContent()).includes('Browser edited entry')) throw new Error('Edited request was not refreshed in the list');
     await editPage.close();
     await page.locator('#logout').click();
