@@ -908,6 +908,8 @@ internal static class HttpSecurityTests
             // renewal; re-authenticate before the late user-administration checks.
             if ((await Login(adminClient, adminName, Password)).StatusCode != HttpStatusCode.NoContent)
                 throw new InvalidOperationException("Synthetic administrator re-login failed.");
+            if ((await Login(deputyClient, deputyName, "Deputy!Password-2027x")).StatusCode != HttpStatusCode.NoContent)
+                throw new InvalidOperationException("Synthetic deputy re-login failed.");
             using var userDetailResponse = await adminClient.GetAsync("/admin/users/" + deputyUserId);
             using var userDetailJson = await ParseOrThrow(userDetailResponse);
             using var userSearchResponse = await adminClient.GetAsync("/admin/catalog/users?q=" + Uri.EscapeDataString(deputyName));
@@ -921,8 +923,9 @@ internal static class HttpSecurityTests
                 (await deputyClient.GetAsync("/admin/catalog/users?q=deputy")).StatusCode == HttpStatusCode.Forbidden,
                 "HTTP user detail and user search restricted to identity administrators");
             check((await PostAdmin(deputyClient, "/admin/users/" + deputyUserId + "/password", new { NewPassword = "Reset!Password-2026z" })).StatusCode == HttpStatusCode.Forbidden &&
-                (await PostAdmin(adminClient, "/admin/users/" + deputyUserId + "/password", new { NewPassword = "" })).StatusCode == HttpStatusCode.BadRequest &&
-                (await PostAdmin(adminClient, "/admin/users/" + deputyUserId + "/password", new { NewPassword = "Reset!Password-2026z" })).StatusCode == HttpStatusCode.OK &&
+                (await PostAdmin(adminClient, "/admin/users/" + deputyUserId + "/password", new { NewPassword = "" })).StatusCode == HttpStatusCode.BadRequest,
+                "HTTP password reset restricted to identity administrators with a real password");
+            check((await PostAdmin(adminClient, "/admin/users/" + deputyUserId + "/password", new { NewPassword = "Reset!Password-2026z" })).StatusCode == HttpStatusCode.OK &&
                 (await deputyClient.GetAsync("/auth/me")).StatusCode == HttpStatusCode.Unauthorized &&
                 (await Login(deputyClient, deputyName, "Deputy!Password-2027x")).StatusCode == HttpStatusCode.Unauthorized &&
                 (await Login(deputyClient, deputyName, "Reset!Password-2026z")).StatusCode == HttpStatusCode.NoContent &&
