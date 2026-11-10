@@ -66,7 +66,7 @@ try
         Check(!db.Database.HasPendingModelChanges(), "model matches migration snapshot");
         await db.Database.MigrateAsync();
         await db.Database.MigrateAsync();
-        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 18, "foundation and seventeen later migrations applied idempotently");
+        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 19, "foundation and eighteen later migrations applied idempotently");
         var created = 0;
         foreach (var table in expectedTables) if (await HasTable(table)) created++;
         Check(created == expectedTables.Length, "all 39 foundation and later tables created");
