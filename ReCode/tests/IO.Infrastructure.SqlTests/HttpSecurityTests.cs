@@ -955,9 +955,14 @@ internal static class HttpSecurityTests
                 {
                     var identityDb = deniedDiag.ServiceProvider.GetRequiredService<LoginIdentityDbContext>();
                     var selfRow = await identityDb.Users.SingleOrDefaultAsync(x => x.UserName == "web-self");
+                    var identityManager = deniedDiag.ServiceProvider.GetRequiredService<UserManager<LoginAccount>>();
+                    var loginRow = await identityManager.FindByNameAsync("web-self");
+                    var hashOk = loginRow is not null && await identityManager.CheckPasswordAsync(loginRow, Password);
+                    var foundationActive = loginRow is not null && await deniedDiag.ServiceProvider.GetRequiredService<IoDbContext>()
+                        .Users.AnyAsync(x => x.Id == loginRow.Id && x.IsActive);
                     throw new InvalidOperationException("Synthetic executive denied login status " + (int)deniedLogin.StatusCode +
                         " failed=" + (selfRow?.AccessFailedCount ?? -1) + " lockout=" + (selfRow?.LockoutEnd is null ? "no" : "yes") +
-                        " active=" + selfRow?.LockoutEnabled);
+                        " found=" + (loginRow is not null) + " hashOk=" + hashOk + " foundationActive=" + foundationActive);
                 }
             }
             using var companiesResponse = await adminClient.GetAsync("/executive/companies");
