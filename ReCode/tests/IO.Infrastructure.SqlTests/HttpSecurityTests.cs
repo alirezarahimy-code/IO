@@ -410,8 +410,8 @@ internal static class HttpSecurityTests
                       (await PostAdmin(own,"/devices/"+deviceOperation+"/group",new{ExpectedVersion=await DeviceVersion(),GroupId=(Guid?)groupRoot})).StatusCode==HttpStatusCode.Forbidden&&
                       !revokedGroupCaps.RootElement.GetProperty("pages").EnumerateArray().Any(p=>p.GetProperty("route").GetString()=="/workspace/device-groups"),
                       "HTTP reference group revocation removes data help menu assignment and historical delete replay on the existing session");
-            var diagnosticId=Guid.NewGuid();
-            var diagnosticPayload=new{OperationId=diagnosticId,DeviceId=deviceOperation,ExpectedDeviceVersion=await DeviceVersion(),TimeoutSeconds=1};
+            var connectionDiagnosticId=Guid.NewGuid();
+            var diagnosticPayload=new{OperationId=connectionDiagnosticId,DeviceId=deviceOperation,ExpectedDeviceVersion=await DeviceVersion(),TimeoutSeconds=1};
             check((await anon.GetAsync("/device-connection")).StatusCode==HttpStatusCode.Unauthorized&&
                   (await own.GetAsync("/device-connection")).StatusCode==HttpStatusCode.Forbidden&&
                   (await own.PostAsJsonAsync("/device-connection",diagnosticPayload)).StatusCode==HttpStatusCode.BadRequest,
@@ -420,17 +420,17 @@ internal static class HttpSecurityTests
             check((await PostAdmin(own,"/device-connection",diagnosticPayload)).StatusCode==HttpStatusCode.OK&&
                   (await PostAdmin(own,"/device-connection",diagnosticPayload)).StatusCode==HttpStatusCode.OK&&
                   (await own.GetAsync("/device-connection")).StatusCode==HttpStatusCode.Forbidden&&
-                  (await PostAdmin(own,"/device-connection",new{OperationId=diagnosticId,DeviceId=deviceOperation,ExpectedDeviceVersion=diagnosticPayload.ExpectedDeviceVersion,TimeoutSeconds=2})).StatusCode==HttpStatusCode.Conflict,
+                  (await PostAdmin(own,"/device-connection",new{OperationId=connectionDiagnosticId,DeviceId=deviceOperation,ExpectedDeviceVersion=diagnosticPayload.ExpectedDeviceVersion,TimeoutSeconds=2})).StatusCode==HttpStatusCode.Conflict,
                   "HTTP connection request grant permits exact retry but grants neither history nor changed retry");
             (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.connection.read"})).EnsureSuccessStatusCode();
             using(var diagnosticPage=JsonDocument.Parse(await own.GetStringAsync("/device-connection?deviceId="+deviceOperation)))
             {
-                var item=diagnosticPage.RootElement.GetProperty("items").EnumerateArray().Single(x=>x.GetProperty("id").GetGuid()==diagnosticId);
+                var item=diagnosticPage.RootElement.GetProperty("items").EnumerateArray().Single(x=>x.GetProperty("id").GetGuid()==connectionDiagnosticId);
                 var cancelPayload=new{ExpectedVersion=item.GetProperty("version").GetBytesFromBase64()};
                 check(item.GetProperty("state").GetString()=="pending"&&
                       (await own.GetAsync("/help/topic/device-connection")).StatusCode==HttpStatusCode.OK&&
-                      (await PostAdmin(own,"/device-connection/"+diagnosticId+"/cancel",cancelPayload)).StatusCode==HttpStatusCode.OK&&
-                      (await PostAdmin(own,"/device-connection/"+diagnosticId+"/cancel",cancelPayload)).StatusCode==HttpStatusCode.Conflict,
+                      (await PostAdmin(own,"/device-connection/"+connectionDiagnosticId+"/cancel",cancelPayload)).StatusCode==HttpStatusCode.OK&&
+                      (await PostAdmin(own,"/device-connection/"+connectionDiagnosticId+"/cancel",cancelPayload)).StatusCode==HttpStatusCode.Conflict,
                       "HTTP connection history and protected help expose truthful pending status and versioned pre-execution cancellation");
             }
             foreach(var code in new[]{"devices.connection.read","devices.connection.test"})
