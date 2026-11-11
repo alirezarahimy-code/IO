@@ -140,10 +140,13 @@ public static class IoWebHost
             if (!Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var actor)) return Results.Unauthorized();
             var permissions = await WorkspaceCatalog.EffectiveAsync(actor, db, context.RequestAborted);
             var pages = WorkspaceCatalog.Pages.Where(p => WorkspaceCatalog.CanView(p, permissions)).ToArray();
+            var operatorRole = PermissionCatalog.Templates.Single(t => t.Key == "operator").Id;
+            var isOperator = await (from user in db.Users join ur in db.UserRoles on user.Id equals ur.UserId
+                where user.Id == actor && user.IsActive && ur.RoleId == operatorRole select ur.UserId).AnyAsync(context.RequestAborted);
             return Results.Ok(new {
                 employee = pages.Any(p => p.Group == "employee"), manager = pages.Any(p => p.Group == "manager"),
                 admin = pages.Any(p => p.Group == "admin"), executive = pages.Any(p => p.Group == "executive"),
-                @operator = false, permissions = permissions.Order(StringComparer.Ordinal),
+                @operator = isOperator, permissions = permissions.Order(StringComparer.Ordinal),
                 pages = pages.Select(p => new { p.Route, p.Title, p.Group })
             });
         });

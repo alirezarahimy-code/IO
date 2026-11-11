@@ -269,6 +269,33 @@ internal static class HttpSecurityTests
                 using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
                 return json.RootElement.GetProperty("result").GetGuid();
             }
+            var granularRole = await CreateId("/admin/roles", new { Name = "foundation HTTP granular role" });
+            (await PostAdmin(adminClient, "/admin/user-roles", new { UserId = self, RoleId = granularRole })).EnsureSuccessStatusCode();
+            (await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = granularRole, Code = "organization.read" })).EnsureSuccessStatusCode();
+            check((await own.GetAsync("/org/catalog/companies")).StatusCode == HttpStatusCode.OK &&
+                  (await PostAdmin(own, "/org/organizations", new { Name = "must not create" })).StatusCode == HttpStatusCode.Forbidden &&
+                  (await own.GetAsync("/help/topic/organization")).StatusCode == HttpStatusCode.OK,
+                  "HTTP granular organization reader can read page help but cannot create data");
+            (await PostAdmin(adminClient, "/admin/role-permissions/revoke", new { RoleId = granularRole, Code = "organization.read" })).EnsureSuccessStatusCode();
+            check((await own.GetAsync("/org/catalog/companies")).StatusCode == HttpStatusCode.Forbidden &&
+                  (await own.GetAsync("/help/topic/organization")).StatusCode == HttpStatusCode.Forbidden,
+                  "HTTP granular revoke removes data and help on the same authenticated session");
+            (await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = granularRole, Code = "executive.dashboard.read" })).EnsureSuccessStatusCode();
+            using var granularCaps = JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities"));
+            (await PostAdmin(adminClient, "/admin/user-roles/revoke", new { UserId = self, RoleId = granularRole })).EnsureSuccessStatusCode();
+            using var revokedCaps = JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities"));
+            check(granularCaps.RootElement.GetProperty("executive").GetBoolean() &&
+                  !revokedCaps.RootElement.GetProperty("executive").GetBoolean() &&
+                  (await own.GetAsync("/help/topic/executive-home")).StatusCode == HttpStatusCode.Forbidden,
+                  "HTTP role revoke removes executive menu and protected help without re-login");
+            var operatorTemplate = PermissionCatalog.Templates.Single(t => t.Key == "operator");
+            (await PostAdmin(adminClient, "/admin/role-templates", new { })).EnsureSuccessStatusCode();
+            (await PostAdmin(adminClient, "/admin/user-roles", new { UserId = self, RoleId = operatorTemplate.Id })).EnsureSuccessStatusCode();
+            using var operatorCaps = JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities"));
+            check(operatorCaps.RootElement.GetProperty("operator").GetBoolean() &&
+                  !operatorCaps.RootElement.GetProperty("permissions").EnumerateArray().Any(x => x.GetString()!.StartsWith("device.", StringComparison.Ordinal)),
+                  "HTTP operator shell identifies role without granting unimplemented device operations");
+            (await PostAdmin(adminClient, "/admin/user-roles/revoke", new { UserId = self, RoleId = operatorTemplate.Id })).EnsureSuccessStatusCode();
             var featureRole = await CreateId("/admin/roles", new { Name = "phase five six test role" });
             foreach (var code in new[] { "organization.manage", "schedule.manage", "schedule.read.all", "attendance.ingest", "attendance.calculate", "correction.configure", "period.preflight", "period.draft.manage", "period.diagnostic.manage" })
                 if ((await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = featureRole, Code = code })).StatusCode != HttpStatusCode.OK)

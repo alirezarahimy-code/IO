@@ -19,7 +19,11 @@
  const forms=specs[leaf]||{};let caps=null,ticket=0;
  function allowed(codes){return caps&&codes.some(c=>caps.permissions.includes(c));}
  function apply(){
-  for(const [id,codes] of Object.entries(forms)){const form=document.getElementById(id);if(form){form.hidden=!allowed(codes);form.dataset.accessDenied=allowed(codes)?'no':'yes';}}
+  for(const [id,configured] of Object.entries(forms)){
+   let codes=configured;
+   if(leaf==='calendars'&&id==='create-form')codes=document.querySelector('[data-kind="days"][aria-pressed="true"]')?['schedule.calendar.update','schedule.manage']:['schedule.calendar.create','schedule.manage'];
+   const form=document.getElementById(id);if(form){form.hidden=!allowed(codes);form.dataset.accessDenied=allowed(codes)?'no':'yes';}
+  }
   const templates=document.getElementById('create-templates');if(templates)templates.hidden=!allowed(['identity.roles.manage','identity.manage']);
   if(caps)for(const a of document.querySelectorAll('a[href^="/workspace"],a[href="/panel"]')){
    const href=a.getAttribute('href');a.hidden=!(href.startsWith('/workspace/help')||caps.pages.some(p=>p.route===href));
@@ -28,5 +32,6 @@
  // Prevent a synthetic/client submit while the fresh grant set is unavailable or denied.
  document.addEventListener('submit',e=>{if(e.target.dataset.accessDenied==='yes'){e.preventDefault();e.stopImmediatePropagation();}},true);
  async function refresh(){const current=++ticket;try{const r=await fetch('/workspace/capabilities',{credentials:'same-origin',cache:'no-store'});if(!r.ok)throw new Error();const data=await r.json();if(current!==ticket)return;caps=data;}catch{if(current!==ticket)return;caps=null;}apply();}
+ document.addEventListener('click',e=>{if(e.target.closest('[data-kind]'))setTimeout(apply,0);});
  apply();refresh();window.addEventListener('focus',refresh);setInterval(refresh,30000);
 })();

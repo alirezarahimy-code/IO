@@ -2,10 +2,11 @@
 (() => {
   const $=id=>document.getElementById(id),forms=[$('role-form'),$('permission-form'),$('scope-form'),$('revoke-form')];
   const specs={roles:{title:'نقش‌ها',columns:[['name','نام نقش'],['id','شناسهٔ نقش']]},permissions:{title:'مجوزها',columns:[['code','کد مجوز'],['id','شناسهٔ مجوز']]},'role-permissions':{title:'مجوزهای نقش‌ها',columns:[['roleId','شناسهٔ نقش'],['permissionId','شناسهٔ مجوز']]},'user-roles':{title:'نقش‌های حساب‌ها',columns:[['userId','شناسهٔ حساب'],['roleId','شناسهٔ نقش']]},'user-scopes':{title:'محدوده‌های واحد حساب‌ها',columns:[['userId','شناسهٔ حساب'],['orgUnitId','شناسهٔ واحد'],['validFrom','شروع میلادی'],['validUntilExclusive','پایان انحصاری'],['id','شناسهٔ محدوده']]}};
+  const permissionNotes=new Map();
   async function loadPermissions(){
     const data=await request('/workspace/permission-catalog');
     const select=$('permission-form').elements.code;select.replaceChildren();
-    for(const item of data)select.add(new Option(item.title,item.code));
+    for(const item of data){select.add(new Option(item.title,item.code));permissionNotes.set(item.code,item.note);}
     explainPermission();
   }
 
@@ -34,7 +35,7 @@
     'attendance.read.scoped':'فقط همراه مجوز تردد تیم و محدودهٔ معتبر واحد کاربرد دارد.',
     'attendance.read.all':'فقط همراه مجوز تردد تیم کاربرد دارد و دامنهٔ آن سراسری است.'
   };
-  function explainPermission(){const code=$('permission-form').elements.code.value;$('permission-warning').textContent=broadWarnings[code]||'این مجوز و محدودهٔ آن را قبل از اعطا بررسی کنید؛ هیچ مجوزی اختیارات دستگاه یا قابلیت ساخته‌نشده را فعال نمی‌کند.';}
+  function explainPermission(){const code=$('permission-form').elements.code.value;$('permission-warning').textContent=broadWarnings[code]||permissionNotes.get(code)||'این مجوز و محدودهٔ آن را قبل از اعطا بررسی کنید؛ هیچ مجوزی اختیارات دستگاه یا قابلیت ساخته‌نشده را فعال نمی‌کند.';}
   $('permission-form').elements.code.addEventListener('change',explainPermission);explainPermission();
   let kind='roles',offset=0,count=0,busy=false,authorized=false;
   function controls(){$('refresh').disabled=busy;$('previous').disabled=busy||!authorized||offset===0;$('next').disabled=busy||!authorized||count<100||offset>=1000000;for(const tab of $('tabs').querySelectorAll('button'))tab.disabled=busy;$('create-templates').disabled=busy||!authorized;for(const form of forms)for(const e of form.querySelectorAll('input,select,button'))e.disabled=busy||!authorized;}

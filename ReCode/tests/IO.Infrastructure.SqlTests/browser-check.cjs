@@ -142,12 +142,9 @@ async function main() {
     await deniedPeriods.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز'));
     if (await deniedPeriods.locator('#body tr').count() !== 0 || await deniedPeriods.locator('#create-form button').isEnabled())
       throw new Error('Period drafts exposed data without permission');
-    await deniedPeriods.locator('#preflight-form input[name=employeeId]').fill(first);
-    await deniedPeriods.locator('#preflight-form input[name=start]').fill('2027-01-01');
-    await deniedPeriods.locator('#preflight-form input[name=endExclusive]').fill('2027-01-02');
-    const deniedPreflight = deniedPeriods.waitForResponse(r => r.url().includes('/periods/preflight/') && r.request().method() === 'GET');
-    await deniedPeriods.locator('#preflight-form button').click();
-    if ((await deniedPreflight).status() !== 403 || await deniedPeriods.locator('#preflight-result').isVisible())
+    await deniedPeriods.waitForFunction(()=>document.getElementById('preflight-form').hidden);
+    const deniedPreflightStatus=await deniedPeriods.evaluate(async id=>(await fetch('/periods/preflight/'+encodeURIComponent(id)+'?start=2027-01-01&endExclusive=2027-01-02')).status,first);
+    if (deniedPreflightStatus !== 403 || await deniedPeriods.locator('#preflight-result').isVisible())
       throw new Error('Period preflight exposed data without its permission');
     await deniedPeriods.close();
     const deniedOwnRequests = await context.newPage();
