@@ -129,6 +129,29 @@ internal static class DecisionReversalTests
         check(await Query(db=>db.Notifications.CountAsync(n=>n.UserId==self&&n.Text.Contains("بازگردانده")))>=8 &&
               JsonSerializer.SerializeToElement(await Use<DecisionReversals,object>(s=>s.OwnLeaveHistoryAsync(self,daily,0))).GetProperty("items").GetArrayLength()==2,
               "reversal requester receives persisted notifications and complete leave decision history");
+        var racing=await SubmitLeave(1);await DecideLeave(racing);var racingDecision=await LeaveDecision(racing);
+        async Task<bool> RaceLeave(Guid operation){try{await ReverseLeave(racing,racingDecision,operation);return true;}catch(DomainConflictException){return false;}}
+        var racingResults=await Task.WhenAll(RaceLeave(Guid.NewGuid()),RaceLeave(Guid.NewGuid()));
+        // A deadlock victim is a conflict, not an automatic retry or inferred success.
+        check(racingResults.Count(x=>x)==1&&await Query(db=>db.LeaveDecisionReversals.CountAsync(v=>v.DecisionId==racingDecision))==1,
+              "reversal competing distinct leave operation keys cannot produce double compensation");
+        await DecideLeave(racing);var afterReplay=await Query(db=>db.LeaveLedgerEntries.CountAsync(l=>l.LeaveTypeId==type));
+        await ReverseLeave(daily,dailyDecision,dailyOp);
+        check(await Query(db=>db.LeaveLedgerEntries.CountAsync(l=>l.LeaveTypeId==type))==afterReplay&&await Query(db=>db.LeaveRequests.Where(r=>r.Id==racing).Select(r=>r.State).SingleAsync())==1,
+              "reversal replay of historical successful operation cannot undo another cycle or post new ledger entry");
+        var failing=await SubmitLeave(1);await DecideLeave(failing);var failingDecision=await LeaveDecision(failing);var failingOperation=Guid.NewGuid();
+        await Query(async db=>await db.Database.ExecuteSqlRawAsync("CREATE TRIGGER dbo.TR_ReversalTest_NotificationFailure ON dbo.Notifications AFTER INSERT AS BEGIN IF EXISTS(SELECT 1 FROM inserted WHERE Text LIKE N'%forced rollback%') THROW 51099, 'Injected disposable notification failure', 1; END"));
+        try
+        {
+            var failed=false;
+            try{await Use<DecisionReversals,Guid>(r=>r.ReverseLeaveAsync(manager,failing,failingDecision,failingOperation,"forced rollback"));}
+            catch(DbUpdateException e)when(e.InnerException is SqlException sql&&sql.Number==51099){failed=true;}
+            check(failed&&await Query(db=>db.LeaveRequests.Where(r=>r.Id==failing).Select(r=>r.State).SingleAsync())==1&&
+                  !await Query(db=>db.LeaveDecisionReversals.AnyAsync(v=>v.Id==failingOperation))&&
+                  !await Query(db=>db.LeaveLedgerEntries.AnyAsync(l=>l.DocumentNumber=="REV-"+failingOperation.ToString("N"))),
+                  "reversal final-save failure rolls back request transition, prior reversal save and compensation together");
+        }
+        finally{await Query(async db=>await db.Database.ExecuteSqlRawAsync("DROP TRIGGER dbo.TR_ReversalTest_NotificationFailure"));}
         var allOwn=JsonSerializer.SerializeToElement(await Use<LeaveRequests,object>(s=>s.ListOwnAsync(self,0))).GetProperty("items");
         check(allOwn.EnumerateArray().Count(x=>x.GetProperty("Id").GetGuid()==daily)==1,"reversal leave own list does not multiply rows by historical decisions");
     }

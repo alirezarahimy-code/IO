@@ -100,7 +100,8 @@ public sealed class DecisionReversals(IoDbContext db, PermissionTransaction tran
             {
                 var original = await db.LeaveLedgerEntries.AsNoTracking().SingleOrDefaultAsync(l => l.Id == decision.LedgerEntryId, token);
                 if (original is null || original.Kind != 2 || original.Minutes != -request.Minutes || original.EmployeeId != request.EmployeeId ||
-                    original.CompanyId != request.CompanyId || original.LeaveTypeId != request.LeaveTypeId || original.EffectiveDate != request.WorkDate)
+                    original.CompanyId != request.CompanyId || original.LeaveTypeId != request.LeaveTypeId || original.EffectiveDate != request.WorkDate ||
+                    original.PersianYear != IO.Domain.Scheduling.PersianDates.FromGregorian(request.WorkDate).Year)
                     throw new DomainConflictException("Original leave consumption cannot be reconciled; no refund was posted.");
                 compensationId = Guid.NewGuid();
                 db.LeaveLedgerEntries.Add(new() { Id = compensationId.Value, EmployeeId = original.EmployeeId, CompanyId = original.CompanyId,

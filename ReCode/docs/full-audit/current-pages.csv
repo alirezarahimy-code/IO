@@ -37,4 +37,5 @@
 /workspace/report-builder,چیدمان گزارش تشخیصی,admin,ReportBuilder.html,period.preflight,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
 /workspace/executive-home,نمای مدیر ارشد,executive,ExecutiveHome.html,executive.dashboard.read,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
 /panel,ورود و مدیریت آزمایشی IO,technical,Panel.html,identity.manage; identity.roles.manage,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
-/workspace/help,راهنمای سامانه,common,Help.html,,صفحهٔ منطقی؛ API دامنه و حق عملیات را جدا بررسی می‌کند. راهنما همچنین مسیر پارامتری /workspace/help/{topic} دارد.
+/workspace/reversals,تاریخچه و بازگشت تصمیم,workflow,Reversals.html,correction.reverse; leave.request.reverse; correction.requests.read.self; correction.submit.self; leave.request.submit,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/help,راهنمای سامانه,common,Help.html,,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
