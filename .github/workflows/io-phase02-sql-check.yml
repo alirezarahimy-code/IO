@@ -216,7 +216,7 @@ jobs:
         run: |
           set -euo pipefail
           command -v google-chrome >/dev/null
-          npm install --prefix "$RUNNER_TEMP/io-browser" --ignore-scripts --no-audit --no-fund playwright-core@1.56.1
+          npm install --prefix "$RUNNER_TEMP/io-browser" --ignore-scripts --no-audit --no-fund playwright-core@1.56.1 jsdom@26.1.0
       - name: Verify page-first preview in browser
         working-directory: ReCode
         shell: bash
@@ -238,6 +238,12 @@ jobs:
           export NODE_PATH="$RUNNER_TEMP/io-browser/node_modules"
           export IO_CHROME_BINARY="$(command -v google-chrome)"
           node preview/pages-first/browser-check.cjs http://127.0.0.1:4174/
+      - name: Test offline workflow DOM contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          export NODE_PATH="$RUNNER_TEMP/io-browser/node_modules"
+          node ReCode/tests/IO.Infrastructure.SqlTests/reversal-ui-check.cjs
       - name: Test isolated SQL Server Developer
         shell: bash
         run: |

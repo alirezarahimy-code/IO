@@ -13,14 +13,17 @@
 
 // Leave request workflow: submit with idempotent operation, list own, cancel pending.
 (() => {
-  const $=id=>document.getElementById(id),form=$('request-form');let busy=false,offset=0,items=[];
+  const $=id=>document.getElementById(id),form=$('request-form');let busy=false,offset=0,items=[],pendingSubmission=null;
+  form.elements.operationId.value=crypto.randomUUID();
   const stateText=s=>['معلق','تأییدشده','ردشده','لغوشده'][s]??String(s);
   const categoryText=c=>c===1?'اضافه‌کار':c===2?'مأموریت':'مرخصی';
   const kindText=k=>k===0?'روزانه':'ساعتی';
-  async function request(url,options={}){const r=await fetch(url,{...options,credentials:'same-origin',cache:'no-store'});if(!r.ok)
-    throw new Error(r.status===401?'نشست پایان یافته؛ دوباره وارد شوید.':r.status===403?'مجوز لازم را ندارید یا باید گذرواژه را تغییر دهید.':r.status===400?'اطلاعات معتبر نیست یا درخواست تکراری/تصمیم‌گرفته است.':r.status===409?'تعارض رخ داد؛ فهرست را دوباره بگیرید.':'درخواست انجام نشد.');return r.status===204?null:r.json();}
+  async function request(url,options={}){const r=await fetch(url,{...options,credentials:'same-origin',cache:'no-store'});if(!r.ok){
+    if(r.status===401||r.status===403){items=[];rows();}
+    const error=new Error(r.status===401?'نشست پایان یافته؛ دوباره وارد شوید.':r.status===403?'مجوز لازم را ندارید یا باید گذرواژه را تغییر دهید.':r.status===400?'اطلاعات معتبر نیست یا درخواست تکراری/تصمیم‌گرفته است.':r.status===409?'تعارض رخ داد؛ فهرست را دوباره بگیرید.':'درخواست انجام نشد.');error.status=r.status;throw error;}return r.status===204?null:r.json();}
   async function post(url,data){const token=await request('/auth/csrf');return request(url,{method:'POST',headers:{'X-CSRF-TOKEN':token.token,'Content-Type':'application/json'},body:JSON.stringify(data)});}
-  function controls(){for(const e of form.querySelectorAll('input,select,button'))e.disabled=busy||!form.elements.leaveTypeId.options.length;
+  function controls(){for(const e of form.querySelectorAll('input,select,button'))e.disabled=busy||form.elements.leaveTypeId.options.length<2;
+    const hourly=form.elements.kind.value.split(':')[1]==='1';form.elements.fromTime.disabled=busy||!hourly;form.elements.untilTime.disabled=busy||!hourly;
     $('requests-previous').disabled=busy||offset===0;$('requests-next').disabled=busy||items.length<50||offset>=100000;}
   function rows(){$('requests-body').replaceChildren();$('requests-empty').hidden=items.length!==0;
     for(const item of items){const tr=document.createElement('tr');
@@ -34,15 +37,18 @@
       tr.append(td);$('requests-body').append(tr);}}
   async function load(){const data=await request('/leave/requests?offset='+offset);items=data.items;rows();controls();}
   form.addEventListener('submit',async e=>{e.preventDefault();if(busy)return;busy=true;controls();
-    const operationId=crypto.randomUUID();
+    const operationId=form.elements.operationId.value;
     try{const [category,kind]=form.elements.kind.value.split(':').map(Number),wd=form.elements.workDate.value;
       if(kind===1&&(!form.elements.fromTime.value||!form.elements.untilTime.value))throw new Error('برای مرخصی ساعتی هر دو ساعت الزامی است.');
       const payload={operationId,leaveTypeId:form.elements.leaveTypeId.value,category,kind,workDate:wd,
         fromAtUtc:kind===1?wd+'T'+form.elements.fromTime.value+':00Z':null,
         untilAtUtcExclusive:kind===1?wd+'T'+form.elements.untilTime.value+':00Z':null,reason:form.elements.reason.value.trim()};
-      await post('/leave/requests',payload);form.elements.reason.value='';offset=0;await load();
+      const body=JSON.stringify(payload);
+      if(pendingSubmission&&pendingSubmission!==body)throw new Error('نتیجهٔ ثبت قبلی نامعلوم است؛ داده را به حالت قبلی برگردانید و با همان شناسه تکرار کنید.');
+      pendingSubmission=body;
+      await post('/leave/requests',payload);pendingSubmission=null;form.elements.operationId.value=crypto.randomUUID();form.elements.reason.value='';offset=0;await load();
       $('notice').textContent='درخواست مرخصی ثبت شد و در انتظار تصمیم مدیر است.';}
-    catch(err){$('notice').textContent=err instanceof TypeError?'ارتباط قطع شد؛ وضعیت ثبت نامعلوم است.':err.message;}
+    catch(err){if(err.status===400||err.status===401||err.status===403)pendingSubmission=null;$('notice').textContent=err instanceof TypeError?'ارتباط قطع شد؛ وضعیت ثبت نامعلوم است. داده و شناسهٔ عملیات را حفظ و همان درخواست را تکرار کنید.':err.message;}
     finally{busy=false;controls();}});
   form.elements.kind.addEventListener('change',()=>{const hourly=form.elements.kind.value.split(':')[1]==='1';
     form.elements.fromTime.disabled=busy||!hourly;form.elements.untilTime.disabled=busy||!hourly;});

@@ -42,7 +42,7 @@ public sealed class LeaveLedger(IoDbContext db, PermissionTransaction transactio
             return (new {companyId,offset,pageSize=50,items},companyId);
         },ct);
     public Task<object> ListOwnTypesAsync(Guid actor,int offset,CancellationToken ct=default) =>
-        transaction.ExecuteAsync<object>(actor,ReadSelf,"leave.own-types.viewed",async token=>
+        transaction.ExecuteEitherAsync<object>(actor,ReadSelf,LeaveRequests.Submit,"leave.own-types.viewed",async token=>
         {
             if(offset is < 0 or > 100000) throw new ArgumentException("Invalid page.");
             var employee=await (from user in db.Users join emp in db.Employees on user.EmployeeId equals (Guid?)emp.Id

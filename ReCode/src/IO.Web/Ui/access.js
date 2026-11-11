@@ -12,7 +12,7 @@
   conflicts:{'note-form':['attendance.conflicts.note','attendance.ingest']},calculations:{'create-form':['calculation.run','attendance.calculate']},rules:{'create-form':['calculation.rules.create','attendance.calculate']},
   roles:{'role-form':['identity.roles.manage','identity.manage'],'permission-form':['identity.roles.manage','identity.manage'],'scope-form':['identity.roles.manage','identity.manage'],'revoke-form':['identity.roles.manage','identity.manage']},
   users:{'create-form':['identity.users.create','identity.manage'],'state-form':['identity.users.status','identity.manage'],'password-form':['identity.users.password','identity.manage'],'role-form':['identity.roles.manage','identity.manage'],'scope-form':['identity.roles.manage','identity.manage']},
-  'my-leave':{'request-form':['leave.request.submit']},
+  'my-leave':{'request-form':['leave.request.submit'],'filter':['leave.read.self']},
   'leave-admin':{'type-form':['leave.types.create','leave.manage'],'entry-form':['leave.entries.record','leave.manage']},settings:{save:['settings.correction.update','settings.correction.manage']},
   'new-request':{'create-form':['correction.create.self','correction.submit.self']},'my-requests':{'create-form':['correction.create.self','correction.submit.self'],'cancel-form':['correction.cancel.self','correction.submit.self'],'edit-form':['correction.edit.self','correction.submit.self']},
   workflow:{'create-form':['correction.configure']},periods:{'create-form':['period.draft.manage'],'preflight-form':['period.preflight']}
@@ -27,7 +27,7 @@
   }
   const templates=document.getElementById('create-templates');if(templates)templates.hidden=!allowed(['identity.roles.manage','identity.manage']);
   if(caps)for(const a of document.querySelectorAll('a[href^="/workspace"],a[href="/panel"]')){
-   const href=a.getAttribute('href');a.hidden=!(href.startsWith('/workspace/help')||caps.pages.some(p=>p.route===href));
+   const route=new URL(a.getAttribute('href'),location.origin).pathname;a.hidden=!(route==='/workspace/help'||route.startsWith('/workspace/help/')||caps.pages.some(p=>p.route===route));
   }
  }
  // Prevent a synthetic/client submit while the fresh grant set is unavailable or denied.

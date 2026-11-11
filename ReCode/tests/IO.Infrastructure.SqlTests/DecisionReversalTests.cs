@@ -36,13 +36,16 @@ internal static class DecisionReversalTests
             db.UserOrgScopes.AddRange(new UserOrgScopeRecord{Id=Guid.NewGuid(),UserId=manager,OrgUnitId=unit,ValidFrom=today.AddDays(-2)},
                 new UserOrgScopeRecord{Id=Guid.NewGuid(),UserId=duplicate,OrgUnitId=unit,ValidFrom=today.AddDays(-2)});
             foreach(var (r,codes) in new[]{(role,new[]{"correction.reverse","leave.request.reverse","correction.configure","correction.decide.scoped","correction.decide","leave.request.decide","leave.manage","period.draft.manage"}),
-                (ownRole,new[]{"correction.submit.self","leave.request.submit","leave.read.self"})})
+                (ownRole,new[]{"correction.submit.self","leave.request.submit"})})
                 foreach(var code in codes){var p=await db.Permissions.SingleOrDefaultAsync(p=>p.Code==code);if(p is null){p=new(){Id=Guid.NewGuid(),Code=code};db.Permissions.Add(p);}
                     db.RolePermissions.Add(new(){RoleId=r,PermissionId=p.Id});}
             await db.SaveChangesAsync();return true;
         });
         policy=await Use<CorrectionWorkflow,Guid>(s=>s.CreatePolicyAsync(manager,company,manager,"Reversal policy"));
         type=await Use<LeaveLedger,Guid>(s=>s.CreateTypeAsync(manager,company,"Reversal leave","REV-TYPE",480,false));
+        check(JsonSerializer.SerializeToElement(await Use<LeaveLedger,object>(s=>s.ListOwnTypesAsync(self,0))).GetProperty("items").GetArrayLength()==1 &&
+              await Reject<UnauthorizedAccessException>(()=>Use<LeaveLedger,LeaveLedger.Balance>(s=>s.GetOwnBalanceAsync(self,type,day))),
+              "reversal leave submit-only actor can choose eligible type but cannot read private balance without separate permission");
         async Task<Guid> Correction(DateOnly date){return await Use<CorrectionWorkflow,Guid>(s=>s.SubmitAsync(self,policy,date,new DateTimeOffset(date.ToDateTime(new TimeOnly(8,0)),TimeSpan.Zero),0,"reversal test"));}
         Task<bool> DecideCorrection(Guid id,bool approve=true)=>Use<CorrectionWorkflow,bool>(s=>s.DecideAsync(manager,id,approve,approve?null:"rejected"));
         Task<Guid> ReverseCorrection(Guid id,Guid expected,Guid operation,string reason="reconsider",Guid? actor=null)=>Use<DecisionReversals,Guid>(s=>s.ReverseCorrectionAsync(actor??manager,id,expected,operation,reason));
