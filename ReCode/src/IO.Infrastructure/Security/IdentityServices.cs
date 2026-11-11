@@ -54,6 +54,7 @@ public static class IdentityServices
         services.AddScoped<DelegationRegistry>();
         services.AddScoped<CorrectionSettings>();
         services.AddScoped<CorrectionWorkflow>();
+        services.AddScoped<DecisionReversals>();
         services.AddScoped<PeriodPreflight>();
         services.AddScoped<PeriodDrafts>();
         services.AddScoped<PeriodDiagnostics>();

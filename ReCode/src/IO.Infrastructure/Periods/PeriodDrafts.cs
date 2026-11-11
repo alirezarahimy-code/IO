@@ -18,7 +18,8 @@ public sealed class PeriodDrafts(IoDbContext db, PermissionTransaction transacti
             var company = await db.Employees.Where(x => x.Id == employeeId).Select(x => (Guid?)x.CompanyId).SingleOrDefaultAsync(token)
                 ?? throw new ArgumentException("Unknown employee.");
             // Retried identical registrations are idempotent. Overlapping drafts are
-            // deliberately allowed: none is a closed period or blocks any input.
+            // deliberately allowed: none is a closed period. Decision reversal conservatively
+            // protects any overlapping draft until a controlled reopen lifecycle exists.
             var existing = await db.PeriodDrafts.AsNoTracking().SingleOrDefaultAsync(x => x.EmployeeId == employeeId &&
                 x.Start == start && x.EndExclusive == endExclusive, token);
             if (existing is not null) return (existing.Id, existing.Id);

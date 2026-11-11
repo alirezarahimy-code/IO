@@ -169,11 +169,12 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
                               .AsTracking().SingleOrDefaultAsync(token)
                 ?? throw new UnauthorizedAccessException();
             var request = match.Candidate;
-            if (request.State != 0 || await db.CorrectionDecisions.AnyAsync(x => x.RequestId == requestId, token))
+            if (request.State != 0 || await db.CorrectionDecisions.AnyAsync(x => x.RequestId == requestId && !db.CorrectionDecisionReversals.Any(r => r.DecisionId == x.Id), token))
                 throw new DomainConflictException("Request has already been decided or cancelled.");
             request.State = approve ? 1 : 2;
             var decisionId = Guid.NewGuid();
             db.CorrectionDecisions.Add(new() { Id = decisionId, RequestId = requestId, ActorUserId = actor,
+                Sequence = (await db.CorrectionDecisions.Where(x => x.RequestId == requestId).Select(x => (int?)x.Sequence).MaxAsync(token) ?? 0) + 1,
                 Decision = request.State, Reason = reason, AtUtc = DateTimeOffset.UtcNow });
             db.Notifications.Add(new NotificationRecord { Id = Guid.NewGuid(), UserId = request.RequesterUserId,
                 Category = "correction", CreatedAtUtc = DateTimeOffset.UtcNow,
@@ -191,10 +192,11 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
             await transaction.LockAsync("IO.Correction." + requestId.ToString("N"), token);
             var request = await db.CorrectionRequests.SingleOrDefaultAsync(x => x.Id == requestId && x.RequesterUserId == actor, token)
                 ?? throw new UnauthorizedAccessException();
-            if (request.State != 0 || await db.CorrectionDecisions.AnyAsync(x => x.RequestId == requestId, token))
+            if (request.State != 0 || await db.CorrectionDecisions.AnyAsync(x => x.RequestId == requestId && !db.CorrectionDecisionReversals.Any(r => r.DecisionId == x.Id), token))
                 throw new DomainConflictException("Request has already been decided or cancelled.");
             request.State = 3;
             db.CorrectionDecisions.Add(new() { Id = Guid.NewGuid(), RequestId = requestId, ActorUserId = actor,
+                Sequence = (await db.CorrectionDecisions.Where(x => x.RequestId == requestId).Select(x => (int?)x.Sequence).MaxAsync(token) ?? 0) + 1,
                 Decision = 3, Reason = reason, AtUtc = DateTimeOffset.UtcNow });
             return (true, requestId);
         }, ct);
@@ -259,7 +261,7 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
                                join approver in db.Users on policy.ApproverUserId equals approver.Id
                                join approverEmployee in db.Employees on approver.EmployeeId equals (Guid?)approverEmployee.Id into approverEmployees
                                from approverEmployee in approverEmployees.DefaultIfEmpty()
-                               join decision in db.CorrectionDecisions on request.Id equals decision.RequestId into decisions
+                               join decision in db.CorrectionDecisions.Where(d => !db.CorrectionDecisionReversals.Any(r => r.DecisionId == d.Id)) on request.Id equals decision.RequestId into decisions
                                from decision in decisions.DefaultIfEmpty()
                                join decisionActor in db.Users on (Guid?)decision.ActorUserId equals (Guid?)decisionActor.Id into decisionActors
                                from decisionActor in decisionActors.DefaultIfEmpty()
@@ -300,7 +302,7 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
                         where decision.ActorUserId == actor && (policy.ApproverUserId == actor || delegated.Contains(policy.ApproverUserId)) &&
                               decision.Decision != 3 && request.RequesterUserId != actor && authorized.Any(x => x.Id == request.EmployeeId) &&
                               !db.Users.Any(x => x.Id == actor && x.EmployeeId == request.EmployeeId)
-                        select new { decision.RequestId, request.EmployeeId, request.WorkDate, request.ProposedAtUtc, request.PunchKind,
+                        select new { decision.Id, decision.Sequence, Reversed = db.CorrectionDecisionReversals.Any(r => r.DecisionId == decision.Id), decision.RequestId, request.EmployeeId, request.WorkDate, request.ProposedAtUtc, request.PunchKind,
                             RequestReason = request.Reason, decision.Decision, DecisionReason = decision.Reason, decision.AtUtc };
             if (fromDate.HasValue && toDate.HasValue)
             {

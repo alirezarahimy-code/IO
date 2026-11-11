@@ -25,9 +25,9 @@
   function rows(){$('requests-body').replaceChildren();$('requests-empty').hidden=items.length!==0;
     for(const item of items){const tr=document.createElement('tr');
       const cells=[item.workDate,categoryText(item.category)+' '+kindText(item.kind),item.minutes.toLocaleString('fa-IR'),stateText(item.state),
-        item.decision?(stateText(item.decision-1)+(item.decisionReason?' — '+item.decisionReason:'')+' — '+(item.decisionAtUtc??'')):'—'];
+        item.decision?(stateText(item.decision)+(item.decisionReason?' — '+item.decisionReason:'')+' — '+(item.decisionAtUtc??'')):'—'];
       for(const v of cells){const td=document.createElement('td');td.textContent=v;tr.append(td);}
-      const td=document.createElement('td');
+      const td=document.createElement('td');const history=document.createElement('a');history.textContent='تاریخچهٔ کامل';history.href='/workspace/reversals?kind=leave&own='+encodeURIComponent(item.id);td.append(history);
       if(item.state===0){const b=document.createElement('button');b.type='button';b.textContent='لغو';
         b.addEventListener('click',async()=>{if(busy)return;busy=true;controls();try{await post('/leave/requests/'+encodeURIComponent(item.id)+'/cancel',{reason:'لغو توسط درخواست‌دهنده'});await load();}catch(e){$('notice').textContent=e instanceof TypeError?'ارتباط قطع شد؛ وضعیت نامعلوم است.':e.message;}finally{busy=false;controls();}});
         td.append(b);}
@@ -38,16 +38,16 @@
     try{const [category,kind]=form.elements.kind.value.split(':').map(Number),wd=form.elements.workDate.value;
       if(kind===1&&(!form.elements.fromTime.value||!form.elements.untilTime.value))throw new Error('برای مرخصی ساعتی هر دو ساعت الزامی است.');
       const payload={operationId,leaveTypeId:form.elements.leaveTypeId.value,category,kind,workDate:wd,
-        fromAtUtc:from?wd+'T'+form.elements.fromTime.value+':00Z':null,
-        untilAtUtcExclusive:until?wd+'T'+form.elements.untilTime.value+':00Z':null,reason:form.elements.reason.value.trim()};
+        fromAtUtc:kind===1?wd+'T'+form.elements.fromTime.value+':00Z':null,
+        untilAtUtcExclusive:kind===1?wd+'T'+form.elements.untilTime.value+':00Z':null,reason:form.elements.reason.value.trim()};
       await post('/leave/requests',payload);form.elements.reason.value='';offset=0;await load();
       $('notice').textContent='درخواست مرخصی ثبت شد و در انتظار تصمیم مدیر است.';}
     catch(err){$('notice').textContent=err instanceof TypeError?'ارتباط قطع شد؛ وضعیت ثبت نامعلوم است.':err.message;}
     finally{busy=false;controls();}});
   form.elements.kind.addEventListener('change',()=>{const hourly=form.elements.kind.value.split(':')[1]==='1';
     form.elements.fromTime.disabled=busy||!hourly;form.elements.untilTime.disabled=busy||!hourly;});
-  $('requests-previous').addEventListener('click',async()=>{if(busy)return;busy=true;controls();offset-=50;try{await load();}catch(e){offset+=50;busy=false;controls();$('notice').textContent=e.message;}});
-  $('requests-next').addEventListener('click',async()=>{if(busy)return;busy=true;controls();offset+=50;try{await load();}catch(e){offset-=50;busy=false;controls();$('notice').textContent=e.message;}});
+  $('requests-previous').addEventListener('click',async()=>{if(busy)return;busy=true;controls();offset-=50;try{await load();}catch(e){offset+=50;$('notice').textContent=e.message;}finally{busy=false;controls();}});
+  $('requests-next').addEventListener('click',async()=>{if(busy)return;busy=true;controls();offset+=50;try{await load();}catch(e){offset-=50;$('notice').textContent=e.message;}finally{busy=false;controls();}});
   (async()=>{try{const data=await request('/leave/own-types?offset=0');const select=form.elements.leaveTypeId;
       for(const item of data.items)select.append(new Option(item.name+' ('+item.symbol+')',item.id));
       select.disabled=false;form.elements.workDate.disabled=false;form.elements.reason.disabled=false;

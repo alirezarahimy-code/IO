@@ -117,7 +117,7 @@ public sealed class ObservedCalculation(IoDbContext db, PermissionTransaction tr
             // block a numeric result rather than being guessed away.
             var corrections = await (from request in db.CorrectionRequests.AsNoTracking()
                                      join policy in db.CorrectionPolicies on request.PolicyId equals policy.Id
-                                     join decision in db.CorrectionDecisions on request.Id equals decision.RequestId into decisions
+                                     join decision in db.CorrectionDecisions.Where(d => !db.CorrectionDecisionReversals.Any(r => r.DecisionId == d.Id)) on request.Id equals decision.RequestId into decisions
                                      from decision in decisions.DefaultIfEmpty()
                                      where request.EmployeeId == employeeId && request.WorkDate == workDate && (request.State == 0 || request.State == 1)
                                      orderby request.CreatedAtUtc, request.Id

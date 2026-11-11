@@ -331,6 +331,20 @@ public static class IoWebHost
             catch (InvalidOperationException) { return Results.Conflict(); }
             catch (ArgumentOutOfRangeException) { return Results.BadRequest(); }
         });
+        app.MapGet("/workspace/reversals", () => Results.Content(Resource("IO.Web.Ui.Reversals.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/reversals.js", () => Results.Content(Resource("IO.Web.Ui.reversals.js"), "text/javascript; charset=utf-8"));
+        app.MapGet("/corrections/reversals", (int? offset, HttpContext c, DecisionReversals service) =>
+            AdminRead(c, actor => service.ListCorrectionsAsync(actor, offset ?? 0, c.RequestAborted)));
+        app.MapGet("/leave/reversals", (int? offset, HttpContext c, DecisionReversals service) =>
+            AdminRead(c, actor => service.ListLeavesAsync(actor, offset ?? 0, c.RequestAborted)));
+        app.MapGet("/corrections/requests/{id:guid}/history", (Guid id, int? offset, HttpContext c, DecisionReversals service) =>
+            AdminRead(c, actor => service.OwnCorrectionHistoryAsync(actor, id, offset ?? 0, c.RequestAborted)));
+        app.MapGet("/leave/requests/{id:guid}/history", (Guid id, int? offset, HttpContext c, DecisionReversals service) =>
+            AdminRead(c, actor => service.OwnLeaveHistoryAsync(actor, id, offset ?? 0, c.RequestAborted)));
+        app.MapPost("/corrections/requests/{id:guid}/reverse", (Guid id, DecisionReversalInput input, HttpContext c, IAntiforgery csrf, DecisionReversals service) =>
+            Admin(c, csrf, actor => service.ReverseCorrectionAsync(actor, id, input.ExpectedDecisionId, input.OperationId, input.Reason, c.RequestAborted)));
+        app.MapPost("/leave/requests/{id:guid}/reverse", (Guid id, DecisionReversalInput input, HttpContext c, IAntiforgery csrf, DecisionReversals service) =>
+            Admin(c, csrf, actor => service.ReverseLeaveAsync(actor, id, input.ExpectedDecisionId, input.OperationId, input.Reason, c.RequestAborted)));
         app.MapGet("/settings/correction/{companyId:guid}", (Guid companyId,int? offset,HttpContext c,CorrectionSettings service) =>
             AdminRead(c,actor => service.ReadAsync(actor,companyId,offset ?? 0,c.RequestAborted)));
         app.MapGet("/settings/correction-own", (HttpContext c,CorrectionSettings service) =>
@@ -667,3 +681,5 @@ public sealed record DelegationInput(Guid OperationId,Guid DelegateUserId,DateOn
 public sealed record DelegationRevokeInput(string Reason);
 
 public sealed record CorrectionSettingsInput(Guid OperationId,Guid CompanyId,int? ExpectedRevision,int? MaxRequestAgeDays,string Reason,int? DailyRequestLimit,int? MonthlyRequestLimit);
+
+public sealed record DecisionReversalInput(Guid OperationId, Guid ExpectedDecisionId, string Reason);

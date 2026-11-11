@@ -47,6 +47,7 @@ public static class WorkspaceCatalog
         new("/workspace/report-builder", "چیدمان گزارش تشخیصی", "admin", "ReportBuilder.html", ["period.preflight"]),
         new("/workspace/executive-home", "نمای مدیر ارشد", "executive", "ExecutiveHome.html", ["executive.dashboard.read"]),
         new("/panel", "ورود و مدیریت آزمایشی IO", "technical", "Panel.html", ["identity.manage", "identity.roles.manage"]),
+        new("/workspace/reversals", "تاریخچه و بازگشت تصمیم", "workflow", "Reversals.html", ["correction.reverse", "leave.request.reverse", "correction.requests.read.self", "correction.submit.self", "leave.request.submit"]),
         new("/workspace/help", "راهنمای سامانه", "common", "Help.html", []),
     });
 

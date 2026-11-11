@@ -33,6 +33,7 @@ public sealed class CorrectionRequestRecord
 
 public sealed class CorrectionDecisionRecord
 {
+    public int Sequence { get; set; } = 1;
     public Guid Id { get; set; }
     public Guid RequestId { get; set; }
     public Guid ActorUserId { get; set; }

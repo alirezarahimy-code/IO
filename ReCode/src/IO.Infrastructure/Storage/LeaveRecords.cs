@@ -57,9 +57,11 @@ public sealed class LeaveRequestRecord
     public byte[] Version { get; set; } = null!;
 }
 
-/// <summary>Immutable record of the one decision (or requester cancellation) per leave request.</summary>
+/// <summary>Immutable record of each decision cycle (or requester cancellation) per leave request.</summary>
 public sealed class LeaveDecisionRecord
 {
+    public int Sequence { get; set; } = 1;
+    public Guid? LedgerEntryId { get; set; }
     public Guid Id { get; set; }
     public Guid RequestId { get; set; }
     public Guid ActorUserId { get; set; }

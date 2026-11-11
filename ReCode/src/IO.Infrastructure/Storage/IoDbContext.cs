@@ -50,6 +50,9 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
     public DbSet<CorrectionDelegationGrantRecord> CorrectionDelegationGrants => Set<CorrectionDelegationGrantRecord>();
     public DbSet<DelegatedCorrectionDecisionRecord> DelegatedCorrectionDecisions => Set<DelegatedCorrectionDecisionRecord>();
 
+    public DbSet<CorrectionDecisionReversalRecord> CorrectionDecisionReversals => Set<CorrectionDecisionReversalRecord>();
+    public DbSet<LeaveDecisionReversalRecord> LeaveDecisionReversals => Set<LeaveDecisionReversalRecord>();
+
     protected override void OnModelCreating(ModelBuilder model)
     {
         model.Entity<CorrectionDelegationGrantRecord>(b =>
@@ -181,15 +184,49 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
         {
             b.ToTable("LeaveDecisions", t =>
             {
+                t.HasCheckConstraint("CK_LeaveDecisions_Sequence", "[Sequence] > 0");
                 t.HasCheckConstraint("CK_LeaveDecisions_Decision", "[Decision] IN (1,2,3)");
                 t.HasCheckConstraint("CK_LeaveDecisions_Utc", "DATEPART(TZOFFSET, [AtUtc]) = 0");
                 t.HasTrigger("TR_LeaveDecisions_Immutable"); t.UseSqlOutputClause(false);
             });
             b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever(); b.Property(x => x.Reason).HasMaxLength(500);
             b.HasIndex(x => x.ActorUserId);
-            b.HasIndex(x => x.RequestId).IsUnique();
+            b.Property(x => x.Sequence).HasDefaultValue(1);
+            b.HasIndex(x => new { x.RequestId, x.Sequence }).IsUnique();
+            b.HasIndex(x => x.LedgerEntryId).IsUnique().HasFilter("[LedgerEntryId] IS NOT NULL");
+            b.HasOne<LeaveLedgerEntryRecord>().WithMany().HasForeignKey(x => x.LedgerEntryId).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<LeaveRequestRecord>().WithMany().HasForeignKey(x => x.RequestId).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.ActorUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<CorrectionDecisionReversalRecord>(b =>
+        {
+            b.ToTable("CorrectionDecisionReversals", t =>
+            {
+                t.HasCheckConstraint("CK_CorrectionDecisionReversals_Utc", "DATEPART(TZOFFSET, [AtUtc]) = 0");
+                t.HasTrigger("TR_Revision_CorrectionDecisionReversals");
+                t.HasTrigger("TR_CorrectionDecisionReversals_Immutable"); t.UseSqlOutputClause(false);
+            });
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
+            b.Property(x => x.Reason).HasMaxLength(500).IsRequired();
+            b.HasIndex(x => x.DecisionId).IsUnique();
+            b.HasOne<CorrectionDecisionRecord>().WithMany().HasForeignKey(x => x.DecisionId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.ActorUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<LeaveDecisionReversalRecord>(b =>
+        {
+            b.ToTable("LeaveDecisionReversals", t =>
+            {
+                t.HasCheckConstraint("CK_LeaveDecisionReversals_Utc", "DATEPART(TZOFFSET, [AtUtc]) = 0");
+                t.HasTrigger("TR_LeaveDecisionReversals_Immutable"); t.UseSqlOutputClause(false);
+            });
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
+            b.Property(x => x.Reason).HasMaxLength(500).IsRequired();
+            b.HasIndex(x => x.DecisionId).IsUnique();
+            b.HasOne<LeaveDecisionRecord>().WithMany().HasForeignKey(x => x.DecisionId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.ActorUserId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x => x.CompensationLedgerEntryId).IsUnique().HasFilter("[CompensationLedgerEntryId] IS NOT NULL");
+            b.HasOne<LeaveLedgerEntryRecord>().WithMany().HasForeignKey(x => x.OriginalLedgerEntryId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<LeaveLedgerEntryRecord>().WithMany().HasForeignKey(x => x.CompensationLedgerEntryId).OnDelete(DeleteBehavior.Restrict);
         });
         model.Entity<NotificationRecord>(b =>
         {
@@ -426,12 +463,14 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
         {
             b.ToTable("CorrectionDecisions", t =>
             {
+                t.HasCheckConstraint("CK_CorrectionDecisions_Sequence", "[Sequence] > 0");
                 t.HasCheckConstraint("CK_CorrectionDecisions_Decision", "[Decision] IN (1,2,3)");
                 t.HasCheckConstraint("CK_CorrectionDecisions_Utc", "DATEPART(TZOFFSET, [AtUtc]) = 0");
                 t.HasTrigger("TR_CorrectionDecisions_Immutable"); t.UseSqlOutputClause(false);
             });
             b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever(); b.Property(x => x.Reason).HasMaxLength(500);
-            b.HasIndex(x => x.RequestId).IsUnique();
+            b.Property(x => x.Sequence).HasDefaultValue(1);
+            b.HasIndex(x => new { x.RequestId, x.Sequence }).IsUnique();
             b.HasOne<CorrectionRequestRecord>().WithMany().HasForeignKey(x => x.RequestId).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.ActorUserId).OnDelete(DeleteBehavior.Restrict);
         });

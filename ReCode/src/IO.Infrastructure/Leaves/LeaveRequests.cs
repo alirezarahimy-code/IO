@@ -82,7 +82,7 @@ public sealed class LeaveRequests(IoDbContext db, PermissionTransaction transact
             if (offset is < 0 or > 100000) throw new ArgumentException("Invalid page.");
             var (employee, _) = await OwnEmployeeAsync(actor, token);
             var items=await (from request in db.LeaveRequests.AsNoTracking()
-                             join decision in db.LeaveDecisions.AsNoTracking() on request.Id equals decision.RequestId into decisions
+                             join decision in db.LeaveDecisions.AsNoTracking().Where(d => !db.LeaveDecisionReversals.Any(r => r.DecisionId == d.Id)) on request.Id equals decision.RequestId into decisions
                              from decision in decisions.DefaultIfEmpty()
                              where request.RequesterUserId==actor
                              orderby request.CreatedAtUtc descending, request.Id
@@ -114,14 +114,17 @@ public sealed class LeaveRequests(IoDbContext db, PermissionTransaction transact
         {
             if (decision is not (1 or 2)) throw new ArgumentException("Invalid leave decision.");
             if (reason is not null) Text(reason,500);
+            await transaction.LockAsync("IO.LeaveRequest."+id.ToString("N"),token);
             var today=DateOnly.FromDateTime(DateTime.UtcNow);
             var request=await db.LeaveRequests.SingleOrDefaultAsync(x=>x.Id==id,token) ?? throw new ArgumentException("Unknown leave request.");
             if (request.State!=0) throw new DomainConflictException("Leave request already decided.");
             if (request.RequesterUserId==actor) throw new ArgumentException("Self-approval is not allowed.");
             var visible=VisibleEmployees(actor,today);
             if (!await visible.AnyAsync(e=>e.Id==request.EmployeeId,token)) throw new UnauthorizedAccessException();
+            var ledgerId = decision==1 && request.Category==0 ? Guid.NewGuid() : (Guid?)null;
             request.State=decision;
             db.LeaveDecisions.Add(new LeaveDecisionRecord{Id=Guid.NewGuid(),RequestId=request.Id,ActorUserId=actor,
+                Sequence=(await db.LeaveDecisions.Where(x=>x.RequestId==id).Select(x=>(int?)x.Sequence).MaxAsync(token)??0)+1, LedgerEntryId=ledgerId,
                 Decision=decision,Reason=string.IsNullOrWhiteSpace(reason)?null:reason,AtUtc=DateTimeOffset.UtcNow});
             db.Notifications.Add(new NotificationRecord{Id=Guid.NewGuid(),UserId=request.RequesterUserId,
                 Category="leave",CreatedAtUtc=DateTimeOffset.UtcNow,
@@ -132,7 +135,7 @@ public sealed class LeaveRequests(IoDbContext db, PermissionTransaction transact
                 // Only leave approvals consume ledger minutes in the same transaction;
                 // the pending-state guard above prevents a second posting. Overtime and
                 // mission approvals end at the decision record itself.
-                db.LeaveLedgerEntries.Add(new LeaveLedgerEntryRecord{Id=Guid.NewGuid(),CompanyId=request.CompanyId,
+                db.LeaveLedgerEntries.Add(new LeaveLedgerEntryRecord{Id=ledgerId!.Value,CompanyId=request.CompanyId,
                     EmployeeId=request.EmployeeId,LeaveTypeId=request.LeaveTypeId,
                     PersianYear=PersianDates.FromGregorian(request.WorkDate).Year,EffectiveDate=request.WorkDate,
                     Kind=2,Minutes=-request.Minutes,DocumentNumber="LEAVE-"+id.ToString("N")[..12],
@@ -145,11 +148,13 @@ public sealed class LeaveRequests(IoDbContext db, PermissionTransaction transact
         transaction.ExecuteAsync<object>(actor, Submit, "leave.request.cancelled", async token =>
         {
             if (reason is not null) Text(reason,500);
+            await transaction.LockAsync("IO.LeaveRequest."+id.ToString("N"),token);
             var request=await db.LeaveRequests.SingleOrDefaultAsync(x=>x.Id==id && x.RequesterUserId==actor,token)
                 ?? throw new ArgumentException("Unknown own leave request.");
             if (request.State!=0) throw new DomainConflictException("Leave request already decided.");
             request.State=3;
             db.LeaveDecisions.Add(new LeaveDecisionRecord{Id=Guid.NewGuid(),RequestId=request.Id,ActorUserId=actor,
+                Sequence=(await db.LeaveDecisions.Where(x=>x.RequestId==id).Select(x=>(int?)x.Sequence).MaxAsync(token)??0)+1,
                 Decision=3,Reason=string.IsNullOrWhiteSpace(reason)?null:reason,AtUtc=DateTimeOffset.UtcNow});
             return (new {request.Id,state=request.State},request.EmployeeId);
         },ct);

@@ -25,6 +25,7 @@ public static class CalculationMonitorHealth
               (N'SourceEmployeeMappings',N'TR_Revision_SourceEmployeeMappings'), (N'ObservedRuleVersions',N'TR_Revision_ObservedRuleVersions'),
               (N'CorrectionPolicies',N'TR_Revision_CorrectionPolicies'), (N'CorrectionRequests',N'TR_Revision_CorrectionRequests'),
               (N'CorrectionDecisions',N'TR_Revision_CorrectionDecisions'),
+              (N'CorrectionDecisionReversals',N'TR_Revision_CorrectionDecisionReversals'),
               (N'CalculationInputRevision',N'TR_CalculationInputRevision_Monotonic')
             ) AS required([TableName], [TriggerName])
             WHERE EXISTS (
@@ -45,7 +46,7 @@ public static class CalculationMonitorHealth
         try
         {
             var found = await db.Database.SqlQueryRaw<int>(query).SingleAsync(ct);
-            return found == 16 ? Present : Unverified;
+            return found == 17 ? Present : Unverified;
         }
         catch (SqlException e) when (e.Number is 229 or 297)
         {

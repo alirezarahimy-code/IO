@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <ItemGroup>
+    <EmbeddedResource Include="Ui/Reversals.html" />
+    <EmbeddedResource Include="Ui/reversals.js" />
     <EmbeddedResource Include="Ui/Help.html" />
     <EmbeddedResource Include="Ui/help.js" />
     <EmbeddedResource Include="Ui/HelpContent.json" />
