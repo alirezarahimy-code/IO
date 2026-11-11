@@ -90,6 +90,10 @@ internal static class DeviceRegistryTests
         check(wrongPurpose&&lostKeys,"devices ciphertext is bound to device purpose and cannot be decrypted without original key ring");
         var downgradeRefused=false;
         try{await Query(async db=>{await db.GetService<IMigrator>().MigrateAsync("20261111000000_DecisionReversals");return true;});}catch(SqlException e)when(e.Number==51014){downgradeRefused=true;}
+        // EF commits completed Down migrations individually. A newer empty group
+        // schema may already have reverted before the device-history guard stops
+        // the target downgrade. Restore latest before testing other services.
+        await Query(async db=>{await db.GetService<IMigrator>().MigrateAsync();return true;});
         check(downgradeRefused&&await Query(db=>db.Devices.AnyAsync(d=>d.Id==first)),"devices downgrade refuses destructive removal of registered device history");
         check(!await Query(db=>db.RawAttendanceEvents.AnyAsync(e=>e.SourceId==first))&&await Query(db=>db.Devices.Where(d=>d.Id==first).Select(d=>d.Enabled).SingleAsync())==false,"devices metadata and secret writes do not invent attendance events or connection success");
         check(JsonSerializer.SerializeToElement(await Use<DeviceRegistry,object>(s=>s.LocationsAsync(creator,0))).GetProperty("items").GetArrayLength()>0&&await Reject<UnauthorizedAccessException>(()=>Use<DeviceRegistry,object>(s=>s.ListAsync(creator,null,0))),"devices create-only operator may choose a real location without receiving inventory-read rights");
