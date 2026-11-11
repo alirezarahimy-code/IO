@@ -12,6 +12,7 @@
   conflicts:{'note-form':['attendance.conflicts.note','attendance.ingest']},calculations:{'create-form':['calculation.run','attendance.calculate']},rules:{'create-form':['calculation.rules.create','attendance.calculate']},
   roles:{'role-form':['identity.roles.manage','identity.manage'],'permission-form':['identity.roles.manage','identity.manage'],'scope-form':['identity.roles.manage','identity.manage'],'revoke-form':['identity.roles.manage','identity.manage']},
   users:{'create-form':['identity.users.create','identity.manage'],'state-form':['identity.users.status','identity.manage'],'password-form':['identity.users.password','identity.manage'],'role-form':['identity.roles.manage','identity.manage'],'scope-form':['identity.roles.manage','identity.manage']},
+  'my-leave':{'request-form':['leave.request.submit']},
   'leave-admin':{'type-form':['leave.types.create','leave.manage'],'entry-form':['leave.entries.record','leave.manage']},settings:{save:['settings.correction.update','settings.correction.manage']},
   'new-request':{'create-form':['correction.create.self','correction.submit.self']},'my-requests':{'create-form':['correction.create.self','correction.submit.self'],'cancel-form':['correction.cancel.self','correction.submit.self'],'edit-form':['correction.edit.self','correction.submit.self']},
   workflow:{'create-form':['correction.configure']},periods:{'create-form':['period.draft.manage'],'preflight-form':['period.preflight']}

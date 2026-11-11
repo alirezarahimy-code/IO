@@ -2384,51 +2384,61 @@ namespace IO.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
-        modelBuilder.Entity<IO.Infrastructure.Storage.CorrectionDecisionReversalRecord>(b =>
-        {
-            b.Property(x => x.DecisionId).HasColumnType("uniqueidentifier");
-            b.Property(x => x.ActorUserId).HasColumnType("uniqueidentifier");
-            b.Property(x => x.AtUtc).HasColumnType("datetimeoffset");
-            b.ToTable("CorrectionDecisionReversals", t =>
+            modelBuilder.Entity("IO.Infrastructure.Storage.CorrectionDecisionReversalRecord", b =>
             {
-                t.HasCheckConstraint("CK_CorrectionDecisionReversals_Utc", "DATEPART(TZOFFSET, [AtUtc]) = 0");
-                t.HasTrigger("TR_Revision_CorrectionDecisionReversals");
-                t.HasTrigger("TR_CorrectionDecisionReversals_Immutable"); t.UseSqlOutputClause(false);
+                b.Property<Guid>("Id").HasColumnType("uniqueidentifier");
+                b.Property<Guid>("DecisionId").HasColumnType("uniqueidentifier");
+                b.Property<Guid>("ActorUserId").HasColumnType("uniqueidentifier");
+                b.Property<string>("Reason").IsRequired().HasMaxLength(500).HasColumnType("nvarchar(500)");
+                b.Property<DateTimeOffset>("AtUtc").HasColumnType("datetimeoffset");
+                b.HasKey("Id");
+                b.HasIndex("ActorUserId");
+                b.HasIndex("DecisionId").IsUnique();
+                b.ToTable("CorrectionDecisionReversals", null, t =>
+                {
+                    t.HasCheckConstraint("CK_CorrectionDecisionReversals_Utc", "DATEPART(TZOFFSET, [AtUtc]) = 0");
+                    t.HasTrigger("TR_CorrectionDecisionReversals_Immutable");
+                    t.HasTrigger("TR_Revision_CorrectionDecisionReversals");
+                });
+                b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
             });
-            b.HasKey(x => x.Id); b.Property(x => x.Id).HasColumnType("uniqueidentifier").ValueGeneratedNever();
-            b.Property(x => x.Reason).HasMaxLength(500).HasColumnType("nvarchar(500)").IsRequired();
-            b.HasIndex(x => x.ActorUserId);
-            b.HasIndex(x => x.DecisionId).IsUnique();
-            b.HasOne<IO.Infrastructure.Storage.CorrectionDecisionRecord>().WithMany().HasForeignKey(x => x.DecisionId).OnDelete(DeleteBehavior.Restrict);
-            b.HasOne<IO.Infrastructure.Storage.UserRecord>().WithMany().HasForeignKey(x => x.ActorUserId).OnDelete(DeleteBehavior.Restrict);
-        });
-        modelBuilder.Entity<IO.Infrastructure.Storage.LeaveDecisionReversalRecord>(b =>
-        {
-            b.Property(x => x.DecisionId).HasColumnType("uniqueidentifier");
-            b.Property(x => x.ActorUserId).HasColumnType("uniqueidentifier");
-            b.Property(x => x.AtUtc).HasColumnType("datetimeoffset");
-            b.Property(x => x.OriginalLedgerEntryId).HasColumnType("uniqueidentifier");
-            b.Property(x => x.CompensationLedgerEntryId).HasColumnType("uniqueidentifier");
-            b.ToTable("LeaveDecisionReversals", t =>
+            modelBuilder.Entity("IO.Infrastructure.Storage.LeaveDecisionReversalRecord", b =>
             {
-                t.HasCheckConstraint("CK_LeaveDecisionReversals_Utc", "DATEPART(TZOFFSET, [AtUtc]) = 0");
-                t.HasTrigger("TR_LeaveDecisionReversals_Immutable"); t.UseSqlOutputClause(false);
+                b.Property<Guid>("Id").HasColumnType("uniqueidentifier");
+                b.Property<Guid>("DecisionId").HasColumnType("uniqueidentifier");
+                b.Property<Guid>("ActorUserId").HasColumnType("uniqueidentifier");
+                b.Property<string>("Reason").IsRequired().HasMaxLength(500).HasColumnType("nvarchar(500)");
+                b.Property<DateTimeOffset>("AtUtc").HasColumnType("datetimeoffset");
+                b.HasKey("Id");
+                b.HasIndex("ActorUserId");
+                b.HasIndex("DecisionId").IsUnique();
+                b.Property<Guid?>("OriginalLedgerEntryId").HasColumnType("uniqueidentifier");
+                b.Property<Guid?>("CompensationLedgerEntryId").HasColumnType("uniqueidentifier");
+                b.HasIndex("OriginalLedgerEntryId");
+                b.HasIndex("CompensationLedgerEntryId").IsUnique().HasFilter("[CompensationLedgerEntryId] IS NOT NULL");
+                b.ToTable("LeaveDecisionReversals", null, t =>
+                {
+                    t.HasCheckConstraint("CK_LeaveDecisionReversals_Utc", "DATEPART(TZOFFSET, [AtUtc]) = 0");
+                    t.HasTrigger("TR_LeaveDecisionReversals_Immutable");
+                });
+                b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
             });
-            b.HasKey(x => x.Id); b.Property(x => x.Id).HasColumnType("uniqueidentifier").ValueGeneratedNever();
-            b.Property(x => x.Reason).HasMaxLength(500).HasColumnType("nvarchar(500)").IsRequired();
-            b.HasIndex(x => x.ActorUserId);
-            b.HasIndex(x => x.DecisionId).IsUnique();
-            b.HasOne<IO.Infrastructure.Storage.LeaveDecisionRecord>().WithMany().HasForeignKey(x => x.DecisionId).OnDelete(DeleteBehavior.Restrict);
-            b.HasOne<IO.Infrastructure.Storage.UserRecord>().WithMany().HasForeignKey(x => x.ActorUserId).OnDelete(DeleteBehavior.Restrict);
-            b.HasIndex(x => x.OriginalLedgerEntryId);
-            b.HasIndex(x => x.CompensationLedgerEntryId).IsUnique().HasFilter("[CompensationLedgerEntryId] IS NOT NULL");
-            b.HasOne<IO.Infrastructure.Storage.LeaveLedgerEntryRecord>().WithMany().HasForeignKey(x => x.OriginalLedgerEntryId).OnDelete(DeleteBehavior.Restrict);
-            b.HasOne<IO.Infrastructure.Storage.LeaveLedgerEntryRecord>().WithMany().HasForeignKey(x => x.CompensationLedgerEntryId).OnDelete(DeleteBehavior.Restrict);
-        });
-        modelBuilder.Entity("IO.Infrastructure.Storage.LeaveDecisionRecord", b =>
-        {
-            b.HasOne("IO.Infrastructure.Storage.LeaveLedgerEntryRecord", null).WithMany().HasForeignKey("LedgerEntryId").OnDelete(DeleteBehavior.Restrict);
-        });
+            modelBuilder.Entity("IO.Infrastructure.Storage.CorrectionDecisionReversalRecord", b =>
+            {
+                b.HasOne("IO.Infrastructure.Storage.CorrectionDecisionRecord", null).WithMany().HasForeignKey("DecisionId").OnDelete(DeleteBehavior.Restrict).IsRequired();
+                b.HasOne("IO.Infrastructure.Storage.UserRecord", null).WithMany().HasForeignKey("ActorUserId").OnDelete(DeleteBehavior.Restrict).IsRequired();
+            });
+            modelBuilder.Entity("IO.Infrastructure.Storage.LeaveDecisionReversalRecord", b =>
+            {
+                b.HasOne("IO.Infrastructure.Storage.LeaveDecisionRecord", null).WithMany().HasForeignKey("DecisionId").OnDelete(DeleteBehavior.Restrict).IsRequired();
+                b.HasOne("IO.Infrastructure.Storage.UserRecord", null).WithMany().HasForeignKey("ActorUserId").OnDelete(DeleteBehavior.Restrict).IsRequired();
+                b.HasOne("IO.Infrastructure.Storage.LeaveLedgerEntryRecord", null).WithMany().HasForeignKey("OriginalLedgerEntryId").OnDelete(DeleteBehavior.Restrict);
+                b.HasOne("IO.Infrastructure.Storage.LeaveLedgerEntryRecord", null).WithMany().HasForeignKey("CompensationLedgerEntryId").OnDelete(DeleteBehavior.Restrict);
+            });
+            modelBuilder.Entity("IO.Infrastructure.Storage.LeaveDecisionRecord", b =>
+            {
+                b.HasOne("IO.Infrastructure.Storage.LeaveLedgerEntryRecord", null).WithMany().HasForeignKey("LedgerEntryId").OnDelete(DeleteBehavior.Restrict);
+            });
 #pragma warning restore 612, 618
         }
     }

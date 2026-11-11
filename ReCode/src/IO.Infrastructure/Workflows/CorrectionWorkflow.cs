@@ -272,6 +272,7 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
                                orderby request.CreatedAtUtc descending, request.Id
                                select new { request.Id, request.EmployeeId, request.PolicyId, request.WorkDate, request.ProposedAtUtc,
                                    request.PunchKind, request.Reason, request.State, request.CreatedAtUtc,
+                                   CanEditPayload = !db.CorrectionDecisions.Any(d => d.RequestId == request.Id),
                                    PolicyName = policy.Name, policy.ApproverUserId,
                                    ApproverDisplayName = approverEmployee == null ? null : approverEmployee.DisplayName,
                                    request.CorrectionSettingsId, SettingsRevision = settings == null ? (int?)null : settings.Revision,

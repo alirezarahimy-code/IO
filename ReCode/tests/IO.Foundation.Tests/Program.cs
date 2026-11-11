@@ -42,4 +42,7 @@ Check(SystemHelp.CanRead(articles.Single(a => a.Slug == "executive-home"), true,
 Check(!Resource("help.js").Contains("innerHTML", StringComparison.Ordinal), "help renders content with safe DOM text operations");
 Check(WorkspaceCatalog.Pages.All(p => Resource(p.Resource).Contains("/assets/theme.js", StringComparison.Ordinal)), "all pages carry context help toolbar");
 Check(WorkspaceCatalog.Pages.All(p => !Regex.IsMatch(Resource(p.Resource), "<(?:script|link)[^>]+(?:src|href)=[\"']https?://")), "pages use local assets without CDN dependencies");
+Check(PermissionCatalog.Codes.Contains("correction.reverse") && PermissionCatalog.Codes.Contains("leave.request.reverse"), "both reversal permissions are independently registered");
+Check(PermissionCatalog.Templates.Where(t => t.Key is "manager" or "admin").All(t => t.Permissions.Contains("correction.reverse") && t.Permissions.Contains("leave.request.reverse")) && !PermissionCatalog.Templates.Single(t => t.Key == "employee").Permissions.Contains("correction.reverse"), "known managerial templates have reversal rights without self-service escalation");
+Check(!Resource("reversals.js").Contains("innerHTML", StringComparison.Ordinal) && Resource("reversals.js").Contains("expectedDecisionId", StringComparison.Ordinal), "reversal UI safely renders evidence and binds expected decision");
 Console.WriteLine($"PASS {count} foundation catalogue and offline-help checks on {System.Runtime.InteropServices.RuntimeInformation.OSDescription}");

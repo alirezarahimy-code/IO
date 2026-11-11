@@ -429,7 +429,7 @@ async function main() {
       await waitText('result');
       return JSON.parse(await page.locator('#result').textContent()).result;
     }
-    for (const code of ['organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.read.team', 'attendance.read.all', 'executive.dashboard.read', 'leave.manage', 'settings.correction.manage', 'attendance.calculate', 'correction.configure', 'correction.decide', 'correction.decide.all', 'period.preflight', 'period.draft.manage', 'period.diagnostic.manage']) {
+    for (const code of ['organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.read.team', 'attendance.read.all', 'executive.dashboard.read', 'leave.manage', 'settings.correction.manage', 'attendance.calculate', 'correction.configure', 'correction.reverse', 'correction.decide', 'correction.decide.all', 'period.preflight', 'period.draft.manage', 'period.diagnostic.manage']) {
       await page.locator('#permission input[name=roleId]').fill(role);
       await page.locator('#permission select[name=code]').selectOption(code);
       await submit('permission');
@@ -1549,6 +1549,23 @@ async function main() {
     await clearResult();
     await page.locator('#correction-decisions button').click();
     await waitText(requestId);
+    const reversalsPage=await context.newPage();
+    await reversalsPage.goto(address+'/workspace/reversals');
+    const reversalRow=reversalsPage.locator('#body tr').filter({hasText:requestId});
+    await reversalRow.locator('button').click();
+    await reversalsPage.locator('#reverse-form textarea[name=reason]').fill('بازگشت آزمایشی مرورگر');
+    const browserReversalOperation=await reversalsPage.locator('#reverse-form input[name=operationId]').inputValue();
+    if(!browserReversalOperation)throw new Error('Reversal form omitted retry operation identifier');
+    await reversalsPage.locator('#reverse-form button[type=submit]').click();
+    await reversalsPage.waitForFunction(()=>document.getElementById('notice').textContent.includes('بازگشت ثبت شد'));
+    if(!(await reversalRow.textContent()).includes('بازگشت آزمایشی مرورگر') || await reversalRow.locator('button').count())
+      throw new Error('Reversal form did not persist reason or retained a stale action');
+    await page.locator('#correction-decision input[name=id]').fill(requestId);
+    await page.locator('#correction-decision input[name=reason]').fill('Browser reapproval after reversal');
+    await submit('correction-decision');
+    await reversalsPage.locator('#refresh').click();
+    await reversalsPage.waitForFunction(id=>[...document.querySelectorAll('#body tr')].filter(x=>x.textContent.includes(id)).length===2,requestId);
+    await reversalsPage.close();
     await clearResult();
     await page.locator('#logout').click();
     await waitText('عملیات انجام شد.');
