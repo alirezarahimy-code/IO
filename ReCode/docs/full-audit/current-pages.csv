@@ -3,7 +3,7 @@
 /workspace,پنل من,common,Index.html,,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
 /workspace/account,حساب و گذرواژه,common,Account.html,,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
 /workspace/employee-home,نمای کلی من,employee,EmployeeHome.html,correction.requests.read.self; correction.submit.self,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
-/workspace/new-request,درخواست‌های من,employee,MyRequests.html,correction.submit.self,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/new-request,درخواست‌های من,employee,MyRequests.html,correction.create.self; correction.submit.self,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
 /workspace/my-requests,درخواست‌های من,employee,MyRequests.html,correction.requests.read.self; correction.submit.self,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
 /workspace/my-attendance,ترددهای من,employee,MyAttendance.html,attendance.read.self,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
 /workspace/my-schedule,برنامهٔ من,employee,MySchedule.html,schedule.read.self,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
