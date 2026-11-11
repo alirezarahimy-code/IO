@@ -429,7 +429,7 @@ async function main() {
       await waitText('result');
       return JSON.parse(await page.locator('#result').textContent()).result;
     }
-    for (const code of ['organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.read.team', 'attendance.read.all', 'executive.dashboard.read', 'leave.manage', 'settings.correction.manage', 'attendance.calculate', 'correction.configure', 'correction.reverse', 'correction.decide', 'correction.decide.all', 'period.preflight', 'period.draft.manage', 'period.diagnostic.manage']) {
+    for (const code of ['devices.read', 'devices.create', 'devices.update', 'devices.credentials.manage', 'organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.read.team', 'attendance.read.all', 'executive.dashboard.read', 'leave.manage', 'settings.correction.manage', 'attendance.calculate', 'correction.configure', 'correction.reverse', 'correction.decide', 'correction.decide.all', 'period.preflight', 'period.draft.manage', 'period.diagnostic.manage']) {
       await page.locator('#permission input[name=roleId]').fill(role);
       await page.locator('#permission select[name=code]').selectOption(code);
       await submit('permission');
@@ -535,6 +535,32 @@ async function main() {
     await page.locator('#site input[name=name]').fill('Browser synthetic site');
     await page.locator('#site input[name=timeZoneId]').fill('Asia/Tehran');
     const site = await submit('site');
+    const devicesPage=await context.newPage();
+    await devicesPage.goto(address+'/workspace/devices');
+    await devicesPage.waitForFunction(()=>!document.querySelector('#device-form button[type=submit]').disabled);
+    for(const number of ['BROWSER-S04-A','BROWSER-S04-B']){
+      await devicesPage.locator('#device-form input[name=siteId]').fill(site);
+      await devicesPage.locator('#device-form input[name=number]').fill(number);
+      await devicesPage.locator('#device-form input[name=name]').fill('Browser device '+number);
+      await devicesPage.locator('#device-form input[name=model]').fill('Unverified model');
+      await devicesPage.locator('#device-form select[name=profile]').selectOption('offline-file');
+      await devicesPage.locator('#device-form button[type=submit]').click();
+      await devicesPage.locator('#body tr').filter({hasText:number}).waitFor();
+    }
+    const deviceRow=devicesPage.locator('#body tr').filter({hasText:'BROWSER-S04-A'});
+    await deviceRow.locator('button').click();
+    await devicesPage.locator('#device-form input[name=name]').fill('Browser renamed inventory');
+    await devicesPage.locator('#device-form button[type=submit]').click();
+    await deviceRow.filter({hasText:'Browser renamed inventory'}).waitFor();
+    await deviceRow.locator('button').click();
+    await devicesPage.locator('#credential-form input[name=secret]').fill('Synthetic browser device secret!');
+    await devicesPage.locator('#credential-form button').click();
+    await devicesPage.waitForFunction(()=>document.getElementById('notice').textContent.includes('تغییر رمز ثبت شد'));
+    await deviceRow.filter({hasText:'رمز دارد'}).waitFor();
+    if(await devicesPage.locator('#credential-form input[name=secret]').inputValue())throw new Error('Device credential input retained secret');
+    if(!(await deviceRow.textContent()).includes('آزموده‌نشده'))throw new Error('Device registry invented live connection state');
+    await devicesPage.close();
+
     const sourcePage = await context.newPage();
     await sourcePage.goto(address + '/workspace/sources');
     await sourcePage.waitForFunction(() => !document.querySelector('#create-form button').disabled);
@@ -1577,7 +1603,7 @@ async function main() {
     if(!await panelPage.locator('a[href="/workspace/organization"]').count() || !await panelPage.locator('a[href="/workspace/inbox"]').count())
       throw new Error('Role panel did not list admin and manager tools');
     await panelPage.close();
-    const routes = ['/workspace/reversals','/workspace/help','/workspace/help/roles','/workspace','/workspace/employee-home','/workspace/my-attendance','/workspace/my-schedule','/workspace/my-leave','/workspace/my-reports','/workspace/new-request','/workspace/my-requests','/workspace/delegation','/workspace/account','/workspace/manager-home','/workspace/inbox','/workspace/decision-history','/workspace/team-attendance','/workspace/organization','/workspace/employees','/workspace/users','/workspace/roles','/workspace/calendars','/workspace/shifts','/workspace/schedules','/workspace/employee-history','/workspace/sources','/workspace/settings','/workspace/raw-events','/workspace/mappings','/workspace/conflicts','/workspace/calculations','/workspace/rules','/workspace/periods','/workspace/leave-admin','/workspace/reports','/workspace/report-builder','/workspace/workflow','/workspace/audit','/workspace/executive-home','/panel'];
+    const routes = ['/workspace/devices','/workspace/reversals','/workspace/help','/workspace/help/roles','/workspace','/workspace/employee-home','/workspace/my-attendance','/workspace/my-schedule','/workspace/my-leave','/workspace/my-reports','/workspace/new-request','/workspace/my-requests','/workspace/delegation','/workspace/account','/workspace/manager-home','/workspace/inbox','/workspace/decision-history','/workspace/team-attendance','/workspace/organization','/workspace/employees','/workspace/users','/workspace/roles','/workspace/calendars','/workspace/shifts','/workspace/schedules','/workspace/employee-history','/workspace/sources','/workspace/settings','/workspace/raw-events','/workspace/mappings','/workspace/conflicts','/workspace/calculations','/workspace/rules','/workspace/periods','/workspace/leave-admin','/workspace/reports','/workspace/report-builder','/workspace/workflow','/workspace/audit','/workspace/executive-home','/panel'];
     const scriptFailures = [];
     for (const route of routes) {
       const health = await context.newPage();

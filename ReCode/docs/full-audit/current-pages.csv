@@ -39,3 +39,4 @@
 /panel,ورود و مدیریت آزمایشی IO,technical,Panel.html,identity.manage; identity.roles.manage,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
 /workspace/reversals,تاریخچه و بازگشت تصمیم,workflow,Reversals.html,correction.reverse; leave.request.reverse; correction.requests.read.self; correction.submit.self; leave.request.submit,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
 /workspace/help,راهنمای سامانه,common,Help.html,,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/devices,مدیریت دستگاه‌های تردد,operator,Devices.html,devices.read; devices.create; devices.update; devices.credentials.manage,موجودی DB؛ پروفایل ارتباط تأییدنشده، نه اتصال واقعی.

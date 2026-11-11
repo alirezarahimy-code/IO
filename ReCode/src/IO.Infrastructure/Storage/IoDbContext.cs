@@ -53,8 +53,40 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
     public DbSet<CorrectionDecisionReversalRecord> CorrectionDecisionReversals => Set<CorrectionDecisionReversalRecord>();
     public DbSet<LeaveDecisionReversalRecord> LeaveDecisionReversals => Set<LeaveDecisionReversalRecord>();
 
+    public DbSet<DeviceRecord> Devices => Set<DeviceRecord>();
+    public DbSet<DeviceSecretRecord> DeviceSecrets => Set<DeviceSecretRecord>();
+
     protected override void OnModelCreating(ModelBuilder model)
     {
+        model.Entity<DeviceRecord>(b =>
+        {
+            b.ToTable("Devices", t =>
+            {
+                t.HasCheckConstraint("CK_Devices_Number", "LEN([Number]) BETWEEN 1 AND 40 AND [Number] COLLATE Latin1_General_100_BIN2 NOT LIKE '%[^A-Z0-9_-]%' AND LEFT([Number],1) COLLATE Latin1_General_100_BIN2 LIKE '[A-Z0-9]'");
+                t.HasCheckConstraint("CK_Devices_Profile", "([Profile] = N'zk-standalone' AND [Host] IS NOT NULL AND [Port] IS NOT NULL AND [Port] BETWEEN 1 AND 65535) OR ([Profile] IN (N'zk-push', N'offline-file') AND [Host] IS NULL AND [Port] IS NULL)");
+                t.HasCheckConstraint("CK_Devices_Utc", "DATEPART(TZOFFSET,[CreatedAtUtc]) = 0 AND DATEPART(TZOFFSET,[UpdatedAtUtc]) = 0 AND [UpdatedAtUtc] >= [CreatedAtUtc]");
+                t.HasTrigger("TR_Devices_Identity"); t.UseSqlOutputClause(false);
+            });
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
+            b.Property(x => x.Number).HasMaxLength(40).IsRequired();
+            b.Property(x => x.Name).HasMaxLength(200).IsRequired();
+            b.Property(x => x.Model).HasMaxLength(120).IsRequired();
+            b.Property(x => x.Profile).HasMaxLength(32).IsRequired();
+            b.Property(x => x.Host).HasMaxLength(253);
+            b.Property(x => x.CreationFingerprint).HasMaxLength(64).IsRequired();
+            b.Property(x => x.Version).IsRowVersion();
+            b.HasIndex(x => x.Number).IsUnique(); b.HasIndex(x => x.SourceId).IsUnique();
+            b.HasIndex(x => x.SiteId); b.HasIndex(x => x.CreatedByUserId);
+            b.HasOne<SiteRecord>().WithMany().HasForeignKey(x => x.SiteId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<EventSourceRecord>().WithMany().HasForeignKey(x => x.SourceId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<DeviceSecretRecord>(b =>
+        {
+            b.ToTable("DeviceSecrets"); b.HasKey(x => x.DeviceId); b.Property(x => x.DeviceId).ValueGeneratedNever();
+            b.Property(x => x.ProtectedValue).HasMaxLength(2048).IsRequired();
+            b.HasOne<DeviceRecord>().WithMany().HasForeignKey(x => x.DeviceId).OnDelete(DeleteBehavior.Restrict);
+        });
         model.Entity<CorrectionDelegationGrantRecord>(b =>
         {
             b.ToTable("CorrectionDelegationGrants", t =>

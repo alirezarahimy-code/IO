@@ -1,3 +1,4 @@
+using IO.Infrastructure.Devices;
 using IO.Infrastructure.Security;
 using IO.Infrastructure.Organization;
 using IO.Infrastructure.Attendance;
@@ -177,6 +178,8 @@ public static class IoWebHost
                 permissions = page.AnyPermissions });
         }).AllowAnonymous();
         app.MapGet("/workspace/account", () => Results.Content(Resource("IO.Web.Ui.Account.html"), "text/html; charset=utf-8"));
+        app.MapGet("/workspace/devices", () => Results.Content(Resource("IO.Web.Ui.Devices.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/devices.js", () => Results.Content(Resource("IO.Web.Ui.devices.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/assets/account.js", () => Results.Content(Resource("IO.Web.Ui.account.js"), "text/javascript; charset=utf-8"));
         // Shell and assets are authenticated; all data operations additionally
         // enforce organization.manage in the service, never merely in the UI.
@@ -359,6 +362,21 @@ public static class IoWebHost
             Admin(c,csrf,actor => service.AssignAsync(actor,input.OperationId,input.DelegateUserId,input.ValidFrom,input.ValidUntilExclusive,c.RequestAborted)));
         app.MapPost("/delegations/{id:guid}/revoke", (Guid id,DelegationRevokeInput input,HttpContext c,IAntiforgery csrf,DelegationRegistry service) =>
             Admin(c,csrf,actor => service.RevokeAsync(actor,id,input.Reason,c.RequestAborted)));
+        app.MapGet("/devices", (HttpContext c, DeviceRegistry service, Guid? companyId, int offset = 0) =>
+            AdminRead(c, actor => service.ListAsync(actor, companyId, offset, c.RequestAborted)));
+        app.MapGet("/devices/locations", (HttpContext c, DeviceRegistry service, int offset = 0) =>
+            AdminRead(c, actor => service.LocationsAsync(actor, offset, c.RequestAborted)));
+        app.MapGet("/devices/{id:guid}", (Guid id, HttpContext c, DeviceRegistry service) =>
+            AdminRead(c, actor => service.GetAsync(actor, id, c.RequestAborted)));
+        app.MapGet("/devices/{id:guid}/capabilities", (Guid id, HttpContext c, DeviceRegistry service) =>
+            AdminRead(c, actor => service.CapabilitiesAsync(actor, id, c.RequestAborted)));
+        app.MapPost("/devices", (DeviceCreateInput input, HttpContext c, IAntiforgery csrf, DeviceRegistry service) =>
+            Admin(c, csrf, actor => service.CreateAsync(actor, input.OperationId, input.Device, c.RequestAborted)));
+        app.MapPost("/devices/{id:guid}", (Guid id, DeviceUpdateInput input, HttpContext c, IAntiforgery csrf, DeviceRegistry service) =>
+            Admin(c, csrf, actor => service.UpdateAsync(actor, id, input.ExpectedVersion, input.Device, c.RequestAborted)));
+        app.MapPost("/devices/{id:guid}/credential", (Guid id, DeviceCredentialInput input, HttpContext c, IAntiforgery csrf, DeviceRegistry service) =>
+            Admin(c, csrf, actor => service.SetCredentialAsync(actor, id, input.ExpectedVersion, input.Secret, c.RequestAborted)));
+
         app.MapPost("/leave/types", (LeaveTypeInput input, HttpContext c, IAntiforgery csrf, LeaveLedger service) =>
             Admin(c, csrf, actor => service.CreateTypeAsync(actor,input.CompanyId,input.Name,input.Symbol,input.MinutesPerDay,input.CarryOverAllowed,c.RequestAborted)));
         app.MapGet("/leave/types/{companyId:guid}", (Guid companyId, int? offset, HttpContext c, LeaveLedger service) =>
@@ -683,3 +701,7 @@ public sealed record DelegationRevokeInput(string Reason);
 public sealed record CorrectionSettingsInput(Guid OperationId,Guid CompanyId,int? ExpectedRevision,int? MaxRequestAgeDays,string Reason,int? DailyRequestLimit,int? MonthlyRequestLimit);
 
 public sealed record DecisionReversalInput(Guid OperationId, Guid ExpectedDecisionId, string Reason);
+
+public sealed record DeviceCreateInput(Guid OperationId, DeviceRegistry.Input Device);
+public sealed record DeviceUpdateInput(byte[] ExpectedVersion, DeviceRegistry.Input Device);
+public sealed record DeviceCredentialInput(byte[] ExpectedVersion, string? Secret);

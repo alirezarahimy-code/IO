@@ -1,3 +1,5 @@
+using IO.Infrastructure.Devices;
+using Microsoft.AspNetCore.DataProtection;
 using System.Data;
 using IO.Infrastructure.Organization;
 using IO.Infrastructure.Attendance;
@@ -40,6 +42,8 @@ public static class IdentityServices
         services.AddScoped<InitialAdministrator>();
         services.AddScoped<IdentityAdministration>();
         services.AddScoped<PersonalCredentials>();
+        services.AddDataProtection();
+        services.AddScoped<DeviceRegistry>();
         services.AddScoped<PermissionTransaction>();
         services.AddScoped<OrganizationManagement>();
         services.AddScoped<AttendanceIngestion>();

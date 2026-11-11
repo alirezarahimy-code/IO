@@ -7,19 +7,19 @@
   $('logout').addEventListener('click',async()=>{if($('logout').disabled)return;$('logout').disabled=true;signedOut=true;
     try{const csrf=await request('/auth/csrf');await fetch('/auth/logout',{method:'POST',credentials:'same-origin',headers:{'X-CSRF-TOKEN':csrf.token}});$('notice').textContent='از حساب خارج شدید؛ برای ورود دوباره به صفحهٔ ورود بروید.';}
     catch{$('logout').disabled=false;signedOut=false;$('notice').textContent='خروج انجام نشد؛ دوباره تلاش کنید.';}});
-  async function refreshMenus(){try{const caps=await request('/workspace/capabilities');if(signedOut)return;for(const group of ['employee','manager','admin','executive','technical','workflow']){const list=$(group+'-links');list.replaceChildren();for(const item of caps.pages.filter(p=>p.group===group)){const li=document.createElement('li'),a=document.createElement('a');a.href=item.route;a.textContent=item.title;li.append(a);list.append(li);}$(group+'-panel').hidden=!list.children.length;}$('operator-panel').hidden=!caps.operator;$('empty-panel').hidden=caps.operator||caps.pages.some(p=>p.group!=='common');}catch{for(const group of ['employee','manager','admin','executive','technical','workflow']){$(group+'-links').replaceChildren();$(group+'-panel').hidden=true;}$('operator-panel').hidden=true;}}
+  async function refreshMenus(){try{const caps=await request('/workspace/capabilities');if(signedOut)return;for(const group of ['employee','manager','admin','executive','technical','workflow','operator']){const list=$(group+'-links');list.replaceChildren();for(const item of caps.pages.filter(p=>p.group===group)){const li=document.createElement('li'),a=document.createElement('a');a.href=item.route;a.textContent=item.title;li.append(a);list.append(li);}$(group+'-panel').hidden=!list.children.length;}$('operator-panel').hidden=!caps.operator&&!caps.pages.some(p=>p.group==='operator');$('empty-panel').hidden=caps.operator||caps.pages.some(p=>p.group!=='common');}catch{for(const group of ['employee','manager','admin','executive','technical','workflow','operator']){$(group+'-links').replaceChildren();$(group+'-panel').hidden=true;}$('operator-panel').hidden=true;}}
   window.addEventListener('focus',refreshMenus);setInterval(refreshMenus,30000);
   (async()=>{try{
       const me=await request('/auth/me');if(signedOut)return;$('who').textContent='حساب جاری: '+me.id;$('logout').disabled=false;
       const caps=await request('/workspace/capabilities');if(signedOut)return;
-      for(const group of ['employee','manager','admin','executive','technical','workflow']){
+      for(const group of ['employee','manager','admin','executive','technical','workflow','operator']){
         const list=$(group+'-links');list.replaceChildren();
         for(const item of caps.pages.filter(p=>p.group===group)){
           const li=document.createElement('li'),a=document.createElement('a');a.href=item.route;a.textContent=item.title;li.append(a);list.append(li);
         }
         $(group+'-panel').hidden=!list.children.length;
       }
-      $('operator-panel').hidden=!caps.operator;
+      $('operator-panel').hidden=!caps.operator&&!caps.pages.some(p=>p.group==='operator');
       $('empty-panel').hidden=caps.operator||caps.pages.some(p=>p.group!=='common');
       if(caps.employee){
         const r=await fetch('/corrections/own?offset=0&state=0',{credentials:'same-origin',cache:'no-store'});

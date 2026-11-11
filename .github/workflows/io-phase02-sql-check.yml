@@ -244,6 +244,7 @@ jobs:
           set -euo pipefail
           export NODE_PATH="$RUNNER_TEMP/io-browser/node_modules"
           node ReCode/tests/IO.Infrastructure.SqlTests/reversal-ui-check.cjs
+          node ReCode/tests/IO.Infrastructure.SqlTests/device-ui-check.cjs
       - name: Test isolated SQL Server Developer
         shell: bash
         run: |

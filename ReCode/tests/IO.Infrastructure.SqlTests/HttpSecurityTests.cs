@@ -293,7 +293,7 @@ internal static class HttpSecurityTests
             (await PostAdmin(adminClient, "/admin/user-roles", new { UserId = self, RoleId = operatorTemplate.Id })).EnsureSuccessStatusCode();
             using var operatorCaps = JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities"));
             check(operatorCaps.RootElement.GetProperty("operator").GetBoolean() &&
-                  !operatorCaps.RootElement.GetProperty("permissions").EnumerateArray().Any(x => x.GetString()!.StartsWith("device.", StringComparison.Ordinal)),
+                  operatorCaps.RootElement.GetProperty("permissions").EnumerateArray().Where(x => x.GetString()!.StartsWith("devices.", StringComparison.Ordinal)).Select(x => x.GetString()).SequenceEqual(new[] { "devices.read" }),
                   "HTTP operator shell identifies role without granting unimplemented device operations");
             (await PostAdmin(adminClient, "/admin/user-roles/revoke", new { UserId = self, RoleId = operatorTemplate.Id })).EnsureSuccessStatusCode();
             var featureRole = await CreateId("/admin/roles", new { Name = "phase five six test role" });
@@ -314,6 +314,61 @@ internal static class HttpSecurityTests
                 testSelfRole = (await db.Roles.SingleAsync(x => x.Name == "web self role")).Id;
                 testManagerRole = (await db.Roles.SingleAsync(x => x.Name == "web manager role")).Id;
             }
+            var deviceSite = await CreateId("/org/sites", new { CompanyId = testCompany, Name = "HTTP device site", TimeZoneId = "UTC" });
+            var deviceRole = await CreateId("/admin/roles", new { Name = "HTTP device operator" });
+            (await PostAdmin(adminClient,"/admin/user-roles",new{UserId=self,RoleId=deviceRole})).EnsureSuccessStatusCode();
+            var deviceOperation = Guid.NewGuid();
+            var deviceInput = new IO.Infrastructure.Devices.DeviceRegistry.Input(deviceSite,"HTTP-S04-A","HTTP device","unverified","offline-file",null,null,true);
+            var devicePayload = new { OperationId=deviceOperation, Device=deviceInput };
+            check((await anon.GetAsync("/devices")).StatusCode==HttpStatusCode.Unauthorized &&
+                  (await own.GetAsync("/devices")).StatusCode==HttpStatusCode.Forbidden &&
+                  (await own.PostAsJsonAsync("/devices",devicePayload)).StatusCode==HttpStatusCode.BadRequest,
+                  "HTTP device endpoints deny anonymous ungranted and missing-CSRF requests");
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.create"})).EnsureSuccessStatusCode();
+            using(var createdDevice=await PostAdmin(own,"/devices",devicePayload))
+            using(var replayDevice=await PostAdmin(own,"/devices",devicePayload))
+                check(createdDevice.StatusCode==HttpStatusCode.OK&&replayDevice.StatusCode==HttpStatusCode.OK &&
+                      (await own.GetAsync("/devices")).StatusCode==HttpStatusCode.Forbidden &&
+                      (await PostAdmin(own,"/devices",new{OperationId=Guid.NewGuid(),Device=deviceInput})).StatusCode==HttpStatusCode.Conflict,
+                      "HTTP device create-only grant supports exact retry and denies duplicate number without granting inventory read");
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.read"})).EnsureSuccessStatusCode();
+            async Task<byte[]> DeviceVersion(){using var d=JsonDocument.Parse(await own.GetStringAsync("/devices/"+deviceOperation));return d.RootElement.GetProperty("version").GetBytesFromBase64();}
+            using(var deviceView=JsonDocument.Parse(await own.GetStringAsync("/devices/"+deviceOperation)))
+                check(deviceView.RootElement.GetProperty("connectionStatus").GetString()=="not-tested"&&
+                      (await own.GetAsync("/help/topic/devices")).StatusCode==HttpStatusCode.OK,
+                      "HTTP device read grant exposes protected help and truthful untested connection state");
+            var deviceVersion=await DeviceVersion();
+            var deviceEdit=new{ExpectedVersion=deviceVersion,Device=deviceInput with{Name="HTTP renamed device"}};
+            var noDeviceEdit=(await PostAdmin(own,"/devices/"+deviceOperation,deviceEdit)).StatusCode;
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.update"})).EnsureSuccessStatusCode();
+            check(noDeviceEdit==HttpStatusCode.Forbidden&&
+                  (await PostAdmin(own,"/devices/"+deviceOperation,deviceEdit)).StatusCode==HttpStatusCode.OK&&
+                  (await PostAdmin(own,"/devices/"+deviceOperation,deviceEdit)).StatusCode==HttpStatusCode.Conflict,
+                  "HTTP device edit requires independent permission and rejects stale optimistic replay");
+            deviceVersion=await DeviceVersion();
+            const string deviceSecret="Synthetic HTTP device secret!";
+            var credentialInput=new{ExpectedVersion=deviceVersion,Secret=deviceSecret};
+            var noDeviceSecret=(await PostAdmin(own,"/devices/"+deviceOperation+"/credential",credentialInput)).StatusCode;
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.credentials.manage"})).EnsureSuccessStatusCode();
+            var changedDeviceSecret=await PostAdmin(own,"/devices/"+deviceOperation+"/credential",credentialInput);
+            var deviceResponse=await own.GetStringAsync("/devices/"+deviceOperation);
+            check(noDeviceSecret==HttpStatusCode.Forbidden&&changedDeviceSecret.StatusCode==HttpStatusCode.OK&&
+                  !deviceResponse.Contains(deviceSecret,StringComparison.Ordinal)&&!deviceResponse.Contains("protectedValue",StringComparison.OrdinalIgnoreCase)&&
+                  JsonDocument.Parse(deviceResponse).RootElement.GetProperty("hasCredential").GetBoolean(),
+                  "HTTP device credential write is independently authorized and never returned in metadata response");
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.receive"})).EnsureSuccessStatusCode();
+            using(var capsDevice=JsonDocument.Parse(await own.GetStringAsync("/devices/"+deviceOperation+"/capabilities")))
+                check(capsDevice.RootElement.GetProperty("operations").EnumerateArray().All(o=>!o.GetProperty("available").GetBoolean()),
+                      "HTTP device future command grant never reports an available unverified adapter");
+            (await PostAdmin(adminClient,"/admin/role-permissions/revoke",new{RoleId=deviceRole,Code="devices.credentials.manage"})).EnsureSuccessStatusCode();
+            check((await PostAdmin(own,"/devices/"+deviceOperation+"/credential",new{ExpectedVersion=await DeviceVersion(),Secret=(string?)null})).StatusCode==HttpStatusCode.Forbidden,
+                  "HTTP device credential permission revocation rejects mutation on the same authenticated session");
+            (await PostAdmin(adminClient,"/admin/user-roles/revoke",new{UserId=self,RoleId=deviceRole})).EnsureSuccessStatusCode();
+            using(var noDeviceCaps=JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities")))
+                check((await own.GetAsync("/devices")).StatusCode==HttpStatusCode.Forbidden&&
+                      (await own.GetAsync("/help/topic/devices")).StatusCode==HttpStatusCode.Forbidden&&
+                      !noDeviceCaps.RootElement.GetProperty("pages").EnumerateArray().Any(p=>p.GetProperty("route").GetString()=="/workspace/devices"),
+                      "HTTP device role revocation removes data help and menu without re-login");
             foreach (var (roleId, code) in new[] { (testSelfRole, "correction.submit.self"), (testManagerRole, "correction.decide"), (testManagerRole, "correction.decide.scoped") })
                 if ((await PostAdmin(adminClient, "/admin/role-permissions", new { RoleId = roleId, Code = code })).StatusCode != HttpStatusCode.OK)
                     throw new InvalidOperationException("Synthetic correction permission grant failed.");
