@@ -359,5 +359,24 @@
       "status": "completed",
       "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43115912754"
     }
-  ]
+  ],
+  "part3": {
+    "scope": "S04 through S12 inclusive",
+    "status": "incomplete",
+    "acceptedSteps": [
+      "S04"
+    ],
+    "remainingSteps": [
+      "S05",
+      "S06",
+      "S07",
+      "S08",
+      "S09",
+      "S10",
+      "S11",
+      "S12"
+    ],
+    "realHardwareAcceptance": "not performed; required to complete Part 3; simulator alone is insufficient",
+    "statusDocument": "README.fa.md"
+  }
 }

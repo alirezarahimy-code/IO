@@ -1,6 +1,8 @@
-# تکمیل گروه‌بندی درختی S04 — در انتظار پذیرش CI
+# پذیرش گروه‌بندی درختی S04 — زیرمرحله‌ای از بخش سوم
 
 ## وضعیت فعلی
+
+**این پذیرش فقط برای S04 است. بخش سوم شامل S04 تا S12 و هنوز باز است؛ آزمون شبیه‌ساز جای آزمون دستگاه واقعی را نمی‌گیرد.** [وضعیت کل بخش سوم](../part-03/README.fa.md).
 
 **کل S04 اکنون پذیرفته است.** کد `069f5aac535596367f501ead89cf3e5799611eaa` در [Windows/Linux 43115912784](https://github.com/alirezarahimy-code/IO/actions/runs/43115912784) و [SQL/HTTPS/browser 43115912754](https://github.com/alirezarahimy-code/IO/actions/runs/43115912754) موفق شد. شاهد ماشینی: [s04-acceptance-evidence.json](../part-03/s04-acceptance-evidence.json). S05 شروع نشده است.
 
