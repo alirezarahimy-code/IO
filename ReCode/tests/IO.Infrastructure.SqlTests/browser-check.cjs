@@ -414,13 +414,27 @@ async function main() {
     await rolesPage.locator('#permission-form button').click();
     await rolesPage.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز اعطا شد'));
     await rolesPage.locator('[data-kind=role-permissions]').click();
-    await rolesPage.locator('#body tr').filter({hasText:workspaceRole}).waitFor();
+    async function findRolePermissionAcrossPages(){
+      await rolesPage.waitForFunction(()=>!document.getElementById('refresh').disabled);
+      while(await rolesPage.locator('#previous').isEnabled()){
+        await rolesPage.locator('#previous').click();
+        await rolesPage.waitForFunction(()=>!document.getElementById('refresh').disabled);
+      }
+      for(let pageNumber=0;pageNumber<20;pageNumber++){
+        if(await rolesPage.locator('#body tr').filter({hasText:workspaceRole}).count())return true;
+        if(!await rolesPage.locator('#next').isEnabled())return false;
+        await rolesPage.locator('#next').click();
+        await rolesPage.waitForFunction(()=>!document.getElementById('refresh').disabled);
+      }
+      throw new Error('Role permission fixture exceeded bounded pagination search');
+    }
+    if(!await findRolePermissionAcrossPages())throw new Error('Granted role permission missing from all catalogue pages');
     await rolesPage.locator('#permission-form input[name=roleId]').fill(workspaceRole);
     await rolesPage.locator('#permission-form select[name=code]').selectOption('schedule.read.self');
     await rolesPage.locator('#permission-form select[name=operation]').selectOption('revoke');
     await rolesPage.locator('#permission-form button').click();
     await rolesPage.waitForFunction(() => document.getElementById('notice').textContent.includes('مجوز لغو شد'));
-    if (await rolesPage.locator('#body tr').filter({hasText:workspaceRole}).count()) throw new Error('Role permission revoke was not persisted');
+    if (await findRolePermissionAcrossPages()) throw new Error('Role permission revoke was not persisted');
     await rolesPage.close();
     const adminId = await page.evaluate(async () => (await (await fetch('/auth/me')).json()).id);
     async function submit(formId) {
