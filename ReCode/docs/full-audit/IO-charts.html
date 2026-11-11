@@ -84,6 +84,7 @@ th{background:#eef1f6}
   <a href="#s6">۶) تصمیم‌های ثبت‌شده</a>
   <a href="#s7">۷) شکل نهایی پروژه</a>
   <a href="#s8">۸) مسیر ساخت مرحله‌به‌مرحله</a>
+  <a href="#s9">۹) موجودی و شروط جدید تحویل</a>
 </nav>
 
 <section id="s1">
@@ -91,7 +92,7 @@ th{background:#eef1f6}
   <p class="hint">پنج جملهٔ کوتاه؛ اگر فقط همین را بخوانید کافی است.</p>
   <ul>
     <li><b>قلب سامانه کار می‌کند:</b> ورود تردد، تصحیح با کارتابل و جانشین، محاسبهٔ کارکرد، مرخصی و مانده، اعلان‌ها، داشبورد مدیریت — همه سبز و با ۳۱۰+ تست خودکار.</li>
-    <li><b>۳۸ مسیر موجود</b> با کنترل دسترسی سرور-سمت ساخته شده و هر نقش پنل خودش را می‌بیند.</li>
+    <li><b>۳۸ مسیر موجود</b> در کد داریم؛ APIهای مرتبط مجوز دارند، اما پنل مستقل همهٔ نقش‌ها و منوی دقیق هر مجوز هنوز باید تکمیل شود.</li>
     <li><b>۷ بستهٔ اصلی قبلی + ۳ بستهٔ جدید مصوب</b> تا سامانه اجرایی سازمانی شود: بازگشت تصمیم، تأخیر/تعجیل و اضافه‌کار خودکار، وضعیت لحظه‌ای، انتقال سال، خروجی Excel، پشتیبان‌گیری، نصب روی سرور سازمان.</li>
     <li><b>۳ موضوع تأیید شد:</b> پاداش/جریمه، گزارش مکانِ اختیاری و مدیریت کامل چند دستگاه تردد به نقشه اضافه شدند؛ هنوز ساخته نشده‌اند. فقط قفل/لایسنس بدون تصمیم است.</li>
     <li><b>گام بعدی پیشنهادی:</b> شروع «بازگشت امن تصمیم» (R1).</li>
@@ -114,8 +115,8 @@ th{background:#eef1f6}
       <li><span class="leaf"><span class="ok">✅</span> <b>ورود به سامانه</b> <code>/login</code> — نام کاربری و گذرواژه</span></li>
       <li><span class="leaf"><span class="ok">✅</span> <b>پنل من</b> <code>/workspace</code> — خانهٔ سامانه؛ بسته به مجوز، پنل نقش + اعلان‌ها را نشان می‌دهد</span></li>
       <li><span class="leaf"><span class="ok">✅</span> <b>حساب من</b> <code>/workspace/account</code> — تغییر گذرواژه و اطلاعات حساب</span></li>
-      <li><span class="leaf"><span class="ok">✅</span> <b>پنل ابزار</b> <code>/panel</code> — عملیات فنی/توسعه (فقط برای ادمین فنی)</span></li>
-    </ul>
+      <li><span class="leaf"><span class="ok">✅</span> <b>پنل ابزار</b> <code>/panel</code> — پوستهٔ ابزار عمومی؛ داده و عملیات مجوز جدا دارند، نه پوستهٔ اختصاصی ادمین</span></li>
+    </ul><details open><summary>🟥 راهنمای سامانه — مشترک با تفکیک نقش؛ باید ساخته شود</summary><ul class="tree"><li>مرکز راهنما <code>/workspace/help</code> — مسیر پیشنهادی، فهرست مرتب و جست‌وجو</li><li>راهنمای هر صفحه <code>/workspace/help/{topic}</code> — نقش، مجوز، پیش‌نیاز، فیلد، دکمه، مثال و خطا</li><li>کارمند / مدیر واحد / ادمین / مدیر ارشد / اپراتور: مطالب متناسب؛ راهنمای حساس فقط با دسترسی مربوط</li></ul></details>
   </div>
 
   <div class="card c-emp">
@@ -137,7 +138,7 @@ th{background:#eef1f6}
     <details open><summary>بقیه</summary>
       <ul class="tree">
         <li><span class="leaf"><span class="ok">✅</span> <b>جانشینی من</b> <code>/workspace/delegation</code> — ثبت جانشین برای غیبت و اعطای حق تصمیم</span></li>
-        <li><span class="leaf"><span class="ok">✅</span> <b>خانهٔ کارمند</b> <code>/workspace/employee-home</code> — خلاصهٔ وضعیت در یک صفحه</span></li>
+        <li><span class="leaf"><span>🟨</span> <b>خانهٔ کارمند</b> <code>/workspace/employee-home</code> — خلاصهٔ وضعیت در یک صفحه</span></li>
       </ul>
     </details>
     <p class="note">صفحات جدید این نقش هنوز ساخته نشده‌اند؛ ثبت‌نکردن گزارش مکان هیچ عملیات دیگری را متوقف نمی‌کند.</p><details open class="planned"><summary>🟥 صفحات جدید من — باید ساخته شود</summary><ul class="tree"><li><span class="leaf"><span class="fut">🟥</span> <b>پاداش و جریمهٔ من</b> <code>/workspace/my-rewards</code> — نمایش سوابق و وضعیت بررسی</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>گزارش مکان من (اختیاری)</b> <code>/workspace/my-location</code> — ثبت محل و زمان گزارش، مشاهده و اصلاح سوابق خود؛ بدون الزام</span></li></ul></details>
@@ -146,7 +147,7 @@ th{background:#eef1f6}
   <div class="card c-mgr">
     <h3>🧑‍💼 پنل مدیر واحد — ۴ مسیر موجود + صفحات جدید در محدودهٔ تیم</h3>
     <ul class="tree">
-      <li><span class="leaf"><span class="ok">✅</span> <b>خانهٔ مدیر</b> <code>/workspace/manager-home</code> — صف اقدام روز</span></li>
+      <li><span class="leaf"><span>🟨</span> <b>خانهٔ مدیر</b> <code>/workspace/manager-home</code> — صف اقدام روز</span></li>
       <li><span class="leaf"><span class="ok">✅</span> <b>کارتابل بررسی</b> <code>/workspace/inbox</code> — انتخاب کارمند، تاریخ شمسی، تأیید/رد اصلاح‌ها</span></li>
       <li><span class="leaf"><span class="ok">✅</span> <b>تاریخچهٔ تصمیم‌های من</b> <code>/workspace/decision-history</code> — هر تصمیمی که داده‌ام</span></li>
       <li><span class="leaf"><span class="ok">✅</span> <b>تردد تیم</b> <code>/workspace/team-attendance</code> — فقط اعضای محدودهٔ من</span></li>
@@ -193,7 +194,7 @@ th{background:#eef1f6}
         <li><span class="leaf"><span class="ok">✅</span> <b>تنظیمات اصلاح</b> <code>/workspace/settings</code></span></li>
         <li><span class="leaf"><span class="ok">✅</span> <b>گردش اصلاح</b> <code>/workspace/workflow</code></span></li>
         <li><span class="leaf"><span class="ok">✅</span> <b>دفتر مرخصی</b> <code>/workspace/leave-admin</code> — گردش، مانده، اضافه‌کار/مأموریت</span></li>
-        <li><span class="leaf"><span class="ok">✅</span> <b>گزارش‌ها</b> <code>/workspace/reports</code></span></li>
+        <li><span class="leaf"><span>🟨</span> <b>گزارش‌ها</b> <code>/workspace/reports</code></span></li>
         <li><span class="leaf"><span>🟨</span> <b>سازندهٔ گزارش</b> <code>/workspace/report-builder</code></span></li>
         <li><span class="leaf"><span class="ok">✅</span> <b>نمای مدیریت</b> <code>/workspace/executive-home</code> — داشبورد</span></li>
       </ul>
@@ -211,7 +212,7 @@ th{background:#eef1f6}
 </section>
 
 <section id="s3">
-  <h2>۳) درخت کل سامانه — ۳۸ مسیر موجود + ۲۴ صفحهٔ پیشنهادی جدید</h2>
+  <h2>۳) درخت کل سامانه — ۳۸ مسیر موجود + ۲۴ صفحهٔ مصوب + مرکز راهنمای جدید</h2>
   <p class="hint">سبز = موجود؛ قرمز = طرح مقصد. ۲۴ مسیر پیشنهادی یکتا هستند؛ نمایش یک گزارش در چند نقش، صفحهٔ جدید محسوب نمی‌شود. جزئیات تمام صفحات جدید در درخت نقش‌ها آمده است.</p>
   <details open><summary>🔐 ورود و حساب — ۴ مسیر</summary>
     <ul class="tree">
@@ -245,7 +246,7 @@ th{background:#eef1f6}
     <ul class="tree">
       <li>مجموع مسیرها: <b>۳۸</b> (۳۶ فضای کاری + ورود + پنل ابزار) — وجود مسیر به معنی تکمیل همهٔ امکانات نیست</li>
       <li>صفحات فیزیکی UI موجود: ۳۲ فایل HTML + ۳۳ فایل js در <code>ReCode/src/IO.Web/Ui/</code></li>
-      <li>دسترسی: پنل هر نقش با مجوزِ واقعی سمت سرور روشن/خاموش می‌شود؛ پنهان‌کردن منو به‌تنهایی امنیت نیست؛ endpoint هم باید مجوز را بررسی کند.</li>
+      <li>دسترسی: سه گروه کارمند/مدیر/ادمین با مجوز واقعی فعال می‌شوند؛ تفکیک دقیق منو و پنل مدیرارشد/اپراتور باقی است؛ پنهان‌کردن منو به‌تنهایی امنیت نیست؛ endpoint هم باید مجوز را بررسی کند.</li>
     </ul>
   </details><details open class="planned"><summary>🟥 شاخهٔ جدید دستگاه‌ها (۱۵ صفحه) — باید ساخته شود</summary><ul class="tree"><li><span class="leaf"><span class="fut">🟥</span> <b>فهرست چند دستگاه</b> <code>/workspace/devices</code> — نام، شماره، مدل، محل نصب و فعال/غیرفعال</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>معرفی یا ویرایش دستگاه</b> <code>/workspace/devices/new</code> — ثبت دستگاه جدید و مشخصات ارتباطی</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>فرم اتصال و تست ارتباط</b> <code>/workspace/devices/connection</code> — IP، پورت، شناسه و تنظیم امن اتصال؛ متناسب با مدل</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>وضعیت اتصال دستگاه‌ها</b> <code>/workspace/devices/status</code> — آخرین ارتباط، خطا و وضعیت سرویس ارتباطی</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>فراخوانی مشخصات دستگاه</b> <code>/workspace/devices/info</code> — مدل، نسخه، ظرفیت و تعداد کاربران/ترددها در صورت پشتیبانی</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>خواندن و اعمال تنظیمات</b> <code>/workspace/devices/settings</code> — زمان دستگاه و تنظیمات پشتیبانی‌شده؛ تأیید تغییرات حساس</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>استخراج و دریافت ترددها</b> <code>/workspace/devices/attendance</code> — دریافت دستی/زمان‌بندی‌شده، بازهٔ تاریخ، جلوگیری از ثبت تکراری</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>دریافت خودکار و PUSH</b> <code>/workspace/devices/sync</code> — تنظیم دریافت PUSH یا واکشی متناسب با پروتکل؛ تلاش مجدد</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>کاربران داخل دستگاه</b> <code>/workspace/devices/users</code> — مشاهده و مدیریت اطلاعات هویتی/کارت با مجوز مستقل</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>فراخوانی کاربران از دستگاه</b> <code>/workspace/devices/users/download</code> — انتخاب دستگاه‌ها، دریافت و پیش‌نمایش قبل از ثبت</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>درج و ارسال کاربران به دستگاه</b> <code>/workspace/devices/users/upload</code> — انتخاب پرسنل و یک/چند دستگاه، ارسال و نتیجهٔ هر نفر</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>تطبیق کاربر دستگاه و کارمند</b> <code>/workspace/devices/users/mapping</code> — رفع شناسه‌های ناشناس و تعارض نگاشت</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>صف فرمان‌ها و عملیات دستگاه</b> <code>/workspace/devices/commands</code> — پیشرفت، لغو، تلاش مجدد؛ عملیات حساس با تأیید و آدیت</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>تاریخچهٔ ارتباط و خطاها</b> <code>/workspace/devices/logs</code> — نتیجهٔ دریافت/ارسال هر دستگاه و پیگیری خطا</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>ورود فایل خروجی دستگاه / USB</b> <code>/workspace/devices/usb</code> — مسیر جایگزین برای دستگاه آفلاین؛ اعتبارسنجی قبل از ورود</span></li></ul></details><details open class="planned"><summary>🟥 شاخهٔ جدید پاداش/جریمه (۵ صفحه) — باید ساخته شود</summary><ul class="tree"><li><span class="leaf"><span class="fut">🟥</span> <b>پاداش و جریمهٔ من</b> <code>/workspace/my-rewards</code> — نمایش سوابق و وضعیت بررسی</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>پاداش/جریمهٔ تیم</b> <code>/workspace/rewards/team</code> — ثبت پیشنهاد و بررسی در محدودهٔ مجوز مدیر</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>قواعد پاداش و جریمه</b> <code>/workspace/rewards/rules</code> — تعریف نوع و قواعد؛ فرمول/مبلغ/تأیید خودکار هنوز تعیین نشده</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>ثبت و بررسی پاداش/جریمه</b> <code>/workspace/rewards/records</code> — انتخاب کارمند و دوره، دلیل و مستند؛ تأیید یا رد با آدیت</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>گزارش پاداش/جریمه</b> <code>/workspace/rewards/reports</code> — خلاصهٔ فرد/واحد/دوره؛ بدون محاسبه یا پرداخت حقوق</span></li></ul></details><details open class="planned"><summary>🟥 شاخهٔ جدید گزارش مکان (۴ صفحه) — باید ساخته شود</summary><ul class="tree"><li><span class="leaf"><span class="fut">🟥</span> <b>گزارش مکان من (اختیاری)</b> <code>/workspace/my-location</code> — ثبت محل و زمان گزارش، مشاهده و اصلاح سوابق خود؛ بدون الزام</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>گزارش مکان تیم</b> <code>/workspace/locations/team</code> — محل گزارش‌شده و زمان آن؛ نمایش «گزارش نشده» بدون اختلال</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>تعریف مکان‌ها و ناحیه‌ها</b> <code>/workspace/locations/areas</code> — تعریف محل‌های کاری و دسترسی به گزارش</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>گزارش مکان سازمان</b> <code>/workspace/locations/reports</code> — فقط دادهٔ ثبت‌شده؛ دادهٔ ناموجود = «گزارش نشده»، نه غیبت</span></li></ul></details>
 </section>
@@ -300,10 +301,10 @@ th{background:#eef1f6}
   <h2>۷) شکل نهایی پروژه در روز اجرا</h2>
   <p class="hint">وقتی همهٔ کارها تمام شود، سامانه این شکلی خواهد بود.</p>
   <div class="layer l1"><b>مرورگر</b> — بدون نصب روی هیچ کامپیوتری<br>
-    <div class="chips"><span class="chip">👤 کارمند</span><span class="chip">🧑‍💼 مدیر واحد</span><span class="chip">🛠️ مدیریت سامانه</span><span class="chip">📊 مدیر ارشد</span></div>
+    <div class="chips"><span class="chip">👤 کارمند</span><span class="chip">🧑‍💼 مدیر واحد</span><span class="chip">🛠️ مدیریت سامانه</span><span class="chip">📊 مدیر ارشد</span><span class="chip">🟥 اپراتور دستگاه</span></div>
   </div>
   <div class="arrow">▼</div>
-  <div class="layer l2"><b>سرور سازمان</b> — وب‌سامانهٔ IO (نسخهٔ نصب‌شده + HTTPS)</div>
+  <div class="layer l2"><b>سرور سازمان</b> — وب‌سامانهٔ IO با .NET 10 — هدف: Windows و Linux، بسته و آزمون نصب مستقل برای هر دو + HTTPS</div>
   <div class="arrow">▼</div>
   <div class="layer l3"><b>هستهٔ سامانه</b><br>
     <div class="chips"><span class="chip">هویت و دسترسی</span><span class="chip">تردد و تعارض</span><span class="chip">محاسبهٔ کارکرد</span><span class="chip">گردش‌ها و اعلان</span><span class="chip">مرخصی و مانده</span><span class="chip">🟥 مدیریت دستگاه‌ها</span><span class="chip">🟥 پاداش/جریمه</span><span class="chip">🟥 گزارش مکانِ اختیاری</span></div>
@@ -316,8 +317,8 @@ th{background:#eef1f6}
   </div>
 </section>
 
-<section id="s8"><h2>۸) مسیر باقی‌مانده — ۳۳ تحویل مشخص</h2>
-<p class="hint">همهٔ مراحل زیر برنامه‌ریزی‌شده‌اند، نه انجام‌شده. هر عنوان را باز کنید: پیش‌نیاز، خروجی و شرط پایان آن مشخص است.</p>
+<section id="s8"><h2>۸) مسیر باقی‌مانده — ۳ پایهٔ جدید + ۳۳ تحویل اصلی</h2>
+<p class="hint">ابتدا F01 چندسکویی، F02 نقش/دسترسی و F03 راهنمای جامع؛ سپس ۳۳ مرحلهٔ زیر. همه برنامه‌ریزی‌شده‌اند، نه انجام‌شده. هر عنوان را باز کنید: پیش‌نیاز، خروجی و شرط پایان آن مشخص است.</p>
 <p class="note">هر تحویل شامل دیتابیس واقعی، منطق، API با مجوز سمت سرور، فرم مرتبط، آزمون و نتیجهٔ نهایی CI است. نمایش صفحه یا تست شبیه‌ساز به‌تنهایی پایان کار نیست. فقط قفل/لایسنس خارج از ساخت فعلی می‌ماند.</p>
 <p>شناخت دستگاه → بازگشت تصمیم → اتصال کامل دستگاه → محاسبه و گزارش → پاداش/مکان → خروجی و داده → تکمیلی‌ها → نصب و پشتیبان → آزمون و تحویل سازمان</p>
 <details><summary>S01 · تثبیت مبنا و استخراج ریزبه‌ریز دستگاه‌ها</summary><p><b>ردیابی:</b> R9 / G-07<br><b>پیش‌نیاز:</b> کد فعلی و پنج مرجع فقط‌خواندنی</p><p><b>تحویل:</b> فهرست فرم←فیلد←عملیات←شاهد؛ ماتریس مدل/پروتکل/SDK/سیستم‌عامل و تصمیم معماری سرویس ارتباطی؛ ثبت قواعد مبهم محاسبه و پاداش به‌عنوان تصمیم باز.</p><p><b>شرط پایان:</b> هیچ عملیات دستگاه بدون ردیف پوشش نباشد؛ وضعیت هر ردیف موجود/بایدساخت/مشروط/خارج‌دامنه معلوم باشد. مدل دستگاه واقعی و محیط تست درخواست شود؛ نبود سخت‌افزار پایان اتصال واقعی محسوب نشود.</p><p class="fut">برنامه‌ریزی‌شده؛ هنوز انجام نشده</p></details>
@@ -354,6 +355,18 @@ th{background:#eef1f6}
 <details><summary>S32 · اجرای موازی و رفع اختلاف</summary><p><b>ردیابی:</b> R8 / پذیرش سازمانی<br><b>پیش‌نیاز:</b> 31؛ دسترسی به خروجی سامانهٔ فعلی</p><p><b>تحویل:</b> یک ماه/یک دورهٔ کامل اجرای موازی مطابق مقصد قبلی؛ تطبیق تردد، محاسبه، مانده، گزارش و عملیات دستگاه؛ ثبت و رفع اختلاف.</p><p><b>شرط پایان:</b> تفاوت‌ها دلیل و تأیید داشته باشند؛ اختلاف بحرانی حل‌نشده نماند؛ restore و قطعی شبکه تمرین شود؛ هر نقش سناریوی خودش را تأیید کند؛ گزارش‌ندادن مکان اختلال نسازد.</p><p class="fut">برنامه‌ریزی‌شده؛ هنوز انجام نشده</p></details>
 <details><summary>S33 · تحویل قطعی و پایان مسیر</summary><p><b>ردیابی:</b> R8 / GO-LIVE<br><b>پیش‌نیاز:</b> 32؛ امضای پذیرش سازمان</p><p><b>تحویل:</b> نسخهٔ شماره‌دار، راهنمای کاربران و عملیات، پشتیبان نهایی، برنامهٔ بازگشت، مسئول پایش/پشتیبانی و چک‌لیست تحویل.</p><p><b>شرط پایان:</b> تمام شروط مقصد جاری و شواهد مراحل تأیید شده باشند؛ مالک سازمان مجوز انتقال به اجرای قطعی بدهد؛ زمان انتقال و مسئول پاسخ‌گویی مشخص؛ قفل/لایسنس بدون تصمیم همچنان اضافه نشود.</p><p class="fut">برنامه‌ریزی‌شده؛ هنوز انجام نشده</p></details>
 <p class="note">اگر سخت‌افزار در دسترس نباشد، برش‌های مستقل هسته ادامه می‌یابند؛ اما پذیرش دستگاه و اجرای قطعی مسدود می‌ماند. گزارش مکان اختیاری است و نبود آن هیچ عملیات اصلی را متوقف نمی‌کند. فرمول پاداش/جریمه و سیاست دادهٔ بیومتریک نباید حدس زده شوند.</p></section>
+<section id="s9"><h2>۹) موجودی و شروط قطعی جدید</h2>
+<p class="hint">بازبینی کد فعلی؛ این بخش گزارش ساخت قابلیت جدید نیست.</p>
+<table><tr><th>الزام</th><th>داریم</th><th>باقی‌مانده</th></tr>
+<tr><td>.NET 10 / دو سیستم</td><td>هدف net10.0 و CI فعلی Ubuntu</td><td>آزمون Windows و Linux، نصب/اجرا/ارتقا؛ حل محدودیت SDK بدون وابسته‌کردن پنهان Linux به Windows</td></tr>
+<tr><td>نقش و مجوز</td><td>اعطا/لغو نقش، مجوز و دامنه؛ 39 کد تعریف‌شده، 36 در انتخاب‌گر</td><td>کاتالوگ کامل، تفکیک عملیات و منوی دقیق، template نقش‌ها و پنل مدیرارشد/اپراتور</td></tr>
+<tr><td>راهنمای سامانه</td><td>توضیح‌های پراکندهٔ فرم‌ها و اسناد پروژه</td><td>مرکز راهنمای نقش‌محور، جست‌وجو، راهنمای هر صفحه/فیلد/دکمه/خطا؛ همراه هر قابلیت</td></tr></table>
+<p><b>موجودی:</b> ۳۲ HTML، ۳۳ JS، ۳۸ مسیر صفحه، ۲۱ مهاجرت دامنه + ۱ Identity؛ مسیر بیشتر از تعداد HTML است چون چند مسیر یک فایل مشترک دارند.</p>
+<p class="note">سه مجوز موجود در سرور ولی غایب از انتخاب‌گر نقش‌ها: <code>correction.edit.self</code>, <code>leave.request.decide</code>, <code>leave.request.submit</code>. مجوزهای کلی همهٔ عملیات را تفکیک نکرده‌اند. پوستهٔ /panel عمومی است؛ این با مجوز عملیات داده فرق دارد.</p>
+<details open><summary>شروع جدید — سه برش پایه، سپس مسیر قبلی</summary><ul class="tree"><li><b>F01:</b> تثبیت .NET 10 و build/test/publish روی Windows و Linux؛ ثبت محدودیت‌های SDK.</li><li><b>F02:</b> تکمیل نقش/دسترسی موجود، مجوزهای قابل اعطا/لغو، نگاشت نقش و منوی دقیق.</li><li><b>F03:</b> ساخت راهنمای جامعِ تمام صفحات موجود با تفکیک نقش و پیوند راهنمای صفحه.</li><li>سپس S01 تا S33؛ هر مرحله با مجوز، نگاشت نقش و راهنمای همان قابلیت ساخته می‌شود.</li></ul></details>
+<p><b>قاعدهٔ پایان:</b> DB + منطق + API + مجوز قابل اعطا/لغو + نقش/منو + فرم + راهنما + آزمون مرتبط دو سیستم و SQL/مرورگر + CI نهایی.</p>
+<p>مرکز راهنما نیز باید به منوی همهٔ نقش‌ها اضافه شود؛ راهنمای حساس فقط در دامنهٔ مجاز. یک مرکز راهنمای پیشنهادی به دامنه اضافه شده است، نه اینکه همین فایل چارت مرکز راهنمای عملیاتی باشد. موجودی کامل مسیرها/کدها/نواقص در فایل 110-current-inventory-and-requirements.md ثبت است.</p>
+</section>
 <footer>
   منابع: <code>ReCode/docs/full-audit/</code> (ممیزی کامل پنج سامانه) · ساخته‌شده از کد واقعی <code>ReCode/src/IO.Web/Program.cs</code> و <code>Ui/Index.html</code><br>
   این فایل کاملاً مستقل است — آفلاین باز می‌شود و قابل ارسال به دیگران است.

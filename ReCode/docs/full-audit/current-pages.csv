@@ -1,0 +1,39 @@
+﻿route,html_resource,navigation_group,status,note
+/login,Login.html,مشترک,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace,Index.html,مشترک,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/account,Account.html,مشترک,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/employee-home,EmployeeHome.html,کارمند,partial,خلاصهٔ محدود درخواست‌های شخصی؛ نه داشبورد کامل مقصد
+/workspace/new-request,MyRequests.html,کارمند,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/my-requests,MyRequests.html,کارمند,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/my-attendance,MyAttendance.html,کارمند,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/my-schedule,MySchedule.html,کارمند,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/my-leave,MyLeave.html,کارمند,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/my-reports,MyReports.html,کارمند,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/delegation,Delegation.html,کارمند,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/manager-home,ManagerHome.html,مدیر واحد,partial,خلاصهٔ محدود کارتابل؛ نه وضعیت کامل واحد
+/workspace/inbox,ManagerRequests.html,مدیر واحد,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/decision-history,ManagerRequests.html,مدیر واحد,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/team-attendance,TeamAttendance.html,مدیر واحد,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/organization,Organization.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/employees,Employees.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/users,Users.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/roles,Roles.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/audit,Audit.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/calendars,Scheduling.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/shifts,Scheduling.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/schedules,Scheduling.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/employee-history,Scheduling.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/sources,Scheduling.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/raw-events,RawEvents.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/mappings,Mappings.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/conflicts,Conflicts.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/calculations,Calculations.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/rules,Rules.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/periods,Periods.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/settings,Settings.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/workflow,Workflow.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/leave-admin,LeaveAdmin.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/workspace/reports,Reports.html,مدیریت سامانه,partial,گزارش تشخیصی preflight؛ خروجی فایل و گزارش نهایی کامل نیست
+/workspace/report-builder,ReportBuilder.html,مدیریت سامانه,partial,انتخاب ستون روی preflight؛ گزارش‌ساز ذخیره‌شونده و خروجی کامل نیست
+/workspace/executive-home,ExecutiveHome.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
+/panel,Panel.html,ابزار فنی,existing,پوستهٔ عمومی AllowAnonymous؛ عملیات داده جدا مجوز می‌خواهند
