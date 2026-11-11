@@ -80,7 +80,9 @@ internal static class DeviceRegistryTests
         check(results.Count(x=>x)==1&&await Query(db=>db.Devices.CountAsync(d=>d.Number=="S04-RACE"))==1,"devices concurrent distinct operations claiming one number commit at most one device");
         var identityProtected=false;
         try{await Query(db=>db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.Devices SET SourceId=SourceId WHERE Id={first}"));}catch(SqlException e)when(e.Number==51014){identityProtected=true;}
-        check(identityProtected&&await Query(db=>db.Devices.AnyAsync(d=>d.Id==first)),"devices database trigger protects stable source and creation identity against direct SQL updates");
+        var numberProtected=false;
+        try{await Query(db=>db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.Devices SET Number={"BAD SPACE"} WHERE Id={first}"));}catch(SqlException e)when(e.Number==547){numberProtected=true;}
+        check(identityProtected&&numberProtected&&await Query(db=>db.Devices.AnyAsync(d=>d.Id==first)),"devices database protects source identity and rejects malformed numbers even through direct SQL");
         check(await Use<LoginIdentityDbContext,bool>(async db=>!await db.SecurityAudit.AnyAsync(a=>a.Action.Contains(secret))&&await db.SecurityAudit.AnyAsync(a=>a.Action=="devices.credential.changed:"+first.ToString("N"))),"devices credential audit records action and identity only without secret payload");
         var wrongPurpose=false;var lostKeys=false;
         try{keys.CreateProtector("IO.Devices.Credential.v1",second.ToString("N")).Unprotect(ciphertext);}catch(CryptographicException){wrongPurpose=true;}

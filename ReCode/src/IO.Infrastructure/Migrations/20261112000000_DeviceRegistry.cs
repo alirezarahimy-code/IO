@@ -18,7 +18,7 @@ public sealed class DeviceRegistry : Migration
               Profile nvarchar(32) NOT NULL, Host nvarchar(253) NULL, Port int NULL, Enabled bit NOT NULL,
               CreationFingerprint nvarchar(64) NOT NULL, CreatedByUserId uniqueidentifier NOT NULL,
               CreatedAtUtc datetimeoffset NOT NULL, UpdatedAtUtc datetimeoffset NOT NULL, Version rowversion NOT NULL,
-              CONSTRAINT CK_Devices_Number CHECK (LEN([Number]) BETWEEN 1 AND 40 AND [Number] COLLATE Latin1_General_100_BIN2 NOT LIKE '%[^A-Z0-9_-]%' AND LEFT([Number],1) COLLATE Latin1_General_100_BIN2 LIKE '[A-Z0-9]'),
+              CONSTRAINT CK_Devices_Number CHECK (LEN([Number]) BETWEEN 1 AND 40 AND REPLACE([Number], N'-', N'') COLLATE Latin1_General_100_BIN2 NOT LIKE N'%[^A-Z0-9_]%' AND DATALENGTH([Number]) = LEN([Number]) * 2 AND LEFT([Number],1) COLLATE Latin1_General_100_BIN2 LIKE '[A-Z0-9]'),
               CONSTRAINT CK_Devices_Profile CHECK (([Profile] = N'zk-standalone' AND [Host] IS NOT NULL AND [Port] IS NOT NULL AND [Port] BETWEEN 1 AND 65535) OR ([Profile] IN (N'zk-push', N'offline-file') AND [Host] IS NULL AND [Port] IS NULL)),
               CONSTRAINT CK_Devices_Utc CHECK (DATEPART(TZOFFSET,[CreatedAtUtc]) = 0 AND DATEPART(TZOFFSET,[UpdatedAtUtc]) = 0 AND [UpdatedAtUtc] >= [CreatedAtUtc]),
               CONSTRAINT FK_Devices_Sites_SiteId FOREIGN KEY(SiteId) REFERENCES dbo.Sites(Id),

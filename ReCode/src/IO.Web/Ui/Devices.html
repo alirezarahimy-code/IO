@@ -11,7 +11,7 @@
 <label>شناسهٔ دستگاه / عملیات ایجاد <input name="operationId" readonly></label>
 <label>نسخهٔ انتخاب‌شده <input name="version" readonly></label>
 <label>شناسهٔ محل نصب <input name="siteId" required></label>
-<label>شمارهٔ یکتا <input name="number" required maxlength="40" pattern="[A-Za-z0-9][A-Za-z0-9_-]{0,39}"></label>
+<label>شمارهٔ یکتا <input name="number" required maxlength="40" pattern="[A-Za-z0-9][A-Za-z0-9_\-]{0,39}"></label>
 <label>نام <input name="name" required maxlength="200"></label><label>مدل اعلامی (تأییدنشده) <input name="model" required maxlength="120"></label>
 <label>پروفایل <select name="profile"><option value="zk-standalone">ZK Standalone — تأییدنشده</option><option value="zk-push">ZK PUSH — تأییدنشده</option><option value="offline-file">فایل آفلاین — آداپتر ساخته نشده</option></select></label>
 <label>IP یا نام میزبان، نه URL <input name="host" maxlength="253"></label><label>پورت <input name="port" type="number" min="1" max="65535"></label>

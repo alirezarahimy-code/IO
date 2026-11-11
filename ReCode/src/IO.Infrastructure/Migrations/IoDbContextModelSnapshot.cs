@@ -25,7 +25,7 @@ namespace IO.Infrastructure.Migrations
         {
             b.ToTable("Devices", t =>
             {
-                t.HasCheckConstraint("CK_Devices_Number", "LEN([Number]) BETWEEN 1 AND 40 AND [Number] COLLATE Latin1_General_100_BIN2 NOT LIKE '%[^A-Z0-9_-]%' AND LEFT([Number],1) COLLATE Latin1_General_100_BIN2 LIKE '[A-Z0-9]'");
+                t.HasCheckConstraint("CK_Devices_Number", "LEN([Number]) BETWEEN 1 AND 40 AND REPLACE([Number], N'-', N'') COLLATE Latin1_General_100_BIN2 NOT LIKE N'%[^A-Z0-9_]%' AND DATALENGTH([Number]) = LEN([Number]) * 2 AND LEFT([Number],1) COLLATE Latin1_General_100_BIN2 LIKE '[A-Z0-9]'");
                 t.HasCheckConstraint("CK_Devices_Profile", "([Profile] = N'zk-standalone' AND [Host] IS NOT NULL AND [Port] IS NOT NULL AND [Port] BETWEEN 1 AND 65535) OR ([Profile] IN (N'zk-push', N'offline-file') AND [Host] IS NULL AND [Port] IS NULL)");
                 t.HasCheckConstraint("CK_Devices_Utc", "DATEPART(TZOFFSET,[CreatedAtUtc]) = 0 AND DATEPART(TZOFFSET,[UpdatedAtUtc]) = 0 AND [UpdatedAtUtc] >= [CreatedAtUtc]");
                 t.HasTrigger("TR_Devices_Identity"); t.UseSqlOutputClause(false);
