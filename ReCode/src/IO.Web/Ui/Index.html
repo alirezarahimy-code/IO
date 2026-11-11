@@ -1,26 +1,9 @@
-<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>پنل من</title><script src="/assets/theme.js"></script><link rel="stylesheet" href="/assets/theme.css"><link rel="stylesheet" href="/assets/employees.css"><script src="/assets/index.js" defer></script></head><body><nav class="page-nav" aria-label="ناوبری"><a href="/workspace/account">حساب من</a> / <a href="/panel">پنل ابزار</a></nav><main>
-<header class="page-heading"><div><p class="eyebrow">پنل نقش · آزمایشی</p><h1>پنل من</h1><p id="who">در حال تشخیص سطح دسترسی…</p><p>سطح پنل با مجوزهای واقعی حساب در سرور تعیین می‌شود؛ پنهان‌بودن یک بخش یعنی حساب فعلی مجوز آن داده را ندارد.</p></div></header><div id="notice" role="status" aria-live="polite"></div>
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>پنل من</title><script src="/assets/theme.js"></script><script src="/assets/access.js" defer></script><link rel="stylesheet" href="/assets/theme.css"><link rel="stylesheet" href="/assets/employees.css"><script src="/assets/index.js" defer></script></head><body><nav class="page-nav" aria-label="ناوبری"><a href="/workspace/account">حساب من</a> / <a href="/workspace/help">راهنمای سامانه</a></nav><main>
+<header class="page-heading"><div><p class="eyebrow">پنل نقش · آزمایشی</p><h1>پنل من</h1><p id="who">در حال تشخیص سطح دسترسی…</p><p>سطح پنل با مجوزهای واقعی حساب در سرور تعیین می‌شود؛ هر پیوند از مجوز واقعی حساب ساخته می‌شود؛ محدوده و مجوز عملیات در API هم جداگانه کنترل می‌شود.</p></div></header><div id="notice" role="status" aria-live="polite"></div>
 <p><button id="logout" type="button" disabled>خروج</button></p>
-<section id="employee-panel" hidden><h2>پنل کارمند</h2><p id="employee-summary" role="status">در حال دریافت وضعیت درخواست‌ها…</p><ul class="page-list">
-<li><a href="/workspace/new-request">درخواست جدید</a> — ثبت تردد فراموش‌شده</li>
-<li><a href="/workspace/my-requests">درخواست‌های من</a> — فیلتر شمسی، لغو، ویرایش، پیگیری</li>
-<li><a href="/workspace/my-attendance">تردد من</a> · <a href="/workspace/my-schedule">برنامهٔ من</a> · <a href="/workspace/my-leave">مرخصی من</a> · <a href="/workspace/my-reports">گزارش‌های من</a></li>
-<li><a href="/workspace/delegation">جانشینی من</a> — ثبت جانشین و اعطای تصمیم اصلاح</li>
-<li><a href="/workspace/employee-home">خانهٔ کارمند</a></li>
-</ul></section>
-<section id="manager-panel" hidden><h2>پنل مدیر واحد</h2><p id="manager-summary" role="status">در حال دریافت کارتابل…</p><ul class="page-list">
-<li><a href="/workspace/inbox">کارتابل بررسی</a> — انتخاب کارمند، تاریخ شمسی، تأیید/رد</li>
-<li><a href="/workspace/decision-history">تاریخچهٔ تصمیم‌های من</a></li>
-<li><a href="/workspace/team-attendance">تردد تیم</a> — اعضای محدودهٔ من</li>
-<li><a href="/workspace/manager-home">خانهٔ مدیر</a> — صف اقدام</li>
-</ul><p>ابزارهای کارمند هم برای شما فعال است؛ بخش پنل کارمند بالا را ببینید.</p></section>
-<section id="admin-panel" hidden><h2>پنل مدیریت سامانه</h2><ul class="page-list">
-<li>ساختار: <a href="/workspace/organization">سازمان</a> · <a href="/workspace/employees">کارمندان</a> · <a href="/workspace/users">کاربران</a> · <a href="/workspace/roles">نقش‌ها و مجوزها</a> · <a href="/workspace/audit">آدیت</a></li>
-<li>شیفت و تقویم: <a href="/workspace/calendars">تقویم‌ها</a> · <a href="/workspace/shifts">شیفت‌ها</a> · <a href="/workspace/schedules">برنامه‌ها</a> · <a href="/workspace/employee-history">تاریخچهٔ کارمند</a> · <a href="/workspace/sources">منابع</a></li>
-<li>دادهٔ تردد: <a href="/workspace/raw-events">رویدادهای خام</a> · <a href="/workspace/mappings">نگاشت‌ها</a> · <a href="/workspace/conflicts">تعارض‌ها</a></li>
-<li>محاسبه و دوره: <a href="/workspace/calculations">محاسبات</a> · <a href="/workspace/rules">قواعد</a> · <a href="/workspace/periods">دوره‌ها</a></li>
-<li>سایر: <a href="/workspace/settings">تنظیمات اصلاح</a> · <a href="/workspace/workflow">گردش اصلاح</a> · <a href="/workspace/leave-admin">دفتر مرخصی</a> · <a href="/workspace/reports">گزارش‌ها</a> · <a href="/workspace/report-builder">سازندهٔ گزارش</a> · <a href="/workspace/executive-home">نمای مدیریت</a></li>
-</ul></section>
-<p id="empty-panel" hidden>حساب شما هیچ سطح دسترسی فعالی ندارد؛ با مدیر سامانه تماس بگیرید.</p>
+<section id="employee-panel" hidden><h2>پنل کارمند</h2><p id="employee-summary" role="status">در حال دریافت وضعیت درخواست‌ها…</p><ul id="employee-links" class="page-list"></ul></section>
+<section id="manager-panel" hidden><h2>پنل مدیر واحد</h2><p id="manager-summary" role="status">در حال دریافت کارتابل…</p><ul id="manager-links" class="page-list"></ul><p>ابزارهای کارمند هم برای شما فعال است؛ بخش پنل کارمند بالا را ببینید.</p></section>
+<section id="admin-panel" hidden><h2>پنل مدیریت سامانه</h2><ul id="admin-links" class="page-list"></ul></section>
+<section id="executive-panel" hidden><h2>پنل مدیر ارشد</h2><ul id="executive-links" class="page-list"></ul></section><section id="technical-panel" hidden><h2>ابزار مدیریت فنی</h2><ul id="technical-links" class="page-list"></ul></section><section id="operator-panel" hidden><h2>اپراتور دستگاه</h2><p>بخش دستگاه هنوز ساخته نشده؛ مجوز عملیاتی دستگاهی فعال نیست.</p></section><p id="empty-panel" hidden>حساب شما هیچ سطح دسترسی فعالی ندارد؛ با مدیر سامانه تماس بگیرید.</p>
 <section id="notifications-panel" hidden><h2>اعلان‌ها</h2><p>اعلان خوانده‌نشده: <bdi id="notifications-unread">0</bdi> — پنج اعلان آخر:</p><ul id="notifications-list"></ul><p><button id="notifications-read" type="button" disabled>همه خوانده شد</button></p></section>
 </main></body></html>

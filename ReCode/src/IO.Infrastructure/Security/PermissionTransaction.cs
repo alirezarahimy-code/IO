@@ -11,7 +11,8 @@ public sealed class PermissionTransaction(LoginIdentityDbContext identity, IoDbC
 {
     public Task<T> ExecuteAsync<T>(Guid actor, string permission, string action,
         Func<CancellationToken, Task<(T Result, Guid Target)>> operation, CancellationToken ct = default) =>
-        ExecuteEitherAsync(actor, permission, permission, action, operation, ct);
+        ExecuteEitherAsync(actor, PermissionCatalog.Resolve(permission, action).Permission,
+            PermissionCatalog.Resolve(permission, action).Legacy, action, operation, ct);
 
     // Only callers with server-defined permission constants may use this for
     // backwards-compatible access during a permission split.

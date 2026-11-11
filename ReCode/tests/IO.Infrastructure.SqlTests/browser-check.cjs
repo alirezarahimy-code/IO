@@ -392,6 +392,17 @@ async function main() {
     const rolesPage = await context.newPage();
     await rolesPage.goto(address + '/workspace/roles');
     await rolesPage.waitForFunction(() => !document.querySelector('#role-form button').disabled);
+    for(const code of ['correction.edit.self','leave.request.submit','leave.request.decide','organization.read'])
+      if(await rolesPage.locator('#permission-form select[name=code] option[value="'+code+'"]').count()!==1)throw new Error('Central catalogue omitted '+code);
+    await rolesPage.locator('#create-templates').click();
+    await rolesPage.waitForFunction(()=>document.getElementById('notice').textContent.includes('قالب نقش‌ها بررسی شد'));
+    const helpPage=await context.newPage();await helpPage.goto(address+'/workspace/help/roles');
+    await helpPage.locator('#article h2').waitFor();
+    if(!(await helpPage.locator('#article').textContent()).includes('مجوز قدیمی تجمیعی'))throw new Error('Detailed role help missing compatibility warning');
+    await helpPage.locator('#help-filter input[name=q]').fill('نقش');
+    if(!await helpPage.locator('#topics a').count())throw new Error('Help search returned no authorized topics');
+    await helpPage.close();
+
     await rolesPage.locator('#permission-form select[name=code]').selectOption('attendance.ingest');
     if (!(await rolesPage.locator('#permission-warning').textContent()).includes('مدیریت دستگاه واقعی نیست'))
       throw new Error('Permission scope warning missing');
@@ -1552,7 +1563,7 @@ async function main() {
     if(!await panelPage.locator('a[href="/workspace/organization"]').count() || !await panelPage.locator('a[href="/workspace/inbox"]').count())
       throw new Error('Role panel did not list admin and manager tools');
     await panelPage.close();
-    const routes = ['/workspace','/workspace/employee-home','/workspace/my-attendance','/workspace/my-schedule','/workspace/my-leave','/workspace/my-reports','/workspace/new-request','/workspace/my-requests','/workspace/delegation','/workspace/account','/workspace/manager-home','/workspace/inbox','/workspace/decision-history','/workspace/team-attendance','/workspace/organization','/workspace/employees','/workspace/users','/workspace/roles','/workspace/calendars','/workspace/shifts','/workspace/schedules','/workspace/employee-history','/workspace/sources','/workspace/settings','/workspace/raw-events','/workspace/mappings','/workspace/conflicts','/workspace/calculations','/workspace/rules','/workspace/periods','/workspace/leave-admin','/workspace/reports','/workspace/report-builder','/workspace/workflow','/workspace/audit','/workspace/executive-home','/panel'];
+    const routes = ['/workspace/help','/workspace/help/roles','/workspace','/workspace/employee-home','/workspace/my-attendance','/workspace/my-schedule','/workspace/my-leave','/workspace/my-reports','/workspace/new-request','/workspace/my-requests','/workspace/delegation','/workspace/account','/workspace/manager-home','/workspace/inbox','/workspace/decision-history','/workspace/team-attendance','/workspace/organization','/workspace/employees','/workspace/users','/workspace/roles','/workspace/calendars','/workspace/shifts','/workspace/schedules','/workspace/employee-history','/workspace/sources','/workspace/settings','/workspace/raw-events','/workspace/mappings','/workspace/conflicts','/workspace/calculations','/workspace/rules','/workspace/periods','/workspace/leave-admin','/workspace/reports','/workspace/report-builder','/workspace/workflow','/workspace/audit','/workspace/executive-home','/panel'];
     const scriptFailures = [];
     for (const route of routes) {
       const health = await context.newPage();

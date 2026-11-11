@@ -115,10 +115,11 @@ public static class IoWebHost
                 context.Request.Path != "/auth/change-password" && context.Request.Path != "/auth/logout" &&
                 context.Request.Path != "/auth/csrf" && context.Request.Path != "/auth/me" &&
                 context.Request.Path != "/panel" && context.Request.Path != "/assets/panel.js" &&
-                context.Request.Path != "/assets/theme.js" && context.Request.Path != "/assets/theme.css" &&
+                context.Request.Path != "/assets/access.js" && context.Request.Path != "/assets/theme.js" && context.Request.Path != "/assets/theme.css" &&
                 context.Request.Path != "/workspace/account" && context.Request.Path != "/assets/account.js" &&
                 context.Request.Path != "/assets/employees.css" && context.Request.Path != "/login" && context.Request.Path != "/assets/login.js" &&
-                context.Request.Path != "/health/live")
+                context.Request.Path != "/health/live" && context.Request.Path != "/workspace/help" &&
+                context.Request.Path != "/workspace/help/login" && context.Request.Path != "/assets/help.js")
             {
                 context.Response.StatusCode = StatusCodes.Status403Forbidden;
                 return;
@@ -134,20 +135,44 @@ public static class IoWebHost
         app.MapGet("/assets/index.js", () => Results.Content(Resource("IO.Web.Ui.index.js"), "text/javascript; charset=utf-8"));
         // The role panel is chosen by effective server-side permissions, never by
         // client claims; a flag here only reveals which tool sections may render.
-        app.MapGet("/workspace/capabilities", async (HttpContext context, PermissionTransaction transaction, CancellationToken token) =>
+        app.MapGet("/workspace/capabilities", async (HttpContext context, IoDbContext db) =>
         {
             if (!Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var actor)) return Results.Unauthorized();
-            var employee = await transaction.HasPermissionAsync(actor, CorrectionWorkflow.Submit, token) || await transaction.HasPermissionAsync(actor, CorrectionWorkflow.ReadOwn, token);
-            var manager = await transaction.HasPermissionAsync(actor, CorrectionWorkflow.ReadInbox, token) || await transaction.HasPermissionAsync(actor, CorrectionWorkflow.Decide, token) ||
-                await transaction.HasPermissionAsync(actor, CorrectionWorkflow.Approve, token) || await transaction.HasPermissionAsync(actor, CorrectionWorkflow.Reject, token) ||
-                await transaction.HasPermissionAsync(actor, CorrectionWorkflow.ReadDecisions, token) || await transaction.HasPermissionAsync(actor, TeamAttendance.Scoped, token) ||
-                await transaction.HasPermissionAsync(actor, TeamAttendance.All, token);
-            var admin = await transaction.HasPermissionAsync(actor, InitialAdministrator.ManageIdentity, token) || await transaction.HasPermissionAsync(actor, OrganizationManagement.Manage, token) ||
-                await transaction.HasPermissionAsync(actor, AttendanceIngestion.Manage, token) || await transaction.HasPermissionAsync(actor, ObservedCalculation.Manage, token) ||
-                await transaction.HasPermissionAsync(actor, CorrectionSettings.Manage, token) || await transaction.HasPermissionAsync(actor, CorrectionWorkflow.Configure, token) ||
-                await transaction.HasPermissionAsync(actor, LeaveLedger.Manage, token) || await transaction.HasPermissionAsync(actor, ScheduleManagement.Manage, token);
-            return Results.Ok(new { employee, manager, admin });
+            var permissions = await WorkspaceCatalog.EffectiveAsync(actor, db, context.RequestAborted);
+            var pages = WorkspaceCatalog.Pages.Where(p => WorkspaceCatalog.CanView(p, permissions)).ToArray();
+            return Results.Ok(new {
+                employee = pages.Any(p => p.Group == "employee"), manager = pages.Any(p => p.Group == "manager"),
+                admin = pages.Any(p => p.Group == "admin"), executive = pages.Any(p => p.Group == "executive"),
+                @operator = false, permissions = permissions.Order(StringComparer.Ordinal),
+                pages = pages.Select(p => new { p.Route, p.Title, p.Group })
+            });
         });
+        app.MapGet("/workspace/permission-catalog", () => Results.Ok(PermissionCatalog.All));
+        app.MapPost("/admin/role-templates", (HttpContext c, IAntiforgery csrf, IdentityAdministration admin) =>
+            Admin(c, csrf, actor => admin.CreateTemplatesAsync(actor, c.RequestAborted)));
+        var helpArticles = SystemHelp.Parse(Resource("IO.Web.Ui.HelpContent.json"));
+        app.MapGet("/workspace/help", () => Results.Content(Resource("IO.Web.Ui.Help.html"), "text/html; charset=utf-8")).AllowAnonymous();
+        app.MapGet("/workspace/help/{topic}", () => Results.Content(Resource("IO.Web.Ui.Help.html"), "text/html; charset=utf-8")).AllowAnonymous();
+        app.MapGet("/assets/help.js", () => Results.Content(Resource("IO.Web.Ui.help.js"), "text/javascript; charset=utf-8")).AllowAnonymous();
+        app.MapGet("/help/topics", async (HttpContext c, IoDbContext db) =>
+        {
+            var signedIn = Guid.TryParse(c.User.FindFirstValue(ClaimTypes.NameIdentifier), out var actor);
+            var permissions = signedIn ? await WorkspaceCatalog.EffectiveAsync(actor, db, c.RequestAborted) : new HashSet<string>(StringComparer.Ordinal);
+            return Results.Ok(helpArticles.Where(a => SystemHelp.CanRead(a, signedIn, permissions)).Select(a =>
+                new { a.Slug, a.Title, a.Group, search = a.Title + " " + a.Group + " " + a.Overview + " " + string.Join(" ", a.Steps) }));
+        }).AllowAnonymous();
+        app.MapGet("/help/topic/{slug}", async (string slug, HttpContext c, IoDbContext db) =>
+        {
+            var article = helpArticles.SingleOrDefault(a => a.Slug == slug);
+            if (article is null) return Results.NotFound();
+            var signedIn = Guid.TryParse(c.User.FindFirstValue(ClaimTypes.NameIdentifier), out var actor);
+            var permissions = signedIn ? await WorkspaceCatalog.EffectiveAsync(actor, db, c.RequestAborted) : new HashSet<string>(StringComparer.Ordinal);
+            if (!SystemHelp.CanRead(article, signedIn, permissions)) return Results.StatusCode(403);
+            var page = WorkspaceCatalog.Pages.Single(p => p.Route == article.Route);
+            return Results.Ok(new { article.Slug, article.Route, article.Title, article.Group, article.Overview,
+                article.Steps, article.Example, article.Fields, article.Actions, article.Errors, article.Limitations,
+                permissions = page.AnyPermissions });
+        }).AllowAnonymous();
         app.MapGet("/workspace/account", () => Results.Content(Resource("IO.Web.Ui.Account.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/account.js", () => Results.Content(Resource("IO.Web.Ui.account.js"), "text/javascript; charset=utf-8"));
         // Shell and assets are authenticated; all data operations additionally
@@ -213,6 +238,7 @@ public static class IoWebHost
         app.MapGet("/assets/employees.js", () => Results.Content(Resource("IO.Web.Ui.employees.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/assets/employees.css", () => Results.Content(Resource("IO.Web.Ui.employees.css"), "text/css; charset=utf-8")).AllowAnonymous();
         app.MapGet("/assets/panel.js", () => Results.Content(Resource("IO.Web.Ui.panel.js"), "text/javascript; charset=utf-8")).AllowAnonymous();
+        app.MapGet("/assets/access.js", () => Results.Content(Resource("IO.Web.Ui.access.js"), "text/javascript; charset=utf-8")).AllowAnonymous();
         app.MapGet("/assets/theme.js", () => Results.Content(Resource("IO.Web.Ui.theme.js"), "text/javascript; charset=utf-8")).AllowAnonymous();
         app.MapGet("/assets/theme.css", () => Results.Content(Resource("IO.Web.Ui.theme.css"), "text/css; charset=utf-8")).AllowAnonymous();
         app.MapGet("/auth/csrf", (HttpContext context, IAntiforgery antiforgery) =>

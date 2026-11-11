@@ -42,6 +42,9 @@
     selector.value = current;
     selector.addEventListener('change', () => apply(selector.value, true));
     label.append(title, selector); bar.append(brand, label);
+    const help=document.createElement('a');
+    const topic=location.pathname==='/login'?'login':location.pathname==='/panel'?'technical-panel':location.pathname==='/workspace'?'workspace':location.pathname.split('/')[2]||'login';
+    help.href='/workspace/help/'+encodeURIComponent(topic);help.textContent='راهنمای همین صفحه';help.className='io-page-help';bar.append(help);
     document.body.prepend(bar);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount, { once: true }); else mount();

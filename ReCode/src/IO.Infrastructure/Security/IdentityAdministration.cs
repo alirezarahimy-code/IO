@@ -29,7 +29,7 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
         await foundation.Database.CloseConnectionAsync();
         foundation.Database.SetDbConnection(identity.Database.GetDbConnection());
         await foundation.Database.UseTransactionAsync(tx.GetDbTransaction(), cancellationToken);
-        await RequireManagementAsync(actor, cancellationToken);
+        await RequireManagementAsync(actor, PermissionCatalog.Resolve(InitialAdministrator.ManageIdentity, action).Permission, cancellationToken);
         var (result, target) = await operation();
         identity.SecurityAudit.Add(new SecurityAuditRecord { Id = Guid.NewGuid(), ActorUserId = actor,
             Action = action + ":" + target.ToString("N"), OccurredAtUtc = DateTimeOffset.UtcNow });
@@ -39,16 +39,18 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
         return result;
     }
 
-    private async Task RequireManagementAsync(Guid actor, CancellationToken cancellationToken)
+    private async Task RequireManagementAsync(Guid actor, string permission, CancellationToken cancellationToken)
     {
-        var permission = InitialAdministrator.ManageIdentity;
+        var legacy = InitialAdministrator.ManageIdentity;
         var allowed = await (from user in foundation.Users
                              join ur in foundation.UserRoles on user.Id equals ur.UserId
                              join rp in foundation.RolePermissions on ur.RoleId equals rp.RoleId
                              join p in foundation.Permissions on rp.PermissionId equals p.Id
                              where user.Id == actor && user.IsActive &&
-                                 EF.Functions.Collate(p.Code, "Latin1_General_100_BIN2") == permission &&
-                                 EF.Functions.DataLength(p.Code) == permission.Length * 2
+                                 ((EF.Functions.Collate(p.Code, "Latin1_General_100_BIN2") == permission &&
+                                   EF.Functions.DataLength(p.Code) == permission.Length * 2) ||
+                                  (EF.Functions.Collate(p.Code, "Latin1_General_100_BIN2") == legacy &&
+                                   EF.Functions.DataLength(p.Code) == legacy.Length * 2))
                              select user.Id).AnyAsync(cancellationToken);
         if (!allowed) throw new UnauthorizedAccessException();
     }
@@ -67,7 +69,8 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
         await foundation.Database.CloseConnectionAsync();
         foundation.Database.SetDbConnection(identity.Database.GetDbConnection());
         await foundation.Database.UseTransactionAsync(tx.GetDbTransaction(), ct);
-        await RequireManagementAsync(actor, ct);
+        await RequireManagementAsync(actor, kind == "audit" ? "identity.audit.read" :
+            kind is "users" ? "identity.users.read" : "identity.roles.read", ct);
         const int pageSize = 100;
         object page = kind switch
         {
@@ -113,7 +116,7 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
         await foundation.Database.CloseConnectionAsync();
         foundation.Database.SetDbConnection(identity.Database.GetDbConnection());
         await foundation.Database.UseTransactionAsync(tx.GetDbTransaction(), ct);
-        await RequireManagementAsync(actor, ct);
+        await RequireManagementAsync(actor, "identity.users.read", ct);
         var user = await foundation.Users.AsNoTracking().Where(x => x.Id == userId)
             .Select(x => new { x.Id, x.UserName, x.EmployeeId, x.IsActive }).SingleOrDefaultAsync(ct)
             ?? throw new ArgumentException("Unknown user.");
@@ -168,6 +171,41 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
             return (id, id);
         }, ct);
 
+    public Task<object> CreateTemplatesAsync(Guid actor, CancellationToken ct = default) =>
+        ExecuteAsync<object>(actor, "identity.templates.created", async () =>
+        {
+            await foundation.Database.ExecuteSqlRawAsync("""
+                DECLARE @result int;
+                EXEC @result=sys.sp_getapplock @Resource=N'IO.RoleTemplates', @LockMode='Exclusive',
+                    @LockOwner='Transaction', @LockTimeout=15000;
+                IF @result < 0 THROW 51002, 'Unable to lock role templates.', 1;
+                """, ct);
+            var created = new List<Guid>();
+            foreach (var template in PermissionCatalog.Templates)
+            {
+                // Existing role is intentionally not repaired: a previous revoke must stay revoked.
+                if (await foundation.Roles.AnyAsync(r => r.Id == template.Id, ct)) continue;
+                if (await foundation.Roles.AnyAsync(r => r.Name == template.Name, ct))
+                    throw new DomainConflictException("A custom role already uses a template name; review it before creating templates.");
+                foundation.Roles.Add(new RoleRecord { Id = template.Id, Name = template.Name });
+                foreach (var code in template.Permissions)
+                {
+                    var permission = foundation.Permissions.Local.FirstOrDefault(p => p.Code == code) ??
+                        await foundation.Permissions.SingleOrDefaultAsync(p =>
+                            EF.Functions.Collate(p.Code, "Latin1_General_100_BIN2") == code &&
+                            EF.Functions.DataLength(p.Code) == code.Length * 2, ct);
+                    if (permission is null)
+                    {
+                        permission = new PermissionRecord { Id = Guid.NewGuid(), Code = code };
+                        foundation.Permissions.Add(permission);
+                    }
+                    foundation.RolePermissions.Add(new RolePermissionRecord { RoleId = template.Id, PermissionId = permission.Id });
+                }
+                created.Add(template.Id);
+            }
+            return ((object)new { created, templates = PermissionCatalog.Templates }, actor);
+        }, ct);
+
     public Task<Guid> CreateRoleAsync(Guid actor, string name, CancellationToken ct = default) =>
         ExecuteAsync(actor, "identity.role.created", () =>
         {
@@ -190,7 +228,7 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
     public Task<bool> GrantPermissionAsync(Guid actor, Guid roleId, string code, CancellationToken ct = default) =>
         ExecuteAsync(actor, "permission-grant." + code, async () =>
         {
-            if (code is not (EmployeeAccessReader.ReadSelf or EmployeeAccessReader.ReadScoped or EmployeeAccessReader.ReadAll or InitialAdministrator.ManageIdentity or OrganizationManagement.Manage or AttendanceIngestion.Manage or PersonalAttendance.ReadSelf or TeamAttendance.Read or TeamAttendance.Scoped or TeamAttendance.All or PersonalReports.ReadSelf or ExecutiveOverview.Read or LeaveLedger.Manage or LeaveLedger.ReadSelf or LeaveRequests.Submit or LeaveRequests.Decide or DelegationRegistry.ManageSelf or DelegationRegistry.Receive or CorrectionSettings.Manage or ObservedCalculation.Manage or CorrectionWorkflow.Configure or CorrectionWorkflow.Submit or CorrectionWorkflow.ReadOwn or CorrectionWorkflow.CancelOwn or CorrectionWorkflow.EditOwn or CorrectionWorkflow.ReadInbox or CorrectionWorkflow.Decide or CorrectionWorkflow.Approve or CorrectionWorkflow.Reject or CorrectionWorkflow.ReadDecisions or CorrectionWorkflow.DecideScoped or CorrectionWorkflow.DecideAll or PeriodPreflight.Read or PeriodDrafts.Manage or PeriodDiagnostics.Manage or ScheduleManagement.Manage or ScheduleReader.ReadSelf or ScheduleReader.ReadScoped or ScheduleReader.ReadAll) ||
+            if (!PermissionCatalog.Codes.Contains(code) ||
                 !await foundation.Roles.AnyAsync(x => x.Id == roleId, ct)) throw new ArgumentException("Invalid permission or role.");
             var permission = await foundation.Permissions.SingleOrDefaultAsync(p =>
                 EF.Functions.Collate(p.Code, "Latin1_General_100_BIN2") == code && EF.Functions.DataLength(p.Code) == code.Length * 2, ct);
@@ -231,7 +269,7 @@ public sealed class IdentityAdministration(LoginIdentityDbContext identity, IoDb
     public Task<bool> RevokePermissionAsync(Guid actor, Guid roleId, string code, CancellationToken ct = default) =>
         ExecuteAsync(actor, "permission-revoke." + code, async () =>
         {
-            if (code is not (EmployeeAccessReader.ReadSelf or EmployeeAccessReader.ReadScoped or EmployeeAccessReader.ReadAll or InitialAdministrator.ManageIdentity or OrganizationManagement.Manage or AttendanceIngestion.Manage or PersonalAttendance.ReadSelf or TeamAttendance.Read or TeamAttendance.Scoped or TeamAttendance.All or PersonalReports.ReadSelf or ExecutiveOverview.Read or LeaveLedger.Manage or LeaveLedger.ReadSelf or LeaveRequests.Submit or LeaveRequests.Decide or DelegationRegistry.ManageSelf or DelegationRegistry.Receive or CorrectionSettings.Manage or ObservedCalculation.Manage or CorrectionWorkflow.Configure or CorrectionWorkflow.Submit or CorrectionWorkflow.ReadOwn or CorrectionWorkflow.CancelOwn or CorrectionWorkflow.EditOwn or CorrectionWorkflow.ReadInbox or CorrectionWorkflow.Decide or CorrectionWorkflow.Approve or CorrectionWorkflow.Reject or CorrectionWorkflow.ReadDecisions or CorrectionWorkflow.DecideScoped or CorrectionWorkflow.DecideAll or PeriodPreflight.Read or PeriodDrafts.Manage or PeriodDiagnostics.Manage or ScheduleManagement.Manage or ScheduleReader.ReadSelf or ScheduleReader.ReadScoped or ScheduleReader.ReadAll) ||
+            if (!PermissionCatalog.Codes.Contains(code) ||
                 await foundation.UserRoles.AnyAsync(x => x.UserId == actor && x.RoleId == roleId, ct))
                 throw new ArgumentException("Invalid permission or role used by the actor.");
             var permissionId = await foundation.Permissions.Where(p =>

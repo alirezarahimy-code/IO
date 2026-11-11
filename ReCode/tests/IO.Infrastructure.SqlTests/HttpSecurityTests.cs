@@ -120,6 +120,14 @@ internal static class HttpSecurityTests
                 return await client.SendAsync(message);
             }
             using var anon = Client();
+            using var helpList = await anon.GetAsync("/help/topics");
+            using var helpJson = JsonDocument.Parse(await helpList.Content.ReadAsStringAsync());
+            check(helpList.StatusCode == HttpStatusCode.OK && helpJson.RootElement.GetArrayLength() == 1 &&
+                  (await anon.GetAsync("/help/topic/login")).StatusCode == HttpStatusCode.OK &&
+                  (await anon.GetAsync("/help/topic/roles")).StatusCode == HttpStatusCode.Forbidden &&
+                  (await anon.GetAsync("/help/topic/does-not-exist")).StatusCode == HttpStatusCode.NotFound &&
+                  (await anon.GetAsync("/workspace/permission-catalog")).StatusCode == HttpStatusCode.Unauthorized,
+                  "HTTP help filters anonymous topics and denies direct protected article and permission catalogue");
             var panel = await anon.GetAsync("/panel");
             var script = await anon.GetAsync("/assets/panel.js");
             var themeScript = await anon.GetAsync("/assets/theme.js");

@@ -2,10 +2,16 @@
 (() => {
   const $=id=>document.getElementById(id),forms=[$('role-form'),$('permission-form'),$('scope-form'),$('revoke-form')];
   const specs={roles:{title:'نقش‌ها',columns:[['name','نام نقش'],['id','شناسهٔ نقش']]},permissions:{title:'مجوزها',columns:[['code','کد مجوز'],['id','شناسهٔ مجوز']]},'role-permissions':{title:'مجوزهای نقش‌ها',columns:[['roleId','شناسهٔ نقش'],['permissionId','شناسهٔ مجوز']]},'user-roles':{title:'نقش‌های حساب‌ها',columns:[['userId','شناسهٔ حساب'],['roleId','شناسهٔ نقش']]},'user-scopes':{title:'محدوده‌های واحد حساب‌ها',columns:[['userId','شناسهٔ حساب'],['orgUnitId','شناسهٔ واحد'],['validFrom','شروع میلادی'],['validUntilExclusive','پایان انحصاری'],['id','شناسهٔ محدوده']]}};
-  const codes=['employees.read.self','employees.read.scoped','employees.read.all','identity.manage','leave.manage','leave.read.self','delegation.manage.self','delegation.receive','settings.correction.manage','executive.dashboard.read','organization.manage','attendance.ingest','attendance.read.self','attendance.read.team','attendance.read.scoped','attendance.read.all','attendance.results.read.self','attendance.calculate','correction.configure','correction.submit.self','correction.requests.read.self','correction.cancel.self','correction.inbox.read','correction.decide','correction.approve','correction.reject','correction.decisions.read.self','correction.decide.scoped','correction.decide.all','period.preflight','period.draft.manage','period.diagnostic.manage','schedule.manage','schedule.read.self','schedule.read.scoped','schedule.read.all'];for(const code of codes)$('permission-form').elements.code.add(new Option(code,code));
+  async function loadPermissions(){
+    const data=await request('/workspace/permission-catalog');
+    const select=$('permission-form').elements.code;select.replaceChildren();
+    for(const item of data)select.add(new Option(item.title,item.code));
+    explainPermission();
+  }
+
   // These are descriptions of the existing coarse server permissions, not new grants.
   const broadWarnings={
-    'identity.manage':'این مجوز گسترده است: مدیریت حساب، نقش، مجوز، محدوده و مشاهدهٔ حسابرسی را شامل می‌شود؛ تفکیک این عملیات هنوز وجود ندارد.',
+    'identity.manage':'مجوز قدیمی تجمیعی؛ برای تفکیک، مجوزهای identity.* را جایگزین و این مجوز را لغو کنید. این مجوز گسترده است: مدیریت حساب، نقش، مجوز، محدوده و مشاهدهٔ حسابرسی را شامل می‌شود؛ تفکیک این عملیات هنوز وجود ندارد.',
     'organization.manage':'این مجوز گسترده است: مشاهده و تغییر سازمان، کارکنان و انتساب‌ها را شامل می‌شود؛ دسترسی جداگانهٔ هر عملیات هنوز وجود ندارد.',
     'schedule.manage':'این مجوز گسترده است: مشاهده و مدیریت تقویم، شیفت و انتساب برنامه را شامل می‌شود.',
     'attendance.ingest':'این مجوز گسترده است: ثبت و مشاهدهٔ منبع و تردد خام، نگاشت و جزئیات برخوردها را شامل می‌شود؛ مدیریت دستگاه واقعی نیست.',
@@ -31,7 +37,7 @@
   function explainPermission(){const code=$('permission-form').elements.code.value;$('permission-warning').textContent=broadWarnings[code]||'این مجوز و محدودهٔ آن را قبل از اعطا بررسی کنید؛ هیچ مجوزی اختیارات دستگاه یا قابلیت ساخته‌نشده را فعال نمی‌کند.';}
   $('permission-form').elements.code.addEventListener('change',explainPermission);explainPermission();
   let kind='roles',offset=0,count=0,busy=false,authorized=false;
-  function controls(){$('refresh').disabled=busy;$('previous').disabled=busy||!authorized||offset===0;$('next').disabled=busy||!authorized||count<100||offset>=1000000;for(const tab of $('tabs').querySelectorAll('button'))tab.disabled=busy;for(const form of forms)for(const e of form.querySelectorAll('input,select,button'))e.disabled=busy||!authorized;}
+  function controls(){$('refresh').disabled=busy;$('previous').disabled=busy||!authorized||offset===0;$('next').disabled=busy||!authorized||count<100||offset>=1000000;for(const tab of $('tabs').querySelectorAll('button'))tab.disabled=busy;$('create-templates').disabled=busy||!authorized;for(const form of forms)for(const e of form.querySelectorAll('input,select,button'))e.disabled=busy||!authorized;}
   function clear(){authorized=false;count=0;$('body').replaceChildren();$('page-label').textContent='';$('empty').hidden=true;for(const form of forms)form.reset();explainPermission();}
   function show(s){$('notice').textContent=s;}
   async function request(url,options={}){const r=await fetch(url,{...options,credentials:'same-origin',cache:'no-store'});if(!r.ok){if(r.status===401||r.status===403)clear();throw new Error(r.status===401?'نشست پایان یافته؛ دوباره وارد شوید.':r.status===403?'مجوز مدیریت هویت ندارید یا باید گذرواژه را تغییر دهید.':r.status===400?'شناسه یا بازه معتبر نیست، تغییر تکراری است یا مجاز نیست.':r.status===409?'تعارض رخ داد؛ فهرست را بررسی کنید.':'درخواست انجام نشد؛ پیش از تلاش مجدد وضعیت را بررسی کنید.');}return r.json();}
@@ -45,5 +51,9 @@
   $('permission-form').addEventListener('submit',e=>{e.preventDefault();run(async()=>{if(!authorized)return;const f=$('permission-form'),operation=f.elements.operation.value;await post('/admin/role-permissions'+(operation==='revoke'?'/revoke':''),{roleId:f.elements.roleId.value.trim(),code:f.elements.code.value});try{await load();show(operation==='grant'?'مجوز اعطا شد.':'مجوز لغو شد.');}catch(e){show('تغییر مجوز ثبت شد اما دریافت فهرست ناموفق بود: '+e.message);}});});
   $('scope-form').addEventListener('submit',e=>{e.preventDefault();run(async()=>{if(!authorized)return;const f=$('scope-form');const result=await post('/admin/user-scopes',{userId:f.elements.userId.value.trim(),unitId:f.elements.unitId.value.trim(),validFrom:f.elements.validFrom.value,validUntilExclusive:f.elements.validUntilExclusive.value||null});f.reset();try{await load();show('محدوده اعطا شد؛ شناسه: '+result.result);}catch(e){show('محدوده اعطا شد اما دریافت فهرست ناموفق بود: '+e.message);}});});
   $('revoke-form').addEventListener('submit',e=>{e.preventDefault();run(async()=>{if(!authorized)return;const f=$('revoke-form');await post('/admin/user-scopes/'+encodeURIComponent(f.elements.scopeId.value.trim())+'/revoke',null);f.reset();try{await load();show('محدوده لغو شد.');}catch(e){show('محدوده لغو شد اما دریافت فهرست ناموفق بود: '+e.message);}});});
-  draw();controls();run(async()=>{await load();show('');});
+  $('create-templates').addEventListener('click',()=>run(async()=>{
+    const result=await post('/admin/role-templates',{});await load();
+    show('قالب نقش‌ها بررسی شد؛ نقش جدید: '+result.result.created.length+'؛ هیچ نقش موجودی بازنویسی یا به کاربر اعطا نشد.');
+  }));
+  draw();controls();run(async()=>{await loadPermissions();await load();show('');});
 })();

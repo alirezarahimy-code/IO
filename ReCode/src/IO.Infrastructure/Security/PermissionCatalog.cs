@@ -1,0 +1,176 @@
+using System.Collections.Frozen;
+
+namespace IO.Infrastructure.Security;
+
+public sealed record PermissionDefinition(string Code, string Title, string Note);
+public sealed record RoleTemplate(string Key, Guid Id, string Name, string[] Permissions);
+
+/// <summary>Single server-owned catalogue; never accept a client-defined permission code.</summary>
+public static class PermissionCatalog
+{
+    public static readonly FrozenDictionary<string, (string Permission, string Legacy)> Operations =
+        new Dictionary<string, (string, string)>(StringComparer.Ordinal)
+        {
+            ["org.catalog.viewed"] = ("organization.read", "organization.manage"),
+            ["org.organization.created"] = ("organization.create", "organization.manage"),
+            ["org.company.created"] = ("organization.create", "organization.manage"),
+            ["org.site.created"] = ("organization.create", "organization.manage"),
+            ["org.unit.created"] = ("organization.create", "organization.manage"),
+            ["org.employee.created"] = ("employees.create", "organization.manage"),
+            ["org.employee.renamed"] = ("employees.update", "organization.manage"),
+            ["org.unit.reparented"] = ("organization.units.update", "organization.manage"),
+            ["org.assignment.created"] = ("organization.assign", "organization.manage"),
+            ["org.site-assignment.created"] = ("organization.assign", "organization.manage"),
+            ["org.site-move."] = ("organization.assign", "organization.manage"),
+            ["org.employment.created"] = ("organization.assign", "organization.manage"),
+            ["org.employment-change."] = ("organization.assign", "organization.manage"),
+            ["org.transfer."] = ("organization.assign", "organization.manage"),
+            ["schedule.catalog.viewed"] = ("schedule.catalog.read", "schedule.manage"),
+            ["schedule.calendar.created"] = ("schedule.calendar.create", "schedule.manage"),
+            ["schedule.calendar.fork."] = ("schedule.calendar.create", "schedule.manage"),
+            ["schedule.calendar-day.revised"] = ("schedule.calendar.update", "schedule.manage"),
+            ["schedule.calendar-day.created"] = ("schedule.calendar.update", "schedule.manage"),
+            ["schedule.shift.created"] = ("schedule.shift.create", "schedule.manage"),
+            ["schedule.replace."] = ("schedule.assign", "schedule.manage"),
+            ["schedule.assignment.created"] = ("schedule.assign", "schedule.manage"),
+            ["attendance.sources.viewed"] = ("attendance.sources.read", "attendance.ingest"),
+            ["attendance.source.created"] = ("attendance.sources.create", "attendance.ingest"),
+            ["attendance.received"] = ("attendance.events.receive", "attendance.ingest"),
+            ["attendance.mapping.changes.viewed"] = ("attendance.mappings.read", "attendance.ingest"),
+            ["attendance.mappings.viewed"] = ("attendance.mappings.read", "attendance.ingest"),
+            ["attendance.resolution.viewed"] = ("attendance.mappings.read", "attendance.ingest"),
+            ["attendance.mapping.created"] = ("attendance.mappings.manage", "attendance.ingest"),
+            ["attendance.mapping.replaced"] = ("attendance.mappings.manage", "attendance.ingest"),
+            ["attendance.conflicts.viewed"] = ("attendance.conflicts.read", "attendance.ingest"),
+            ["attendance.conflict.viewed"] = ("attendance.conflicts.read", "attendance.ingest"),
+            ["attendance.conflict.notes.viewed"] = ("attendance.conflicts.read", "attendance.ingest"),
+            ["attendance.conflict.noted"] = ("attendance.conflicts.note", "attendance.ingest"),
+            ["attendance.raw.viewed"] = ("attendance.raw.read", "attendance.ingest"),
+            ["calculation.rule.created"] = ("calculation.rules.create", "attendance.calculate"),
+            ["calculation.run.created"] = ("calculation.run", "attendance.calculate"),
+            ["calculation.revision.viewed"] = ("calculation.read", "attendance.calculate"),
+            ["calculation.runs.compared"] = ("calculation.read", "attendance.calculate"),
+            ["calculation.rules.viewed"] = ("calculation.read", "attendance.calculate"),
+            ["calculation.runs.viewed"] = ("calculation.read", "attendance.calculate"),
+            ["leave.type.created"] = ("leave.types.create", "leave.manage"),
+            ["leave.types.viewed"] = ("leave.admin.read", "leave.manage"),
+            ["leave.entries.viewed"] = ("leave.admin.read", "leave.manage"),
+            ["leave.balance.viewed"] = ("leave.admin.read", "leave.manage"),
+            ["leave.balances.viewed"] = ("leave.admin.read", "leave.manage"),
+            ["leave.entry.recorded"] = ("leave.entries.record", "leave.manage"),
+            ["settings.correction.updated"] = ("settings.correction.update", "settings.correction.manage"),
+            ["settings.correction.viewed"] = ("settings.correction.read", "settings.correction.manage"),
+            ["identity.users.viewed"] = ("identity.users.read", "identity.manage"),
+            ["identity.user.created"] = ("identity.users.create", "identity.manage"),
+            ["identity.user.password.reset"] = ("identity.users.password", "identity.manage"),
+            ["identity.user.disabled"] = ("identity.users.status", "identity.manage"),
+            ["identity.user.enabled"] = ("identity.users.status", "identity.manage"),
+            ["identity.roles.viewed"] = ("identity.roles.read", "identity.manage"),
+            ["identity.role.created"] = ("identity.roles.manage", "identity.manage"),
+            ["role-grant."] = ("identity.roles.manage", "identity.manage"),
+            ["role-revoke."] = ("identity.roles.manage", "identity.manage"),
+            ["permission-grant."] = ("identity.roles.manage", "identity.manage"),
+            ["permission-revoke."] = ("identity.roles.manage", "identity.manage"),
+            ["identity.templates.created"] = ("identity.roles.manage", "identity.manage"),
+            ["scope-grant."] = ("identity.roles.manage", "identity.manage"),
+            ["scope-revoke."] = ("identity.roles.manage", "identity.manage"),
+            ["identity.audit.viewed"] = ("identity.audit.read", "identity.manage"),
+        }.ToFrozenDictionary(StringComparer.Ordinal);
+
+    public static (string Permission, string Legacy) Resolve(string permission, string action)
+    {
+        if (Operations.TryGetValue(action, out var match) && match.Legacy == permission) return match;
+        foreach (var pair in Operations)
+            if (pair.Key.EndsWith('.') && action.StartsWith(pair.Key, StringComparison.Ordinal) && pair.Value.Legacy == permission)
+                return pair.Value;
+        return (permission, permission);
+    }
+
+    public static readonly IReadOnlyList<PermissionDefinition> All = Array.AsReadOnly(new PermissionDefinition[]
+    {
+        new("attendance.calculate", "تردد — attendance.calculate", "مجوز قدیمیِ تجمیعی؛ نگه‌داشتن آن ممکن است اثر لغو مجوز ریز را خنثی کند."),
+        new("attendance.conflicts.note", "تردد — attendance.conflicts.note", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("attendance.conflicts.read", "تردد — attendance.conflicts.read", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("attendance.events.receive", "تردد — attendance.events.receive", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("attendance.ingest", "تردد — attendance.ingest", "مجوز قدیمیِ تجمیعی؛ نگه‌داشتن آن ممکن است اثر لغو مجوز ریز را خنثی کند."),
+        new("attendance.mappings.manage", "تردد — attendance.mappings.manage", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("attendance.mappings.read", "تردد — attendance.mappings.read", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("attendance.raw.read", "تردد — attendance.raw.read", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("attendance.read.all", "تردد — attendance.read.all", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("attendance.read.scoped", "تردد — attendance.read.scoped", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("attendance.read.self", "تردد — attendance.read.self", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("attendance.read.team", "تردد — attendance.read.team", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("attendance.results.read.self", "تردد — attendance.results.read.self", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("attendance.sources.create", "تردد — attendance.sources.create", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("attendance.sources.read", "تردد — attendance.sources.read", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("calculation.read", "محاسبات — calculation.read", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("calculation.rules.create", "محاسبات — calculation.rules.create", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("calculation.run", "محاسبات — calculation.run", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("correction.approve", "اصلاح تردد — correction.approve", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("correction.cancel.self", "اصلاح تردد — correction.cancel.self", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("correction.configure", "اصلاح تردد — correction.configure", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("correction.decide", "اصلاح تردد — correction.decide", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("correction.decide.all", "اصلاح تردد — correction.decide.all", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("correction.decide.scoped", "اصلاح تردد — correction.decide.scoped", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("correction.decisions.read.self", "اصلاح تردد — correction.decisions.read.self", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("correction.edit.self", "اصلاح تردد — correction.edit.self", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("correction.inbox.read", "اصلاح تردد — correction.inbox.read", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("correction.reject", "اصلاح تردد — correction.reject", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("correction.requests.read.self", "اصلاح تردد — correction.requests.read.self", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("correction.submit.self", "اصلاح تردد — correction.submit.self", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("delegation.manage.self", "جانشینی — delegation.manage.self", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("delegation.receive", "جانشینی — delegation.receive", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("employees.create", "پرسنل — employees.create", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("employees.read.all", "پرسنل — employees.read.all", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("employees.read.scoped", "پرسنل — employees.read.scoped", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("employees.read.self", "پرسنل — employees.read.self", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("employees.update", "پرسنل — employees.update", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("executive.dashboard.read", "مدیر ارشد — executive.dashboard.read", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("identity.audit.read", "هویت و دسترسی — identity.audit.read", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("identity.manage", "هویت و دسترسی — identity.manage", "مجوز قدیمیِ تجمیعی؛ نگه‌داشتن آن ممکن است اثر لغو مجوز ریز را خنثی کند."),
+        new("identity.roles.manage", "هویت و دسترسی — identity.roles.manage", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("identity.roles.read", "هویت و دسترسی — identity.roles.read", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("identity.users.create", "هویت و دسترسی — identity.users.create", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("identity.users.password", "هویت و دسترسی — identity.users.password", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("identity.users.read", "هویت و دسترسی — identity.users.read", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("identity.users.status", "هویت و دسترسی — identity.users.status", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("leave.admin.read", "مرخصی و گردش — leave.admin.read", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("leave.entries.record", "مرخصی و گردش — leave.entries.record", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("leave.manage", "مرخصی و گردش — leave.manage", "مجوز قدیمیِ تجمیعی؛ نگه‌داشتن آن ممکن است اثر لغو مجوز ریز را خنثی کند."),
+        new("leave.read.self", "مرخصی و گردش — leave.read.self", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("leave.request.decide", "مرخصی و گردش — leave.request.decide", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("leave.request.submit", "مرخصی و گردش — leave.request.submit", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("leave.types.create", "مرخصی و گردش — leave.types.create", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("organization.assign", "ساختار سازمان — organization.assign", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("organization.create", "ساختار سازمان — organization.create", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("organization.manage", "ساختار سازمان — organization.manage", "مجوز قدیمیِ تجمیعی؛ نگه‌داشتن آن ممکن است اثر لغو مجوز ریز را خنثی کند."),
+        new("organization.read", "ساختار سازمان — organization.read", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("organization.units.update", "ساختار سازمان — organization.units.update", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("period.diagnostic.manage", "دوره — period.diagnostic.manage", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("period.draft.manage", "دوره — period.draft.manage", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("period.preflight", "دوره — period.preflight", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("schedule.assign", "شیفت و تقویم — schedule.assign", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("schedule.calendar.create", "شیفت و تقویم — schedule.calendar.create", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("schedule.calendar.update", "شیفت و تقویم — schedule.calendar.update", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("schedule.catalog.read", "شیفت و تقویم — schedule.catalog.read", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("schedule.manage", "شیفت و تقویم — schedule.manage", "مجوز قدیمیِ تجمیعی؛ نگه‌داشتن آن ممکن است اثر لغو مجوز ریز را خنثی کند."),
+        new("schedule.read.all", "شیفت و تقویم — schedule.read.all", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("schedule.read.scoped", "شیفت و تقویم — schedule.read.scoped", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("schedule.read.self", "شیفت و تقویم — schedule.read.self", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("schedule.shift.create", "شیفت و تقویم — schedule.shift.create", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+        new("settings.correction.manage", "تنظیمات — settings.correction.manage", "مجوز قدیمیِ تجمیعی؛ نگه‌داشتن آن ممکن است اثر لغو مجوز ریز را خنثی کند."),
+        new("settings.correction.update", "تنظیمات — تغییر تنظیمات اصلاح", "مجوز مستقل ثبت نسخهٔ تنظیمات اصلاح."),
+        new("settings.correction.read", "تنظیمات — settings.correction.read", "مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند."),
+    });
+    public static readonly FrozenSet<string> Codes = All.Select(x => x.Code).ToFrozenSet(StringComparer.Ordinal);
+
+    // Only create on explicit administrator request. Never reconcile existing grants on startup.
+    public static readonly IReadOnlyList<RoleTemplate> Templates = Array.AsReadOnly(new RoleTemplate[]
+    {
+        new("employee", Guid.Parse("787ba13a-72a9-4e32-9f25-000000000001"), "کارمند", ["employees.read.self", "attendance.read.self", "attendance.results.read.self", "schedule.read.self", "leave.read.self", "leave.request.submit", "correction.submit.self", "correction.requests.read.self", "correction.cancel.self", "correction.edit.self", "delegation.manage.self"]),
+        new("manager", Guid.Parse("787ba13a-72a9-4e32-9f25-000000000002"), "مدیر واحد", ["employees.read.scoped", "attendance.read.team", "attendance.read.scoped", "correction.inbox.read", "correction.approve", "correction.reject", "correction.decisions.read.self", "correction.decide.scoped", "leave.request.decide", "delegation.receive"]),
+        new("admin", Guid.Parse("787ba13a-72a9-4e32-9f25-000000000003"), "مدیریت سامانه", ["attendance.conflicts.note", "attendance.conflicts.read", "attendance.events.receive", "attendance.mappings.manage", "attendance.mappings.read", "attendance.raw.read", "attendance.read.all", "attendance.read.self", "attendance.read.team", "attendance.results.read.self", "attendance.sources.create", "attendance.sources.read", "calculation.read", "calculation.rules.create", "calculation.run", "correction.approve", "correction.cancel.self", "correction.configure", "correction.decide.all", "correction.decisions.read.self", "correction.edit.self", "correction.inbox.read", "correction.reject", "correction.requests.read.self", "correction.submit.self", "delegation.manage.self", "delegation.receive", "employees.create", "employees.read.all", "employees.update", "executive.dashboard.read", "identity.audit.read", "identity.roles.manage", "identity.roles.read", "identity.users.create", "identity.users.password", "identity.users.read", "identity.users.status", "leave.admin.read", "leave.entries.record", "leave.read.self", "leave.request.decide", "leave.request.submit", "leave.types.create", "organization.assign", "organization.create", "organization.read", "organization.units.update", "period.diagnostic.manage", "period.draft.manage", "period.preflight", "schedule.assign", "schedule.calendar.create", "schedule.calendar.update", "schedule.catalog.read", "schedule.read.all", "schedule.shift.create", "settings.correction.read", "settings.correction.update"]),
+        new("executive", Guid.Parse("787ba13a-72a9-4e32-9f25-000000000004"), "مدیر ارشد", ["executive.dashboard.read"]),
+        new("operator", Guid.Parse("787ba13a-72a9-4e32-9f25-000000000005"), "اپراتور دستگاه", []),
+    });
+}

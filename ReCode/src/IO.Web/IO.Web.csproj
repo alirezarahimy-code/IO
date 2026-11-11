@@ -1,5 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <ItemGroup>
+    <EmbeddedResource Include="Ui/Help.html" />
+    <EmbeddedResource Include="Ui/help.js" />
+    <EmbeddedResource Include="Ui/HelpContent.json" />
+    <EmbeddedResource Include="Ui/access.js" />
     <EmbeddedResource Include="Ui/Panel.html" />
     <EmbeddedResource Include="Ui/Index.html" />
     <EmbeddedResource Include="Ui/index.js" />
