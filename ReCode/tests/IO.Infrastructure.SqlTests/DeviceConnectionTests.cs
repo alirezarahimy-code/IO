@@ -76,6 +76,12 @@ internal static class DeviceConnectionTests
         check(await TcpConnectionDiagnostic.RunAsync(diagnostic,[new(first,"127.0.0.1",port)])=="unreachable","connection refused TCP transport returns a fixed safe failure without raw exception text");
         using var stopped=new CancellationTokenSource();stopped.Cancel();
         check(await TcpConnectionDiagnostic.RunAsync(diagnostic,[new(first,"127.0.0.1",port)],stopped.Token)=="interrupted","connection stopping token prevents a successful diagnostic result from being fabricated");
+        var stalled=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var slow=TcpProbeDeadline.RunAsync(_=>stalled.Task,1);
+        var fast=TcpProbeDeadline.RunAsync(_=>Task.CompletedTask,1);
+        check(await Task.WhenAny(fast,slow)==fast&&await fast=="tcp-reachable","connection one stalled connector does not block another independent diagnostic");
+        check(await slow=="timed-out","connection outer deadline bounds a connector even when it ignores cancellation; simulator only");
+        stalled.SetResult();
         await Query(db=>db.RolePermissions.Where(x=>x.RoleId==serviceRole||x.RoleId==readerRole).ExecuteDeleteAsync());
         check(await Reject<UnauthorizedAccessException>(()=>Claim())&&await Reject<UnauthorizedAccessException>(()=>Use<DeviceConnections,object>(s=>s.ListAsync(reader,null,0))),"connection service and history grant revocations apply on the next operation");
     }

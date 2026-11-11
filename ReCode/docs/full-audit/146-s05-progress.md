@@ -15,10 +15,10 @@
 
 ## آزمون‌ها و وضعیت اثبات
 
-- ۲۰ check سرویس/transport افزوده، شامل مجوز مستقل، retry، نسخه، دو claim موازی، لغو، recovery با clock کنترل‌شده، منع late result، DB history guard، TCP روی listener لوپ‌بک خود تست، endpoint-denied و service revocation. listener محلی دستگاه واقعی نیست.
+- ۲۲ check سرویس/transport افزوده، شامل مجوز مستقل، retry، نسخه، دو claim موازی، لغو، recovery با clock کنترل‌شده، منع late result، DB history guard، مهلت بیرونی برای connector بی‌اعتنا به cancellation و عدم مسدودکردن connector مستقل، TCP روی listener لوپ‌بک خود تست، endpoint-denied و service revocation. listener محلی دستگاه واقعی نیست.
 - ۴ HTTPS check برای grant/revoke روی نشست واقعی، CSRF، read جدا، retry و لغو.
 - Playwright از لینک موجودی به صفحهٔ تست می‌رود، ثبت pending و لغو را بررسی می‌کند؛ موفقیت شبکه جعل نمی‌شود. DOM mockِ CSRF/retry/cancel/revoke موفق محلی است.
-- gate مورد انتظار اکنون ۴۵۱ PASS، Foundation ۳۸، کاتالوگ ۹۰ permission و ۴۳ صفحه/مقاله، ۲۵ migration/۴۸ جدول است. **تا موفقیت CI این اعداد انتظارند، نه نتیجهٔ اجرا.**
+- gate مورد انتظار اکنون ۴۵۳ PASS، Foundation ۳۸، کاتالوگ ۹۰ permission و ۴۳ صفحه/مقاله، ۲۵ migration/۴۸ جدول است. **تا موفقیت CI این اعداد انتظارند، نه نتیجهٔ اجرا.**
 - SDK محلی موجود است، اما build کامل به NU1301/SSL EOF در NuGet محدود است؛ TLS غیرفعال نشده. parser آفلاین C# و syntax JS گذشتند و جایگزین build/SQL نیستند.
 
 ## ماندهٔ واقعی، نه حذف دامنه

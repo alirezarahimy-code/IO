@@ -16,17 +16,8 @@ public static class TcpConnectionDiagnostic
         if (!IPAddress.TryParse(claim.Host, out var address) || claim.Port is not (> 0 and <= 65535) ||
             !allowed.Any(x => x.DeviceId == claim.DeviceId && IPAddress.TryParse(x.Address, out var pinned) && pinned.Equals(address) && x.Port == claim.Port))
             return "endpoint-denied";
-        if (stoppingToken.IsCancellationRequested) return "interrupted";
-        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
-        timeout.CancelAfter(TimeSpan.FromSeconds(claim.TimeoutSeconds));
         using var socket = new TcpClient(address.AddressFamily);
-        try
-        {
-            await socket.ConnectAsync(address, claim.Port.Value, timeout.Token);
-            return "tcp-reachable";
-        }
-        catch (OperationCanceledException) { return stoppingToken.IsCancellationRequested ? "interrupted" : "timed-out"; }
-        catch (SocketException) { return stoppingToken.IsCancellationRequested ? "interrupted" : timeout.IsCancellationRequested ? "timed-out" : "unreachable"; }
-        // Raw exceptions, endpoint addresses, secrets and payloads never become response/log text.
+        // Socket disposal aborts the actual portable transport even after the outer deadline returns.
+        return await TcpProbeDeadline.RunAsync(token => socket.ConnectAsync(address, claim.Port.Value, token).AsTask(), claim.TimeoutSeconds, stoppingToken);
     }
 }
