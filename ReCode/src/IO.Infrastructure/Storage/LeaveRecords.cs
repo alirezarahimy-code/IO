@@ -13,7 +13,7 @@ public sealed class LeaveTypeRecord
     public DateTimeOffset CreatedAtUtc { get; set; }
 }
 
-/// <summary>Manually recorded experimental balance movement; never an approved leave request.</summary>
+/// <summary>Immutable balance movement: manual posting, linked approval consumption or reversal compensation.</summary>
 public sealed class LeaveLedgerEntryRecord
 {
     public Guid Id { get; set; }

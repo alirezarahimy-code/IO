@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IO.Infrastructure.Leaves;
 
-/// <summary>Manual experimental ledger, not an automated leave-request or statutory entitlement engine.</summary>
+/// <summary>Experimental movement ledger, including workflow usage/compensation; not a statutory entitlement engine.</summary>
 public sealed class LeaveLedger(IoDbContext db, PermissionTransaction transaction)
 {
     public const string Manage = "leave.manage";

@@ -70,7 +70,7 @@ internal static class DecisionReversalTests
         check(history.GetProperty("items").GetArrayLength()==3 &&
               await Reject<UnauthorizedAccessException>(()=>Use<DecisionReversals,object>(s=>s.OwnCorrectionHistoryAsync(outsider,correction,0))),"reversal correction full own history includes all cycles and blocks foreign request id");
         await SqlReject($"UPDATE dbo.CorrectionDecisionReversals SET Reason=N'changed' WHERE Id='{op}'",51010);
-        await SqlReject($"DELETE dbo.CorrectionDecisions WHERE Id='{first}'",51007);
+        await SqlReject($"UPDATE dbo.CorrectionDecisions SET Reason=N'changed' WHERE Id='{first}'",51007);
         check(true,"reversal database protects correction decision and reversal evidence from mutation");
         var concurrent=await Correction(day.AddDays(1));await DecideCorrection(concurrent);var concurrentDecision=await CorrectionDecision(concurrent);var concurrentOp=Guid.NewGuid();
         async Task<bool> AttemptCorrection(Guid operation){try{await ReverseCorrection(concurrent,concurrentDecision,operation);return true;}catch(DomainConflictException){return false;}}
@@ -110,7 +110,7 @@ internal static class DecisionReversalTests
               await Query(db=>db.LeaveDecisionReversals.CountAsync(v=>v.DecisionId==hourlyDecision))==1,"reversal concurrent hourly retries restore precisely sixty minutes once");
         var posted=await Query(db=>(from v in db.LeaveDecisionReversals join l in db.LeaveLedgerEntries on v.CompensationLedgerEntryId equals (Guid?)l.Id
             where v.DecisionId==hourlyDecision select new{l.Kind,l.Minutes,l.PersianYear,l.EffectiveDate}).SingleAsync());
-        check(posted.Kind==3&&posted.Minutes==60&&posted.EffectiveDate==day,"reversal compensation preserves effective date, Persian year and immutable signed adjustment semantics");
+        check(posted.Kind==3&&posted.Minutes==60&&posted.EffectiveDate==day&&posted.PersianYear==IO.Domain.Scheduling.PersianDates.FromGregorian(day).Year,"reversal compensation preserves effective date, Persian year and immutable signed adjustment semantics");
         var rejection=await SubmitLeave(1);await DecideLeave(rejection,2);var rejectionDecision=await LeaveDecision(rejection);
         await ReverseLeave(rejection,rejectionDecision,Guid.NewGuid());
         check(await Query(db=>db.LeaveDecisionReversals.Where(v=>v.DecisionId==rejectionDecision).AllAsync(v=>v.CompensationLedgerEntryId==null)),"reversal rejected leave reopens with no invented ledger refund");

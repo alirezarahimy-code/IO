@@ -46,7 +46,8 @@
 - `d5468e6`: هستهٔ بازگشت، schema، UI و آزمون اولیه.
 - `7e6bb11`: شواهد دستگاه و پوشش HTTP/history.
 - `9737759`: snapshot و آزمون ارتقا/مرورگر؛ [Windows/Linux](https://github.com/alirezarahimy-code/IO/actions/runs/43096446147)، [SQL/HTTPS/browser](https://github.com/alirezarahimy-code/IO/actions/runs/43096446234) — در زمان ثبت این گزارش `queued`.
-- اصلاحات بازبینی بعدی در commit بعد از این گزارش ثبت می‌شود؛ نتیجهٔ نهایی باید با **همان HEAD نهایی** تطبیق داده شود.
+- `44157a2`: آزمون rollback چند Save، retry متفاوت و بررسی محلی؛ [Windows/Linux](https://github.com/alirezarahimy-code/IO/actions/runs/43096740303)، [SQL/HTTPS/browser](https://github.com/alirezarahimy-code/IO/actions/runs/43096740246) — `queued`.
+- بازبینی جزئی بعدی در commit پس از این گزارش ثبت می‌شود؛ نتیجهٔ نهایی باید با **همان HEAD نهایی** تطبیق داده شود.
 
 **گام بعدی پذیرش:** اجرای CI نهایی، رفع هر شکست احتمالی، ثبت موفقیت همان HEAD و سپس تغییر S01/S02/S03 از pending acceptance به accepted. بعد از پذیرش، بخش۳ از S04 (ثبت چند دستگاه و مجوزهای مستقل) شروع می‌شود؛ هنوز وارد آن نشده‌ایم.
 
