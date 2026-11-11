@@ -49,10 +49,10 @@
 
 ## محدودیت‌های اثبات‌شدهٔ ابزار
 
-- dotnet SDK / ilspycmd / dnSpy در سندباکس در دسترس نیست → استخراج باینری با parser دستی PE/CLI (heap#Strings + جدول Export) و `strings` انجام شد؛ **بدنهٔ متد بازسازی نشد**.
+- در زمان ممیزی اولیه SDK روی PATH و ابزار ilspycmd / dnSpy در دسترس نبود؛ SDK 10.0.400 بعداً کشف و اجرای Domain موفق شد (گزارش بخش۲) → استخراج باینری با parser دستی PE/CLI (heap#Strings + جدول Export) و `strings` انجام شد؛ **بدنهٔ متد بازسازی نشد**.
 - `zkemkeeper.dll`, `plcommpro.dll`, `Tiny.ocx` و سایر SDKها native/COM هستند → فقط Export table و رشته‌ها.
 - هیچ obfuscation در DLLهای مدیریتی دیده نشد (`obfuscated-suspect: 0` در همه؛ نام‌های معنادار مثل `CheckLockDB`, `CZKEM`, `LeaveCalcs`).
 
-## بخش۲ — پیاده‌سازی در انتظار پذیرش نهایی
+## بخش۲ — S01 تا S03 پذیرفته‌شده با CI واقعی
 - [شواهد و قرارداد بخش۲](../part-02/README.fa.md)
-- [گزارش تحویل و وضعیت CI](130-part2-delivery.md)
+- [گزارش تحویل و وضعیت CI](130-part2-delivery.md) — `2f21bdc`؛ Windows/Linux `43102001075` و SQL/HTTPS/browser `43102001054` موفق؛ ۳۶۶ PASS یکپارچه.

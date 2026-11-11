@@ -79,3 +79,7 @@
 ## بازتولید بررسی آفلاین (بدون ادعای آزمون SQL)
 
 `NODE_PATH=/path/to/isolated/node_modules ReCode/tools/verify-part2-offline.sh` از ریشهٔ مخزن اجرا می‌شود. پیش‌نیاز: .NET SDK 10، Node، Python 3 و `jsdom@26.1.0` در prefix ایزوله؛ نصب نمونه: `npm install --prefix /tmp/io-part2-js --ignore-scripts --no-audit --no-fund jsdom@26.1.0` و تنظیم `NODE_PATH=/tmp/io-part2-js/node_modules`. اسکریپت SDK را در PATH، DOTNET_ROOT و دو مسیر استاندارد نصب کاربر می‌جوید. شاهد SDK 10.0.400، ۲۶ آزمون Domain و بررسی DOM/CSV در `local-offline-verification.txt` ثبت است؛ این فایل نتیجهٔ full build یا SQL/Windows نیست. نتیجهٔ تلاش full build و مانع NU1301 در سند تحویل بخش۲ آمده است.
+
+## پذیرش فنی نهایی بخش۲
+
+S01/S02/S03 با کد `2f21bdcde49289eded58f7bc8860080dc16fecf2` پذیرفته شدند: [Windows/Linux 43102001075](https://github.com/alirezarahimy-code/IO/actions/runs/43102001075) و [SQL/HTTPS/browser 43102001054](https://github.com/alirezarahimy-code/IO/actions/runs/43102001054) هر دو success؛ ۲۶ Domain، ۲۹ Foundation و gate یکپارچه با ۳۶۶ PASS. شاهد ماشینی: `acceptance-evidence.json`؛ جزئیات و محدودیت‌ها در `../full-audit/130-part2-delivery.md`. این پذیرش شامل اتصال واقعی سخت‌افزار یا نصب عملیاتی نیست.
