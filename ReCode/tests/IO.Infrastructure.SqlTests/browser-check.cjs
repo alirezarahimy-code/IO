@@ -544,8 +544,14 @@ async function main() {
       await devicesPage.locator('#device-form input[name=name]').fill('Browser device '+number);
       await devicesPage.locator('#device-form input[name=model]').fill('Unverified model');
       await devicesPage.locator('#device-form select[name=profile]').selectOption('offline-file');
+      const invalidDeviceControls=await devicesPage.locator('#device-form').evaluate(f=>[...f.elements].filter(e=>e.willValidate&&!e.validity.valid).map(e=>({name:e.name,message:e.validationMessage})));
+      if(invalidDeviceControls.length)throw new Error('Invalid device controls: '+JSON.stringify(invalidDeviceControls));
+      const createdResponse=devicesPage.waitForResponse(r=>new URL(r.url()).pathname==='/devices'&&r.request().method()==='POST');
       await devicesPage.locator('#device-form button[type=submit]').click();
-      await devicesPage.locator('#body tr').filter({hasText:number}).waitFor();
+      const createdDeviceResponse=await createdResponse;
+      if(!createdDeviceResponse.ok())throw new Error('Device create HTTP status '+createdDeviceResponse.status()+'; notice='+await devicesPage.locator('#notice').textContent());
+      try{await devicesPage.locator('#body tr').filter({hasText:number}).waitFor();}
+      catch{throw new Error('Created device not listed; notice='+await devicesPage.locator('#notice').textContent());}
     }
     const deviceRow=devicesPage.locator('#body tr').filter({hasText:'BROWSER-S04-A'});
     await deviceRow.locator('button').click();

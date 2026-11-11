@@ -704,4 +704,4 @@ public sealed record DecisionReversalInput(Guid OperationId, Guid ExpectedDecisi
 
 public sealed record DeviceCreateInput(Guid OperationId, DeviceRegistry.Input Device);
 public sealed record DeviceUpdateInput(byte[] ExpectedVersion, DeviceRegistry.Input Device);
-public sealed record DeviceCredentialInput(byte[] ExpectedVersion, string? Secret);
+public sealed record DeviceCredentialInput(byte[] ExpectedVersion, [property: System.Text.Json.Serialization.JsonRequired] string? Secret);

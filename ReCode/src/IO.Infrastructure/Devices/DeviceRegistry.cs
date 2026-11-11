@@ -66,6 +66,9 @@ public sealed class DeviceRegistry(IoDbContext db, PermissionTransaction transac
             await transaction.LockAsync("IO.DeviceRegistry", token);
             var device = await LoadForWrite(id, expectedVersion, token);
             await EnsureSite(value.SiteId, token); await EnsureNumber(value.Number, id, token);
+            if ((device.Profile != value.Profile || device.Host != value.Host || device.Port != value.Port) &&
+                await db.DeviceSecrets.AnyAsync(s => s.DeviceId == id, token))
+                throw new DomainConflictException("Remove the stored credential explicitly before retargeting the connection profile.");
             if (device.SiteId != value.SiteId &&
                 (await db.RawAttendanceEvents.AnyAsync(e => e.SourceId == device.SourceId, token) ||
                  await db.SourceEmployeeMappings.AnyAsync(m => m.SourceId == device.SourceId, token) ||

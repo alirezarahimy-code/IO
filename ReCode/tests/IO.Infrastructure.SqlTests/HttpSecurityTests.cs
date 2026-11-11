@@ -353,6 +353,7 @@ internal static class HttpSecurityTests
             var changedDeviceSecret=await PostAdmin(own,"/devices/"+deviceOperation+"/credential",credentialInput);
             var deviceResponse=await own.GetStringAsync("/devices/"+deviceOperation);
             check(noDeviceSecret==HttpStatusCode.Forbidden&&changedDeviceSecret.StatusCode==HttpStatusCode.OK&&
+                  (await PostAdmin(own,"/devices/"+deviceOperation+"/credential",new{ExpectedVersion=await DeviceVersion()})).StatusCode==HttpStatusCode.BadRequest&&
                   !deviceResponse.Contains(deviceSecret,StringComparison.Ordinal)&&!deviceResponse.Contains("protectedValue",StringComparison.OrdinalIgnoreCase)&&
                   JsonDocument.Parse(deviceResponse).RootElement.GetProperty("hasCredential").GetBoolean(),
                   "HTTP device credential write is independently authorized and never returned in metadata response");

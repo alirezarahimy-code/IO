@@ -350,6 +350,7 @@ try
         Check(!await TryInitialize("third-admin"), "initial administrator creation cannot be repeated");
     }
     await DecisionReversalUpgradeTests.RunAsync(connection, Check);
+    await DeviceRegistryTests.RunAsync(connection, Check);
     await HttpSecurityTests.RunAsync(connection, Check);
     await OrganizationServiceTests.RunAsync(connection, Check);
     await SchedulingServiceTests.RunAsync(connection, Check);
@@ -367,7 +368,6 @@ try
     await TransactionDeadlockTests.RunAsync(connection, Check);
     await FoundationAccessTests.RunAsync(connection, Check);
     await DecisionReversalTests.RunAsync(connection, Check);
-    await DeviceRegistryTests.RunAsync(connection, Check);
     await using (var identity = new LoginIdentityDbContext(new DbContextOptionsBuilder<LoginIdentityDbContext>()
         .UseSqlServer(connection, sql => sql.MigrationsHistoryTable("__IdentityMigrationsHistory")).Options))
     {

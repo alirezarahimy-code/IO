@@ -55,8 +55,10 @@ internal static class DeviceRegistryTests
         var ciphertext=await Query(db=>db.DeviceSecrets.Where(s=>s.DeviceId==first).Select(s=>s.ProtectedValue).SingleAsync());
         var view=JsonSerializer.Serialize(await Use<DeviceRegistry,object>(s=>s.GetAsync(actor,first)));
         check(ciphertext!=secret&&!ciphertext.Contains(secret,StringComparison.Ordinal)&&keys.CreateProtector("IO.Devices.Credential.v1",first.ToString("N")).Unprotect(ciphertext)==secret&&!view.Contains(secret,StringComparison.Ordinal)&&!view.Contains(ciphertext,StringComparison.Ordinal),"devices protect communication secret at rest and never expose plaintext or ciphertext in inventory API");
-        version=await Version(first);await Secret(first,version,secret+" rotated");
-        check(await Reject<DomainConflictException>(()=>Update(first,version,renamed)),"devices credential change advances parent rowversion and invalidates stale metadata edit");
+        version=await Version(first);
+        var protectedEndpoint=await Reject<DomainConflictException>(()=>Update(first,version,renamed with{Host="192.0.2.99"}));
+        await Secret(first,version,secret+" rotated");
+        check(protectedEndpoint&&await Reject<DomainConflictException>(()=>Update(first,version,renamed)),"devices stored credential cannot be retargeted and credential change invalidates stale metadata edit");
         await Secret(first,await Version(first),null);
         check(!await Query(db=>db.DeviceSecrets.AnyAsync(s=>s.DeviceId==first)),"devices explicit credential removal clears only protected value and preserves device history");
         check(await Reject<UnauthorizedAccessException>(()=>Use<DeviceRegistry,object>(s=>s.GetAsync(receiver,first)))&&await Reject<UnauthorizedAccessException>(()=>Create(Guid.NewGuid(),input with{Number="S04-C"},receiver)),"devices future receive permission grants neither inventory read nor creation");
