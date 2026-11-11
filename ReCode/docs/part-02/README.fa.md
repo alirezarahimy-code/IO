@@ -75,3 +75,7 @@
 - UI واقعی `/workspace/reversals`، history شخصی از پیوند درخواست، کارتابل و صفحهٔ مرخصی متصل‌اند؛ اعلان persisted در پنل؛ راهنمای نقش‌محور و ریز فیلد/خطا/مثال همزمان اضافه شده است. پس از بازگشت، payload اصلاح دارای سابقه immutable است؛ تصمیم مجدد/لغو ممکن است، ویرایش شاهد قبلی خیر.
 
 نتیجهٔ نهایی آزمون و شناسهٔ CI در سند تحویل بخش۲ ثبت می‌شود؛ ساخت سخت‌افزار، نصب عملیاتی و lifecycle دوره جزو ادعای این بسته نیستند.
+
+## بازتولید بررسی آفلاین (بدون ادعای آزمون SQL)
+
+`NODE_PATH=/path/to/isolated/node_modules ReCode/tools/verify-part2-offline.sh` از ریشهٔ مخزن اجرا می‌شود. پیش‌نیاز: .NET SDK 10، Node، Python 3 و `jsdom@26.1.0` در prefix ایزوله؛ نصب نمونه: `npm install --prefix /tmp/io-part2-js --ignore-scripts --no-audit --no-fund jsdom@26.1.0` و تنظیم `NODE_PATH=/tmp/io-part2-js/node_modules`. اسکریپت SDK را در PATH، DOTNET_ROOT و دو مسیر استاندارد نصب کاربر می‌جوید. شاهد SDK 10.0.400، ۲۶ آزمون Domain و بررسی DOM/CSV در `local-offline-verification.txt` ثبت است؛ این فایل نتیجهٔ full build یا SQL/Windows نیست. نتیجهٔ تلاش full build و مانع NU1301 در سند تحویل بخش۲ آمده است.

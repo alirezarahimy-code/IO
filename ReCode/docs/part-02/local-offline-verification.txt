@@ -1,0 +1,34 @@
+SDK: 10.0.400
+  Determining projects to restore...
+  Restored /home/user/IO/ReCode/src/IO.Domain/IO.Domain.csproj (in 184 ms).
+  Restored /home/user/IO/ReCode/tests/IO.Domain.Tests/IO.Domain.Tests.csproj (in 207 ms).
+PASS assignment rejects empty identity
+PASS assignment rejects empty employee or unit
+PASS end before or equal to start rejected
+PASS half-open interval boundaries
+PASS adjacent intervals do not overlap
+PASS overlapping intervals are symmetric
+PASS open ended interval overlaps later intervals
+PASS different employees do not overlap
+PASS timeline finds historical assignment at boundary
+PASS timeline rejects overlapping and foreign assignment
+PASS timeline rejects repeated ID even without overlap
+PASS raw event normalizes timestamps to UTC
+PASS raw event copies input and output payloads
+PASS missing parsed fields remain unresolved
+PASS blank external ID and missing internal IDs rejected
+PASS Persian dates round-trip around Nowruz
+PASS Persian leap day and invalid dates
+PASS fixed shift requires explicit positive bounded interval
+PASS overnight shift retains work date and resolves UTC
+PASS invalid and ambiguous DST boundaries fail closed
+PASS observed time pairs overnight punches without treating them as payroll
+PASS incomplete and simultaneous punches fail closed
+PASS multi-step correction requires designated approvers and approved content
+PASS approved correction feeds calculation without mutating raw points
+PASS request rejection and cancellation require reason and cannot be approved later
+PASS period blocks anomalies and missing days, binds review to run and preserves reopen history
+26/26 checks passed.
+PASS reversal offline DOM: safe evidence, expected decision, stable retry, refresh revocation and own read-only history, deep-link grant/revoke and stable daily/hourly leave submission
+PASS evidence consistency: 767 UI rows, 840 exports; grouping preserved and exact physical commands excluded
+PASS local offline subset only; full build, SQL/HTTPS/browser integration and Windows acceptance remain separate.
