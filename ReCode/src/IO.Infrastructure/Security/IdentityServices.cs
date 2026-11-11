@@ -45,6 +45,8 @@ public static class IdentityServices
         services.AddDataProtection();
         services.AddScoped<DeviceRegistry>();
         services.AddScoped<DeviceGroups>();
+        services.AddScoped<DeviceConnections>();
+        services.AddSingleton(TimeProvider.System);
         services.AddScoped<PermissionTransaction>();
         services.AddScoped<OrganizationManagement>();
         services.AddScoped<AttendanceIngestion>();

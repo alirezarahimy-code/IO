@@ -21,6 +21,34 @@ namespace IO.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+        modelBuilder.Entity<DeviceConnectionRecord>(b =>
+        {
+            b.ToTable("DeviceConnections", t =>
+            {
+                t.HasTrigger("TR_DeviceConnections_History"); t.UseSqlOutputClause(false);
+                t.HasCheckConstraint("CK_DeviceConnections_Timeout", "[TimeoutSeconds] BETWEEN 1 AND 60 AND DATALENGTH([ExpectedDeviceVersion]) = 8");
+                t.HasCheckConstraint("CK_DeviceConnections_State", "[State] COLLATE Latin1_General_100_BIN2 IN (N'pending',N'running',N'cancelled',N'revoked',N'device-changed',N'tcp-reachable',N'unreachable',N'timed-out',N'unsupported',N'endpoint-denied',N'interrupted')");
+                t.HasCheckConstraint("CK_DeviceConnections_Lifecycle", "(([State] = N'pending' AND [ServiceUserId] IS NULL AND [ClaimId] IS NULL AND [ClaimedAtUtc] IS NULL AND [FinishedAtUtc] IS NULL) OR ([State] = N'running' AND [ServiceUserId] IS NOT NULL AND [ClaimId] IS NOT NULL AND [ClaimedAtUtc] IS NOT NULL AND [FinishedAtUtc] IS NULL) OR ([State] IN (N'cancelled',N'revoked',N'device-changed') AND [FinishedAtUtc] IS NOT NULL AND [ServiceUserId] IS NULL AND [ClaimId] IS NULL AND [ClaimedAtUtc] IS NULL) OR ([State] NOT IN (N'pending',N'running',N'cancelled',N'revoked',N'device-changed') AND [FinishedAtUtc] IS NOT NULL AND [ServiceUserId] IS NOT NULL AND [ClaimId] IS NOT NULL AND [ClaimedAtUtc] IS NOT NULL AND [FinishedAtUtc] >= [ClaimedAtUtc])) AND DATEPART(TZOFFSET,[RequestedAtUtc]) = 0 AND DATEPART(TZOFFSET,[ClaimedAtUtc]) = 0 AND DATEPART(TZOFFSET,[FinishedAtUtc]) = 0 AND ([ClaimedAtUtc] IS NULL OR [ClaimedAtUtc] >= [RequestedAtUtc]) AND ([FinishedAtUtc] IS NULL OR [FinishedAtUtc] >= [RequestedAtUtc])");
+            });
+            b.Property(x => x.Id).HasColumnType("uniqueidentifier");
+            b.Property(x => x.DeviceId).HasColumnType("uniqueidentifier");
+            b.Property(x => x.RequestedByUserId).HasColumnType("uniqueidentifier");
+            b.Property(x => x.ServiceUserId).HasColumnType("uniqueidentifier");
+            b.Property(x => x.ClaimId).HasColumnType("uniqueidentifier");
+            b.Property(x => x.RequestedAtUtc).HasColumnType("datetimeoffset");
+            b.Property(x => x.ClaimedAtUtc).HasColumnType("datetimeoffset");
+            b.Property(x => x.FinishedAtUtc).HasColumnType("datetimeoffset");
+            b.Property(x => x.TimeoutSeconds).HasColumnType("int");
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
+            b.Property(x => x.ExpectedDeviceVersion).HasMaxLength(8).IsRequired().HasColumnType("varbinary(8)");
+            b.Property(x => x.State).HasMaxLength(32).IsRequired().HasColumnType("nvarchar(32)"); b.Property(x => x.Version).IsRowVersion().IsRequired().HasColumnType("rowversion");
+            b.HasIndex(x => new { x.DeviceId, x.RequestedAtUtc });
+            b.HasIndex(x => x.DeviceId).IsUnique().HasFilter("[State] IN (N'pending', N'running')");
+            b.HasIndex(x => x.RequestedByUserId); b.HasIndex(x => x.ServiceUserId);
+            b.HasOne<DeviceRecord>().WithMany().HasForeignKey(x => x.DeviceId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.RequestedByUserId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.ServiceUserId).OnDelete(DeleteBehavior.Restrict);
+        });
         modelBuilder.Entity<DeviceGroupRecord>(b =>
         {
             b.ToTable("DeviceGroups", t =>

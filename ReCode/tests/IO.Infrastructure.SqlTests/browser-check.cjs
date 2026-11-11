@@ -443,7 +443,7 @@ async function main() {
       await waitText('result');
       return JSON.parse(await page.locator('#result').textContent()).result;
     }
-    for (const code of ['devices.groups.read', 'devices.groups.manage', 'devices.groups.assign', 'devices.read', 'devices.create', 'devices.update', 'devices.credentials.manage', 'organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.read.team', 'attendance.read.all', 'executive.dashboard.read', 'leave.manage', 'settings.correction.manage', 'attendance.calculate', 'correction.configure', 'correction.reverse', 'correction.decide', 'correction.decide.all', 'period.preflight', 'period.draft.manage', 'period.diagnostic.manage']) {
+    for (const code of ['devices.connection.read', 'devices.connection.test', 'devices.groups.read', 'devices.groups.manage', 'devices.groups.assign', 'devices.read', 'devices.create', 'devices.update', 'devices.credentials.manage', 'organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.read.team', 'attendance.read.all', 'executive.dashboard.read', 'leave.manage', 'settings.correction.manage', 'attendance.calculate', 'correction.configure', 'correction.reverse', 'correction.decide', 'correction.decide.all', 'period.preflight', 'period.draft.manage', 'period.diagnostic.manage']) {
       await page.locator('#permission input[name=roleId]').fill(role);
       await page.locator('#permission select[name=code]').selectOption(code);
       await submit('permission');
@@ -625,6 +625,18 @@ async function main() {
     await groupsPage.waitForFunction(()=>document.getElementById('notice').textContent.includes('گروه خالی حذف شد')&&!document.getElementById('refresh').disabled);
     if(await browserRootRow.count())throw new Error('Empty root group deletion did not persist');
     await groupsPage.close();
+    const diagnosticPage=await context.newPage();
+    await diagnosticPage.goto(address+await deviceRow.locator('a').getAttribute('href'));
+    await diagnosticPage.waitForFunction(()=>!document.querySelector('#test-form button').disabled&&!document.getElementById('test-form').hidden);
+    const diagnosticOperation=await diagnosticPage.locator('#test-form input[name=operationId]').inputValue();
+    await diagnosticPage.locator('#test-form button').click();
+    const diagnosticRow=diagnosticPage.locator('#items li').filter({hasText:diagnosticOperation});
+    await diagnosticRow.filter({hasText:'در صف'}).waitFor();
+    diagnosticPage.on('dialog',d=>d.accept());
+    await diagnosticRow.locator('button').click();
+    await diagnosticRow.filter({hasText:'پیش از اجرا لغو شد'}).waitFor();
+    if((await diagnosticRow.textContent()).includes('tcp-reachable'))throw new Error('Pending diagnostic invented network success');
+    await diagnosticPage.close();
     await devicesPage.close();
 
     const sourcePage = await context.newPage();
@@ -1669,7 +1681,7 @@ async function main() {
     if(!await panelPage.locator('a[href="/workspace/organization"]').count() || !await panelPage.locator('a[href="/workspace/inbox"]').count())
       throw new Error('Role panel did not list admin and manager tools');
     await panelPage.close();
-    const routes = ['/workspace/device-groups','/workspace/devices','/workspace/reversals','/workspace/help','/workspace/help/roles','/workspace','/workspace/employee-home','/workspace/my-attendance','/workspace/my-schedule','/workspace/my-leave','/workspace/my-reports','/workspace/new-request','/workspace/my-requests','/workspace/delegation','/workspace/account','/workspace/manager-home','/workspace/inbox','/workspace/decision-history','/workspace/team-attendance','/workspace/organization','/workspace/employees','/workspace/users','/workspace/roles','/workspace/calendars','/workspace/shifts','/workspace/schedules','/workspace/employee-history','/workspace/sources','/workspace/settings','/workspace/raw-events','/workspace/mappings','/workspace/conflicts','/workspace/calculations','/workspace/rules','/workspace/periods','/workspace/leave-admin','/workspace/reports','/workspace/report-builder','/workspace/workflow','/workspace/audit','/workspace/executive-home','/panel'];
+    const routes = ['/workspace/device-connection','/workspace/device-groups','/workspace/devices','/workspace/reversals','/workspace/help','/workspace/help/roles','/workspace','/workspace/employee-home','/workspace/my-attendance','/workspace/my-schedule','/workspace/my-leave','/workspace/my-reports','/workspace/new-request','/workspace/my-requests','/workspace/delegation','/workspace/account','/workspace/manager-home','/workspace/inbox','/workspace/decision-history','/workspace/team-attendance','/workspace/organization','/workspace/employees','/workspace/users','/workspace/roles','/workspace/calendars','/workspace/shifts','/workspace/schedules','/workspace/employee-history','/workspace/sources','/workspace/settings','/workspace/raw-events','/workspace/mappings','/workspace/conflicts','/workspace/calculations','/workspace/rules','/workspace/periods','/workspace/leave-admin','/workspace/reports','/workspace/report-builder','/workspace/workflow','/workspace/audit','/workspace/executive-home','/panel'];
     const scriptFailures = [];
     for (const route of routes) {
       const health = await context.newPage();

@@ -14,6 +14,7 @@ $publish = Join-Path ([System.IO.Path]::GetTempPath()) ('io-publish-' + [guid]::
 try {
     Run-Dotnet publish src/IO.Web --configuration Release --no-restore --output (Join-Path $publish 'web')
     Run-Dotnet publish src/IO.Bootstrap --configuration Release --no-restore --output (Join-Path $publish 'bootstrap')
+    Run-Dotnet publish src/IO.DeviceWorker --configuration Release --no-restore --output (Join-Path $publish 'device-worker')
     # Smoke the actual published web executable on this OS, not an HTML mock.
     $env:IO__EnableExperimentalIdentity = 'false'
     $env:ASPNETCORE_URLS = 'http://127.0.0.1:5198'
