@@ -33,7 +33,7 @@ internal static class DeviceRegistryTests
             db.Roles.AddRange(new RoleRecord{Id=role,Name="devices-admin"},new RoleRecord{Id=receiveRole,Name="devices-receiver"},new RoleRecord{Id=createRole,Name="devices-creator"});
             db.UserRoles.AddRange(new UserRoleRecord{UserId=actor,RoleId=role},new UserRoleRecord{UserId=receiver,RoleId=receiveRole},new UserRoleRecord{UserId=creator,RoleId=createRole});
             foreach(var (r,codes)in new[]{(role,new[]{DeviceRegistry.Read,DeviceRegistry.Create,DeviceRegistry.Update,DeviceRegistry.Credentials}),(receiveRole,new[]{"devices.receive"}),(createRole,new[]{DeviceRegistry.Create})})
-                foreach(var code in codes){var p=await db.Permissions.SingleOrDefaultAsync(p=>p.Code==code);if(p is null){p=new(){Id=Guid.NewGuid(),Code=code};db.Permissions.Add(p);}db.RolePermissions.Add(new(){RoleId=r,PermissionId=p.Id});}
+                foreach(var code in codes){var p=db.Permissions.Local.FirstOrDefault(p=>p.Code==code)??await db.Permissions.SingleOrDefaultAsync(p=>p.Code==code);if(p is null){p=new(){Id=Guid.NewGuid(),Code=code};db.Permissions.Add(p);}db.RolePermissions.Add(new(){RoleId=r,PermissionId=p.Id});}
             await db.SaveChangesAsync();return true;
         });
         var input=new DeviceRegistry.Input(site,"S04-A","<fixture>","declared model","zk-standalone","192.0.2.10",4370,true);
