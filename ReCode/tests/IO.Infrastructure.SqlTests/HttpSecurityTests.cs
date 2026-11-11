@@ -1032,9 +1032,6 @@ internal static class HttpSecurityTests
                 throw new InvalidOperationException("Leave decision statuses self=" + selfDecisionStatus + " approve=" + approveStatus +
                     " second=" + reDecisionStatus + " hourly=" + hourlyStatus + " inbox=" +
                     managerInboxJson.RootElement.GetProperty("items").GetRawText()[..Math.Min(300, managerInboxJson.RootElement.GetProperty("items").GetRawText().Length)]);
-            if (selfDecisionStatus != 400 || approveStatus != 200 || reDecisionStatus != 409 || hourlyStatus != 200)
-                throw new InvalidOperationException("Leave decision statuses self=" + selfDecisionStatus + " approve=" + approveStatus +
-                    " second=" + reDecisionStatus + " hourly=" + hourlyStatus);
             check(true, "HTTP leave decisions forbid self-approval, allow the scoped manager once and reject afterwards");
             await using (var leaveScope = provider.CreateAsyncScope())
             {
