@@ -178,6 +178,8 @@ public static class IoWebHost
                 permissions = page.AnyPermissions });
         }).AllowAnonymous();
         app.MapGet("/workspace/account", () => Results.Content(Resource("IO.Web.Ui.Account.html"), "text/html; charset=utf-8"));
+        app.MapGet("/workspace/device-groups", () => Results.Content(Resource("IO.Web.Ui.DeviceGroups.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/device-groups.js", () => Results.Content(Resource("IO.Web.Ui.device-groups.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/devices", () => Results.Content(Resource("IO.Web.Ui.Devices.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/devices.js", () => Results.Content(Resource("IO.Web.Ui.devices.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/assets/account.js", () => Results.Content(Resource("IO.Web.Ui.account.js"), "text/javascript; charset=utf-8"));
@@ -362,6 +364,16 @@ public static class IoWebHost
             Admin(c,csrf,actor => service.AssignAsync(actor,input.OperationId,input.DelegateUserId,input.ValidFrom,input.ValidUntilExclusive,c.RequestAborted)));
         app.MapPost("/delegations/{id:guid}/revoke", (Guid id,DelegationRevokeInput input,HttpContext c,IAntiforgery csrf,DelegationRegistry service) =>
             Admin(c,csrf,actor => service.RevokeAsync(actor,id,input.Reason,c.RequestAborted)));
+        app.MapGet("/device-groups", (HttpContext c, DeviceGroups service, Guid? companyId, Guid? parentId, int offset = 0) =>
+            AdminRead(c, actor => service.ListAsync(actor, companyId, parentId, offset, c.RequestAborted)));
+        app.MapPost("/device-groups", (DeviceGroupCreateInput input, HttpContext c, IAntiforgery csrf, DeviceGroups service) =>
+            Admin(c, csrf, actor => service.CreateAsync(actor, input.OperationId, input.Group, c.RequestAborted)));
+        app.MapPost("/device-groups/{id:guid}", (Guid id, DeviceGroupUpdateInput input, HttpContext c, IAntiforgery csrf, DeviceGroups service) =>
+            Admin(c, csrf, actor => service.UpdateAsync(actor, id, input.ExpectedVersion, input.Group, c.RequestAborted)));
+        app.MapPost("/device-groups/{id:guid}/delete", (Guid id, DeviceGroupDeleteInput input, HttpContext c, IAntiforgery csrf, DeviceGroups service) =>
+            Admin(c, csrf, actor => service.DeleteAsync(actor, id, input.ExpectedVersion, c.RequestAborted)));
+        app.MapPost("/devices/{id:guid}/group", (Guid id, DeviceGroupAssignInput input, HttpContext c, IAntiforgery csrf, DeviceGroups service) =>
+            Admin(c, csrf, actor => service.AssignAsync(actor, id, input.ExpectedVersion, input.GroupId, c.RequestAborted)));
         app.MapGet("/devices", (HttpContext c, DeviceRegistry service, Guid? companyId, int offset = 0) =>
             AdminRead(c, actor => service.ListAsync(actor, companyId, offset, c.RequestAborted)));
         app.MapGet("/devices/locations", (HttpContext c, DeviceRegistry service, int offset = 0) =>
@@ -705,3 +717,8 @@ public sealed record DecisionReversalInput(Guid OperationId, Guid ExpectedDecisi
 public sealed record DeviceCreateInput(Guid OperationId, DeviceRegistry.Input Device);
 public sealed record DeviceUpdateInput(byte[] ExpectedVersion, DeviceRegistry.Input Device);
 public sealed record DeviceCredentialInput(byte[] ExpectedVersion, [property: System.Text.Json.Serialization.JsonRequired] string? Secret);
+
+public sealed record DeviceGroupCreateInput(Guid OperationId, DeviceGroups.Input Group);
+public sealed record DeviceGroupUpdateInput(byte[] ExpectedVersion, DeviceGroups.Input Group);
+public sealed record DeviceGroupDeleteInput(byte[] ExpectedVersion);
+public sealed record DeviceGroupAssignInput(byte[] ExpectedVersion, [property: System.Text.Json.Serialization.JsonRequired] Guid? GroupId);

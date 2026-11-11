@@ -1,0 +1,13 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>گروه‌بندی درختی دستگاه‌ها</title><link rel="stylesheet" href="/assets/theme.css"><script defer src="/assets/theme.js"></script><script defer src="/assets/device-groups.js"></script><script defer src="/assets/access.js"></script></head><body><main>
+<nav><a href="/workspace">پنل من</a> · <a href="/workspace/devices">دستگاه‌ها</a> · <a href="/workspace/help/device-groups">راهنمای گروه‌بندی</a></nav><h1>گروه‌بندی درختی دستگاه‌ها</h1>
+<p>گروه، metadata سازمان‌دهی دستگاه است؛ محل نصب، محدودهٔ امنیتی و کنترل فیزیکی درب نیست. مجوزهای این صفحه سراسری‌اند. هر شاخه فقط گروه‌های همان شرکت را می‌پذیرد.</p>
+<p id="notice" role="status" aria-live="polite"></p>
+<form id="filter"><label>فیلتر شناسهٔ شرکت (اختیاری) <input name="companyId"></label><button>نمایش ریشه‌ها</button></form>
+<button id="refresh" type="button">تازه‌سازی مجوز و شاخه</button><button id="root" type="button">ریشه‌ها</button><button id="up" type="button">سطح بالاتر</button><p id="branch"></p>
+<p>درخت به‌صورت شاخه‌به‌شاخه و حداکثر ۵۰ فرزند در هر صفحه بارگیری می‌شود؛ این فهرست تمام درخت را ادعا نمی‌کند. نام/شناسهٔ والد در بالای شاخه نمایش داده می‌شود.</p>
+<table><thead><tr><th>نام</th><th>شناسهٔ گروه</th><th>شرکت</th><th>دستگاه‌های منتسب (شامل غیرفعال)</th><th>عملیات</th></tr></thead><tbody id="body"></tbody></table>
+<button id="previous" type="button">صفحهٔ قبل</button><button id="next" type="button">صفحهٔ بعد</button><span id="page-label"></span>
+<form id="group-form"><h2 id="form-title">ایجاد گروه</h2><label>شناسهٔ گروه / عملیات ایجاد <input name="operationId" readonly></label><label>نسخهٔ انتخاب‌شده <input name="version" readonly></label><label>شناسهٔ شرکت <input name="companyId" required></label><label>شناسهٔ والد (خالی = ریشه) <input name="parentId"></label><label>نام گروه <input name="name" maxlength="150" required></label><button type="submit">ذخیرهٔ گروه</button><button id="new-group" type="button">گروه تازه</button></form>
+<form id="delete-form" hidden><h2>حذف گروه انتخاب‌شده</h2><p>فقط برگ بدون فرزند فعال و بدون هیچ دستگاه منتسب قابل حذف است. شناسه و سابقهٔ حذف محفوظ می‌مانند و بازگردانی/حذف آبشاری نداریم.</p><p id="delete-target"></p><label><input name="confirmed" type="checkbox" required>حذف همین گروه خالی را تأیید می‌کنم</label><button type="submit">حذف گروه خالی</button></form>
+<p>برای انتساب یا جداکردن گروه دستگاه از صفحهٔ دستگاه‌ها استفاده کنید؛ این عمل مجوز جداگانهٔ devices.groups.assign و نسخهٔ معتبر دستگاه می‌خواهد.</p>
+</main></body></html>

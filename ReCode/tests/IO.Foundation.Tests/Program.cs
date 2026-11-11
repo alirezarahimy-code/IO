@@ -24,16 +24,16 @@ Check(PermissionCatalog.Resolve("identity.manage", "permission-revoke.123").Perm
 Check(PermissionCatalog.Resolve("correction.submit.self", "correction.request.created").Permission == "correction.create.self" && !PermissionCatalog.Templates.Single(t => t.Key == "employee").Permissions.Contains("correction.submit.self"), "new employee template uses independent create instead of legacy submission bundle");
 Check(PermissionCatalog.Templates.Count == 5 && PermissionCatalog.Templates.Select(t => t.Id).Distinct().Count() == 5, "five stable role templates");
 Check(PermissionCatalog.Templates.All(t => t.Permissions.All(PermissionCatalog.Codes.Contains)), "templates grant only implemented catalogue permissions");
-Check(PermissionCatalog.Templates.Single(t => t.Key == "operator").Permissions.SequenceEqual(new[] { "devices.read" }), "device operator grants only implemented registry read without hardware command rights");
+Check(PermissionCatalog.Templates.Single(t => t.Key == "operator").Permissions.SequenceEqual(new[] { "devices.read", "devices.groups.read" }), "device operator grants only implemented registry read without hardware command rights");
 Check(PermissionCatalog.Templates.Single(t => t.Key == "executive").Permissions.SequenceEqual(new[] { "executive.dashboard.read" }), "executive role has no administrator grant");
-Check(WorkspaceCatalog.Pages.Count == 41 && WorkspaceCatalog.Pages.Select(p => p.Route).Distinct().Count() == 41, "existing pages, help and reversal catalogue");
+Check(WorkspaceCatalog.Pages.Count == 42 && WorkspaceCatalog.Pages.Select(p => p.Route).Distinct().Count() == 42, "existing pages, help and reversal catalogue");
 Check(WorkspaceCatalog.Pages.All(p => p.AnyPermissions.All(PermissionCatalog.Codes.Contains)), "every page permission exists");
 var executive = new HashSet<string>(new[] { "executive.dashboard.read" }, StringComparer.Ordinal);
 Check(WorkspaceCatalog.Pages.Where(p => WorkspaceCatalog.CanView(p, executive) && p.Group != "common").Select(p => p.Route).SequenceEqual(new[] { "/workspace/executive-home" }), "executive exact menu excludes administration and team pages");
 var empty = new HashSet<string>(StringComparer.Ordinal);
 Check(!WorkspaceCatalog.CanView(WorkspaceCatalog.Pages.Single(p => p.Route == "/workspace/roles"), empty), "no-role account has no role administration menu");
 var articles = SystemHelp.Parse(Resource("HelpContent.json"));
-Check(articles.Count == 41 && articles.Select(a => a.Slug).Distinct().Count() == 41, "help has 41 unique articles");
+Check(articles.Count == 42 && articles.Select(a => a.Slug).Distinct().Count() == 42, "help has 42 unique articles");
 Check(WorkspaceCatalog.Pages.All(p => articles.Any(a => a.Route == p.Route)), "every existing route has context help");
 Check(articles.All(a => a.Steps.Length >= 3 && a.Errors.Length > 0 && a.Example.Length > 10 && a.Limitations.Length > 0), "articles include workflow example errors and limitations");
 Check(articles.Where(a => SystemHelp.CanRead(a, false, empty)).Select(a => a.Route).SequenceEqual(new[] { "/login" }), "anonymous help contains only login article");
@@ -49,4 +49,7 @@ Check(new[] { "devices.read", "devices.create", "devices.update", "devices.crede
 Check(WorkspaceCatalog.CanView(WorkspaceCatalog.Pages.Single(p => p.Route == "/workspace/devices"), new HashSet<string> { "devices.read" }) && !WorkspaceCatalog.CanView(WorkspaceCatalog.Pages.Single(p => p.Route == "/workspace/devices"), new HashSet<string> { "attendance.ingest" }), "legacy attendance permission does not grant device page");
 Check(!Resource("devices.js").Contains("innerHTML", StringComparison.Ordinal) && Resource("Devices.html").Contains("autocomplete=\"new-password\"", StringComparison.Ordinal), "device UI uses safe text and non-retrievable password input");
 Check(PermissionCatalog.Templates.All(t => !t.Permissions.Intersect(new[] { "devices.receive", "devices.send", "devices.settings", "devices.sensitive" }).Any()), "no template grants unimplemented hardware commands");
+Check(new[] { "devices.groups.read", "devices.groups.manage", "devices.groups.assign" }.All(PermissionCatalog.Codes.Contains), "reference group read manage and device assignment are separately grantable");
+Check(!Resource("device-groups.js").Contains("innerHTML", StringComparison.Ordinal) && Resource("DeviceGroups.html").Contains("delete-form", StringComparison.Ordinal), "reference group UI renders safe text and requires explicit leaf deletion confirmation");
+Check(!WorkspaceCatalog.CanView(WorkspaceCatalog.Pages.Single(p=>p.Route=="/workspace/device-groups"),new HashSet<string>{"devices.read"}), "device inventory read does not imply reference group access");
 Console.WriteLine($"PASS {count} foundation catalogue and offline-help checks on {System.Runtime.InteropServices.RuntimeInformation.OSDescription}");

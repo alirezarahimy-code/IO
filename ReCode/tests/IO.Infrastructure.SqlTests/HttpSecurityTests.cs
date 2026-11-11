@@ -293,7 +293,7 @@ internal static class HttpSecurityTests
             (await PostAdmin(adminClient, "/admin/user-roles", new { UserId = self, RoleId = operatorTemplate.Id })).EnsureSuccessStatusCode();
             using var operatorCaps = JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities"));
             check(operatorCaps.RootElement.GetProperty("operator").GetBoolean() &&
-                  operatorCaps.RootElement.GetProperty("permissions").EnumerateArray().Where(x => x.GetString()!.StartsWith("devices.", StringComparison.Ordinal)).Select(x => x.GetString()).SequenceEqual(new[] { "devices.read" }),
+                  operatorCaps.RootElement.GetProperty("permissions").EnumerateArray().Where(x => x.GetString()!.StartsWith("devices.", StringComparison.Ordinal)).Select(x => x.GetString()).OrderBy(x=>x,StringComparer.Ordinal).SequenceEqual(new[] { "devices.groups.read", "devices.read" }),
                   "HTTP operator shell identifies role without granting unimplemented device operations");
             (await PostAdmin(adminClient, "/admin/user-roles/revoke", new { UserId = self, RoleId = operatorTemplate.Id })).EnsureSuccessStatusCode();
             var featureRole = await CreateId("/admin/roles", new { Name = "phase five six test role" });
@@ -364,6 +364,52 @@ internal static class HttpSecurityTests
             (await PostAdmin(adminClient,"/admin/role-permissions/revoke",new{RoleId=deviceRole,Code="devices.credentials.manage"})).EnsureSuccessStatusCode();
             check((await PostAdmin(own,"/devices/"+deviceOperation+"/credential",new{ExpectedVersion=await DeviceVersion(),Secret=(string?)null})).StatusCode==HttpStatusCode.Forbidden,
                   "HTTP device credential permission revocation rejects mutation on the same authenticated session");
+            var groupRoot=Guid.NewGuid();var groupChild=Guid.NewGuid();
+            var groupInput=new IO.Infrastructure.Devices.DeviceGroups.Input(testCompany,null,"HTTP group root");
+            var groupPayload=new{OperationId=groupRoot,Group=groupInput};
+            check((await anon.GetAsync("/device-groups")).StatusCode==HttpStatusCode.Unauthorized&&
+                  (await own.GetAsync("/device-groups")).StatusCode==HttpStatusCode.Forbidden&&
+                  (await own.PostAsJsonAsync("/device-groups",groupPayload)).StatusCode==HttpStatusCode.BadRequest,
+                  "HTTP reference group endpoints require authentication independent group permission and CSRF");
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.groups.manage"})).EnsureSuccessStatusCode();
+            check((await PostAdmin(own,"/device-groups",groupPayload)).StatusCode==HttpStatusCode.OK&&
+                  (await PostAdmin(own,"/device-groups",groupPayload)).StatusCode==HttpStatusCode.OK&&
+                  (await PostAdmin(own,"/device-groups",new{OperationId=Guid.NewGuid(),Group=groupInput})).StatusCode==HttpStatusCode.Conflict&&
+                  (await own.GetAsync("/device-groups")).StatusCode==HttpStatusCode.Forbidden,
+                  "HTTP reference group management supports create retry and sibling uniqueness without implicitly granting read");
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.groups.read"})).EnsureSuccessStatusCode();
+            (await PostAdmin(own,"/device-groups",new{OperationId=groupChild,Group=groupInput with{ParentId=groupRoot,Name="HTTP group child"}})).EnsureSuccessStatusCode();
+            async Task<byte[]> GroupVersion(Guid id,Guid? parentId=null){using var json=JsonDocument.Parse(await own.GetStringAsync("/device-groups?companyId="+testCompany+(parentId is null?"":"&parentId="+parentId)));return json.RootElement.GetProperty("items").EnumerateArray().Single(g=>g.GetProperty("id").GetGuid()==id).GetProperty("version").GetBytesFromBase64();}
+            using(var branch=JsonDocument.Parse(await own.GetStringAsync("/device-groups?companyId="+testCompany+"&parentId="+groupRoot)))
+                check(branch.RootElement.GetProperty("parent").GetProperty("id").GetGuid()==groupRoot&&branch.RootElement.GetProperty("items").EnumerateArray().Any(g=>g.GetProperty("id").GetGuid()==groupChild)&&
+                      (await own.GetAsync("/help/topic/device-groups")).StatusCode==HttpStatusCode.OK,
+                      "HTTP reference tree reads expose the selected branch and independently authorized context help");
+            var groupVersion=await GroupVersion(groupRoot);var groupEdit=new{ExpectedVersion=groupVersion,Group=groupInput with{Name="HTTP group root renamed"}};
+            (await PostAdmin(own,"/device-groups/"+groupRoot,groupEdit)).EnsureSuccessStatusCode();
+            check((await PostAdmin(own,"/device-groups/"+groupRoot,groupEdit)).StatusCode==HttpStatusCode.Conflict&&
+                  (await PostAdmin(own,"/device-groups/"+groupRoot,new{ExpectedVersion=await GroupVersion(groupRoot),Group=groupInput with{ParentId=groupChild}})).StatusCode==HttpStatusCode.Conflict,
+                  "HTTP reference group edits reject stale versions and ancestor cycles");
+            var groupAssignment=new{ExpectedVersion=await DeviceVersion(),GroupId=(Guid?)groupRoot};
+            var deniedGroupAssignment=(await PostAdmin(own,"/devices/"+deviceOperation+"/group",groupAssignment)).StatusCode;
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.groups.assign"})).EnsureSuccessStatusCode();
+            var assignedGroup=(await PostAdmin(own,"/devices/"+deviceOperation+"/group",groupAssignment)).StatusCode;
+            var occupiedGroupDelete=(await PostAdmin(own,"/device-groups/"+groupRoot+"/delete",new{ExpectedVersion=await GroupVersion(groupRoot)})).StatusCode;
+            var childGroupVersion=await GroupVersion(groupChild,groupRoot);
+            var childDeletion=new{ExpectedVersion=childGroupVersion};
+            check(deniedGroupAssignment==HttpStatusCode.Forbidden&&assignedGroup==HttpStatusCode.OK&&occupiedGroupDelete==HttpStatusCode.Conflict&&
+                  (await PostAdmin(own,"/devices/"+deviceOperation+"/group",new{ExpectedVersion=await DeviceVersion(),GroupId=(Guid?)null})).StatusCode==HttpStatusCode.OK&&
+                  (await PostAdmin(own,"/device-groups/"+groupChild+"/delete",childDeletion)).StatusCode==HttpStatusCode.OK&&
+                  (await PostAdmin(own,"/device-groups/"+groupChild+"/delete",childDeletion)).StatusCode==HttpStatusCode.OK,
+                  "HTTP device assignment is independent and populated groups cannot be deleted while empty-leaf delete retries preserve history");
+            foreach(var code in new[]{"devices.groups.read","devices.groups.manage","devices.groups.assign"})
+                (await PostAdmin(adminClient,"/admin/role-permissions/revoke",new{RoleId=deviceRole,Code=code})).EnsureSuccessStatusCode();
+            using(var revokedGroupCaps=JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities")))
+                check((await own.GetAsync("/device-groups")).StatusCode==HttpStatusCode.Forbidden&&
+                      (await own.GetAsync("/help/topic/device-groups")).StatusCode==HttpStatusCode.Forbidden&&
+                      (await PostAdmin(own,"/device-groups/"+groupChild+"/delete",childDeletion)).StatusCode==HttpStatusCode.Forbidden&&
+                      (await PostAdmin(own,"/devices/"+deviceOperation+"/group",new{ExpectedVersion=await DeviceVersion(),GroupId=(Guid?)groupRoot})).StatusCode==HttpStatusCode.Forbidden&&
+                      !revokedGroupCaps.RootElement.GetProperty("pages").EnumerateArray().Any(p=>p.GetProperty("route").GetString()=="/workspace/device-groups"),
+                      "HTTP reference group revocation removes data help menu assignment and historical delete replay on the existing session");
             (await PostAdmin(adminClient,"/admin/user-roles/revoke",new{UserId=self,RoleId=deviceRole})).EnsureSuccessStatusCode();
             using(var noDeviceCaps=JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities")))
                 check((await own.GetAsync("/devices")).StatusCode==HttpStatusCode.Forbidden&&

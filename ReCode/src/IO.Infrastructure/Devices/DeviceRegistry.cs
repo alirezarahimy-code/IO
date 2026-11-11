@@ -17,6 +17,8 @@ public sealed class DeviceRegistry(IoDbContext db, PermissionTransaction transac
     public sealed record DeviceView
     {
         public Guid Id { get; init; }
+        public Guid? GroupId { get; init; }
+        public string? GroupName { get; init; }
         public Guid SiteId { get; init; }
         public Guid CompanyId { get; init; }
         public Guid SourceId { get; init; }
@@ -66,6 +68,9 @@ public sealed class DeviceRegistry(IoDbContext db, PermissionTransaction transac
             await transaction.LockAsync("IO.DeviceRegistry", token);
             var device = await LoadForWrite(id, expectedVersion, token);
             await EnsureSite(value.SiteId, token); await EnsureNumber(value.Number, id, token);
+            if(device.GroupId is not null && !await (from g in db.DeviceGroups join site in db.Sites on g.CompanyId equals site.CompanyId
+                where g.Id==device.GroupId && g.DeletedAtUtc==null && site.Id==value.SiteId select g.Id).AnyAsync(token))
+                throw new DomainConflictException("Detach the device group before moving to a different company.");
             if ((device.Profile != value.Profile || device.Host != value.Host || device.Port != value.Port) &&
                 await db.DeviceSecrets.AnyAsync(s => s.DeviceId == id, token))
                 throw new DomainConflictException("Remove the stored credential explicitly before retargeting the connection profile.");
@@ -138,7 +143,7 @@ public sealed class DeviceRegistry(IoDbContext db, PermissionTransaction transac
         }, ct);
 
     private IQueryable<DeviceView> Views() => from d in db.Devices.AsNoTracking() join s in db.Sites on d.SiteId equals s.Id
-        select new DeviceView { Id=d.Id, SiteId=d.SiteId, CompanyId=s.CompanyId, SourceId=d.SourceId, Number=d.Number, Name=d.Name,
+        select new DeviceView { Id=d.Id, GroupId=d.GroupId, GroupName=db.DeviceGroups.Where(g=>g.Id==d.GroupId).Select(g=>g.Name).FirstOrDefault(), SiteId=d.SiteId, CompanyId=s.CompanyId, SourceId=d.SourceId, Number=d.Number, Name=d.Name,
             Model=d.Model, Profile=d.Profile, Host=d.Host, Port=d.Port, Enabled=d.Enabled,
             HasCredential=db.DeviceSecrets.Any(x => x.DeviceId == d.Id), Version=d.Version, ConnectionStatus="not-tested" };
     private async Task<DeviceRecord> LoadForWrite(Guid id, byte[] version, CancellationToken ct)

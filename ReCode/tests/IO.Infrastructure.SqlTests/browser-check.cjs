@@ -443,7 +443,7 @@ async function main() {
       await waitText('result');
       return JSON.parse(await page.locator('#result').textContent()).result;
     }
-    for (const code of ['devices.read', 'devices.create', 'devices.update', 'devices.credentials.manage', 'organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.read.team', 'attendance.read.all', 'executive.dashboard.read', 'leave.manage', 'settings.correction.manage', 'attendance.calculate', 'correction.configure', 'correction.reverse', 'correction.decide', 'correction.decide.all', 'period.preflight', 'period.draft.manage', 'period.diagnostic.manage']) {
+    for (const code of ['devices.groups.read', 'devices.groups.manage', 'devices.groups.assign', 'devices.read', 'devices.create', 'devices.update', 'devices.credentials.manage', 'organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.read.team', 'attendance.read.all', 'executive.dashboard.read', 'leave.manage', 'settings.correction.manage', 'attendance.calculate', 'correction.configure', 'correction.reverse', 'correction.decide', 'correction.decide.all', 'period.preflight', 'period.draft.manage', 'period.diagnostic.manage']) {
       await page.locator('#permission input[name=roleId]').fill(role);
       await page.locator('#permission select[name=code]').selectOption(code);
       await submit('permission');
@@ -579,6 +579,52 @@ async function main() {
     await deviceRow.filter({hasText:'رمز دارد'}).waitFor();
     if(await devicesPage.locator('#credential-form input[name=secret]').inputValue())throw new Error('Device credential input retained secret');
     if(!(await deviceRow.textContent()).includes('آزموده‌نشده'))throw new Error('Device registry invented live connection state');
+    const groupsPage=await context.newPage();
+    await groupsPage.goto(address+'/workspace/device-groups');
+    await groupsPage.waitForFunction(()=>!document.querySelector('#group-form button[type=submit]').disabled);
+    await groupsPage.locator('#filter input[name=companyId]').fill(company);
+    await groupsPage.locator('#filter button').click();
+    await groupsPage.waitForFunction(()=>!document.getElementById('refresh').disabled);
+    const browserGroupRoot=await groupsPage.locator('#group-form input[name=operationId]').inputValue();
+    await groupsPage.locator('#group-form input[name=companyId]').fill(company);
+    await groupsPage.locator('#group-form input[name=name]').fill('Browser group root');
+    await groupsPage.locator('#group-form button[type=submit]').click();
+    const browserRootRow=groupsPage.locator('#body tr').filter({hasText:browserGroupRoot});
+    await browserRootRow.waitFor();
+    await browserRootRow.locator('[data-action=open]').click();
+    await groupsPage.waitForFunction(()=>document.getElementById('branch').textContent.includes('Browser group root')&&!document.getElementById('refresh').disabled);
+    const browserGroupChild=await groupsPage.locator('#group-form input[name=operationId]').inputValue();
+    await groupsPage.locator('#group-form input[name=name]').fill('Browser group child');
+    await groupsPage.locator('#group-form button[type=submit]').click();
+    const browserChildRow=groupsPage.locator('#body tr').filter({hasText:browserGroupChild});
+    await browserChildRow.waitFor();await browserChildRow.locator('[data-action=select]').click();
+    await groupsPage.locator('#group-form input[name=name]').fill('Browser renamed group child');
+    await groupsPage.locator('#group-form button[type=submit]').click();
+    await browserChildRow.filter({hasText:'Browser renamed group child'}).waitFor();
+    await devicesPage.bringToFront();await devicesPage.locator('#refresh').click();
+    await devicesPage.waitForFunction(()=>!document.getElementById('refresh').disabled);
+    await deviceRow.locator('button').click();
+    await devicesPage.locator('#group-assignment-form input[name=groupId]').fill(browserGroupChild);
+    await devicesPage.locator('#group-assignment-form button').click();
+    await deviceRow.filter({hasText:'Browser renamed group child'}).waitFor();
+    await groupsPage.bringToFront();await groupsPage.locator('#refresh').click();
+    await groupsPage.waitForFunction(()=>!document.getElementById('refresh').disabled);
+    await browserChildRow.locator('[data-action=select]').click();
+    await groupsPage.locator('#delete-form input[name=confirmed]').check();await groupsPage.locator('#delete-form button').click();
+    await groupsPage.waitForFunction(()=>document.getElementById('notice').textContent.includes('تعارض'));
+    await devicesPage.bringToFront();await devicesPage.locator('#refresh').click();
+    await devicesPage.waitForFunction(()=>!document.getElementById('refresh').disabled);await deviceRow.locator('button').click();
+    await devicesPage.locator('#group-assignment-form input[name=groupId]').fill('');await devicesPage.locator('#group-assignment-form button').click();
+    await devicesPage.waitForFunction(()=>document.getElementById('notice').textContent.includes('گروه دستگاه ثبت شد')&&!document.getElementById('refresh').disabled);
+    await groupsPage.bringToFront();await groupsPage.locator('#refresh').click();await groupsPage.waitForFunction(()=>!document.getElementById('refresh').disabled);
+    await browserChildRow.locator('[data-action=select]').click();await groupsPage.locator('#delete-form input[name=confirmed]').check();await groupsPage.locator('#delete-form button').click();
+    await groupsPage.waitForFunction(()=>document.getElementById('notice').textContent.includes('گروه خالی حذف شد')&&!document.getElementById('refresh').disabled);
+    if(await browserChildRow.count())throw new Error('Deleted reference group remained in active branch');
+    await groupsPage.locator('#up').click();await browserRootRow.waitFor();
+    await browserRootRow.locator('[data-action=select]').click();await groupsPage.locator('#delete-form input[name=confirmed]').check();await groupsPage.locator('#delete-form button').click();
+    await groupsPage.waitForFunction(()=>document.getElementById('notice').textContent.includes('گروه خالی حذف شد')&&!document.getElementById('refresh').disabled);
+    if(await browserRootRow.count())throw new Error('Empty root group deletion did not persist');
+    await groupsPage.close();
     await devicesPage.close();
 
     const sourcePage = await context.newPage();
@@ -1623,7 +1669,7 @@ async function main() {
     if(!await panelPage.locator('a[href="/workspace/organization"]').count() || !await panelPage.locator('a[href="/workspace/inbox"]').count())
       throw new Error('Role panel did not list admin and manager tools');
     await panelPage.close();
-    const routes = ['/workspace/devices','/workspace/reversals','/workspace/help','/workspace/help/roles','/workspace','/workspace/employee-home','/workspace/my-attendance','/workspace/my-schedule','/workspace/my-leave','/workspace/my-reports','/workspace/new-request','/workspace/my-requests','/workspace/delegation','/workspace/account','/workspace/manager-home','/workspace/inbox','/workspace/decision-history','/workspace/team-attendance','/workspace/organization','/workspace/employees','/workspace/users','/workspace/roles','/workspace/calendars','/workspace/shifts','/workspace/schedules','/workspace/employee-history','/workspace/sources','/workspace/settings','/workspace/raw-events','/workspace/mappings','/workspace/conflicts','/workspace/calculations','/workspace/rules','/workspace/periods','/workspace/leave-admin','/workspace/reports','/workspace/report-builder','/workspace/workflow','/workspace/audit','/workspace/executive-home','/panel'];
+    const routes = ['/workspace/device-groups','/workspace/devices','/workspace/reversals','/workspace/help','/workspace/help/roles','/workspace','/workspace/employee-home','/workspace/my-attendance','/workspace/my-schedule','/workspace/my-leave','/workspace/my-reports','/workspace/new-request','/workspace/my-requests','/workspace/delegation','/workspace/account','/workspace/manager-home','/workspace/inbox','/workspace/decision-history','/workspace/team-attendance','/workspace/organization','/workspace/employees','/workspace/users','/workspace/roles','/workspace/calendars','/workspace/shifts','/workspace/schedules','/workspace/employee-history','/workspace/sources','/workspace/settings','/workspace/raw-events','/workspace/mappings','/workspace/conflicts','/workspace/calculations','/workspace/rules','/workspace/periods','/workspace/leave-admin','/workspace/reports','/workspace/report-builder','/workspace/workflow','/workspace/audit','/workspace/executive-home','/panel'];
     const scriptFailures = [];
     for (const route of routes) {
       const health = await context.newPage();

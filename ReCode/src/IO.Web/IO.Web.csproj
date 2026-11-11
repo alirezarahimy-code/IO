@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <ItemGroup>
+    <EmbeddedResource Include="Ui/DeviceGroups.html" />
+    <EmbeddedResource Include="Ui/device-groups.js" />
     <EmbeddedResource Include="Ui/Devices.html" />
     <EmbeddedResource Include="Ui/devices.js" />
     <EmbeddedResource Include="Ui/Reversals.html" />

@@ -4,6 +4,7 @@ namespace IO.Infrastructure.Storage;
 public sealed class DeviceRecord
 {
     public Guid Id { get; set; }
+    public Guid? GroupId { get; set; }
     public Guid SiteId { get; set; }
     public Guid SourceId { get; set; }
     public string Number { get; set; } = null!;

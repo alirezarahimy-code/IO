@@ -1,11 +1,11 @@
 <!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>مدیریت دستگاه‌های تردد</title><link rel="stylesheet" href="/assets/theme.css"><script defer src="/assets/theme.js"></script><script defer src="/assets/devices.js"></script><script defer src="/assets/access.js"></script></head><body><main>
-<nav><a href="/workspace">پنل من</a> · <a href="/workspace/help/devices">راهنمای دستگاه‌ها</a></nav><h1>مدیریت دستگاه‌های تردد</h1>
+<nav><a href="/workspace">پنل من</a> · <a href="/workspace/device-groups">گروه‌بندی درختی</a> · <a href="/workspace/help/devices">راهنمای دستگاه‌ها</a></nav><h1>مدیریت دستگاه‌های تردد</h1>
 <p>این صفحه موجودی واقعی پایگاه داده است؛ وضعیت ارتباط «آزموده‌نشده» است. انتخاب پروفایل یا فعال‌بودن، به معنی اتصال، تأیید مدل یا ارسال فرمان نیست. کنترل فیزیکی درب خارج دامنه است.</p>
 <p>مجوزهای این صفحه سراسری‌اند؛ فیلتر شرکت محدودکنندهٔ امنیتی نیست. محل نصب دارای سابقهٔ خام/نگاشت قابل تغییر نیست؛ دستگاه را غیرفعال و ثبت تازه ایجاد کنید.</p>
 <p id="notice" role="status" aria-live="polite"></p>
 <form id="filter"><label>فیلتر شناسهٔ شرکت (اختیاری) <input name="companyId"></label><button>نمایش</button></form>
 <button id="refresh" type="button">تازه‌سازی مجوز و فهرست</button><button id="previous" type="button">قبلی</button><button id="next" type="button">بعدی</button><span id="page-label"></span>
-<table><thead><tr><th>شماره</th><th>نام / مدل اعلامی</th><th>محل / شرکت</th><th>پروفایل / مقصد</th><th>فعال / رمز / ارتباط</th><th>شناسهٔ منبع</th><th>عملیات</th></tr></thead><tbody id="body"></tbody></table>
+<table><thead><tr><th>شماره</th><th>نام / مدل اعلامی</th><th>محل / شرکت</th><th>پروفایل / مقصد</th><th>فعال / رمز / ارتباط</th><th>شناسهٔ منبع</th><th>گروه</th><th>عملیات</th></tr></thead><tbody id="body"></tbody></table>
 <section><h2>محل‌های مجاز برای معرفی دستگاه</h2><p>شناسهٔ محل موجود را کپی کنید؛ هر صفحه حداکثر ۵۰ محل.</p><button id="locations-previous" type="button">محل‌های قبلی</button><button id="locations-next" type="button">محل‌های بعدی</button><ul id="locations"></ul></section>
 <form id="device-form"><h2 id="form-title">معرفی دستگاه</h2>
 <label>شناسهٔ دستگاه / عملیات ایجاد <input name="operationId" readonly></label>
@@ -18,5 +18,6 @@
 <label><input name="enabled" type="checkbox" checked>فعال در موجودی (نه متصل)</label><button type="submit">ذخیرهٔ مشخصات</button><button id="new-device" type="button">ثبت دستگاه دیگر / خروج از ویرایش</button></form>
 <form id="credential-form" hidden><h2>تغییر رمز ارتباط دستگاه انتخاب‌شده</h2><p>رمز هرگز بازخوانی نمی‌شود. برای پاک‌کردن، گزینهٔ صریح زیر را انتخاب کنید. پس از ارسال، فیلد رمز پاک می‌شود؛ در قطع شبکه ابتدا وضعیت دستگاه را تازه‌سازی کنید.</p>
 <label>رمز ارتباط جدید <input name="secret" type="password" autocomplete="new-password" maxlength="128"></label><label><input name="remove" type="checkbox">پاک‌کردن رمز ذخیره‌شده</label><button type="submit">ثبت تغییر رمز</button></form>
+<form id="group-assignment-form" hidden><h2>گروه دستگاه انتخاب‌شده</h2><p>گروه فعالِ همان شرکت محل نصب را انتخاب کنید؛ این عمل محل، منبع، رمز و ارتباط را تغییر نمی‌دهد. مقدار خالی یعنی جداکردن صریح.</p><label>شناسهٔ گروه (خالی = بدون گروه) <input name="groupId"></label><button type="submit">ثبت انتساب گروه</button></form>
 <section><h2>عملیات ارتباطی آینده</h2><p>دریافت، ارسال، تنظیمات سخت‌افزار و عملیات حساس با مجوز مستقل پیش‌بینی شده‌اند، اما در S04 اجرا نمی‌شوند. هیچ دستور فیزیکی ارسال نمی‌شود.</p><button disabled>تست اتصال — S05</button><button disabled>دریافت — مراحل بعد</button><button disabled>ارسال — مراحل بعد</button><button disabled>تنظیم سخت‌افزار — S06</button></section>
 </main></body></html>

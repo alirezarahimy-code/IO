@@ -53,11 +53,40 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
     public DbSet<CorrectionDecisionReversalRecord> CorrectionDecisionReversals => Set<CorrectionDecisionReversalRecord>();
     public DbSet<LeaveDecisionReversalRecord> LeaveDecisionReversals => Set<LeaveDecisionReversalRecord>();
 
+    public DbSet<DeviceGroupRecord> DeviceGroups => Set<DeviceGroupRecord>();
     public DbSet<DeviceRecord> Devices => Set<DeviceRecord>();
     public DbSet<DeviceSecretRecord> DeviceSecrets => Set<DeviceSecretRecord>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
+        model.Entity<DeviceGroupRecord>(b =>
+        {
+            b.ToTable("DeviceGroups", t =>
+            {
+                t.HasTrigger("TR_DeviceGroups_Integrity"); t.UseSqlOutputClause(false);
+                t.HasCheckConstraint("CK_DeviceGroups_Parent", "[ParentId] IS NULL OR [ParentId] <> [Id]");
+                t.HasCheckConstraint("CK_DeviceGroups_Deletion", "([DeletedAtUtc] IS NULL AND [DeletedByUserId] IS NULL AND [DeletedFromVersion] IS NULL) OR ([DeletedAtUtc] IS NOT NULL AND [DeletedByUserId] IS NOT NULL AND [DeletedFromVersion] IS NOT NULL AND DATALENGTH([DeletedFromVersion]) = 8)");
+                t.HasCheckConstraint("CK_DeviceGroups_Utc", "DATEPART(TZOFFSET,[CreatedAtUtc]) = 0 AND DATEPART(TZOFFSET,[UpdatedAtUtc]) = 0 AND DATEPART(TZOFFSET,[DeletedAtUtc]) = 0 AND [UpdatedAtUtc] >= [CreatedAtUtc] AND ([DeletedAtUtc] IS NULL OR [DeletedAtUtc] >= [CreatedAtUtc])");
+            });
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
+            b.Property(x => x.Name).HasMaxLength(150).IsRequired();
+            b.Property(x => x.CreationFingerprint).HasMaxLength(64).IsRequired();
+            b.Property(x => x.DeletedFromVersion).HasMaxLength(8);
+            b.Property(x => x.Version).IsRowVersion();
+            b.HasIndex(x => new { x.CompanyId, x.ParentId, x.Name }).IsUnique().HasFilter("[DeletedAtUtc] IS NULL");
+            b.HasIndex(x => x.ParentId); b.HasIndex(x => x.CreatedByUserId); b.HasIndex(x => x.DeletedByUserId);
+            b.HasOne<CompanyRecord>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<DeviceGroupRecord>().WithMany().HasForeignKey(x => x.ParentId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.DeletedByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<DeviceRecord>(b =>
+        {
+            b.Property(x => x.GroupId);
+            b.HasIndex(x => x.GroupId);
+            b.HasOne<DeviceGroupRecord>().WithMany().HasForeignKey(x => x.GroupId).OnDelete(DeleteBehavior.Restrict);
+            b.ToTable("Devices", t => { t.HasTrigger("TR_Devices_GroupIntegrity"); t.UseSqlOutputClause(false); });
+        });
         model.Entity<DeviceRecord>(b =>
         {
             b.ToTable("Devices", t =>

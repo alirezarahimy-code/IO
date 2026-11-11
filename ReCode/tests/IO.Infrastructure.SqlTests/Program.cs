@@ -58,7 +58,7 @@ var unitId = Guid.NewGuid(); var otherUnitId = Guid.NewGuid(); var employeeId = 
 var sourceId = Guid.NewGuid(); var otherSourceId = Guid.NewGuid();
 string[] expectedTables = ["Organizations", "Companies", "Sites", "OrgUnits", "Employees", "EmployeeAssignments",
     "Users", "Roles", "Permissions", "UserRoles", "RolePermissions", "UserOrgScopes", "EventSources", "RawAttendanceEvents",
-    "Calendars", "CalendarDays", "ShiftDefinitions", "WorkScheduleAssignments", "EmploymentProfiles", "EmployeeSiteAssignments", "SourceEmployeeMappings", "RawEventConflicts", "ObservedRuleVersions", "DailyCalculationRuns", "CorrectionPolicies", "CorrectionRequests", "CorrectionDecisions", "PeriodDrafts", "RawConflictNotes", "SourceMappingChanges", "CalculationInputRevision", "PeriodDiagnostics", "LeaveTypes", "LeaveLedgerEntries", "Delegations", "DelegationRevocations", "CorrectionSettings", "CorrectionDelegationGrants", "DelegatedCorrectionDecisions", "LeaveRequests", "LeaveDecisions", "Notifications", "CorrectionDecisionReversals", "LeaveDecisionReversals", "Devices", "DeviceSecrets"];
+    "Calendars", "CalendarDays", "ShiftDefinitions", "WorkScheduleAssignments", "EmploymentProfiles", "EmployeeSiteAssignments", "SourceEmployeeMappings", "RawEventConflicts", "ObservedRuleVersions", "DailyCalculationRuns", "CorrectionPolicies", "CorrectionRequests", "CorrectionDecisions", "PeriodDrafts", "RawConflictNotes", "SourceMappingChanges", "CalculationInputRevision", "PeriodDiagnostics", "LeaveTypes", "LeaveLedgerEntries", "Delegations", "DelegationRevocations", "CorrectionSettings", "CorrectionDelegationGrants", "DelegatedCorrectionDecisions", "LeaveRequests", "LeaveDecisions", "Notifications", "CorrectionDecisionReversals", "LeaveDecisionReversals", "Devices", "DeviceSecrets", "DeviceGroups"];
 try
 {
     await using (var db = NewDb())
@@ -66,10 +66,10 @@ try
         Check(!db.Database.HasPendingModelChanges(), "model matches migration snapshot");
         await db.Database.MigrateAsync();
         await db.Database.MigrateAsync();
-        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 23, "foundation and twenty-two later migrations applied idempotently");
+        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 24, "foundation and twenty-three later migrations applied idempotently");
         var created = 0;
         foreach (var table in expectedTables) if (await HasTable(table)) created++;
-        Check(created == expectedTables.Length, "all 46 foundation and later tables created");
+        Check(created == expectedTables.Length, "all 47 foundation and later tables created");
         // Upgrade an existing settings row across the limits migration, not only an empty database.
         var legacyOrg=Guid.NewGuid(); var legacyCompany=Guid.NewGuid(); var legacyUser=Guid.NewGuid(); var legacySetting=Guid.NewGuid();
         var migrator=db.GetService<IMigrator>();
@@ -285,12 +285,12 @@ try
         await migrator.MigrateAsync("0");
         var remaining = 0;
         foreach (var table in expectedTables) if (await HasTable(table)) remaining++;
-        Check(remaining == 0, "rollback removed all 46 foundation and later tables");
+        Check(remaining == 0, "rollback removed all 47 foundation and later tables");
         await migrator.MigrateAsync();
         var recreated = 0;
         foreach (var table in expectedTables) if (await HasTable(table)) recreated++;
-        Check(recreated == expectedTables.Length, "migrations recreated all 46 foundation and later tables");
-        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 23, "migration history restored");
+        Check(recreated == expectedTables.Length, "migrations recreated all 47 foundation and later tables");
+        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 24, "migration history restored");
     }
     // Independent Identity schema and bootstrap: the foundation DB was just
     // recreated empty above. Never run this against non-disposable data.
@@ -351,6 +351,8 @@ try
     }
     await DecisionReversalUpgradeTests.RunAsync(connection, Check);
     await DeviceRegistryTests.RunAsync(connection, Check);
+    await DeviceGroupUpgradeTests.RunAsync(connection, Check);
+    await DeviceGroupTests.RunAsync(connection, Check);
     await HttpSecurityTests.RunAsync(connection, Check);
     await OrganizationServiceTests.RunAsync(connection, Check);
     await SchedulingServiceTests.RunAsync(connection, Check);
