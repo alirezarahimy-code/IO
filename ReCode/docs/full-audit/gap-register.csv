@@ -19,3 +19,5 @@ G-17,فیلد دلخواه کاربر (UserAddProperty),T5Web,UserAddPropertyCon
 G-18,بازگشت/Undo امن تصمیم,TWF,"UndoController.cs (۲ اکشن), View Undo — الگوی GET تقلید ممنوع",🔴 غایب,CorrectionDecisions یکتا؛ طرح چندتصمیمی لازم,بالا,R1
 G-19,گزارش خروج/مجموع روزانه,T5Web,"DailyReportController, ExitReportController, SumReportController",🟡,PersonalReports/ExecutiveOverview,متوسط,R3
 G-20,اعلان بلادرنگ (Push),TWF,"NotifyController.cs, NotificationManager.cs",🟡 polling,Notifications + شمارندهٔ پنل,پایین,R7
+G-21,بستهٔ استقرار و عملیات اجرا (publish/سرویس/TLS/پایش فرایند),—,—,🔴 غایب,CI فقط build/test می‌کند؛ خروجی deployable نداریم,بالا,R8
+G-22,ورود اطلاعات اولیهٔ سازمان واقعی (seed),T5Web,ImportFromExcelController,🔴 غایب,جز fixtureهای آزمون,بالا,R8
