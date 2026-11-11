@@ -21,7 +21,7 @@
  function clearPrivate(){permissions=new Set();$('body').replaceChildren();$('locations').replaceChildren();count=0;locationCount=0;uncertain=null;reset();}
  async function request(url,options={}){
   const r=await fetch(url,{...options,credentials:'same-origin',cache:'no-store'});
-  if(!r.ok){if(r.status===401||r.status===403){++epoch;clearPrivate();}throw new Error(r.status===409?'تعارض نسخه، شمارهٔ تکراری یا محل دارای سابقه؛ تازه‌سازی و بررسی کنید.':r.status===401||r.status===403?'نشست یا مجوز این عملیات معتبر نیست؛ دادهٔ قبلی پاک شد.':'شناسه، پروفایل، مقصد یا دادهٔ فرم معتبر نیست.');}
+  if(!r.ok){if(r.status===401||r.status===403){++epoch;clearPrivate();}throw new Error(r.status===409?'تعارض نسخه/شماره/محل دارای سابقه؛ برای تغییر مقصد دارای رمز، ابتدا رمز را صریحاً پاک کنید.':r.status===401||r.status===403?'نشست یا مجوز این عملیات معتبر نیست؛ دادهٔ قبلی پاک شد.':'شناسه، پروفایل، مقصد یا دادهٔ فرم معتبر نیست.');}
   return r.json();
  }
  async function post(url,data){const csrf=await request('/auth/csrf');return request(url,{method:'POST',headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf.token},body:JSON.stringify(data)});}
