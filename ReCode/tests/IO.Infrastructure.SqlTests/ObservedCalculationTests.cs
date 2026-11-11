@@ -113,7 +113,7 @@ internal static class ObservedCalculationTests
             await using var cmd = db.Database.GetDbConnection().CreateCommand();
             cmd.CommandText = "SELECT COUNT(*) FROM sys.triggers WHERE name LIKE N'TR[_]Revision[_]%' AND is_disabled = 0";
             var triggerCount = Convert.ToInt32(await cmd.ExecuteScalarAsync());
-            check(noDelete && noReset && triggerCount == 15 && CalculationInputRevisionStatus.Evaluate(3, null, "present", "present") == "unavailable" &&
+            check(noDelete && noReset && triggerCount == 16 && CalculationInputRevisionStatus.Evaluate(3, null, "present", "present") == "unavailable" &&
                 CalculationInputRevisionStatus.Evaluate(3, 2, "present", "present") == "inconsistent", "revision singleton is monotonic and monitored table triggers are enabled");
         }
         var legacyStatus = JsonSerializer.SerializeToElement(await Calc(s => s.AssessDatabaseChangesAsync(admin, legacyId)));

@@ -16,6 +16,7 @@ internal static class RevisionCoverageTests
         // All writes use disposable synthetic fixtures and roll back. Every
         // statement must advance the coarse global epoch, even a no-op update.
         var newRequest = Guid.NewGuid();
+        var newDecision = Guid.NewGuid();
         var statements = new (string Name, string Sql)[]
         {
             ("Companies", "UPDATE dbo.Companies SET Name = Name WHERE Id = (SELECT TOP (1) Id FROM dbo.Companies)"),
@@ -32,7 +33,8 @@ internal static class RevisionCoverageTests
             ("ObservedRuleVersions", "INSERT INTO dbo.ObservedRuleVersions (Id, CompanyId, Name, Algorithm, BeforeMinutes, AfterMinutes, CreatedAtUtc, CreatedByUserId) SELECT TOP (1) NEWID(), CompanyId, Name, Algorithm, BeforeMinutes, AfterMinutes, CreatedAtUtc, CreatedByUserId FROM dbo.ObservedRuleVersions"),
             ("CorrectionPolicies", "INSERT INTO dbo.CorrectionPolicies (Id, CompanyId, Name, ApproverUserId, CreatedByUserId, CreatedAtUtc) SELECT TOP (1) NEWID(), CompanyId, Name, ApproverUserId, CreatedByUserId, CreatedAtUtc FROM dbo.CorrectionPolicies"),
             ("CorrectionRequests", $"INSERT INTO dbo.CorrectionRequests (Id, CompanyId, EmployeeId, RequesterUserId, PolicyId, WorkDate, ProposedAtUtc, PunchKind, Reason, State, CreatedAtUtc) SELECT TOP (1) '{newRequest:D}', CompanyId, EmployeeId, RequesterUserId, PolicyId, WorkDate, ProposedAtUtc, PunchKind, Reason, 0, CreatedAtUtc FROM dbo.CorrectionRequests"),
-            ("CorrectionDecisions", $"INSERT INTO dbo.CorrectionDecisions (Id, RequestId, ActorUserId, Decision, Reason, AtUtc) SELECT TOP (1) NEWID(), '{newRequest:D}', ActorUserId, Decision, Reason, AtUtc FROM dbo.CorrectionDecisions")
+            ("CorrectionDecisions", $"INSERT INTO dbo.CorrectionDecisions (Id, RequestId, ActorUserId, Decision, Reason, AtUtc) SELECT TOP (1) '{newDecision:D}', '{newRequest:D}', ActorUserId, Decision, Reason, AtUtc FROM dbo.CorrectionDecisions"),
+            ("CorrectionDecisionReversals", $"INSERT INTO dbo.CorrectionDecisionReversals (Id, DecisionId, ActorUserId, Reason, AtUtc) SELECT NEWID(), Id, ActorUserId, N'Revision coverage rollback fixture', AtUtc FROM dbo.CorrectionDecisions WHERE Id = '{newDecision:D}'")
         };
         var current = initial;
         var failures = new List<string>();
@@ -45,7 +47,7 @@ internal static class RevisionCoverageTests
         }
         await tx.RollbackAsync();
         var afterRollback = await db.CalculationInputRevisions.AsNoTracking().Where(x => x.Id == 1).Select(x => x.Revision).SingleAsync();
-        check(statements.Length == 15 && failures.Count == 0 && afterRollback == initial,
+        check(statements.Length == 16 && failures.Count == 0 && afterRollback == initial,
             "all monitored input tables advance the transactional revision; rollback restores it: " + string.Join(",", failures));
     }
 }
