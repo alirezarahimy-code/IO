@@ -36,7 +36,7 @@
 | `/workspace/raw-events`, `/workspace/mappings`, `/workspace/conflicts` | مدیریت | `attendance.ingest` | کامل |
 | `/workspace/calculations`, `/workspace/rules` | مدیریت | `attendance.calculate` | کامل |
 | `/workspace/periods` | مدیریت | preflight/draft/diagnostic | کامل |
-| `/workspace/leave-admin` | مدیریت | `leave.manage` و `leave.request.decide` | کامل: دفتر دستی + کارتابل دامنه با تأیید/رد مرخصی (کسر خودکار از دفتر) و اضافه‌کار/مأموریت (فقط ثبت تصمیم) |
+| `/workspace/leave-admin` | مدیریت | `leave.manage` و `leave.request.decide` | کامل: دفتر دستی + کارتابل دامنه با تأیید/رد مرخصی (کسر خودکار از دفتر) و اضافه‌کار/مأموریت (فقط ثبت تصمیم) + گزارش ماندهٔ مرخصی کارکنان (RemainLeave) به تفکیک کارمند و نوع |
 | `/workspace/reports`, `/workspace/report-builder` | مدیریت/مدیر | مجوزهای گزارش | کامل |
 | `/workspace/workflow` | مدیریت | `correction.configure` | کامل |
 | `/workspace/executive-home` | مدیریت | نمای کلی | کامل |

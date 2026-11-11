@@ -49,3 +49,28 @@
   $('inbox-next').addEventListener('click',async()=>{if(busy)return;busy=true;controls();offset+=50;try{await load();}catch(e){offset-=50;busy=false;controls();$('notice').textContent=e.message;}});
   (async()=>{try{await load();}catch(e){$('notice').textContent=e instanceof TypeError?'ارتباط قطع شد.':e.message;controls();}})();
 })();
+
+// RemainLeave: company-wide per-employee leave balances from the manual ledger.
+(() => {
+  const $=id=>document.getElementById(id),balanceForm=$('balance-form');let busy=false,offset=0;
+  const fmt=v=>v===null||v===undefined?'—':Number(v).toLocaleString('fa-IR');
+  async function request(url,options={}){const r=await fetch(url,{...options,credentials:'same-origin',cache:'no-store'});if(!r.ok)
+    throw new Error(r.status===401?'نشست پایان یافته؛ دوباره وارد شوید.':r.status===403?'مجوز دفتر مرخصی ندارید یا باید گذرواژه را تغییر دهید.':r.status===400?'شرکت، صفحه یا تاریخ معتبر نیست.':'دریافت مانده‌ها ناموفق بود.');return r.json();}
+  function controls(){$('balances-previous').disabled=busy||offset===0;$('balances-next').disabled=busy||$('balances-body').children.length<50||offset>=100000;}
+  function rows(data){$('balances-body').replaceChildren();$('balances-empty').hidden=data.items.some(x=>x.balances.length);
+    for(const emp of data.items)for(const b of emp.balances){const tr=document.createElement('tr');
+      for(const v of [emp.displayName+' ('+emp.personnelNumber+')',b.name+' ('+b.symbol+')',fmt(b.opening),fmt(b.granted),fmt(b.used),fmt(b.adjustment),fmt(b.balance)]){
+        const td=document.createElement('td');td.textContent=v;tr.append(td);}
+      $('balances-body').append(tr);}
+    controls();}
+  async function load(){const data=await request('/leave/balances/'+encodeURIComponent(balanceForm.elements.companyId.value.trim())+
+    '?asOf='+balanceForm.elements.asOf.value+'&offset='+offset);rows(data);}
+  balanceForm.addEventListener('submit',async e=>{e.preventDefault();if(busy)return;busy=true;controls();
+    try{offset=0;await load();$('notice').textContent='';}
+    catch(err){$('balances-body').replaceChildren();$('balances-empty').hidden=false;$('notice').textContent=err instanceof TypeError?'ارتباط قطع شد.':err.message;}
+    finally{busy=false;controls();}});
+  $('balances-previous').addEventListener('click',async()=>{if(busy)return;busy=true;controls();offset-=50;
+    try{await load();}catch(e){offset+=50;$('notice').textContent=e.message;}finally{busy=false;controls();}});
+  $('balances-next').addEventListener('click',async()=>{if(busy)return;busy=true;controls();offset+=50;
+    try{await load();}catch(e){offset-=50;$('notice').textContent=e.message;}finally{busy=false;controls();}});
+})();

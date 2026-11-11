@@ -99,6 +99,31 @@ public sealed class LeaveLedger(IoDbContext db, PermissionTransaction transactio
             if(employee is null) throw new UnauthorizedAccessException();
             var result=await BalanceCoreAsync(employee.Value,leaveTypeId,asOf,token);return (result,employee.Value);
         },ct);
+    /// <summary>Company-wide balance report per employee and leave type (RemainLeave pattern).</summary>
+    public Task<object> ListBalancesAsync(Guid actor,Guid companyId,DateOnly asOf,int offset,CancellationToken ct=default) =>
+        transaction.ExecuteAsync<object>(actor,Manage,"leave.balances.viewed",async token=>
+        {
+            if(companyId==Guid.Empty || offset is < 0 or > 100000 || !await db.Companies.AnyAsync(x=>x.Id==companyId,token)) throw new ArgumentException("Invalid company or page.");
+            int year=PersianDate(asOf).Year;
+            var employees=await db.Employees.AsNoTracking().Where(x=>x.CompanyId==companyId)
+                .OrderBy(x=>x.PersonnelNumber).ThenBy(x=>x.Id).Skip(offset).Take(50)
+                .Select(x=>new{x.Id,x.PersonnelNumber,x.DisplayName}).ToListAsync(token);
+            var ids=employees.Select(x=>x.Id).ToList();
+            var sums=await db.LeaveLedgerEntries.AsNoTracking()
+                .Where(x=>x.CompanyId==companyId && ids.Contains(x.EmployeeId) && x.PersianYear==year && x.EffectiveDate<=asOf)
+                .GroupBy(x=>new{x.EmployeeId,x.LeaveTypeId}).Select(g=>new{g.Key.EmployeeId,g.Key.LeaveTypeId,
+                    Opening=g.Where(e=>e.Kind==0).Sum(e=>(long?)e.Minutes),Granted=g.Where(e=>e.Kind==1).Sum(e=>(long?)e.Minutes),
+                    Used=g.Where(e=>e.Kind==2).Sum(e=>(long?)e.Minutes),Adjustment=g.Where(e=>e.Kind==3).Sum(e=>(long?)e.Minutes)})
+                .ToListAsync(token);
+            var types=await db.LeaveTypes.AsNoTracking().Where(x=>x.CompanyId==companyId)
+                .Select(x=>new{x.Id,x.Name,x.Symbol}).ToListAsync(token);
+            var items=employees.Select(e=>new{e.Id,e.PersonnelNumber,e.DisplayName,
+                balances=types.Select(t=>{var sum=sums.FirstOrDefault(x=>x.EmployeeId==e.Id && x.LeaveTypeId==t.Id);
+                    long? opening=sum?.Opening;long granted=sum?.Granted??0;long used=-(sum?.Used??0);long adjustment=sum?.Adjustment??0;
+                    return new{leaveTypeId=t.Id,name=t.Name,symbol=t.Symbol,opening,granted,used,adjustment,
+                        balance=opening is null?(long?)null:opening+granted-used+adjustment};}).Where(b=>b.opening is not null || b.granted!=0 || b.used!=0 || b.adjustment!=0)}).ToList();
+            return (new{companyId,asOf,offset,pageSize=50,items},companyId);
+        },ct);
     private async Task<LeaveTypeRecord> RequireEmployeeTypeAsync(Guid employee,Guid type,CancellationToken token) =>
         await (from e in db.Employees.AsNoTracking() join t in db.LeaveTypes.AsNoTracking() on e.CompanyId equals t.CompanyId
                where e.Id==employee && t.Id==type select t).SingleOrDefaultAsync(token) ?? throw new ArgumentException("Unknown employee or leave type.");

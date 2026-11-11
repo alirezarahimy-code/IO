@@ -245,3 +245,4 @@ REQ.extra.mission.submit,workflow,ثبت درخواست مأموریت روزا�
 REQ.extra.decide,workflow,تصمیم بر درخواست اضافه‌کار/مأموریت,planned-not-grantable,leave.request.decide,determine-and-enforce,needs-action-level-review
 REQ.notifications.read.self,workflow,مشاهده اعلان‌های خود,planned-not-grantable,,determine-and-enforce,needs-action-level-review
 REQ.notifications.mark.read,workflow,علامت‌گذاری همهٔ اعلان‌ها به خوانده‌شده,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.leave.balance.all.read,leave,گزارش ماندهٔ مرخصی کارکنان شرکت,planned-not-grantable,leave.manage,determine-and-enforce,needs-action-level-review

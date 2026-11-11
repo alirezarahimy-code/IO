@@ -342,6 +342,8 @@ public static class IoWebHost
             AdminRead(c, async actor => await service.ListInboxAsync(actor, offset ?? 0, c.RequestAborted)));
         app.MapPost("/leave/requests/{id:guid}/decision", (Guid id, LeaveDecisionInput input, HttpContext c, IAntiforgery csrf, LeaveRequests service) =>
             Admin(c, csrf, actor => service.DecideAsync(actor, id, input.Decision, input.Reason, c.RequestAborted)));
+        app.MapGet("/leave/balances/{companyId:guid}", (Guid companyId, DateOnly asOf, int? offset, HttpContext c, LeaveLedger service) =>
+            AdminRead(c, async actor => await service.ListBalancesAsync(actor, companyId, asOf, offset ?? 0, c.RequestAborted)));
         app.MapGet("/notifications", (int? offset, HttpContext c, Notifications service) =>
             AdminRead(c, async actor => await service.ListAsync(actor, offset ?? 0, c.RequestAborted)));
         app.MapPost("/notifications/read-all", (HttpContext c, IAntiforgery csrf, Notifications service) =>

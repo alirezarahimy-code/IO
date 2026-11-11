@@ -1076,6 +1076,8 @@ internal static class HttpSecurityTests
             using var anonNotifications = Client();
             var unreadAfter = await own.GetAsync("/notifications?offset=0");
             using var unreadAfterJson = await ParseOrThrow(unreadAfter);
+            using var companyBalances = await adminClient.GetAsync("/leave/balances/" + testCompany + "?asOf=2027-06-30&offset=0");
+            using var companyBalancesJson = await ParseOrThrow(companyBalances);
             if (unreadBefore < 4)
                 throw new InvalidOperationException("Notification unread count was " + unreadBefore + ", expected at least 4.");
             check(ownNotifications.StatusCode == HttpStatusCode.OK &&
@@ -1085,6 +1087,14 @@ internal static class HttpSecurityTests
                 readAllJson.RootElement.GetProperty("result").GetInt32() == unreadBefore &&
                 unreadAfterJson.RootElement.GetProperty("unread").GetInt32() == 0,
                 "HTTP request decisions notify the requester and notifications mark read");
+            var balanceRows = companyBalancesJson.RootElement.GetProperty("items").EnumerateArray()
+                .Where(x => x.GetProperty("id").GetGuid() == first)
+                .SelectMany(x => x.GetProperty("balances").EnumerateArray()).ToList();
+            check((await own.GetAsync("/leave/balances/" + testCompany + "?asOf=2027-06-30&offset=0")).StatusCode == HttpStatusCode.Forbidden &&
+                companyBalances.StatusCode == HttpStatusCode.OK &&
+                balanceRows.Any(b => b.GetProperty("used").GetInt64() == 480 && b.GetProperty("granted").GetInt64() == 0 &&
+                    b.GetProperty("balance").ValueKind == JsonValueKind.Null),
+                "HTTP company leave balance report exposes usage and stays permission bound");
         }
         finally
         {
