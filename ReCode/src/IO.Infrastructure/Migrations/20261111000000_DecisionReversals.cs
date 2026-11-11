@@ -10,28 +10,28 @@ public sealed class DecisionReversals : Migration
     protected override void Up(MigrationBuilder migrationBuilder)
     {
         migrationBuilder.Sql("""
-        ALTER TABLE dbo.CorrectionDecisions ADD Sequence int NOT NULL CONSTRAINT DF_CorrectionDecisions_Sequence DEFAULT 1;
+        ALTER TABLE dbo.CorrectionDecisions ADD [Sequence] int NOT NULL CONSTRAINT DF_CorrectionDecisions_Sequence DEFAULT 1;
         """);
         migrationBuilder.Sql("""
-        ALTER TABLE dbo.CorrectionDecisions ADD CONSTRAINT CK_CorrectionDecisions_Sequence CHECK (Sequence > 0);
+        ALTER TABLE dbo.CorrectionDecisions ADD CONSTRAINT CK_CorrectionDecisions_Sequence CHECK ([Sequence] > 0);
         """);
         migrationBuilder.Sql("""
         DROP INDEX IX_CorrectionDecisions_RequestId ON dbo.CorrectionDecisions;
         """);
         migrationBuilder.Sql("""
-        CREATE UNIQUE INDEX IX_CorrectionDecisions_RequestId_Sequence ON dbo.CorrectionDecisions(RequestId, Sequence);
+        CREATE UNIQUE INDEX IX_CorrectionDecisions_RequestId_Sequence ON dbo.CorrectionDecisions(RequestId, [Sequence]);
         """);
         migrationBuilder.Sql("""
-        ALTER TABLE dbo.LeaveDecisions ADD Sequence int NOT NULL CONSTRAINT DF_LeaveDecisions_Sequence DEFAULT 1;
+        ALTER TABLE dbo.LeaveDecisions ADD [Sequence] int NOT NULL CONSTRAINT DF_LeaveDecisions_Sequence DEFAULT 1;
         """);
         migrationBuilder.Sql("""
-        ALTER TABLE dbo.LeaveDecisions ADD CONSTRAINT CK_LeaveDecisions_Sequence CHECK (Sequence > 0);
+        ALTER TABLE dbo.LeaveDecisions ADD CONSTRAINT CK_LeaveDecisions_Sequence CHECK ([Sequence] > 0);
         """);
         migrationBuilder.Sql("""
         DROP INDEX IX_LeaveDecisions_RequestId ON dbo.LeaveDecisions;
         """);
         migrationBuilder.Sql("""
-        CREATE UNIQUE INDEX IX_LeaveDecisions_RequestId_Sequence ON dbo.LeaveDecisions(RequestId, Sequence);
+        CREATE UNIQUE INDEX IX_LeaveDecisions_RequestId_Sequence ON dbo.LeaveDecisions(RequestId, [Sequence]);
         """);
         migrationBuilder.Sql("""
         ALTER TABLE dbo.LeaveDecisions ADD LedgerEntryId uniqueidentifier NULL;
@@ -148,7 +148,7 @@ public sealed class DecisionReversals : Migration
                             THROW 51008, ''Correction request payload is immutable after a decision.'', 1;
                         IF EXISTS (SELECT 1 FROM deleted d JOIN inserted i ON d.Id = i.Id WHERE (d.State <> 0 AND NOT (d.State IN (1,2) AND i.State=0 AND
                                 EXISTS(SELECT 1 FROM CorrectionDecisions cd JOIN CorrectionDecisionReversals rv ON rv.DecisionId=cd.Id
-                                       WHERE cd.RequestId=d.Id AND cd.Sequence=(SELECT MAX(z.Sequence) FROM CorrectionDecisions z WHERE z.RequestId=d.Id))
+                                       WHERE cd.RequestId=d.Id AND cd.[Sequence]=(SELECT MAX(z.[Sequence]) FROM CorrectionDecisions z WHERE z.RequestId=d.Id))
                                 AND NOT EXISTS(SELECT 1 FROM CorrectionDecisions cd WHERE cd.RequestId=d.Id
                                                AND NOT EXISTS(SELECT 1 FROM CorrectionDecisionReversals rv WHERE rv.DecisionId=cd.Id))))
                                 OR i.State NOT IN (0,1,2,3))
@@ -168,7 +168,7 @@ public sealed class DecisionReversals : Migration
                             THROW 51009, ''Leave request payload is immutable.'', 1;
                         IF EXISTS (SELECT 1 FROM deleted d JOIN inserted i ON d.Id = i.Id WHERE (d.State <> 0 AND NOT (d.State IN (1,2) AND i.State=0 AND
                                 EXISTS(SELECT 1 FROM LeaveDecisions cd JOIN LeaveDecisionReversals rv ON rv.DecisionId=cd.Id
-                                       WHERE cd.RequestId=d.Id AND cd.Sequence=(SELECT MAX(z.Sequence) FROM LeaveDecisions z WHERE z.RequestId=d.Id))
+                                       WHERE cd.RequestId=d.Id AND cd.[Sequence]=(SELECT MAX(z.[Sequence]) FROM LeaveDecisions z WHERE z.RequestId=d.Id))
                                 AND NOT EXISTS(SELECT 1 FROM LeaveDecisions cd WHERE cd.RequestId=d.Id
                                                AND NOT EXISTS(SELECT 1 FROM LeaveDecisionReversals rv WHERE rv.DecisionId=cd.Id))))
                                 OR i.State NOT IN (0,1,2,3))
@@ -180,7 +180,7 @@ public sealed class DecisionReversals : Migration
     {
         migrationBuilder.Sql("""
         IF EXISTS(SELECT 1 FROM dbo.CorrectionDecisionReversals) OR EXISTS(SELECT 1 FROM dbo.LeaveDecisionReversals)
-         OR EXISTS(SELECT 1 FROM dbo.CorrectionDecisions WHERE Sequence>1) OR EXISTS(SELECT 1 FROM dbo.LeaveDecisions WHERE Sequence>1)
+         OR EXISTS(SELECT 1 FROM dbo.CorrectionDecisions WHERE [Sequence]>1) OR EXISTS(SELECT 1 FROM dbo.LeaveDecisions WHERE [Sequence]>1)
          THROW 51010, 'Reversal history exists; restore a validated backup instead of destructive downgrade.', 1;
         """);
         migrationBuilder.Sql("""
@@ -211,7 +211,7 @@ public sealed class DecisionReversals : Migration
         ALTER TABLE dbo.CorrectionDecisions DROP CONSTRAINT DF_CorrectionDecisions_Sequence;
         """);
         migrationBuilder.Sql("""
-        ALTER TABLE dbo.CorrectionDecisions DROP COLUMN Sequence;
+        ALTER TABLE dbo.CorrectionDecisions DROP COLUMN [Sequence];
         """);
         migrationBuilder.Sql("""
         EXEC(N'CREATE OR ALTER TRIGGER [dbo].[TR_CorrectionRequests_ImmutablePayload] ON [dbo].[CorrectionRequests]
@@ -244,7 +244,7 @@ public sealed class DecisionReversals : Migration
         ALTER TABLE dbo.LeaveDecisions DROP CONSTRAINT DF_LeaveDecisions_Sequence;
         """);
         migrationBuilder.Sql("""
-        ALTER TABLE dbo.LeaveDecisions DROP COLUMN Sequence;
+        ALTER TABLE dbo.LeaveDecisions DROP COLUMN [Sequence];
         """);
         migrationBuilder.Sql("""
         EXEC(N'CREATE OR ALTER TRIGGER [dbo].[TR_LeaveRequests_ImmutablePayload] ON [dbo].[LeaveRequests]

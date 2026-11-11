@@ -11,7 +11,7 @@ for folder in ['Device','DeviceOperations','USBManagement','iclock','UserInfo','
  files.extend(sorted((views/folder).glob('*.cshtml')))
 files.extend([views/'Shared/_DeviceSelection.cshtml',views/'Shared/_SelectUser.cshtml'])
 rows=[];coverage=[]
-patterns={'field':r'\b(?:name|id)\s*=\s*["\']([^"\'<>\s]+)', 'razor-control':r'@Html\.(?:DropDownList|TextBox|CheckBox)(?:For)?\("([^"]+)"', 'function':r'function\s+(\w+)\s*\(', 'endpoint':r'(?:url|action)\s*[:=]\s*["\'](/[^"\']+)', 'route-literal':r'["\'](/(?:Device|DeviceOperations|USBManagement|iclock)/[^"\']*)', 'operation':r'onclick\s*=\s*"([\w]+)\(', 'caption':r'T5V3Web\.Content\.Persian\.(\w+)'}
+patterns={'field':r'\b(?:name|id)\s*=\s*["\']([^"\'<>\s]+)', 'razor-control':r'@Html\.(?:DropDownList|TextBox|CheckBox)(?:For)?\("([^"]+)"', 'function':r'function\s+(\w+)\s*\(', 'endpoint':r'(?:url|action)\s*[:=]\s*["\'](/[^"\']+)', 'route-literal':r'["\'](/(?:Device|DeviceOperations|USBManagement|iclock|Gate)/[^"\']*)', 'operation':r'onclick\s*=\s*"([\w]+)\(', 'caption':r'T5V3Web\.Content\.Persian\.(\w+)'}
 for p in files:
  rel=str(p.relative_to(ROOT))
  if not p.exists():coverage.append([rel,'missing','not present in supplied snapshot']);continue
@@ -20,7 +20,7 @@ for p in files:
  coverage.append([rel,'read',hashlib.sha256(p.read_bytes()).hexdigest()])
  for n,line in enumerate(text.splitlines(),1):
   for kind,pat in patterns.items():
-   for m in re.finditer(pat,line):rows.append([rel,n,kind,m[1], 'outside physical gate scope' if '/Gate/' in rel else 'reference evidence; not an IO implementation'])
+   for m in re.finditer(pat,line):rows.append([rel,n,kind,m[1], 'reference grouping metadata; not proof of physical door control' if '/Gate/' in rel else 'reference evidence; not an IO implementation'])
 write('device-view-evidence.csv',['file','line','kind','identifier','disposition'],rows)
 write('device-view-coverage.csv',['file','status','sha256_or_reason'],coverage)
 # Parse PE headers and native exported names only. No plaintext configuration, keys or payloads are exported.
@@ -100,11 +100,17 @@ write('device-metadata-coverage.csv',['file','status','sha256','limit'],meta_cov
 # Every extracted lexical UI operation, route and control has a disposition, including helpers.
 coverage_rows=[]
 for rel,n,kind,name,_ in rows:
- status='outside-scope' if '/Gate/' in rel else 'must-build'
- target='excluded: physical door/gate control' if status=='outside-scope' else ('S04' if '/Device/' in rel else 'S06-S13')
+ status='must-build'
+ target='S04: reference group hierarchy; confirm terminology; no physical door commands' if '/Gate/' in rel else ('S04' if '/Device/' in rel else 'S06-S13')
  if kind=='function' and name in ['submitForm','shw','updaterTimer','selectAllDeviceUsers','reverseAllDeviceUsers','selectAll','reverseAll']:
   target='UI helper for S04-S13'
  coverage_rows.append([rel,n,kind,name,status,target,'lexical evidence; comments/duplicate references are not proof of a live endpoint'])
 write('device-operation-coverage.csv',['file','line','kind','identifier','status','target','limit'],coverage_rows)
 summary.update(metadata_rows=len(metadata),metadata_files=len(meta_coverage),operation_coverage=len(coverage_rows))
 (OUT/'device-audit-summary.json').write_text(json.dumps(summary,indent=2)+'\n');print(summary)
+
+# Exact names only: substring 'lock' would misclassify ReadBlock and EnableClock.
+physical_exports={'Z_GetDoorState','Z_GetUnlockGroups','Z_GetlockComb','Z_SetUnlockGroups','Z_SetlockComb','Z_Unlock'}
+write('device-sdk-coverage.csv',['file','export','status','limit'],
+ [[rel,name,'outside-scope' if name in physical_exports else 'conditional',
+   'physical access-control name; no execution authorized' if name in physical_exports else 'export identifier only; signature, model and purpose must be verified before implementation'] for rel,name,_ in exports])

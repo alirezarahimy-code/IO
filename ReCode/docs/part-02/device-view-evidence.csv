@@ -689,37 +689,41 @@ T5Web [3.5.7]/App/Views/UserInfo/Index.cshtml,1185,function,disableFiredDate,ref
 T5Web [3.5.7]/App/Views/UserInfo/Index.cshtml,1198,function,disabletitleTo,reference evidence; not an IO implementation
 T5Web [3.5.7]/App/Views/UserInfo/Index.cshtml,1213,function,disablevalidFrom,reference evidence; not an IO implementation
 T5Web [3.5.7]/App/Views/UserInfo/Index.cshtml,1229,function,disablevalidTo,reference evidence; not an IO implementation
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,3,caption,Gates,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,9,caption,Gates,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,13,endpoint,/Gate/Edit,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,17,caption,UpperDeptName,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,23,field,UpperGateID,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,25,caption,GateName,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,28,field,GateName,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,35,field,GateID,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,37,caption,Edit,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,37,caption,Gate,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,42,field,GateID,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,44,caption,Add2,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,44,caption,Gate,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,68,caption,Gates,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,72,field,tree,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,78,field,selectedgateid,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,78,field,selectedgateid,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,82,field,selectedgateid,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,82,field,selectedgateid,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,88,operation,addnewtitle,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,88,caption,Add2,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,88,caption,Gate,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,89,operation,deleteselectedtitle,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,89,caption,DeleteSelectedItems,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,93,caption,SelectedTitle,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,96,field,selectedgatename,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,100,field,selectedgatename,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,124,function,addnewtitle,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,128,function,deleteselectedtitle,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,132,function,showtoolbar,outside physical gate scope
-T5Web [3.5.7]/App/Views/Gate/Index.cshtml,137,function,hidetoolbars,outside physical gate scope
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,3,caption,Gates,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,9,caption,Gates,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,13,endpoint,/Gate/Edit,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,13,route-literal,/Gate/Edit,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,17,caption,UpperDeptName,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,23,field,UpperGateID,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,25,caption,GateName,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,28,field,GateName,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,35,field,GateID,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,37,caption,Edit,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,37,caption,Gate,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,42,field,GateID,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,44,caption,Add2,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,44,caption,Gate,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,68,caption,Gates,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,72,field,tree,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,78,field,selectedgateid,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,78,field,selectedgateid,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,82,field,selectedgateid,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,82,field,selectedgateid,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,88,operation,addnewtitle,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,88,caption,Add2,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,88,caption,Gate,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,89,operation,deleteselectedtitle,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,89,caption,DeleteSelectedItems,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,93,caption,SelectedTitle,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,96,field,selectedgatename,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,100,field,selectedgatename,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,112,route-literal,/Gate/GetTree?linkPattern=/Gate/Index?gateID={0}&selectedID=,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,124,function,addnewtitle,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,125,route-literal,/Gate/Index?gateID=-1&upperGateID=,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,128,function,deleteselectedtitle,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,132,function,showtoolbar,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,137,function,hidetoolbars,reference grouping metadata; not proof of physical door control
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,145,route-literal,/Gate/Delete,reference grouping metadata; not proof of physical door control
 T5Web [3.5.7]/App/Views/Shared/_DeviceSelection.cshtml,3,field,treeSelectDevices,reference evidence; not an IO implementation
 T5Web [3.5.7]/App/Views/Shared/_DeviceSelection.cshtml,33,route-literal,/Device/GetAllDevicesTree,reference evidence; not an IO implementation
 T5Web [3.5.7]/App/Views/Shared/_DeviceSelection.cshtml,41,function,checkGate,reference evidence; not an IO implementation

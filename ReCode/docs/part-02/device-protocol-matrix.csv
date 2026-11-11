@@ -6,5 +6,6 @@ Native data SDK,plcommpro.dll GetDeviceData GetDeviceParam ConnectExt,native exp
 USB file,T5Web USBManagement/Index.cshtml attlog,file importer,yes,yes,none for parser; device driver not assumed,no,must-build,S13 anonymized samples encoding time duplicate tests
 Serial,T5Web Device/Index.cshtml SerialPort BaudRate RS485Number,serial RS485 candidate,yes,yes,SDK dependent,no,conditional,port enumeration transport isolation model test
 Biometric and enrollment,DeviceProperties remoteEnroll; UploadUsers finger face photo,model-specific commands,yes,yes,SDK dependent,no,conditional,privacy retention authorization and destructive-command gate
-Physical door gate,Gate/Index.cshtml; native door lock exports,physical control,not-applicable,not-applicable,not-implemented,no,outside-scope,no command execution authorized
+Reference device grouping,Gate/Index.cshtml UpperGateID GateID GateName,tree metadata CRUD,yes,yes,none,no,must-build,S04 confirm terminology; not a door opening command
+Physical door gate,zkemsdk.dll Z_Unlock Z_GetDoorState Z_SetUnlockGroups Z_SetlockComb,physical control,not-applicable,not-applicable,not-implemented,no,outside-scope,no command execution authorized
 Licensing limits,T5V3 legacy lock names,license or device personnel ceiling,not-applicable,not-applicable,not-implemented,no,decision-open,G13 team decision only; never impose runtime ceiling
