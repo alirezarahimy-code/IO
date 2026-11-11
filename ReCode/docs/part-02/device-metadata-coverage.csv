@@ -1,0 +1,12 @@
+﻿file,status,sha256,limit
+TWF 4.28/App/bin/MyTime3.dll,metadata read,edba04ccafb9f111870f9050f86e9059e92389188bbd3115678afb21691ddd6b,type/method/field identifiers only; signatures and behavior not inferred
+TWF 4.28/App/bin/TD5.dll,metadata read,3ddbe0f47de8938d1c8c53c407e4f0626dd24f928bcef2e54a7bdc75aab17fa4,type/method/field identifiers only; signatures and behavior not inferred
+T5V3.9.2/T5V3.UI.DLL,metadata read,9b606f52ed42d3ce8879ce94447bafea854e34041bbaba943168d7c9ae695ee3,type/method/field identifiers only; signatures and behavior not inferred
+T5V3.9.2/T5V3.ZK.DLL,metadata read,e6d131ed091564b9ef620af90f7a9556187f7c5681e2cf52ba26b4e4187cc129,type/method/field identifiers only; signatures and behavior not inferred
+T5Web [3.5.7]/App/bin/T5V3Web.dll,metadata read,96c71335ca080f4fa568e65f81957590ffdb953a9fe133ed0000b416afc7e755,type/method/field identifiers only; signatures and behavior not inferred
+T5Web [3.5.7]/App/bin/Personnel.dll,metadata read,c35950d10a42e36b6383f9a0c0a5a2c7f7bea10770686ed5a6f18bc9d519fcd7,type/method/field identifiers only; signatures and behavior not inferred
+Link5 v4.0.4/Device.dll,metadata read,796c7d12dab6cb51ba8c03380baa82d76943f13345ad4fd9edf2307045f45656,type/method/field identifiers only; signatures and behavior not inferred
+Link5 v4.0.4/Link5.exe,metadata read,70949024525f9b4de857d09e805e2a322ce0a19ec99a3408aaaf3ec8048f85c6,type/method/field identifiers only; signatures and behavior not inferred
+Link5 v4.0.4/Link5.DB.dll,metadata read,9355abdb98a7095e3d7cc82b5259f5e0d79ccc8737508fb8319f57ac3358426e,type/method/field identifiers only; signatures and behavior not inferred
+Link5 v4.0.4/Link5.RecordTransfer.dll,metadata read,0d348c57561f0e74a9d429640e7d9cee602cf83297f1520b06739c98aaa04707,type/method/field identifiers only; signatures and behavior not inferred
+Link5 v4.0.4/service/Comm5Service v4.exe,metadata read,fd1e67f848860f45c9118a84d9dda8a8f8bd2b9c69467c9de829ed98fc5398a5,type/method/field identifiers only; signatures and behavior not inferred

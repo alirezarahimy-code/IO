@@ -31,7 +31,10 @@ AND l.DocumentNumber='LEAVE-'+LEFT(REPLACE(CONVERT(varchar(36),r.Id),'-',''),12)
 WHERE d.Decision=1 AND r.Category=0 AND
 (SELECT COUNT(*) FROM dbo.LeaveLedgerEntries x WHERE x.EmployeeId=r.EmployeeId AND x.LeaveTypeId=r.LeaveTypeId
 AND x.EffectiveDate=r.WorkDate AND x.Kind=2 AND x.Minutes=-r.Minutes
-AND x.DocumentNumber='LEAVE-'+LEFT(REPLACE(CONVERT(varchar(36),r.Id),'-',''),12))=1;
+AND x.DocumentNumber='LEAVE-'+LEFT(REPLACE(CONVERT(varchar(36),r.Id),'-',''),12))=1
+AND NOT EXISTS(SELECT 1 FROM dbo.LeaveRequests r2 WHERE r2.Id<>r.Id AND r2.EmployeeId=r.EmployeeId
+ AND r2.LeaveTypeId=r.LeaveTypeId AND r2.WorkDate=r.WorkDate AND r2.Minutes=r.Minutes AND r2.Category=0
+ AND LEFT(REPLACE(CONVERT(varchar(36),r2.Id),'-',''),12)=LEFT(REPLACE(CONVERT(varchar(36),r.Id),'-',''),12));
 ENABLE TRIGGER dbo.TR_LeaveDecisions_Immutable ON dbo.LeaveDecisions;
 ALTER TABLE dbo.LeaveDecisions ADD CONSTRAINT FK_LeaveDecisions_LeaveLedgerEntries_LedgerEntryId FOREIGN KEY(LedgerEntryId) REFERENCES dbo.LeaveLedgerEntries(Id);
 CREATE UNIQUE INDEX IX_LeaveDecisions_LedgerEntryId ON dbo.LeaveDecisions(LedgerEntryId) WHERE LedgerEntryId IS NOT NULL;

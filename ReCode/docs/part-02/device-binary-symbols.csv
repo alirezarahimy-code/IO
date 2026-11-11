@@ -1,0 +1,101 @@
+﻿file,symbol,limit
+SDK 6.3.1.45/plcommpro.dll,GetDeviceData,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+SDK 6.3.1.45/plcommpro.dll,GetDeviceParam,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+SDK 6.3.1.45/zkemkeeper.dll,MachineNumber,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+SDK 6.3.1.45/zkemkeeper.dll,GetDeviceData,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+SDK 6.3.1.45/zkemkeeper.dll,CZKEM,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+SDK 6.3.1.45/zkemkeeper.dll,CommPassword,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+SDK 6.3.1.45/zkemsdk.dll,GetDeviceData,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+NewPack Dlls 10.06.1398/plcommpro.dll,GetDeviceData,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+NewPack Dlls 10.06.1398/plcommpro.dll,GetDeviceParam,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+NewPack Dlls 10.06.1398/zkemkeeper.dll,MachineNumber,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+NewPack Dlls 10.06.1398/zkemkeeper.dll,GetDeviceData,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+NewPack Dlls 10.06.1398/zkemkeeper.dll,CZKEM,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+NewPack Dlls 10.06.1398/zkemkeeper.dll,CommPassword,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+NewPack Dlls 10.06.1398/zkemsdk.dll,GetDeviceData,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5V3.9.2/T5V3.exe,MachineNumber,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5V3.9.2/T5V3.exe,HTTPPushServer,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5V3.9.2/T5V3.exe,ConfigPushServer,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5V3.9.2/T5V3.exe,PushServer,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5V3.9.2/T5V3.Model.dll,MachineNumber,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5V3.9.2/T5V3.Model.dll,DownloadUsers,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5V3.9.2/T5V3.Model.dll,UploadUsers,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5V3.9.2/T5V3.Model.dll,AutoDownload,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5V3.9.2/T5V3.Model.dll,AutoDeleteRecordsAfterDownload,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5V3.9.2/T5V3.Model.dll,CommPassword,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5V3.9.2/T5V3.UI.DLL,ActiveDevices,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5V3.9.2/T5V3.UI.DLL,MachineNumber,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5V3.9.2/T5V3.UI.DLL,HTTPPushServer,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5V3.9.2/T5V3.UI.DLL,DownloadUsers,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5V3.9.2/T5V3.UI.DLL,UploadUsers,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5V3.9.2/T5V3.UI.DLL,RemoteEnroll,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5V3.9.2/T5V3.UI.DLL,AutoDownload,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5V3.9.2/T5V3.UI.DLL,PushServer,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5V3.9.2/T5V3.ZK.DLL,ActiveDevices,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5V3.9.2/T5V3.ZK.DLL,MachineNumber,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5V3.9.2/T5V3.ZK.DLL,UploadUsers,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5V3.9.2/T5V3.ZK.DLL,CommPassword,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Link5.exe,ActiveDevices,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Link5.exe,AddUploadCommand,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Link5.exe,MachineNumber,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Link5.exe,HTTPPushServer,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Link5.exe,ConfigPushServer,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Link5.exe,DownloadUsers,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Link5.exe,UploadUsers,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Link5.exe,RemoteEnroll,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Link5.exe,AutoDownload,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Link5.exe,CommPassword,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Link5.exe,PushServer,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Comm5Serv v3.exe,MachineNumber,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Comm5Serv v3.exe,CZKEM,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Comm5Serv v3.exe,CommPassword,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Device.dll,ConnectAndReadAllRecords,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Device.dll,ConnectUDPAndReadAllRecords,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Device.dll,MachineNumber,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Device.dll,ClearTimeRecords,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Personnel.dll,ActiveDevices,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Personnel.dll,MachineNumber,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Personnel.dll,GetDeviceData,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Personnel.dll,CZKEM,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Personnel.dll,DownloadUsers,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Personnel.dll,UploadUsers,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Personnel.dll,RemoteEnroll,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Personnel.dll,AutoDownload,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+Link5 v4.0.4/Personnel.dll,CommPassword,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5Web [3.5.7]/App/bin/T5V3Web.dll,MachineNumber,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5Web [3.5.7]/App/bin/T5V3Web.dll,iclockController,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5Web [3.5.7]/App/bin/T5V3Web.dll,DeviceOperationsController,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5Web [3.5.7]/App/bin/T5V3Web.dll,DownloadUsers,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5Web [3.5.7]/App/bin/T5V3Web.dll,UploadUsers,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5Web [3.5.7]/App/bin/T5V3Web.dll,RemoteEnroll,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5Web [3.5.7]/App/bin/T5V3Web.dll,AutoDownload,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5Web [3.5.7]/App/bin/T5V3Web.dll,CommPassword,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5Web [3.5.7]/App/bin/T5V3.Model.dll,MachineNumber,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5Web [3.5.7]/App/bin/T5V3.Model.dll,DownloadUsers,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5Web [3.5.7]/App/bin/T5V3.Model.dll,UploadUsers,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5Web [3.5.7]/App/bin/T5V3.Model.dll,AutoDownload,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5Web [3.5.7]/App/bin/T5V3.Model.dll,AutoDeleteRecordsAfterDownload,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5Web [3.5.7]/App/bin/T5V3.Model.dll,CommPassword,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5Web [3.5.7]/App/bin/Personnel.dll,ActiveDevices,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5Web [3.5.7]/App/bin/Personnel.dll,MachineNumber,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5Web [3.5.7]/App/bin/Personnel.dll,CZKEM,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5Web [3.5.7]/App/bin/Personnel.dll,DownloadUsers,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5Web [3.5.7]/App/bin/Personnel.dll,UploadUsers,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5Web [3.5.7]/App/bin/Personnel.dll,RemoteEnroll,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5Web [3.5.7]/App/bin/Personnel.dll,AutoDownload,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+T5Web [3.5.7]/App/bin/Personnel.dll,CommPassword,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+TWF 4.28/App/bin/T5V3.Model.dll,MachineNumber,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+TWF 4.28/App/bin/T5V3.Model.dll,DownloadUsers,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+TWF 4.28/App/bin/T5V3.Model.dll,UploadUsers,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+TWF 4.28/App/bin/T5V3.Model.dll,AutoDownload,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+TWF 4.28/App/bin/T5V3.Model.dll,AutoDeleteRecordsAfterDownload,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+TWF 4.28/App/bin/T5V3.Model.dll,CommPassword,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+TWF 4.28/App/bin/Personnel.dll,ActiveDevices,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+TWF 4.28/App/bin/Personnel.dll,MachineNumber,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+TWF 4.28/App/bin/Personnel.dll,CZKEM,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+TWF 4.28/App/bin/Personnel.dll,DownloadUsers,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+TWF 4.28/App/bin/Personnel.dll,UploadUsers,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+TWF 4.28/App/bin/Personnel.dll,RemoteEnroll,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+TWF 4.28/App/bin/Personnel.dll,AutoDownload,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+TWF 4.28/App/bin/Personnel.dll,CommPassword,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred
+TWF 4.28/App/bin/MyTime3.dll,MachineNumber,literal ASCII/UTF16 binary symbol; no method body or end-to-end behavior inferred

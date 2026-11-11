@@ -1,0 +1,841 @@
+﻿file,export,limit
+SDK 6.3.1.45/commpro.dll,READDATA_PICE_BY_PICE,PE export; signature/semantics not verified
+SDK 6.3.1.45/commpro.dll,ReadBlock_LargeTmp,PE export; signature/semantics not verified
+SDK 6.3.1.45/commpro.dll,SetBuffLen,PE export; signature/semantics not verified
+SDK 6.3.1.45/commpro.dll,ZEMBPRO_BROADCAST,PE export; signature/semantics not verified
+SDK 6.3.1.45/commpro.dll,ZEMBPRO_CLOSE,PE export; signature/semantics not verified
+SDK 6.3.1.45/commpro.dll,ZEMBPRO_CONNECTSTATUS,PE export; signature/semantics not verified
+SDK 6.3.1.45/commpro.dll,ZEMBPRO_INIT,PE export; signature/semantics not verified
+SDK 6.3.1.45/commpro.dll,ZEMBPRO_INITEX,PE export; signature/semantics not verified
+SDK 6.3.1.45/commpro.dll,ZEMBPRO_LASTERROR,PE export; signature/semantics not verified
+SDK 6.3.1.45/commpro.dll,ZEMBPRO_READDATA,PE export; signature/semantics not verified
+SDK 6.3.1.45/commpro.dll,ZEMBPRO_READDATA1,PE export; signature/semantics not verified
+SDK 6.3.1.45/commpro.dll,ZEMBPRO_READDATA2,PE export; signature/semantics not verified
+SDK 6.3.1.45/commpro.dll,ZEMBPRO_READDB,PE export; signature/semantics not verified
+SDK 6.3.1.45/commpro.dll,ZEMBPRO_READMEMORY,PE export; signature/semantics not verified
+SDK 6.3.1.45/commpro.dll,ZEMBPRO_SENDCMD,PE export; signature/semantics not verified
+SDK 6.3.1.45/commpro.dll,ZEMBPRO_SENDCMDDATA,PE export; signature/semantics not verified
+SDK 6.3.1.45/commpro.dll,ZEMBPRO_SENDDATA,PE export; signature/semantics not verified
+SDK 6.3.1.45/commpro.dll,ZEMBPRO_SetOperate,PE export; signature/semantics not verified
+SDK 6.3.1.45/commpro.dll,ZEMBPRO_SetParameter,PE export; signature/semantics not verified
+SDK 6.3.1.45/comms.dll,EMBUDP_CLOSE,PE export; signature/semantics not verified
+SDK 6.3.1.45/comms.dll,EMBUDP_ERROR,PE export; signature/semantics not verified
+SDK 6.3.1.45/comms.dll,EMBUDP_INIT,PE export; signature/semantics not verified
+SDK 6.3.1.45/comms.dll,EMBUDP_INITEX,PE export; signature/semantics not verified
+SDK 6.3.1.45/comms.dll,EMBUDP_NAME,PE export; signature/semantics not verified
+SDK 6.3.1.45/comms.dll,EMBUDP_PREREAD,PE export; signature/semantics not verified
+SDK 6.3.1.45/comms.dll,EMBUDP_READ,PE export; signature/semantics not verified
+SDK 6.3.1.45/comms.dll,EMBUDP_SEND,PE export; signature/semantics not verified
+SDK 6.3.1.45/comms.dll,EMBUDP_TERMINALREAD,PE export; signature/semantics not verified
+SDK 6.3.1.45/libareacode.dll,Create_AreaCode_String,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Base64WriteToBMP,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,BufferToProtocolDataEx,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Connect,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,ConnectExt,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,ControlDevice,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,DeleteDeviceData,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Disconnect,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,DisconnectEx,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,GetAttLogFileData,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,GetDeviceData,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,GetDeviceDataCount,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,GetDeviceFileData,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,GetDeviceFileDataToPath,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,GetDeviceParam,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,GetPullSDKVersion,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,GetRTLog,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,GetRTLogExt,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,GetStructRTLog,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_Connect,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_ConnectExt,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_ControlDevice,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_DeleteDeviceData,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_Disconnect,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_GetDeviceData,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_GetDeviceDataCount,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_GetDeviceFileData,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_GetDeviceFileDataToPath,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_GetDeviceParam,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_GetRTLog,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_GetRTLogExt,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_ModifyIPAddress,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_ProcessBackupData,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_ProcessBackupDataExt,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_PullLastError,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_SearchDevice,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_SearchDeviceEx,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_SetCharset,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_SetDeviceData,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_SetDeviceFileData,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_SetDeviceParam,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,ModifyIPAddress,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,ProcessBackupData,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,ProcessBackupDataExt,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,PullLastError,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,SearchDevice,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,SearchDeviceEx,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,SetDeviceData,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,SetDeviceFileData,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,SetDeviceParam,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,ZEMBPRO_BROADCAST,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,ZEMBPRO_BROADCASTByIP,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,ZEMBPRO_BROADCASTTRAVERSALIP,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,ZEMBPRO_CLOSE,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,ZEMBPRO_COMSEARCH,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,ZEMBPRO_INIT,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,ZEMBPRO_INITExt,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,ZEMBPRO_LASTERROR,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,ZEMBPRO_READCMDDATA,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,ZEMBPRO_SENDCMD,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,ZEMBPRO_SENDCMDDATA,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,ZEMBPRO_SENDDATA,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,ZEMBPRO_SETPARAM,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,_BufferToProtocolData@12,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,_ProtocolDataToBuffer@16,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,_PullDisconnect@4,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,_PullGetRTLog@12,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,_SetParameters@8,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,base64_decode,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcommpro.dll,base64_encode,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcomms.dll,EMBUDP_CLOSE,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcomms.dll,EMBUDP_ERROR,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcomms.dll,EMBUDP_FLUSH,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcomms.dll,EMBUDP_INIT,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcomms.dll,EMBUDP_INITByIP,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcomms.dll,EMBUDP_NAME,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcomms.dll,EMBUDP_PREREAD,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcomms.dll,EMBUDP_READ,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcomms.dll,EMBUDP_SEND,PE export; signature/semantics not verified
+SDK 6.3.1.45/plcomms.dll,EMBUDP_TERMINALREAD,PE export; signature/semantics not verified
+SDK 6.3.1.45/plrscomm.dll,?EMBUDP_PREREAD@@YAHPAX@Z,PE export; signature/semantics not verified
+SDK 6.3.1.45/plrscomm.dll,EMBUDP_CLOSE,PE export; signature/semantics not verified
+SDK 6.3.1.45/plrscomm.dll,EMBUDP_ERROR,PE export; signature/semantics not verified
+SDK 6.3.1.45/plrscomm.dll,EMBUDP_FLUSH,PE export; signature/semantics not verified
+SDK 6.3.1.45/plrscomm.dll,EMBUDP_INIT,PE export; signature/semantics not verified
+SDK 6.3.1.45/plrscomm.dll,EMBUDP_NAME,PE export; signature/semantics not verified
+SDK 6.3.1.45/plrscomm.dll,EMBUDP_READ,PE export; signature/semantics not verified
+SDK 6.3.1.45/plrscomm.dll,EMBUDP_SEND,PE export; signature/semantics not verified
+SDK 6.3.1.45/plrscomm.dll,EMBUDP_TERMINALREAD,PE export; signature/semantics not verified
+SDK 6.3.1.45/pltcpcomm.dll,EMBUDP_CLOSE,PE export; signature/semantics not verified
+SDK 6.3.1.45/pltcpcomm.dll,EMBUDP_ERROR,PE export; signature/semantics not verified
+SDK 6.3.1.45/pltcpcomm.dll,EMBUDP_FLUSH,PE export; signature/semantics not verified
+SDK 6.3.1.45/pltcpcomm.dll,EMBUDP_INIT,PE export; signature/semantics not verified
+SDK 6.3.1.45/pltcpcomm.dll,EMBUDP_NAME,PE export; signature/semantics not verified
+SDK 6.3.1.45/pltcpcomm.dll,EMBUDP_PREREAD,PE export; signature/semantics not verified
+SDK 6.3.1.45/pltcpcomm.dll,EMBUDP_READ,PE export; signature/semantics not verified
+SDK 6.3.1.45/pltcpcomm.dll,EMBUDP_SEND,PE export; signature/semantics not verified
+SDK 6.3.1.45/pltcpcomm.dll,EMBUDP_TERMINALREAD,PE export; signature/semantics not verified
+SDK 6.3.1.45/plusbcomm.dll,?EMBUDP_PREREAD@@YAHPAX@Z,PE export; signature/semantics not verified
+SDK 6.3.1.45/plusbcomm.dll,?SetConsolOut@@YAXP6AXPADZZ@Z,PE export; signature/semantics not verified
+SDK 6.3.1.45/plusbcomm.dll,EMBUDP_CLOSE,PE export; signature/semantics not verified
+SDK 6.3.1.45/plusbcomm.dll,EMBUDP_ERROR,PE export; signature/semantics not verified
+SDK 6.3.1.45/plusbcomm.dll,EMBUDP_FLUSH,PE export; signature/semantics not verified
+SDK 6.3.1.45/plusbcomm.dll,EMBUDP_INIT,PE export; signature/semantics not verified
+SDK 6.3.1.45/plusbcomm.dll,EMBUDP_NAME,PE export; signature/semantics not verified
+SDK 6.3.1.45/plusbcomm.dll,EMBUDP_READ,PE export; signature/semantics not verified
+SDK 6.3.1.45/plusbcomm.dll,EMBUDP_SEND,PE export; signature/semantics not verified
+SDK 6.3.1.45/plusbcomm.dll,EMBUDP_TERMINALREAD,PE export; signature/semantics not verified
+SDK 6.3.1.45/rscomm.dll,?EMBUDP_PREREAD@@YAHPAX@Z,PE export; signature/semantics not verified
+SDK 6.3.1.45/rscomm.dll,EMBUDP_CLOSE,PE export; signature/semantics not verified
+SDK 6.3.1.45/rscomm.dll,EMBUDP_ERROR,PE export; signature/semantics not verified
+SDK 6.3.1.45/rscomm.dll,EMBUDP_FLUSH,PE export; signature/semantics not verified
+SDK 6.3.1.45/rscomm.dll,EMBUDP_INIT,PE export; signature/semantics not verified
+SDK 6.3.1.45/rscomm.dll,EMBUDP_INITEX,PE export; signature/semantics not verified
+SDK 6.3.1.45/rscomm.dll,EMBUDP_NAME,PE export; signature/semantics not verified
+SDK 6.3.1.45/rscomm.dll,EMBUDP_READ,PE export; signature/semantics not verified
+SDK 6.3.1.45/rscomm.dll,EMBUDP_READFROMMODEM,PE export; signature/semantics not verified
+SDK 6.3.1.45/rscomm.dll,EMBUDP_SEND,PE export; signature/semantics not verified
+SDK 6.3.1.45/rscomm.dll,EMBUDP_SENDTOMODEM,PE export; signature/semantics not verified
+SDK 6.3.1.45/rscomm.dll,EMBUDP_TERMINALREAD,PE export; signature/semantics not verified
+SDK 6.3.1.45/tcpcomm.dll,EMBUDP_CLOSE,PE export; signature/semantics not verified
+SDK 6.3.1.45/tcpcomm.dll,EMBUDP_ERROR,PE export; signature/semantics not verified
+SDK 6.3.1.45/tcpcomm.dll,EMBUDP_INIT,PE export; signature/semantics not verified
+SDK 6.3.1.45/tcpcomm.dll,EMBUDP_INITEX,PE export; signature/semantics not verified
+SDK 6.3.1.45/tcpcomm.dll,EMBUDP_NAME,PE export; signature/semantics not verified
+SDK 6.3.1.45/tcpcomm.dll,EMBUDP_PREREAD,PE export; signature/semantics not verified
+SDK 6.3.1.45/tcpcomm.dll,EMBUDP_READ,PE export; signature/semantics not verified
+SDK 6.3.1.45/tcpcomm.dll,EMBUDP_SEND,PE export; signature/semantics not verified
+SDK 6.3.1.45/tcpcomm.dll,EMBUDP_TERMINALREAD,PE export; signature/semantics not verified
+SDK 6.3.1.45/usbcomm.dll,EMBUDP_CLOSE,PE export; signature/semantics not verified
+SDK 6.3.1.45/usbcomm.dll,EMBUDP_ERROR,PE export; signature/semantics not verified
+SDK 6.3.1.45/usbcomm.dll,EMBUDP_INIT,PE export; signature/semantics not verified
+SDK 6.3.1.45/usbcomm.dll,EMBUDP_INITEX,PE export; signature/semantics not verified
+SDK 6.3.1.45/usbcomm.dll,EMBUDP_NAME,PE export; signature/semantics not verified
+SDK 6.3.1.45/usbcomm.dll,EMBUDP_READ,PE export; signature/semantics not verified
+SDK 6.3.1.45/usbcomm.dll,EMBUDP_SEND,PE export; signature/semantics not verified
+SDK 6.3.1.45/usbcomm.dll,EMBUDP_TERMINALREAD,PE export; signature/semantics not verified
+SDK 6.3.1.45/usbstd.dll,EMBUDP_CLOSE,PE export; signature/semantics not verified
+SDK 6.3.1.45/usbstd.dll,EMBUDP_ERROR,PE export; signature/semantics not verified
+SDK 6.3.1.45/usbstd.dll,EMBUDP_INIT,PE export; signature/semantics not verified
+SDK 6.3.1.45/usbstd.dll,EMBUDP_INITEX,PE export; signature/semantics not verified
+SDK 6.3.1.45/usbstd.dll,EMBUDP_NAME,PE export; signature/semantics not verified
+SDK 6.3.1.45/usbstd.dll,EMBUDP_READ,PE export; signature/semantics not verified
+SDK 6.3.1.45/usbstd.dll,EMBUDP_SEND,PE export; signature/semantics not verified
+SDK 6.3.1.45/usbstd.dll,EMBUDP_TERMINALREAD,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemkeeper.dll,DllCanUnloadNow,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemkeeper.dll,DllGetClassObject,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemkeeper.dll,DllMain,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemkeeper.dll,DllRegisterServer,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemkeeper.dll,DllUnregisterServer,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,BIOKEY_MERGE_TEMPLATE,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,BIOKEY_SPLIT_TEMPLATE,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,InitQuickUserTempEx,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,SSR_Z_DelUser,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,SSR_Z_DelUserExt,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,SSR_Z_DelUserTmp,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,SSR_Z_DelUserTmpExt,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,SSR_Z_GetUserInfo,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,SSR_Z_GetUserTmp,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,SSR_Z_QueryUserInfo,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,SSR_Z_QueryUserTemp,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,SSR_Z_SetUserInfo,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,SSR_Z_SetUserTmp,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,SSR_Z_SetUserTmpExt,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_AppendUserTmp,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_AutoPowerOff,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_BackupData,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_BatchUpdate,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_Beep,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_BeginBatchUpdate,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_CancelBatchUpdate,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_CancelByUser,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_CancelOperation,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_CaptureImage,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ClearAdministrators,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ClearData,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ClearDataEx,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ClearDram,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ClearLCD,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ClearLogData,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ClearOpLogData,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ClearPhotoByTime,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ClearSMS,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ClearUData,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ClearWorkCode,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_Close,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_CloseAlarm,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ConnectStatus,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_Connect_COM,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_Connect_NET,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_Connect_NETEX,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_Connect_P4P,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_Connect_USB,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_Connect_USB_STD,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_DelCustomizeAttState,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_DelCustomizeVoice,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_DelSsrUData,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_DelUser,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_DelUserFace,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_DelUserIDCard,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_DelUserTmp,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_DeleteAttlogBetweenTheDate,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_DeleteAttlogByTime,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_DeleteDeviceData,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_DeletePicture,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_DeleteSMS,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_DeleteUData,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_DeleteUserInfoEx,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_DeleteUserPhoto,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_DeleteWorkCode,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_DisableDevice,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_DownloadPicture,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_DownloadUserPhoto,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_EnableClock,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_EnableCustomizeAttState,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_EnableCustomizeVoice,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_EnableDevice,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_FPTempConvert,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_FPTempConvertNew,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_FPTempLength,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetACFun,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetBellInfo,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetBellSetting,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetCapturePicByList,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetCardFun,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetData,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetDayBellCnt,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetDeviceData,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetDeviceDataCount,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetDeviceFirmwareVersion,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetDeviceInfo,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetDeviceNumber,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetDevicePort,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetDeviceStatus,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetDeviceStrInfo,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetDoorState,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetExtLog,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetFirmwareVersion,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetGroupTZ,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetGroupTZs,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetHoliday,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetHolidayTZ,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetIPAddress,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetKeyOptions,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetLanguage,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetLog,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetMaxBellID,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetOpLog,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetOpLogEx,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetPINWidth,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetPhotoByName,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetPhotoCount,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetPhotoNamesByTime,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetPicList,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetProductName,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetRTLog,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetSDKVersion,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetSMS,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetSensorSN,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetSerialNumber,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetSysOption,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetTZInfo,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetTime,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetUnlockGroups,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetUserFace,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetUserFacePhotoByName,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetUserFacePhotoCount,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetUserFacePhotoNames,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetUserGroup,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetUserID,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetUserIDCard,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetUserInfo,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetUserInfoEx,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetUserPIN2,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetUserTZs,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetUserTmp,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetUserTmpEx,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetUserVD,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetUserVerifyStyle,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetVendor,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetWiegandFmt,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetWorkCode,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_GetlockComb,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_IsNewFirmwareMachine,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_IsSupportMaskTemp,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_IsTFTMachine,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_LastError,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_MFEmpty,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_MFWrite,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_MergeTemplate,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_PlayVoice,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_PlayVoiceByIndex,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_PowerOffDevice,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_PowerOffTime,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_QueryDevStatus,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_QueryState,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_QueryUserByCard,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_QueryUserByPIN2,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_QueryUserInfo,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_QueryUserTemp,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_QueryUserTempEx,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ReadAllBell,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ReadCustData,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ReadData,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ReadFile,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ReadLargeTmp,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ReadLastestLog,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ReadLog,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ReadLogEx,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ReadNewAttLog,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ReadOpLog,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ReadOpLogEx,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ReadRTLog,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ReadTableStruct,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ReadTempData,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ReadTimeLog,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ReadUserInfo,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ReadUserTempData,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_RebootDevice,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_RefreshData,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_RefreshOptions,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_RegEvent,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_RestoreData,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_ResumeDevice,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SSR_ClearWorkCode,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SSR_DeleteWorkCode,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SSR_DeleteWorkCodeEx,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SSR_GetGeneralLogDataWithMask,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SSR_GetLog,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SSR_GetLogEx,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SSR_GetOpLog,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SSR_GetShortKey,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SSR_GetWorkCode,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SSR_GetWorkCodeEx,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SSR_GetWorkCodeExByID,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SSR_GetWorkCodeIDByName,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SSR_OutPutHtml,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SSR_ReadAttRule,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SSR_ReadDPT,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SSR_ReadTurn,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SSR_SaveDate,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SSR_SetShortKey,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SSR_SetWorkCode,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SSR_SetWorkCodeEx,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SaveCurTime,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SaveThermalImage,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SearchDevice,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SendBackgroundCMD,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SendFile,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SendFileByProduce,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SendFileByType,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SendFile_mtd,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SendLogoFile,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetBellSetting,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetCommuTimeOut,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetCustomizeAttState,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetCustomizeVoice,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetDeviceCommPwd,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetDeviceData,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetDeviceInfo,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetDeviceNumber,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetDevicePort,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetDeviceTableData,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetFPTempLength,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetGroupTZ,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetGroupTZs,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetHoliday,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetHolidayTZ,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetIPAddress,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetLanguage,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetManufacturerData,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetParameters,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetSMS,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetSsrUData,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetSysOption,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetTZInfo,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetTime,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetUData,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetUnlockGroups,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetUserFace,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetUserGroup,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetUserIDCard,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetUserInfo,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetUserInfoEx,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetUserInfoPR,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetUserTZs,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetUserTmp,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetUserTmpEx,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetUserVD,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetUserVerifyStyle,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetWiegandFmt,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetWorkCode,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SetlockComb,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SleepDevice,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SplitTemplate,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_StartEnroll,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_StartEnrollEx,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_StartIdentify,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_StartVerify,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_SuspendDevice,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_TestUserTmp,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_TurnOffAlarm,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_Unlock,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_UpdateFile,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_UpdateFirmware,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_UpdateLanguageByID,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_UploadPicture,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_UploadTheme,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_UploadUserPhoto,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_WriteCustData,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,Z_WriteLCD,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,_Z_SSR_GetGeneralLogDataWithMaskEx@56,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,_Z_SSR_InstantMessage@20,PE export; signature/semantics not verified
+SDK 6.3.1.45/zkemsdk.dll,_Z_SaveThermalImage_V2@8,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/commpro.dll,READDATA_PICE_BY_PICE,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/commpro.dll,ReadBlock_LargeTmp,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/commpro.dll,SetBuffLen,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/commpro.dll,ZEMBPRO_CLOSE,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/commpro.dll,ZEMBPRO_CONNECTSTATUS,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/commpro.dll,ZEMBPRO_INIT,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/commpro.dll,ZEMBPRO_INITEX,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/commpro.dll,ZEMBPRO_LASTERROR,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/commpro.dll,ZEMBPRO_READDATA,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/commpro.dll,ZEMBPRO_READDATA1,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/commpro.dll,ZEMBPRO_READDATA2,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/commpro.dll,ZEMBPRO_READDB,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/commpro.dll,ZEMBPRO_READMEMORY,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/commpro.dll,ZEMBPRO_SENDCMD,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/commpro.dll,ZEMBPRO_SENDCMDDATA,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/commpro.dll,ZEMBPRO_SENDDATA,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/commpro.dll,ZEMBPRO_SetOperate,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/commpro.dll,ZEMBPRO_SetParameter,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/comms.dll,EMBUDP_CLOSE,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/comms.dll,EMBUDP_ERROR,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/comms.dll,EMBUDP_INIT,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/comms.dll,EMBUDP_INITEX,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/comms.dll,EMBUDP_NAME,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/comms.dll,EMBUDP_PREREAD,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/comms.dll,EMBUDP_READ,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/comms.dll,EMBUDP_SEND,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/comms.dll,EMBUDP_TERMINALREAD,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,Base64WriteToBMP,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,Connect,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,ConnectExt,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,ControlDevice,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,DeleteDeviceData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,Disconnect,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,GetAttLogFileData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,GetDeviceData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,GetDeviceDataCount,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,GetDeviceFileData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,GetDeviceParam,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,GetPullSDKVersion,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,GetRTLog,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,GetRTLogExt,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,GetStructRTLog,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_Connect,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_ConnectExt,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_ControlDevice,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_DeleteDeviceData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_Disconnect,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_GetDeviceData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_GetDeviceDataCount,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_GetDeviceFileData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_GetDeviceParam,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_GetRTLog,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_GetRTLogExt,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_ModifyIPAddress,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_ProcessBackupData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_ProcessBackupDataExt,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_PullLastError,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_SearchDevice,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_SetDeviceData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_SetDeviceFileData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,Java_zk_jni_JavaToAdmsPullSDK_SetDeviceParam,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,ModifyIPAddress,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,ProcessBackupData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,ProcessBackupDataExt,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,PullLastError,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,SearchDevice,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,SetDeviceData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,SetDeviceFileData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,SetDeviceParam,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,ZEMBPRO_BROADCAST,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,ZEMBPRO_CLOSE,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,ZEMBPRO_COMSEARCH,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,ZEMBPRO_INIT,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,ZEMBPRO_INITExt,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,ZEMBPRO_LASTERROR,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,ZEMBPRO_READCMDDATA,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,ZEMBPRO_SENDCMD,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,ZEMBPRO_SENDCMDDATA,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,ZEMBPRO_SENDDATA,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,_BufferToProtocolData@12,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,_ProtocolDataToBuffer@16,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,_PullDisconnect@4,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,_PullGetRTLog@12,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,_SetParameters@8,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,base64_decode,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcommpro.dll,base64_encode,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcomms.dll,EMBUDP_CLOSE,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcomms.dll,EMBUDP_ERROR,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcomms.dll,EMBUDP_FLUSH,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcomms.dll,EMBUDP_INIT,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcomms.dll,EMBUDP_NAME,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcomms.dll,EMBUDP_PREREAD,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcomms.dll,EMBUDP_READ,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcomms.dll,EMBUDP_SEND,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plcomms.dll,EMBUDP_TERMINALREAD,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plrscomm.dll,?EMBUDP_PREREAD@@YAHPAX@Z,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plrscomm.dll,EMBUDP_CLOSE,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plrscomm.dll,EMBUDP_ERROR,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plrscomm.dll,EMBUDP_FLUSH,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plrscomm.dll,EMBUDP_INIT,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plrscomm.dll,EMBUDP_NAME,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plrscomm.dll,EMBUDP_READ,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plrscomm.dll,EMBUDP_SEND,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plrscomm.dll,EMBUDP_TERMINALREAD,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/pltcpcomm.dll,EMBUDP_CLOSE,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/pltcpcomm.dll,EMBUDP_ERROR,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/pltcpcomm.dll,EMBUDP_FLUSH,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/pltcpcomm.dll,EMBUDP_INIT,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/pltcpcomm.dll,EMBUDP_NAME,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/pltcpcomm.dll,EMBUDP_PREREAD,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/pltcpcomm.dll,EMBUDP_READ,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/pltcpcomm.dll,EMBUDP_SEND,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/pltcpcomm.dll,EMBUDP_TERMINALREAD,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plusbcomm.dll,?EMBUDP_PREREAD@@YAHPAX@Z,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plusbcomm.dll,?SetConsolOut@@YAXP6AXPADZZ@Z,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plusbcomm.dll,EMBUDP_CLOSE,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plusbcomm.dll,EMBUDP_ERROR,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plusbcomm.dll,EMBUDP_FLUSH,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plusbcomm.dll,EMBUDP_INIT,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plusbcomm.dll,EMBUDP_NAME,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plusbcomm.dll,EMBUDP_READ,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plusbcomm.dll,EMBUDP_SEND,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/plusbcomm.dll,EMBUDP_TERMINALREAD,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/rscomm.dll,?EMBUDP_PREREAD@@YAHPAX@Z,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/rscomm.dll,EMBUDP_CLOSE,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/rscomm.dll,EMBUDP_ERROR,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/rscomm.dll,EMBUDP_FLUSH,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/rscomm.dll,EMBUDP_INIT,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/rscomm.dll,EMBUDP_INITEX,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/rscomm.dll,EMBUDP_NAME,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/rscomm.dll,EMBUDP_READ,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/rscomm.dll,EMBUDP_READFROMMODEM,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/rscomm.dll,EMBUDP_SEND,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/rscomm.dll,EMBUDP_SENDTOMODEM,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/rscomm.dll,EMBUDP_TERMINALREAD,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/tcpcomm.dll,EMBUDP_CLOSE,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/tcpcomm.dll,EMBUDP_ERROR,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/tcpcomm.dll,EMBUDP_INIT,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/tcpcomm.dll,EMBUDP_INITEX,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/tcpcomm.dll,EMBUDP_NAME,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/tcpcomm.dll,EMBUDP_PREREAD,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/tcpcomm.dll,EMBUDP_READ,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/tcpcomm.dll,EMBUDP_SEND,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/tcpcomm.dll,EMBUDP_TERMINALREAD,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/usbcomm.dll,EMBUDP_CLOSE,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/usbcomm.dll,EMBUDP_ERROR,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/usbcomm.dll,EMBUDP_INIT,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/usbcomm.dll,EMBUDP_INITEX,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/usbcomm.dll,EMBUDP_NAME,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/usbcomm.dll,EMBUDP_READ,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/usbcomm.dll,EMBUDP_SEND,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/usbcomm.dll,EMBUDP_TERMINALREAD,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/usbstd.dll,EMBUDP_CLOSE,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/usbstd.dll,EMBUDP_ERROR,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/usbstd.dll,EMBUDP_INIT,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/usbstd.dll,EMBUDP_INITEX,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/usbstd.dll,EMBUDP_NAME,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/usbstd.dll,EMBUDP_READ,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/usbstd.dll,EMBUDP_SEND,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/usbstd.dll,EMBUDP_TERMINALREAD,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemkeeper.dll,DllCanUnloadNow,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemkeeper.dll,DllGetClassObject,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemkeeper.dll,DllMain,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemkeeper.dll,DllRegisterServer,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemkeeper.dll,DllUnregisterServer,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,BIOKEY_MERGE_TEMPLATE,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,BIOKEY_SPLIT_TEMPLATE,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,InitQuickUserTempEx,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,SSR_Z_DelUser,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,SSR_Z_DelUserExt,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,SSR_Z_DelUserTmp,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,SSR_Z_DelUserTmpExt,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,SSR_Z_GetUserInfo,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,SSR_Z_GetUserTmp,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,SSR_Z_QueryUserInfo,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,SSR_Z_QueryUserTemp,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,SSR_Z_SetUserInfo,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,SSR_Z_SetUserTmp,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,SSR_Z_SetUserTmpExt,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_AppendUserTmp,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_AutoPowerOff,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_BackupData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_BatchUpdate,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_Beep,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_BeginBatchUpdate,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_CancelBatchUpdate,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_CancelByUser,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_CancelOperation,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_CaptureImage,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ClearAdministrators,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ClearData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ClearDataEx,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ClearLCD,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ClearLogData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ClearOpLogData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ClearPhotoByTime,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ClearSMS,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ClearUData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ClearWorkCode,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_Close,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ConnectStatus,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_Connect_COM,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_Connect_NET,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_Connect_NETEX,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_Connect_P4P,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_Connect_USB,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_Connect_USB_STD,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_DelCustomizeAttState,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_DelCustomizeVoice,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_DelSsrUData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_DelUser,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_DelUserFace,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_DelUserTmp,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_DeleteDeviceData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_DeleteSMS,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_DeleteUData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_DeleteUserInfoEx,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_DeleteWorkCode,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_DisableDevice,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_EnableClock,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_EnableCustomizeAttState,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_EnableCustomizeVoice,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_EnableDevice,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_FPTempConvert,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_FPTempConvertNew,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_FPTempLength,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetACFun,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetCardFun,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetDeviceInfo,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetDeviceNumber,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetDevicePort,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetDeviceStatus,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetDeviceStrInfo,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetDoorState,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetExtLog,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetFirmwareVersion,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetGroupTZ,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetGroupTZs,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetHoliday,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetHolidayTZ,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetIPAddress,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetKeyOptions,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetLanguage,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetLog,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetOpLog,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetOpLogEx,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetPINWidth,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetPhotoByName,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetPhotoCount,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetPhotoNamesByTime,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetProductName,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetRTLog,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetSDKVersion,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetSMS,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetSensorSN,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetSerialNumber,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetSysOption,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetTZInfo,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetTime,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetUnlockGroups,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetUserFace,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetUserGroup,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetUserID,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetUserInfo,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetUserInfoEx,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetUserPIN2,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetUserTZs,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetUserTmp,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetUserTmpEx,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetVendor,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetWiegandFmt,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetWorkCode,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_GetlockComb,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_IsTFTMachine,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_LastError,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_MFEmpty,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_MFWrite,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_MergeTemplate,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_PlayVoice,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_PlayVoiceByIndex,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_PowerOffDevice,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_PowerOffTime,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_QueryDevStatus,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_QueryState,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_QueryUserByCard,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_QueryUserByPIN2,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_QueryUserInfo,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_QueryUserTemp,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_QueryUserTempEx,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ReadCustData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ReadData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ReadFile,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ReadLargeTmp,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ReadLastestLog,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ReadLog,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ReadLogEx,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ReadOpLog,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ReadOpLogEx,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ReadRTLog,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ReadTempData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ReadUserInfo,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ReadUserTempData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_RebootDevice,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_RefreshData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_RefreshOptions,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_RegEvent,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_RestoreData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_ResumeDevice,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SSR_ClearWorkCode,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SSR_DeleteWorkCode,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SSR_GetLog,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SSR_GetOpLog,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SSR_GetShortKey,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SSR_GetWorkCode,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SSR_OutPutHtml,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SSR_ReadAttRule,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SSR_ReadDPT,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SSR_ReadTurn,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SSR_SaveDate,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SSR_SetShortKey,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SSR_SetWorkCode,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SendBackgroundCMD,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SendFile,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SendFile_mtd,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SendLogoFile,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetCustomizeAttState,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetCustomizeVoice,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetDeviceCommPwd,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetDeviceInfo,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetDeviceNumber,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetDevicePort,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetDeviceTableData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetFPTempLength,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetGroupTZ,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetGroupTZs,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetHoliday,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetHolidayTZ,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetIPAddress,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetLanguage,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetManufacturerData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetParameters,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetSMS,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetSsrUData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetSysOption,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetTZInfo,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetTime,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetUData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetUnlockGroups,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetUserFace,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetUserGroup,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetUserInfo,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetUserInfoEx,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetUserTZs,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetUserTmp,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetUserTmpEx,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetWiegandFmt,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetWorkCode,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SetlockComb,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SleepDevice,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SplitTemplate,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_StartEnroll,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_StartEnrollEx,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_StartIdentify,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_StartVerify,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_SuspendDevice,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_TestUserTmp,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_Unlock,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_UpdateFile,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_UpdateFirmware,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_UpdateLanguageByID,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_WriteCustData,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,Z_WriteLCD,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,_Z_DeleteAttlogBetweenTheDate@52,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,_Z_GetDeviceData@28,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,_Z_GetDeviceDataCount@16,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,_Z_Interaction@28,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,_Z_IsNewFirmwareMachine@8,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,_Z_OpenAlarm@8,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,_Z_ReadTableStruct@4,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,_Z_ReadTimeLog@52,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,_Z_SSR_GetLogEx@44,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,_Z_SendFileByType@12,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,_Z_SetCommuTimeOut@8,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,_Z_SetDeviceData@16,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/zkemsdk.dll,_Z_WriteLcdEx@20,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/Tiny.ocx,DllCanUnloadNow,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/Tiny.ocx,DllGetClassObject,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/Tiny.ocx,DllRegisterServer,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/Tiny.ocx,DllUnregisterServer,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/Tinyx64(ver5.6.8).ocx,DllCanUnloadNow,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/Tinyx64(ver5.6.8).ocx,DllGetClassObject,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/Tinyx64(ver5.6.8).ocx,DllRegisterServer,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/Tinyx64(ver5.6.8).ocx,DllUnregisterServer,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/Tinyx86(ver5.6.8).ocx,DllCanUnloadNow,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/Tinyx86(ver5.6.8).ocx,DllGetClassObject,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/Tinyx86(ver5.6.8).ocx,DllRegisterServer,PE export; signature/semantics not verified
+NewPack Dlls 10.06.1398/Tinyx86(ver5.6.8).ocx,DllUnregisterServer,PE export; signature/semantics not verified

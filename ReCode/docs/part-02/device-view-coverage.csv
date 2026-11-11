@@ -1,0 +1,12 @@
+﻿file,status,sha256_or_reason
+T5Web [3.5.7]/App/Views/Device/Index.cshtml,read,ed1d8320bb2e7b7687a99e59718d16d723d1241d95d707925081e88284bdd896
+T5Web [3.5.7]/App/Views/DeviceOperations/DeviceProperties.cshtml,read,ca0974252065813df7c82223058aa5d23a2d32d849755cc8274959e41fdb5f6b
+T5Web [3.5.7]/App/Views/DeviceOperations/DownloadUsers.cshtml,read,bfc25f24bbdfb035cddbb754e35ddd41978576b72014d6f940bdfd640f056b93
+T5Web [3.5.7]/App/Views/DeviceOperations/Index.cshtml,read,5c12806f52f668db954a1abc558c0424e8ed04912948195139aadc814aa37331
+T5Web [3.5.7]/App/Views/DeviceOperations/ShowUsers.cshtml,read,26ea537e305e80229f6d67d9433786221025035b00060600b52b10ce8a1d111c
+T5Web [3.5.7]/App/Views/DeviceOperations/UploadUsers.cshtml,read,6efb4f35a6a109be50797ba4b049845148b60de729f6f18b3c7bce1207542209
+T5Web [3.5.7]/App/Views/USBManagement/Index.cshtml,read,66a46c74e7b2e4ec663b06128507d52fb0ee512aaf805efa657dbf7b151fc68a
+T5Web [3.5.7]/App/Views/UserInfo/Index.cshtml,read,2efdaa6997e5f33f61fcdd43b3db54d82fe18244a3253e1c97b08d37c556fecf
+T5Web [3.5.7]/App/Views/Gate/Index.cshtml,read,f37a6e0af6f8f52e28a2116568b45860e6915df7d869cf9b70ebc38d26299f1a
+T5Web [3.5.7]/App/Views/Shared/_DeviceSelection.cshtml,read,55eab78fc15ac9f53ee6caed75ea33b7ceda59cf5bab4b649431bd9bab66245a
+T5Web [3.5.7]/App/Views/Shared/_SelectUser.cshtml,read,701b6946df8e76e8ccb211f83685a8b0c12eba7984ad59ece0ef776a6c6b0cb8

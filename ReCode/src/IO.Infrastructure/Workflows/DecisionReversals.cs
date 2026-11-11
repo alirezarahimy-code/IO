@@ -51,7 +51,7 @@ public sealed class DecisionReversals(IoDbContext db, PermissionTransaction tran
             Validate(operationId, expectedDecisionId, reason);
             await transaction.LockAsync("IO.DecisionReversalOperation." + operationId.ToString("N"), token);
             await transaction.LockAsync("IO.Correction." + requestId.ToString("N"), token);
-            var request = await Corrections(actor).SingleOrDefaultAsync(r => r.Id == requestId, token) ?? throw new UnauthorizedAccessException();
+            var request = await Corrections(actor).AsTracking().SingleOrDefaultAsync(r => r.Id == requestId, token) ?? throw new UnauthorizedAccessException();
             var retry = await db.CorrectionDecisionReversals.AsNoTracking().SingleOrDefaultAsync(r => r.Id == operationId, token);
             if (retry is not null)
             {
@@ -80,7 +80,7 @@ public sealed class DecisionReversals(IoDbContext db, PermissionTransaction tran
             Validate(operationId, expectedDecisionId, reason);
             await transaction.LockAsync("IO.DecisionReversalOperation." + operationId.ToString("N"), token);
             await transaction.LockAsync("IO.LeaveRequest." + requestId.ToString("N"), token);
-            var request = await Leaves(actor).SingleOrDefaultAsync(r => r.Id == requestId, token) ?? throw new UnauthorizedAccessException();
+            var request = await Leaves(actor).AsTracking().SingleOrDefaultAsync(r => r.Id == requestId, token) ?? throw new UnauthorizedAccessException();
             var retry = await db.LeaveDecisionReversals.AsNoTracking().SingleOrDefaultAsync(r => r.Id == operationId, token);
             if (retry is not null)
             {

@@ -389,7 +389,7 @@ async function main() {
     const rolesPage = await context.newPage();
     await rolesPage.goto(address + '/workspace/roles');
     await rolesPage.waitForFunction(() => !document.querySelector('#role-form button').disabled);
-    for(const code of ['correction.edit.self','leave.request.submit','leave.request.decide','organization.read'])
+    for(const code of ['correction.edit.self','leave.request.submit','leave.request.decide','organization.read','correction.reverse','leave.request.reverse'])
       if(await rolesPage.locator('#permission-form select[name=code] option[value="'+code+'"]').count()!==1)throw new Error('Central catalogue omitted '+code);
     await rolesPage.locator('#create-templates').click();
     await rolesPage.waitForFunction(()=>document.getElementById('notice').textContent.includes('قالب نقش‌ها بررسی شد'));
@@ -1560,7 +1560,7 @@ async function main() {
     if(!await panelPage.locator('a[href="/workspace/organization"]').count() || !await panelPage.locator('a[href="/workspace/inbox"]').count())
       throw new Error('Role panel did not list admin and manager tools');
     await panelPage.close();
-    const routes = ['/workspace/help','/workspace/help/roles','/workspace','/workspace/employee-home','/workspace/my-attendance','/workspace/my-schedule','/workspace/my-leave','/workspace/my-reports','/workspace/new-request','/workspace/my-requests','/workspace/delegation','/workspace/account','/workspace/manager-home','/workspace/inbox','/workspace/decision-history','/workspace/team-attendance','/workspace/organization','/workspace/employees','/workspace/users','/workspace/roles','/workspace/calendars','/workspace/shifts','/workspace/schedules','/workspace/employee-history','/workspace/sources','/workspace/settings','/workspace/raw-events','/workspace/mappings','/workspace/conflicts','/workspace/calculations','/workspace/rules','/workspace/periods','/workspace/leave-admin','/workspace/reports','/workspace/report-builder','/workspace/workflow','/workspace/audit','/workspace/executive-home','/panel'];
+    const routes = ['/workspace/reversals','/workspace/help','/workspace/help/roles','/workspace','/workspace/employee-home','/workspace/my-attendance','/workspace/my-schedule','/workspace/my-leave','/workspace/my-reports','/workspace/new-request','/workspace/my-requests','/workspace/delegation','/workspace/account','/workspace/manager-home','/workspace/inbox','/workspace/decision-history','/workspace/team-attendance','/workspace/organization','/workspace/employees','/workspace/users','/workspace/roles','/workspace/calendars','/workspace/shifts','/workspace/schedules','/workspace/employee-history','/workspace/sources','/workspace/settings','/workspace/raw-events','/workspace/mappings','/workspace/conflicts','/workspace/calculations','/workspace/rules','/workspace/periods','/workspace/leave-admin','/workspace/reports','/workspace/report-builder','/workspace/workflow','/workspace/audit','/workspace/executive-home','/panel'];
     const scriptFailures = [];
     for (const route of routes) {
       const health = await context.newPage();
@@ -1593,6 +1593,11 @@ async function main() {
     const rejectedTracking=await rejectedRequest.locator('details').textContent();
     if(!rejectedTracking.includes('رد آزمایشی') || !rejectedTracking.includes(adminId) || !rejectedTracking.includes('رد'))
       throw new Error('Requester did not see actual rejection tracking');
+    const fullHistory=requesterTracking.locator('#body tr').filter({hasText:'بررسی مدیر آزمایشی'}).locator('a').filter({hasText:'تاریخچهٔ کامل'});
+    await fullHistory.click();
+    await requesterTracking.locator('#body tr').first().waitFor();
+    if(!(await requesterTracking.locator('#body').textContent()).includes('رد آزمایشی') || await requesterTracking.locator('#body button').count())
+      throw new Error('Own full history did not preserve rejection or exposed reversal action');
     await requesterTracking.close();
     async function changePassword(current, next, confirm) {
       await loginPage.locator('#password-form input[name=currentPassword]').fill(current);

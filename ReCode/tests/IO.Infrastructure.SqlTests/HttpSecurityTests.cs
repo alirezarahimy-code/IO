@@ -499,6 +499,26 @@ internal static class HttpSecurityTests
                 $"HTTP scoped approval and own history enforce state and identity ({inboxStatus}, {ownDecisionStatus}, {managerDecisionStatus}, {lateCancelStatus}, {ownHistoryStatus})");
             var editDecided = await PostAdmin(own, $"/corrections/requests/{correctionId}/edit", new { ProposedAt = "2027-05-05T09:30:00Z", PunchKind = 1, Reason = "late edit" });
             check(editDecided.StatusCode == HttpStatusCode.Conflict, "HTTP editing a decided request conflicts");
+            Guid expectedCorrectionDecision;
+            await using(var reversalScope=provider.CreateAsyncScope())
+                expectedCorrectionDecision=await reversalScope.ServiceProvider.GetRequiredService<IoDbContext>().CorrectionDecisions.Where(d=>d.RequestId==correctionId).Select(d=>d.Id).SingleAsync();
+            var reversalPayload=new {OperationId=Guid.NewGuid(),ExpectedDecisionId=expectedCorrectionDecision,Reason="HTTP reconsider correction"};
+            check((await PostAdmin(scoped,$"/corrections/requests/{correctionId}/reverse",reversalPayload)).StatusCode==HttpStatusCode.Forbidden &&
+                  (await scoped.PostAsJsonAsync($"/corrections/requests/{correctionId}/reverse",reversalPayload)).StatusCode==HttpStatusCode.BadRequest &&
+                  (await anon.GetAsync("/corrections/reversals")).StatusCode==HttpStatusCode.Unauthorized,
+                  "HTTP reversal requires independent permission, authenticated session and antiforgery token");
+            (await PostAdmin(adminClient,"/admin/role-permissions",new {RoleId=testManagerRole,Code="correction.reverse"})).EnsureSuccessStatusCode();
+            (await PostAdmin(scoped,$"/corrections/requests/{correctionId}/reverse",reversalPayload)).EnsureSuccessStatusCode();
+            (await PostAdmin(scoped,$"/corrections/requests/{correctionId}/reverse",reversalPayload)).EnsureSuccessStatusCode();
+            using(var correctionHistoryResponse=await own.GetAsync($"/corrections/requests/{correctionId}/history"))
+            using(var correctionHistoryJson=JsonDocument.Parse(await correctionHistoryResponse.Content.ReadAsStringAsync()))
+                check(correctionHistoryResponse.IsSuccessStatusCode && correctionHistoryJson.RootElement.GetProperty("items")[0].GetProperty("reversalReason").GetString()==reversalPayload.Reason &&
+                      (await PostAdmin(scoped,$"/corrections/requests/{correctionId}/decision",new {Approve=true,Reason="after reversal"})).StatusCode==HttpStatusCode.OK,
+                      "HTTP reversal retry preserves own history and allows a fresh correction decision");
+            (await PostAdmin(adminClient,"/admin/role-permissions/revoke",new {RoleId=testManagerRole,Code="correction.reverse"})).EnsureSuccessStatusCode();
+            check((await PostAdmin(scoped,$"/corrections/requests/{correctionId}/reverse",reversalPayload)).StatusCode==HttpStatusCode.Forbidden &&
+                  (await scoped.GetAsync("/corrections/reversals")).StatusCode==HttpStatusCode.Forbidden,
+                  "HTTP reversal permission revocation denies replay and history on an existing session");
             var delegationToday = DateOnly.FromDateTime(DateTime.UtcNow);
             async Task<JsonDocument> ParseOrThrow(HttpResponseMessage response)
             {
@@ -1097,6 +1117,22 @@ internal static class HttpSecurityTests
                     await db.LeaveDecisions.AnyAsync(x => x.RequestId == hourlyRequestId && x.Decision == 2),
                     "HTTP leave approval posts one ledger usage movement while rejection posts none");
             }
+            Guid expectedLeaveDecision;
+            await using(var reversalScope=provider.CreateAsyncScope())
+                expectedLeaveDecision=await reversalScope.ServiceProvider.GetRequiredService<IoDbContext>().LeaveDecisions.Where(d=>d.RequestId==leaveRequestId).Select(d=>d.Id).SingleAsync();
+            var leaveReversalPayload=new {OperationId=Guid.NewGuid(),ExpectedDecisionId=expectedLeaveDecision,Reason="HTTP reconsider leave"};
+            check((await PostAdmin(scoped,$"/leave/requests/{leaveRequestId}/reverse",leaveReversalPayload)).StatusCode==HttpStatusCode.Forbidden &&
+                  (await PostAdmin(own,$"/leave/requests/{leaveRequestId}/reverse",leaveReversalPayload)).StatusCode==HttpStatusCode.Forbidden,
+                  "HTTP leave reversal does not inherit decision or submission permission");
+            (await PostAdmin(adminClient,"/admin/role-permissions",new {RoleId=testManagerRole,Code="leave.request.reverse"})).EnsureSuccessStatusCode();
+            (await PostAdmin(scoped,$"/leave/requests/{leaveRequestId}/reverse",leaveReversalPayload)).EnsureSuccessStatusCode();
+            (await PostAdmin(scoped,$"/leave/requests/{leaveRequestId}/reverse",leaveReversalPayload)).EnsureSuccessStatusCode();
+            using(var leaveHistoryResponse=await own.GetAsync($"/leave/requests/{leaveRequestId}/history"))
+            using(var leaveHistoryJson=JsonDocument.Parse(await leaveHistoryResponse.Content.ReadAsStringAsync()))
+                check(leaveHistoryResponse.IsSuccessStatusCode && leaveHistoryJson.RootElement.GetProperty("items")[0].GetProperty("compensationLedgerEntryId").ValueKind==JsonValueKind.String &&
+                      (await PostAdmin(scoped,$"/leave/requests/{leaveRequestId}/decision",new {Decision=1,Reason="reapproved after reversal"})).StatusCode==HttpStatusCode.OK,
+                      "HTTP leave reversal retries expose compensation evidence and reapproval succeeds");
+            (await PostAdmin(adminClient,"/admin/role-permissions/revoke",new {RoleId=testManagerRole,Code="leave.request.reverse"})).EnsureSuccessStatusCode();
             var cancelOperation = Guid.NewGuid();
             using var cancelTargetResponse = await PostAdmin(own, "/leave/requests", new { OperationId = cancelOperation, LeaveTypeId = leaveType, Kind = 0, WorkDate = "2027-06-03", FromAtUtc = (string?)null, UntilAtUtcExclusive = (string?)null, Reason = "cancellable leave" });
             using var cancelTargetJson = await ParseOrThrow(cancelTargetResponse);

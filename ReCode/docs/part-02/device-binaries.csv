@@ -1,0 +1,64 @@
+﻿file,size,sha256,pe_machine,kind,coverage
+SDK 6.3.1.45/commpro.dll,450560,6edb6104f7725eddee83db3889be9293694e6727682630ffb9dc787f7cfc8294,x86,native/COM; not portable .NET source,headers/exports only
+SDK 6.3.1.45/comms.dll,376832,ec137120e466d158aa3e54783460282a041b59761cc0616cf78f9dd2ae73e94e,x86,native/COM; not portable .NET source,headers/exports only
+SDK 6.3.1.45/libareacode.dll,102400,857f7d10ac7929ac92bd347eecc134d83fcb98daf5800bbdb67e646c10df7489,x86,native/COM; not portable .NET source,headers/exports only
+SDK 6.3.1.45/plcommpro.dll,605184,2f496e499716c19d2278277a877fecdd5ec01435a0b1cc5b33e5676bae2bdb85,x86,native/COM; not portable .NET source,headers/exports only
+SDK 6.3.1.45/plcomms.dll,438272,6f200c9f41bf617c4422ecf2911d81892c3efd653a93357ecf54f1335b86355f,x86,native/COM; not portable .NET source,headers/exports only
+SDK 6.3.1.45/plrscagent.dll,1783296,e882dae97aaf732f60ff8540e64b4ca07c882d3a056431b7d7d048094e1887fc,x86,native/COM; not portable .NET source,headers/exports only
+SDK 6.3.1.45/plrscomm.dll,1881600,8fb54b742ace8d5ec44d00b3543689c55ecbf2cabca1464bdd4396e65f4d6e1e,x86,native/COM; not portable .NET source,headers/exports only
+SDK 6.3.1.45/pltcpcomm.dll,444416,6f9dee52647857aa45ea1b91e50c673e1e546c7f451d7169a6f919ad94204299,x86,native/COM; not portable .NET source,headers/exports only
+SDK 6.3.1.45/plusbcomm.dll,562176,e015e55dfd5bb160aa4bc9eb066941ed042ba2250dd1ce6101f608373fce74dc,x86,native/COM; not portable .NET source,headers/exports only
+SDK 6.3.1.45/rscagent.dll,1763328,aee7833e74c46eb5e8c4dfc3ee5c479d36600186ecef207e196cded2b79ef3e7,x86,native/COM; not portable .NET source,headers/exports only
+SDK 6.3.1.45/rscomm.dll,1807872,67f47c35bf0bbc497cb03f7c2bf7a88b1c2bef9f870bce8bea267233424d0999,x86,native/COM; not portable .NET source,headers/exports only
+SDK 6.3.1.45/tcpcomm.dll,355328,e64e245646f0673ede307251981bfb9bddf9f2052e3891aad783f5b7a0c689f3,x86,native/COM; not portable .NET source,headers/exports only
+SDK 6.3.1.45/usbcomm.dll,491008,f233d0113535b49e29a0ab2a71e6d05524ef4e553b5c8ac6d8ef62c1a225da57,x86,native/COM; not portable .NET source,headers/exports only
+SDK 6.3.1.45/usbstd.dll,375808,b11187f2f56c949cfb37d4c0dbbf4c5129f19c831384bc90985f5a680b4f51f2,x86,native/COM; not portable .NET source,headers/exports only
+SDK 6.3.1.45/zkemkeeper.dll,1426432,33b5d535cffdd14dd123d22d8a069004add468c71a7c8411a906f641b7ef2399,x86,native/COM; not portable .NET source,headers/exports only
+SDK 6.3.1.45/zkemsdk.dll,748544,890596687008389d88eabb15ae0d02b9b24cc19b6caf861f84dfd13c515cec91,x86,native/COM; not portable .NET source,headers/exports only
+NewPack Dlls 10.06.1398/EntityFramework.dll,1118296,7756793fbdbd30034c7c0ceeddbcc5e1a086f3e661031bf8266261f5944150fc,x86,managed metadata present,headers/exports only
+NewPack Dlls 10.06.1398/Interop.TINYLib.dll,11776,c1592a63fef7e785c5c66840107a6c6232041dfaccd623e1527dfd65469e2bae,x86,managed metadata present,headers/exports only
+NewPack Dlls 10.06.1398/Microsoft.CSharp.dll,483280,6aab0b8bded2b5481f135449da2b15afbc16114e5ca4db519f9a1a2e37cdf3a9,x86,managed metadata present,headers/exports only
+NewPack Dlls 10.06.1398/Microsoft.ReportViewer.Common.dll,6391672,e475122047a36371f61e86b8d099fc8d6f263bd3bdb03d00b1116b0cb5b28636,x86,managed metadata present,headers/exports only
+NewPack Dlls 10.06.1398/Microsoft.ReportViewer.WinForms.dll,548224,eacc72c00295d057c3ad9aaaaabef3086ca52a14fa717e16ef05340011a71f88,x86,managed metadata present,headers/exports only
+NewPack Dlls 10.06.1398/System.ComponentModel.Composition.dll,277008,12b067de3dd01360f018a09c183cfa06a522b8d831fcc53dc8aa3435eb5ec213,x86,managed metadata present,headers/exports only
+NewPack Dlls 10.06.1398/System.Dynamic.dll,125384,12c98428037be45f344eb95dc8dbc9ec32c87f5aa075f5fe864b79c2fa6c204f,x86,managed metadata present,headers/exports only
+NewPack Dlls 10.06.1398/System.Web.ApplicationServices.dll,57864,a7adf55d266e6daf99217b7942c74bf86eb1cd8ce148c605eced7eb1ddb0d34f,x86,managed metadata present,headers/exports only
+NewPack Dlls 10.06.1398/System.Xaml.dll,638888,cccc110681c5e8b715216735329ffe591c2e551905bb5cc19da2b4db3540256c,x86,managed metadata present,headers/exports only
+NewPack Dlls 10.06.1398/WpfAnimatedGif.dll,37376,1a334d1887fd57eca5d1649fb1c94c64701249657b23b91038117f3b3ac01193,x86,managed metadata present,headers/exports only
+NewPack Dlls 10.06.1398/commpro.dll,165888,96018e395f5e1a1f40ba58b909d2cd57f6e91c77f0f11f0846abdee67ea11647,x86,native/COM; not portable .NET source,headers/exports only
+NewPack Dlls 10.06.1398/comms.dll,89600,5328b9beb0eb633ae3d75fb0e45bbdb23bb3b4d26705f55c656ffd6e31084da2,x86,native/COM; not portable .NET source,headers/exports only
+NewPack Dlls 10.06.1398/mysql.data.dll,391680,0449ac35e605751e74955b91f69450e78ac1b0785953ea96f93d04371445e1a1,x86,managed metadata present,headers/exports only
+NewPack Dlls 10.06.1398/mysql.data.entity.dll,288256,9f2f148028c23e1692796a7b838889a27c96d562da92ffb31087d3f7493cc658,x86,managed metadata present,headers/exports only
+NewPack Dlls 10.06.1398/mysql.visualstudio.dll,726528,af5319ccb32ed48966e7cf280384f5ed08cb61d2a3d3cfbd81cea9f7e5dbaa17,x86,managed metadata present,headers/exports only
+NewPack Dlls 10.06.1398/mysql.web.dll,97792,464ce5d6575aa6b8108c7dc68e2a76c049586d209575dd3c947e1bda9e798f43,x86,managed metadata present,headers/exports only
+NewPack Dlls 10.06.1398/plcommpro.dll,225280,9635037130b537342cc3714c2f09d3841c16a3f1dd4ecc999c186f85541be0da,x86,native/COM; not portable .NET source,headers/exports only
+NewPack Dlls 10.06.1398/plcomms.dll,91136,dd8f254decd91317edd7d7c55fd071a076d48efa3a1c5a6b798df9ef5814d75b,x86,native/COM; not portable .NET source,headers/exports only
+NewPack Dlls 10.06.1398/plrscagent.dll,160768,4175b62c39e2a2c47ac467ac9f90277102c894ac3a397bc39d7c1cee470e2742,x86,native/COM; not portable .NET source,headers/exports only
+NewPack Dlls 10.06.1398/plrscomm.dll,547328,75828a3edae2026f95e7a77bf62bdbcc671cfe390bef4eedbf573da6871ccc69,x86,native/COM; not portable .NET source,headers/exports only
+NewPack Dlls 10.06.1398/pltcpcomm.dll,121344,7ad80fc5f663d8bca47b9b3cf9007c72880f86376dd9e7c67376f3d0153cf73a,x86,native/COM; not portable .NET source,headers/exports only
+NewPack Dlls 10.06.1398/plusbcomm.dll,55808,bdfde5514b6636989b10e2e56e17670386d37421cc4c10feeb1c91bd74deca89,x86,native/COM; not portable .NET source,headers/exports only
+NewPack Dlls 10.06.1398/rscagent.dll,161792,ef260b234087c55ae4095211b044365c11f35e087224e3fe6680ed931166f9d5,x86,native/COM; not portable .NET source,headers/exports only
+NewPack Dlls 10.06.1398/rscomm.dll,543232,bdaa34fc2ec774f4a5f8ab4a6ae8f8a26376fcb3c9242d7453a3ec03be38be58,x86,native/COM; not portable .NET source,headers/exports only
+NewPack Dlls 10.06.1398/tcpcomm.dll,91648,efcb9fe103f4ade530362851120e7b95ace4bf621defedae8acc395bf38735e3,x86,native/COM; not portable .NET source,headers/exports only
+NewPack Dlls 10.06.1398/usbcomm.dll,146944,646a383fc1f6ceb5698eeb7ac83fdcd314ae68efdeca537d70cf0f61dada7a84,x86,native/COM; not portable .NET source,headers/exports only
+NewPack Dlls 10.06.1398/usbstd.dll,43008,5d5878b1958e179c5bd67180cd8cd492be432842596c2878489d2a147785d004,x86,native/COM; not portable .NET source,headers/exports only
+NewPack Dlls 10.06.1398/zkemkeeper.dll,703488,261b769b6923a4df8fa266955f18b3431f6c6bd202130f996640e367dfe9c5e2,x86,native/COM; not portable .NET source,headers/exports only
+NewPack Dlls 10.06.1398/zkemsdk.dll,342016,52879682f7c7e5cb78bcae5ad9c9f8b4fe1c51f4df3688b10836d62a80f29384,x86,native/COM; not portable .NET source,headers/exports only
+NewPack Dlls 10.06.1398/Tiny.ocx,155648,d626cdc1e3f2093c38154536b15409edae506d870ab25bda6ad1abeb1849c14b,x86,native/COM; not portable .NET source,headers/exports only
+NewPack Dlls 10.06.1398/Tinyx64(ver5.6.8).ocx,1870336,01e8f9f9320cdc41097ce009aa5ffb05d9e299f20c232c6251920dd88abfebb2,x64,native/COM; not portable .NET source,headers/exports only
+NewPack Dlls 10.06.1398/Tinyx86(ver5.6.8).ocx,1339904,b1f43f424f2ec030951b8d19b088f6459910e0c6957a2847e4b9d7c69aeb5196,x86,native/COM; not portable .NET source,headers/exports only
+T5V3.9.2/T5V3.exe,15872,e4f3cf6fae9ccc2fbbb16df546b960fb1db729378bec6f03cc4e04d13bb6a84f,x86,managed metadata present,headers/exports only
+T5V3.9.2/T5V3.Model.dll,103424,c5a132613e3a75a229f657072cb642e81de433149abc808297980fd19013ef2a,x86,managed metadata present,headers/exports only
+T5V3.9.2/T5V3.UI.DLL,3766272,9b606f52ed42d3ce8879ce94447bafea854e34041bbaba943168d7c9ae695ee3,x86,managed metadata present,headers/exports only
+T5V3.9.2/T5V3.ZK.DLL,409600,e6d131ed091564b9ef620af90f7a9556187f7c5681e2cf52ba26b4e4187cc129,x86,managed metadata present,headers/exports only
+Link5 v4.0.4/Link5.exe,2106880,70949024525f9b4de857d09e805e2a322ce0a19ec99a3408aaaf3ec8048f85c6,x86,managed metadata present,headers/exports only
+Link5 v4.0.4/Comm5Serv v3.exe,268288,f89eccc1ede4372318b724768b6f4935161f673af400b7bb54d868f048c1a1f2,x86,managed metadata present,headers/exports only
+Link5 v4.0.4/Device.dll,26624,796c7d12dab6cb51ba8c03380baa82d76943f13345ad4fd9edf2307045f45656,x86,managed metadata present,headers/exports only
+Link5 v4.0.4/Personnel.dll,987136,127ed154ff96b6d484be3b36d91fc49f36ca5cb8f46c189897d1fc449db9119d,x86,managed metadata present,headers/exports only
+T5Web [3.5.7]/App/bin/T5V3Web.dll,1548288,96c71335ca080f4fa568e65f81957590ffdb953a9fe133ed0000b416afc7e755,x86,managed metadata present,headers/exports only
+T5Web [3.5.7]/App/bin/T5V3.Model.dll,104960,86fcfac5f88b1bc17b83c5bde60a6009bf220ae726eeff93089791979711214c,x86,managed metadata present,headers/exports only
+T5Web [3.5.7]/App/bin/Personnel.dll,937472,c35950d10a42e36b6383f9a0c0a5a2c7f7bea10770686ed5a6f18bc9d519fcd7,x86,managed metadata present,headers/exports only
+TWF 4.28/App/bin/T5V3.Model.dll,94720,df6ccd54ba55bd7af98a9612259edba0235dbf552faa24a661e7b8012f52d9ab,x86,managed metadata present,headers/exports only
+TWF 4.28/App/bin/Personnel.dll,937984,468e43ea66b9c591384ddcd033918e6f563a85b4caa2b6e6c4e8b85a4484050f,x86,managed metadata present,headers/exports only
+TWF 4.28/App/bin/MyTime3.dll,2041344,edba04ccafb9f111870f9050f86e9059e92389188bbd3115678afb21691ddd6b,x86,managed metadata present,headers/exports only
+TWF 4.28/App/bin/TD5.dll,76288,3ddbe0f47de8938d1c8c53c407e4f0626dd24f928bcef2e54a7bdc75aab17fa4,x86,managed metadata present,headers/exports only

@@ -1,0 +1,10 @@
+family,reference_evidence,transport_or_api,core_windows,core_linux,native_worker,model_firmware_verified,status,next_gate
+ZK standalone,T5V3.ZK.DLL ZKDevice; zkemkeeper.dll CZKEM,COM SDK,yes,yes,Windows same architecture as native DLL if selected,no,conditional,S05 hardware compatibility and timeout tests
+ZK network candidates,Device.dll ConnectAndReadAllRecords; ConnectUDPAndReadAllRecords,TCP/UDP candidate,yes,yes,depends on verified implementation,no,conditional,do not infer protocol bytes or Linux support from names
+ZK PUSH,T5V3Web.dll iclockController; HTTPPushServer,PUSH HTTP candidate,yes,yes,not determined,no,conditional,S05 authenticated replay-safe device ingestion
+Native data SDK,plcommpro.dll GetDeviceData GetDeviceParam ConnectExt,native export boundary,yes,yes,Windows legacy x86 unless independent SDK verified,no,conditional,S05 signature model license and architecture verification
+USB file,T5Web USBManagement/Index.cshtml attlog,file importer,yes,yes,none for parser; device driver not assumed,no,must-build,S13 anonymized samples encoding time duplicate tests
+Serial,T5Web Device/Index.cshtml SerialPort BaudRate RS485Number,serial RS485 candidate,yes,yes,SDK dependent,no,conditional,port enumeration transport isolation model test
+Biometric and enrollment,DeviceProperties remoteEnroll; UploadUsers finger face photo,model-specific commands,yes,yes,SDK dependent,no,conditional,privacy retention authorization and destructive-command gate
+Physical door gate,Gate/Index.cshtml; native door lock exports,physical control,not-applicable,not-applicable,not-implemented,no,outside-scope,no command execution authorized
+Licensing limits,T5V3 legacy lock names,license or device personnel ceiling,not-applicable,not-applicable,not-implemented,no,decision-open,G13 team decision only; never impose runtime ceiling
