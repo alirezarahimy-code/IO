@@ -1,6 +1,10 @@
 # بخش۳ — S04 معرفی چند دستگاه و مجوز اپراتور
 
-## وضعیت
+## وضعیت جاری
+
+**S04 کامل و با CI پذیرفته شد:** ثبت/رمز به‌همراه CRUD گروه‌بندی درختی و انتساب اختیاری روی `069f5aa`؛ Windows/Linux `43115912784` و SQL/HTTPS/browser `43115912754` موفق، **۴۲۷ PASS**. گزارش نهایی [145-s04-groups-delivery.md](145-s04-groups-delivery.md) و [شاهد ماشینی](../part-03/s04-acceptance-evidence.json). متن زیر سابقهٔ تحویل registry است؛ وضعیت «گروه ساخته نشده» مربوط به آن زیر‌برش است، نه وضعیت جاری. S05 شروع نشده است.
+
+## سابقهٔ تحویل هستهٔ ثبت دستگاه
 
 **زیر‌برش هستهٔ ثبت/ویرایش دستگاه و حفاظت رمز آزموده و پذیرفته شد؛ کل S04 هنوز باز است.** کد `1ac855b6d2359c2027edba7bb47b1f5aa37fa321` در [Windows/Linux 43109976479](https://github.com/alirezarahimy-code/IO/actions/runs/43109976479) و [SQL/HTTPS/browser 43109976467](https://github.com/alirezarahimy-code/IO/actions/runs/43109976467) هر دو success دارد. ۲۶ Domain، ۳۳ Foundation و **۳۹۸ PASS** یکپارچه اجرا شدند. شاهد ماشینی: [`../part-03/registry-acceptance-evidence.json`](../part-03/registry-acceptance-evidence.json).
 
@@ -47,4 +51,4 @@ Windows/Linux `43107965251` روی `0a0ff6b` موفق شد؛ snapshot، migratio
 
 ## ادامهٔ S04 — گروه‌بندی
 
-گروه‌بندی اکنون پیاده‌سازی شده ولی پذیرش نهایی CI آن هنوز باز است؛ وضعیت قبلی «ساخته نشده» در این سند سابقهٔ تحویل زیر‌برش قبلی است. گزارش دقیق کد و تست تازه: [145-s04-groups-delivery.md](145-s04-groups-delivery.md). کل S04 تا موفقیت CI تازه بسته نمی‌شود.
+گروه‌بندی اکنون پیاده‌سازی و در CI پذیرفته شده است؛ وضعیت قبلی «ساخته نشده» در این سند سابقهٔ تحویل زیر‌برش قبلی است. گزارش نهایی: [145-s04-groups-delivery.md](145-s04-groups-delivery.md).
