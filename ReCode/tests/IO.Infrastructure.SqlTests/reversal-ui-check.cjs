@@ -64,7 +64,15 @@ async function leaveSubmissionContract(){
  assert.equal(writes[2].fromAtUtc,'2027-01-01T08:00:00Z');assert.equal(writes[2].untilAtUtcExclusive,'2027-01-01T09:00:00Z');
  dom.window.close();
 }
+function technicalPanelPermissionContract(){
+ const dom=new JSDOM(fs.readFileSync(root+'Panel.html','utf8'));
+ for(const form of ['permission','revoke-permission'])
+  for(const code of ['correction.reverse','leave.request.reverse'])
+   assert.ok([...dom.window.document.querySelector('#'+form+' select[name=code]').options].some(o=>o.value===code),form+' must expose '+code);
+ dom.window.close();
+}
 (async()=>{
+ technicalPanelPermissionContract();
  const {dom,w,writes,deny}=await create();const $=id=>w.document.getElementById(id);
  assert.equal(w.document.querySelector('#body img'),null,'history evidence is text, not HTML');
  w.document.querySelector('#body button').click();$('reverse-form').elements.reason.value='review reason';
