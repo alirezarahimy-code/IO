@@ -243,3 +243,5 @@ REQ.leave.request.decide,workflow,تأیید یا رد درخواست مرخصی
 REQ.extra.overtime.submit,workflow,ثبت درخواست اضافه‌کار ساعتی,planned-not-grantable,leave.request.submit,determine-and-enforce,needs-action-level-review
 REQ.extra.mission.submit,workflow,ثبت درخواست مأموریت روزانه/ساعتی,planned-not-grantable,leave.request.submit,determine-and-enforce,needs-action-level-review
 REQ.extra.decide,workflow,تصمیم بر درخواست اضافه‌کار/مأموریت,planned-not-grantable,leave.request.decide,determine-and-enforce,needs-action-level-review
+REQ.notifications.read.self,workflow,مشاهده اعلان‌های خود,planned-not-grantable,,determine-and-enforce,needs-action-level-review
+REQ.notifications.mark.read,workflow,علامت‌گذاری همهٔ اعلان‌ها به خوانده‌شده,planned-not-grantable,,determine-and-enforce,needs-action-level-review

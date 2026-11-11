@@ -23,6 +23,11 @@ public sealed class LeaveRequests(IoDbContext db, PermissionTransaction transact
     {
         if (string.IsNullOrWhiteSpace(value) || value.Length>max || value.Any(char.IsControl)) throw new ArgumentException("Invalid text.");
     }
+    private static string NotifyText(string prefix,string? reason)
+    {
+        var text=prefix+(string.IsNullOrWhiteSpace(reason)?".":"؛ دلیل: "+reason);
+        return text.Length<=500?text:text[..500];
+    }
     private async Task<(Guid Employee, Guid Company)> OwnEmployeeAsync(Guid actor, CancellationToken token)
     {
         var found = await (from user in db.Users.AsNoTracking() join emp in db.Employees.AsNoTracking() on user.EmployeeId equals (Guid?)emp.Id
@@ -118,6 +123,10 @@ public sealed class LeaveRequests(IoDbContext db, PermissionTransaction transact
             request.State=decision;
             db.LeaveDecisions.Add(new LeaveDecisionRecord{Id=Guid.NewGuid(),RequestId=request.Id,ActorUserId=actor,
                 Decision=decision,Reason=string.IsNullOrWhiteSpace(reason)?null:reason,AtUtc=DateTimeOffset.UtcNow});
+            db.Notifications.Add(new NotificationRecord{Id=Guid.NewGuid(),UserId=request.RequesterUserId,
+                Category="leave",CreatedAtUtc=DateTimeOffset.UtcNow,
+                Text=NotifyText("درخواست "+(request.Category==1?"اضافه‌کار":request.Category==2?"مأموریت":"مرخصی")+
+                    " شما "+(decision==1?"تأیید":"رد")+" شد",reason)});
             if (decision==1 && request.Category==0)
             {
                 // Only leave approvals consume ledger minutes in the same transaction;

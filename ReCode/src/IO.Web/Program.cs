@@ -10,6 +10,7 @@ using IO.Domain.Scheduling;
 using IO.Infrastructure.Storage;
 using IO.Infrastructure.Reports;
 using IO.Infrastructure.Leaves;
+using IO.Infrastructure.Notifications;
 using IO.Infrastructure.Delegation;
 using IO.Infrastructure.Settings;
 using Microsoft.AspNetCore.Antiforgery;
@@ -341,6 +342,10 @@ public static class IoWebHost
             AdminRead(c, async actor => await service.ListInboxAsync(actor, offset ?? 0, c.RequestAborted)));
         app.MapPost("/leave/requests/{id:guid}/decision", (Guid id, LeaveDecisionInput input, HttpContext c, IAntiforgery csrf, LeaveRequests service) =>
             Admin(c, csrf, actor => service.DecideAsync(actor, id, input.Decision, input.Reason, c.RequestAborted)));
+        app.MapGet("/notifications", (int? offset, HttpContext c, Notifications service) =>
+            AdminRead(c, async actor => await service.ListAsync(actor, offset ?? 0, c.RequestAborted)));
+        app.MapPost("/notifications/read-all", (HttpContext c, IAntiforgery csrf, Notifications service) =>
+            Admin(c, csrf, actor => service.MarkAllReadAsync(actor, c.RequestAborted)));
         app.MapGet("/executive/companies", (HttpContext c, ExecutiveOverview service) =>
             AdminRead(c, async actor => (object)await service.CompaniesAsync(actor, c.RequestAborted)));
         app.MapGet("/executive/overview/{companyId:guid}", (Guid companyId, string fromUtc, string untilUtcExclusive, HttpContext c, ExecutiveOverview service) =>

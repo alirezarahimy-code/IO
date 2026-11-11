@@ -41,6 +41,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
     public DbSet<LeaveLedgerEntryRecord> LeaveLedgerEntries => Set<LeaveLedgerEntryRecord>();
     public DbSet<LeaveRequestRecord> LeaveRequests => Set<LeaveRequestRecord>();
     public DbSet<LeaveDecisionRecord> LeaveDecisions => Set<LeaveDecisionRecord>();
+    public DbSet<NotificationRecord> Notifications => Set<NotificationRecord>();
 
     public DbSet<DelegationRecord> Delegations => Set<DelegationRecord>();
     public DbSet<DelegationRevocationRecord> DelegationRevocations => Set<DelegationRevocationRecord>();
@@ -189,6 +190,18 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.HasIndex(x => x.RequestId).IsUnique();
             b.HasOne<LeaveRequestRecord>().WithMany().HasForeignKey(x => x.RequestId).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.ActorUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<NotificationRecord>(b =>
+        {
+            b.ToTable("Notifications", t =>
+            {
+                t.HasCheckConstraint("CK_Notifications_Utc", "DATEPART(TZOFFSET, [CreatedAtUtc]) = 0 AND DATEPART(TZOFFSET, [ReadAtUtc]) = 0");
+                t.HasTrigger("TR_Notifications_ImmutablePayload"); t.UseSqlOutputClause(false);
+            });
+            b.HasKey(x => x.Id); b.Property(x => x.Id).ValueGeneratedNever();
+            b.Property(x => x.Category).HasMaxLength(40).IsRequired(); b.Property(x => x.Text).HasMaxLength(500).IsRequired();
+            b.HasIndex(x => new { x.UserId, x.ReadAtUtc });
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
         });
         model.Entity<OrganizationRecord>(b =>
         {

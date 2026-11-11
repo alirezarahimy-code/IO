@@ -1068,6 +1068,23 @@ internal static class HttpSecurityTests
             check((await PostAdmin(own, "/leave/requests/" + cancelTargetJson.RootElement.GetProperty("result").GetGuid() + "/cancel", new { Reason = "plans changed" })).StatusCode == HttpStatusCode.OK &&
                 (await PostAdmin(own, "/leave/requests/" + cancelTargetJson.RootElement.GetProperty("result").GetGuid() + "/cancel", new { Reason = "again" })).StatusCode == HttpStatusCode.Conflict,
                 "HTTP requester cancels a pending leave request exactly once");
+            using var ownNotifications = await own.GetAsync("/notifications?offset=0");
+            using var ownNotificationsJson = await ParseOrThrow(ownNotifications);
+            var unreadBefore = ownNotificationsJson.RootElement.GetProperty("unread").GetInt32();
+            using var readAllResponse = await PostAdmin(own, "/notifications/read-all");
+            using var readAllJson = await ParseOrThrow(readAllResponse);
+            using var anonNotifications = Client();
+            var unreadAfter = await own.GetAsync("/notifications?offset=0");
+            using var unreadAfterJson = await ParseOrThrow(unreadAfter);
+            if (unreadBefore < 4)
+                throw new InvalidOperationException("Notification unread count was " + unreadBefore + ", expected at least 4.");
+            check(ownNotifications.StatusCode == HttpStatusCode.OK &&
+                unreadBefore >= 4 &&
+                (await anonNotifications.GetAsync("/notifications?offset=0")).StatusCode == HttpStatusCode.Unauthorized &&
+                readAllResponse.StatusCode == HttpStatusCode.OK &&
+                readAllJson.RootElement.GetProperty("result").GetInt32() == unreadBefore &&
+                unreadAfterJson.RootElement.GetProperty("unread").GetInt32() == 0,
+                "HTTP request decisions notify the requester and notifications mark read");
         }
         finally
         {

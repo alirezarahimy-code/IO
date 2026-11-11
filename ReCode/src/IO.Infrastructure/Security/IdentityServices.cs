@@ -50,6 +50,7 @@ public static class IdentityServices
         services.AddScoped<ExecutiveOverview>();
         services.AddScoped<LeaveLedger>();
         services.AddScoped<LeaveRequests>();
+        services.AddScoped<IO.Infrastructure.Notifications.Notifications>();
         services.AddScoped<DelegationRegistry>();
         services.AddScoped<CorrectionSettings>();
         services.AddScoped<CorrectionWorkflow>();

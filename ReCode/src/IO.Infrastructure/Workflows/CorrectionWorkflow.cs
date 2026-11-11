@@ -135,6 +135,12 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
               db.Users.Any(u => u.Id == delegation.PrincipalUserId && u.IsActive)
         select delegation.PrincipalUserId;
 
+    private static string NotifyText(string prefix,string? reason)
+    {
+        var text=prefix+(string.IsNullOrWhiteSpace(reason)?".":"؛ دلیل: "+reason);
+        return text.Length<=500?text:text[..500];
+    }
+
     public Task<bool> DecideAsync(Guid actor, Guid requestId, bool approve, string? reason, CancellationToken ct = default) =>
         transaction.ExecuteEitherAsync(actor, approve ? Approve : Reject, Decide, "correction.request.decided", async token =>
         {
@@ -169,6 +175,9 @@ public sealed class CorrectionWorkflow(IoDbContext db, PermissionTransaction tra
             var decisionId = Guid.NewGuid();
             db.CorrectionDecisions.Add(new() { Id = decisionId, RequestId = requestId, ActorUserId = actor,
                 Decision = request.State, Reason = reason, AtUtc = DateTimeOffset.UtcNow });
+            db.Notifications.Add(new NotificationRecord { Id = Guid.NewGuid(), UserId = request.RequesterUserId,
+                Category = "correction", CreatedAtUtc = DateTimeOffset.UtcNow,
+                Text = NotifyText("درخواست اصلاح تردد شما " + (approve ? "تأیید" : "رد") + " شد", reason) });
             // The real actor stays on the decision; the evidence links it to the delegation.
             if (match.DelegationId.HasValue)
                 db.DelegatedCorrectionDecisions.Add(new() { DecisionId = decisionId, DelegationId = match.DelegationId.Value });
