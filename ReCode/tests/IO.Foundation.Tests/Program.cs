@@ -21,6 +21,7 @@ Check(PermissionCatalog.Codes.Contains("leave.request.submit") && PermissionCata
 Check(PermissionCatalog.Operations.Values.All(p => PermissionCatalog.Codes.Contains(p.Permission) && PermissionCatalog.Codes.Contains(p.Legacy)), "every split operation and compatibility bundle is registered");
 Check(PermissionCatalog.Resolve("organization.manage", "org.catalog.viewed").Permission == "organization.read", "read permission separated from organization writes");
 Check(PermissionCatalog.Resolve("identity.manage", "permission-revoke.123").Permission == "identity.roles.manage", "dynamic audit target cannot bypass identity permission split");
+Check(PermissionCatalog.Resolve("correction.submit.self", "correction.request.created").Permission == "correction.create.self" && !PermissionCatalog.Templates.Single(t => t.Key == "employee").Permissions.Contains("correction.submit.self"), "new employee template uses independent create instead of legacy submission bundle");
 Check(PermissionCatalog.Templates.Count == 5 && PermissionCatalog.Templates.Select(t => t.Id).Distinct().Count() == 5, "five stable role templates");
 Check(PermissionCatalog.Templates.All(t => t.Permissions.All(PermissionCatalog.Codes.Contains)), "templates grant only implemented catalogue permissions");
 Check(PermissionCatalog.Templates.Single(t => t.Key == "operator").Permissions.Length == 0, "device operator grants no unimplemented device rights");

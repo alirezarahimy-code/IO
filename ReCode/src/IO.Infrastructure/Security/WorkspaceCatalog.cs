@@ -13,7 +13,7 @@ public static class WorkspaceCatalog
         new("/workspace", "پنل من", "common", "Index.html", []),
         new("/workspace/account", "حساب و گذرواژه", "common", "Account.html", []),
         new("/workspace/employee-home", "نمای کلی من", "employee", "EmployeeHome.html", ["correction.requests.read.self", "correction.submit.self"]),
-        new("/workspace/new-request", "درخواست‌های من", "employee", "MyRequests.html", ["correction.submit.self"]),
+        new("/workspace/new-request", "درخواست‌های من", "employee", "MyRequests.html", ["correction.create.self", "correction.submit.self"]),
         new("/workspace/my-requests", "درخواست‌های من", "employee", "MyRequests.html", ["correction.requests.read.self", "correction.submit.self"]),
         new("/workspace/my-attendance", "ترددهای من", "employee", "MyAttendance.html", ["attendance.read.self"]),
         new("/workspace/my-schedule", "برنامهٔ من", "employee", "MySchedule.html", ["schedule.read.self"]),

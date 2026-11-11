@@ -1,6 +1,7 @@
 using IO.Infrastructure.Security;
 using IO.Infrastructure.Organization;
 using IO.Infrastructure.Storage;
+using IO.Infrastructure.Workflows;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -59,6 +60,16 @@ internal static class FoundationAccessTests
             await Use(p => p.GetRequiredService<IdentityAdministration>().RevokePermissionAsync(actor, readerRole, code));
         }
         check(true, "foundation formerly omitted permissions support real grant and revoke");
+        await Use(p => p.GetRequiredService<IdentityAdministration>().GrantPermissionAsync(actor, readerRole, "correction.create.self"));
+        var canCreate = await Use(p => p.GetRequiredService<PermissionTransaction>().ExecuteAsync(reader,
+            CorrectionWorkflow.Submit, "correction.request.created", _ => Task.FromResult((true, reader))));
+        var cannotRead = await Denied(async () => { await Use(p => p.GetRequiredService<PermissionTransaction>().ExecuteEitherAsync(reader,
+            CorrectionWorkflow.ReadOwn, CorrectionWorkflow.Submit, "test.read-denied", _ => Task.FromResult((true, reader)))); });
+        var cannotEdit = await Denied(async () => { await Use(p => p.GetRequiredService<PermissionTransaction>().ExecuteEitherAsync(reader,
+            CorrectionWorkflow.EditOwn, CorrectionWorkflow.Submit, "test.edit-denied", _ => Task.FromResult((true, reader)))); });
+        var cannotCancel = await Denied(async () => { await Use(p => p.GetRequiredService<PermissionTransaction>().ExecuteEitherAsync(reader,
+            CorrectionWorkflow.CancelOwn, CorrectionWorkflow.Submit, "test.cancel-denied", _ => Task.FromResult((true, reader)))); });
+        check(canCreate && cannotRead && cannotEdit && cannotCancel, "foundation independent correction create does not implicitly grant read edit or cancel");
         var unknownDenied = false;
         try { await Use(p => p.GetRequiredService<IdentityAdministration>().GrantPermissionAsync(actor, readerRole, "device.future.manage")); }
         catch (ArgumentException) { unknownDenied = true; }
