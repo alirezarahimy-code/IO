@@ -330,7 +330,7 @@ public static class IoWebHost
         app.MapGet("/leave/own-balance/{leaveTypeId:guid}", (Guid leaveTypeId, DateOnly asOf, HttpContext c, LeaveLedger service) =>
             AdminRead(c, async actor => await service.GetOwnBalanceAsync(actor,leaveTypeId,asOf,c.RequestAborted)));
         app.MapPost("/leave/requests", (LeaveRequestInput input, HttpContext c, IAntiforgery csrf, LeaveRequests service) =>
-            Admin(c, csrf, actor => service.SubmitAsync(actor, input.OperationId, input.LeaveTypeId, input.Kind,
+            Admin(c, csrf, actor => service.SubmitAsync(actor, input.OperationId, input.LeaveTypeId, input.Category, input.Kind,
                 input.WorkDate, input.FromAtUtc is null ? null : ParseExplicitTime(input.FromAtUtc),
                 input.UntilAtUtcExclusive is null ? null : ParseExplicitTime(input.UntilAtUtcExclusive), input.Reason, c.RequestAborted)));
         app.MapGet("/leave/requests", (int? offset, HttpContext c, LeaveRequests service) =>
@@ -575,7 +575,7 @@ public sealed record LoginInput(string UserName, string Password);
 public sealed record ChangePasswordInput(string CurrentPassword, string NewPassword);
 public sealed record NewUserInput(string UserName, string Password, Guid? EmployeeId);
 public sealed record ResetPasswordInput(string NewPassword);
-public sealed record LeaveRequestInput(Guid OperationId, Guid LeaveTypeId, int Kind, DateOnly WorkDate, string? FromAtUtc, string? UntilAtUtcExclusive, string Reason);
+public sealed record LeaveRequestInput(Guid OperationId, Guid LeaveTypeId, int Category, int Kind, DateOnly WorkDate, string? FromAtUtc, string? UntilAtUtcExclusive, string Reason);
 public sealed record LeaveDecisionInput(int Decision, string? Reason);
 public sealed record LeaveCancelInput(string? Reason);
 public sealed record NewRoleInput(string Name);

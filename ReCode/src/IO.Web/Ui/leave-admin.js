@@ -23,6 +23,7 @@
 // Leave request inbox: scoped pending requests with approve/reject decisions.
 (() => {
   const $=id=>document.getElementById(id);let busy=false,offset=0,items=[];
+  const categoryText=c=>c===1?'اضافه‌کار':c===2?'مأموریت':'مرخصی';
   const kindText=k=>k===0?'روزانه':'ساعتی';
   async function request(url,options={}){const r=await fetch(url,{...options,credentials:'same-origin',cache:'no-store'});if(!r.ok)
     throw new Error(r.status===401?'نشست پایان یافته؛ دوباره وارد شوید.':r.status===403?'مجوز تصمیم مرخصی ندارید یا باید گذرواژه را تغییر دهید.':r.status===400?'اطلاعات معتبر نیست یا درخواست تصمیم‌گرفته است.':r.status===409?'تعارض رخ داد؛ کارتابل را دوباره بگیرید.':'درخواست انجام نشد.');return r.status===204?null:r.json();}
@@ -37,7 +38,7 @@
     finally{busy=false;controls();}};}
   function rows(){$('inbox-body').replaceChildren();$('inbox-empty').hidden=items.length!==0;
     for(const item of items){const tr=document.createElement('tr');
-      for(const v of [item.workDate,kindText(item.kind),item.minutes.toLocaleString('fa-IR'),item.reason]){
+      for(const v of [item.workDate,categoryText(item.category)+' '+kindText(item.kind),item.minutes.toLocaleString('fa-IR'),item.reason]){
         const td=document.createElement('td');td.textContent=v;tr.append(td);}
       const td=document.createElement('td'),ok=document.createElement('button'),no=document.createElement('button');
       ok.type='button';no.type='button';ok.textContent='تأیید';no.textContent='رد';

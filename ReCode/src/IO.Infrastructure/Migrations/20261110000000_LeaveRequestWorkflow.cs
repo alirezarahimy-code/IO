@@ -30,6 +30,7 @@ namespace IO.Infrastructure.Migrations
                     RequesterUserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     LeaveTypeId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     OperationId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Category = table.Column<int>(type: "int", nullable: false),
                     Kind = table.Column<int>(type: "int", nullable: false),
                     WorkDate = table.Column<DateOnly>(type: "date", nullable: false),
                     FromAtUtc = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
@@ -44,6 +45,8 @@ namespace IO.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_LeaveRequests", x => x.Id);
                     table.CheckConstraint("CK_LeaveRequests_Kind", "[Kind] IN (0,1)");
+                    table.CheckConstraint("CK_LeaveRequests_Category", "[Category] IN (0,1,2)");
+                    table.CheckConstraint("CK_LeaveRequests_OvertimeHourly", "[Category] <> 1 OR [Kind] = 1");
                     table.CheckConstraint("CK_LeaveRequests_Minutes", "[Minutes] BETWEEN 1 AND 1440");
                     table.CheckConstraint("CK_LeaveRequests_State", "[State] IN (0,1,2,3)");
                     table.CheckConstraint("CK_LeaveRequests_Utc", "DATEPART(TZOFFSET, [CreatedAtUtc]) = 0 AND DATEPART(TZOFFSET, [FromAtUtc]) = 0 AND DATEPART(TZOFFSET, [UntilAtUtcExclusive]) = 0");
@@ -142,7 +145,7 @@ namespace IO.Infrastructure.Migrations
                 IF NOT EXISTS (SELECT 1 FROM deleted) AND EXISTS (SELECT 1 FROM inserted WHERE State <> 0)
                     THROW 51009, ''Leave requests must start pending.'', 1;
                 IF EXISTS (SELECT 1 FROM deleted) AND (UPDATE(Id) OR UPDATE(CompanyId) OR UPDATE(EmployeeId) OR
-                    UPDATE(RequesterUserId) OR UPDATE(LeaveTypeId) OR UPDATE(OperationId) OR UPDATE(Kind) OR UPDATE(WorkDate) OR
+                    UPDATE(RequesterUserId) OR UPDATE(LeaveTypeId) OR UPDATE(OperationId) OR UPDATE(Category) OR UPDATE(Kind) OR UPDATE(WorkDate) OR
                     UPDATE(FromAtUtc) OR UPDATE(UntilAtUtcExclusive) OR UPDATE(Minutes) OR UPDATE(Reason) OR UPDATE(CreatedAtUtc))
                     THROW 51009, ''Leave request payload is immutable.'', 1;
                 IF EXISTS (SELECT 1 FROM deleted d JOIN inserted i ON d.Id = i.Id WHERE d.State <> 0 OR i.State NOT IN (0,1,2,3))

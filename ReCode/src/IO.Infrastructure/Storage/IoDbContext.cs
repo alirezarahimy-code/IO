@@ -156,6 +156,8 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.ToTable("LeaveRequests", t =>
             {
                 t.HasCheckConstraint("CK_LeaveRequests_Kind", "[Kind] IN (0,1)");
+                t.HasCheckConstraint("CK_LeaveRequests_Category", "[Category] IN (0,1,2)");
+                t.HasCheckConstraint("CK_LeaveRequests_OvertimeHourly", "[Category] <> 1 OR [Kind] = 1");
                 t.HasCheckConstraint("CK_LeaveRequests_Minutes", "[Minutes] BETWEEN 1 AND 1440");
                 t.HasCheckConstraint("CK_LeaveRequests_State", "[State] IN (0,1,2,3)");
                 t.HasCheckConstraint("CK_LeaveRequests_Utc", "DATEPART(TZOFFSET, [CreatedAtUtc]) = 0 AND DATEPART(TZOFFSET, [FromAtUtc]) = 0 AND DATEPART(TZOFFSET, [UntilAtUtcExclusive]) = 0");

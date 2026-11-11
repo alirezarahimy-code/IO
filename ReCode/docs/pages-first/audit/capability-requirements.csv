@@ -240,3 +240,6 @@ REQ.leave.request.read.self,workflow,مشاهده درخواست‌های مرخ
 REQ.leave.request.cancel.self,workflow,لغو درخواست معلق خود,planned-not-grantable,leave.request.submit,determine-and-enforce,needs-action-level-review
 REQ.leave.request.inbox.read,workflow,مشاهده کارتابل مرخصی دامنه,planned-not-grantable,leave.request.decide,determine-and-enforce,needs-action-level-review
 REQ.leave.request.decide,workflow,تأیید یا رد درخواست مرخصی,planned-not-grantable,leave.request.decide,determine-and-enforce,needs-action-level-review
+REQ.extra.overtime.submit,workflow,ثبت درخواست اضافه‌کار ساعتی,planned-not-grantable,leave.request.submit,determine-and-enforce,needs-action-level-review
+REQ.extra.mission.submit,workflow,ثبت درخواست مأموریت روزانه/ساعتی,planned-not-grantable,leave.request.submit,determine-and-enforce,needs-action-level-review
+REQ.extra.decide,workflow,تصمیم بر درخواست اضافه‌کار/مأموریت,planned-not-grantable,leave.request.decide,determine-and-enforce,needs-action-level-review

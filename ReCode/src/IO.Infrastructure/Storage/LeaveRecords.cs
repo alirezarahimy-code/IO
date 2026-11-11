@@ -41,6 +41,8 @@ public sealed class LeaveRequestRecord
     public Guid LeaveTypeId { get; set; }
     // Idempotency key; a replayed operation with identical payload returns the same request.
     public Guid OperationId { get; set; }
+    // 0 leave, 1 overtime (hourly only), 2 mission (daily or hourly).
+    public int Category { get; set; }
     // 0 daily (one whole work day), 1 hourly (one window inside the work day).
     public int Kind { get; set; }
     public DateOnly WorkDate { get; set; }

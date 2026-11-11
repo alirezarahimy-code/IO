@@ -1033,6 +1033,24 @@ internal static class HttpSecurityTests
                     " second=" + reDecisionStatus + " hourly=" + hourlyStatus + " inbox=" +
                     managerInboxJson.RootElement.GetProperty("items").GetRawText()[..Math.Min(300, managerInboxJson.RootElement.GetProperty("items").GetRawText().Length)]);
             check(true, "HTTP leave decisions forbid self-approval, allow the scoped manager once and reject afterwards");
+            using var overtimeResponse = await PostAdmin(own, "/leave/requests", new { OperationId = Guid.NewGuid(), LeaveTypeId = leaveType, Category = 1, Kind = 1, WorkDate = "2027-06-02", FromAtUtc = "2027-06-02T18:00:00Z", UntilAtUtcExclusive = "2027-06-02T21:00:00Z", Reason = "overtime flow" });
+            using var overtimeJson = await ParseOrThrow(overtimeResponse);
+            using var missionResponse = await PostAdmin(own, "/leave/requests", new { OperationId = Guid.NewGuid(), LeaveTypeId = leaveType, Category = 2, Kind = 0, WorkDate = "2027-06-04", FromAtUtc = (string?)null, UntilAtUtcExclusive = (string?)null, Reason = "mission flow" });
+            using var missionJson = await ParseOrThrow(missionResponse);
+            using var dailyOvertimeResponse = await PostAdmin(own, "/leave/requests", new { OperationId = Guid.NewGuid(), LeaveTypeId = leaveType, Category = 1, Kind = 0, WorkDate = "2027-06-05", FromAtUtc = (string?)null, UntilAtUtcExclusive = (string?)null, Reason = "overtime must be hourly" });
+            var overtimeApprove = (int)(await PostAdmin(scoped, "/leave/requests/" + overtimeJson.RootElement.GetProperty("result").GetGuid() + "/decision", new { Decision = 1, Reason = "approve overtime" })).StatusCode;
+            var missionApprove = (int)(await PostAdmin(scoped, "/leave/requests/" + missionJson.RootElement.GetProperty("result").GetGuid() + "/decision", new { Decision = 1, Reason = "approve mission" })).StatusCode;
+            if (overtimeApprove != 200 || missionApprove != 200 || dailyOvertimeResponse.StatusCode != HttpStatusCode.BadRequest)
+                throw new InvalidOperationException("Extra work statuses overtime=" + overtimeApprove + " mission=" + missionApprove + " dailyOvertime=" + (int)dailyOvertimeResponse.StatusCode);
+            await using (var extraScope = provider.CreateAsyncScope())
+            {
+                var db = extraScope.ServiceProvider.GetRequiredService<IoDbContext>();
+                check(await db.LeaveDecisions.AnyAsync(x => x.RequestId == overtimeJson.RootElement.GetProperty("result").GetGuid() && x.Decision == 1) &&
+                    await db.LeaveDecisions.AnyAsync(x => x.RequestId == missionJson.RootElement.GetProperty("result").GetGuid() && x.Decision == 1) &&
+                    !await db.LeaveLedgerEntries.AnyAsync(x => x.EmployeeId == first && x.EffectiveDate == new DateOnly(2027, 6, 4)) &&
+                    !await db.LeaveLedgerEntries.AnyAsync(x => x.EmployeeId == first && x.EffectiveDate == new DateOnly(2027, 6, 2) && x.Minutes == -180),
+                    "HTTP overtime and mission approvals record decisions without leave ledger consumption");
+            }
             await using (var leaveScope = provider.CreateAsyncScope())
             {
                 var db = leaveScope.ServiceProvider.GetRequiredService<IoDbContext>();

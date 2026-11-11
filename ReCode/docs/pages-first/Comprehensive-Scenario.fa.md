@@ -23,7 +23,7 @@
 | `/workspace/employee-home` | کارمند | `correction.requests.read.self` و حساب | کامل |
 | `/workspace/my-attendance` | کارمند | `attendance.read.self` | کامل |
 | `/workspace/my-schedule` | کارمند | `schedule.read.self` | کامل |
-| `/workspace/my-leave` | کارمند | `leave.read.self` و `leave.request.submit` | کامل: دفتر دستی + ثبت/مشاهده/لغو درخواست مرخصی روزانه و ساعتی با شناسهٔ عملیات تکرارپذیر |
+| `/workspace/my-leave` | کارمند | `leave.read.self` و `leave.request.submit` | کامل: دفتر دستی + ثبت/مشاهده/لغو درخواست مرخصی روزانه/ساعتی، اضافه‌کار (ساعتی) و مأموریت روزانه/ساعتی با شناسهٔ عملیات تکرارپذیر |
 | `/workspace/my-reports` | کارمند | گزارش شخصی | کامل |
 | `/workspace/new-request`, `/workspace/my-requests` | کارمند | `correction.submit.self` و مشتقات | کامل |
 | `/workspace/delegation` | کارمند | `delegation.manage.self` | کامل |
@@ -36,7 +36,7 @@
 | `/workspace/raw-events`, `/workspace/mappings`, `/workspace/conflicts` | مدیریت | `attendance.ingest` | کامل |
 | `/workspace/calculations`, `/workspace/rules` | مدیریت | `attendance.calculate` | کامل |
 | `/workspace/periods` | مدیریت | preflight/draft/diagnostic | کامل |
-| `/workspace/leave-admin` | مدیریت | `leave.manage` و `leave.request.decide` | کامل: دفتر دستی + کارتابل درخواست‌های مرخصیِ دامنه با تأیید/رد و کسر خودکار از دفتر |
+| `/workspace/leave-admin` | مدیریت | `leave.manage` و `leave.request.decide` | کامل: دفتر دستی + کارتابل دامنه با تأیید/رد مرخصی (کسر خودکار از دفتر) و اضافه‌کار/مأموریت (فقط ثبت تصمیم) |
 | `/workspace/reports`, `/workspace/report-builder` | مدیریت/مدیر | مجوزهای گزارش | کامل |
 | `/workspace/workflow` | مدیریت | `correction.configure` | کامل |
 | `/workspace/executive-home` | مدیریت | نمای کلی | کامل |
@@ -60,4 +60,4 @@
 
 1. ~~کامل‌کردن executive-home به داشبورد واقعی~~ — انجام شد: داشبورد با شمارهای واقعی اصلاحات، تصمیم‌ها، رویدادها و محاسبه‌ها.
 2. تصمیم دربارهٔ صفحات دستگاه: یا ساخت صفحات مدیریت منبع کامل یا ثبت رسمی خروج از محدوده.
-3. ~~مرخصی روزانه/ساعتی با گردش واقعی~~ — انجام شد: ثبت تکرارپذیر، کارتابل دامنه‌محور، منع خودتأییدی، کسر خودکار دفتر در تأیید، لغو توسط درخواست‌دهنده؛ تصمیم‌ها یکتا و تغییرناپذیر.
+3. ~~مرخصی روزانه/ساعتی با گردش واقعی~~ — انجام شد و به اضافه‌کار (الگوی OverTime) و مأموریت (الگوی DailyDuty/HourlyDuty) هم گسترش یافت: یک موتور درخواست با دسته‌بندی، ثبت تکرارپذیر، کارتابل دامنه‌محور، منع خودتأییدی، کسر خودکار دفتر فقط برای مرخصی، تصمیم‌های یکتا و تغییرناپذیر.

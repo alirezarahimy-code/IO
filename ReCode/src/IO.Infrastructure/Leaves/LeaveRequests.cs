@@ -15,7 +15,7 @@ public sealed class LeaveRequests(IoDbContext db, PermissionTransaction transact
     public const string Submit = "leave.request.submit";
     public const string Decide = "leave.request.decide";
     private const string Never = "leave.never-self";
-    public sealed record RequestItem(Guid Id, Guid LeaveTypeId, int Kind, DateOnly WorkDate,
+    public sealed record RequestItem(Guid Id, Guid LeaveTypeId, int Category, int Kind, DateOnly WorkDate,
         DateTimeOffset? FromAtUtc, DateTimeOffset? UntilAtUtcExclusive, int Minutes, string Reason,
         int State, DateTimeOffset CreatedAtUtc, int? Decision, string? DecisionReason, DateTimeOffset? DecisionAtUtc);
 
@@ -32,13 +32,14 @@ public sealed class LeaveRequests(IoDbContext db, PermissionTransaction transact
     private IQueryable<EmployeeRecord> VisibleEmployees(Guid actor, DateOnly today) =>
         access.AuthorizedEmployees(actor, today, Never, Decide, Never);
 
-    public Task<Guid> SubmitAsync(Guid actor, Guid operationId, Guid leaveTypeId, int kind, DateOnly workDate,
+    public Task<Guid> SubmitAsync(Guid actor, Guid operationId, Guid leaveTypeId, int category, int kind, DateOnly workDate,
         DateTimeOffset? fromAtUtc, DateTimeOffset? untilAtUtcExclusive, string reason, CancellationToken ct = default) =>
         transaction.ExecuteAsync(actor, Submit, "leave.request.submitted", async token =>
         {
             Text(reason,500);
             var (employee, company) = await OwnEmployeeAsync(actor, token);
-            if (operationId==Guid.Empty || kind is not (0 or 1)) throw new ArgumentException("Invalid operation or kind.");
+            if (operationId==Guid.Empty || category is not (0 or 1 or 2) || kind is not (0 or 1)) throw new ArgumentException("Invalid operation, category or kind.");
+            if (category==1 && kind!=1) throw new ArgumentException("Overtime must be an hourly window.");
             var year=PersianDates.FromGregorian(workDate);
             if (year.Year is < 1300 or > 1500) throw new ArgumentException("Unsupported Persian year.");
             var type=await (from t in db.LeaveTypes.AsNoTracking() where t.Id==leaveTypeId && t.CompanyId==company select t)
@@ -58,14 +59,14 @@ public sealed class LeaveRequests(IoDbContext db, PermissionTransaction transact
             var existing=await db.LeaveRequests.AsNoTracking().SingleOrDefaultAsync(x=>x.OperationId==operationId,token);
             if (existing is not null)
             {
-                if (existing.EmployeeId!=employee || existing.LeaveTypeId!=leaveTypeId || existing.Kind!=kind || existing.WorkDate!=workDate ||
+                if (existing.EmployeeId!=employee || existing.LeaveTypeId!=leaveTypeId || existing.Category!=category || existing.Kind!=kind || existing.WorkDate!=workDate ||
                     existing.FromAtUtc!=fromAtUtc || existing.UntilAtUtcExclusive!=untilAtUtcExclusive ||
                     !string.Equals(existing.Reason,reason,StringComparison.Ordinal)) throw new DomainConflictException("Operation identifier already used for different leave request.");
                 return (existing.Id, employee);
             }
             var id=Guid.NewGuid();
             db.LeaveRequests.Add(new LeaveRequestRecord{Id=id,CompanyId=company,EmployeeId=employee,RequesterUserId=actor,
-                LeaveTypeId=leaveTypeId,OperationId=operationId,Kind=kind,WorkDate=workDate,FromAtUtc=fromAtUtc,
+                LeaveTypeId=leaveTypeId,OperationId=operationId,Category=category,Kind=kind,WorkDate=workDate,FromAtUtc=fromAtUtc,
                 UntilAtUtcExclusive=untilAtUtcExclusive,Minutes=minutes,Reason=reason,State=0,CreatedAtUtc=DateTimeOffset.UtcNow});
             return (id, employee);
         },ct);
@@ -80,7 +81,7 @@ public sealed class LeaveRequests(IoDbContext db, PermissionTransaction transact
                              from decision in decisions.DefaultIfEmpty()
                              where request.RequesterUserId==actor
                              orderby request.CreatedAtUtc descending, request.Id
-                             select new RequestItem(request.Id,request.LeaveTypeId,request.Kind,request.WorkDate,request.FromAtUtc,
+                             select new RequestItem(request.Id,request.LeaveTypeId,request.Category,request.Kind,request.WorkDate,request.FromAtUtc,
                                  request.UntilAtUtcExclusive,request.Minutes,request.Reason,request.State,request.CreatedAtUtc,
                                  (int?)decision.Decision,decision.Reason,(DateTimeOffset?)decision.AtUtc))
                 .Skip(offset).Take(50).ToListAsync(token);
@@ -97,7 +98,7 @@ public sealed class LeaveRequests(IoDbContext db, PermissionTransaction transact
                              join employee in visible on request.EmployeeId equals employee.Id
                              where request.State==0 && request.RequesterUserId!=actor
                              orderby request.CreatedAtUtc, request.Id
-                             select new {request.Id,request.CompanyId,request.EmployeeId,request.Kind,request.WorkDate,
+                             select new {request.Id,request.CompanyId,request.EmployeeId,request.Category,request.Kind,request.WorkDate,
                                  request.FromAtUtc,request.UntilAtUtcExclusive,request.Minutes,request.Reason,request.CreatedAtUtc})
                 .Skip(offset).Take(50).ToListAsync(token);
             return (new {offset,pageSize=50,items},actor);
@@ -117,10 +118,11 @@ public sealed class LeaveRequests(IoDbContext db, PermissionTransaction transact
             request.State=decision;
             db.LeaveDecisions.Add(new LeaveDecisionRecord{Id=Guid.NewGuid(),RequestId=request.Id,ActorUserId=actor,
                 Decision=decision,Reason=string.IsNullOrWhiteSpace(reason)?null:reason,AtUtc=DateTimeOffset.UtcNow});
-            if (decision==1)
+            if (decision==1 && request.Category==0)
             {
-                // Approval consumes ledger minutes in the same transaction; the
-                // pending-state guard above prevents a second posting.
+                // Only leave approvals consume ledger minutes in the same transaction;
+                // the pending-state guard above prevents a second posting. Overtime and
+                // mission approvals end at the decision record itself.
                 db.LeaveLedgerEntries.Add(new LeaveLedgerEntryRecord{Id=Guid.NewGuid(),CompanyId=request.CompanyId,
                     EmployeeId=request.EmployeeId,LeaveTypeId=request.LeaveTypeId,
                     PersianYear=PersianDates.FromGregorian(request.WorkDate).Year,EffectiveDate=request.WorkDate,

@@ -874,6 +874,9 @@ namespace IO.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
                     b.Property<Guid>("CompanyId")
                         .HasColumnType("uniqueidentifier");
 
@@ -939,6 +942,10 @@ namespace IO.Infrastructure.Migrations
                             t.HasTrigger("TR_LeaveRequests_ImmutablePayload");
 
                             t.HasCheckConstraint("CK_LeaveRequests_Kind", "[Kind] IN (0,1)");
+
+                            t.HasCheckConstraint("CK_LeaveRequests_Category", "[Category] IN (0,1,2)");
+
+                            t.HasCheckConstraint("CK_LeaveRequests_OvertimeHourly", "[Category] <> 1 OR [Kind] = 1");
 
                             t.HasCheckConstraint("CK_LeaveRequests_Minutes", "[Minutes] BETWEEN 1 AND 1440");
 
