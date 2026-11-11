@@ -1162,10 +1162,13 @@ internal static class HttpSecurityTests
                 .Where(x => x.GetProperty("id").GetGuid() == first)
                 .SelectMany(x => x.GetProperty("balances").EnumerateArray()).ToList();
             var ownBalanceStatus = (int)(await own.GetAsync("/leave/balances/" + testCompany + "?asOf=2027-06-30&offset=0")).StatusCode;
-            // EF coalesces the empty opening sum to zero, so usage without an opening
-            // row reports a real negative balance instead of null.
+            // Both approval consumptions remain immutable usage evidence. The
+            // reversal adds a +480 adjustment rather than deleting the first -480;
+            // reapproval adds a second -480. Net balance must still be -480.
             if (ownBalanceStatus != 403 || companyBalances.StatusCode != HttpStatusCode.OK ||
-                !balanceRows.Any(b => b.GetProperty("used").GetInt64() == 480 && b.GetProperty("granted").GetInt64() == 0 &&
+                !balanceRows.Any(b => b.GetProperty("leaveTypeId").GetGuid() == leaveType &&
+                    b.GetProperty("used").GetInt64() == 960 && b.GetProperty("adjustment").GetInt64() == 480 &&
+                    b.GetProperty("opening").GetInt64() == 0 && b.GetProperty("granted").GetInt64() == 0 &&
                     b.GetProperty("balance").GetInt64() == -480))
             {
                 var dump = companyBalancesJson.RootElement.GetProperty("items").GetRawText();
