@@ -1,40 +1,74 @@
-﻿code,source,in_roles_ui_selector
-attendance.calculate,ReCode/src/IO.Infrastructure/Calculation/ObservedCalculation.cs,yes
-attendance.ingest,ReCode/src/IO.Infrastructure/Attendance/AttendanceIngestion.cs,yes
-attendance.read.all,ReCode/src/IO.Infrastructure/Attendance/TeamAttendance.cs,yes
-attendance.read.scoped,ReCode/src/IO.Infrastructure/Attendance/TeamAttendance.cs,yes
-attendance.read.self,ReCode/src/IO.Infrastructure/Attendance/PersonalAttendance.cs,yes
-attendance.read.team,ReCode/src/IO.Infrastructure/Attendance/TeamAttendance.cs,yes
-attendance.results.read.self,ReCode/src/IO.Infrastructure/Calculation/PersonalReports.cs,yes
-correction.approve,ReCode/src/IO.Infrastructure/Workflows/CorrectionWorkflow.cs,yes
-correction.cancel.self,ReCode/src/IO.Infrastructure/Workflows/CorrectionWorkflow.cs,yes
-correction.configure,ReCode/src/IO.Infrastructure/Workflows/CorrectionWorkflow.cs,yes
-correction.decide,ReCode/src/IO.Infrastructure/Workflows/CorrectionWorkflow.cs,yes
-correction.decide.all,ReCode/src/IO.Infrastructure/Workflows/CorrectionWorkflow.cs,yes
-correction.decide.scoped,ReCode/src/IO.Infrastructure/Workflows/CorrectionWorkflow.cs,yes
-correction.decisions.read.self,ReCode/src/IO.Infrastructure/Workflows/CorrectionWorkflow.cs,yes
-correction.edit.self,ReCode/src/IO.Infrastructure/Workflows/CorrectionWorkflow.cs,no
-correction.inbox.read,ReCode/src/IO.Infrastructure/Workflows/CorrectionWorkflow.cs,yes
-correction.reject,ReCode/src/IO.Infrastructure/Workflows/CorrectionWorkflow.cs,yes
-correction.requests.read.self,ReCode/src/IO.Infrastructure/Workflows/CorrectionWorkflow.cs,yes
-correction.submit.self,ReCode/src/IO.Infrastructure/Workflows/CorrectionWorkflow.cs,yes
-delegation.manage.self,ReCode/src/IO.Infrastructure/Delegation/DelegationRegistry.cs,yes
-delegation.receive,ReCode/src/IO.Infrastructure/Delegation/DelegationRegistry.cs,yes
-employees.read.all,ReCode/src/IO.Infrastructure/Security/EmployeeAccessReader.cs,yes
-employees.read.scoped,ReCode/src/IO.Infrastructure/Security/EmployeeAccessReader.cs,yes
-employees.read.self,ReCode/src/IO.Infrastructure/Security/EmployeeAccessReader.cs,yes
-executive.dashboard.read,ReCode/src/IO.Infrastructure/Reports/ExecutiveOverview.cs,yes
-identity.manage,ReCode/src/IO.Infrastructure/Security/IdentityServices.cs,yes
-leave.manage,ReCode/src/IO.Infrastructure/Leaves/LeaveLedger.cs,yes
-leave.read.self,ReCode/src/IO.Infrastructure/Leaves/LeaveLedger.cs,yes
-leave.request.decide,ReCode/src/IO.Infrastructure/Leaves/LeaveRequests.cs,no
-leave.request.submit,ReCode/src/IO.Infrastructure/Leaves/LeaveRequests.cs,no
-organization.manage,ReCode/src/IO.Infrastructure/Organization/OrganizationManagement.cs,yes
-period.diagnostic.manage,ReCode/src/IO.Infrastructure/Periods/PeriodDiagnostics.cs,yes
-period.draft.manage,ReCode/src/IO.Infrastructure/Periods/PeriodDrafts.cs,yes
-period.preflight,ReCode/src/IO.Infrastructure/Periods/PeriodPreflight.cs,yes
-schedule.manage,ReCode/src/IO.Infrastructure/Scheduling/ScheduleManagement.cs,yes
-schedule.read.all,ReCode/src/IO.Infrastructure/Scheduling/ScheduleReader.cs,yes
-schedule.read.scoped,ReCode/src/IO.Infrastructure/Scheduling/ScheduleReader.cs,yes
-schedule.read.self,ReCode/src/IO.Infrastructure/Scheduling/ScheduleReader.cs,yes
-settings.correction.manage,ReCode/src/IO.Infrastructure/Settings/CorrectionSettings.cs,yes
+﻿code,title,note,source,in_roles_ui_selector
+attendance.calculate,محاسبات (بستهٔ قدیمی گسترده) — attendance.calculate,مجوز قدیمیِ تجمیعی؛ نگه‌داشتن آن ممکن است اثر لغو مجوز ریز را خنثی کند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+attendance.conflicts.note,ثبت یادداشت تعارض — attendance.conflicts.note,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+attendance.conflicts.read,مشاهدهٔ تعارض و یادداشت‌ها — attendance.conflicts.read,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+attendance.events.receive,دریافت/ثبت رویداد خام — attendance.events.receive,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+attendance.ingest,دریافت تردد (بستهٔ قدیمی گسترده) — attendance.ingest,مجوز قدیمیِ تجمیعی؛ نگه‌داشتن آن ممکن است اثر لغو مجوز ریز را خنثی کند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+attendance.mappings.manage,ایجاد/جایگزینی نگاشت — attendance.mappings.manage,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+attendance.mappings.read,مشاهدهٔ نگاشت و سابقهٔ آن — attendance.mappings.read,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+attendance.raw.read,مشاهدهٔ رویداد خام — attendance.raw.read,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+attendance.read.all,دامنهٔ تردد: کل سازمان — attendance.read.all,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+attendance.read.scoped,دامنهٔ تردد: واحدهای مجاز — attendance.read.scoped,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+attendance.read.self,مشاهدهٔ تردد خود — attendance.read.self,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+attendance.read.team,مشاهدهٔ تردد تیم (نیازمند مجوز دامنه) — attendance.read.team,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+attendance.results.read.self,مشاهدهٔ نتایج کارکرد خود — attendance.results.read.self,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+attendance.sources.create,معرفی منبع تردد — attendance.sources.create,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+attendance.sources.read,مشاهدهٔ منابع تردد — attendance.sources.read,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+calculation.read,مشاهده و مقایسهٔ اجراها و قواعد — calculation.read,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+calculation.rules.create,ثبت نسخهٔ قاعدهٔ محاسبه — calculation.rules.create,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+calculation.run,ثبت اجرای محاسبه — calculation.run,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+correction.approve,تأیید اصلاح تردد — correction.approve,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+correction.cancel.self,لغو اصلاح معلق خود — correction.cancel.self,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+correction.configure,پیکربندی گردش اصلاح — correction.configure,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+correction.decide,تصمیم اصلاح (بستهٔ قدیمی تأیید/رد/کارتابل) — correction.decide,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+correction.decide.all,دامنهٔ تصمیم: کل سازمان — correction.decide.all,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+correction.decide.scoped,دامنهٔ تصمیم: واحدهای مجاز — correction.decide.scoped,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+correction.decisions.read.self,مشاهدهٔ تاریخچهٔ تصمیم‌های خود — correction.decisions.read.self,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+correction.edit.self,ویرایش اصلاح معلق خود — correction.edit.self,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+correction.inbox.read,مشاهدهٔ کارتابل اصلاح — correction.inbox.read,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+correction.reject,رد اصلاح تردد — correction.reject,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+correction.requests.read.self,مشاهدهٔ درخواست‌های اصلاح خود — correction.requests.read.self,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+correction.submit.self,ثبت اصلاح تردد شخصی — correction.submit.self,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+delegation.manage.self,مدیریت جانشینی خود — delegation.manage.self,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+delegation.receive,پذیرش اختیار جانشینی در دامنهٔ مجاز — delegation.receive,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+employees.create,ثبت کارمند — employees.create,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+employees.read.all,مشاهدهٔ پرسنل کل سازمان — employees.read.all,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+employees.read.scoped,مشاهدهٔ پرسنل واحد مجاز — employees.read.scoped,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+employees.read.self,مشاهدهٔ مشخصات خود — employees.read.self,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+employees.update,تغییر نام نمایشی کارمند — employees.update,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+executive.dashboard.read,مشاهدهٔ داشبورد مدیر ارشد — executive.dashboard.read,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+identity.audit.read,مشاهدهٔ حسابرسی — identity.audit.read,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+identity.manage,مدیریت هویت (بستهٔ قدیمی گسترده) — identity.manage,مجوز قدیمیِ تجمیعی؛ نگه‌داشتن آن ممکن است اثر لغو مجوز ریز را خنثی کند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+identity.roles.manage,مدیریت نقش، مجوز، انتساب و محدوده — identity.roles.manage,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+identity.roles.read,مشاهدهٔ نقش‌ها، مجوزها و محدوده‌ها — identity.roles.read,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+identity.users.create,ایجاد حساب کاربری — identity.users.create,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+identity.users.password,ریست گذرواژهٔ دیگران — identity.users.password,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+identity.users.read,مشاهدهٔ حساب‌ها و جزئیات — identity.users.read,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+identity.users.status,فعال/غیرفعال‌کردن حساب — identity.users.status,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+leave.admin.read,مشاهدهٔ انواع، دفتر و ماندهٔ مرخصی — leave.admin.read,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+leave.entries.record,ثبت رویداد دستی دفتر مرخصی — leave.entries.record,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+leave.manage,دفتر مرخصی (بستهٔ قدیمی گسترده) — leave.manage,مجوز قدیمیِ تجمیعی؛ نگه‌داشتن آن ممکن است اثر لغو مجوز ریز را خنثی کند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+leave.read.self,مشاهدهٔ مرخصی و ماندهٔ خود — leave.read.self,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+leave.request.decide,تصمیم درخواست مرخصی در دامنهٔ مجاز — leave.request.decide,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+leave.request.submit,ثبت درخواست مرخصی/اضافه‌کار/مأموریت — leave.request.submit,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+leave.types.create,تعریف نوع مرخصی — leave.types.create,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+organization.assign,ثبت/تغییر انتساب واحد، سایت و استخدام — organization.assign,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+organization.create,ایجاد سازمان، شرکت، سایت و واحد — organization.create,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+organization.manage,مدیریت سازمان (بستهٔ قدیمی گسترده) — organization.manage,مجوز قدیمیِ تجمیعی؛ نگه‌داشتن آن ممکن است اثر لغو مجوز ریز را خنثی کند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+organization.read,مشاهدهٔ ساختار و فهرست پرسنل — organization.read,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+organization.units.update,تغییر ساختار والد واحد — organization.units.update,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+period.diagnostic.manage,ثبت و مشاهدهٔ تشخیص دوره — period.diagnostic.manage,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+period.draft.manage,ثبت و مشاهدهٔ پیش‌نویس دوره — period.draft.manage,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+period.preflight,بررسی تشخیصی دوره — period.preflight,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+schedule.assign,ثبت/جایگزینی برنامهٔ کارمند — schedule.assign,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+schedule.calendar.create,ساخت/نسخه‌برداری تقویم — schedule.calendar.create,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+schedule.calendar.update,ثبت/اصلاح روز تقویم — schedule.calendar.update,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+schedule.catalog.read,مشاهدهٔ فهرست تقویم، شیفت و برنامه — schedule.catalog.read,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+schedule.manage,مدیریت برنامه (بستهٔ قدیمی گسترده) — schedule.manage,مجوز قدیمیِ تجمیعی؛ نگه‌داشتن آن ممکن است اثر لغو مجوز ریز را خنثی کند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+schedule.read.all,مشاهدهٔ برنامه در کل سازمان — schedule.read.all,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+schedule.read.scoped,مشاهدهٔ برنامه در دامنهٔ واحد — schedule.read.scoped,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+schedule.read.self,مشاهدهٔ برنامهٔ خود — schedule.read.self,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+schedule.shift.create,ثبت شیفت — schedule.shift.create,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+settings.correction.manage,تنظیمات اصلاح (بستهٔ قدیمی گسترده) — settings.correction.manage,مجوز قدیمیِ تجمیعی؛ نگه‌داشتن آن ممکن است اثر لغو مجوز ریز را خنثی کند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+settings.correction.update,ثبت نسخهٔ تنظیمات اصلاح — settings.correction.update,مجوز مستقل ثبت نسخهٔ تنظیمات اصلاح.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+settings.correction.read,مشاهدهٔ تنظیمات اصلاح — settings.correction.read,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)

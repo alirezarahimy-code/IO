@@ -1,39 +1,40 @@
-﻿route,html_resource,navigation_group,status,note
-/login,Login.html,مشترک,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace,Index.html,مشترک,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/account,Account.html,مشترک,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/employee-home,EmployeeHome.html,کارمند,partial,خلاصهٔ محدود درخواست‌های شخصی؛ نه داشبورد کامل مقصد
-/workspace/new-request,MyRequests.html,کارمند,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/my-requests,MyRequests.html,کارمند,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/my-attendance,MyAttendance.html,کارمند,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/my-schedule,MySchedule.html,کارمند,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/my-leave,MyLeave.html,کارمند,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/my-reports,MyReports.html,کارمند,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/delegation,Delegation.html,کارمند,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/manager-home,ManagerHome.html,مدیر واحد,partial,خلاصهٔ محدود کارتابل؛ نه وضعیت کامل واحد
-/workspace/inbox,ManagerRequests.html,مدیر واحد,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/decision-history,ManagerRequests.html,مدیر واحد,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/team-attendance,TeamAttendance.html,مدیر واحد,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/organization,Organization.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/employees,Employees.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/users,Users.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/roles,Roles.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/audit,Audit.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/calendars,Scheduling.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/shifts,Scheduling.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/schedules,Scheduling.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/employee-history,Scheduling.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/sources,Scheduling.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/raw-events,RawEvents.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/mappings,Mappings.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/conflicts,Conflicts.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/calculations,Calculations.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/rules,Rules.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/periods,Periods.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/settings,Settings.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/workflow,Workflow.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/leave-admin,LeaveAdmin.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/workspace/reports,Reports.html,مدیریت سامانه,partial,گزارش تشخیصی preflight؛ خروجی فایل و گزارش نهایی کامل نیست
-/workspace/report-builder,ReportBuilder.html,مدیریت سامانه,partial,انتخاب ستون روی preflight؛ گزارش‌ساز ذخیره‌شونده و خروجی کامل نیست
-/workspace/executive-home,ExecutiveHome.html,مدیریت سامانه,existing,وجود صفحه و سرویس مرتبط؛ تکمیل همهٔ نیازهای مقصد را اثبات نمی‌کند
-/panel,Panel.html,ابزار فنی,existing,پوستهٔ عمومی AllowAnonymous؛ عملیات داده جدا مجوز می‌خواهند
+﻿route,title,group,html_resource,any_permissions,note
+/login,ورود به سامانه,common,Login.html,,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace,پنل من,common,Index.html,,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/account,حساب و گذرواژه,common,Account.html,,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/employee-home,نمای کلی من,employee,EmployeeHome.html,correction.requests.read.self; correction.submit.self,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/new-request,درخواست‌های من,employee,MyRequests.html,correction.submit.self,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/my-requests,درخواست‌های من,employee,MyRequests.html,correction.requests.read.self; correction.submit.self,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/my-attendance,ترددهای من,employee,MyAttendance.html,attendance.read.self,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/my-schedule,برنامهٔ من,employee,MySchedule.html,schedule.read.self,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/my-leave,دفتر مرخصی من,employee,MyLeave.html,leave.read.self; leave.request.submit,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/my-reports,گزارش تشخیصی من,employee,MyReports.html,attendance.results.read.self,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/delegation,ثبت آزمایشی جانشین,employee,Delegation.html,delegation.manage.self,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/manager-home,نمای کلی مدیر,manager,ManagerHome.html,correction.inbox.read; correction.decide,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/inbox,بررسی درخواست‌ها,manager,ManagerRequests.html,correction.inbox.read; correction.decide; correction.approve; correction.reject,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/decision-history,بررسی درخواست‌ها,manager,ManagerRequests.html,correction.decisions.read.self; correction.decide,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/team-attendance,تردد تیم,manager,TeamAttendance.html,attendance.read.team,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/organization,ساختار سازمانی | سامانهٔ حضور,admin,Organization.html,organization.manage; organization.read,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/employees,کارکنان | سامانهٔ حضور,admin,Employees.html,organization.manage; organization.read,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/users,حساب‌های کاربری,admin,Users.html,identity.manage; identity.users.read; identity.users.create; identity.roles.manage,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/roles,نقش‌ها و مجوزها,admin,Roles.html,identity.manage; identity.roles.read; identity.roles.manage,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/audit,رویدادهای سامانه,admin,Audit.html,identity.manage; identity.audit.read,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/calendars,برنامه‌ریزی | سامانهٔ حضور,admin,Scheduling.html,schedule.manage; schedule.catalog.read,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/shifts,برنامه‌ریزی | سامانهٔ حضور,admin,Scheduling.html,schedule.manage; schedule.catalog.read,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/schedules,برنامه‌ریزی | سامانهٔ حضور,admin,Scheduling.html,schedule.manage; schedule.catalog.read,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/employee-history,برنامه‌ریزی | سامانهٔ حضور,admin,Scheduling.html,schedule.manage; schedule.catalog.read,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/sources,برنامه‌ریزی | سامانهٔ حضور,admin,Scheduling.html,attendance.ingest; attendance.sources.read; attendance.sources.create,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/raw-events,تردد خام | سامانهٔ حضور,admin,RawEvents.html,attendance.ingest; attendance.raw.read; attendance.events.receive,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/mappings,نگاشت منبع | سامانهٔ حضور,admin,Mappings.html,attendance.ingest; attendance.mappings.read; attendance.mappings.manage,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/conflicts,برخوردهای تردد,admin,Conflicts.html,attendance.ingest; attendance.conflicts.read; attendance.conflicts.note,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/calculations,اجراهای محاسبه حضور,admin,Calculations.html,attendance.calculate; calculation.read; calculation.run,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/rules,قواعد حضور | سامانهٔ حضور,admin,Rules.html,attendance.calculate; calculation.read; calculation.rules.create,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/periods,دوره‌های کارکرد | پیش‌نویس,admin,Periods.html,period.preflight; period.draft.manage; period.diagnostic.manage,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/settings,تنظیمات گردش اصلاح تردد,admin,Settings.html,settings.correction.manage; settings.correction.read,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/workflow,سیاست گردش اصلاح تردد,admin,Workflow.html,correction.configure,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/leave-admin,دفتر آزمایشی مرخصی,admin,LeaveAdmin.html,leave.manage; leave.admin.read; leave.entries.record; leave.types.create; leave.request.decide,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/reports,گزارش تشخیصی حضور,admin,Reports.html,period.preflight,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/report-builder,چیدمان گزارش تشخیصی,admin,ReportBuilder.html,period.preflight,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/executive-home,نمای مدیر ارشد,executive,ExecutiveHome.html,executive.dashboard.read,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/panel,ورود و مدیریت آزمایشی IO,technical,Panel.html,identity.manage; identity.roles.manage,وجود صفحه به معنی تکمیل همهٔ امکانات مقصد نیست.
+/workspace/help,راهنمای سامانه,common,Help.html,,صفحهٔ منطقی؛ API دامنه و حق عملیات را جدا بررسی می‌کند. راهنما همچنین مسیر پارامتری /workspace/help/{topic} دارد.

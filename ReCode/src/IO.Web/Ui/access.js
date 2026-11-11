@@ -32,6 +32,6 @@
  // Prevent a synthetic/client submit while the fresh grant set is unavailable or denied.
  document.addEventListener('submit',e=>{if(e.target.dataset.accessDenied==='yes'){e.preventDefault();e.stopImmediatePropagation();}},true);
  async function refresh(){const current=++ticket;try{const r=await fetch('/workspace/capabilities',{credentials:'same-origin',cache:'no-store'});if(!r.ok)throw new Error();const data=await r.json();if(current!==ticket)return;caps=data;}catch{if(current!==ticket)return;caps=null;}apply();}
- document.addEventListener('click',e=>{if(e.target.closest('[data-kind]'))setTimeout(apply,0);});
+ new MutationObserver(apply).observe(document.body,{subtree:true,attributes:true,attributeFilter:['aria-pressed']});
  apply();refresh();window.addEventListener('focus',refresh);setInterval(refresh,30000);
 })();
