@@ -1090,11 +1090,16 @@ internal static class HttpSecurityTests
             var balanceRows = companyBalancesJson.RootElement.GetProperty("items").EnumerateArray()
                 .Where(x => x.GetProperty("id").GetGuid() == first)
                 .SelectMany(x => x.GetProperty("balances").EnumerateArray()).ToList();
-            check((await own.GetAsync("/leave/balances/" + testCompany + "?asOf=2027-06-30&offset=0")).StatusCode == HttpStatusCode.Forbidden &&
-                companyBalances.StatusCode == HttpStatusCode.OK &&
-                balanceRows.Any(b => b.GetProperty("used").GetInt64() == 480 && b.GetProperty("granted").GetInt64() == 0 &&
-                    b.GetProperty("balance").ValueKind == JsonValueKind.Null),
-                "HTTP company leave balance report exposes usage and stays permission bound");
+            var ownBalanceStatus = (int)(await own.GetAsync("/leave/balances/" + testCompany + "?asOf=2027-06-30&offset=0")).StatusCode;
+            if (ownBalanceStatus != 403 || companyBalances.StatusCode != HttpStatusCode.OK ||
+                !balanceRows.Any(b => b.GetProperty("used").GetInt64() == 480 && b.GetProperty("granted").GetInt64() == 0 &&
+                    b.GetProperty("balance").ValueKind == JsonValueKind.Null))
+            {
+                var dump = companyBalancesJson.RootElement.GetProperty("items").GetRawText();
+                throw new InvalidOperationException("Balance own=" + ownBalanceStatus + " company=" + (int)companyBalances.StatusCode +
+                    " rows=" + balanceRows.Count + " items=" + dump[..Math.Min(900, dump.Length)]);
+            }
+            check(true, "HTTP company leave balance report exposes usage and stays permission bound");
         }
         finally
         {
