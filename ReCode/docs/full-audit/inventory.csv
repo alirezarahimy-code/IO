@@ -1,0 +1,143 @@
+﻿سیستم,نوع,نام,مسیر شاهد,وضعیت در IO/ReCode
+TWF/آریا,View,AcceptRequest,TWF 4.28/App/Views/AcceptRequest,✅
+TWF/آریا,View,ConstOT,TWF 4.28/App/Views/ConstOT,✅
+TWF/آریا,View,DailyDuty,TWF 4.28/App/Views/DailyDuty,🔴
+TWF/آریا,View,DailyLeave,TWF 4.28/App/Views/DailyLeave,✅
+TWF/آریا,View,Deputy,TWF 4.28/App/Views/Deputy,✅
+TWF/آریا,View,Early,TWF 4.28/App/Views/Early,✅
+TWF/آریا,View,EditRequest,TWF 4.28/App/Views/EditRequest,✅
+TWF/آریا,View,Home,TWF 4.28/App/Views/Home,🟡
+TWF/آریا,View,HourlyDuty,TWF 4.28/App/Views/HourlyDuty,🔴
+TWF/آریا,View,HourlyLeave,TWF 4.28/App/Views/HourlyLeave,✅
+TWF/آریا,View,Late,TWF 4.28/App/Views/Late,✅
+TWF/آریا,View,LeavesReport,TWF 4.28/App/Views/LeavesReport,🟡
+TWF/آریا,View,LocationReport,TWF 4.28/App/Views/LocationReport,🟡
+TWF/آریا,View,Login,TWF 4.28/App/Views/Login,🔴
+TWF/آریا,View,OverTime,TWF 4.28/App/Views/OverTime,✅
+TWF/آریا,View,OverTimeReport,TWF 4.28/App/Views/OverTimeReport,🟡
+TWF/آریا,View,PersonnelStatus,TWF 4.28/App/Views/PersonnelStatus,🟡
+TWF/آریا,View,Record,TWF 4.28/App/Views/Record,🟡
+TWF/آریا,View,RemainLeave,TWF 4.28/App/Views/RemainLeave,✅
+TWF/آریا,View,Report,TWF 4.28/App/Views/Report,🟡
+TWF/آریا,View,Request,TWF 4.28/App/Views/Request,✅
+TWF/آریا,View,Reward,TWF 4.28/App/Views/Reward,🟡
+TWF/آریا,View,SelectArea,TWF 4.28/App/Views/SelectArea,🟡
+TWF/آریا,View,Settings,TWF 4.28/App/Views/Settings,✅
+TWF/آریا,View,ShowRequest,TWF 4.28/App/Views/ShowRequest,✅
+TWF/آریا,View,ShowUsersRequest,TWF 4.28/App/Views/ShowUsersRequest,🟡
+TWF/آریا,View,Undo,TWF 4.28/App/Views/Undo,🟡
+TWF/آریا,View,ViewR,TWF 4.28/App/Views/ViewR,🟡
+T5Web,Controller,AccountController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/Account,✅
+T5Web,Controller,AssignRuleController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/AssignRule,🟡
+T5Web,Controller,AssignShiftController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/AssignShift,🟡
+T5Web,Controller,CalendarController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/Calendar,✅
+T5Web,Controller,CardController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/Card,🔴
+T5Web,Controller,CardexReportController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/CardexReport,🔴
+T5Web,Controller,CertificateController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/Certificate,🔴
+T5Web,Controller,ChangeLockController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/ChangeLock,🔴
+T5Web,Controller,CustomWFController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/CustomWF,🔴
+T5Web,Controller,DailyReportController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/DailyReport,🔴
+T5Web,Controller,DashboardController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/Dashboard,✅
+T5Web,Controller,DashboardItemController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/DashboardItem,🔴
+T5Web,Controller,DepartmentController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/Department,🟡
+T5Web,Controller,DeptsChartController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/DeptsChart,🔴
+T5Web,Controller,DeputyController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/Deputy,✅
+T5Web,Controller,DeviceController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/Device,🔴
+T5Web,Controller,DeviceOperationsController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/DeviceOperations,🔴
+T5Web,Controller,EditLateEarlyController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/EditLateEarly,🔴
+T5Web,Controller,EmpTypeController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/EmpType,🟡
+T5Web,Controller,ExitReportController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/ExitReport,🔴
+T5Web,Controller,ExitTypeController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/ExitType,🔴
+T5Web,Controller,ExportController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/Export,🔴
+T5Web,Controller,GateController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/Gate,🔴
+T5Web,Controller,GridReportController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/GridReport,🔴
+T5Web,Controller,GroupAssignShiftController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/GroupAssignShift,🟡
+T5Web,Controller,HomeController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/Home,🔴
+T5Web,Controller,ImportFromExcelController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/ImportFromExcel,🔴
+T5Web,Controller,InsertDailyLeaveController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/InsertDailyLeave,🔴
+T5Web,Controller,InsertRecordController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/InsertRecord,🟡
+T5Web,Controller,LateEarlyReportController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/LateEarlyReport,🔴
+T5Web,Controller,LeaveDescriptionController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/LeaveDescription,🔴
+T5Web,Controller,LeaveTypeController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/LeaveType,🟡
+T5Web,Controller,ManagerController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/Manager,🟡
+T5Web,Controller,OverTimeReportController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/OverTimeReport,🔴
+T5Web,Controller,ParametersController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/Parameters,🟡
+T5Web,Controller,PermitController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/Permit,🟡
+T5Web,Controller,PersonnelStatusController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/PersonnelStatus,🔴
+T5Web,Controller,PersonnelStatusReportController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/PersonnelStatusReport,🔴
+T5Web,Controller,RamezanController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/Ramezan,🔴
+T5Web,Controller,RecordsController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/Records,🟡
+T5Web,Controller,RemainedLeavesReportController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/RemainedLeavesReport,🔴
+T5Web,Controller,ReportDatasController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/ReportDatas,🔴
+T5Web,Controller,ReportDesignController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/ReportDesign,🔴
+T5Web,Controller,ReportFilterController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/ReportFilter,🔴
+T5Web,Controller,ReportTablixController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/ReportTablix,🔴
+T5Web,Controller,ReportTablixColumnController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/ReportTablixColumn,🔴
+T5Web,Controller,ReportTextboxController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/ReportTextbox,🔴
+T5Web,Controller,ReportTitlesController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/ReportTitles,🔴
+T5Web,Controller,RequestsReportController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/RequestsReport,🔴
+T5Web,Controller,ScheduleController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/Schedule,✅
+T5Web,Controller,ShowReportController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/ShowReport,🔴
+T5Web,Controller,ShowUsersRequestController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/ShowUsersRequest,🟡
+T5Web,Controller,SumReportController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/SumReport,🔴
+T5Web,Controller,TempSchedulesController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/TempSchedules,🔴
+T5Web,Controller,TitleController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/Title,🔴
+T5Web,Controller,TotalControlController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/TotalControl,🔴
+T5Web,Controller,TransferRemainedLeaveController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/TransferRemainedLeave,🔴
+T5Web,Controller,USBManagementController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/USBManagement,🔴
+T5Web,Controller,UserAddPropertyController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/UserAddProperty,🔴
+T5Web,Controller,UserInfoController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/UserInfo,🟡
+T5Web,Controller,UserReportController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/UserReport,🔴
+T5Web,Controller,UserSelectionController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/UserSelection,🔴
+T5Web,Controller,ViewSystemLogsController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/ViewSystemLogs,🔴
+T5Web,Controller,WorkflowController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/Workflow,✅
+T5Web,Controller,iclockController,T5Web [3.5.7]/App/bin/T5V3Web.dll (متادیتا) + App/Views/iclock,🔴
+T5V3,Form,T5V3.exe::ShowSplash/LogIn,T5V3.9.2/T5V3.exe (متادیتا),🟡
+T5V3,Form,T5V3.exe::Main Form,T5V3.9.2/T5V3.exe (متادیتا),🟡
+T5V3,Form,T5V3.exe::SettingsManager,T5V3.9.2/T5V3.exe (متادیتا),🟡
+T5V3,Form,T5V3.exe::DBManager,T5V3.9.2/T5V3.exe (متادیتا),🟡
+T5V3,Form,T5V3.exe::HTTPPushServer/ConfigPushServer,T5V3.9.2/T5V3.exe (متادیتا),🟡
+T5V3,Form,T5V3.exe::LockCheker(لایسنس),T5V3.9.2/T5V3.exe (متادیتا),🔴
+Link5,Form/Service,Link5.exe (main),Link5 v4.0.4/Link5.exe (main),🔴
+Link5,Form/Service,Link5.Configurator.exe,Link5 v4.0.4/Link5.Configurator.exe,🔴
+Link5,Form/Service,Comm5Serv v3.exe,Link5 v4.0.4/Comm5Serv v3.exe,🔴
+Link5,Form/Service,Link5.Service.exe,Link5 v4.0.4/Link5.Service.exe,🔴
+Link5,Form/Service,PushServicev2,Link5 v4.0.4,🔴
+Link5,Form/Service,PushV3 Service,Link5 v4.0.4,🔴
+Link5,Form/Service,Device.dll Form1,Link5 v4.0.4/Device.dll Form1,🔴
+IO/ReCode,Page,Index.html,ReCode/src/IO.Web/Ui/Index.html,✅ پنل نقش + اعلان‌ها
+IO/ReCode,Page,Login.html,ReCode/src/IO.Web/Ui/Login.html,✅
+IO/ReCode,Page,Account.html,ReCode/src/IO.Web/Ui/Account.html,✅
+IO/ReCode,Page,Employees.html,ReCode/src/IO.Web/Ui/Employees.html,✅
+IO/ReCode,Page,Organization.html,ReCode/src/IO.Web/Ui/Organization.html,✅
+IO/ReCode,Page,Users.html,ReCode/src/IO.Web/Ui/Users.html,✅ کامل با جست‌وجو/جزئیات/دامنه/ریست
+IO/ReCode,Page,Roles.html,ReCode/src/IO.Web/Ui/Roles.html,✅
+IO/ReCode,Page,Audit.html,ReCode/src/IO.Web/Ui/Audit.html,✅
+IO/ReCode,Page,Scheduling.html,ReCode/src/IO.Web/Ui/Scheduling.html,✅
+IO/ReCode,Page,Calendars.html,ReCode/src/IO.Web/Ui/Calendars.html,✅
+IO/ReCode,Page,Shifts.html,ReCode/src/IO.Web/Ui/Shifts.html,✅
+IO/ReCode,Page,Sources.html,ReCode/src/IO.Web/Ui/Sources.html,✅
+IO/ReCode,Page,RawEvents.html,ReCode/src/IO.Web/Ui/RawEvents.html,✅
+IO/ReCode,Page,Mappings.html,ReCode/src/IO.Web/Ui/Mappings.html,✅
+IO/ReCode,Page,Conflicts.html,ReCode/src/IO.Web/Ui/Conflicts.html,✅
+IO/ReCode,Page,Calculations.html,ReCode/src/IO.Web/Ui/Calculations.html,✅
+IO/ReCode,Page,Rules.html,ReCode/src/IO.Web/Ui/Rules.html,✅
+IO/ReCode,Page,Periods.html,ReCode/src/IO.Web/Ui/Periods.html,✅
+IO/ReCode,Page,Settings.html,ReCode/src/IO.Web/Ui/Settings.html,✅
+IO/ReCode,Page,Workflow.html,ReCode/src/IO.Web/Ui/Workflow.html,✅
+IO/ReCode,Page,MyRequests.html,ReCode/src/IO.Web/Ui/MyRequests.html,✅
+IO/ReCode,Page,MyAttendance.html,ReCode/src/IO.Web/Ui/MyAttendance.html,✅
+IO/ReCode,Page,MySchedule.html,ReCode/src/IO.Web/Ui/MySchedule.html,✅
+IO/ReCode,Page,MyLeave.html,ReCode/src/IO.Web/Ui/MyLeave.html,✅ گردش مرخصی/اضافه‌کار/مأموریت
+IO/ReCode,Page,MyReports.html,ReCode/src/IO.Web/Ui/MyReports.html,✅
+IO/ReCode,Page,Inbox/Delegation,ReCode/src/IO.Web/Ui/Inbox,✅
+IO/ReCode,Page,LeaveAdmin.html,ReCode/src/IO.Web/Ui/LeaveAdmin.html,✅ دفتر+کارتابل+مانده
+IO/ReCode,Page,TeamAttendance.html,ReCode/src/IO.Web/Ui/TeamAttendance.html,✅
+IO/ReCode,Page,ManagerRequests.html,ReCode/src/IO.Web/Ui/ManagerRequests.html,✅
+IO/ReCode,Page,DecisionHistory.html,ReCode/src/IO.Web/Ui/DecisionHistory.html,✅
+IO/ReCode,Page,ExecutiveHome.html,ReCode/src/IO.Web/Ui/ExecutiveHome.html,✅ ۱۲ شاخص
+IO/ReCode,Page,EmployeeHome.html,ReCode/src/IO.Web/Ui/EmployeeHome.html,🟡
+IO/ReCode,Page,ManagerHome.html,ReCode/src/IO.Web/Ui/ManagerHome.html,🟡
+IO/ReCode,Page,Reports.html,ReCode/src/IO.Web/Ui/Reports.html,🟡
+IO/ReCode,Page,ReportBuilder.html,ReCode/src/IO.Web/Ui/ReportBuilder.html,🟡 preflight
+IO/ReCode,Page,Panel.html,ReCode/src/IO.Web/Ui/Panel.html,✅ فرم‌های سریع
