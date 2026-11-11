@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>سامانهٔ IO — نقشهٔ ساده و کامل</title>
+<style>
+:root{--ink:#1f2430;--mut:#5b6472;--line:#d9dee7;--bg:#f6f7fa;--ok:#188440;--warn:#a67c00;--bad:#b3261e}
+*{box-sizing:border-box}
+body{font-family:Vazirmatn,Tahoma,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink);margin:0;line-height:1.9;font-size:16px}
+.wrap{max-width:980px;margin:0 auto;padding:24px 18px 60px}
+header.top{background:#10214a;color:#fff;border-radius:0 0 18px 18px;padding:26px 18px 20px;text-align:center}
+header.top h1{margin:0 0 6px;font-size:26px}
+header.top p{margin:4px 0;color:#c9d4ef;font-size:14px}
+.btn{display:inline-block;background:#ffc843;color:#10214a;font-weight:700;border-radius:10px;padding:10px 24px;margin-top:10px;text-decoration:none;font-size:15px}
+.btn:hover{background:#ffd97a}
+nav.toc{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin:18px 0;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:14px}
+nav.toc a{color:#1c4fc0;text-decoration:none;font-weight:600}
+section{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 22px;margin:20px 0}
+h2{font-size:21px;margin:0 0 4px;border-right:5px solid #10214a;padding-right:10px}
+.hint{color:var(--mut);font-size:14px;margin:2px 0 14px}
+.card{border-radius:14px;padding:14px 18px;margin:14px 0;border:1px solid var(--line)}
+.c-emp{background:#e9f1ff;border-color:#b9cdf0}
+.c-mgr{background:#e9f8ee;border-color:#b4dcc3}
+.c-adm{background:#f3ecff;border-color:#cdb9ec}
+.c-exe{background:#fff7df;border-color:#ecd98a}
+.c-shr{background:#f2f3f5}
+.card>h3{margin:0 0 8px;font-size:17px}
+details{margin:6px 0 2px}
+summary{cursor:pointer;font-weight:700;font-size:15px;padding:6px 10px;background:#ffffffaa;border-radius:10px;border:1px solid var(--line)}
+summary:hover{background:#fff}
+ul.tree{list-style:none;margin:8px 0 4px;padding-right:18px;border-right:2px dotted #b9c2d0}
+ul.tree li{padding:3px 0}
+.leaf{display:block;padding:4px 6px}
+code{direction:ltr;display:inline-block;background:#eef1f6;border:1px solid var(--line);border-radius:6px;padding:0 7px;font-size:12.5px;color:#39414f;font-family:Consolas,monospace}
+.ok{color:var(--ok);font-weight:700}
+.fut{color:var(--bad);font-weight:700}
+.dec{color:#5f6672;font-weight:700}
+.note{background:#fff8e6;border:1px solid #ecd98a;border-radius:10px;padding:8px 14px;font-size:14px;margin:10px 0}
+.steps{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:14px 0}
+.step{flex:1 1 130px;background:#f8f9fc;border:1px solid var(--line);border-radius:12px;padding:10px 12px;text-align:center;position:relative;min-width:130px}
+.step .num{display:inline-block;width:30px;height:30px;line-height:30px;border-radius:50%;color:#fff;font-weight:700;margin-bottom:6px}
+.step b{display:block;font-size:15px}
+.step small{color:var(--mut);font-size:12.5px}
+.st-ok .num{background:var(--ok)} .st-warn .num{background:var(--warn)} .st-bad .num{background:var(--bad)} .st-dec .num{background:#6b7280}
+.rcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.rc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fbfcfe}
+.rc .n{display:inline-block;background:#10214a;color:#fff;border-radius:8px;padding:1px 10px;font-weight:700;margin-left:6px;font-size:14px}
+.rc p{margin:6px 0 0;font-size:14px;color:var(--mut)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.chip{background:#eef1f6;border:1px solid var(--line);border-radius:10px;padding:5px 12px;font-size:14px}
+.layer{border-radius:14px;padding:12px 16px;text-align:center;margin:0 auto;max-width:640px;border:2px solid}
+.l1{background:#e9f1ff;border-color:#7fa3dd}
+.l2{background:#e9f8ee;border-color:#63b585}
+.l3{background:#f3ecff;border-color:#a184d6}
+.l4{background:#fdf1e4;border-color:#dba76b}
+.l4b{background:#fdecec;border-color:#dd8f8f}
+.arrow{text-align:center;color:#8a93a3;font-size:20px;margin:2px 0}
+.side{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.side .layer{max-width:300px;border-style:dashed;font-size:14px}
+footer{color:var(--mut);font-size:13px;text-align:center;margin-top:26px}
+table{width:100%;border-collapse:collapse;font-size:14.5px}
+th,td{border:1px solid var(--line);padding:7px 10px;text-align:right;vertical-align:top}
+th{background:#eef1f6}
+.legend span{display:inline-block;margin-left:16px;font-size:14px}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>سامانهٔ حضور و کارکرد IO — نقشهٔ کامل به زبان ساده</h1>
+  <p>نقشهٔ مقصد: مسیرهای موجود از کد واقعی؛ صفحات قرمز، طرح مصوب و هنوز ساخته‌نشده‌اند.</p>
+  <p>به‌روزرسانی تصمیم‌ها: ۲۰۲۶-۱۱-۰۸ · این نسخه فقط نقشه و مستندات را تغییر می‌دهد.</p>
+  <a class="btn" id="dl" href="/download">⬇️ دانلود این صفحه (HTML مستقل)</a>
+</header>
+
+<div class="wrap">
+
+<nav class="toc">
+  <a href="#s1">۱) یک نگاه</a>
+  <a href="#s2">۲) صفحات هر نقش ← مهم‌ترین بخش</a>
+  <a href="#s3">۳) درخت کامل سامانه</a>
+  <a href="#s4">۴) زنجیرهٔ یک روز کاری</a>
+  <a href="#s5">۵) آنچه باید ساخته شود</a>
+  <a href="#s6">۶) تصمیم‌های ثبت‌شده</a>
+  <a href="#s7">۷) شکل نهایی پروژه</a>
+</nav>
+
+<section id="s1">
+  <h2>۱) وضعیت پروژه در یک نگاه</h2>
+  <p class="hint">پنج جملهٔ کوتاه؛ اگر فقط همین را بخوانید کافی است.</p>
+  <ul>
+    <li><b>قلب سامانه کار می‌کند:</b> ورود تردد، تصحیح با کارتابل و جانشین، محاسبهٔ کارکرد، مرخصی و مانده، اعلان‌ها، داشبورد مدیریت — همه سبز و با ۳۱۰+ تست خودکار.</li>
+    <li><b>۳۸ مسیر موجود</b> با کنترل دسترسی سرور-سمت ساخته شده و هر نقش پنل خودش را می‌بیند.</li>
+    <li><b>۷ بستهٔ اصلی قبلی + ۳ بستهٔ جدید مصوب</b> تا سامانه اجرایی سازمانی شود: بازگشت تصمیم، تأخیر/تعجیل و اضافه‌کار خودکار، وضعیت لحظه‌ای، انتقال سال، خروجی Excel، پشتیبان‌گیری، نصب روی سرور سازمان.</li>
+    <li><b>۳ موضوع تأیید شد:</b> پاداش/جریمه، گزارش مکانِ اختیاری و مدیریت کامل چند دستگاه تردد به نقشه اضافه شدند؛ هنوز ساخته نشده‌اند. فقط قفل/لایسنس بدون تصمیم است.</li>
+    <li><b>گام بعدی پیشنهادی:</b> شروع «بازگشت امن تصمیم» (R1).</li>
+  </ul>
+  <div class="legend">
+    <span><span class="ok">✅ سبز</span> ساخته شده و تست دارد</span>
+    <span><span class="fut">🟥 قرمز</span> باید ساخته شود</span>
+    <span><span class="dec">⬜ خاکستری</span> منتظر تصمیم شما</span>
+    <span>🟨 زرد نیمه‌تمام</span>
+  </div>
+</section>
+
+<section id="s2">
+  <h2>۲) نقشهٔ صفحات — هر نقش چه می‌بیند؟</h2>
+  <p class="hint">سبزها مسیرهای موجود در Index.html و Program.cs هستند؛ قرمزها صفحات پیشنهادیِ لازم برای تصمیم‌های جدید شما هستند، نه قابلیت آماده. مسیرهای جدید پیشنهادی‌اند. روی گروه‌ها کلیک کنید.</p>
+
+  <div class="card c-shr">
+    <h3>🔐 مشترک — همهٔ کاربران</h3>
+    <ul class="tree">
+      <li><span class="leaf"><span class="ok">✅</span> <b>ورود به سامانه</b> <code>/login</code> — نام کاربری و گذرواژه</span></li>
+      <li><span class="leaf"><span class="ok">✅</span> <b>پنل من</b> <code>/workspace</code> — خانهٔ سامانه؛ بسته به مجوز، پنل نقش + اعلان‌ها را نشان می‌دهد</span></li>
+      <li><span class="leaf"><span class="ok">✅</span> <b>حساب من</b> <code>/workspace/account</code> — تغییر گذرواژه و اطلاعات حساب</span></li>
+      <li><span class="leaf"><span class="ok">✅</span> <b>پنل ابزار</b> <code>/panel</code> — عملیات فنی/توسعه (فقط برای ادمین فنی)</span></li>
+    </ul>
+  </div>
+
+  <div class="card c-emp">
+    <h3>👤 پنل کارمند — ۸ مسیر موجود + ۲ صفحهٔ جدید</h3>
+    <details open><summary>ثبت و پیگیری درخواست‌ها</summary>
+      <ul class="tree">
+        <li><span class="leaf"><span class="ok">✅</span> <b>درخواست جدید</b> <code>/workspace/new-request</code> — ثبت تردد فراموش‌شده، مرخصی ساعتی/روزی</span></li>
+        <li><span class="leaf"><span class="ok">✅</span> <b>درخواست‌های من</b> <code>/workspace/my-requests</code> — فیلتر تاریخ شمسی، لغو، ویرایش، پیگیری وضعیت</span></li>
+      </ul>
+    </details>
+    <details open><summary>اطلاعات خودم</summary>
+      <ul class="tree">
+        <li><span class="leaf"><span class="ok">✅</span> <b>تردد من</b> <code>/workspace/my-attendance</code> — ورود/خروج هر روز</span></li>
+        <li><span class="leaf"><span class="ok">✅</span> <b>برنامهٔ من</b> <code>/workspace/my-schedule</code> — شیفت و تقویم اختصاصی من</span></li>
+        <li><span class="leaf"><span class="ok">✅</span> <b>مرخصی من</b> <code>/workspace/my-leave</code> — ثبت، گردش تأیید، ماندهٔ مرخصی</span></li>
+        <li><span class="leaf"><span class="ok">✅</span> <b>گزارش‌های من</b> <code>/workspace/my-reports</code> — کارکرد و خلاصهٔ دوره</span></li>
+      </ul>
+    </details>
+    <details open><summary>بقیه</summary>
+      <ul class="tree">
+        <li><span class="leaf"><span class="ok">✅</span> <b>جانشینی من</b> <code>/workspace/delegation</code> — ثبت جانشین برای غیبت و اعطای حق تصمیم</span></li>
+        <li><span class="leaf"><span class="ok">✅</span> <b>خانهٔ کارمند</b> <code>/workspace/employee-home</code> — خلاصهٔ وضعیت در یک صفحه</span></li>
+      </ul>
+    </details>
+    <p class="note">صفحات جدید این نقش هنوز ساخته نشده‌اند؛ ثبت‌نکردن گزارش مکان هیچ عملیات دیگری را متوقف نمی‌کند.</p><details open class="planned"><summary>🟥 صفحات جدید من — باید ساخته شود</summary><ul class="tree"><li><span class="leaf"><span class="fut">🟥</span> <b>پاداش و جریمهٔ من</b> <code>/workspace/my-rewards</code> — نمایش سوابق و وضعیت بررسی</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>گزارش مکان من (اختیاری)</b> <code>/workspace/my-location</code> — ثبت محل و زمان گزارش، مشاهده و اصلاح سوابق خود؛ بدون الزام</span></li></ul></details>
+  </div>
+
+  <div class="card c-mgr">
+    <h3>🧑‍💼 پنل مدیر واحد — ۴ مسیر موجود + صفحات جدید در محدودهٔ تیم</h3>
+    <ul class="tree">
+      <li><span class="leaf"><span class="ok">✅</span> <b>خانهٔ مدیر</b> <code>/workspace/manager-home</code> — صف اقدام روز</span></li>
+      <li><span class="leaf"><span class="ok">✅</span> <b>کارتابل بررسی</b> <code>/workspace/inbox</code> — انتخاب کارمند، تاریخ شمسی، تأیید/رد اصلاح‌ها</span></li>
+      <li><span class="leaf"><span class="ok">✅</span> <b>تاریخچهٔ تصمیم‌های من</b> <code>/workspace/decision-history</code> — هر تصمیمی که داده‌ام</span></li>
+      <li><span class="leaf"><span class="ok">✅</span> <b>تردد تیم</b> <code>/workspace/team-attendance</code> — فقط اعضای محدودهٔ من</span></li>
+    </ul>
+    <p class="note"><span class="fut">🟥</span> برای این نقش کم داریم: وضعیت لحظه‌ای افراد (در محل/مرخصی/مأموریت — G-02) · گزارش روزانهٔ تیم و تأخیرها (G-19) · بازگشت امن تصمیم اشتباه (G-18).</p><details open class="planned"><summary>🟥 صفحات جدید تیم — باید ساخته شود</summary><ul class="tree"><li><span class="leaf"><span class="fut">🟥</span> <b>پاداش/جریمهٔ تیم</b> <code>/workspace/rewards/team</code> — ثبت پیشنهاد و بررسی در محدودهٔ مجوز مدیر</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>گزارش مکان تیم</b> <code>/workspace/locations/team</code> — محل گزارش‌شده و زمان آن؛ نمایش «گزارش نشده» بدون اختلال</span></li></ul></details>
+  </div>
+
+  <div class="card c-adm">
+    <h3>🛠️ پنل مدیریت سامانه — ۲۲ مسیر موجود + مدیریت دستگاه، مکان و پاداش/جریمه</h3>
+    <details open><summary>ساختار سازمان و دسترسی‌ها (۵)</summary>
+      <ul class="tree">
+        <li><span class="leaf"><span class="ok">✅</span> <b>سازمان</b> <code>/workspace/organization</code> — شرکت‌ها، واحدها، مکان‌ها</span></li>
+        <li><span class="leaf"><span class="ok">✅</span> <b>کارمندان</b> <code>/workspace/employees</code> — پرونده، انتساب، انتقال</span></li>
+        <li><span class="leaf"><span class="ok">✅</span> <b>کاربران</b> <code>/workspace/users</code> — حساب‌ها، اعطا و لغو نقش، دامنه</span></li>
+        <li><span class="leaf"><span class="ok">✅</span> <b>نقش‌ها و مجوزها</b> <code>/workspace/roles</code> — ~۶۰ مجوز دانه‌ریز</span></li>
+        <li><span class="leaf"><span class="ok">✅</span> <b>آدیت</b> <code>/workspace/audit</code> — ردپای همهٔ تغییرات</span></li>
+      </ul>
+    </details>
+    <details open><summary>شیفت و تقویم (۵)</summary>
+      <ul class="tree">
+        <li><span class="leaf"><span class="ok">✅</span> <b>تقویم‌ها</b> <code>/workspace/calendars</code></span></li>
+        <li><span class="leaf"><span class="ok">✅</span> <b>شیفت‌ها</b> <code>/workspace/shifts</code></span></li>
+        <li><span class="leaf"><span class="ok">✅</span> <b>برنامه‌ها</b> <code>/workspace/schedules</code> — انتساب شیفت و جانشین برنامه‌ای</span></li>
+        <li><span class="leaf"><span class="ok">✅</span> <b>تاریخچهٔ کارمند</b> <code>/workspace/employee-history</code></span></li>
+        <li><span class="leaf"><span class="ok">✅</span> <b>منابع تردد</b> <code>/workspace/sources</code></span></li>
+      </ul>
+    </details>
+    <details open><summary>دادهٔ تردد (۳)</summary>
+      <ul class="tree">
+        <li><span class="leaf"><span class="ok">✅</span> <b>رویدادهای خام</b> <code>/workspace/raw-events</code></span></li>
+        <li><span class="leaf"><span class="ok">✅</span> <b>نگاشت‌ها</b> <code>/workspace/mappings</code> — اتصال شناسهٔ دستگاه به کارمند</span></li>
+        <li><span class="leaf"><span class="ok">✅</span> <b>تعارض‌ها</b> <code>/workspace/conflicts</code> — حل تعارض ورود/خروج</span></li>
+      </ul>
+    </details>
+    <details open><summary>محاسبه و دوره (۳)</summary>
+      <ul class="tree">
+        <li><span class="leaf"><span class="ok">✅</span> <b>محاسبات</b> <code>/workspace/calculations</code> — اجرا و نتایج</span></li>
+        <li><span class="leaf"><span class="ok">✅</span> <b>قواعد</b> <code>/workspace/rules</code> — نسخهٔ قواعد محاسبه</span></li>
+        <li><span class="leaf"><span class="ok">✅</span> <b>دوره‌ها</b> <code>/workspace/periods</code> — بستن دورهٔ ماهانه</span></li>
+      </ul>
+    </details>
+    <details open><summary>گردش‌ها و خروجی (۶)</summary>
+      <ul class="tree">
+        <li><span class="leaf"><span class="ok">✅</span> <b>تنظیمات اصلاح</b> <code>/workspace/settings</code></span></li>
+        <li><span class="leaf"><span class="ok">✅</span> <b>گردش اصلاح</b> <code>/workspace/workflow</code></span></li>
+        <li><span class="leaf"><span class="ok">✅</span> <b>دفتر مرخصی</b> <code>/workspace/leave-admin</code> — گردش، مانده، اضافه‌کار/مأموریت</span></li>
+        <li><span class="leaf"><span class="ok">✅</span> <b>گزارش‌ها</b> <code>/workspace/reports</code></span></li>
+        <li><span class="leaf"><span>🟨</span> <b>سازندهٔ گزارش</b> <code>/workspace/report-builder</code></span></li>
+        <li><span class="leaf"><span class="ok">✅</span> <b>نمای مدیریت</b> <code>/workspace/executive-home</code> — داشبورد</span></li>
+      </ul>
+    </details>
+    <p class="note"><span class="fut">🟥</span> کم داریم: ورود اطلاعات اولیه از Excel (G-22) · انتقال ماندهٔ مرخصی بین سال (G-04) · پشتیبان‌گیری دوره‌ای (G-11) · خروجی Excel/PDF گزارش‌ها (G-08) · <span class="fut">🟥</span> مدیریت کامل چند دستگاه تردد (مصوب و ضروری — G-07).</p><details open class="planned"><summary>🟥 دستگاه‌های تردد: معرفی و اتصال — باید ساخته شود</summary><ul class="tree"><li><span class="leaf"><span class="fut">🟥</span> <b>فهرست چند دستگاه</b> <code>/workspace/devices</code> — نام، شماره، مدل، محل نصب و فعال/غیرفعال</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>معرفی یا ویرایش دستگاه</b> <code>/workspace/devices/new</code> — ثبت دستگاه جدید و مشخصات ارتباطی</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>فرم اتصال و تست ارتباط</b> <code>/workspace/devices/connection</code> — IP، پورت، شناسه و تنظیم امن اتصال؛ متناسب با مدل</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>وضعیت اتصال دستگاه‌ها</b> <code>/workspace/devices/status</code> — آخرین ارتباط، خطا و وضعیت سرویس ارتباطی</span></li></ul></details><details open class="planned"><summary>🟥 دستگاه‌ها: مشخصات، تنظیمات و دریافت تردد — باید ساخته شود</summary><ul class="tree"><li><span class="leaf"><span class="fut">🟥</span> <b>فراخوانی مشخصات دستگاه</b> <code>/workspace/devices/info</code> — مدل، نسخه، ظرفیت و تعداد کاربران/ترددها در صورت پشتیبانی</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>خواندن و اعمال تنظیمات</b> <code>/workspace/devices/settings</code> — زمان دستگاه و تنظیمات پشتیبانی‌شده؛ تأیید تغییرات حساس</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>استخراج و دریافت ترددها</b> <code>/workspace/devices/attendance</code> — دریافت دستی/زمان‌بندی‌شده، بازهٔ تاریخ، جلوگیری از ثبت تکراری</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>دریافت خودکار و PUSH</b> <code>/workspace/devices/sync</code> — تنظیم دریافت PUSH یا واکشی متناسب با پروتکل؛ تلاش مجدد</span></li></ul></details><details open class="planned"><summary>🟥 دستگاه‌ها: کاربران و عملیات ارتباط — باید ساخته شود</summary><ul class="tree"><li><span class="leaf"><span class="fut">🟥</span> <b>کاربران داخل دستگاه</b> <code>/workspace/devices/users</code> — مشاهده و مدیریت اطلاعات هویتی/کارت با مجوز مستقل</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>فراخوانی کاربران از دستگاه</b> <code>/workspace/devices/users/download</code> — انتخاب دستگاه‌ها، دریافت و پیش‌نمایش قبل از ثبت</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>درج و ارسال کاربران به دستگاه</b> <code>/workspace/devices/users/upload</code> — انتخاب پرسنل و یک/چند دستگاه، ارسال و نتیجهٔ هر نفر</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>تطبیق کاربر دستگاه و کارمند</b> <code>/workspace/devices/users/mapping</code> — رفع شناسه‌های ناشناس و تعارض نگاشت</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>صف فرمان‌ها و عملیات دستگاه</b> <code>/workspace/devices/commands</code> — پیشرفت، لغو، تلاش مجدد؛ عملیات حساس با تأیید و آدیت</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>تاریخچهٔ ارتباط و خطاها</b> <code>/workspace/devices/logs</code> — نتیجهٔ دریافت/ارسال هر دستگاه و پیگیری خطا</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>ورود فایل خروجی دستگاه / USB</b> <code>/workspace/devices/usb</code> — مسیر جایگزین برای دستگاه آفلاین؛ اعتبارسنجی قبل از ورود</span></li></ul></details><details open class="planned"><summary>🟥 پاداش و جریمه — باید ساخته شود</summary><ul class="tree"><li><span class="leaf"><span class="fut">🟥</span> <b>قواعد پاداش و جریمه</b> <code>/workspace/rewards/rules</code> — تعریف نوع و قواعد؛ فرمول/مبلغ/تأیید خودکار هنوز تعیین نشده</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>ثبت و بررسی پاداش/جریمه</b> <code>/workspace/rewards/records</code> — انتخاب کارمند و دوره، دلیل و مستند؛ تأیید یا رد با آدیت</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>گزارش پاداش/جریمه</b> <code>/workspace/rewards/reports</code> — خلاصهٔ فرد/واحد/دوره؛ بدون محاسبه یا پرداخت حقوق</span></li></ul></details><details open class="planned"><summary>🟥 مکان و ناحیه (اختیاری) — باید ساخته شود</summary><ul class="tree"><li><span class="leaf"><span class="fut">🟥</span> <b>تعریف مکان‌ها و ناحیه‌ها</b> <code>/workspace/locations/areas</code> — تعریف محل‌های کاری و دسترسی به گزارش</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>گزارش مکان سازمان</b> <code>/workspace/locations/reports</code> — فقط دادهٔ ثبت‌شده؛ دادهٔ ناموجود = «گزارش نشده»، نه غیبت</span></li></ul></details><p class="note">اپراتور دستگاه یک مجوز تخصصی پیشنهادی است، نه ادمین کامل: فقط منوی دستگاه، دریافت/ارسال مجاز و لاگ را می‌بیند. اعطا و لغو همهٔ این مجوزها باید سمت سرور اعمال شود.</p>
+  </div>
+
+  <div class="card c-exe">
+    <h3>📊 مدیر ارشد — داشبورد</h3>
+    <ul class="tree">
+      <li><span class="leaf"><span class="ok">✅</span> <b>نمای مدیریت</b> <code>/workspace/executive-home</code> — داشبورد ۱۲ شاخص: حاضران، تعارض‌های باز، اصلاح‌های در جریان، مرخصی‌ها، اضافه‌کارها و…</span></li>
+    </ul>
+    <p class="note"><span class="fut">🟥</span> کم داریم: خروجی Excel/PDF برای گزارش ماه (G-08).</p><details open class="planned"><summary>🟥 گزارش‌های جدید مدیر ارشد (فقط مشاهده) — باید ساخته شود</summary><ul class="tree"><li><span class="leaf"><span class="fut">🟥</span> <b>گزارش پاداش/جریمه</b> <code>/workspace/rewards/reports</code> — خلاصهٔ فرد/واحد/دوره؛ بدون محاسبه یا پرداخت حقوق</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>گزارش مکان سازمان</b> <code>/workspace/locations/reports</code> — فقط دادهٔ ثبت‌شده؛ دادهٔ ناموجود = «گزارش نشده»، نه غیبت</span></li></ul></details>
+  </div>
+</section>
+
+<section id="s3">
+  <h2>۳) درخت کل سامانه — ۳۸ مسیر موجود + ۲۴ صفحهٔ پیشنهادی جدید</h2>
+  <p class="hint">سبز = موجود؛ قرمز = طرح مقصد. ۲۴ مسیر پیشنهادی یکتا هستند؛ نمایش یک گزارش در چند نقش، صفحهٔ جدید محسوب نمی‌شود. جزئیات تمام صفحات جدید در درخت نقش‌ها آمده است.</p>
+  <details open><summary>🔐 ورود و حساب — ۴ مسیر</summary>
+    <ul class="tree">
+      <li>ورود <code>/login</code> ✅</li>
+      <li>پنل من <code>/workspace</code> ✅ (شامل بخش اعلان‌ها)</li>
+      <li>حساب من <code>/workspace/account</code> ✅</li>
+      <li>پنل ابزار <code>/panel</code> ✅</li>
+    </ul>
+  </details>
+  <details><summary>👤 کارمند — ۸ صفحه</summary>
+    <ul class="tree">
+      <li>خانهٔ کارمند ✅ · درخواست جدید ✅ · درخواست‌های من ✅</li>
+      <li>تردد من ✅ · برنامهٔ من ✅ · مرخصی من ✅ · گزارش‌های من ✅ · جانشینی من ✅</li>
+    </ul>
+  </details>
+  <details><summary>🧑‍💼 مدیر واحد — ۴ صفحه + ابزارهای کارمند</summary>
+    <ul class="tree">
+      <li>خانهٔ مدیر ✅ · کارتابل بررسی ✅ · تاریخچهٔ تصمیم‌ها ✅ · تردد تیم ✅</li>
+    </ul>
+  </details>
+  <details><summary>🛠️ مدیریت سامانه — ۲۲ صفحه</summary>
+    <ul class="tree">
+      <li>ساختار: سازمان · کارمندان · کاربران · نقش‌ها · آدیت — ۵ ✅</li>
+      <li>شیفت و تقویم: تقویم‌ها · شیفت‌ها · برنامه‌ها · تاریخچهٔ کارمند · منابع — ۵ ✅</li>
+      <li>تردد: رویدادهای خام · نگاشت‌ها · تعارض‌ها — ۳ ✅</li>
+      <li>محاسبه: محاسبات · قواعد · دوره‌ها — ۳ ✅</li>
+      <li>گردش‌ها: تنظیمات اصلاح · گردش اصلاح · دفتر مرخصی · گزارش‌ها · سازندهٔ گزارش 🟨 · نمای مدیریت — ۵ ✅ و ۱ 🟨</li>
+    </ul>
+  </details>
+  <details><summary>📈 خلاصهٔ شمارش</summary>
+    <ul class="tree">
+      <li>مجموع مسیرها: <b>۳۸</b> (۳۶ فضای کاری + ورود + پنل ابزار) — وجود مسیر به معنی تکمیل همهٔ امکانات نیست</li>
+      <li>صفحات فیزیکی UI موجود: ۳۲ فایل HTML + ۳۳ فایل js در <code>ReCode/src/IO.Web/Ui/</code></li>
+      <li>دسترسی: پنل هر نقش با مجوزِ واقعی سمت سرور روشن/خاموش می‌شود؛ پنهان‌کردن منو به‌تنهایی امنیت نیست؛ endpoint هم باید مجوز را بررسی کند.</li>
+    </ul>
+  </details><details open class="planned"><summary>🟥 شاخهٔ جدید دستگاه‌ها (۱۵ صفحه) — باید ساخته شود</summary><ul class="tree"><li><span class="leaf"><span class="fut">🟥</span> <b>فهرست چند دستگاه</b> <code>/workspace/devices</code> — نام، شماره، مدل، محل نصب و فعال/غیرفعال</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>معرفی یا ویرایش دستگاه</b> <code>/workspace/devices/new</code> — ثبت دستگاه جدید و مشخصات ارتباطی</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>فرم اتصال و تست ارتباط</b> <code>/workspace/devices/connection</code> — IP، پورت، شناسه و تنظیم امن اتصال؛ متناسب با مدل</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>وضعیت اتصال دستگاه‌ها</b> <code>/workspace/devices/status</code> — آخرین ارتباط، خطا و وضعیت سرویس ارتباطی</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>فراخوانی مشخصات دستگاه</b> <code>/workspace/devices/info</code> — مدل، نسخه، ظرفیت و تعداد کاربران/ترددها در صورت پشتیبانی</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>خواندن و اعمال تنظیمات</b> <code>/workspace/devices/settings</code> — زمان دستگاه و تنظیمات پشتیبانی‌شده؛ تأیید تغییرات حساس</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>استخراج و دریافت ترددها</b> <code>/workspace/devices/attendance</code> — دریافت دستی/زمان‌بندی‌شده، بازهٔ تاریخ، جلوگیری از ثبت تکراری</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>دریافت خودکار و PUSH</b> <code>/workspace/devices/sync</code> — تنظیم دریافت PUSH یا واکشی متناسب با پروتکل؛ تلاش مجدد</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>کاربران داخل دستگاه</b> <code>/workspace/devices/users</code> — مشاهده و مدیریت اطلاعات هویتی/کارت با مجوز مستقل</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>فراخوانی کاربران از دستگاه</b> <code>/workspace/devices/users/download</code> — انتخاب دستگاه‌ها، دریافت و پیش‌نمایش قبل از ثبت</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>درج و ارسال کاربران به دستگاه</b> <code>/workspace/devices/users/upload</code> — انتخاب پرسنل و یک/چند دستگاه، ارسال و نتیجهٔ هر نفر</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>تطبیق کاربر دستگاه و کارمند</b> <code>/workspace/devices/users/mapping</code> — رفع شناسه‌های ناشناس و تعارض نگاشت</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>صف فرمان‌ها و عملیات دستگاه</b> <code>/workspace/devices/commands</code> — پیشرفت، لغو، تلاش مجدد؛ عملیات حساس با تأیید و آدیت</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>تاریخچهٔ ارتباط و خطاها</b> <code>/workspace/devices/logs</code> — نتیجهٔ دریافت/ارسال هر دستگاه و پیگیری خطا</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>ورود فایل خروجی دستگاه / USB</b> <code>/workspace/devices/usb</code> — مسیر جایگزین برای دستگاه آفلاین؛ اعتبارسنجی قبل از ورود</span></li></ul></details><details open class="planned"><summary>🟥 شاخهٔ جدید پاداش/جریمه (۵ صفحه) — باید ساخته شود</summary><ul class="tree"><li><span class="leaf"><span class="fut">🟥</span> <b>پاداش و جریمهٔ من</b> <code>/workspace/my-rewards</code> — نمایش سوابق و وضعیت بررسی</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>پاداش/جریمهٔ تیم</b> <code>/workspace/rewards/team</code> — ثبت پیشنهاد و بررسی در محدودهٔ مجوز مدیر</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>قواعد پاداش و جریمه</b> <code>/workspace/rewards/rules</code> — تعریف نوع و قواعد؛ فرمول/مبلغ/تأیید خودکار هنوز تعیین نشده</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>ثبت و بررسی پاداش/جریمه</b> <code>/workspace/rewards/records</code> — انتخاب کارمند و دوره، دلیل و مستند؛ تأیید یا رد با آدیت</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>گزارش پاداش/جریمه</b> <code>/workspace/rewards/reports</code> — خلاصهٔ فرد/واحد/دوره؛ بدون محاسبه یا پرداخت حقوق</span></li></ul></details><details open class="planned"><summary>🟥 شاخهٔ جدید گزارش مکان (۴ صفحه) — باید ساخته شود</summary><ul class="tree"><li><span class="leaf"><span class="fut">🟥</span> <b>گزارش مکان من (اختیاری)</b> <code>/workspace/my-location</code> — ثبت محل و زمان گزارش، مشاهده و اصلاح سوابق خود؛ بدون الزام</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>گزارش مکان تیم</b> <code>/workspace/locations/team</code> — محل گزارش‌شده و زمان آن؛ نمایش «گزارش نشده» بدون اختلال</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>تعریف مکان‌ها و ناحیه‌ها</b> <code>/workspace/locations/areas</code> — تعریف محل‌های کاری و دسترسی به گزارش</span></li><li><span class="leaf"><span class="fut">🟥</span> <b>گزارش مکان سازمان</b> <code>/workspace/locations/reports</code> — فقط دادهٔ ثبت‌شده؛ دادهٔ ناموجود = «گزارش نشده»، نه غیبت</span></li></ul></details>
+</section>
+
+<section id="s4">
+  <h2>۴) زنجیرهٔ یک روز کاری در سامانه</h2>
+  <p class="hint">از لحظه‌ای که کارمند کارت می‌زند تا وقتی مدیر وضعیت را می‌بیند — با رنگ وضعیت هر حلقه.</p>
+  <div class="steps">
+    <div class="step st-bad"><span class="num">۱</span><b>ورود تردد</b><small>🟥 چند دستگاه: مصوب و ضروری · ✅ ورود دستی/API موجود</small></div>
+    <div class="step st-ok"><span class="num">۲</span><b>اصلاح و تصحیح</b><small>✅ کارتابل مدیر + جانشین + اعلان</small></div>
+    <div class="step st-ok"><span class="num">۳</span><b>محاسبهٔ کارکرد</b><small>✅ جفت‌سازی ورود/خروج + دوره</small></div>
+    <div class="step st-ok"><span class="num">۴</span><b>مرخصی و گردش‌ها</b><small>✅ مرخصی/اضافه‌کار/مأموریت + مانده</small></div>
+    <div class="step st-warn"><span class="num">۵</span><b>گزارش ماه</b><small>🟨 صفحه هست · خروجی Excel 🟥</small></div>
+    <div class="step st-ok"><span class="num">۶</span><b>داشبورد مدیریت</b><small>✅ ۱۲ شاخص لحظه‌ای</small></div>
+  </div>
+  <p class="note">مدیریت دستگاه‌ها (R9) ورودی اصلی مصوب است؛ ورود دستی/API مسیر پشتیبان می‌ماند. پاداش/جریمه یک بخش مستقل است. گزارش مکان شاخهٔ اختیاری است: نبود آن، تردد، کارکرد، مرخصی، تأیید مدیر و گزارش‌ها را متوقف نمی‌کند. وضعیت حضور با موقعیت مکانی یکسان نیست.</p>
+</section>
+
+<section id="s5">
+  <h2>۵) کارهای باقی‌مانده — نقشهٔ به‌روز اجرا</h2>
+  <p class="hint">ترتیب پیشنهادی: شناسایی مدل و پروتکل دستگاه همین ابتدا؛ R9 پیش از پایلوت اجباری است. سپس تکمیل بسته‌های قبلی و R10/R11. R7 تکمیلی‌های قبلی هم حذف نشده است.</p>
+  <div class="rcards">
+    <div class="rc"><span class="n">R1</span><b>بازگشت امن تصمیم (Undo)</b><p>امروز هر تصمیم یکتاست؛ باید تاریخچهٔ تصمیم بسازیم تا مدیر بتواند تصمیم اشتباه را امن برگرداند.</p></div>
+    <div class="rc"><span class="n">R2</span><b>تأخیر/تعجیل + اضافه‌کار خودکار</b><p>دقیقهٔ تأخیر و تعجیل از تردد واقعی محاسبه شود؛ اضافه‌کار پیشنهادی خودکار از تردد ساخته شود.</p></div>
+    <div class="rc"><span class="n">R3</span><b>وضعیت لحظه‌ای + کارتابل مرکزی + گزارش روز</b><p>وضعیت حضور/مرخصی/مأموریت، نه ردیابی مکان؛ کارتابل و گزارش روزانه در محدودهٔ مجاز هر مدیر.</p></div>
+    <div class="rc"><span class="n">R4</span><b>انتقال ماندهٔ مرخصی بین سال</b><p>اول سال، ماندهٔ سال قبل به سال جدید منتقل شود.</p></div>
+    <div class="rc"><span class="n">R5</span><b>خروجی Excel/PDF + ورود اطلاعات</b><p>گزارش ماه و داشبورد به فایل؛ بارگذاری اطلاعات اولیهٔ سازمان از Excel.</p></div>
+    <div class="rc"><span class="n">R6</span><b>پشتیبان‌گیری دوره‌ای</b><p>Backup خودکار و پایش سلامت سامانه.</p></div>
+    <div class="rc"><span class="n">R8</span><b>نصب روی سرور سازمان</b><p>بستهٔ نصب، بارگذاری دادهٔ واقعی، و یک ماه اجرای موازی با سیستم قبلی.</p></div><div class="rc"><span class="n">R9</span><b>مدیریت کامل چند دستگاه — ضروری</b><p>۱۵ صفحه: تعریف، اتصال، تنظیمات، استخراج تردد، تبادل کاربران، فرمان‌ها و لاگ. پذیرش با دستگاه واقعی پیش از پایلوت.</p></div>
+<div class="rc"><span class="n">R10</span><b>پاداش و جریمه — مصوب</b><p>قواعد، ثبت/بررسی، سوابق شخصی و گزارش؛ فرمول و مبلغ در طراحی بعدی تعیین می‌شود. حقوق‌ودستمزد خارج از محدوده است.</p></div>
+<div class="rc"><span class="n">R11</span><b>گزارش مکان — اختیاری و مستقل</b><p>تعریف محل، ثبت اختیاری و گزارش تیم/سازمان. نبود گزارش = گزارش نشده؛ هیچ توقف یا جریمهٔ خودکار ندارد.</p></div>
+<div class="rc"><span class="n">R7</span><b>تکمیلی‌های قبلی</b><p>کاردکس، شیفت ویژه/موقت، فیلد دلخواه و اعلان بلادرنگ مطابق فهرست شکاف‌ها باقی می‌مانند.</p></div>
+  </div>
+</section>
+
+<section id="s6"><h2>۶) تصمیم‌های شما ثبت شد</h2>
+<p class="hint">تصویب یک بخش با ساخته‌شدن آن متفاوت است؛ هر سه بخش زیر فعلاً قرمزند.</p>
+<table><tr><th>موضوع</th><th>تصمیم قطعی شما</th><th>اثر در نقشه</th></tr>
+<tr><td>💰 پاداش/جریمه — G-05</td><td>بله، بخش مستقل داشته باشد.</td><td>R10 · پنج صفحه؛ جزئیات قواعد مالی هنوز مشخص نشده.</td></tr>
+<tr><td>📍 گزارش مکان — G-06</td><td>بله؛ گزارش‌ندادن نباید برنامه را مختل کند.</td><td>R11 · چهار صفحه؛ اختیاری، مستقل و بدون جریمهٔ خودکار.</td></tr>
+<tr><td>🖥️ دستگاه تردد — G-07</td><td>بله، خیلی مهم؛ چند دستگاه، اتصال، تنظیمات، دریافت اطلاعات و تبادل کاربران.</td><td>R9 · پانزده صفحه؛ مدل و پروتکل دستگاه‌ها هنگام طراحی/اتصال مشخص می‌شود. پشتیبانی همهٔ برندها ادعا نشده.</td></tr>
+<tr><td>🔑 قفل سخت‌افزاری/نرم‌افزاری/لایسنس — G-13</td><td>هنوز تصمیمی نداریم؛ تصمیم آینده با تیم.</td><td>بدون پیاده‌سازی، سقف کاربر/دستگاه یا صفحهٔ فعال‌سازی. دروازهٔ اجرای سامانه نیست.</td></tr></table>
+<p class="note">مدیریت دستگاه حضور و غیاب تأیید شده؛ کنترل فیزیکی درب/گیت و حقوق‌ودستمزد به‌صورت ضمنی به دامنه اضافه نشده‌اند. گزارش مکان هم به معنی ردیابی GPS دائمی نیست.</p>
+<details><summary>شاهد قابلیت‌های دستگاه در منابع قدیمی</summary><ul>
+<li>T5Web: <code>App/Views/Device/Index.cshtml</code> و <code>App/Views/DeviceOperations/</code>: Index، DeviceProperties، DownloadUsers، ShowUsers، UploadUsers؛ انتخاب چند دستگاه در <code>Shared/_DeviceSelection.cshtml</code>.</li>
+<li>Link5: رشته‌ها/متادیتای <code>Link5.exe</code> شامل ActiveDevices و AddUploadCommand؛ <code>Device.dll</code> شامل ConnectAndReadAllRecords و ConnectUDPAndReadAllRecords؛ سرویس <code>Comm5Serv v3.exe</code>.</li>
+<li>T5V3: متادیتای <code>T5V3.exe</code> شامل HTTPPushServer و ConfigPushServer؛ SDK: Exportهای <code>plcommpro.dll</code> شامل GetDeviceData و GetDeviceParam.</li>
+</ul><p>این شواهد، وجود قابلیت در مرجع را نشان می‌دهند؛ بدنهٔ باینری سورس خوانا نیست. سازگاری، امنیت و امکان استفادهٔ مجاز از SDK باید بررسی و با دستگاه واقعی آزموده شود؛ کپی آماده یا اتصال آزمایش‌شده ادعا نشده است.</p></details>
+</section>
+
+<section id="s7">
+  <h2>۷) شکل نهایی پروژه در روز اجرا</h2>
+  <p class="hint">وقتی همهٔ کارها تمام شود، سامانه این شکلی خواهد بود.</p>
+  <div class="layer l1"><b>مرورگر</b> — بدون نصب روی هیچ کامپیوتری<br>
+    <div class="chips"><span class="chip">👤 کارمند</span><span class="chip">🧑‍💼 مدیر واحد</span><span class="chip">🛠️ مدیریت سامانه</span><span class="chip">📊 مدیر ارشد</span></div>
+  </div>
+  <div class="arrow">▼</div>
+  <div class="layer l2"><b>سرور سازمان</b> — وب‌سامانهٔ IO (نسخهٔ نصب‌شده + HTTPS)</div>
+  <div class="arrow">▼</div>
+  <div class="layer l3"><b>هستهٔ سامانه</b><br>
+    <div class="chips"><span class="chip">هویت و دسترسی</span><span class="chip">تردد و تعارض</span><span class="chip">محاسبهٔ کارکرد</span><span class="chip">گردش‌ها و اعلان</span><span class="chip">مرخصی و مانده</span><span class="chip">🟥 مدیریت دستگاه‌ها</span><span class="chip">🟥 پاداش/جریمه</span><span class="chip">🟥 گزارش مکانِ اختیاری</span></div>
+  </div>
+  <div class="arrow">▼</div>
+  <div class="layer l4b"><b>پایگاه دادهٔ SQL Server</b> — ۴۲+ جدول با آدیت کامل</div>
+  <div class="side">
+    <div class="layer l4">🖥️ چند دستگاه تردد ⇄ سرویس ارتباطی ⇄ IO — مصوب، باید ساخته و روی سخت‌افزار واقعی آزموده شود (R9)</div>
+    <div class="layer l4">📄 خروجی فایل به نرم‌افزار حقوق — خارج از محدوده</div>
+  </div>
+</section>
+
+<footer>
+  منابع: <code>ReCode/docs/full-audit/</code> (ممیزی کامل پنج سامانه) · ساخته‌شده از کد واقعی <code>ReCode/src/IO.Web/Program.cs</code> و <code>Ui/Index.html</code><br>
+  این فایل کاملاً مستقل است — آفلاین باز می‌شود و قابل ارسال به دیگران است.
+</footer>
+
+</div>
+<script>
+var b=document.getElementById('dl');
+if(location.protocol==='file:'){
+b.href=URL.createObjectURL(new Blob(['<!doctype html>\n'+document.documentElement.outerHTML],{type:'text/html;charset=utf-8'}));
+b.download='IO-charts.html';
+}
+</script>
+</body>
+</html>

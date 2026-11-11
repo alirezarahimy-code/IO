@@ -3,9 +3,9 @@ G-01,گردش و گزارش تأخیر/تعجیل (Late/Early),TWF,"LateControll
 G-02,وضعیت لحظه‌ای پرسنل (حاضر/غایب/در مأموریت),TWF+T5Web,"PersonnelStatusController.cs (هر دو), TC5.dll GetPersonnelStatus",🔴 غایب,—,بالا,R3
 G-03,کارتابل مرکزی درخواست‌های همهٔ کاربران,TWF+T5Web,ShowUsersRequestController.cs (هر دو),🔴 غایب,—,متوسط,R3
 G-04,انتقال ماندهٔ مرخصی بین سال,T5Web,"TransferRemainedLeaveController, T5V3.LeaveCalcs YearLeaveRemain",🔴 غایب,—,متوسط,R4
-G-05,پاداش/جریمه,TWF,"RewardController.cs (۲ اکشن), View Reward",⚪ نیازمند تصمیم,—,متوسط,تصمیم کاربر
-G-06,گزارش مکان/ناحیه,TWF+T5V3,"LocationReportController.cs, T5V3.Model AreaModel/AreaPointModel",⚪ نیازمند تصمیم,—,متوسط,تصمیم کاربر
-G-07,اتصال واقعی دستگاه/درب + PUSH,T5Web+Link5,"iclockController, GateController, Comm5Serv v3.exe, Device.dll, zkemkeeper/plcommpro",⚪ بدون تصمیم (سند رسمی),مدل داده کامل: EventSources/Mappings/RawEvents,بحرانی*,تصمیم کاربر
+G-05,پاداش/جریمه,TWF,"RewardController.cs (۲ اکشن), View Reward",🔴 مصوب؛ بخش مستقل باید ساخته شود,—,متوسط,R10
+G-06,گزارش مکان/ناحیه,TWF+T5V3,"LocationReportController.cs, T5V3.Model AreaModel/AreaPointModel",🔴 مصوب؛ اختیاری و غیرمسدودکننده,—,متوسط,R11
+G-07,اتصال واقعی و مدیریت چند دستگاه تردد + PUSH,T5Web+Link5,"iclockController, GateController, Comm5Serv v3.exe, Device.dll, zkemkeeper/plcommpro",🔴 مصوب؛ مدیریت کامل چند دستگاه لازم است,مدل داده کامل: EventSources/Mappings/RawEvents,بحرانی,R9
 G-08,خروجی فایل Excel/PDF,T5Web+T5V3,"ExportController, ReportTablix*, T5V3.ReportGenerator.dll, ReportViewer DLLها",🟡 فقط داده,ReportBuilder preflight,بالا,R5
 G-09,گزارش‌ساز داینامیک کاربر-تعریف,T5Web,"ReportDesignController, ReportTablixController, ReportFilterController, ReportDatasController",🟡 اسکلت,ReportBuilder.html preflight,متوسط,R5
 G-10,ورود گروهی از Excel,T5Web,ImportFromExcelController,🔴 غایب,—,متوسط,R5
