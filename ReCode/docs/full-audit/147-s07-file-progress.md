@@ -19,3 +19,9 @@ CI `56cca31`: SQL/HTTPS/browser `43170218579` و Windows/Linux `43170218552` م�
 ## ماندهٔ قطعی
 
 S05/S06/S07 پذیرش مدل/SDK/دستگاه واقعی ندارند. S08 ارسال افراد/کارت و retry هر نفر/دستگاه، S09 استخراج واقعی ranged و trace سخت‌افزاری، S10 زمان‌بندی/PUSH معتبر و S11 صف عمومی فرمان/عملیات حساس هنوز پیاده نشده‌اند. جزء فایل، جای S09 یا پایان S12 نیست. [ماتریس مدل](../part-03/model-coverage.csv) دقیقاً verified=false است. کنترل فیزیکی درب، payroll و بایومتریکِ بدون سیاست مصوب خارج قابلیت‌های ساخته‌شده‌اند.
+
+## بازاجرای نهایی و ابزار نصب
+
+کد `534ef5f` با SQL/HTTPS/browser `43173466033` و Windows/Linux `43173466045` موفق شد: **۵۳۲ یکپارچه، ۴۲ Foundation، ۳۵ portable**. redaction بایت‌های فایل در متن request، بودجهٔ دقیق سطر با/بدون newline آخر و قرنطینهٔ underflow/overflow UTC به تست اضافه شدند. `IO.DeviceWorker` اکنون lifetime واقعی Windows Service دارد و content root آن پوشهٔ منتشرشده است. installer با حساب مجازی اختصاصی و شروع دستی، و الگوی محدودشدهٔ systemd افزوده شد. CI در Windows فقط publish/parse/ValidateOnly می‌کند؛ **سرویس OS یا SDK/دستگاه واقعی نصب/اجرا نشده است**. [شاهد نهایی](../part-03/s12-file-component-evidence.json).
+
+بررسی فقط‌خواندنی `Personnel.ZK.ZKDevice.UploadUsers` و امضای `IZKEM`، setterهای کارت، password، privilege و AccGroup را نشان داد. [مرزهای انتقال S08](../part-03/s08-reference-safety.fa.md) ثبت شد؛ ارسال کاربر هنوز ساخته یا فعال نشده و هیچ موفقیت سخت‌افزاری ادعا نمی‌شود.

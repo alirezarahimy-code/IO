@@ -49,6 +49,14 @@
       "contract": "Tab-separated badge, local timestamp, machine number, check type, verify mode; timestamp parsed as Gregorian for year >=1500 otherwise Persian calendar in this legacy implementation",
       "bodyObserved": true,
       "limit": "Not proof of a universal ZK attlog layout. New parser must use explicit layout/calendar/time zone and quarantine invalid or ambiguous data; real file verification still pending."
+    },
+    {
+      "type": "Personnel.ZK.ZKDevice",
+      "method": "UploadUsers",
+      "contract": "SSR TFT path: SetStrCardNumber(user.DeviceCardNumber); z.AccGroup=user.DeviceGroupNumber; SSR_SetUserInfo(machine,badge,name truncated to 20,password,privilege mapped to 3 or 0,enabled). Non-TFT SetUserInfo differs. Legacy path also includes separate finger/face/photo and batch-update branches.",
+      "bodyObserved": true,
+      "interfaceMetadata": "zkemkeeper.IZKEM: SSR_SetUserInfo DispId 151; SetStrCardNumber DispId 170. These are static interface signatures, not original source.",
+      "limit": "Not implemented as S08: copying this body can clear a password, change administrator privilege or physical access group, silently truncate a name, or overwrite/delete biometric templates. New ordinary user exchange must avoid physical-door commands, preserve protected fields, require explicit intent and separately record per-person/device unknown outcomes. No hardware safety/compatibility demonstrated."
     }
   ],
   "implementation": "Independent new private STA COM probe child, not a copy of Personnel business/licensing logic; no automatic SDK registration or legacy activation implementation",

@@ -1,11 +1,11 @@
 {
-  "scope": "S07 and S12 FILE software components only. Streamed SSR user download and exact mapping preview; explicit Personnel reference file preview/quarantine and confirmed transactional raw/conflict ingestion. NOT acceptance of real SDK/hardware, S08-S11, or all Part 3.",
-  "codeCommit": "e70c43e12271d7559cce6599daacecd26f464813",
+  "scope": "S07 and S12 FILE software components only. Streamed SSR user download and exact mapping preview; explicit Personnel reference file preview/quarantine and confirmed transactional raw/conflict ingestion. NOT acceptance of real SDK/hardware, S08-S11, or all Part 3. Windows SCM lifetime, dedicated virtual-account manual-start installer and systemd deployment template are prepared; OS service installation has NOT been performed.",
+  "codeCommit": "534ef5f7a2c86eeff192dfe00757459aa0be7f00",
   "checks": {
     "integrationPassLines": 532,
     "foundation": 42,
     "domain": 26,
-    "portableNativeBoundaryAndFileParser": 33,
+    "portableNativeBoundaryAndFileParser": 35,
     "permissions": 99,
     "pagesAndHelp": 46,
     "foundationMigrations": 29,
@@ -13,7 +13,8 @@
     "s07ServiceChecks": 22,
     "s07HttpChecks": 4,
     "s12FileServiceChecks": 17,
-    "s12FileHttpChecks": 4
+    "s12FileHttpChecks": 4,
+    "windowsServiceInstallerReadOnlyValidation": true
   },
   "realSdkExecuted": false,
   "hardwareVerified": false,
@@ -28,15 +29,15 @@
   "runs": [
     {
       "conclusion": "success",
-      "databaseId": 43171645469,
-      "headSha": "e70c43e12271d7559cce6599daacecd26f464813",
+      "databaseId": 43173466033,
+      "headSha": "534ef5f7a2c86eeff192dfe00757459aa0be7f00",
       "jobs": [
         {
-          "completedAt": "2026-11-12T07:01:23Z",
+          "completedAt": "2026-11-12T07:16:45Z",
           "conclusion": "success",
-          "databaseId": 131026099095,
+          "databaseId": 131032018676,
           "name": "verify",
-          "startedAt": "2026-11-12T06:56:33Z",
+          "startedAt": "2026-11-12T07:11:50Z",
           "status": "completed",
           "steps": [
             {
@@ -244,23 +245,23 @@
               "status": "completed"
             }
           ],
-          "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43171645469/job/131026099095"
+          "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43173466033/job/131032018676"
         }
       ],
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43171645469"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43173466033"
     },
     {
       "conclusion": "success",
-      "databaseId": 43171645658,
-      "headSha": "e70c43e12271d7559cce6599daacecd26f464813",
+      "databaseId": 43173466045,
+      "headSha": "534ef5f7a2c86eeff192dfe00757459aa0be7f00",
       "jobs": [
         {
-          "completedAt": "2026-11-12T06:58:30Z",
+          "completedAt": "2026-11-12T07:12:57Z",
           "conclusion": "success",
-          "databaseId": 131026099743,
-          "name": "platform (ubuntu-24.04)",
-          "startedAt": "2026-11-12T06:56:34Z",
+          "databaseId": 131032018597,
+          "name": "platform (windows-2022)",
+          "startedAt": "2026-11-12T07:11:50Z",
           "status": "completed",
           "steps": [
             {
@@ -306,14 +307,14 @@
               "status": "completed"
             }
           ],
-          "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43171645658/job/131026099743"
+          "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43173466045/job/131032018597"
         },
         {
-          "completedAt": "2026-11-12T06:58:30Z",
+          "completedAt": "2026-11-12T07:12:57Z",
           "conclusion": "success",
-          "databaseId": 131026100494,
-          "name": "platform (windows-2022)",
-          "startedAt": "2026-11-12T06:56:34Z",
+          "databaseId": 131032018974,
+          "name": "platform (ubuntu-24.04)",
+          "startedAt": "2026-11-12T07:11:50Z",
           "status": "completed",
           "steps": [
             {
@@ -359,11 +360,15 @@
               "status": "completed"
             }
           ],
-          "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43171645658/job/131026100494"
+          "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43173466045/job/131032018974"
         }
       ],
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43171645658"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43173466045"
     }
-  ]
+  ],
+  "windowsServiceInstalled": false,
+  "linuxServiceInstalled": false,
+  "installerFile": "ReCode/deploy/device-worker/install-windows-service.ps1",
+  "systemdTemplate": "ReCode/deploy/device-worker/io-device-worker.service"
 }

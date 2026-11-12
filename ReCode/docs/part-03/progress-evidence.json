@@ -7,12 +7,12 @@
     "exactModelFirmware": "not supplied",
     "realDeviceExecution": "not performed"
   },
-  "latestVerifiedCode": "e70c43e12271d7559cce6599daacecd26f464813",
+  "latestVerifiedCode": "534ef5f7a2c86eeff192dfe00757459aa0be7f00",
   "checks": {
     "integrationPassLines": 532,
     "foundation": 42,
     "domain": 26,
-    "portableNativeBoundaryAndFileParser": 33,
+    "portableNativeBoundaryAndFileParser": 35,
     "permissions": 99,
     "pagesAndHelp": 46,
     "foundationMigrations": 29,
@@ -20,7 +20,8 @@
     "s07ServiceChecks": 22,
     "s07HttpChecks": 4,
     "s12FileServiceChecks": 17,
-    "s12FileHttpChecks": 4
+    "s12FileHttpChecks": 4,
+    "windowsServiceInstallerReadOnlyValidation": true
   },
   "stages": {
     "S04": "accepted registry and metadata groups",
@@ -31,24 +32,24 @@
     "S09": "not implemented: real device log extraction and end-to-end ingestion",
     "S10": "not implemented: scheduled polling and authenticated PUSH",
     "S11": "not implemented: actual command queue, advanced settings and sensitive operations; diagnostic queue is not S11",
-    "S12": "partial: file importer verified in CI: exact original bytes, explicit calendar/check codes, retained quarantine, confirmed page commits, idempotent receipts, actual RawEventId/ConflictId trace through existing ingestion; installation and real multi-device hardware acceptance remain"
+    "S12": "partial: file-import software verified in CI, exact original bytes, explicit interpretation, retained quarantine, confirmed transactional raw/conflict receipts; row budget and UTC overflow fixed. Windows SCM lifetime and manual-start virtual-account installer (read-only validation in CI), Linux systemd template prepared; actual OS installation and multi-device SDK/hardware acceptance remain"
   },
   "hardwareVerified": false,
   "part3Complete": false,
   "runs": [
     {
-      "databaseId": 43171645469,
-      "headSha": "e70c43e12271d7559cce6599daacecd26f464813",
+      "databaseId": 43173466033,
+      "headSha": "534ef5f7a2c86eeff192dfe00757459aa0be7f00",
       "status": "completed",
       "conclusion": "success",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43171645469"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43173466033"
     },
     {
-      "databaseId": 43171645658,
-      "headSha": "e70c43e12271d7559cce6599daacecd26f464813",
+      "databaseId": 43173466045,
+      "headSha": "534ef5f7a2c86eeff192dfe00757459aa0be7f00",
       "status": "completed",
       "conclusion": "success",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43171645658"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43173466045"
     }
   ]
 }
