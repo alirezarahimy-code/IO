@@ -477,6 +477,9 @@ internal static class HttpSecurityTests
                   (await own.GetAsync("/device-user-downloads")).StatusCode==HttpStatusCode.Forbidden&&
                   (await own.GetAsync("/device-user-downloads/"+downloadId+"/preview")).StatusCode==HttpStatusCode.Forbidden,
                   "HTTP S07 download grant permits exact retry without granting retained user or mapping preview reads");
+            check((await PostAdmin(own,"/device-user-downloads",new DeviceUserDownloadInput(Guid.NewGuid(),s06Device,s06Version,30,"auto"))).StatusCode==HttpStatusCode.BadRequest&&
+                  (await PostAdmin(own,"/device-user-downloads",new DeviceUserDownloadInput(downloadId,s06Device,s06Version,30,"legacy-int32-v1"))).StatusCode==HttpStatusCode.Conflict,
+                  "HTTP S07 read format must be explicit and cannot change under an existing default-SSR intent");
             (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.users.read"})).EnsureSuccessStatusCode();
             using(var downloads=JsonDocument.Parse(await own.GetStringAsync("/device-user-downloads?deviceId="+s06Device)))
             {
@@ -485,6 +488,15 @@ internal static class HttpSecurityTests
                       (await own.GetAsync("/device-user-downloads/"+downloadId+"/preview")).StatusCode==HttpStatusCode.OK&&
                       (await PostAdmin(own,"/device-user-downloads/"+downloadId+"/cancel",new{ExpectedVersion=download.GetProperty("version").GetBytesFromBase64()})).StatusCode==HttpStatusCode.OK,
                       "HTTP S07 read grant enables protected help and real preview while cancellation is versioned pending-only");
+            }
+            var legacyDownloadId=Guid.NewGuid();
+            (await PostAdmin(own,"/device-user-downloads",new DeviceUserDownloadInput(legacyDownloadId,s06Device,s06Version,30,"legacy-int32-v1"))).EnsureSuccessStatusCode();
+            using(var legacyDownloads=JsonDocument.Parse(await own.GetStringAsync("/device-user-downloads?deviceId="+s06Device)))
+            {
+                var legacyRow=legacyDownloads.RootElement.GetProperty("items").EnumerateArray().Single(x=>x.GetProperty("id").GetGuid()==legacyDownloadId);
+                check(legacyRow.GetProperty("readFormat").GetString()=="legacy-int32-v1"&&
+                      (await PostAdmin(own,"/device-user-downloads/"+legacyDownloadId+"/cancel",new{ExpectedVersion=legacyRow.GetProperty("version").GetBytesFromBase64()})).StatusCode==HttpStatusCode.OK,
+                      "HTTP S07 legacy read approval is durable queryable and pending-only cancellable with no implied upload grant");
             }
             foreach(var code in new[]{"devices.users.read","devices.users.download"})
                 (await PostAdmin(adminClient,"/admin/role-permissions/revoke",new{RoleId=deviceRole,Code=code})).EnsureSuccessStatusCode();

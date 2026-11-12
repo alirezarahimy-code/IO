@@ -418,7 +418,7 @@ public static class IoWebHost
         app.MapPost("/device-attendance-downloads/{id:guid}/commit-page", (Guid id,DeviceAttendanceCommit input,HttpContext c,IAntiforgery csrf,DeviceAttendanceDownloads service)=>Admin(c,csrf,actor=>service.CommitPageAsync(actor,id,input.ExpectedVersion,input.After,input.Confirmation,c.RequestAborted)));
         app.MapGet("/device-user-downloads", (HttpContext c,DeviceUserDownloads service,Guid? deviceId,int offset=0)=>AdminRead(c,actor=>service.ListAsync(actor,deviceId,offset,c.RequestAborted)));
         app.MapGet("/device-user-downloads/{id:guid}/preview", (Guid id,HttpContext c,DeviceUserDownloads service,long after=0)=>AdminRead(c,actor=>service.PreviewAsync(actor,id,after,c.RequestAborted)));
-        app.MapPost("/device-user-downloads", (DeviceConnectionInput input,HttpContext c,IAntiforgery csrf,DeviceUserDownloads service)=>Admin(c,csrf,actor=>service.RequestAsync(actor,input.OperationId,input.DeviceId,input.ExpectedDeviceVersion,input.TimeoutSeconds,c.RequestAborted)));
+        app.MapPost("/device-user-downloads", (DeviceUserDownloadInput input,HttpContext c,IAntiforgery csrf,DeviceUserDownloads service)=>Admin(c,csrf,actor=>service.RequestAsync(actor,input.OperationId,input.DeviceId,input.ExpectedDeviceVersion,input.TimeoutSeconds,c.RequestAborted,input.ReadFormat)));
         app.MapPost("/device-user-downloads/{id:guid}/cancel", (Guid id,DeviceOperationVersion input,HttpContext c,IAntiforgery csrf,DeviceUserDownloads service)=>Admin(c,csrf,actor=>service.CancelAsync(actor,id,input.ExpectedVersion,c.RequestAborted)));
         app.MapGet("/device-settings-snapshots", (HttpContext c,DeviceOperations service,Guid? deviceId,int offset=0)=>AdminRead(c,actor=>service.ListSettingsAsync(actor,deviceId,offset,c.RequestAborted)));
         app.MapPost("/device-settings-snapshots", (DeviceSettingsInput input,HttpContext c,IAntiforgery csrf,DeviceOperations service)=>Admin(c,csrf,actor=>service.RequestAsync(actor,input.OperationId,input.DeviceId,input.ExpectedDeviceVersion,"settings.read",input.TimeoutSeconds,null,input.Confirmation,c.RequestAborted)));
@@ -818,3 +818,5 @@ public sealed record DevicePollInput(Guid Id,Guid DeviceId,byte[] ExpectedDevice
 public sealed record DevicePollToggle(byte[] ExpectedVersion,[property:System.Text.Json.Serialization.JsonRequired]bool Enabled,string Confirmation);
 
 public sealed record DeviceSettingsInput(Guid OperationId,Guid DeviceId,byte[] ExpectedDeviceVersion,int TimeoutSeconds,string Confirmation);
+
+public sealed record DeviceUserDownloadInput(Guid OperationId,Guid DeviceId,byte[] ExpectedDeviceVersion,int TimeoutSeconds,string ReadFormat=IO.DeviceContracts.ZkUserReadFormats.Ssr);

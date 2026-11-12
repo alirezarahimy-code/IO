@@ -673,7 +673,7 @@ async function main() {
     const s07UsersPage=await context.newPage();
     await s07UsersPage.goto(address+await deviceRow.locator('a[href^="/workspace/device-users?"]').getAttribute('href'));
     await s07UsersPage.waitForFunction(()=>!document.querySelector('#download-form button').disabled&&!document.getElementById('download-form').hidden);
-    const s07UsersOperation=await s07UsersPage.locator('#download-form input[name=operationId]').inputValue();
+    const s07UsersOperation=await s07UsersPage.locator('#download-form input[name=operationId]').inputValue();await s07UsersPage.locator('#download-form select[name=readFormat]').selectOption('legacy-int32-v1');
     await s07UsersPage.locator('#download-form button').click();
     const s07UsersJob=s07UsersPage.locator('#jobs li').filter({hasText:s07UsersOperation});await s07UsersJob.filter({hasText:'در صف'}).waitFor();
     await s07UsersJob.locator('button').filter({hasText:'پیش‌نمایش'}).click();await s07UsersPage.waitForFunction(()=>document.getElementById('snapshot').textContent.includes('تعداد 0'));

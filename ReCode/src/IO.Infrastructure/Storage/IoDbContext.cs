@@ -365,6 +365,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
         {
             b.ToTable("DeviceUserDownloads",t=>
             {
+                t.HasCheckConstraint("CK_DeviceUserDownloads_Format","[ReadFormat] COLLATE Latin1_General_100_BIN2 IN(N'ssr-v1',N'legacy-int32-v1') AND DATALENGTH([ReadFormat])=CASE WHEN [ReadFormat]=N'ssr-v1' THEN 12 ELSE 30 END");
                 t.HasTrigger("TR_DeviceUserDownloads_History");t.UseSqlOutputClause(false);
                 t.HasCheckConstraint("CK_DeviceUserDownloads_Request","DATALENGTH([ExpectedDeviceVersion])=8 AND [TimeoutSeconds] BETWEEN 1 AND 600 AND [ReceivedCount]>=0 AND DATEPART(TZOFFSET,[RequestedAtUtc])=0");
                 t.HasCheckConstraint("CK_DeviceUserDownloads_State","[State] COLLATE Latin1_General_100_BIN2 IN (N'pending',N'running',N'succeeded',N'incomplete',N'failed',N'interrupted',N'timed-out',N'unsupported',N'identity-mismatch',N'credential-unavailable',N'endpoint-denied',N'bridge-failed',N'cancelled',N'revoked',N'device-changed')");
@@ -378,6 +379,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.Property(x=>x.RequestedByUserId).HasColumnType("uniqueidentifier");
             b.Property(x=>x.RequestedAtUtc).HasColumnType("datetimeoffset");
             b.Property(x=>x.ExpectedDeviceVersion).HasMaxLength(8).IsRequired().HasColumnType("varbinary(8)");
+            b.Property(x=>x.ReadFormat).HasMaxLength(32).IsRequired().HasColumnType("nvarchar(32)").HasDefaultValue("ssr-v1");
             b.Property(x=>x.TimeoutSeconds).HasColumnType("int");
             b.Property(x=>x.State).HasMaxLength(32).IsRequired().HasColumnType("nvarchar(32)");
             b.Property(x=>x.ServiceUserId).HasColumnType("uniqueidentifier");

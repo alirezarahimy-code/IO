@@ -42,7 +42,7 @@ if(builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableHealthReports"))b
 builder.Services.AddHostedService<DiagnosticWorker>();
 await builder.Build().RunAsync();
 
-internal sealed record NativeEndpoint(Guid DeviceId, string Address, int Port, int MachineNumber, string ExpectedSerial, bool AllowDefaultCommunicationKey, bool AllowClockSet=false,bool AllowUserRead=false,bool AttendanceOnlyUserWriteApproved=false,bool AllowAttendanceRead=false,bool AllowAdvancedSettingsRead=false);
+internal sealed record NativeEndpoint(Guid DeviceId, string Address, int Port, int MachineNumber, string ExpectedSerial, bool AllowDefaultCommunicationKey, bool AllowClockSet=false,bool AllowUserRead=false,bool AttendanceOnlyUserWriteApproved=false,bool AllowAttendanceRead=false,bool AllowAdvancedSettingsRead=false,string UserReadFormat=ZkUserReadFormats.Ssr);
 internal sealed record WorkerConfiguration(Guid ServiceUserId, TcpConnectionDiagnostic.AllowedEndpoint[] AllowedEndpoints, NativeEndpoint[] NativeEndpoints, string? DotnetPath, string? BridgePath, bool EnableOperations,bool EnableUserDownloads,bool EnableUserUploads,bool EnableAttendanceDownloads,bool EnableSchedules,bool EnableSettingsReads);
 internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfiguration configuration) : BackgroundService
 {
@@ -133,7 +133,7 @@ internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfig
         var native=configuration.NativeEndpoints.SingleOrDefault(x=>x.DeviceId==claim.DeviceId);
         // Installation approval is NOT a claim of model compatibility. No access-control
         // terminals are admitted; approval requires the isolated lab acceptance procedure.
-        if(native is null||!native.AttendanceOnlyUserWriteApproved||!OperatingSystem.IsWindows())return new("unsupported");
+        if(native is null||!native.AttendanceOnlyUserWriteApproved||native.UserReadFormat!=ZkUserReadFormats.Ssr||!OperatingSystem.IsWindows())return new("unsupported");
         if(claim.Port!=native.Port||!System.Net.IPAddress.TryParse(claim.Host,out var address)||!System.Net.IPAddress.Parse(native.Address).Equals(address))return new("failed-before-write");
         DeviceCommunicationKey? credential;
         await using(var scope=scopes.CreateAsyncScope())credential=await scope.ServiceProvider.GetRequiredService<DeviceUserUploads>().CredentialAsync(configuration.ServiceUserId,claim,native.AllowDefaultCommunicationKey,ct);
@@ -159,13 +159,13 @@ internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfig
     private async Task<NativeUserReadSupervisor.Result> DownloadUsers(DeviceUserDownloads.Claim claim,CancellationToken ct)
     {
         var native=configuration.NativeEndpoints.SingleOrDefault(x=>x.DeviceId==claim.DeviceId);
-        if(native is null||!native.AllowUserRead||!OperatingSystem.IsWindows())return new("unsupported",0);
+        if(native is null||!native.AllowUserRead||native.UserReadFormat!=claim.ReadFormat||!ZkUserReadFormats.IsKnown(native.UserReadFormat)||!OperatingSystem.IsWindows())return new("unsupported",0);
         if(claim.Port!=native.Port||!System.Net.IPAddress.TryParse(claim.Host,out var address)||!System.Net.IPAddress.Parse(native.Address).Equals(address))return new("endpoint-denied",0);
         DeviceCommunicationKey? credential;
         await using(var scope=scopes.CreateAsyncScope())credential=await scope.ServiceProvider.GetRequiredService<DeviceUserDownloads>().CredentialAsync(configuration.ServiceUserId,claim,native.AllowDefaultCommunicationKey,ct);
         if(credential is null)return new("credential-unavailable",0);
         long cursor=0;
-        return await NativeUserReadSupervisor.RunAsync(configuration.DotnetPath!,configuration.BridgePath!,new(new(claim.DeviceId,native.Address,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value),true,native.AllowUserRead),claim.TimeoutSeconds,async(batch,token)=>
+        return await NativeUserReadSupervisor.RunAsync(configuration.DotnetPath!,configuration.BridgePath!,new(new(claim.DeviceId,native.Address,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value),true,native.AllowUserRead,claim.ReadFormat),claim.TimeoutSeconds,async(batch,token)=>
         {
             await using var scope=scopes.CreateAsyncScope();cursor=await scope.ServiceProvider.GetRequiredService<DeviceUserDownloads>().AppendAsync(configuration.ServiceUserId,claim.Id,claim.Token,cursor,batch,token);
         },ct);

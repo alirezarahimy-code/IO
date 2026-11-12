@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using IO.DeviceContracts;
 
+if (args is ["--user-read-contracts"]) { await UserReadContractTests.RunAsync(); return; }
+
 if (args is ["--virtual-lab"])
 {
     try { await VirtualDeviceLab.VerifyAsync(); }
@@ -48,10 +50,10 @@ if (args is not ["--verify"])
     {
         var request=JsonSerializer.Deserialize<ZkUserReadInput>(text)!;var serial=request.Connection.ExpectedSerial;
         void Frame(ZkUserFrame frame)=>Console.WriteLine(JsonSerializer.Serialize(frame));
-        Frame(new("start",Serial:serial=="users-wrong-pin"?"wrong":serial));
+        Frame(new("start",Serial:serial=="users-wrong-pin"?"wrong":serial,ReadFormat:serial=="users-missing-format"?null:request.ReadFormat));
         if(serial=="users-hang"){await Task.Delay(TimeSpan.FromMinutes(1));return;}
         var total=serial=="users-ok"?103:1;
-        for(int i=0;i<total;i++)Frame(new("user",User:new(i.ToString("D5"),"<img src=x>",null,0,true)));
+        for(int i=0;i<total;i++)Frame(new("user",User:new(request.ReadFormat==ZkUserReadFormats.Legacy?i.ToString(System.Globalization.CultureInfo.InvariantCulture):i.ToString("D5"),"<img src=x>",null,0,true)));
         if(serial=="users-extra")Console.WriteLine("{\"Type\":\"user\",\"Password\":\"must-not-pass\"}");
         if(serial!="users-truncated")Frame(new("end",Count:serial=="users-count-mismatch"?total+1:total,State:"succeeded"));
         return;

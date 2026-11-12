@@ -31,12 +31,12 @@ public static class NativeUserReadSupervisor
                 {
                     if(ended)throw new InvalidDataException();
                     var frame=JsonSerializer.Deserialize<ZkUserFrame>(line,new JsonSerializerOptions{UnmappedMemberHandling=JsonUnmappedMemberHandling.Disallow})??throw new InvalidDataException();
-                    if(frame.Type=="start"&&!started&&frame.Serial==input.Connection.ExpectedSerial&&frame.User is null&&frame.Count is null&&frame.State is null){started=true;continue;}
-                    if(frame.Type=="user"&&started&&frame.Serial is null&&frame.Count is null&&frame.State is null&&frame.User?.IsValid()==true)
+                    if(frame.Type=="start"&&!started&&(frame.ReadFormat==input.ReadFormat||(input.ReadFormat==ZkUserReadFormats.Ssr&&frame.ReadFormat is null))&&frame.Serial==input.Connection.ExpectedSerial&&frame.User is null&&frame.Count is null&&frame.State is null){started=true;continue;}
+                    if(frame.Type=="user"&&started&&frame.ReadFormat is null&&frame.Serial is null&&frame.Count is null&&frame.State is null&&frame.User?.IsValid()==true&&(input.ReadFormat!=ZkUserReadFormats.Legacy||ZkUserReadFormats.IsCanonicalLegacyIdentity(frame.User.PersonIdentifier)))
                     {
                         count=checked(count+1);batch.Add(frame.User);if(batch.Count==50){await accept(batch.ToArray(),deadline.Token);batch.Clear();}continue;
                     }
-                    if(frame.Type=="end"&&frame.User is null&&frame.Serial is null&&frame.Count==count&&
+                    if(frame.Type=="end"&&frame.ReadFormat is null&&frame.User is null&&frame.Serial is null&&frame.Count==count&&
                         ((started&&frame.State is "succeeded" or "incomplete" or "failed")||(!started&&count==0&&frame.State is "unsupported" or "identity-mismatch" or "failed")))
                     {
                         if(batch.Count>0){await accept(batch.ToArray(),deadline.Token);batch.Clear();}state=frame.State!;ended=true;continue;

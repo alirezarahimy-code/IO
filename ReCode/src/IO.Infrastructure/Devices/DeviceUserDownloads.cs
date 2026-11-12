@@ -9,31 +9,31 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 namespace IO.Infrastructure.Devices;
 
-/// <summary>Read-only SSR user snapshots. Never writes employees, cards, passwords or templates back to devices.</summary>
+/// <summary>Read-only explicitly selected SSR or legacy Int32 user snapshots. Never writes employees, cards, passwords or templates back to devices.</summary>
 public sealed class DeviceUserDownloads(IoDbContext db,PermissionTransaction transaction,TimeProvider clock,IDataProtectionProvider protection)
 {
     public const string Read="devices.users.read",Download="devices.users.download",Execute="devices.users.execute";
-    public sealed record Claim(Guid Id,Guid Token,Guid DeviceId,string? Host,int? Port,int TimeoutSeconds);
-    public Task<Guid> RequestAsync(Guid actor,Guid id,Guid deviceId,byte[] version,int seconds,CancellationToken ct=default)=>transaction.ExecuteAsync(actor,Download,"device-users.requested",async token=>
+    public sealed record Claim(Guid Id,Guid Token,Guid DeviceId,string? Host,int? Port,int TimeoutSeconds,string ReadFormat=ZkUserReadFormats.Ssr);
+    public Task<Guid> RequestAsync(Guid actor,Guid id,Guid deviceId,byte[] version,int seconds,CancellationToken ct=default,string readFormat=ZkUserReadFormats.Ssr)=>transaction.ExecuteAsync(actor,Download,"device-users.requested",async token=>
     {
-        if(id==Guid.Empty||deviceId==Guid.Empty||version is not{Length:8}||seconds is <1 or >600)throw new ArgumentException("Explicit id, device version and bounded deadline required.");
+        if(!ZkUserReadFormats.IsKnown(readFormat)||id==Guid.Empty||deviceId==Guid.Empty||version is not{Length:8}||seconds is <1 or >600)throw new ArgumentException("Explicit id, device version and bounded deadline required.");
         await transaction.LockAsync("IO.DeviceConnections",token);
         var old=await db.DeviceUserDownloads.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==id,token);
-        if(old is not null){if(old.DeviceId!=deviceId||old.RequestedByUserId!=actor||old.TimeoutSeconds!=seconds||!old.ExpectedDeviceVersion.SequenceEqual(version))throw new DomainConflictException("Changed download retry.");return(id,id);}
+        if(old is not null){if(old.DeviceId!=deviceId||old.RequestedByUserId!=actor||old.TimeoutSeconds!=seconds||old.ReadFormat!=readFormat||!old.ExpectedDeviceVersion.SequenceEqual(version))throw new DomainConflictException("Changed download retry.");return(id,id);}
         if(await db.DeviceAttendanceDownloads.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device has unfinished attendance extraction.");
         if(await db.DeviceUserUploads.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device has unfinished user uploads.");
         var d=await db.Devices.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==deviceId,token)??throw new ArgumentException("Unknown device.");
         if(!d.Enabled||!d.Version.SequenceEqual(version))throw new DomainConflictException("Device changed.");
-        if(d.Profile!="zk-standalone")throw new ArgumentException("Only explicitly approved SSR native endpoints are supported.");
+        if(d.Profile!="zk-standalone")throw new ArgumentException("Only explicitly approved native user-read endpoints are supported.");
         if(await db.DeviceUserDownloads.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token)||await db.DeviceOperations.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token)||await db.DeviceConnections.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device already has active work.");
         var company=await db.Sites.Where(x=>x.Id==d.SiteId).Select(x=>x.CompanyId).SingleAsync(token);
-        db.DeviceUserDownloads.Add(new(){Id=id,DeviceId=deviceId,SourceId=d.SourceId,CompanyId=company,RequestedByUserId=actor,RequestedAtUtc=clock.GetUtcNow(),ExpectedDeviceVersion=version.ToArray(),TimeoutSeconds=seconds});return(id,id);
+        db.DeviceUserDownloads.Add(new(){Id=id,DeviceId=deviceId,SourceId=d.SourceId,CompanyId=company,RequestedByUserId=actor,RequestedAtUtc=clock.GetUtcNow(),ExpectedDeviceVersion=version.ToArray(),TimeoutSeconds=seconds,ReadFormat=readFormat});return(id,id);
     },ct);
     public Task<object> ListAsync(Guid actor,Guid? deviceId,int offset,CancellationToken ct=default)=>transaction.ExecuteAsync<object>(actor,Read,"device-users.viewed",async token=>
     {
         if(deviceId==Guid.Empty||offset is <0 or >100000)throw new ArgumentException("Invalid page.");
         var items=await db.DeviceUserDownloads.AsNoTracking().Where(x=>deviceId==null||x.DeviceId==deviceId).OrderByDescending(x=>x.RequestedAtUtc).ThenBy(x=>x.Id).Skip(offset).Take(50)
-            .Select(x=>new{x.Id,x.DeviceId,x.SourceId,x.CompanyId,x.State,x.ReceivedCount,x.RequestedAtUtc,x.FinishedAtUtc,x.ExpectedDeviceVersion,x.Version}).ToListAsync(token);
+            .Select(x=>new{x.Id,x.DeviceId,x.SourceId,x.CompanyId,x.State,x.ReadFormat,x.ReceivedCount,x.RequestedAtUtc,x.FinishedAtUtc,x.ExpectedDeviceVersion,x.Version}).ToListAsync(token);
         return(new{offset,pageSize=50,items},actor);
     },ct);
     public Task<object> PreviewAsync(Guid actor,Guid id,long after,CancellationToken ct=default)=>transaction.ExecuteAsync<object>(actor,Read,"device-users.previewed",async token=>
@@ -53,7 +53,7 @@ public sealed class DeviceUserDownloads(IoDbContext db,PermissionTransaction tra
             var nameDiffers=candidates.Count==1&&!string.Equals(candidates[0].DisplayName,row.Name,StringComparison.Ordinal);
             items.Add(new{row.Sequence,row.PersonIdentifier,row.Name,row.Card,row.Privilege,row.Enabled,status,nameDiffers,mappedEmployeeId=mappings.Count==1?(Guid?)mappings[0]:null,candidateEmployeeId=candidates.Count==1?(Guid?)candidates[0].Id:null});
         }
-        return(new{downloadId=id,job.SourceId,job.State,job.ReceivedCount,sameDevice,after,nextAfter=rows.LastOrDefault()?.Sequence??after,items},id);
+        return(new{downloadId=id,job.SourceId,job.State,job.ReadFormat,job.ReceivedCount,sameDevice,after,nextAfter=rows.LastOrDefault()?.Sequence??after,items},id);
     },ct);
     public Task<Guid> CancelAsync(Guid actor,Guid id,byte[] version,CancellationToken ct=default)=>transaction.ExecuteAsync(actor,Download,"device-users.cancelled",async token=>
     {
@@ -69,7 +69,7 @@ public sealed class DeviceUserDownloads(IoDbContext db,PermissionTransaction tra
         var d=await db.Devices.AsNoTracking().SingleAsync(x=>x.Id==next.DeviceId,token);
         if(!d.Enabled||!d.Version.SequenceEqual(next.ExpectedDeviceVersion)){next.State="device-changed";next.FinishedAtUtc=now;return(null,next.Id);}
         next.State="running";next.ServiceUserId=service;next.ClaimId=Guid.NewGuid();next.LeaseAtUtc=now;
-        return(new Claim(next.Id,next.ClaimId.Value,d.Id,d.Host,d.Port,next.TimeoutSeconds),next.Id);
+        return(new Claim(next.Id,next.ClaimId.Value,d.Id,d.Host,d.Port,next.TimeoutSeconds,next.ReadFormat),next.Id);
     },ct);
     public Task<DeviceCommunicationKey?> CredentialAsync(Guid service,Claim claim,bool allowDefault,CancellationToken ct=default)=>transaction.ExecuteAsync<DeviceCommunicationKey?>(service,Execute,"device-users.credential-used",async token=>
     {
@@ -84,6 +84,7 @@ public sealed class DeviceUserDownloads(IoDbContext db,PermissionTransaction tra
         if(users is null||users.Count is <1 or >50||users.Any(x=>x?.IsValid()!=true)||after<0)throw new ArgumentException("Invalid private user batch.");
         await transaction.LockAsync("IO.DeviceConnections",token);var job=await Owned(service,id,claim,token);
         if(!await transaction.HasPermissionAsync(job.RequestedByUserId,Download,token))throw new UnauthorizedAccessException();
+        if(job.ReadFormat==ZkUserReadFormats.Legacy&&users.Any(x=>!ZkUserReadFormats.IsCanonicalLegacyIdentity(x.PersonIdentifier)))throw new ArgumentException("Legacy identifiers must be canonical nonnegative Int32 text.");
         static string Hash(ZkUser user)=>Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(user))));
         if(after!=job.ReceivedCount)
         {

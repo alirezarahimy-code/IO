@@ -9,6 +9,7 @@ public sealed class DeviceUserDownloadRecord
     public DateTimeOffset RequestedAtUtc {get;set;}
     public byte[] ExpectedDeviceVersion {get;set;}=null!;
     public int TimeoutSeconds {get;set;}
+    public string ReadFormat {get;set;}=IO.DeviceContracts.ZkUserReadFormats.Ssr;
     public string State {get;set;}="pending";
     public Guid? ServiceUserId {get;set;}
     public Guid? ClaimId {get;set;}

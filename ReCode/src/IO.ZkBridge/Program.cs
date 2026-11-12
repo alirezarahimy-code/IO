@@ -171,22 +171,32 @@ internal static class Program
             instance=Activator.CreateInstance(type)!;dynamic sdk=instance;
             if(!(bool)sdk.SetCommPassword(pin.CommKey)||!(connected=(bool)sdk.Connect_Net(pin.Address,pin.Port))){UserFrame(new("end",Count:0,State:"failed"));return;}
             string serial;if(!(bool)sdk.GetSerialNumber(pin.MachineNumber,out serial)||serial?.Trim()!=pin.ExpectedSerial){UserFrame(new("end",Count:0,State:"identity-mismatch"));return;}
-            // Only the explicitly approved SSR/TFT user contract is supported here.
-            int before=0;if(!(bool)sdk.GetDeviceStatus(pin.MachineNumber,2,ref before)||before<0||!(bool)sdk.ReadAllUserID(pin.MachineNumber)){UserFrame(new("end",Count:0,State:"failed"));return;}
-            UserFrame(new("start",Serial:pin.ExpectedSerial));
-            string badge,name,password;int privilege;bool enabled;
-            while((bool)sdk.SSR_GetAllUserInfo(pin.MachineNumber,out badge,out name,out password,out privilege,out enabled))
-            {
-                password=string.Empty; // Never put a device password in a frame, file, log or database.
-                string card;string? availableCard=null;try{if((bool)sdk.GetStrCardNumber(out card))availableCard=card;}catch{}
-                var user=new ZkUser(badge,name,availableCard,privilege,enabled);if(!user.IsValid()){UserFrame(new("end",Count:count,State:"incomplete"));return;}
-                UserFrame(new("user",User:user));count++;
-            }
-            int after=0;var complete=(bool)sdk.GetDeviceStatus(pin.MachineNumber,2,ref after)&&before==after&&after==count;
-            UserFrame(new("end",Count:count,State:complete?"succeeded":"incomplete"));
+            ZkUserReadExecutor.Execute(request,new UserReadSession(instance,pin.MachineNumber),UserFrame);
         }
         catch{UserFrame(new("end",Count:count,State:"failed"));}
         finally{if(instance is not null){try{if(connected)((dynamic)instance).Disconnect();}catch{}try{if(Marshal.IsComObject(instance))Marshal.FinalReleaseComObject(instance);}catch{}}}
+    }
+
+    private sealed class UserReadSession(object instance,int machine):IZkUserReadSession
+    {
+        public string? Serial(){string serial;return (bool)((dynamic)instance).GetSerialNumber(machine,out serial)?serial?.Trim():null;}
+        public int? UserCount(){int value=0;return (bool)((dynamic)instance).GetDeviceStatus(machine,2,ref value)?value:null;}
+        public bool Begin()=>(bool)((dynamic)instance).ReadAllUserID(machine);
+        public ZkUser? Next(string format)
+        {
+            dynamic sdk=instance;string badge,name="",password="";int privilege=0;bool enabled=false;
+            try
+            {
+                if(format==ZkUserReadFormats.Ssr)
+                {if(!(bool)sdk.SSR_GetAllUserInfo(machine,out badge,out name,out password,out privilege,out enabled))return null;}
+                else if(format==ZkUserReadFormats.Legacy)
+                {int numeric=0;if(!(bool)sdk.GetAllUserInfo(machine,ref numeric,ref name,ref password,ref privilege,ref enabled))return null;badge=ZkUserReadFormats.LegacyIdentity(numeric);}
+                else throw new InvalidOperationException();
+                string card;string? available=null;try{if((bool)sdk.GetStrCardNumber(out card))available=card;}catch{}
+                return new(badge,name,available,privilege,enabled);
+            }
+            finally{password=string.Empty;} // Password never leaves this native method.
+        }
     }
 
     private static ZkDeviceInformation ReadInformation(dynamic sdk,int machine,string serial,bool clockConfigured)

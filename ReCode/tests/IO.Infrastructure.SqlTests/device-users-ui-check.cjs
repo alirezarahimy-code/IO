@@ -18,9 +18,9 @@ async function wait(test){for(let i=0;i<250;i++){if(test())return;await new Prom
  await wait(()=>!f.hidden&&!f.querySelector('button').disabled&&w.document.querySelector('#jobs li'));
  assert.equal(w.document.querySelector('#jobs img'),null);
  f.elements.deviceId.value=row.deviceId;f.elements.expectedDeviceVersion.value=row.version;
- const id=f.elements.operationId.value;f.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await wait(()=>status.textContent.includes('قطع شد')&&!f.querySelector('button').disabled);
+ assert.equal(f.elements.readFormat.value,'ssr-v1');f.elements.readFormat.value='legacy-int32-v1';const id=f.elements.operationId.value;f.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await wait(()=>status.textContent.includes('قطع شد')&&!f.querySelector('button').disabled);
  f.elements.timeoutSeconds.value='20';f.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));assert.equal(posts.length,1);assert.match(status.textContent,/همان شناسه/);
- f.elements.timeoutSeconds.value='60';f.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await wait(()=>status.textContent.includes('ثبت شد')&&!f.querySelector('button').disabled);assert.deepEqual(posts[0],posts[1]);assert.notEqual(f.elements.operationId.value,id);
+ f.elements.timeoutSeconds.value='60';f.elements.readFormat.value='ssr-v1';f.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));assert.equal(posts.length,1);f.elements.readFormat.value='legacy-int32-v1';f.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await wait(()=>status.textContent.includes('ثبت شد')&&!f.querySelector('button').disabled);assert.deepEqual(posts[0],posts[1]);assert.equal(posts[1].body.readFormat,'legacy-int32-v1');assert.notEqual(f.elements.operationId.value,id);
  row={...row,state:'pending'};w.document.getElementById('refresh').click();await wait(()=>[...w.document.querySelectorAll('#jobs button')].some(b=>b.textContent.includes('لغو')));
  [...w.document.querySelectorAll('#jobs button')].find(b=>b.textContent.includes('لغو')).click();await wait(()=>w.document.getElementById('jobs').textContent.includes('پیش از اجرا لغو شد'));
  assert.equal(posts.at(-1).body.expectedVersion,row.version);
