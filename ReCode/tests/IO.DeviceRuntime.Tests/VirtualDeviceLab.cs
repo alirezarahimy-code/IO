@@ -118,6 +118,28 @@ internal static class VirtualDeviceLab
         Console.WriteLine($"PASS {count} stateful TCP virtual-device laboratory checks; private test protocol only; realSdkExecuted=false hardwareVerified=false");
     }
 
+    public static async Task VerifyLegacyWritesAsync()
+    {
+        int count=0;
+        void Check(bool ok,string name){if(!ok)throw new InvalidOperationException(name);Console.WriteLine("PASS legacy-TCP "+name);count++;}
+        var host=Path.GetFullPath(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(),"..","..","..",OperatingSystem.IsWindows()?"dotnet.exe":"dotnet"));var assembly=typeof(VirtualDeviceLab).Assembly.Location;
+        await using var a=new Device("virtual-lab-legacy-A");await using var b=new Device("virtual-lab-legacy-B");
+        Task<ZkUserWriteOutput> Write(Device d,ZkUser? expected,ZkUser desired)=>NativeProcessSupervisor.RunUserWriteAsync(host,assembly,new(d.Pin,true,true,expected,desired,ZkUserReadFormats.Legacy),5);
+        async Task<ZkUser> Read(Device d)
+        {
+            var users=new List<ZkUser>();var result=await NativeUserReadSupervisor.RunAsync(host,assembly,new(d.Pin,true,true,ZkUserReadFormats.Legacy),5,(batch,token)=>{users.AddRange(batch);return Task.CompletedTask;});
+            if(result.State!="succeeded")throw new InvalidOperationException("Legacy TCP snapshot incomplete");return users.Single();
+        }
+        var original=new ZkUser("1","Synthetic","000123",0,true);var changed=original with{Name="Changed",Card="000456"};
+        Check((await Write(a,null,original)).State=="succeeded"&&(await Write(b,null,original)).State=="succeeded"&&await Read(a)==original&&await Read(b)==original,"two legacy numeric endpoints preserve original card text in ordinary write/read round trips");
+        a.Fault="drop-write-ack";var results=await Task.WhenAll(Write(a,original,changed),Write(b,original,changed));
+        Check(results[0].State=="unknown"&&results[1].State=="succeeded"&&await Read(a)==changed&&await Read(b)==changed&&a.Mutations==2&&b.Mutations==2,"lost acknowledgement on one applied legacy write preserves unknown while the other device succeeds");
+        a.Fault="none";
+        Check((await Write(a,original,changed)).State=="conflict"&&(await Write(a,changed,changed)).State=="unchanged"&&a.Mutations==2,"fresh read resolves legacy data without replaying a stale mutation");
+        Check((await Write(a,changed,changed with{PersonIdentifier="01"})).State=="unsupported"&&(await Write(a,changed,changed with{Privilege=3})).State=="unsupported"&&a.Mutations==2,"noncanonical identifiers and administrator writes cannot bypass the legacy contract");
+        Console.WriteLine($"PASS {count} stateful legacy TCP write checks; private JSON laboratory protocol, not vendor SDK acceptance");
+    }
+
     private sealed class Device : IAsyncDisposable, IZkUserWriteSession
     {
         private readonly TcpListener listener = new(IPAddress.Loopback, 0);
@@ -189,16 +211,17 @@ internal static class VirtualDeviceLab
                         }
                         await Frame(new ZkAttendanceFrame("end", Count: snapshot.Length + (fault == "wrong-count" ? 1 : 0), State: "succeeded"));
                     }
-                    else if (doc.RootElement.TryGetProperty("WriteUser", out _))
+                    else if (doc.RootElement.TryGetProperty("WriteUser", out _) || doc.RootElement.TryGetProperty("WriteLegacyUser", out _))
                     {
                         ZkUserWriteOutput output;
-                        lock (gate) output = ZkUserWriteExecutor.Execute(JsonSerializer.Deserialize<ZkUserWriteInput>(text)!, this);
+                        var request=doc.RootElement.TryGetProperty("WriteLegacyUser",out _)?JsonSerializer.Deserialize<ZkLegacyUserWriteInput>(text)!.AsRequest():JsonSerializer.Deserialize<ZkUserWriteInput>(text)!;
+                        lock (gate) output = ZkUserWriteExecutor.Execute(request, this);
                         if (fault != "drop-write-ack") await Frame(output);
                     }
                     else if (doc.RootElement.TryGetProperty("ReadUsers", out _))
                     {
                         ZkUser[] snapshot; lock (gate) snapshot = users.Values.Select(x => x.User).ToArray();
-                        await Frame(new ZkUserFrame("start", Serial: Pin.ExpectedSerial));
+                        await Frame(new ZkUserFrame("start", Serial: Pin.ExpectedSerial,ReadFormat:JsonSerializer.Deserialize<ZkUserReadInput>(text)!.ReadFormat));
                         foreach (var user in snapshot) await Frame(new ZkUserFrame("user", User: user));
                         await Frame(new ZkUserFrame("end", Count: snapshot.Length, State: "succeeded"));
                     }

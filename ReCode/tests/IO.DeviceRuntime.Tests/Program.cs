@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using IO.DeviceContracts;
 
+if (args is ["--legacy-user-writes"]) { await LegacyUserWriteTests.RunAsync(); await VirtualDeviceLab.VerifyLegacyWritesAsync(); return; }
+
 if (args is ["--user-read-contracts"]) { await UserReadContractTests.RunAsync(); return; }
 
 if (args is ["--virtual-lab"])
@@ -37,6 +39,13 @@ if (args is not ["--verify"])
         for(int i=0;i<total;i++)Frame(new("record",Record:new(i.ToString("D5"),int.MaxValue,4,2026,2,i==1?30:1,8,0,0,int.MinValue)));
         if(serial=="logs-extra")Console.WriteLine("{\"Type\":\"record\",\"Password\":\"forbidden\"}");
         if(serial!="logs-truncated")Frame(new("end",Count:serial=="logs-count-mismatch"?total+1:total,State:"succeeded"));return;
+    }
+    if(document.RootElement.TryGetProperty("WriteLegacyUser",out _))
+    {
+        var write=JsonSerializer.Deserialize<ZkLegacyUserWriteInput>(text)!.AsRequest();
+        if(write.Connection.ExpectedSerial=="legacy-write-hang")await Task.Delay(TimeSpan.FromMinutes(1));
+        else Console.WriteLine(JsonSerializer.Serialize(new ZkUserWriteOutput(write.IsValid()?"succeeded":"unsupported")));
+        return;
     }
     if(document.RootElement.TryGetProperty("WriteUser",out _))
     {

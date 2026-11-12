@@ -23,7 +23,7 @@ if (targets.Any(t => t.DeviceId == Guid.Empty || !System.Net.IPAddress.TryParse(
 var native = builder.Configuration.GetSection("IO:DeviceWorker:NativeEndpoints").Get<NativeEndpoint[]>() ?? [];
 var dotnetPath = builder.Configuration["IO:DeviceWorker:BridgeDotnetPath"];
 var bridgePath = builder.Configuration["IO:DeviceWorker:BridgeAssemblyPath"];
-if (native.Any(t => (!new ZkProbeInput(t.DeviceId,t.Address,t.Port,t.MachineNumber,t.ExpectedSerial,0).IsValid()||!ZkUserReadFormats.IsKnown(t.UserReadFormat))) ||
+if (native.Any(t => (!new ZkProbeInput(t.DeviceId,t.Address,t.Port,t.MachineNumber,t.ExpectedSerial,0).IsValid()||!ZkUserReadFormats.IsKnown(t.UserReadFormat)||!ZkUserReadFormats.IsKnown(t.UserWriteFormat))) ||
     targets.Select(x=>x.DeviceId).Concat(native.Select(x=>x.DeviceId)).Distinct().Count() != targets.Length+native.Length)
     throw new InvalidOperationException("Invalid or ambiguous native endpoint pin.");
 if (native.Length > 0)
@@ -42,7 +42,7 @@ if(builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableHealthReports"))b
 builder.Services.AddHostedService<DiagnosticWorker>();
 await builder.Build().RunAsync();
 
-internal sealed record NativeEndpoint(Guid DeviceId, string Address, int Port, int MachineNumber, string ExpectedSerial, bool AllowDefaultCommunicationKey, bool AllowClockSet=false,bool AllowUserRead=false,bool AttendanceOnlyUserWriteApproved=false,bool AllowAttendanceRead=false,bool AllowAdvancedSettingsRead=false,string UserReadFormat=ZkUserReadFormats.Ssr);
+internal sealed record NativeEndpoint(Guid DeviceId, string Address, int Port, int MachineNumber, string ExpectedSerial, bool AllowDefaultCommunicationKey, bool AllowClockSet=false,bool AllowUserRead=false,bool AttendanceOnlyUserWriteApproved=false,bool AllowAttendanceRead=false,bool AllowAdvancedSettingsRead=false,string UserReadFormat=ZkUserReadFormats.Ssr,string UserWriteFormat=ZkUserReadFormats.Ssr);
 internal sealed record WorkerConfiguration(Guid ServiceUserId, TcpConnectionDiagnostic.AllowedEndpoint[] AllowedEndpoints, NativeEndpoint[] NativeEndpoints, string? DotnetPath, string? BridgePath, bool EnableOperations,bool EnableUserDownloads,bool EnableUserUploads,bool EnableAttendanceDownloads,bool EnableSchedules,bool EnableSettingsReads);
 internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfiguration configuration) : BackgroundService
 {
@@ -133,12 +133,12 @@ internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfig
         var native=configuration.NativeEndpoints.SingleOrDefault(x=>x.DeviceId==claim.DeviceId);
         // Installation approval is NOT a claim of model compatibility. No access-control
         // terminals are admitted; approval requires the isolated lab acceptance procedure.
-        if(native is null||!native.AttendanceOnlyUserWriteApproved||native.UserReadFormat!=ZkUserReadFormats.Ssr||!OperatingSystem.IsWindows())return new("unsupported");
+        if(native is null||!native.AttendanceOnlyUserWriteApproved||native.UserReadFormat!=claim.WriteFormat||native.UserWriteFormat!=claim.WriteFormat||!ZkUserReadFormats.IsKnown(claim.WriteFormat)||!OperatingSystem.IsWindows())return new("unsupported");
         if(claim.Port!=native.Port||!System.Net.IPAddress.TryParse(claim.Host,out var address)||!System.Net.IPAddress.Parse(native.Address).Equals(address))return new("failed-before-write");
         DeviceCommunicationKey? credential;
         await using(var scope=scopes.CreateAsyncScope())credential=await scope.ServiceProvider.GetRequiredService<DeviceUserUploads>().CredentialAsync(configuration.ServiceUserId,claim,native.AllowDefaultCommunicationKey,ct);
         if(credential is null)return new("failed-before-write");
-        return await NativeProcessSupervisor.RunUserWriteAsync(configuration.DotnetPath!,configuration.BridgePath!,new(new(claim.DeviceId,native.Address,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value),true,true,claim.Expected,claim.Desired),claim.TimeoutSeconds,ct);
+        return await NativeProcessSupervisor.RunUserWriteAsync(configuration.DotnetPath!,configuration.BridgePath!,new(new(claim.DeviceId,native.Address,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value),true,true,claim.Expected,claim.Desired,claim.WriteFormat),claim.TimeoutSeconds,ct);
     }
 
     private async Task<NativeAttendanceReadSupervisor.Result> DownloadAttendance(DeviceAttendanceDownloads.Claim claim,CancellationToken ct)

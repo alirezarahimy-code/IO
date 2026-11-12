@@ -22,10 +22,16 @@ internal static class Program
                 if(attendance?.IsValid()!=true||!OperatingSystem.IsWindows()){AttendanceFrame(new("end",Count:0,State:"unsupported"));return 0;}
                 ReadAttendanceWindows(attendance);return 0;
             }
+            if(document.RootElement.TryGetProperty("WriteLegacyUser",out _))
+            {
+                var request=JsonSerializer.Deserialize<ZkLegacyUserWriteInput>(json)?.AsRequest();
+                var legacyResult=request?.IsValid()!=true||!OperatingSystem.IsWindows()?new ZkUserWriteOutput("unsupported"):WriteUserWindows(request);
+                Console.WriteLine(JsonSerializer.Serialize(legacyResult));return 0;
+            }
             if(document.RootElement.TryGetProperty("WriteUser",out _))
             {
                 var request=JsonSerializer.Deserialize<ZkUserWriteInput>(json);
-                var writeResult=request?.IsValid()!=true||!OperatingSystem.IsWindows()?new ZkUserWriteOutput("unsupported"):WriteUserWindows(request);
+                var writeResult=request?.IsValid()!=true||request.WriteFormat!=ZkUserReadFormats.Ssr||!OperatingSystem.IsWindows()?new ZkUserWriteOutput("unsupported"):WriteUserWindows(request);
                 Console.WriteLine(JsonSerializer.Serialize(writeResult));return 0;
             }
             if(document.RootElement.TryGetProperty("ReadUsers",out _))
@@ -101,33 +107,49 @@ internal static class Program
             var pin=input.Connection;instance=Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("00853A19-BD51-419B-9269-2DABE57EB61F"),true)!)!;dynamic sdk=instance;
             if(!(bool)sdk.SetCommPassword(pin.CommKey)||!(connected=(bool)sdk.Connect_Net(pin.Address,pin.Port)))return new("failed-before-write");
             string serial;if(!(bool)sdk.GetSerialNumber(pin.MachineNumber,out serial)||serial?.Trim()!=pin.ExpectedSerial)return new("identity-mismatch");
-            return ZkUserWriteExecutor.Execute(input,new SsrWriteSession(instance,pin.MachineNumber));
+            return ZkUserWriteExecutor.Execute(input,new UserWriteSession(instance,pin.MachineNumber,pin.ExpectedSerial,input.WriteFormat));
         }
         catch{return new("unknown");}
         finally{if(instance is not null){try{if(connected)((dynamic)instance).Disconnect();}catch{}try{if(Marshal.IsComObject(instance))Marshal.FinalReleaseComObject(instance);}catch{}}}
     }
-    private sealed class SsrWriteSession(object instance,int machine):IZkUserWriteSession
+    private sealed class UserWriteSession(object instance,int machine,string expectedSerial,string format):IZkUserWriteSession
     {
         public ZkUserWriteExisting? ReadExact(string personIdentifier)
         {
             dynamic sdk=instance;int before=0;
             if(!(bool)sdk.GetDeviceStatus(machine,2,ref before)||before<0||!(bool)sdk.ReadAllUserID(machine))throw new InvalidOperationException();
-            ZkUserWriteExisting? found=null;long count=0;string badge,name,password;int privilege;bool enabled;
-            while((bool)sdk.SSR_GetAllUserInfo(machine,out badge,out name,out password,out privilege,out enabled))
+            string beforeSerial;if(!(bool)sdk.GetSerialNumber(machine,out beforeSerial)||beforeSerial?.Trim()!=expectedSerial)throw new InvalidOperationException();
+            ZkUserWriteExisting? found=null;long count=0;
+            while(true)
             {
-                count++;
-                if(badge==personIdentifier)
+                string badge,name="",password="";int privilege=0;bool enabled=false;
+                try
                 {
-                    if(found is not null)throw new InvalidOperationException();
-                    string card;if(!(bool)sdk.GetStrCardNumber(out card))throw new InvalidOperationException();
-                    found=new(new(badge,name,card,privilege,enabled),password);
+                    if(format==ZkUserReadFormats.Ssr)
+                    {if(!(bool)sdk.SSR_GetAllUserInfo(machine,out badge,out name,out password,out privilege,out enabled))break;}
+                    else if(format==ZkUserReadFormats.Legacy)
+                    {int numeric=0;if(!(bool)sdk.GetAllUserInfo(machine,ref numeric,ref name,ref password,ref privilege,ref enabled))break;badge=ZkUserReadFormats.LegacyIdentity(numeric);}
+                    else throw new InvalidOperationException();
+                    count++;
+                    if(badge==personIdentifier)
+                    {
+                        if(found is not null)throw new InvalidOperationException();
+                        string card;if(!(bool)sdk.GetStrCardNumber(out card))throw new InvalidOperationException();
+                        found=new(new(badge,name,card,privilege,enabled),password);
+                    }
                 }
-                password=string.Empty;
+                finally{password=string.Empty;}
             }
-            int after=0;if(!(bool)sdk.GetDeviceStatus(machine,2,ref after)||after!=before||count!=after)throw new InvalidOperationException();return found;
+            int after=0;string afterSerial;
+            if(!(bool)sdk.GetDeviceStatus(machine,2,ref after)||after!=before||count!=after||!(bool)sdk.GetSerialNumber(machine,out afterSerial)||afterSerial?.Trim()!=expectedSerial)throw new InvalidOperationException();return found;
         }
         public bool SetCard(string card)=>(bool)((dynamic)instance).SetStrCardNumber(card);
-        public bool Write(ZkUser user,string password)=>(bool)((dynamic)instance).SSR_SetUserInfo(machine,user.PersonIdentifier,user.Name,password,0,user.Enabled);
+        public bool Write(ZkUser user,string password)=>format switch
+        {
+            ZkUserReadFormats.Ssr=>(bool)((dynamic)instance).SSR_SetUserInfo(machine,user.PersonIdentifier,user.Name,password,0,user.Enabled),
+            ZkUserReadFormats.Legacy=>(bool)((dynamic)instance).SetUserInfo(machine,int.Parse(user.PersonIdentifier,NumberStyles.None,CultureInfo.InvariantCulture),user.Name,password,0,user.Enabled),
+            _=>throw new InvalidOperationException()
+        };
         // No AccGroup setter, access-control, batch-disable, template, photo or delete API.
     }
 

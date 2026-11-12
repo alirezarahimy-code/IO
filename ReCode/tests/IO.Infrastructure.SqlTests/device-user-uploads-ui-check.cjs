@@ -5,7 +5,7 @@ async function wait(test){for(let i=0;i<250;i++){if(test())return;await new Prom
 (async()=>{
  const dom=new JSDOM(fs.readFileSync(root+'DeviceUserUploads.html','utf8'),{url:'https://io.example/workspace/device-user-uploads',runScripts:'outside-only'}),w=dom.window;
  let granted=true,unknown=true;const posts=[];
- const row={id:'54f77dd3-1b80-44cb-b034-3844cd2132e8',batchId:'625bc102-d2b9-4878-9b45-dc3cafbf5547',deviceId:'cbba270c-6ce7-42ac-922e-4536a139ef07',employeeId:'85383165-f4c8-4f3f-88ed-f591b3fbac68',personIdentifier:'0001',state:'<img src=x>',version:'AQIDBAUGBwg=',desired:{Name:'<img src=x>'},expected:null};
+ const row={id:'54f77dd3-1b80-44cb-b034-3844cd2132e8',batchId:'625bc102-d2b9-4878-9b45-dc3cafbf5547',deviceId:'cbba270c-6ce7-42ac-922e-4536a139ef07',employeeId:'85383165-f4c8-4f3f-88ed-f591b3fbac68',personIdentifier:'1',writeFormat:'legacy-int32-v1',state:'<img src=x>',version:'AQIDBAUGBwg=',desired:{Name:'<img src=x>'},expected:null};
  w.confirm=()=>true;
  w.fetch=async(path,options={})=>{
   let data={};if(path==='/workspace/capabilities')data={permissions:granted?['devices.users.read','devices.users.upload']:[]};
@@ -21,7 +21,7 @@ async function wait(test){for(let i=0;i<250;i++){if(test())return;await new Prom
  w.eval(fs.readFileSync(root+'device-user-uploads.js','utf8'));
  const f=w.document.getElementById('upload-form'),notice=w.document.getElementById('notice');
  await wait(()=>!f.hidden&&!w.document.getElementById('preview').disabled&&w.document.querySelector('#jobs li'));
- assert.equal(w.document.querySelector('#jobs img'),null);
+ assert.equal(w.document.querySelector('#jobs img'),null);assert.match(w.document.getElementById('jobs').textContent,/legacy-int32-v1/);
  f.elements.rowDeviceId.value=row.deviceId;f.elements.rowDeviceVersion.value=row.version;f.elements.rowSnapshotId.value='ad96d024-a1f1-4920-9e4b-a1ee468b0e9e';f.elements.rowEmployeeId.value=row.employeeId;f.elements.rowPersonIdentifier.value='0001';f.elements.rowCard.value='00123';w.document.getElementById('add-item').click();
  assert.equal(JSON.parse(f.elements.items.value)[0].personIdentifier,'0001');assert.equal(JSON.parse(f.elements.items.value)[0].card,'00123');
  f.elements.confirmed.checked=true;f.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));assert.equal(posts.length,0);

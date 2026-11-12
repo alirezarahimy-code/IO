@@ -31,7 +31,7 @@ public static class NativeProcessSupervisor
     {
         if(!input.IsValid())return new("unsupported");
         if(stoppingToken.IsCancellationRequested)return new("failed-before-write");
-        var exchange=await ExchangeAsync(executable,childAssembly,System.Text.Json.JsonSerializer.Serialize(input),timeoutSeconds,stoppingToken);
+        var exchange=await ExchangeAsync(executable,childAssembly,ZkUserWriteWire.Serialize(input),timeoutSeconds,stoppingToken);
         // After dispatch even missing/invalid output or process kill is UNKNOWN,
         // never evidence that retrying a write is safe.
         if(exchange.State!="exited")return new("unknown");

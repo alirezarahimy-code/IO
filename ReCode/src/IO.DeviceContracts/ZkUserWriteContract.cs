@@ -2,11 +2,24 @@ using System.Text.Json.Serialization;
 namespace IO.DeviceContracts;
 
 /// <summary>Ordinary attendance-only metadata, never passwords/templates/admin privileges or access groups.</summary>
-public sealed record ZkUserWriteInput(ZkProbeInput Connection,bool WriteUser,bool AllowUserWrite,ZkUser? Expected,ZkUser Desired)
+public sealed record ZkUserWriteInput(ZkProbeInput Connection,bool WriteUser,bool AllowUserWrite,ZkUser? Expected,ZkUser Desired,string WriteFormat=ZkUserReadFormats.Ssr)
 {
-    public bool IsValid()=>Connection?.IsValid()==true&&WriteUser&&AllowUserWrite&&Valid(Desired)&&(Expected is null||(Valid(Expected)&&Expected.PersonIdentifier==Desired.PersonIdentifier));
+    public bool IsValid()=>Connection?.IsValid()==true&&Desired is not null&&WriteUser&&AllowUserWrite&&ZkUserReadFormats.IsKnown(WriteFormat)&&(WriteFormat!=ZkUserReadFormats.Legacy||ZkUserReadFormats.IsCanonicalLegacyIdentity(Desired.PersonIdentifier))&&Valid(Desired)&&(Expected is null||(Valid(Expected)&&Expected.PersonIdentifier==Desired.PersonIdentifier));
     private static bool Valid(ZkUser? u)=>u?.IsValid()==true&&u.Privilege==0&&u.Name.Length is >0 and <=20&&u.PersonIdentifier.All(c=>c is >='0' and <='9')&&u.Card is not null&&u.Card.Length<=20&&u.Card.All(c=>c is >='0' and <='9');
     public override string ToString()=>"ZkUserWriteInput [private IPC; personal data and key redacted]";
+}
+// A distinct root discriminator prevents a deployed old bridge from treating
+// a numeric legacy write as the old SSR request. There is no WriteUser field.
+public sealed record ZkLegacyUserWriteInput(ZkProbeInput Connection,bool WriteLegacyUser,bool AllowUserWrite,ZkUser? Expected,ZkUser Desired)
+{
+    public ZkUserWriteInput AsRequest()=>new(Connection,WriteLegacyUser,AllowUserWrite,Expected,Desired,ZkUserReadFormats.Legacy);
+    public override string ToString()=>"ZkLegacyUserWriteInput [private IPC; personal data and key redacted]";
+}
+public static class ZkUserWriteWire
+{
+    public static string Serialize(ZkUserWriteInput input)=>input.WriteFormat==ZkUserReadFormats.Legacy
+        ?System.Text.Json.JsonSerializer.Serialize(new ZkLegacyUserWriteInput(input.Connection,input.WriteUser,input.AllowUserWrite,input.Expected,input.Desired))
+        :System.Text.Json.JsonSerializer.Serialize(input);
 }
 public sealed record ZkUserWriteOutput(string State)
 {

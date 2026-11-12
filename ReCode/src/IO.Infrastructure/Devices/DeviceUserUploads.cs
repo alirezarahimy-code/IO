@@ -16,7 +16,7 @@ public sealed class DeviceUserUploads(IoDbContext db,PermissionTransaction trans
     {public override string ToString()=>"Upload item [personal data redacted]";}
     public sealed record Batch(Guid BatchId,Item[] Items,string Confirmation,string? PreviewHash=null)
     {public override string ToString()=>"Upload batch [personal data redacted]";}
-    public sealed record Claim(Guid Id,Guid Token,Guid DeviceId,string? Host,int? Port,int TimeoutSeconds,ZkUser? Expected,ZkUser Desired);
+    public sealed record Claim(Guid Id,Guid Token,Guid DeviceId,string? Host,int? Port,int TimeoutSeconds,ZkUser? Expected,ZkUser Desired,string WriteFormat=ZkUserReadFormats.Ssr);
     public Task<Guid> RequestAsync(Guid actor,Batch input,CancellationToken ct=default)=>transaction.ExecuteAsync(actor,Upload,"device-user-upload.requested",async token=>
     {
         if(input is null||input.BatchId==Guid.Empty||input.Items is not{Length:>0 and <=50}||input.Items.Any(x=>x is null||x.Id==Guid.Empty||x.DeviceId==Guid.Empty||x.EmployeeId==Guid.Empty||x.SnapshotId==Guid.Empty||x.ExpectedDeviceVersion is not{Length:8}||x.TimeoutSeconds is <1 or >60)||input.Items.Select(x=>x.Id).Distinct().Count()!=input.Items.Length||input.Items.Select(x=>(x.DeviceId,x.PersonIdentifier)).Distinct().Count()!=input.Items.Length||input.Confirmation!="UPLOAD-ORDINARY-USERS")throw new ArgumentException("Explicit unique intents, snapshots, bounded page and confirmation required.");
@@ -32,7 +32,8 @@ public sealed class DeviceUserUploads(IoDbContext db,PermissionTransaction trans
     {
         if(input is null||input.BatchId==Guid.Empty||input.Items is not{Length:>0 and <=50}||input.Items.Any(x=>x is null||x.Id==Guid.Empty||x.DeviceId==Guid.Empty||x.EmployeeId==Guid.Empty||x.SnapshotId==Guid.Empty||x.ExpectedDeviceVersion is not{Length:8}||x.TimeoutSeconds is <1 or >60)||input.Items.Select(x=>x.Id).Distinct().Count()!=input.Items.Length||input.Items.Select(x=>(x.DeviceId,x.PersonIdentifier)).Distinct().Count()!=input.Items.Length)throw new ArgumentException("Valid bounded preview required.");
         await transaction.LockAsync("IO.DeviceConnections",token);var jobs=await Plan(actor,input,"preview",token);
-        return(new{previewHash=PlanHash(jobs),items=jobs.Select(x=>new{x.Id,x.DeviceId,x.EmployeeId,x.PersonIdentifier,expected=x.ExpectedJson is null?null:JsonSerializer.Deserialize<ZkUser>(x.ExpectedJson),desired=JsonSerializer.Deserialize<ZkUser>(x.DesiredJson)})},input.BatchId);
+        var formats=await Formats(jobs.Select(x=>x.SnapshotId),token);
+        return(new{previewHash=PlanHash(jobs),items=jobs.Select(x=>new{x.Id,x.DeviceId,x.EmployeeId,x.PersonIdentifier,writeFormat=formats[x.SnapshotId],expected=x.ExpectedJson is null?null:JsonSerializer.Deserialize<ZkUser>(x.ExpectedJson),desired=JsonSerializer.Deserialize<ZkUser>(x.DesiredJson)})},input.BatchId);
     },ct);
     private static string PlanHash(List<DeviceUserUploadRecord> rows)=>Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(rows.Select(x=>new{x.Id,x.DeviceId,x.EmployeeId,x.SnapshotId,x.ExpectedDeviceVersion,x.ExpectedJson,x.DesiredJson,x.TimeoutSeconds}))));
     private async Task<List<DeviceUserUploadRecord>> Plan(Guid actor,Batch input,string hash,CancellationToken token)
@@ -52,7 +53,7 @@ public sealed class DeviceUserUploads(IoDbContext db,PermissionTransaction trans
             var expected=await Expected(item.SnapshotId,item.PersonIdentifier,token);
             var desired=new ZkUser(item.PersonIdentifier,employee.DisplayName,item.Card,0,item.Enabled);
             var probe=new ZkProbeInput(item.DeviceId,"127.0.0.1",4370,1,"validation-only",0);
-            if(!new ZkUserWriteInput(probe,true,true,expected,desired).IsValid())throw new ArgumentException("Only ordinary decimal SSR identities/cards and untruncated names up to 20 characters are supported. No admin/password/biometric fields.");
+            if(!new ZkUserWriteInput(probe,true,true,expected,desired,snapshot.ReadFormat).IsValid())throw new ArgumentException("Only ordinary decimal identities/cards with the approved target snapshot format and untruncated names up to 20 characters are supported. No admin/password/biometric fields.");
             jobs.Add(new(){Id=item.Id,BatchId=input.BatchId,RequestHash=hash,DeviceId=item.DeviceId,EmployeeId=item.EmployeeId,SnapshotId=item.SnapshotId,RequestedByUserId=actor,RequestedAtUtc=clock.GetUtcNow(),ExpectedDeviceVersion=item.ExpectedDeviceVersion.ToArray(),PersonIdentifier=item.PersonIdentifier,ExpectedJson=expected is null?null:JsonSerializer.Serialize(expected),DesiredJson=JsonSerializer.Serialize(desired),TimeoutSeconds=item.TimeoutSeconds});
         }
         return jobs;
@@ -61,7 +62,8 @@ public sealed class DeviceUserUploads(IoDbContext db,PermissionTransaction trans
     {
         if(batchId==Guid.Empty||offset is <0 or >100000)throw new ArgumentException("Invalid page.");
         var rows=await db.DeviceUserUploads.AsNoTracking().Where(x=>batchId==null||x.BatchId==batchId).OrderByDescending(x=>x.RequestedAtUtc).ThenBy(x=>x.Id).Skip(offset).Take(50).ToListAsync(token);
-        return(new{offset,pageSize=50,items=rows.Select(x=>new{x.Id,x.BatchId,x.DeviceId,x.EmployeeId,x.SnapshotId,x.PersonIdentifier,expected=x.ExpectedJson is null?null:JsonSerializer.Deserialize<ZkUser>(x.ExpectedJson),desired=JsonSerializer.Deserialize<ZkUser>(x.DesiredJson),x.State,x.RequestedAtUtc,x.FinishedAtUtc,x.ResolutionSnapshotId,x.Version})},actor);
+        var formats=await Formats(rows.Select(x=>x.SnapshotId),token);
+        return(new{offset,pageSize=50,items=rows.Select(x=>new{x.Id,x.BatchId,x.DeviceId,x.EmployeeId,x.SnapshotId,x.PersonIdentifier,writeFormat=formats[x.SnapshotId],expected=x.ExpectedJson is null?null:JsonSerializer.Deserialize<ZkUser>(x.ExpectedJson),desired=JsonSerializer.Deserialize<ZkUser>(x.DesiredJson),x.State,x.RequestedAtUtc,x.FinishedAtUtc,x.ResolutionSnapshotId,x.Version})},actor);
     },ct);
     public Task<Guid> CancelAsync(Guid actor,Guid id,byte[] version,CancellationToken ct=default)=>transaction.ExecuteAsync(actor,Upload,"device-user-upload.cancelled",async token=>
     {
@@ -72,6 +74,8 @@ public sealed class DeviceUserUploads(IoDbContext db,PermissionTransaction trans
         if(confirmation!="REVIEWED-USER")throw new ArgumentException("Explicit unknown-write review required.");await transaction.LockAsync("IO.DeviceConnections",token);var row=await Load(id,token);Version(row,version);
         if(row.State!="unknown"||row.ResolutionSnapshotId!=null)throw new DomainConflictException("Only unresolved unknown outcomes can be reviewed.");
         var snapshot=await Snapshot(snapshotId,row.DeviceId,row.ExpectedDeviceVersion,token);if(snapshot.RequestedAtUtc<=row.FinishedAtUtc)throw new DomainConflictException("A successful post-write snapshot is required.");
+        var originalFormat=await db.DeviceUserDownloads.Where(x=>x.Id==row.SnapshotId).Select(x=>x.ReadFormat).SingleAsync(token);
+        if(snapshot.ReadFormat!=originalFormat)throw new DomainConflictException("Unknown recovery requires the same identity and native-write contract.");
         _=await Expected(snapshotId,row.PersonIdentifier,token);row.ResolutionSnapshotId=snapshotId;row.ResolvedByUserId=actor;row.ResolvedAtUtc=clock.GetUtcNow();return(id,id);
     },ct);
     public Task<Claim?> ClaimAsync(Guid service,CancellationToken ct=default)=>transaction.ExecuteAsync<Claim?>(service,Execute,"device-user-upload.claimed",async token=>
@@ -88,12 +92,13 @@ public sealed class DeviceUserUploads(IoDbContext db,PermissionTransaction trans
         // Unknown recovery for the same person must not be bypassed by queued siblings.
         if(await db.DeviceUserUploads.AnyAsync(x=>x.DeviceId==row.DeviceId&&x.PersonIdentifier==row.PersonIdentifier&&x.State=="unknown"&&x.ResolutionSnapshotId==null,token))return(null,row.Id);
         row.State="running";row.ServiceUserId=service;row.ClaimId=Guid.NewGuid();row.ClaimedAtUtc=now;
-        return(new Claim(row.Id,row.ClaimId.Value,d.Id,d.Host,d.Port,row.TimeoutSeconds,row.ExpectedJson is null?null:JsonSerializer.Deserialize<ZkUser>(row.ExpectedJson),desired),row.Id);
+        return(new Claim(row.Id,row.ClaimId.Value,d.Id,d.Host,d.Port,row.TimeoutSeconds,row.ExpectedJson is null?null:JsonSerializer.Deserialize<ZkUser>(row.ExpectedJson),desired,snapshot.ReadFormat),row.Id);
     },ct);
     public Task<DeviceCommunicationKey?> CredentialAsync(Guid service,Claim claim,bool allowDefault,CancellationToken ct=default)=>transaction.ExecuteAsync<DeviceCommunicationKey?>(service,Execute,"device-user-upload.credential-used",async token=>
     {
         await transaction.LockAsync("IO.DeviceConnections",token);var row=await Owned(service,claim.Id,claim.Token,token);var d=await db.Devices.AsNoTracking().SingleAsync(x=>x.Id==row.DeviceId,token);
-        if(!d.Enabled||!d.Version.SequenceEqual(row.ExpectedDeviceVersion)||!await transaction.HasPermissionAsync(row.RequestedByUserId,Upload,token))return(null,row.Id);
+        var format=await db.DeviceUserDownloads.Where(x=>x.Id==row.SnapshotId).Select(x=>x.ReadFormat).SingleAsync(token);
+        if(claim.DeviceId!=row.DeviceId||claim.WriteFormat!=format||!d.Enabled||!d.Version.SequenceEqual(row.ExpectedDeviceVersion)||!await transaction.HasPermissionAsync(row.RequestedByUserId,Upload,token))return(null,row.Id);
         var cipher=await db.DeviceSecrets.Where(x=>x.DeviceId==d.Id).Select(x=>x.ProtectedValue).SingleOrDefaultAsync(token);if(cipher is null)return(allowDefault?new DeviceCommunicationKey(0):null,row.Id);
         try{var text=protection.CreateProtector("IO.Devices.Credential.v1",d.Id.ToString("N")).Unprotect(cipher);return(text.Length>0&&text.All(c=>c is >='0' and <='9')&&int.TryParse(text,NumberStyles.None,CultureInfo.InvariantCulture,out var key)?new DeviceCommunicationKey(key):null,row.Id);}catch(CryptographicException){return(null,row.Id);}
     },ct);
@@ -101,8 +106,12 @@ public sealed class DeviceUserUploads(IoDbContext db,PermissionTransaction trans
     {
         if(outcome?.IsValid()!=true)throw new ArgumentException("Invalid private outcome.");await transaction.LockAsync("IO.DeviceConnections",token);var row=await Owned(service,id,claim,token);row.State=outcome.State;row.FinishedAtUtc=clock.GetUtcNow();return(id,id);
     },ct);
+    // SnapshotId and its ReadFormat are both SQL-immutable, so the existing
+    // approval hash binds the format without a mutable duplicate column.
+    private Task<Dictionary<Guid,string>> Formats(IEnumerable<Guid> ids,CancellationToken ct)
+    {var keys=ids.Distinct().ToArray();return db.DeviceUserDownloads.AsNoTracking().Where(x=>keys.Contains(x.Id)).ToDictionaryAsync(x=>x.Id,x=>x.ReadFormat,ct);}
     private async Task<DeviceUserDownloadRecord> Snapshot(Guid id,Guid device,byte[] version,CancellationToken ct)
-    {var row=await db.DeviceUserDownloads.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==id,ct)??throw new ArgumentException("Unknown snapshot.");if(row.ReadFormat!=ZkUserReadFormats.Ssr||row.State!="succeeded"||row.DeviceId!=device||!row.ExpectedDeviceVersion.SequenceEqual(version))throw new DomainConflictException("Successful same-version target snapshot required.");return row;}
+    {var row=await db.DeviceUserDownloads.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==id,ct)??throw new ArgumentException("Unknown snapshot.");if(!ZkUserReadFormats.IsKnown(row.ReadFormat)||row.State!="succeeded"||row.DeviceId!=device||!row.ExpectedDeviceVersion.SequenceEqual(version))throw new DomainConflictException("Successful same-version target snapshot required.");return row;}
     private async Task<ZkUser?> Expected(Guid snapshot,string person,CancellationToken ct)
     {if(string.IsNullOrWhiteSpace(person))throw new ArgumentException("Exact identity required.");var length=Encoding.Unicode.GetByteCount(person);var rows=await db.DeviceDownloadedUsers.AsNoTracking().Where(x=>x.DownloadId==snapshot&&x.PersonIdentifier==person&&EF.Functions.DataLength(x.PersonIdentifier)==length).Take(2).ToListAsync(ct);if(rows.Count>1)throw new DomainConflictException("Duplicate target identity.");var r=rows.SingleOrDefault();return r is null?null:new(r.PersonIdentifier,r.Name,r.Card,r.Privilege,r.Enabled);}
     private async Task<bool> Mapped(Guid source,Guid company,Guid employee,string person,CancellationToken ct)

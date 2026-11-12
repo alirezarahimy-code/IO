@@ -434,6 +434,7 @@ try
         finally { await cliFoundation.Database.EnsureDeletedAsync(); }
     }
     await LegacyUserReadTests.RunAsync(connection, Check);
+    await LegacyUserUploadTests.RunAsync(connection, Check);
     Console.WriteLine("PASS disposable SQL Server integration checks");
     return 0;
 }
