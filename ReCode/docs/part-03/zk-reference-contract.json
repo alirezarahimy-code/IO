@@ -59,7 +59,7 @@
       "limit": "Not implemented as S08: copying this body can clear a password, change administrator privilege or physical access group, silently truncate a name, or overwrite/delete biometric templates. New ordinary user exchange must avoid physical-door commands, preserve protected fields, require explicit intent and separately record per-person/device unknown outcomes. No hardware safety/compatibility demonstrated."
     }
   ],
-  "implementation": "Independent new private STA COM probe child, not a copy of Personnel business/licensing logic; no automatic SDK registration or legacy activation implementation",
+  "implementation": "Independent private STA COM bridge for serial probe, typed information/clock, SSR user reads and gated ordinary attendance-only user writes; no copied Personnel business/licensing logic, access group setter, door command, admin escalation, biometric/template/photo/delete API or automatic SDK registration. Actual SDK/model acceptance remains.",
   "hardwareVerified": false,
   "part3Complete": false
 }

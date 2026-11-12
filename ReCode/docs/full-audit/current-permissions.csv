@@ -56,6 +56,8 @@ devices.update,ویرایش و غیرفعال‌کردن دستگاه,مجوز �
 devices.users.download,درخواست و لغو دریافت کاربران دستگاه,فقط دریافت خواندنی SSR تأییدشده در پیکربندی worker؛ نتیجهٔ ناقص هرگز snapshot کامل نیست.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
 devices.users.execute,اجرای سرویس مستقل دریافت کاربران,فقط هویت سرویس صریح؛ بدون اعطای خودکار به نقش انسانی.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
 devices.users.read,مشاهدهٔ کاربران دریافت‌شده و پیش‌نمایش نگاشت,snapshot سراسری؛ کارت و نام دادهٔ شخصی‌اند؛ بدون گذرواژه/بایومتریک و بدون ویرایش کارکنان.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+devices.users.upload,ارسال تأییدشدهٔ اطلاعات عادی کاربران,snapshot هدف، نگاشت کارمند و تأیید صریح؛ بدون password/admin/بایومتریک/درب؛ unknown بدون replay.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
+devices.users.upload.execute,اجرای سرویس مستقل ارسال کاربران,فقط هویت سرویس و opt-in مدل attendance-only؛ به نقش انسانی اعطا نمی‌شود.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
 employees.create,ثبت کارمند — employees.create,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
 employees.read.all,مشاهدهٔ پرسنل کل سازمان — employees.read.all,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)
 employees.read.scoped,مشاهدهٔ پرسنل واحد مجاز — employees.read.scoped,مجوز مستقل؛ محدوده و مجوزهای همراه عملیات همچنان لازم‌اند.,ReCode/src/IO.Infrastructure/Security/PermissionCatalog.cs,yes (server catalogue)

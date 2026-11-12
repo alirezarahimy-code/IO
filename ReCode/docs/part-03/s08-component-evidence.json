@@ -1,0 +1,369 @@
+{
+  "scope": "S08 ORDINARY attendance-only user exchange software candidate only; confirmed server preview and per-person/device durable SQL intents. Not real SDK/model acceptance or completion of Part 3.",
+  "codeCommit": "ce8114978aa1d9aeaf2d570cc567e18b9cdfd2f6",
+  "checks": {
+    "integrationPassLines": 551,
+    "foundation": 43,
+    "domain": 26,
+    "portableNativeBoundaryAndFileParser": 45,
+    "permissions": 101,
+    "pagesAndHelp": 47,
+    "foundationMigrations": 30,
+    "foundationTables": 54,
+    "s08ServiceChecks": 14,
+    "s08HttpChecks": 5,
+    "windowsServiceInstallerReadOnlyValidation": true
+  },
+  "realSdkExecuted": false,
+  "hardwareVerified": false,
+  "part3Complete": false,
+  "limitations": [
+    "No actual model/firmware verified; EnableUserUploads and AttendanceOnlyUserWriteApproved default false. No access-control terminal is admitted.",
+    "No password input/storage or admin privilege, AccGroup, physical door, biometric, template/photo, batch-disable or delete calls. Existing password lives only in native child memory. New ordinary user creation has no password by explicit confirmation.",
+    "Names beyond 20 UTF-16 code units and ordinary identifiers/cards outside the narrow decimal SSR contract fail closed; no silent truncation or leading-zero normalization.",
+    "Read-back and stable enumeration counts are not an atomic hardware compare-and-swap; exclusive external management policy and model acceptance are deployment requirements.",
+    "Unknown after dispatch is retained and never automatically replayed. A new successful post-write target snapshot plus explicit review is required before a new selected intent.",
+    "S09 real ranged extraction, S10 scheduling/authenticated PUSH and S11 general/sensitive commands remain unimplemented; S12 real multi-device/outage/exchange/settings acceptance remains."
+  ],
+  "runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 43218632179,
+      "headSha": "ce8114978aa1d9aeaf2d570cc567e18b9cdfd2f6",
+      "jobs": [
+        {
+          "completedAt": "2026-11-12T12:36:19Z",
+          "conclusion": "success",
+          "databaseId": 131184175751,
+          "name": "verify",
+          "startedAt": "2026-11-12T12:31:15Z",
+          "status": "completed",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "number": 2,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "number": 3,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Build and run domain checks",
+              "number": 4,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Test isolated native process boundary without hardware",
+              "number": 5,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Verify foundation catalogue and role-filtered help",
+              "number": 6,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned identity migration",
+              "number": 7,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned foundation migration",
+              "number": 8,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned scheduling migration",
+              "number": 9,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned employment migration",
+              "number": 10,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned attendance processing migration",
+              "number": 11,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned calculation migration",
+              "number": 12,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned correction migration",
+              "number": 13,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned period draft migration",
+              "number": 14,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned conflict notes migration",
+              "number": 15,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned mapping change migration",
+              "number": 16,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned calculation revision migration",
+              "number": 17,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned period diagnostics migration",
+              "number": 18,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned revision health migration",
+              "number": 19,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned leave ledger migration",
+              "number": 20,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned delegation registry migration",
+              "number": 21,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned correction settings migration",
+              "number": 22,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned correction limits migration",
+              "number": 23,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned correction settings evidence migration",
+              "number": 24,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require delegated correction evidence migration",
+              "number": 25,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Validate capability audit inventory",
+              "number": 26,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Generate migration scripts offline",
+              "number": 27,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Prepare browser test dependencies",
+              "number": 28,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Verify page-first preview in browser",
+              "number": 29,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Test offline workflow DOM contracts",
+              "number": 30,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Test isolated SQL Server Developer",
+              "number": 31,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "number": 61,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "number": 62,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 63,
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43218632179/job/131184175751"
+        }
+      ],
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43218632179"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 43218632286,
+      "headSha": "ce8114978aa1d9aeaf2d570cc567e18b9cdfd2f6",
+      "jobs": [
+        {
+          "completedAt": "2026-11-12T12:33:25Z",
+          "conclusion": "success",
+          "databaseId": 131184176380,
+          "name": "platform (ubuntu-24.04)",
+          "startedAt": "2026-11-12T12:31:16Z",
+          "status": "completed",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "number": 2,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "number": 3,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Build, catalogue checks and portable publish",
+              "number": 4,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "number": 7,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "number": 8,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 9,
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43218632286/job/131184176380"
+        },
+        {
+          "completedAt": "2026-11-12T12:33:25Z",
+          "conclusion": "success",
+          "databaseId": 131184177175,
+          "name": "platform (windows-2022)",
+          "startedAt": "2026-11-12T12:31:16Z",
+          "status": "completed",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "number": 2,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "number": 3,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Build, catalogue checks and portable publish",
+              "number": 4,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "number": 7,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "number": 8,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 9,
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43218632286/job/131184177175"
+        }
+      ],
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43218632286"
+    }
+  ]
+}

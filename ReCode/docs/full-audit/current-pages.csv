@@ -45,3 +45,4 @@
 /workspace/device-information,مشخصات و ساعت دستگاه,operator,DeviceInformation.html,devices.info.read | devices.clock.set,S06 candidate SQL snapshots and explicitly confirmed clock setting; hardware unverified; Part 3 incomplete
 /workspace/device-users,کاربران دستگاه و تطبیق کارکنان,operator,DeviceUsers.html,devices.users.read | devices.users.download,S07 streamed SSR snapshots and mapping preview; no employee overwrite; actual model unverified
 /workspace/device-files,ورود فایل دستگاه و قرنطینه,operator,DeviceFiles.html,devices.files.read | devices.files.preview | devices.files.commit,S12 explicit reference file preview and confirmed raw-ingestion trace; not hardware acceptance
+/workspace/device-user-uploads,ارسال عادی کاربران و نتیجهٔ هر نفر/دستگاه,operator,DeviceUserUploads.html,devices.users.read | devices.users.upload,S08 confirmed SQL ordinary metadata intents; independent outcomes and selective retry; not real model acceptance

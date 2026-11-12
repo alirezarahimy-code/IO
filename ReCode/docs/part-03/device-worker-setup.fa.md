@@ -4,7 +4,7 @@
 
 ## پیش‌نیاز و اعتماد
 
-1. از DB پشتیبان بگیرید؛ تمام migrationها تا `20261112060000_DeviceFileImports` (یا آخرین نسخهٔ تأییدشدهٔ استقرار) با ابزار مهاجرت موجود اعمال شوند؛ اعمال فقط migration اتصال برای قابلیت‌های جدید کافی نیست. میزبان وب/worker خودکار migrate یا seed نمی‌کند. downgrade پس از اولین درخواست تست عمداً خطای 51016 می‌دهد؛ زنجیرهٔ downgrade اتمیک فرض نشود.
+1. از DB پشتیبان بگیرید؛ تمام migrationها تا `20261112070000_DeviceUserUploads` (یا آخرین نسخهٔ تأییدشدهٔ استقرار) با ابزار مهاجرت موجود اعمال شوند؛ اعمال فقط migration اتصال برای قابلیت‌های جدید کافی نیست. میزبان وب/worker خودکار migrate یا seed نمی‌کند. downgrade پس از اولین درخواست تست عمداً خطای 51016 می‌دهد؛ زنجیرهٔ downgrade اتمیک فرض نشود.
 2. حساب سرویس اختصاصی سیستم‌عامل و دسترسی SQL کمینهٔ متناسب با query/transactionهای سرویس تنظیم کنید؛ اتصال رمز‌شده با گواهی معتبر و ACL برای تنظیمات لازم است. هویت بنیادینِ فعالِ جدا، بدون نیاز به حساب ورود وب، و نقش اختصاصی دارای فقط `devices.connection.execute` بسازید. هیچ قالب نقش این مجوز را نمی‌دهد. این نسخه هویت بنیادین را در هر claim/ثبت نتیجه از DB بررسی می‌کند؛ نگاشت config به هویت سیستم‌عامل/SQL مسئولیت استقرار است، نه هویت دستگاه یا گواهی دستگاه.
 3. تنظیمات صریح از secret store/متغیر محیطی امن یا فایل خارج از Git با ACL بیاید. `ConnectionStrings__IO` رشتهٔ واقعی SQL است؛ رمز آن در چت یا نمونه ثبت نشود. `IO__DeviceWorker__ServiceUserId` UUID هویت بنیادین سرویس است.
 4. برای هر endpoint تأییدشده، این کلیدها را تنظیم کنید: `IO__DeviceWorker__AllowedEndpoints__0__DeviceId`، `...__0__Address` و `...__0__Port`. مقدار Address باید IP دقیق و Port عدد صحیح باشد؛ نام DNS، wildcard، subnet، تغییر endpoint صرفاً از metadata و اسکن شبکه پشتیبانی نمی‌شوند. شناسه و IP/port باید با snapshot ثبت دستگاه مطابقت داشته باشند. نبود فهرست یعنی هیچ اتصال خروجی مجاز نیست.
@@ -64,3 +64,7 @@ worker اکنون روی Windows با `AddWindowsService` و نام ثابت `IO
 `Type=simple` و توقف SIGTERM از lifetime استاندارد .NET استفاده می‌کنند؛ `KillMode=control-group` childهای باقیمانده را نیز در stop می‌بندد. `Restart=on-failure` فقط میزبان را برمی‌گرداند، نه replay کار running یا نوشتن unknown. واحد با `ProtectSystem=strict` فایل برنامه/کلیدهای موجود را read-only می‌بیند؛ پیکربندی باید از پیش provision شده باشد. `systemctl daemon-reload`، `systemctl start io-device-worker` و enable فقط پس از آزمون نصب مجازند. COM بومی ZK روی Linux پشتیبانی نمی‌شود؛ این واحد آن را شبیه‌سازی یا تأیید نمی‌کند.
 
 تا اجرای واقعی نصب Windows، چند دستگاه، قطع ارتباط، تکرار دریافت و تبادل کاربران/تنظیمات، **S12 و بخش سوم همچنان بازند**.
+
+## ارسال عادی S08 (پیش‌فرض خاموش)
+
+`IO:DeviceWorker:EnableUserUploads=true`، grant مستقل `devices.users.upload.execute` و `AttendanceOnlyUserWriteApproved=true` روی NativeEndpoint لازم‌اند. فقط SSR attendance-only و **نه ترمینال کنترل درب**، پس از آزمون مدل واقعی؛ این flag اثبات سازگاری نیست. [راهنمای preview/تأیید/بازیابی/partial](s08-user-upload.fa.md). عملیات عادی به سیاست بایومتریک وابسته نیست؛ password قدیمی فقط در حافظهٔ child حفظ می‌شود. صف مشترک چهار slot را بین دریافت/ارسال/عملیات/diagnostic عادلانه تقسیم می‌کند؛ چهار slot سقف تعداد دستگاه نیست.

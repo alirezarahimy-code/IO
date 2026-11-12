@@ -7,20 +7,18 @@
     "exactModelFirmware": "not supplied",
     "realDeviceExecution": "not performed"
   },
-  "latestVerifiedCode": "534ef5f7a2c86eeff192dfe00757459aa0be7f00",
+  "latestVerifiedCode": "ce8114978aa1d9aeaf2d570cc567e18b9cdfd2f6",
   "checks": {
-    "integrationPassLines": 532,
-    "foundation": 42,
+    "integrationPassLines": 551,
+    "foundation": 43,
     "domain": 26,
-    "portableNativeBoundaryAndFileParser": 35,
-    "permissions": 99,
-    "pagesAndHelp": 46,
-    "foundationMigrations": 29,
-    "foundationTables": 53,
-    "s07ServiceChecks": 22,
-    "s07HttpChecks": 4,
-    "s12FileServiceChecks": 17,
-    "s12FileHttpChecks": 4,
+    "portableNativeBoundaryAndFileParser": 45,
+    "permissions": 101,
+    "pagesAndHelp": 47,
+    "foundationMigrations": 30,
+    "foundationTables": 54,
+    "s08ServiceChecks": 14,
+    "s08HttpChecks": 5,
     "windowsServiceInstallerReadOnlyValidation": true
   },
   "stages": {
@@ -28,7 +26,7 @@
     "S05": "partial: DB queue, independent service identity, grant/revoke, timeout isolation, TCP diagnostic and isolated native ZK serial-pin candidate; actual SDK installation and real device tests remain",
     "S06": "partial software candidate verified in CI: typed information/capacity/clock snapshots, independent read/set/execute permissions, explicitly confirmed UTC/timezone clock writes and immutable unknown outcome with later clock observation plus human review; real model/SDK tests and other supported settings remain",
     "S07": "partial: software candidate verified in SQL/HTTPS/browser and Windows/Linux CI; streamed SSR snapshots, long-read deadline fencing, exact mapping preview and grant/revoke; no employee overwrite; actual model/SDK execution remains",
-    "S08": "not implemented: per-person per-device upload and allowed biometrics",
+    "S08": "partial: ordinary attendance-only software candidate verified in SQL/HTTPS/real browser and Windows/Linux CI: actual server preview and confirmed plan hash; per-person/device intents and partial outcomes; target conflict guard, transient existing-password preservation, exact retry, pending-only cancellation, unknown recovery and explicit fresh-snapshot review before selective retry. No templates/biometrics, admin or AccGroup/physical door writes. Real SDK/model round-trip acceptance remains.",
     "S09": "not implemented: real device log extraction and end-to-end ingestion",
     "S10": "not implemented: scheduled polling and authenticated PUSH",
     "S11": "not implemented: actual command queue, advanced settings and sensitive operations; diagnostic queue is not S11",
@@ -38,18 +36,18 @@
   "part3Complete": false,
   "runs": [
     {
-      "databaseId": 43173466033,
-      "headSha": "534ef5f7a2c86eeff192dfe00757459aa0be7f00",
+      "databaseId": 43218632179,
+      "headSha": "ce8114978aa1d9aeaf2d570cc567e18b9cdfd2f6",
       "status": "completed",
       "conclusion": "success",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43173466033"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43218632179"
     },
     {
-      "databaseId": 43173466045,
-      "headSha": "534ef5f7a2c86eeff192dfe00757459aa0be7f00",
+      "databaseId": 43218632286,
+      "headSha": "ce8114978aa1d9aeaf2d570cc567e18b9cdfd2f6",
       "status": "completed",
       "conclusion": "success",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43173466045"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43218632286"
     }
   ]
 }
