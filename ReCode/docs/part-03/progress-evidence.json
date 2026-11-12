@@ -5,9 +5,10 @@
     "lab": "Windows",
     "referenceInstruction": "Use existing reference connection implementation",
     "exactModelFirmware": "not supplied",
-    "realDeviceExecution": "not performed"
+    "realDeviceExecution": "not performed",
+    "testingSequence": "User approved virtual-device software testing now, followed by real-device testing by the team. Virtual tests do not close actual model/SDK/hardware acceptance."
   },
-  "latestVerifiedCode": "0f31066f2b1cd8d7ac156fad56026ed831c96267",
+  "latestVerifiedCode": "b1df7dd3b590dc038ee576b6044c682c8b8414c4",
   "checks": {
     "integrationPassLines": 667,
     "foundation": 48,
@@ -31,35 +32,36 @@
     "s12HealthServiceChecks": 14,
     "s12HealthHttpChecks": 3,
     "s10OverlapServiceChecks": 8,
-    "s10OverlapHttpChecks": 2
+    "s10OverlapHttpChecks": 2,
+    "statefulTcpVirtualDeviceChecks": 19
   },
   "stages": {
     "S04": "accepted registry and metadata groups",
-    "S05": "partial: real SQL queues and grant/revoke, four native execution slots, timeouts, serial-pinned candidate, independent persisted worker instance heartbeats and permissioned SQL health dashboard. Actual SCM/systemd published-worker install/start/stop verified in isolated CI with unavailable synthetic DB and no endpoints. Real lab SDK installation/device connection tests remain.",
+    "S05": "partial: real SQL queues and grant/revoke, four native execution slots, timeouts, serial-pinned candidate, independent persisted worker instance heartbeats and permissioned SQL health dashboard. Actual SCM/systemd published-worker install/start/stop verified in isolated CI with unavailable synthetic DB and no endpoints. Real lab SDK installation/device connection tests remain. Stateful two-endpoint loopback TCP test laboratory now verifies isolated child behavior and fail-fast rejection of blocked malformed streams; private test protocol is not ZK.",
     "S06": "partial software candidate verified in CI: typed information/capacity/clock snapshots, independent read/set/execute permissions, explicitly confirmed UTC/timezone clock writes and immutable unknown outcome with later clock observation plus human review; real model/SDK tests and other supported settings remain",
     "S07": "partial: software candidate verified in SQL/HTTPS/browser and Windows/Linux CI; streamed SSR snapshots, long-read deadline fencing, exact mapping preview and grant/revoke; no employee overwrite; actual model/SDK execution remains",
     "S08": "partial: ordinary attendance-only software candidate verified in SQL/HTTPS/real browser and Windows/Linux CI: actual server preview and confirmed plan hash; per-person/device intents and partial outcomes; target conflict guard, transient existing-password preservation, exact retry, pending-only cancellation, unknown recovery and explicit fresh-snapshot review before selective retry. No templates/biometrics, admin or AccGroup/physical door writes. Real SDK/model round-trip acceptance remains.",
     "S09": "partial: software candidate verified in SQL/HTTPS/real browser and Windows/Linux CI. Serial-pinned isolated SSR all-log stream, exact typed tuples before explicit UTC interval filtering, immutable original payload and multiplicity receipts, retained invalid/unknown/outside-range quarantine, confirmed versioned page ingestion through existing raw/conflict core, repeated-download content-identity coalescence and explicit restart/partial recovery. No native physical event id or atomic snapshot proof; actual SDK/model/end-to-end hardware acceptance remains.",
     "S10": "partial: approved durable SSR polling, current creator grants, cursor/run, optional auto-ingestion, pause/resume/backoff and explicit bounded overlap verified in SQL/HTTPS/real browser and Windows/Linux CI. Late tuples inside the approved lookback enter existing immutable raw/dedup pipeline once; older late events remain unguaranteed. Incomplete reads cannot advance cursor. Authenticated supported-model vendor PUSH and actual SDK/model acceptance remain unimplemented/unverified.",
     "S11": "partial: SQL command history, immutable FK lineage, current independent human/service grants and separately confirmed retries for information, six fixed advanced-settings reads and attendance downloads verified in SQL/HTTPS/browser and Windows/Linux CI. Settings retry needs additional READ-ADVANCED-SETTINGS consent and typed current read grant; SQL guards forbid native write retries. Setting writes, RemoteEnroll and real model/firmware/biometric policy acceptance remain unimplemented/unverified.",
-    "S12": "partial: exact-byte USB/file preview and quarantine/confirmed raw ingestion, SQL health dashboard and actual published-worker SCM/systemd install/start/stop in isolated CI under dedicated accounts verified. Lifecycle smoke uses unavailable synthetic DB and no native endpoints; it is not real lab deployment or SDK acceptance. Actual multiple-device outages, repeated native downloads, user exchange/settings and model coverage remain."
+    "S12": "partial: exact-byte USB/file preview and quarantine/confirmed raw ingestion, SQL health dashboard and actual published-worker SCM/systemd install/start/stop in isolated CI under dedicated accounts verified. Lifecycle smoke uses unavailable synthetic DB and no native endpoints; it is not real lab deployment or SDK acceptance. Actual multiple-device outages, repeated native downloads, user exchange/settings and model coverage remain. Additional 19 stateful virtual-device checks pass on Windows/Linux; synthetic state only, no SQL/HTTP/worker end-to-end virtual connection and no vendor protocol/COM acceptance."
   },
   "hardwareVerified": false,
   "part3Complete": false,
   "runs": [
     {
-      "databaseId": 43255522942,
-      "headSha": "0f31066f2b1cd8d7ac156fad56026ed831c96267",
+      "databaseId": 43290520893,
+      "headSha": "b1df7dd3b590dc038ee576b6044c682c8b8414c4",
       "status": "completed",
       "conclusion": "success",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43255522942"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43290520893"
     },
     {
-      "databaseId": 43255522608,
-      "headSha": "0f31066f2b1cd8d7ac156fad56026ed831c96267",
+      "databaseId": 43290520920,
+      "headSha": "b1df7dd3b590dc038ee576b6044c682c8b8414c4",
       "status": "completed",
       "conclusion": "success",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43255522608"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43290520920"
     }
   ],
   "remainingSoftware": [
@@ -91,5 +93,6 @@
   "installationFlagsReferToUserLabNotCi": true,
   "healthEvidence": "s12-service-health-evidence.json",
   "overlapEvidence": "s10-overlap-evidence.json",
-  "remainingWorkRegister": "remaining-work.fa.md"
+  "remainingWorkRegister": "remaining-work.fa.md",
+  "virtualDeviceLabEvidence": "virtual-device-lab-evidence.json"
 }

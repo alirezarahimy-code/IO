@@ -103,3 +103,10 @@
 ### ادامهٔ S10 — تردد دیررس در بازخوانی هم‌پوشان
 
 کد `0f31066`، SQL/HTTPS/مرورگر `43255522942` و Windows/Linux `43255522608` هر دو **موفق**: **۶۶۷ integration؛ ۴۸ Foundation، ۲۶ domain، ۶۱ portable؛ ۳۷ migration/۶۰ جدول**. `OverlapSeconds` پیش‌فرض۰، مصوب و immutable است؛ تردد دیررس داخل lookback از مسیر raw/receipt موجود وارد می‌شود و اصل تکراری دوباره ساخته نمی‌شود؛ cursor عقب نمی‌رود و روی partial جلو نمی‌رود. دیررس خارج lookback تضمین نشده است. [راهنما](s10-overlap.fa.md)، [شاهد](s10-overlap-evidence.json)، و **[ماندهٔ دقیق S04–S12 و پیش‌نیاز هر مورد](remaining-work.fa.md)**. این جزء جای PUSH/نوشتن/بیومتریک یا پذیرش واقعی دستگاه نیست.
+
+
+### آزمایشگاه مجازی و اصلاح واقعی خطای native stream
+
+طبق تصمیم کاربر، تست نرم‌افزاری با دستگاه مجازی جلو رفت و تست دستگاه واقعی برای تیم باز ماند. کد `b1df7dd` با [Windows/Linux 43290520920](https://github.com/alirezarahimy-code/IO/actions/runs/43290520920) و [SQL/HTTPS/مرورگر 43290520893](https://github.com/alirezarahimy-code/IO/actions/runs/43290520893) **هر دو موفق**. ۱۹ بررسی TCP دو دستگاه stateful به ۶۱ بررسی مرزی موجود اضافه شد؛ ۶۶۷ integration موجود نیز سبز ماند. این ۱۹ بررسی از SQL/UI/worker عبور نمی‌کنند و private JSON هستند، نه پروتکل ZK یا اجرای COM.
+
+یک ایراد واقعی Windows کشف و رفع شد: پس از رد frame، `Task.WhenAll` منتظر childِ گیرکرده در pipe می‌ماند. انتظار اکنون fail-fast است؛ regression با ۸۱۹۲ frame اضافی و اجرای کنترلِ الگوی قبلی در Linux نیز آزموده شد. post-dispatch write همچنان unknown است؛ retry خودکار اضافه نشده است. [راهنما/سناریوها/تحویل آزمایشگاه واقعی](virtual-device-lab.fa.md)، [شاهد](virtual-device-lab-evidence.json). `hardwareVerified=false` و `part3Complete=false` پابرجاست.
