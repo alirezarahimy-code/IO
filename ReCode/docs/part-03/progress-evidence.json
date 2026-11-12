@@ -7,55 +7,48 @@
     "exactModelFirmware": "not supplied",
     "realDeviceExecution": "not performed"
   },
-  "latestVerifiedCode": "ba0b0b8c321c8bc58bfb8f6035f232c6f12b59bc",
+  "latestVerifiedCode": "e70c43e12271d7559cce6599daacecd26f464813",
   "checks": {
-    "integrationPassLines": 485,
-    "foundation": 40,
+    "integrationPassLines": 532,
+    "foundation": 42,
     "domain": 26,
-    "portableNativeBoundaryAndFileParser": 25,
-    "permissions": 93,
-    "pagesAndHelp": 44,
-    "foundationMigrations": 27,
-    "foundationTables": 49,
-    "s06ServiceChecks": 23,
-    "s06HttpChecks": 4
+    "portableNativeBoundaryAndFileParser": 33,
+    "permissions": 99,
+    "pagesAndHelp": 46,
+    "foundationMigrations": 29,
+    "foundationTables": 53,
+    "s07ServiceChecks": 22,
+    "s07HttpChecks": 4,
+    "s12FileServiceChecks": 17,
+    "s12FileHttpChecks": 4
   },
   "stages": {
     "S04": "accepted registry and metadata groups",
     "S05": "partial: DB queue, independent service identity, grant/revoke, timeout isolation, TCP diagnostic and isolated native ZK serial-pin candidate; actual SDK installation and real device tests remain",
     "S06": "partial software candidate verified in CI: typed information/capacity/clock snapshots, independent read/set/execute permissions, explicitly confirmed UTC/timezone clock writes and immutable unknown outcome with later clock observation plus human review; real model/SDK tests and other supported settings remain",
-    "S07": "software candidate under verification: streamed SSR user snapshots, durable bounded batches, independent read/download/execute grants and exact mapping preview; no employee overwrite and no SDK/hardware execution",
+    "S07": "partial: software candidate verified in SQL/HTTPS/browser and Windows/Linux CI; streamed SSR snapshots, long-read deadline fencing, exact mapping preview and grant/revoke; no employee overwrite; actual model/SDK execution remains",
     "S08": "not implemented: per-person per-device upload and allowed biometrics",
     "S09": "not implemented: real device log extraction and end-to-end ingestion",
     "S10": "not implemented: scheduled polling and authenticated PUSH",
     "S11": "not implemented: actual command queue, advanced settings and sensitive operations; diagnostic queue is not S11",
-    "S12": "partial internal reference USB parser only; no file import UI/commit or real hardware acceptance"
+    "S12": "partial: file importer verified in CI: exact original bytes, explicit calendar/check codes, retained quarantine, confirmed page commits, idempotent receipts, actual RawEventId/ConflictId trace through existing ingestion; installation and real multi-device hardware acceptance remain"
   },
   "hardwareVerified": false,
   "part3Complete": false,
   "runs": [
     {
-      "databaseId": 43167046675,
-      "headSha": "ba0b0b8c321c8bc58bfb8f6035f232c6f12b59bc",
+      "databaseId": 43171645469,
+      "headSha": "e70c43e12271d7559cce6599daacecd26f464813",
       "status": "completed",
       "conclusion": "success",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43167046675"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43171645469"
     },
     {
-      "databaseId": 43167046677,
-      "headSha": "ba0b0b8c321c8bc58bfb8f6035f232c6f12b59bc",
+      "databaseId": 43171645658,
+      "headSha": "e70c43e12271d7559cce6599daacecd26f464813",
       "status": "completed",
       "conclusion": "success",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43167046677"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43171645658"
     }
-  ],
-  "pendingVerification": {
-    "integrationPassLines": 510,
-    "foundation": 41,
-    "portableNativeBoundaryAndFileParser": 33,
-    "permissions": 96,
-    "pagesAndHelp": 45,
-    "foundationMigrations": 28,
-    "foundationTables": 51
-  }
+  ]
 }

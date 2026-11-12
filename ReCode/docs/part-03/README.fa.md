@@ -57,3 +57,7 @@
 ## جزء فایل S12
 
 [واردکنندهٔ واقعی SQL، قرنطینه و پیوند به raw/conflicts](s12-file-import.fa.md). این مسیر فایل، شاهد استخراج SDK یا پذیرش چند دستگاه واقعی نیست.
+
+جزء نرم‌افزاری S07 روی `56cca31` با SQL/HTTPS/browser `43170218579` و Windows/Linux `43170218552` موفق شد: ۵۱۰ PASS یکپارچه، ۴۱ Foundation و ۳۳ portable. [شاهد](s07-component-evidence.json). مدل/SDK واقعی همچنان آزموده نشده است.
+
+آخرین جزء نرم‌افزاری S07 + فایل S12 روی `e70c43e` با SQL/HTTPS/browser `43171645469` و Windows/Linux `43171645658` موفق شد: **۵۳۲ PASS، ۴۲ Foundation، ۳۳ portable**؛ ۹۹ حق، ۴۶ صفحه/مقاله، ۲۹ migration/۵۳ جدول. [شاهد و محدودیت‌ها](s12-file-component-evidence.json). این نتیجه پایان بخش سوم نیست؛ S08–S11 هنوز پیاده نشده و پذیرش سخت‌افزار S05–S12 باقی است.
