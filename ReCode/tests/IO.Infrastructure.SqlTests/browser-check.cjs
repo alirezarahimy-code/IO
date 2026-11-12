@@ -703,7 +703,7 @@ async function main() {
     await pollRow.locator('button').filter({hasText:'توقف'}).click();await pollRow.filter({hasText:'متوقف'}).waitFor();await pollPage.close();
     const commandPage=await context.newPage();await commandPage.goto(address+'/workspace/device-commands');
     await commandPage.waitForFunction(()=>!document.getElementById('history').hidden&&!document.getElementById('refresh').disabled);
-    const commandRow=commandPage.locator('#commands li').filter({hasText:commandFixtureId});await commandRow.waitFor();await commandRow.locator('button').click();
+    const commandRow=commandPage.locator('#commands li[data-command-id="'+commandFixtureId+'"]');await commandRow.waitFor();await commandRow.locator('button').click();
     await commandPage.locator('#retry-form input[name=confirmed]').check();await commandPage.locator('#retry-form button').click();
     await commandPage.waitForFunction(()=>document.getElementById('notice').textContent.includes('lineage')&&!document.getElementById('refresh').disabled);
     const retriedCommand=await commandPage.evaluate(async id=>{const data=await(await fetch('/device-commands?offset=0')).json();const link=data.retries.find(x=>x.previousOperationId===id);if(!link||!data.items.some(x=>x.id===id&&x.state==='failed'))throw Error('S11 SQL lineage or original outcome absent');return link.id;},commandFixtureId);
