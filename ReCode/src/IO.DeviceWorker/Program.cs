@@ -57,9 +57,12 @@ internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfig
                     var db=scope.ServiceProvider.GetRequiredService<IoDbContext>();var cutoff=DateTimeOffset.UtcNow.AddMinutes(-2);
                     var available=await db.DeviceConnections.AnyAsync(x=>x.State=="pending"||(x.State=="running"&&x.ClaimedAtUtc<cutoff),ct);
                     var operationsAvailable=configuration.EnableOperations&&await db.DeviceOperations.AnyAsync(x=>x.State=="pending"||(x.State=="running"&&x.ClaimedAtUtc<cutoff),ct);
-                    if(operationsAvailable&&(!available||preferOperations))operation=await scope.ServiceProvider.GetRequiredService<DeviceOperations>().ClaimAsync(configuration.ServiceUserId,ct);
-                    else if(available)claim=await scope.ServiceProvider.GetRequiredService<DeviceConnections>().ClaimAsync(configuration.ServiceUserId,ct);
+                    var chooseOperation=operationsAvailable&&(!available||preferOperations);
+                    // Advance before authorization/claim: a revoked diagnostic grant must
+                    // not permanently starve independently authorized operation jobs (or vice versa).
                     preferOperations=!preferOperations;
+                    if(chooseOperation)operation=await scope.ServiceProvider.GetRequiredService<DeviceOperations>().ClaimAsync(configuration.ServiceUserId,ct);
+                    else if(available)claim=await scope.ServiceProvider.GetRequiredService<DeviceConnections>().ClaimAsync(configuration.ServiceUserId,ct);
                 }
                 if(operation is not null)
                 {
