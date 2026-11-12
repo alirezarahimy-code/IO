@@ -493,6 +493,21 @@ internal static class HttpSecurityTests
                   (await own.GetAsync("/device-user-uploads")).StatusCode==HttpStatusCode.Forbidden&&
                   (await own.GetAsync("/help/topic/device-user-uploads")).StatusCode==HttpStatusCode.OK,
                   "HTTP S08 upload grant exposes protected help but still validates intents and never grants retained history reads");
+            var validUploadItem=JsonSerializer.Deserialize<IO.Infrastructure.Devices.DeviceUserUploads.Item>(browserProcess.ArgumentList[^1],new JsonSerializerOptions{PropertyNameCaseInsensitive=true})! with{Id=Guid.NewGuid()};
+            var validUploadBatch=new IO.Infrastructure.Devices.DeviceUserUploads.Batch(Guid.NewGuid(),[validUploadItem],"UPLOAD-ORDINARY-USERS");
+            var validUploadPreview=await PostAdmin(own,"/device-user-uploads/preview",validUploadBatch);validUploadPreview.EnsureSuccessStatusCode();
+            using(var validPreviewJson=JsonDocument.Parse(await validUploadPreview.Content.ReadAsStringAsync()))
+            {
+                var plan=validPreviewJson.RootElement.GetProperty("result");
+                validUploadBatch=validUploadBatch with{PreviewHash=plan.GetProperty("previewHash").GetString()};
+                var queuedUpload=await PostAdmin(own,"/device-user-uploads",validUploadBatch);
+                using var uploadHistory=JsonDocument.Parse(await adminClient.GetStringAsync("/device-user-uploads?batchId="+validUploadBatch.BatchId));
+                var uploadReceipt=uploadHistory.RootElement.GetProperty("items").EnumerateArray().Single();
+                check(plan.GetProperty("items")[0].GetProperty("desired").GetProperty("name").GetString()=="Ordinary employee"&&
+                      queuedUpload.StatusCode==HttpStatusCode.OK&&uploadReceipt.GetProperty("state").GetString()=="pending"&&
+                      (await PostAdmin(own,"/device-user-uploads/"+validUploadItem.Id+"/cancel",new{ExpectedVersion=uploadReceipt.GetProperty("version").GetBytesFromBase64()})).StatusCode==HttpStatusCode.OK,
+                      "HTTP S08 preview returns the actual authenticated response envelope and exact confirmed plan queues and cancels a real SQL intent");
+            }
             (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.users.read"})).EnsureSuccessStatusCode();
             check((await own.GetAsync("/device-user-uploads")).StatusCode==HttpStatusCode.OK&&
                   (await PostAdmin(own,"/device-user-uploads/"+Guid.NewGuid()+"/review",new{ExpectedVersion=s06Version,SnapshotId=downloadId,Confirmation="not-confirmed"})).StatusCode==HttpStatusCode.BadRequest,
