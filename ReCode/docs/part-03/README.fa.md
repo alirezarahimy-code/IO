@@ -132,3 +132,7 @@
 ## زمان بیکاری مدل‌محور؛ فقط کد۴
 
 [راهنمای تنظیم محدود دقیقه](s11-idle-minutes.fa.md) · [شاهد CI](s11-idle-minutes-evidence.json) · [ممیزی۱۶۰](../full-audit/160-idle-minutes.md). کد `9fff2cf32539e6f5028432976dc6183fdedc1bc7` با۲۳ بررسی قرارداد/فرایند،۲۹ SQL و۳ HTTPS جدید در CI موفق؛ مجموع۷۶۸ integration،۱۲۲حق و۴۱migration. حداکثر یک نوشتن و read-back دقیق؛ احتمال خواب/خاموشی با تأیید مستقل، پیش‌فرض نصب خاموش و unknown بدون retry. اجرای COM/مدل واقعی هنوز انجام نشده است.
+
+## تطبیق سرتاسری دستگاه با دو مرجع
+
+[گزارش تطبیق](device-reference-parity.fa.md) · [موجودی هش‌دار](device-reference-inventory.json) · [جدول۵۳ ردیفی](device-reference-crosswalk.csv) · [شاهد CI و مرز پذیرش](device-reference-parity-evidence.json). چهار کنترلر باینری T5Web اصلی و کنترلر/سرویس/transport/viewهای سورس تاریخی AriaAdmin به commit ثابت بررسی شدند؛ باینری سورس نیست و AriaAdmin با آریا کاربری/TWF یکی نیست. سه ایراد اصلی در binding کامل credential، تداخل صف‌های native write/polling و خواندن ظرفیت با ref مشترک اصلاح شدند؛ IP گزارش‌شده و الگوریتم خام نیز به GetAdvanced2 خواندنی بازگردانده شدند. دامنهٔ دستگاه منتخب اپراتور، تردد native non-TFT، PUSH امن، قراردادهای سایر تنظیمات و عملیات حساس هنوز مانده‌اند. تعداد۵۳ ردیف، تعداد قابلیت تکمیل‌شده نیست؛ `part3Complete=false`.

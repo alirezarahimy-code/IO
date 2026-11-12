@@ -131,10 +131,10 @@ IO_ILSPY_RUNNER=/absolute/path/runner.dll IO_DOTNET=/absolute/path/dotnet \
   python ReCode/tools/device-reference-audit.py --inventory
 ```
 
-validator هش منابع ثابت و پوشش یک‌به‌یک اظهارهای action و پنج catalog را بررسی می‌کند؛ تطبیق رفتار، تصمیم انسانی جدول است، نه اثبات خودکار معادل‌بودن کد. دادهٔ حساس یا بدنهٔ کامل باینری در گزارش کپی نشده است.
+validator هش دقیق Git blob منابع ثابت (و برابری worktree؛ فقط تفاوت LF/CRLF فایل view هنگام checkout ویندوز نادیده گرفته می‌شود) و پوشش یک‌به‌یک اظهارهای action و پنج catalog را بررسی می‌کند؛ تطبیق رفتار، تصمیم انسانی جدول است، نه اثبات خودکار معادل‌بودن کد. دادهٔ حساس یا بدنهٔ کامل باینری در گزارش کپی نشده است.
 
 ## آزمون و تحویل این اصلاحات
 
-وضعیت CI و commit دقیق پس از پایان اجرا در [شاهد تحویل](device-reference-parity-evidence.json) ثبت می‌شود. suite جدید شامل۳۳ بررسی portable قرارداد/خواندن، پنج گروه SQL claim-binding، هشت regression بین صف‌ها و یک round-trip SQL برای GetAdvanced2 است. شمارش مورد انتظار suite یکپارچه۷۸۲ است؛ تا شاهد success، انتظار را موفقیت اجرا نمی‌نامیم. مسیرهای DOM قبلی settings/idle نیز محلی دوباره موفق شدند.
+کد `aca96d7f55b1963dc3e57a3efd1e4f04e3773746` در [Windows/Linux](https://github.com/alirezarahimy-code/IO/actions/runs/43315707982) و [SQL/HTTPS](https://github.com/alirezarahimy-code/IO/actions/runs/43315707957) **success** شد؛ جزئیات و اجراهای ناموفق قبلی در [شاهد تحویل](device-reference-parity-evidence.json) ثبت شدند. suite جدید شامل۳۳ بررسی portable قرارداد/خواندن، پنج گروه SQL claim-binding، هشت regression بین صف‌ها و یک round-trip SQL برای GetAdvanced2 است. suite یکپارچه با کنترل سخت تعداد۷۸۲ PASS و نشانگر پایان موفق شد. مسیرهای DOM قبلی settings/idle نیز محلی دوباره موفق شدند.
 
 **`part3Complete=false`، `realSdkExecuted=false` و `hardwareVerified=false`؛ این گزارش پایان تطبیق موجودیِ مشخص است، نه پایان تمام قسمت دستگاه.**

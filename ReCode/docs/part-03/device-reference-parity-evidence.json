@@ -1,0 +1,90 @@
+{
+  "scope": "Behavioral disposition of 48 action declarations plus 5 AriaAdmin catalog commands, with safety and fixed GetAdvanced2 read corrections; NOT full device feature completion.",
+  "verifiedCode": "aca96d7f55b1963dc3e57a3efd1e4f04e3773746",
+  "runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 43315707982,
+      "headSha": "aca96d7f55b1963dc3e57a3efd1e4f04e3773746",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43315707982"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 43315707957,
+      "headSha": "aca96d7f55b1963dc3e57a3efd1e4f04e3773746",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43315707957"
+    }
+  ],
+  "checks": {
+    "integrationNamedPassLines": 782,
+    "integrationCountEnforcedBy": "ReCode/tools/phase03-report-tests.py",
+    "portableReferenceParityChecks": 33,
+    "portableBoundaryChecks": 61,
+    "portableIdleChecks": 23,
+    "referenceActionDeclarations": 48,
+    "ariaCatalogEntries": 5,
+    "matrixRows": 53,
+    "platforms": [
+      "Windows Server 2022",
+      ".NET 10 Ubuntu 24.04"
+    ],
+    "helpPages": 52,
+    "rights": 122,
+    "migrations": 41
+  },
+  "corrections": [
+    "Full worker intent binding before credential dispatch across five typed queues.",
+    "Cross-queue polling and unresolved native/user-write fences.",
+    "Independent nullable status reads and serial-before/after snapshot binding.",
+    "Fixed read-only reported IP and raw algorithm version without legacy fallback 9.",
+    "Health test approves and pauses polling before uncertain clock write; does not bypass safety.",
+    "Read-only hash/action crosswalk verifier included in both CI paths; exact Git blob hashes plus worktree equality with only cshtml checkout EOL normalization."
+  ],
+  "localEvidence": [
+    "33 reference parity synthetic-session checks pass.",
+    "Read-only repeat ILSpy inventory: all 48 action declarations plus five catalog rows pass.",
+    "Capability inventory validator passes."
+  ],
+  "failedRuns": [
+    {
+      "sha": "c70378085d67447ee093e62de11d98cdd56e5291",
+      "runs": [
+        43314036470,
+        43314036748
+      ],
+      "reason": "New test foreach local name collision; renamed forgedClaim in 156c78c."
+    },
+    {
+      "sha": "156c78c6bbddb8f9f9f46a49ee987e85658a629f",
+      "runs": [
+        43314268968
+      ],
+      "reason": "Health test attempted enabling polling after unknown clock write; test corrected in d804b2b without weakening production fence."
+    },
+    {
+      "sha": "fed8cddeeabf79fa594471e67c4475da12c7a695",
+      "runs": [
+        43315044129
+      ],
+      "reason": "Windows-only audit step failure; raw job logs inaccessible from sandbox. Checkout LF/CRLF sensitivity removed via canonical blob hashing; next Windows run passed."
+    }
+  ],
+  "failedRunDisclosure": "Failures are not counted as successes. Windows failure cause was inferred from EOL-dependent verifier and subsequent successful correction; raw failure log unavailable.",
+  "remainingSoftware": [
+    "Selected-device operator authorization scope, not global grants or metadata groups.",
+    "Native non-TFT attendance adapter and explicit supported-model coverage.",
+    "Additional model-specific settings and function-key contracts/adapters.",
+    "Authenticated supported-model vendor PUSH including replay, bounds and recovery.",
+    "RemoteEnroll/biometrics subject to approved model and privacy contract.",
+    "Independent destructive reset/delete grants, evidence and unknown recovery."
+  ],
+  "remainingHardware": "Actual Windows SDK and at least two approved model/firmware devices with outage, repeated extraction, user exchange and setting acceptance.",
+  "part3Complete": false,
+  "hardwareVerified": false,
+  "realSdkExecuted": false,
+  "referenceInventory": "device-reference-inventory.json",
+  "crosswalk": "device-reference-crosswalk.csv",
+  "report": "device-reference-parity.fa.md"
+}
