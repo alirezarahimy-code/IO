@@ -1,6 +1,6 @@
-# نصب worker تست TCP — زیرساخت اولیهٔ S05، نه پذیرش سخت‌افزار
+# نصب worker ارتباط و probe بومی candidate ZK — S05، نه پذیرش سخت‌افزار
 
-این worker جدا از وب روی .NET 10 اجرا می‌شود و هیچ SDK/native/COM بار نمی‌کند. فقط یک TCP handshake بدون payload انجام می‌دهد. `tcp-reachable` اثبات دستگاه، رمز، مدل، firmware یا پروتکل نیست. S05 و کل بخش سوم هنوز پذیرفته نشده‌اند.
+این worker جدا از وب روی .NET 10 اجرا می‌شود و COM را در process خود یا وب بار نمی‌کند. مسیر اولیه TCP handshake است؛ مسیر candidate ZK در child مستقلِ بخش پایانی همین سند اجرا می‌شود. `tcp-reachable` اثبات دستگاه، رمز، مدل، firmware یا پروتکل نیست. S05 و کل بخش سوم هنوز پذیرفته نشده‌اند.
 
 ## پیش‌نیاز و اعتماد
 
@@ -24,3 +24,15 @@
 ## ماندهٔ سخت‌افزار
 
 مدل/firmware، روش ارتباط، محیط نصب، دستگاه آزمایشی قابل دسترس، مجوز/مستند SDK و نمونهٔ فایل بی‌نام هنوز ارائه نشده‌اند. TCP diagnostic به هیچ مدل واقعی نسبت داده نمی‌شود. adapter واقعی، اطلاعات/تنظیمات، تبادل کاربران، تردد، PUSH، فرمان‌ها و USB پذیرش جدا در S05..S12 دارند. بیومتریک بدون سیاست دسترسی/نگهداری مصوب فعال نمی‌شود؛ کنترل فیزیکی درب خارج دامنه است.
+
+## probe بومی ZK — candidate، نه تأیید مدل واقعی
+
+قرارداد از `Personnel.ZK.ZKDevice.Connect` و `zkemkeeper.IZKEM` در `T5V3.9.2/Personnel.DLL` با hash ثبت‌شده استخراج شد؛ [شاهد](zk-reference-contract.json). فقط API اتصال و خواندن سریال استفاده می‌شود؛ منطق legacy license/activation و فرمان‌های درب وارد پروژه نشده‌اند. SDK باید دارای مجوز استفاده و با installer معتبر و معماری صحیح نصب شود؛ این کد installer یا ثبت خودکار COM ندارد.
+
+- پروژهٔ `IO.ZkBridge` را جدا publish کنید. SDK موجود مرجع x86 است؛ اجرای child با runtime Windows x86 متناسب لازم است، مگر SDK دیگری مستقلاً تأیید شود. وب و worker می‌توانند همچنان .NET 10 x64 باشند. binary مراجع را به خروجی خودکار کپی نکنید. تست نصب Windows/x86 هنوز انجام نشده است.
+- `IO__DeviceWorker__BridgeDotnetPath`: مسیر کامل dotnet مناسب child؛ `IO__DeviceWorker__BridgeAssemblyPath`: مسیر کامل `IO.ZkBridge.dll` در پوشهٔ ACLدار و مورد اعتماد، نه ورودی کاربر وب.
+- به‌جای AllowedEndpoints، `IO__DeviceWorker__NativeEndpoints__0__DeviceId/Address/Port/MachineNumber/ExpectedSerial` را تنظیم کنید. MachineNumber عدد SDK است، نه شمارهٔ متنی موجودی. ExpectedSerial را از برچسب/مرجع تأییدشدهٔ همان دستگاه بگیرید؛ child فقط سریال را تطبیق می‌دهد و آن را در نتیجه بازنمی‌گرداند. یک DeviceId نمی‌تواند هم TCP و هم native تنظیم شده باشد.
+- credential محافظت‌شدهٔ دستگاه باید عدد غیرمنفی قابل تبدیل به Int32 باشد. در نبود credential، اجرا fail-closed است؛ فقط با `...__AllowDefaultCommunicationKey=true` استفادهٔ کلید پیش‌فرض SDK صریحاً مجاز می‌شود. این opt-in را روی دستگاه با کلید واقعی به‌عنوان راه‌حل خطا فعال نکنید.
+- برای web و worker، `IO__DataProtection__KeyRingPath` و `IO__DataProtection__ApplicationName` را **یکسان و صریح** تنظیم کنید. مسیر باید موجود، absolute، ACLدار و دارای پشتیبان باشد. worker کلید تازه ایجاد نمی‌کند. تغییر identity/default discriminator در نصب دارای ciphertext قبلی بدون برنامهٔ migration آن رمزها را ناخوانا می‌کند؛ کلید/identity موجود را حفظ یا با مجوز رمزها را دوباره تنظیم کنید. این تنظیم opt-in است و رفتار پیش‌فرض نصب قدیمی را خودکار تغییر نمی‌دهد. حفاظت at-rest/ACL/key escrow خودکار تضمین نمی‌شود.
+- فقط Windows اجازهٔ اجرای COM دارد؛ Linux وضعیت unsupported می‌گیرد و کنترل native را در process وب بار نمی‌کند. برای هستهٔ Linux و worker Windows، این نسخه اتصال مستقیم SQL رمز‌شدهٔ صریح دارد؛ تأیید نصب عملیاتی چنین ترکیبی هنوز باقی است.
+- `sdk-unavailable`: SDK/COM/معماری یا فراخوانی نامعتبر؛ `sdk-identity-mismatch`: سریال پاسخ با pin نمی‌خواند؛ `credential-unavailable`: کلید/نسخه/مجوز/key ring معتبر نیست. `sdk-serial-matched` احراز هویت رمزنگاری‌شده نیست و به معنای تکمیل S06..S12 نیست. در timeout فرایند child terminate می‌شود؛ هیچ retry خودکار وجود ندارد.

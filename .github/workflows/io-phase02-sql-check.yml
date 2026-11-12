@@ -28,6 +28,9 @@ jobs:
             exit 1
           fi
           echo '::notice title=Foundation build::Solution built and domain checks passed'
+      - name: Test isolated native process boundary without hardware
+        working-directory: ReCode
+        run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --verify
       - name: Verify foundation catalogue and role-filtered help
         working-directory: ReCode
         run: dotnet run --project tests/IO.Foundation.Tests --configuration Release --no-build

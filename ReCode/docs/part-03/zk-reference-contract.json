@@ -1,0 +1,57 @@
+{
+  "provenance": "Read-only static decompilation of existing managed binaries, not original source and not execution of legacy code",
+  "decompiler": {
+    "project": "https://github.com/icsharpcode/ILSpy/tree/v9.1",
+    "sourceArchive": "https://codeload.github.com/icsharpcode/ILSpy/zip/refs/tags/v9.1",
+    "license": "MIT",
+    "localBuild": "scratch .NET 10 engine from official source, language version 11, no NuGet packages; legacy binaries never loaded for execution",
+    "scratchOutput": "/home/user/tools/io-ilspy/"
+  },
+  "assemblies": [
+    {
+      "path": "T5V3.9.2/Personnel.DLL",
+      "sha256": "185b084072a552e92ab0c8b0c2a03ca926b2aa362b5aada1ca8a39f998144be4"
+    },
+    {
+      "path": "T5V3.9.2/T5V3.ZK.DLL",
+      "sha256": "e6d131ed091564b9ef620af90f7a9556187f7c5681e2cf52ba26b4e4187cc129"
+    }
+  ],
+  "observed": [
+    {
+      "type": "Personnel.ZK.ZKDevice",
+      "method": "field initializer and Connect",
+      "contract": "COM CLSID 00853A19-BD51-419B-9269-2DABE57EB61F; SetCommPassword(CommPassword); TCP path Connect_Net(IP,Port); GetSerialNumber(MachineNumber,out serial); Disconnect",
+      "bodyObserved": true
+    },
+    {
+      "type": "zkemkeeper.IZKEM",
+      "contract": "IID 102F4206-E43D-4FC9-BAB0-331CFFE4D25B; SetCommPassword(Int32) DispId 51; Connect_Net(BStr,Int32) DispId 39; GetSerialNumber(Int32,out BStr) DispId 29",
+      "bodyObserved": false,
+      "limit": "Interface signature metadata, not a method body. New adapter uses COM late binding and does not generate an incomplete vtable."
+    },
+    {
+      "type": "Personnel.ZK.ZKDevice",
+      "method": "GetDeviceCapacity; GetDeviceTime; SyncTime",
+      "contract": "GetSerialNumber/GetProductCode/GetDeviceMAC; GetDeviceStatus kinds 9,6,22,21,3,1,7,8,2; GetDeviceTime six calendar components; SetDeviceTime/SetDeviceTime2",
+      "bodyObserved": true
+    },
+    {
+      "type": "Personnel.ZK.ZKDevice",
+      "method": "WriteUserIDsToList; WriteRecordsToList",
+      "contract": "TFT path SSR_GetAllUserInfo / GetStrCardNumber; SSR_GetGeneralLogData with calendar components and WorkCode; non-TFT path differs",
+      "bodyObserved": true,
+      "limit": "Candidate model contract only. Do not copy passwords, biometric data or license logic into logs or assume every model supports it."
+    },
+    {
+      "type": "Personnel.USBFiles.RecordReader",
+      "method": "ReadFromData / ReadFromFile",
+      "contract": "Tab-separated badge, local timestamp, machine number, check type, verify mode; timestamp parsed as Gregorian for year >=1500 otherwise Persian calendar in this legacy implementation",
+      "bodyObserved": true,
+      "limit": "Not proof of a universal ZK attlog layout. New parser must use explicit layout/calendar/time zone and quarantine invalid or ambiguous data; real file verification still pending."
+    }
+  ],
+  "implementation": "Independent new private STA COM probe child, not a copy of Personnel business/licensing logic; no automatic SDK registration or legacy activation implementation",
+  "hardwareVerified": false,
+  "part3Complete": false
+}

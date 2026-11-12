@@ -10,7 +10,7 @@ public sealed class DeviceConnections(IoDbContext db, PermissionTransaction tran
     public const string Read = "devices.connection.read", Test = "devices.connection.test", Execute = "devices.connection.execute";
     public sealed record Claim(Guid Id, Guid Token, Guid DeviceId, string Profile, string? Host, int? Port, int TimeoutSeconds);
     public static readonly IReadOnlySet<string> Outcomes = new HashSet<string>(StringComparer.Ordinal)
-        { "tcp-reachable", "unreachable", "timed-out", "unsupported", "endpoint-denied", "interrupted" };
+        { "tcp-reachable", "unreachable", "timed-out", "unsupported", "endpoint-denied", "interrupted", "sdk-serial-matched", "sdk-identity-mismatch", "sdk-unavailable", "credential-unavailable", "bridge-failed" };
 
     public Task<Guid> RequestAsync(Guid actor, Guid operationId, Guid deviceId, byte[] expectedDeviceVersion, int timeoutSeconds, CancellationToken ct = default) =>
         transaction.ExecuteAsync(actor, Test, "device-connection.requested", async token =>

@@ -15,10 +15,10 @@
 
 ## آزمون‌ها و وضعیت اثبات
 
-- ۲۲ check سرویس/transport افزوده، شامل مجوز مستقل، retry، نسخه، دو claim موازی، لغو، recovery با clock کنترل‌شده، منع late result، DB history guard، مهلت بیرونی برای connector بی‌اعتنا به cancellation و عدم مسدودکردن connector مستقل، TCP روی listener لوپ‌بک خود تست، endpoint-denied و service revocation. listener محلی دستگاه واقعی نیست.
+- ۲۷ check سرویس/transport افزوده، شامل مجوز مستقل، retry، نسخه، دو claim موازی، لغو، recovery با clock کنترل‌شده، منع late result، DB history guard، مهلت بیرونی برای connector بی‌اعتنا به cancellation و عدم مسدودکردن connector مستقل، TCP روی listener لوپ‌بک خود تست، endpoint-denied و service revocation. listener محلی دستگاه واقعی نیست.
 - ۴ HTTPS check برای grant/revoke روی نشست واقعی، CSRF، read جدا، retry و لغو.
 - Playwright از لینک موجودی به صفحهٔ تست می‌رود، ثبت pending و لغو را بررسی می‌کند؛ موفقیت شبکه جعل نمی‌شود. DOM mockِ CSRF/retry/cancel/revoke موفق محلی است.
-- gate مورد انتظار اکنون ۴۵۳ PASS، Foundation ۳۸، کاتالوگ ۹۰ permission و ۴۳ صفحه/مقاله، ۲۵ migration/۴۸ جدول است. **تا موفقیت CI این اعداد انتظارند، نه نتیجهٔ اجرا.**
+- gate مورد انتظار اکنون ۴۵۸ PASS، Foundation ۳۸، کاتالوگ ۹۰ permission و ۴۳ صفحه/مقاله، ۲۶ migration/۴۸ جدول است. **تا موفقیت CI این اعداد انتظارند، نه نتیجهٔ اجرا.**
 - SDK محلی موجود است، اما build کامل به NU1301/SSL EOF در NuGet محدود است؛ TLS غیرفعال نشده. parser آفلاین C# و syntax JS گذشتند و جایگزین build/SQL نیستند.
 
 ## ماندهٔ واقعی، نه حذف دامنه
@@ -26,3 +26,15 @@
 S05 هنوز driver پروتکل/مدل تأییدشده و آزمون واقعی اتصال/قطعی ندارد. S06..S12 همچنان باقی‌اند: اطلاعات/ظرفیت/تنظیم؛ کاربران و mapping؛ ارسال فرد/چند دستگاه با نتیجهٔ هر نفر؛ دریافت raw و dedup/قرنطینه؛ زمان‌بندی/PUSH با احراز هویت؛ صف فرمان واقعی و عملیات حساس؛ فایل/USB و پذیرش سخت‌افزار. صف این سند فقط diagnostic است، نه صف فرمان کامل S11.
 
 برای این مراحل مدل/firmware و پروتکل، OS/architecture سرویس، دستگاه آزمایشی مجزا از تولید، مستند/مجوز SDK و نمونهٔ attlog بی‌نام لازم است. رمز در چت لازم نیست. نبود این موارد مانع ساخت اجزای مستقل نیست؛ ولی بدون آن‌ها سازگاری/قالب واقعی یا اتمام بخش سوم ادعا نمی‌شود.
+
+## نتیجهٔ نخستین جزء و ادامهٔ ZK
+
+جزء TCP/صف روی `b34b831` با Windows/Linux `43121684281` و SQL/HTTPS/browser `43121684354` موفق شد: ۴۵۳ PASS یکپارچه، Foundation ۳۸؛ این نتیجه به native تازه تعمیم داده نمی‌شود. نخستین build روی `dd442a0` به‌دلیل نام متغیر تکراری fixture متوقف شد و روی `c25ce61` اصلاح شد؛ هیچ guard یا assertion حذف نشد.
+
+کاربر مسیر ZK و آزمایش Windows را انتخاب کرده و به منابع موجود ارجاع داده است؛ مدل/firmware دقیق و گزارش اجرای واقعی هنوز ارائه نشده‌اند. این بار ابزار decompiler از سورس رسمی MITِ ILSpy v9.1 در scratch، بدون NuGet، ساخته و فقط به‌صورت static روی `Personnel.DLL` اجرا شد. برخلاف ممیزی اولیه، بدنهٔ متدهای منتخب اکنون مشاهده شده است؛ این بازسازی باینری است، نه سورس اصلی. [شاهد hash/کلاس/امضا](../part-03/zk-reference-contract.json). هیچ مرجع legacy تغییر نکرده و منطق license/activation قدیمی کپی یا اجرا نمی‌شود.
+
+`IO.ZkBridge`: فرایند STA جدا با COM CLSID مشاهده‌شده، SetCommPassword/Connect_Net/GetSerialNumber/Disconnect و سریال دقیق پین‌شده. فقط probe اتصال خواندنی؛ نه تنظیم یا دریافت/ارسال. parent ورودی محدود را از stdin می‌فرستد، نه command line؛ محیط DB/DP به child منتقل نمی‌شود، stdout/stderr سقف دارند و نتیجه فقط allowlist کد ثابت است. `sdk-serial-matched` فقط پاسخ SDK و تطبیق سریال را ثابت می‌کند، نه authentication رمزنگاری‌شده یا قابلیت همهٔ مدل‌ها. SDK مجاز باید جدا با معماری درست نصب شده باشد؛ DLL خودکار ثبت/بارگذاری یا از مرجع کپی نمی‌شود.
+
+رمز فقط برای claim معتبر، دستگاه بدون تغییر، service grant و requester grant جاری درون سرویس unprotect می‌شود؛ عدد Int32 برای COM لازم است. نبود رمز فقط با opt-in صریح مدیر نصب به کلید پیش‌فرض قابل قبول است. web/worker برای این حالت باید key ring و application identity یکسان و صریح داشته باشند؛ worker کلید تازه نمی‌سازد. هیچ مقدار credential در response، audit یا log نیست. آزمون‌های SQLِ credential/purpose/revocation و guard downgrade افزوده شده‌اند.
+
+۱۱ آزمون portableِ مرز فرایند محلی موفق است: IPC محدود، عدم وراثت DB config، رد خروجی جعلی، timeout بیرونی، اثبات terminate شدن child و منع اجرای جدید پس از cancellation. build محلی پروژه‌های بدون NuGet با صفر warning/error گذشت. این آزمون‌ها در هر دو OS به CI افزوده شده‌اند؛ native COM واقعی هنوز اجرا نشده است. gate جدید ۴۵۸ و migration ۲۶ صرفاً انتظار CI تازه است.

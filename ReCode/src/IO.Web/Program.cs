@@ -1,4 +1,5 @@
 using IO.Infrastructure.Devices;
+using Microsoft.AspNetCore.DataProtection;
 using IO.Infrastructure.Security;
 using IO.Infrastructure.Organization;
 using IO.Infrastructure.Attendance;
@@ -41,6 +42,15 @@ public static class IoWebHost
             if (string.IsNullOrWhiteSpace(connection))
                 throw new InvalidOperationException("Explicit IO connection configuration is required.");
             builder.Services.AddIoIdentityStorage(connection);
+            var keyRing = builder.Configuration["IO:DataProtection:KeyRingPath"];
+            var keyIdentity = builder.Configuration["IO:DataProtection:ApplicationName"];
+            if (keyRing is not null || keyIdentity is not null)
+            {
+                if (string.IsNullOrWhiteSpace(keyRing) || string.IsNullOrWhiteSpace(keyIdentity) || !Path.IsPathFullyQualified(keyRing) || !Directory.Exists(keyRing))
+                    throw new InvalidOperationException("An existing absolute key-ring path and explicit application identity are both required.");
+                builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keyRing)).SetApplicationName(keyIdentity);
+            }
+
             builder.Services.AddScoped<EmployeeAccessReader>();
             builder.Services.AddAuthentication(IdentityConstants.ApplicationScheme).AddIdentityCookies();
             builder.Services.Configure<SecurityStampValidatorOptions>(o => o.ValidationInterval = TimeSpan.Zero);

@@ -9,12 +9,14 @@ function Run-Dotnet {
 Run-Dotnet --info
 Run-Dotnet build IO.slnx --configuration Release
 Run-Dotnet run --project tests/IO.Domain.Tests --configuration Release --no-build
+Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --verify
 Run-Dotnet run --project tests/IO.Foundation.Tests --configuration Release --no-build
 $publish = Join-Path ([System.IO.Path]::GetTempPath()) ('io-publish-' + [guid]::NewGuid().ToString('N'))
 try {
     Run-Dotnet publish src/IO.Web --configuration Release --no-restore --output (Join-Path $publish 'web')
     Run-Dotnet publish src/IO.Bootstrap --configuration Release --no-restore --output (Join-Path $publish 'bootstrap')
     Run-Dotnet publish src/IO.DeviceWorker --configuration Release --no-restore --output (Join-Path $publish 'device-worker')
+    Run-Dotnet publish src/IO.ZkBridge --configuration Release --no-restore --output (Join-Path $publish 'zk-bridge')
     # Smoke the actual published web executable on this OS, not an HTML mock.
     $env:IO__EnableExperimentalIdentity = 'false'
     $env:ASPNETCORE_URLS = 'http://127.0.0.1:5198'

@@ -2,12 +2,15 @@
   <Folder Name="/src/">
     <Project Path="src/IO.Bootstrap/IO.Bootstrap.csproj" />
     <Project Path="src/IO.DeviceWorker/IO.DeviceWorker.csproj" />
+    <Project Path="src/IO.DeviceContracts/IO.DeviceContracts.csproj" />
+    <Project Path="src/IO.ZkBridge/IO.ZkBridge.csproj" />
     <Project Path="src/IO.Domain/IO.Domain.csproj" />
     <Project Path="src/IO.Infrastructure/IO.Infrastructure.csproj" />
     <Project Path="src/IO.Web/IO.Web.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/IO.Domain.Tests/IO.Domain.Tests.csproj" />
+    <Project Path="tests/IO.DeviceRuntime.Tests/IO.DeviceRuntime.Tests.csproj" />
     <Project Path="tests/IO.Foundation.Tests/IO.Foundation.Tests.csproj" />
     <Project Path="tests/IO.Infrastructure.SqlTests/IO.Infrastructure.SqlTests.csproj" />
   </Folder>
