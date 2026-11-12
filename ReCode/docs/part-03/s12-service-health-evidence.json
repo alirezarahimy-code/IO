@@ -1,0 +1,416 @@
+{
+  "scope": "S05/S12 SQL device-health and independent worker heartbeat software, S11 separately confirmed advanced-settings read retries, and real OS service lifecycle smoke in isolated CI. NOT all Part 3 or real SDK/device acceptance.",
+  "codeCommit": "8faefd5928a0f03be3c8d6ce7b9090524ca54403",
+  "checks": {
+    "integrationPassLines": 657,
+    "foundation": 48,
+    "domain": 26,
+    "portableNativeBoundaryAndFileParser": 61,
+    "permissions": 114,
+    "pagesAndHelp": 52,
+    "foundationMigrations": 36,
+    "foundationTables": 60,
+    "s12HealthServiceChecks": 14,
+    "s12HealthHttpChecks": 3,
+    "s11SettingsServiceChecks": 18,
+    "s11SettingsHttpChecks": 4,
+    "windowsServiceInstallerReadOnlyValidation": true
+  },
+  "serviceLifecycleCi": {
+    "scope": "Actual install/start/stop of published worker in isolated GitHub Windows/Linux VMs with deliberately unavailable synthetic loopback DB, no real credentials, no native endpoints, no grants or migrations. This is NOT installation in the user lab or native/model acceptance.",
+    "windowsScmInstalledStartedStopped": true,
+    "windowsDedicatedVirtualServiceAccount": true,
+    "linuxSystemdInstalledStartedStopped": true,
+    "linuxDedicatedRestrictedUser": true,
+    "productionInstallerAutoStart": false,
+    "linuxSmokeAutomaticRestart": false,
+    "scripts": [
+      "ReCode/tools/test-worker-windows-service.ps1",
+      "ReCode/tools/test-worker-linux-service.sh",
+      "ReCode/tools/verify-platform.ps1"
+    ],
+    "resourcesRemovedAfterSmoke": true
+  },
+  "humanPermission": "devices.health.read",
+  "serviceReportPermission": "devices.service.report",
+  "defaultOffGate": "IO:DeviceWorker:EnableHealthReports",
+  "heartbeatEverySeconds": 30,
+  "freshThresholdSeconds": 90,
+  "heartbeatDoesNotProve": [
+    "device online/offline",
+    "native SDK installed",
+    "native command executed",
+    "user lab installation",
+    "real hardware acceptance"
+  ],
+  "settingsRetry": {
+    "permissionRequirements": [
+      "devices.commands.read",
+      "devices.commands.retry",
+      "devices.settings.read"
+    ],
+    "confirmation": "RETRY-READ-ONLY-COMMAND",
+    "additionalSettingsConfirmation": "READ-ADVANCED-SETTINGS",
+    "kinds": [
+      "information.read",
+      "settings.read",
+      "attendance-download"
+    ],
+    "nativeWriteRetry": false,
+    "settingsMigration": "20261112130000_DeviceSettingsReadRetries",
+    "downgradeGuard": 51026
+  },
+  "realSdkExecuted": false,
+  "hardwareVerified": false,
+  "part3Complete": false,
+  "windowsLabServiceInstalled": false,
+  "linuxLabServiceInstalled": false,
+  "limitations": [
+    "No approved model/firmware setting-write contract or SetDeviceInfo executor. No inferred parameter units/ranges.",
+    "No RemoteEnroll executor; model/finger-index/flag contract and biometric consent/access/retention policy remain unapproved.",
+    "No verified vendor authenticated PUSH protocol implementation. Scheduled polling is not PUSH.",
+    "Actual multi-device outages, repeated native downloads, user exchange round trips and setting acceptance still require real Windows lab SDK/device execution.",
+    "Global metadata permission, not selected-device scoped authorization. Heartbeat age is observation freshness, not connectivity proof."
+  ],
+  "runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 43243793048,
+      "headSha": "8faefd5928a0f03be3c8d6ce7b9090524ca54403",
+      "jobs": [
+        {
+          "completedAt": "2026-11-12T15:09:50Z",
+          "conclusion": "success",
+          "databaseId": 131270925019,
+          "name": "verify",
+          "startedAt": "2026-11-12T15:04:17Z",
+          "status": "completed",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "number": 2,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "number": 3,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Build and run domain checks",
+              "number": 4,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Test isolated native process boundary without hardware",
+              "number": 5,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Verify foundation catalogue and role-filtered help",
+              "number": 6,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned identity migration",
+              "number": 7,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned foundation migration",
+              "number": 8,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned scheduling migration",
+              "number": 9,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned employment migration",
+              "number": 10,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned attendance processing migration",
+              "number": 11,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned calculation migration",
+              "number": 12,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned correction migration",
+              "number": 13,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned period draft migration",
+              "number": 14,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned conflict notes migration",
+              "number": 15,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned mapping change migration",
+              "number": 16,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned calculation revision migration",
+              "number": 17,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned period diagnostics migration",
+              "number": 18,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned revision health migration",
+              "number": 19,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned leave ledger migration",
+              "number": 20,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned delegation registry migration",
+              "number": 21,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned correction settings migration",
+              "number": 22,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned correction limits migration",
+              "number": 23,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned correction settings evidence migration",
+              "number": 24,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require delegated correction evidence migration",
+              "number": 25,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Validate capability audit inventory",
+              "number": 26,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Generate migration scripts offline",
+              "number": 27,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Prepare browser test dependencies",
+              "number": 28,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Verify page-first preview in browser",
+              "number": 29,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Test offline workflow DOM contracts",
+              "number": 30,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Test isolated SQL Server Developer",
+              "number": 31,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "number": 61,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "number": 62,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 63,
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43243793048/job/131270925019"
+        }
+      ],
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43243793048"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 43243792727,
+      "headSha": "8faefd5928a0f03be3c8d6ce7b9090524ca54403",
+      "jobs": [
+        {
+          "completedAt": "2026-11-12T15:06:50Z",
+          "conclusion": "success",
+          "databaseId": 131270924891,
+          "name": "platform (ubuntu-24.04)",
+          "startedAt": "2026-11-12T15:04:17Z",
+          "status": "completed",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "number": 2,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "number": 3,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Build, catalogue checks and portable publish",
+              "number": 4,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "number": 7,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "number": 8,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 9,
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43243792727/job/131270924891"
+        },
+        {
+          "completedAt": "2026-11-12T15:06:50Z",
+          "conclusion": "success",
+          "databaseId": 131270926681,
+          "name": "platform (windows-2022)",
+          "startedAt": "2026-11-12T15:04:18Z",
+          "status": "completed",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "number": 2,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "number": 3,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Build, catalogue checks and portable publish",
+              "number": 4,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "number": 7,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "number": 8,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 9,
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43243792727/job/131270926681"
+        }
+      ],
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43243792727"
+    }
+  ]
+}

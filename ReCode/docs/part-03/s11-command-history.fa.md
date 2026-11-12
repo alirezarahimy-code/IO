@@ -10,7 +10,8 @@
 
 - `devices.commands.read`: قالب اپراتور/admin، فقط history واقعی و lineage.
 - `devices.commands.retry`: قالب admin؛ اپراتور فقط با grant صریح. علاوه بر history و retry، **حق مستقل همان خواندن** لازم است؛ execute سرویس و اجرای native از این حقوق به دست نمی‌آید.
-- فقط `information.read` در صف operation و استخراج S09 در صف attendance-download، فقط پس از نتیجهٔ terminal خواندنی `failed/interrupted/timed-out/bridge-failed` و به‌ترتیب `unknown/incomplete` قابل retry هستند. pending/running/succeeded و queue دلخواه قابل retry نیستند.
+- فقط `information.read` و `settings.read` در صف operation و استخراج S09 در صف attendance-download، فقط پس از نتیجهٔ terminal خواندنی `failed/interrupted/timed-out/bridge-failed` و به‌ترتیب `unknown/incomplete` قابل retry هستند. pending/running/succeeded و queue دلخواه قابل retry نیستند.
+- برای `settings.read` حق جاری `devices.settings.read` و تأیید اضافی **`SettingsConfirmation=READ-ADVANCED-SETTINGS`** الزامی است؛ UI checkbox دوم دارد. kind از والد immutable خوانده می‌شود؛ حق اطلاعات عادی یا تأیید عمومی به‌تنهایی کافی نیست. gateهای اضافی سرویس و نصب همچنان لازم‌اند.
 - confirmation برابر `RETRY-READ-ONLY-COMMAND`، UUID تلاش تازه، نسخهٔ والد و snapshot نسخهٔ دستگاه لازم است. درخواست تازه دقیقاً deadline، range، source/site/company/zone و کدهای مصوب والد را حفظ می‌کند؛ تغییر مقصد/zone/نسخه نیازمند درخواست مستقل مصوب است، نه retarget retry.
 - هویت تاریخچه `queue + id` است؛ UUID دلخواهِ یکسان در دو جدول typed، lineage صف دیگر را به‌خود نمی‌گیرد؛ آزمون SQL با UUID عمداً مشترک و DOM این مرز را بررسی می‌کند.
 - هر والد فقط یک فرزند مستقیم دارد؛ فرزندِ دوباره شکست‌خورده می‌تواند با تصمیم تازه والد تلاش بعدی شود. `DeviceCommandRetries` با FKهای واقعی، نسخهٔ قبلی، هویت تصمیم‌گیر و زمان درخواست، همزمان با enqueue در یک PermissionTransaction ثبت می‌شود.
@@ -29,4 +30,7 @@
 [شاهد جزء نرم‌افزاری](s11-component-evidence.json) باید CI موفق روی کد دقیق را نشان دهد؛ تعداد تست، تاریخچهٔ SQL، HTTP grant/revoke، مرورگر و DOM جای تست SDK/مدل واقعی را نمی‌گیرد. مدل/firmware و پذیرش واقعی چنددستگاه/قطعی/تبادل/تنظیمات S12 همچنان باز است.
 
 
-ادامهٔ خواندنی: [snapshot شش تنظیم پیشرفته](s11-settings-read.fa.md) با حق مستقل و raw nullable Int32 ساخته شده است؛ تاریخچهٔ اطلاعات عادی payload آن را نشان نمی‌دهد و retry عمومی settings.read را فعلاً نمی‌پذیرد. این افزودن، نوشتن تنظیمات یا RemoteEnroll را فعال نمی‌کند.
+ادامهٔ خواندنی: [snapshot شش تنظیم پیشرفته](s11-settings-read.fa.md) با حق مستقل و raw nullable Int32 ساخته شده است؛ تاریخچهٔ اطلاعات عادی payload آن را نشان نمی‌دهد و retry عمومی settings.read فقط با حق مستقل و تأیید اضافی مجاز است. این افزودن، نوشتن تنظیمات یا RemoteEnroll را فعال نمی‌کند.
+
+
+مهاجرت `20261112130000_DeviceSettingsReadRetries` guard واقعی SQL را فقط به این دو kind خواندنی گسترش می‌دهد؛ ساعت/نوشتن/queue دلخواه هنوز رد می‌شوند. downgrade با lineage خواندن تنظیمات خطای 51026 دارد. migration اصلی تاریخچه تغییر داده نشده است.

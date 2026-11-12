@@ -90,4 +90,11 @@
 [قرارداد، نقش، نصب و بازیابی](s11-settings-read.fa.md): snapshot شش GetDeviceInfo ثابت مرجع، raw signed/null و حق مستقل خواندن/اجرای اضافی سرویس؛ بدون نوشتن یا RemoteEnroll. آخرین CI تأییدشده در [progress-evidence.json](progress-evidence.json) و شاهد این برش ثبت می‌شود؛ مدل واقعی و بخش سوم همچنان پذیرفته نشده‌اند.
 
 
-آخرین برش تأییدشده: `12db64a`، SQL/HTTPS/مرورگر `43235930669` و Windows/Linux `43235930789` هر دو success؛ ۶۳۸ بررسی integration، ۴۷ Foundation، ۲۶ domain، ۶۱ portable؛ ۱۱۲ حق، ۵۱ صفحه/مقاله، ۳۴ migration و ۵۹ جدول. [شاهد مستقل snapshot](s11-settings-read-evidence.json)؛ این اعداد نرم‌افزاری‌اند، نه پذیرش SDK/مدل واقعی.
+خط مبنای قبلی snapshot: `12db64a`، SQL/HTTPS/مرورگر `43235930669` و Windows/Linux `43235930789` هر دو success؛ ۶۳۸ بررسی integration، ۴۷ Foundation، ۲۶ domain، ۶۱ portable؛ ۱۱۲ حق، ۵۱ صفحه/مقاله، ۳۴ migration و ۵۹ جدول. [شاهد مستقل snapshot](s11-settings-read-evidence.json)؛ این اعداد نرم‌افزاری‌اند، نه پذیرش SDK/مدل واقعی.
+
+
+### سلامت اجرایی سرویس و آزمون نصب واقعی دو سیستم
+
+کد `8faefd5` با SQL/HTTPS/مرورگر `43243793048` و Windows/Linux `43243792727` **موفق**: **۶۵۷ integration، ۴۸ Foundation، ۲۶ domain، ۶۱ portable؛ ۱۱۴ حق، ۵۲ صفحه/مقاله، ۳۶ migration/۶۰ جدول**. `/workspace/device-health` صف‌ها، آخرین خواندن تردد، زمان‌بندی و heartbeat مستقل SQL را نشان می‌دهد؛ نه آنلاین/آفلاین حدسی. retry تنظیمات به حق typed جاری و checkbox/تأیید دوم نیاز دارد و هیچ نوشتنی را replay نمی‌کند.
+
+نصب/اجرا/توقف واقعی SCM ویندوز و systemd لینوکس با worker منتشرشده و حساب اختصاصی در CI آزموده شد؛ DB آن عمداً unavailable/synthetic و endpoint native خالی است. این نصب آزمایشگاه یا اجرای SDK نیست. [راهنما](s12-service-health.fa.md) و [شاهد](s12-service-health-evidence.json). نوشتن تنظیمات مدل‌محور، RemoteEnroll با سیاست بیومتریک، vendor PUSH امن و پذیرش واقعی چنددستگاه هنوز بازند؛ بخش سوم کامل نشده است.

@@ -7,16 +7,16 @@
     "exactModelFirmware": "not supplied",
     "realDeviceExecution": "not performed"
   },
-  "latestVerifiedCode": "12db64abb159fa122bee621afd5ecfff1662e28c",
+  "latestVerifiedCode": "8faefd5928a0f03be3c8d6ce7b9090524ca54403",
   "checks": {
-    "integrationPassLines": 638,
-    "foundation": 47,
+    "integrationPassLines": 657,
+    "foundation": 48,
     "domain": 26,
     "portableNativeBoundaryAndFileParser": 61,
-    "permissions": 112,
-    "pagesAndHelp": 51,
-    "foundationMigrations": 34,
-    "foundationTables": 59,
+    "permissions": 114,
+    "pagesAndHelp": 52,
+    "foundationMigrations": 36,
+    "foundationTables": 60,
     "s08ServiceChecks": 14,
     "s08HttpChecks": 5,
     "s09ServiceChecks": 18,
@@ -26,36 +26,38 @@
     "s10HttpChecks": 5,
     "s11ServiceChecks": 15,
     "s11HttpChecks": 4,
-    "s11SettingsServiceChecks": 16,
-    "s11SettingsHttpChecks": 4
+    "s11SettingsServiceChecks": 18,
+    "s11SettingsHttpChecks": 4,
+    "s12HealthServiceChecks": 14,
+    "s12HealthHttpChecks": 3
   },
   "stages": {
     "S04": "accepted registry and metadata groups",
-    "S05": "partial: DB queue, independent service identity, grant/revoke, timeout isolation, TCP diagnostic and isolated native ZK serial-pin candidate; actual SDK installation and real device tests remain",
+    "S05": "partial: real SQL queues and grant/revoke, four native execution slots, timeouts, serial-pinned candidate, independent persisted worker instance heartbeats and permissioned SQL health dashboard. Actual SCM/systemd published-worker install/start/stop verified in isolated CI with unavailable synthetic DB and no endpoints. Real lab SDK installation/device connection tests remain.",
     "S06": "partial software candidate verified in CI: typed information/capacity/clock snapshots, independent read/set/execute permissions, explicitly confirmed UTC/timezone clock writes and immutable unknown outcome with later clock observation plus human review; real model/SDK tests and other supported settings remain",
     "S07": "partial: software candidate verified in SQL/HTTPS/browser and Windows/Linux CI; streamed SSR snapshots, long-read deadline fencing, exact mapping preview and grant/revoke; no employee overwrite; actual model/SDK execution remains",
     "S08": "partial: ordinary attendance-only software candidate verified in SQL/HTTPS/real browser and Windows/Linux CI: actual server preview and confirmed plan hash; per-person/device intents and partial outcomes; target conflict guard, transient existing-password preservation, exact retry, pending-only cancellation, unknown recovery and explicit fresh-snapshot review before selective retry. No templates/biometrics, admin or AccGroup/physical door writes. Real SDK/model round-trip acceptance remains.",
     "S09": "partial: software candidate verified in SQL/HTTPS/real browser and Windows/Linux CI. Serial-pinned isolated SSR all-log stream, exact typed tuples before explicit UTC interval filtering, immutable original payload and multiplicity receipts, retained invalid/unknown/outside-range quarantine, confirmed versioned page ingestion through existing raw/conflict core, repeated-download content-identity coalescence and explicit restart/partial recovery. No native physical event id or atomic snapshot proof; actual SDK/model/end-to-end hardware acceptance remains.",
     "S10": "partial: approved durable SSR polling software verified in SQL/HTTPS/real browser and Windows/Linux CI. Immutable target config, one enabled schedule per DeviceId, real run/download links, bounded lag/window/cursor, explicit optional raw ingestion under current creator authority, versioned pause/resume, durable read-only backoff and no cursor advancement over partial reads. Authenticated vendor PUSH protocol/replay/size-rate security and real model/SDK acceptance remain unimplemented/unverified.",
-    "S11": "partial: SQL history and explicitly confirmed read-only retry plus six fixed GetDeviceInfo advanced-settings reads verified in SQL/HTTPS/real browser and Windows/Linux CI. Settings snapshots preserve exact signed/null Int32 under independent human and additional service grants, serial pinning and default-off installation gates. Generic retry excludes settings.read. Setting writes, RemoteEnroll, verified model/firmware and biometric consent/access/retention policy remain unimplemented/unverified.",
-    "S12": "partial: file-import software verified in CI, exact original bytes, explicit interpretation, retained quarantine, confirmed transactional raw/conflict receipts; row budget and UTC overflow fixed. Windows SCM lifetime and manual-start virtual-account installer (read-only validation in CI), Linux systemd template prepared; actual OS installation and multi-device SDK/hardware acceptance remain"
+    "S11": "partial: SQL command history, immutable FK lineage, current independent human/service grants and separately confirmed retries for information, six fixed advanced-settings reads and attendance downloads verified in SQL/HTTPS/browser and Windows/Linux CI. Settings retry needs additional READ-ADVANCED-SETTINGS consent and typed current read grant; SQL guards forbid native write retries. Setting writes, RemoteEnroll and real model/firmware/biometric policy acceptance remain unimplemented/unverified.",
+    "S12": "partial: exact-byte USB/file preview and quarantine/confirmed raw ingestion, SQL health dashboard and actual published-worker SCM/systemd install/start/stop in isolated CI under dedicated accounts verified. Lifecycle smoke uses unavailable synthetic DB and no native endpoints; it is not real lab deployment or SDK acceptance. Actual multiple-device outages, repeated native downloads, user exchange/settings and model coverage remain."
   },
   "hardwareVerified": false,
   "part3Complete": false,
   "runs": [
     {
-      "databaseId": 43235930669,
-      "headSha": "12db64abb159fa122bee621afd5ecfff1662e28c",
+      "databaseId": 43243793048,
+      "headSha": "8faefd5928a0f03be3c8d6ce7b9090524ca54403",
       "status": "completed",
       "conclusion": "success",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43235930669"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43243793048"
     },
     {
-      "databaseId": 43235930789,
-      "headSha": "12db64abb159fa122bee621afd5ecfff1662e28c",
+      "databaseId": 43243792727,
+      "headSha": "8faefd5928a0f03be3c8d6ce7b9090524ca54403",
       "status": "completed",
       "conclusion": "success",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43235930789"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43243792727"
     }
   ],
   "remainingSoftware": [
@@ -66,5 +68,22 @@
   "realSdkExecuted": false,
   "windowsServiceInstalled": false,
   "linuxServiceInstalled": false,
-  "settingsReadEvidence": "s11-settings-read-evidence.json"
+  "settingsReadEvidence": "s11-settings-read-evidence.json",
+  "serviceLifecycleCi": {
+    "scope": "Actual install/start/stop of published worker in isolated GitHub Windows/Linux VMs with deliberately unavailable synthetic loopback DB, no real credentials, no native endpoints, no grants or migrations. This is NOT installation in the user lab or native/model acceptance.",
+    "windowsScmInstalledStartedStopped": true,
+    "windowsDedicatedVirtualServiceAccount": true,
+    "linuxSystemdInstalledStartedStopped": true,
+    "linuxDedicatedRestrictedUser": true,
+    "productionInstallerAutoStart": false,
+    "linuxSmokeAutomaticRestart": false,
+    "scripts": [
+      "ReCode/tools/test-worker-windows-service.ps1",
+      "ReCode/tools/test-worker-linux-service.sh",
+      "ReCode/tools/verify-platform.ps1"
+    ],
+    "resourcesRemovedAfterSmoke": true
+  },
+  "installationFlagsReferToUserLabNotCi": true,
+  "healthEvidence": "s12-service-health-evidence.json"
 }
