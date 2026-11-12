@@ -37,4 +37,6 @@ worker با `EnableAttendanceDownloads=true` و `AllowAttendanceRead=true` رو�
 
 ## آزمون
 
-تست‌ها برای frame/pin/truncation/count/deadline، حفظ تاریخ بد، DST/overflow، batch replay، multiplicity، بازهٔ شامل/غیرشامل، unknown mapping، raw/conflict trace و repeated download، grant/revoke، version/cancel/recovery و SQL history guard اضافه شده‌اند. DOM offline و bridge/runtime محلی موفق‌اند؛ شمارش مورد انتظار CI جدید **۵۷۴ integration، ۴۴ Foundation، ۵۵ portable، ۱۰۵ حق، ۴۸ صفحه/مقاله، ۳۱ migration/۵۶ جدول** است و تا ثبت نتیجهٔ CI ادعای اجرا نیست. مرورگر واقعی، SQL و Windows/Linux باید gate شوند؛ SDK و چند دستگاه واقعی هنوز اجرا نشده‌اند. S10–S11 و پذیرش سخت‌افزار بخش سوم بازند.
+تست‌ها برای frame/pin/truncation/count/deadline، حفظ تاریخ بد، DST/overflow، batch replay، multiplicity، بازهٔ شامل/غیرشامل، unknown mapping، raw/conflict trace و repeated download، grant/revoke، version/cancel/recovery و SQL history guard اضافه شده‌اند. DOM offline و bridge/runtime محلی موفق‌اند؛ کد `59e2e3b` در SQL/HTTPS/browser `43222725559` و Windows/Linux `43222725328` **موفق شد: ۵۷۴ integration، ۴۴ Foundation، ۵۵ portable، ۱۰۵ حق، ۴۸ صفحه/مقاله، ۳۱ migration/۵۶ جدول**. مرورگر واقعی صف/preview/قرنطینه/ثبت raw و reload رسید را پیمود؛ SDK و چند دستگاه واقعی هنوز اجرا نشده‌اند. S10–S11 و پذیرش سخت‌افزار بخش سوم بازند.
+
+[شاهد ماشین‌خوان، runها و محدودیت‌ها](s09-component-evidence.json).

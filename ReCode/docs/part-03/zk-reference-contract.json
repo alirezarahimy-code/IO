@@ -57,6 +57,13 @@
       "bodyObserved": true,
       "interfaceMetadata": "zkemkeeper.IZKEM: SSR_SetUserInfo DispId 151; SetStrCardNumber DispId 170. These are static interface signatures, not original source.",
       "limit": "Not implemented as S08: copying this body can clear a password, change administrator privilege or physical access group, silently truncate a name, or overwrite/delete biometric templates. New ordinary user exchange must avoid physical-door commands, preserve protected fields, require explicit intent and separately record per-person/device unknown outcomes. No hardware safety/compatibility demonstrated."
+    },
+    {
+      "type": "Personnel.ZK.ZKDevice",
+      "method": "ReadAllRecords / WriteRecordsToList",
+      "contract": "ReadAllGLogData(machine) followed by TFT SSR_GetGeneralLogData(machine,out badge,out verify,out inOut,out year/month/day/hour/minute/second,ref workCode). Reference constructs Gregorian DateTime, converts badge to long and catches/drops invalid rows. IZKEM SSR_GetGeneralLogData has DispId 145. Counter kind 6 is the observed record count.",
+      "bodyObserved": true,
+      "limit": "New adapter never copies DisableDevice, numeric badge normalization or invalid-row dropping; it retains typed tuples and quarantines invalid interpretations. No observed native record id or true ranged SDK call; all-log read and post-preservation UTC filtering are explicit. Stable counts are not an atomic snapshot; physical dedup/model/hardware compatibility unverified."
     }
   ],
   "implementation": "Independent private STA COM bridge for serial probe, typed information/clock, SSR user reads and gated ordinary attendance-only user writes; no copied Personnel business/licensing logic, access group setter, door command, admin escalation, biometric/template/photo/delete API or automatic SDK registration. Actual SDK/model acceptance remains.",
