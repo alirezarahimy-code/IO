@@ -46,4 +46,19 @@ finally{if(File.Exists(pidFile))File.Delete(pidFile);}
 using var cancelled=new CancellationTokenSource();cancelled.Cancel();
 Check(await NativeProcessSupervisor.RunAsync(host,fixtureAssembly,input,2,cancelled.Token)=="interrupted","cancelled native dispatch never launches a new device request");
 Check(await NativeProcessSupervisor.RunAsync("relative-dotnet",fixtureAssembly,input,2)=="bridge-failed","native supervisor refuses relative executable paths");
-Console.WriteLine($"PASS {count} portable native-boundary checks; no real device or SDK acceptance implied");
+var file=System.Text.Encoding.UTF8.GetBytes("00012\t2026-11-08 08:30:10\t1\t0\t1\n00012\t2026-11-08 08:30:10\t1\t0\t1\n");
+var preview=PersonnelUsbPreview.Parse(file,"gregorian",TimeZoneInfo.Utc,1);
+Check(preview.Lines.Count==2&&preview.Lines[0].PersonIdentifier=="00012"&&preview.Lines[0].OccurredAtUtc==new DateTimeOffset(2026,11,8,8,30,10,TimeSpan.Zero),"USB reference preview preserves leading-zero identity and explicit Gregorian UTC interpretation");
+Check(preview.Lines[1].Status=="duplicate-in-file-requires-review"&&preview.Lines[1].SourceLine==preview.Lines[0].SourceLine,"USB repeated identical rows are retained for review rather than silently discarded as device-native duplicates");
+Check(!JsonSerializer.Serialize(preview).Contains("SourceLine",StringComparison.Ordinal)&&!preview.Lines[0].ToString().Contains("00012",StringComparison.Ordinal),"USB raw row is excluded from default JSON and personal data is redacted from text rendering");
+var persian=PersonnelUsbPreview.Parse(System.Text.Encoding.UTF8.GetBytes("12\t1405-08-17 08:30:10\t1\t0\t1"),"persian",TimeZoneInfo.Utc,1);
+Check(persian.Lines[0].OccurredAtUtc==new DateTimeOffset(2026,11,8,8,30,10,TimeSpan.Zero),"USB Persian calendar is explicitly selected and converted without legacy year guessing");
+Check(PersonnelUsbPreview.Parse(file,"gregorian",TimeZoneInfo.Utc,2).Lines.All(x=>x.Status=="machine-mismatch"),"USB preview refuses to attribute rows to a different declared machine");
+var dst=TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
+var ambiguity=PersonnelUsbPreview.Parse(System.Text.Encoding.UTF8.GetBytes("12\t2026-11-01 01:30:00\t1\t0\t1\n12\t2026-03-08 02:30:00\t1\t0\t1"),"gregorian",dst,1);
+Check(ambiguity.Lines[0].Status=="ambiguous-local-time"&&ambiguity.Lines[1].Status=="invalid-local-time"&&ambiguity.Lines.All(x=>x.OccurredAtUtc is null),"USB DST overlaps and gaps are quarantined instead of guessing a UTC time");
+var wrongLayout=PersonnelUsbPreview.Parse(System.Text.Encoding.UTF8.GetBytes("12\t2026-11-08 08:30:10\t1\t0\t1\t0"),"gregorian",TimeZoneInfo.Utc,1);
+Check(wrongLayout.Lines[0].Status=="layout-mismatch","USB parser never guesses that another five/six-column vendor layout is the reference format");
+bool invalidEncoding=false;try{PersonnelUsbPreview.Parse(new byte[]{255},"gregorian",TimeZoneInfo.Utc,1);}catch(ArgumentException){invalidEncoding=true;}
+Check(invalidEncoding,"USB invalid UTF-8 is rejected rather than silently replacing source bytes");
+Console.WriteLine($"PASS {count} portable native-boundary and reference-file parser checks; no real device or SDK acceptance implied");

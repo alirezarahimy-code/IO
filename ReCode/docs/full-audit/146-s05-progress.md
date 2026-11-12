@@ -38,3 +38,9 @@ S05 هنوز driver پروتکل/مدل تأییدشده و آزمون واقع�
 رمز فقط برای claim معتبر، دستگاه بدون تغییر، service grant و requester grant جاری درون سرویس unprotect می‌شود؛ عدد Int32 برای COM لازم است. نبود رمز فقط با opt-in صریح مدیر نصب به کلید پیش‌فرض قابل قبول است. web/worker برای این حالت باید key ring و application identity یکسان و صریح داشته باشند؛ worker کلید تازه نمی‌سازد. هیچ مقدار credential در response، audit یا log نیست. آزمون‌های SQLِ credential/purpose/revocation و guard downgrade افزوده شده‌اند.
 
 ۱۱ آزمون portableِ مرز فرایند محلی موفق است: IPC محدود، عدم وراثت DB config، رد خروجی جعلی، timeout بیرونی، اثبات terminate شدن child و منع اجرای جدید پس از cancellation. build محلی پروژه‌های بدون NuGet با صفر warning/error گذشت. این آزمون‌ها در هر دو OS به CI افزوده شده‌اند؛ native COM واقعی هنوز اجرا نشده است. gate جدید ۴۵۸ و migration ۲۶ صرفاً انتظار CI تازه است.
+
+## پذیرش جزء نرم‌افزاری native و parser مرجع
+
+کد `4d14a7f` در Windows/Linux `43124031572` و SQL/HTTPS/browser `43124031392` موفق شد: ۴۵۸ PASS یکپارچه، Foundation ۳۸ و ۱۱ تست portable مرز فرایند. [شاهد ماشینی](../part-03/s05-native-component-evidence.json). **هیچ COM/SDK واقعی در این تست‌ها اجرا نشده و پذیرش سخت‌افزار یا پایان S05 ادعا نمی‌شود.**
+
+از قرارداد مشاهده‌شدهٔ `Personnel.USBFiles.RecordReader`، parser مستقل `PersonnelUsbPreview` در لایهٔ contract افزوده شد. تقویم Gregorian/Persian صریح است؛ UTF-8 سخت‌گیرانه، layout پنج‌ستونی صریح، حفظ صفر اول شناسه، تطبیق machine، رد DST مبهم/نامعتبر، نگه‌داشتن سطرهای تکراری برای review و منع حدس device-native event id دارد. فایل با قالب دیگر (از جمله شش ستون) خودکار به این قالب نسبت داده نمی‌شود. raw line در JSON پیش‌فرض و ToString افشا نمی‌شود. این parser هنوز endpoint/UI/مجوز import و commit DB ندارد و **S12 ساخته/پذیرفته محسوب نمی‌شود**؛ زیرساخت داخلی برای ساخت importer است، نه صفحهٔ نمایشی یا import وانمودی. ۱۹ تست pure شامل این parser و مرز فرایند محلی گذشتند؛ CI آن در commit تازه بررسی می‌شود.

@@ -39,3 +39,5 @@
 [گزارش پیشرفت 146](../full-audit/146-s05-progress.md) و [راه‌اندازی worker اولیه](device-worker-setup.fa.md). هیچ نتیجهٔ TCP به‌عنوان اتصال/دریافت/ارسال دستگاه واقعی پذیرفته نمی‌شود.
 
 مسیر آزمایش انتخاب‌شدهٔ کاربر: ZK / Windows؛ قرارداد اتصال از بدنهٔ باینری موجود استخراج و candidate probe مستقل نوشته شده، ولی مدل/firmware و نتیجهٔ آزمون دستگاه واقعی هنوز مشخص نیست.
+
+شاهد جزء نرم‌افزاری native S05: [s05-native-component-evidence.json](s05-native-component-evidence.json)، ۴۵۸ PASS؛ هیچ تست COM یا دستگاه واقعی اجرا نشده. parser داخلی قالب USB مرجع نیز با تست‌های تقویم/DST/رد فرمت مبهم افزوده شده؛ هنوز UI/import به DB و پذیرش S12 ندارد.
