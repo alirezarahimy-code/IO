@@ -3978,7 +3978,9 @@
       "برای clock.set، حق مستقل devices.clock.set، زمان دقیق UTC با ثانیه و تأیید SET-CLOCK لازم است. سرور منطقهٔ زمانی محل نصب را ذخیره و زمان مبهم DST را رد می‌کند. زمان تنظیم همان مقدار صریح است؛ با زمان صف خودکار جلو نمی‌رود. درخواست بیش از دو دقیقه در صف منقضی می‌شود.",
       "worker مستقل Windows باید EnableOperations=true، مجوز devices.operations.execute و مقصد پین‌شده داشته باشد؛ تنظیم ساعت افزون بر این به AllowClockSet=true برای همان مقصد نیاز دارد. این پرچم گواه پشتیبانی firmware نیست.",
       "نتیجهٔ unknown هرگز خودکار تکرار نمی‌شود. خواندن تازهٔ ساعت همین دستگاه را اجرا و snapshot را بررسی کنید؛ سپس با نسخهٔ unknown و شناسهٔ خواندن موفق، REVIEWED-CLOCK را ثبت کنید. نتیجهٔ قبلی همچنان unknown می‌ماند.",
-      "لغو فقط pending با نسخهٔ تازه است؛ بعد از dispatch تضمینی نیست. تغییر نسخه/رمز/گروه دستگاه هنگام clock pending/running یا unknown حل‌نشده مسدود است."
+      "لغو فقط pending با نسخهٔ تازه است؛ بعد از dispatch تضمینی نیست. تغییر نسخه/رمز/گروه دستگاه هنگام clock یا restart در pending/running یا unknown حل‌نشده مسدود است.",
+      "برای device.restart، حق انسانی devices.restart و حق سرویس devices.restart.execute جداگانه اعطا می‌شوند؛ به نقش پیش‌فرض افزوده نشده‌اند. worker Windows به EnableOperations=true و AllowRestart=true برای همان مقصد با سریال پین‌شده نیاز دارد. RESTART-DEVICE اجباری و targetUtc باید null باشد.",
+      "پاسخ succeeded راه‌اندازی مجدد فقط تأیید SDK است؛ قطع اتصال/false/timeout می‌تواند unknown باشد. تکرار از صفحهٔ فرمان‌ها ممنوع است. بعد از مشاهدهٔ تازهٔ information.read همین دستگاه و نسخه، REVIEWED-RESTART-REACHABILITY دسترسی مجدد را ثبت می‌کند؛ نه وقوع یا پایان قطعی reboot. نتیجهٔ اصلی unknown باقی می‌ماند. درخواست صفِ قدیمی‌تر از دو دقیقه منقضی می‌شود."
     ],
     "Example": "نمونه: هدف 2026-11-08T10:00:00Z در محل Asia/Tehran به 13:30:00 تبدیل می‌شود؛ صفر واقعی شمارنده با «گزارش نشده» تفاوت دارد. پاسخ ثبت فقط ورود به صف است.",
     "Fields": [
@@ -3995,7 +3997,7 @@
       {
         "Name": "kind",
         "Label": "عملیات",
-        "Description": "فقط information.read یا clock.set؛ دریافت کاربران/تردد یا کنترل درب نیست."
+        "Description": "فقط information.read یا clock.set یا device.restart؛ reset کارخانه، حذف داده و کنترل درب نیست."
       },
       {
         "Name": "targetUtc",
@@ -4026,6 +4028,7 @@
     "Actions": [
       "ثبت خواندن مشخصات/ساعت",
       "ثبت تنظیم صریح ساعت با تأیید",
+      "ثبت راه‌اندازی مجدد با حق مستقل و تأیید RESTART-DEVICE؛ نه reset یا حذف اطلاعات",
       "بازخوانی مجوز و تاریخچه؛ فیلتر و صفحه‌بندی",
       "لغو پیش از اجرا با نسخهٔ تازه",
       "بازبینی unknown بدون تکرار فرمان"

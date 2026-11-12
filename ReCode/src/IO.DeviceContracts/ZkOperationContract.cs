@@ -3,10 +3,10 @@ using System.Text.Json.Serialization;
 
 namespace IO.DeviceContracts;
 
-public sealed record ZkOperationInput(ZkProbeInput Connection, string Operation, string? ClockLocal, bool AllowClockSet,bool AllowAdvancedSettingsRead=false)
+public sealed record ZkOperationInput(ZkProbeInput Connection, string Operation, string? ClockLocal, bool AllowClockSet,bool AllowAdvancedSettingsRead=false,bool AllowRestart=false)
 {
     public bool IsValid() => Connection is not null && Connection.IsValid() &&
-        ((Operation == "information.read" && ClockLocal is null) || (Operation=="settings.read" && AllowAdvancedSettingsRead && ClockLocal is null) || (Operation == "clock.set" && AllowClockSet && ValidClock(ClockLocal)));
+        ((Operation == "device.restart" && AllowRestart && ClockLocal is null) || (Operation == "information.read" && ClockLocal is null) || (Operation=="settings.read" && AllowAdvancedSettingsRead && ClockLocal is null) || (Operation == "clock.set" && AllowClockSet && ValidClock(ClockLocal)));
     public static bool ValidClock(string? value) => value is not null && value.Length == 19 &&
         DateTime.TryParseExact(value,"yyyy-MM-dd HH:mm:ss",CultureInfo.InvariantCulture,DateTimeStyles.None,out var time) &&
         time.ToString("yyyy-MM-dd HH:mm:ss",CultureInfo.InvariantCulture)==value;
@@ -33,6 +33,7 @@ public sealed record ZkOperationOutput(string State, ZkDeviceInformation? Inform
         {
             "information.read" => Settings is null&&Information is not null&&Information.IsValid()&&Information.Serial==input.Connection.ExpectedSerial,
             "settings.read" => input.AllowAdvancedSettingsRead&&Information is null&&Settings is not null&&Settings.IsValid()&&Settings.Serial==input.Connection.ExpectedSerial,
+            "device.restart" => input.AllowRestart&&Information is null&&Settings is null,
             "clock.set" => input.AllowClockSet&&Information is null&&Settings is null,
             _=>false
         },

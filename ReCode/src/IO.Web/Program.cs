@@ -429,6 +429,7 @@ public static class IoWebHost
         app.MapPost("/device-operations/{id:guid}/cancel", (Guid id,DeviceOperationVersion input,HttpContext c,IAntiforgery csrf,DeviceOperations service) =>
             Admin(c,csrf,actor=>service.CancelAsync(actor,id,input.ExpectedVersion,c.RequestAborted)));
         app.MapPost("/device-operations/{id:guid}/resolve-clock", (Guid id,DeviceClockResolution input,HttpContext c,IAntiforgery csrf,DeviceOperations service) =>
+        app.MapPost("/device-operations/{id:guid}/resolve-restart", (Guid id,DeviceClockResolution input,HttpContext c,IAntiforgery csrf,DeviceOperations service) =>
             Admin(c,csrf,actor=>service.ResolveClockAsync(actor,id,input.ExpectedVersion,input.InformationId,input.Confirmation,c.RequestAborted)));
         app.MapGet("/device-connection", (HttpContext c, DeviceConnections service, Guid? deviceId, int offset = 0) =>
             AdminRead(c, actor => service.ListAsync(actor, deviceId, offset, c.RequestAborted)));

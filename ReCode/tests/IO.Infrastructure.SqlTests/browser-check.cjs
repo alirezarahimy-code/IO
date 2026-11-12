@@ -654,7 +654,7 @@ async function main() {
     const infoPage=await context.newPage();
     await infoPage.goto(address+await deviceRow.locator('a[href^="/workspace/device-information?"]').getAttribute('href'));
     await infoPage.waitForFunction(()=>!document.querySelector('#operation-form button').disabled&&!document.getElementById('operation-form').hidden);
-    if(await infoPage.locator('#operation-form select[name=kind] option').count()!==2)throw new Error('S06 operation allowlist mismatch');
+    if(await infoPage.locator('#operation-form select[name=kind] option').count()!==3)throw new Error('S06 operation allowlist mismatch');
     const infoOperation=await infoPage.locator('#operation-form input[name=operationId]').inputValue();
     await infoPage.locator('#operation-form button').click();
     const infoRow=infoPage.locator('#items li').filter({hasText:infoOperation});

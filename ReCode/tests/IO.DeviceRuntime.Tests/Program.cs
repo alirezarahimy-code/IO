@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using IO.DeviceContracts;
 
+if (args is ["--restart-contracts"]) { await RestartTests.RunAsync(); return; }
+
 if (args is ["--legacy-user-writes"]) { await LegacyUserWriteTests.RunAsync(); await VirtualDeviceLab.VerifyLegacyWritesAsync(); return; }
 
 if (args is ["--user-read-contracts"]) { await UserReadContractTests.RunAsync(); return; }
@@ -70,6 +72,7 @@ if (args is not ["--verify"])
     if(document.RootElement.TryGetProperty("Connection",out _))
     {
         var operation=JsonSerializer.Deserialize<ZkOperationInput>(text)!;
+        if(operation.Connection.ExpectedSerial=="restart-hang"){await Task.Delay(TimeSpan.FromMinutes(1));return;}
         if(operation.Operation=="settings.read")
         {
             var settings=new ZkAdvancedSettings(ZkAdvancedSettings.Version,operation.Connection.ExpectedSerial,0,null,int.MinValue,int.MaxValue,2,-1);

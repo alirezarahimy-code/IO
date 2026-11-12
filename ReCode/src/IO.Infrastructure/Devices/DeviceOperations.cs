@@ -9,14 +9,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IO.Infrastructure.Devices;
 
-/// <summary>Closed typed operations: information, confirmed clock and opt-in read-only advanced settings. No arbitrary SDK writes or enrollment.</summary>
+/// <summary>Closed typed operations: information, confirmed clock/restart and opt-in read-only advanced settings. No arbitrary SDK writes or enrollment.</summary>
 public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transaction,TimeProvider clock,IDataProtectionProvider protection)
 {
-    public const string Read="devices.info.read",SetClock="devices.clock.set",Execute="devices.operations.execute",ReadSettings="devices.settings.read",ExecuteSettings="devices.settings.read.execute";
+    public const string Restart="devices.restart",ExecuteRestart="devices.restart.execute",Read="devices.info.read",SetClock="devices.clock.set",Execute="devices.operations.execute",ReadSettings="devices.settings.read",ExecuteSettings="devices.settings.read.execute";
     public sealed record Claim(Guid Id,Guid Token,Guid DeviceId,string Profile,string? Host,int? Port,string Kind,string? ClockLocal,int TimeoutSeconds);
     public sealed record View(Guid Id,Guid DeviceId,string Kind,string State,DateTimeOffset RequestedAtUtc,DateTimeOffset? FinishedAtUtc,
         DateTimeOffset? TargetUtc,string TimeZoneId,ZkDeviceInformation? Information,Guid? ResolutionInfoId,DateTimeOffset? ResolvedAtUtc,byte[] Version);
-    private static string Permission(string kind)=>kind switch{"information.read"=>Read,"settings.read"=>ReadSettings,"clock.set"=>SetClock,_=>throw new ArgumentException("Unknown operation.")};
+    private static string Permission(string kind)=>kind switch{"device.restart"=>Restart,"information.read"=>Read,"settings.read"=>ReadSettings,"clock.set"=>SetClock,_=>throw new ArgumentException("Unknown operation.")};
     public Task<Guid> RequestAsync(Guid actor,Guid operationId,Guid deviceId,byte[] expectedDeviceVersion,string kind,int timeoutSeconds,DateTimeOffset? targetUtc,string? confirmation,CancellationToken ct=default)=>
         transaction.ExecuteAsync(actor,Permission(kind),"device-operation.requested",token=>RequestInTransactionAsync(actor,operationId,deviceId,expectedDeviceVersion,kind,timeoutSeconds,targetUtc,confirmation,token),ct);
     internal async Task<(Guid Result,Guid Target)> RequestInTransactionAsync(Guid actor,Guid operationId,Guid deviceId,byte[] expectedDeviceVersion,string kind,int timeoutSeconds,DateTimeOffset? targetUtc,string? confirmation,CancellationToken token)
@@ -24,6 +24,7 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
             if(!await transaction.HasPermissionAsync(actor,Permission(kind),token))throw new UnauthorizedAccessException();
             if(operationId==Guid.Empty||deviceId==Guid.Empty||expectedDeviceVersion is not{Length:8}||timeoutSeconds is <1 or >60||
                 (kind=="information.read"&&(targetUtc is not null||confirmation is not null))||
+                (kind=="device.restart"&&(targetUtc is not null||confirmation!="RESTART-DEVICE"))||
                 (kind=="settings.read"&&(targetUtc is not null||confirmation!="READ-ADVANCED-SETTINGS"))||
                 (kind=="clock.set"&&(targetUtc is null||targetUtc.Value.Offset!=TimeSpan.Zero||targetUtc.Value.Ticks%TimeSpan.TicksPerSecond!=0||confirmation!="SET-CLOCK")))
                 throw new ArgumentException("Explicit operation, version, UTC seconds and confirmation required.");
@@ -40,7 +41,7 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
             if(!device.Enabled||!device.Version.SequenceEqual(expectedDeviceVersion))throw new DomainConflictException("Changed or disabled device.");
             if(device.Profile!="zk-standalone")throw new ArgumentException("No verified operation adapter for this profile.");
             if(await db.DeviceOperations.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token)||await db.DeviceConnections.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device already has queued or running work.");
-            if(kind=="clock.set"&&await db.DeviceOperations.AnyAsync(x=>x.DeviceId==deviceId&&x.Kind=="clock.set"&&x.State=="unknown"&&x.ResolvedAtUtc==null,token))throw new DomainConflictException("Read and explicitly reconcile the previous unknown clock write first.");
+            if((kind=="clock.set"||kind=="device.restart")&&await db.DeviceOperations.AnyAsync(x=>x.DeviceId==deviceId&&(x.Kind=="clock.set"||x.Kind=="device.restart")&&x.State=="unknown"&&x.ResolvedAtUtc==null,token))throw new DomainConflictException("Read and explicitly reconcile the previous unknown device write first.");
             if(await db.DeviceUserDownloads.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device has an unfinished user download.");
             var zone=await db.Sites.Where(x=>x.Id==device.SiteId).Select(x=>x.TimeZoneId).SingleAsync(token);
             if(targetUtc is not null)_=LocalClock(targetUtc.Value,zone);
@@ -80,16 +81,17 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
     public Task<Claim?> ClaimAsync(Guid service,CancellationToken ct=default,bool includeSettings=false)=>transaction.ExecuteAsync<Claim?>(service,Execute,"device-operation.claimed",async token=>
     {
         await transaction.LockAsync("IO.DeviceConnections",token);var now=clock.GetUtcNow();
+        var restart=await transaction.HasPermissionAsync(service,ExecuteRestart,token);
         var settings=includeSettings&&await transaction.HasPermissionAsync(service,ExecuteSettings,token);
-        var expired=await db.DeviceOperations.AsTracking().Where(x=>(x.Kind!="settings.read"||settings)&&x.State=="running"&&x.ClaimedAtUtc<now.AddMinutes(-2)).ToListAsync(token);
-        foreach(var item in expired){item.State=item.Kind=="clock.set"?"unknown":"interrupted";item.FinishedAtUtc=now;}
-        var next=await db.DeviceOperations.AsTracking().Where(x=>(x.Kind!="settings.read"||settings)&&x.State=="pending").OrderBy(x=>x.RequestedAtUtc).ThenBy(x=>x.Id).FirstOrDefaultAsync(token);
+        var expired=await db.DeviceOperations.AsTracking().Where(x=>(x.Kind!="device.restart"||restart)&&(x.Kind!="settings.read"||settings)&&x.State=="running"&&x.ClaimedAtUtc<now.AddMinutes(-2)).ToListAsync(token);
+        foreach(var item in expired){item.State=(item.Kind=="clock.set"||item.Kind=="device.restart")?"unknown":"interrupted";item.FinishedAtUtc=now;}
+        var next=await db.DeviceOperations.AsTracking().Where(x=>(x.Kind!="device.restart"||restart)&&(x.Kind!="settings.read"||settings)&&x.State=="pending").OrderBy(x=>x.RequestedAtUtc).ThenBy(x=>x.Id).FirstOrDefaultAsync(token);
         if(next is null)return(null,service);
         var device=await db.Devices.AsNoTracking().SingleAsync(x=>x.Id==next.DeviceId,token);
         if(!await transaction.HasPermissionAsync(next.RequestedByUserId,Permission(next.Kind),token)){next.State="revoked";next.FinishedAtUtc=now;return(null,next.Id);}
         var zone=await db.Sites.Where(x=>x.Id==device.SiteId).Select(x=>x.TimeZoneId).SingleAsync(token);
         if(!device.Enabled||!device.Version.SequenceEqual(next.ExpectedDeviceVersion)||zone!=next.TimeZoneId){next.State="device-changed";next.FinishedAtUtc=now;return(null,next.Id);}
-        if(next.Kind=="clock.set"&&next.RequestedAtUtc<now.AddMinutes(-2)){next.State="expired";next.FinishedAtUtc=now;return(null,next.Id);}
+        if((next.Kind=="clock.set"||next.Kind=="device.restart")&&next.RequestedAtUtc<now.AddMinutes(-2)){next.State="expired";next.FinishedAtUtc=now;return(null,next.Id);}
         next.ServiceUserId=service;next.ClaimId=Guid.NewGuid();next.ClaimedAtUtc=now;next.State="running";
         return(new Claim(next.Id,next.ClaimId.Value,next.DeviceId,device.Profile,device.Host,device.Port,next.Kind,next.TargetUtc is null?null:LocalClock(next.TargetUtc.Value,next.TimeZoneId),next.TimeoutSeconds),next.Id);
     },ct);
@@ -97,6 +99,7 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
     public Task<Guid> CompleteAsync(Guid service,Guid id,Guid claimId,ZkOperationOutput result,CancellationToken ct=default)=>transaction.ExecuteAsync(service,Execute,"device-operation.finished",async token=>
     {
         await transaction.LockAsync("IO.DeviceConnections",token);var item=await Owned(service,id,claimId,token);
+        if(item.Kind=="device.restart"&&!await transaction.HasPermissionAsync(service,ExecuteRestart,token))throw new UnauthorizedAccessException();
         if(item.Kind=="settings.read"&&!await transaction.HasPermissionAsync(service,ExecuteSettings,token))throw new UnauthorizedAccessException();
         if(result is null)throw new ArgumentException("Result required.");
         if(!new[]{"succeeded","unsupported","identity-mismatch","failed","unknown","timed-out","interrupted","endpoint-denied","credential-unavailable","bridge-failed"}.Contains(result.State,StringComparer.Ordinal)||
@@ -104,7 +107,7 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
             (item.Kind=="information.read"&&result.State=="succeeded"&&result.Information is null)||
             (result.Settings is not null&&(item.Kind!="settings.read"||result.State!="succeeded"||!result.Settings.IsValid()))||
             (item.Kind=="settings.read"&&result.State=="succeeded"&&result.Settings is null))throw new ArgumentException("Invalid typed operation result.");
-        item.State=item.Kind=="clock.set"&&result.State is "timed-out" or "interrupted" or "bridge-failed" or "unknown"?"unknown":result.State;
+        item.State=(item.Kind=="clock.set"||item.Kind=="device.restart")&&result.State is "timed-out" or "interrupted" or "bridge-failed" or "unknown"?"unknown":result.State;
         item.FinishedAtUtc=clock.GetUtcNow();item.ResultJson=result.Settings is not null?JsonSerializer.Serialize(result.Settings):result.Information is null?null:JsonSerializer.Serialize(result.Information);
         return(id,id);
     },ct);
@@ -112,20 +115,23 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
     public Task<DeviceCommunicationKey?> CredentialAsync(Guid service,Claim claim,bool allowDefault,CancellationToken ct=default)=>transaction.ExecuteAsync<DeviceCommunicationKey?>(service,Execute,"device-operation.credential-used",async token=>
     {
         await transaction.LockAsync("IO.DeviceConnections",token);var item=await Owned(service,claim.Id,claim.Token,token);
+        if(item.Kind=="device.restart"&&!await transaction.HasPermissionAsync(service,ExecuteRestart,token))throw new UnauthorizedAccessException();
         if(item.Kind=="settings.read"&&!await transaction.HasPermissionAsync(service,ExecuteSettings,token))throw new UnauthorizedAccessException();
         var device=await db.Devices.AsNoTracking().SingleAsync(x=>x.Id==item.DeviceId,token);
         var zone=await db.Sites.Where(x=>x.Id==device.SiteId).Select(x=>x.TimeZoneId).SingleAsync(token);
-        if((item.Kind=="clock.set"&&item.RequestedAtUtc<clock.GetUtcNow().AddMinutes(-2))||item.DeviceId!=claim.DeviceId||item.Kind!=claim.Kind||!device.Enabled||!device.Version.SequenceEqual(item.ExpectedDeviceVersion)||zone!=item.TimeZoneId||!await transaction.HasPermissionAsync(item.RequestedByUserId,Permission(item.Kind),token))return(null,item.Id);
+        if(((item.Kind=="clock.set"||item.Kind=="device.restart")&&item.RequestedAtUtc<clock.GetUtcNow().AddMinutes(-2))||item.DeviceId!=claim.DeviceId||item.Kind!=claim.Kind||!device.Enabled||!device.Version.SequenceEqual(item.ExpectedDeviceVersion)||zone!=item.TimeZoneId||!await transaction.HasPermissionAsync(item.RequestedByUserId,Permission(item.Kind),token))return(null,item.Id);
         var ciphertext=await db.DeviceSecrets.Where(x=>x.DeviceId==item.DeviceId).Select(x=>x.ProtectedValue).SingleOrDefaultAsync(token);
         if(ciphertext is null)return(allowDefault?new DeviceCommunicationKey(0):null,item.Id);
         try{var text=protection.CreateProtector("IO.Devices.Credential.v1",item.DeviceId.ToString("N")).Unprotect(ciphertext);return(text.Length>0&&text.All(c=>c is >='0' and <='9')&&int.TryParse(text,NumberStyles.None,CultureInfo.InvariantCulture,out var key)?new DeviceCommunicationKey(key):null,item.Id);}catch(CryptographicException){return(null,item.Id);}
     },ct);
 
-    public Task<Guid> ResolveClockAsync(Guid actor,Guid id,byte[] version,Guid informationId,string confirmation,CancellationToken ct=default)=>transaction.ExecuteAsync(actor,SetClock,"device-operation.clock-reviewed",async token=>
+    public Task<Guid> ResolveClockAsync(Guid actor,Guid id,byte[] version,Guid informationId,string confirmation,CancellationToken ct=default)=>ResolveWriteAsync(actor,id,version,informationId,confirmation,"clock.set",ct);
+    public Task<Guid> ResolveRestartAsync(Guid actor,Guid id,byte[] version,Guid informationId,string confirmation,CancellationToken ct=default)=>ResolveWriteAsync(actor,id,version,informationId,confirmation,"device.restart",ct);
+    private Task<Guid> ResolveWriteAsync(Guid actor,Guid id,byte[] version,Guid informationId,string confirmation,string kind,CancellationToken ct)=>transaction.ExecuteAsync(actor,Permission(kind),kind=="clock.set"?"device-operation.clock-reviewed":"device-operation.restart-reviewed",async token=>
     {
-        if(confirmation!="REVIEWED-CLOCK")throw new ArgumentException("Explicit clock review confirmation required.");
+        if(confirmation!=(kind=="clock.set"?"REVIEWED-CLOCK":"REVIEWED-RESTART-REACHABILITY"))throw new ArgumentException("Explicit clock review confirmation required.");
         await transaction.LockAsync("IO.DeviceConnections",token);var item=await Load(id,version,token);
-        if(item.Kind!="clock.set"||item.State!="unknown"||item.ResolvedAtUtc is not null)throw new DomainConflictException("Only an unresolved unknown clock write can be reviewed.");
+        if(item.Kind!=kind||item.State!="unknown"||item.ResolvedAtUtc is not null)throw new DomainConflictException("Only an unresolved unknown write of the exact kind can be reviewed.");
         var info=await db.DeviceOperations.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==informationId,token);
         var currentZone=await (from d in db.Devices join site in db.Sites on d.SiteId equals site.Id where d.Id==item.DeviceId select site.TimeZoneId).SingleAsync(token);
         var deviceVersion=await db.Devices.Where(x=>x.Id==item.DeviceId).Select(x=>x.Version).SingleAsync(token);

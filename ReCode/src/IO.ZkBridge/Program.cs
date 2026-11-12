@@ -46,7 +46,7 @@ internal static class Program
             if(connection is null||!connection.IsValid()||(operationMode&&(operation is null||!operation.IsValid())))
                 return operationMode?Output(new("unsupported")):Result("invalid-input");
             if(!OperatingSystem.IsWindows())return operationMode?Output(new("unsupported")):Result("unsupported");
-            var result=ExecuteWindows(connection,operation?.Operation??"probe",operation?.ClockLocal,operation?.AllowClockSet??false,operation?.AllowAdvancedSettingsRead??false);
+            var result=ExecuteWindows(connection,operation?.Operation??"probe",operation?.ClockLocal,operation?.AllowClockSet??false,operation?.AllowAdvancedSettingsRead??false,operation?.AllowRestart??false);
             return operationMode?Output(result):Result(result.State);
         }
         catch{return operationMode?Output(new("unknown")):Result("sdk-unavailable");}
@@ -55,7 +55,7 @@ internal static class Program
     private static int Output(ZkOperationOutput value){Console.WriteLine(JsonSerializer.Serialize(value));return 0;}
 
     [SupportedOSPlatform("windows")]
-    private static ZkOperationOutput ExecuteWindows(ZkProbeInput input,string operation,string? clockLocal,bool allowClockSet,bool allowAdvancedSettingsRead)
+    private static ZkOperationOutput ExecuteWindows(ZkProbeInput input,string operation,string? clockLocal,bool allowClockSet,bool allowAdvancedSettingsRead,bool allowRestart)
     {
         object? instance=null;bool connected=false,writeStarted=false;
         try
@@ -77,6 +77,7 @@ internal static class Program
                 string after;if(!(bool)sdk.GetSerialNumber(input.MachineNumber,out after)||after?.Trim()!=input.ExpectedSerial)return new("identity-mismatch");
                 return new("succeeded",Settings:settings);
             }
+            if(operation=="device.restart")return ZkRestartExecutor.Execute(allowRestart,new RestartSession(instance,input.MachineNumber));
             if(operation!="clock.set"||!allowClockSet||!ZkOperationInput.ValidClock(clockLocal))return new("unsupported");
             var time=DateTime.ParseExact(clockLocal!,"yyyy-MM-dd HH:mm:ss",CultureInfo.InvariantCulture);
             writeStarted=true;
@@ -88,6 +89,11 @@ internal static class Program
         {
             if(instance is not null){try{if(connected)((dynamic)instance).Disconnect();}catch{}try{if(Marshal.IsComObject(instance))Marshal.FinalReleaseComObject(instance);}catch{}}
         }
+    }
+
+    private sealed class RestartSession(object instance,int machine):IZkRestartSession
+    {
+        public bool Restart()=> (bool)((dynamic)instance).RestartDevice(machine);
     }
 
     private sealed class AdvancedSettingsSession(object instance,int machine):IZkAdvancedSettingsReadSession

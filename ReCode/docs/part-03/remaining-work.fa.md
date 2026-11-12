@@ -11,7 +11,7 @@
 | S08 | preview/hash، ارسال عادی فردی/چند نفر/چند دستگاه، نتیجهٔ مستقل، partial retry و unknown review | رفت‌وبرگشت واقعی روی مدل/کارت مصوب و سنجش قطعی/موفقیت جزئی؛ ارسال عادی non-TFT اکنون با UserWriteFormat مستقل و read-back/unknown review ساخته و آزموده شده، ولی snapshot legacy مجوز اجرای SSR نیست و پذیرش مدل واقعی باز است؛ دادهٔ اثرانگشت/چهره/عکس بدون سیاست حریم خصوصی/نگهداری و پشتیبانی مدل فعال نیست |
 | S09 | دریافت SDK با حفظ اصل tuple، range UTC سرور، قرنطینه، receipt raw/conflict، تکرارپذیری و بازیابی restart | استخراج/قطعی/دریافت تکراری واقعی و trace تا محاسبه؛ tuple+رتبهٔ multiplicity شناسهٔ رخداد فیزیکی نیست؛ کامل‌شدن خواندن SDK snapshot اتمیک نیست |
 | S10 | polling مصوب، cursor/run، backoff، pause/resume، revoke، auto-ingest اختیاری و بازخوانی overlap صریح | پروتکل vendor PUSH برای مدل پشتیبان با هویت رمزنگاری‌شده، replay/size/rate/congestion/recovery؛ polling یا بازخوانی overlap نام PUSH نمی‌گیرد؛ پذیرش واقعی زمان‌بندی |
-| S11 | history پنج صف، retry خواندنی با lineage؛ settings.read با حق و تأیید دوم؛ بدون replay نوشتن | نوشتن تنظیمات مدل‌محور، RemoteEnroll با قرارداد مدل و سیاست بیومتریک، و تعیین‌تکلیف/پیاده‌سازی مصوب restart/reset/delete تردد/کاربر/مدیر با حقوق و تأییدهای مستقل و unknown recovery؛ هیچ‌کدام از دکمهٔ retry خواندن قابل اجرا نیستند |
+| S11 | history پنج صف، retry خواندنی با lineage؛ settings.read با حق و تأیید دوم؛ برش جدید device.restart با حقوق مستقل/unknown review و بدون replay نوشتن (CI این برش در حال بررسی) | نوشتن تنظیمات مدل‌محور، RemoteEnroll با قرارداد مدل و سیاست بیومتریک، و تکمیل پذیرش واقعی restart و تعیین‌تکلیف/پیاده‌سازی مصوب reset/delete تردد/کاربر/مدیر با حقوق و تأییدهای مستقل و unknown recovery؛ هیچ‌کدام از دکمهٔ retry خواندن قابل اجرا نیستند |
 | S12 | فایل UTF-8 پنج‌ستونی Personnel، حفظ bytes، preview/قرنطینه/commit، نصب lifecycle واقعی دو OS در CI و health SQL | نصب عملیاتی آزمایشگاه/کلید/ACL/SDK و ماتریس واقعی مدل‌ها؛ سناریوی واقعی چنددستگاه/قطعی/دریافت تکراری/تبادل/تنظیمات، نمونهٔ واقعی فایل مدل‌های هدف و فساد فایل؛ simulator کافی نیست |
 
 ## پیش‌نیاز بستن مانده‌های مدل‌محور
@@ -28,3 +28,7 @@
 ## تصمیم ادامه با دستگاه مجازی
 
 آزمایشگاه stateful دو دستگاه با پروتکل خصوصی TCP و **۱۹ بررسی Windows/Linux** ساخته و اجرا شد. با آن یک ایراد واقعی در fail-fast ناظر native stream کشف و اصلاح شد. [راهنما و تحویل تست واقعی](virtual-device-lab.fa.md). این ادامه با توافق تست مجازی اکنون/تست واقعی توسط تیم بعداً است؛ مانده‌های جدول را حذف یا completed نمی‌کند. relay تست در worker نصب‌شده قابل انتخاب نیست؛ emulator پروتکل ZK، اجرای COM و end-to-end SQL/UI/device با این ابزار ادعا نشده‌اند.
+
+## پژوهش سازنده و برش جدید
+
+[بررسی منابع رسمی/عمومی ZKTeco](zk-vendor-research.fa.md): تفاوت firmwareهای F18، محدودیت سند قدیمی PUSH، اثر حذف template و قرارداد راه‌اندازی مجدد ثبت شد. device.restart اکنون کد/UI/SQL و آزمون دارد؛ تا ثبت نتیجهٔ CI، آخرین verifiedCode قبلی تغییر نمی‌کند. این برش reset/حذف/RemoteEnroll/PUSH امن را کامل نمی‌کند.

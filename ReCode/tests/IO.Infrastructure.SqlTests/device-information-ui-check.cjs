@@ -7,10 +7,10 @@ async function wait(test){for(let i=0;i<250;i++){if(test())return;await new Prom
  let granted=true,unknown=true,serverFailure=true;const posts=[];let row={id:'80e21cae-1680-4450-a4b2-692ce87e8284',deviceId:'b5d05212-7b3b-4779-83ca-6707ef1e00a3',kind:'information.read',state:'succeeded',requestedAtUtc:'2026-11-08',timeZoneId:'UTC',version:'AQIDBAUGBwg=',information:{serial:'<img src=x onerror=alert(1)>',users:0,userCapacity:null}};
  w.confirm=()=>true;
  w.fetch=async(path,options={})=>{
-  let data={};if(path==='/workspace/capabilities')data={permissions:granted?['devices.info.read','devices.clock.set']:[]};
+  let data={};if(path==='/workspace/capabilities')data={permissions:granted?['devices.info.read','devices.clock.set','devices.restart']:[]};
   else if(path==='/auth/csrf')data={token:'csrf-test'};
   else if(!granted)return{ok:false,status:403};
-  else if(options.method==='POST'){assert.equal(options.headers['X-CSRF-TOKEN'],'csrf-test');posts.push({path,body:JSON.parse(options.body)});if(path==='/device-operations'&&unknown){unknown=false;throw new w.TypeError('unknown');}if(path==='/device-operations'&&serverFailure){serverFailure=false;return{ok:false,status:503};}if(path.endsWith('/cancel'))row={...row,state:'cancelled'};if(path.endsWith('/resolve-clock'))row={...row,resolvedAtUtc:'2026-11-08',resolutionInfoId:row.id};data={result:row.id};}
+  else if(options.method==='POST'){assert.equal(options.headers['X-CSRF-TOKEN'],'csrf-test');posts.push({path,body:JSON.parse(options.body)});if(path==='/device-operations'&&unknown){unknown=false;throw new w.TypeError('unknown');}if(path==='/device-operations'&&serverFailure){serverFailure=false;return{ok:false,status:503};}if(path.endsWith('/cancel'))row={...row,state:'cancelled'};if(path.endsWith('/resolve-clock')||path.endsWith('/resolve-restart'))row={...row,resolvedAtUtc:'2026-11-08',resolutionInfoId:row.id};data={result:row.id};}
   else data={items:[row]};return{ok:true,status:200,json:async()=>data};
  };
  w.eval(fs.readFileSync(root+'device-information.js','utf8'));
@@ -30,6 +30,11 @@ async function wait(test){for(let i=0;i<250;i++){if(test())return;await new Prom
  w.document.querySelector('#items button').click();await wait(()=>w.document.getElementById('items').textContent.includes('لغو شد'));assert.equal(posts.at(-1).body.expectedVersion,row.version);
  row={...row,state:'unknown',kind:'clock.set'};w.document.getElementById('refresh').click();await wait(()=>w.document.querySelector('#items button'));
  w.document.querySelector('#items button').click();const r=w.document.getElementById('resolve-form');assert.equal(r.elements.operationId.value,row.id);r.elements.informationId.value=row.id;r.elements.reviewed.checked=true;r.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await wait(()=>w.document.getElementById('items').textContent.includes('بازبینی شده'));assert.equal(posts.at(-1).body.confirmation,'REVIEWED-CLOCK');
+ f.elements.kind.value='device.restart';f.elements.kind.dispatchEvent(new w.Event('change'));assert.equal(f.elements.targetUtc.disabled,true);assert.equal(f.elements.confirmed.required,true);
+ const beforeRestart=posts.length;f.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));assert.equal(posts.length,beforeRestart);
+ f.elements.confirmed.checked=true;f.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await wait(()=>posts.length===beforeRestart+1&&!f.querySelector('button').disabled);assert.equal(posts.at(-1).body.kind,'device.restart');assert.equal(posts.at(-1).body.targetUtc,null);assert.equal(posts.at(-1).body.confirmation,'RESTART-DEVICE');
+ row={...row,kind:'device.restart',state:'unknown',resolvedAtUtc:null};w.document.getElementById('refresh').click();await wait(()=>w.document.querySelector('#items button'));
+ w.document.querySelector('#items button').click();assert.equal(r.elements.kind.value,'device.restart');r.elements.informationId.value=row.id;r.elements.reviewed.checked=true;r.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await wait(()=>w.document.getElementById('items').textContent.includes('بازبینی شده'));assert.equal(posts.at(-1).path,'/device-operations/'+row.id+'/resolve-restart');assert.equal(posts.at(-1).body.confirmation,'REVIEWED-RESTART-REACHABILITY');
  granted=false;w.dispatchEvent(new w.Event('focus'));await wait(()=>f.hidden);assert.equal(w.document.getElementById('items').textContent,'');assert.equal(f.elements.deviceId.value,'');assert.equal(r.elements.informationId.value,'');dom.window.close();
  console.log('PASS S06 offline DOM: safe nullable snapshots exact retry UTC explicit clock confirmation versioned cancellation unknown review and revoke clearing');
 })().catch(e=>{console.error(e);process.exit(1);});

@@ -101,5 +101,13 @@
   "remainingWorkRegister": "remaining-work.fa.md",
   "virtualDeviceLabEvidence": "virtual-device-lab-evidence.json",
   "legacyUserReadEvidence": "s07-legacy-users-evidence.json",
-  "legacyUserWriteEvidence": "s08-legacy-user-write-evidence.json"
+  "legacyUserWriteEvidence": "s08-legacy-user-write-evidence.json",
+  "pendingVerification": {
+    "slice": "Source-researched Standalone SDK device.restart with explicit human/service grants, default-off endpoint approval, durable SQL/UI and unknown reachability review",
+    "sourceResearch": "zk-vendor-research.fa.md",
+    "localRestartContractChecks": 11,
+    "newSqlRestartChecks": 17,
+    "newHttpRestartChecks": 3,
+    "ci": "not yet verified; latestVerifiedCode above remains historical"
+  }
 }

@@ -722,6 +722,23 @@ internal static class HttpSecurityTests
             check(missingClockAck==HttpStatusCode.BadRequest&&firstCancel==HttpStatusCode.OK&&
                   (await PostAdmin(own,"/device-operations/"+clockOperation+"/cancel",new{ExpectedVersion=s06ClockVersion})).StatusCode==HttpStatusCode.Conflict,
                   "HTTP S06 clock grant still requires explicit confirmation and only current pending work can be cancelled");
+            var restartId=Guid.NewGuid();
+            var restartPayload=new{OperationId=restartId,DeviceId=s06Device,ExpectedDeviceVersion=s06Version,Kind="device.restart",TimeoutSeconds=5,TargetUtc=(DateTimeOffset?)null,Confirmation="RESTART-DEVICE"};
+            check((await PostAdmin(own,"/device-operations",restartPayload)).StatusCode==HttpStatusCode.Forbidden&&
+                  (await anon.GetAsync("/device-operations")).StatusCode==HttpStatusCode.Unauthorized&&
+                  (await own.PostAsJsonAsync("/device-operations",restartPayload)).StatusCode==HttpStatusCode.BadRequest,
+                  "HTTP S11 clock and read grants never imply restart and antiforgery remains required");
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.restart"})).EnsureSuccessStatusCode();
+            check((await PostAdmin(own,"/device-operations",new{OperationId=restartId,DeviceId=s06Device,ExpectedDeviceVersion=s06Version,Kind="device.restart",TimeoutSeconds=5,TargetUtc=(DateTimeOffset?)null,Confirmation="RESET-DEVICE"})).StatusCode==HttpStatusCode.BadRequest,
+                  "HTTP S11 independently granted restart still requires its exact confirmation");
+            (await PostAdmin(own,"/device-operations",restartPayload)).EnsureSuccessStatusCode();
+            byte[] restartVersion;
+            using(var json=JsonDocument.Parse(await own.GetStringAsync("/device-operations?deviceId="+s06Device)))restartVersion=json.RootElement.GetProperty("items").EnumerateArray().Single(x=>x.GetProperty("id").GetGuid()==restartId).GetProperty("version").GetBytesFromBase64();
+            (await PostAdmin(own,"/device-operations/"+restartId+"/cancel",new{ExpectedVersion=restartVersion})).EnsureSuccessStatusCode();
+            (await PostAdmin(adminClient,"/admin/role-permissions/revoke",new{RoleId=deviceRole,Code="devices.restart"})).EnsureSuccessStatusCode();
+            check((await PostAdmin(own,"/device-operations",restartPayload)).StatusCode==HttpStatusCode.Forbidden&&
+                  (await PostAdmin(own,"/device-operations/"+restartId+"/resolve-restart",new{ExpectedVersion=restartVersion,InformationId=infoOperation,Confirmation="REVIEWED-RESTART-REACHABILITY"})).StatusCode==HttpStatusCode.Forbidden,
+                  "HTTP S11 revoking human restart grant blocks old registration replay and recovery on the existing session");
             foreach(var code in new[]{"devices.info.read","devices.clock.set"})
                 (await PostAdmin(adminClient,"/admin/role-permissions/revoke",new{RoleId=deviceRole,Code=code})).EnsureSuccessStatusCode();
             using(var capabilities=JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities")))
