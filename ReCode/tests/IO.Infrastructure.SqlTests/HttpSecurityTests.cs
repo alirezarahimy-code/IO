@@ -314,7 +314,7 @@ internal static class HttpSecurityTests
             (await PostAdmin(adminClient, "/admin/user-roles", new { UserId = self, RoleId = operatorTemplate.Id })).EnsureSuccessStatusCode();
             using var operatorCaps = JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities"));
             check(operatorCaps.RootElement.GetProperty("operator").GetBoolean() &&
-                  operatorCaps.RootElement.GetProperty("permissions").EnumerateArray().Where(x => x.GetString()!.StartsWith("devices.", StringComparison.Ordinal)).Select(x => x.GetString()).OrderBy(x=>x,StringComparer.Ordinal).SequenceEqual(new[] { "devices.attendance.read", "devices.commands.read", "devices.connection.read", "devices.files.read", "devices.groups.read", "devices.info.read", "devices.read", "devices.schedules.read", "devices.settings.read", "devices.users.read" }),
+                  operatorCaps.RootElement.GetProperty("permissions").EnumerateArray().Where(x => x.GetString()!.StartsWith("devices.", StringComparison.Ordinal)).Select(x => x.GetString()).OrderBy(x=>x,StringComparer.Ordinal).SequenceEqual(new[] { "devices.attendance.read", "devices.commands.read", "devices.connection.read", "devices.files.read", "devices.groups.read", "devices.health.read", "devices.info.read", "devices.read", "devices.schedules.read", "devices.settings.read", "devices.users.read" }),
                   "HTTP operator shell identifies role without granting unimplemented device operations");
             (await PostAdmin(adminClient, "/admin/user-roles/revoke", new { UserId = self, RoleId = operatorTemplate.Id })).EnsureSuccessStatusCode();
             var featureRole = await CreateId("/admin/roles", new { Name = "phase five six test role" });

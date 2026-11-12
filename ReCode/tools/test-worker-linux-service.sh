@@ -29,7 +29,7 @@ cleanup() {
 }
 trap cleanup EXIT
 if getent passwd "$name" >/dev/null || sudo -n test -e "$root" || sudo -n test -e "$unit_path"; then echo 'Refusing to replace existing CI resources.' >&2; exit 1; fi
-sudo -n useradd --system --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin "$name"
+sudo -n useradd --system --user-group --no-create-home --home-dir /nonexistent --shell /usr/sbin/nologin "$name"
 created_user=1
 sudo -n mkdir -- "$root"; created_directory=1
 sudo -n cp -a -- "$published/." "$root/"
@@ -43,13 +43,13 @@ sudo -n chown -R "root:$name" "$root"
 sudo -n chmod -R u+rwX,g+rX,o-rwx "$root"
 # Exercise the shipped hardening template under isolated names/paths. No restart
 # is allowed in this smoke: an unexpected process exit must fail, not be masked.
+created_unit=1
 python3 - "$name" "$root" "$host" "$(dirname "$0")/../deploy/device-worker/io-device-worker.service" <<'PY' | sudo -n tee "$unit_path" >/dev/null
 import pathlib,sys
 name,root,host,template=sys.argv[1:]
 s=pathlib.Path(template).read_text().replace('User=io-device-worker','User='+name).replace('Group=io-device-worker','Group='+name).replace('WorkingDirectory=/opt/io/device-worker','WorkingDirectory='+root).replace('ExecStart=/usr/bin/dotnet /opt/io/device-worker/IO.DeviceWorker.dll','ExecStart='+host+' '+root+'/IO.DeviceWorker.dll').replace('EnvironmentFile=/etc/io/device-worker.env','').replace('Restart=on-failure','Restart=no')
 print(s)
 PY
-created_unit=1
 sudo -n systemctl daemon-reload
 sudo -n systemctl start "$unit"
 sleep 3
