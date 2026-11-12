@@ -31,6 +31,9 @@ jobs:
       - name: Test isolated native process boundary without hardware
         working-directory: ReCode
         run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --verify
+      - name: Test stateful TCP virtual devices (not vendor protocol or SDK acceptance)
+        working-directory: ReCode
+        run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --virtual-lab
       - name: Verify foundation catalogue and role-filtered help
         working-directory: ReCode
         run: dotnet run --project tests/IO.Foundation.Tests --configuration Release --no-build

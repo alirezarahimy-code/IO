@@ -10,6 +10,7 @@ Run-Dotnet --info
 Run-Dotnet build IO.slnx --configuration Release
 Run-Dotnet run --project tests/IO.Domain.Tests --configuration Release --no-build
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --verify
+Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --virtual-lab
 Run-Dotnet run --project tests/IO.Foundation.Tests --configuration Release --no-build
 $publish = Join-Path ([System.IO.Path]::GetTempPath()) ('io-publish-' + [guid]::NewGuid().ToString('N'))
 try {

@@ -3,10 +3,16 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using IO.DeviceContracts;
 
+if (args is ["--virtual-lab"]) { await VirtualDeviceLab.VerifyAsync(); return; }
+
 if (args is not ["--verify"])
 {
     // This executable is a test-only child fixture, never deployed as the SDK bridge.
     var text=await Console.In.ReadToEndAsync();using var document=JsonDocument.Parse(text);
+    var testPinElement = document.RootElement.TryGetProperty("Connection", out var testConnection) ? testConnection : document.RootElement;
+    var testPin = JsonSerializer.Deserialize<ZkProbeInput>(testPinElement.GetRawText())!;
+    if (testPin.ExpectedSerial.StartsWith("virtual-lab-", StringComparison.Ordinal))
+    { await VirtualDeviceLab.RelayAsync(text, testPin); return; }
     if(document.RootElement.TryGetProperty("ReadAttendance",out _))
     {
         var attendance=JsonSerializer.Deserialize<ZkAttendanceReadInput>(text)!;var serial=attendance.Connection.ExpectedSerial;
