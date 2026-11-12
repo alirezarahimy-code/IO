@@ -670,6 +670,24 @@ internal static class HttpSecurityTests
                       (await own.GetAsync("/help/topic/device-settings")).StatusCode==HttpStatusCode.Forbidden&&
                       !settingsCaps.RootElement.GetProperty("pages").EnumerateArray().Any(x=>x.GetProperty("route").GetString()=="/workspace/device-settings"),
                       "HTTP S11 revoke removes advanced settings data requests protected help and menu without re-login");
+            var idlePreviewPayload=new DeviceIdlePreview(s06Device,s06Version,settingsId,10,"http-model-evidence");
+            check((await PostAdmin(own,"/device-settings/idle-preview",idlePreviewPayload)).StatusCode==HttpStatusCode.Forbidden&&
+                  (await own.PostAsJsonAsync("/device-settings/idle-preview",idlePreviewPayload)).StatusCode==HttpStatusCode.BadRequest&&
+                  (await PostAdmin(own,"/device-operations/"+settingsId+"/resolve-idle",new DeviceIdleResolution(s06Version,settingsId,"REVIEWED-IDLE-MINUTES"))).StatusCode==HttpStatusCode.Forbidden,
+                  "HTTP S11 idle preview and review require separate human grant and CSRF");
+            foreach(var code in new[]{"devices.settings.read","devices.settings.idle.set"})
+                (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code=code})).EnsureSuccessStatusCode();
+            check((await PostAdmin(own,"/device-settings/idle-preview",idlePreviewPayload)).StatusCode==HttpStatusCode.Conflict&&
+                  (await PostAdmin(own,"/device-settings/idle-preview",idlePreviewPayload with{Minutes=0})).StatusCode==HttpStatusCode.BadRequest&&
+                  (await own.GetAsync("/help/topic/device-settings")).StatusCode==HttpStatusCode.OK,
+                  "HTTP S11 idle grant cannot turn a cancelled read or disabled-zero guess into an approved preview");
+            foreach(var code in new[]{"devices.settings.read","devices.settings.idle.set"})
+                (await PostAdmin(adminClient,"/admin/role-permissions/revoke",new{RoleId=deviceRole,Code=code})).EnsureSuccessStatusCode();
+            using(var idleCaps=JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities")))
+                check((await PostAdmin(own,"/device-settings/idle-preview",idlePreviewPayload)).StatusCode==HttpStatusCode.Forbidden&&
+                      (await own.GetAsync("/help/topic/device-settings")).StatusCode==HttpStatusCode.Forbidden&&
+                      !idleCaps.RootElement.GetProperty("pages").EnumerateArray().Any(x=>x.GetProperty("route").GetString()=="/workspace/device-settings"),
+                      "HTTP S11 idle revoke removes preview protected help and menu on the same session");
             var fileId=Guid.NewGuid();var filePayload=new IO.Infrastructure.Devices.DeviceFileImports.Input(fileId,s06Device,s06Version,"gregorian",1,4,5,Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("009	2026-11-08 08:00:00	1	4	1")));
             check((await anon.GetAsync("/device-file-imports")).StatusCode==HttpStatusCode.Unauthorized&&
                   (await own.GetAsync("/device-file-imports")).StatusCode==HttpStatusCode.Forbidden&&

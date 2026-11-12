@@ -46,6 +46,9 @@ jobs:
       - name: Test approved IP transition contracts and recovery isolation
         working-directory: ReCode
         run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --network-contracts
+      - name: Test exact-model idle minutes and native isolation
+        working-directory: ReCode
+        run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --idle-contracts
       - name: Verify foundation catalogue and role-filtered help
         working-directory: ReCode
         run: dotnet run --project tests/IO.Foundation.Tests --configuration Release --no-build
@@ -272,6 +275,7 @@ jobs:
           node ReCode/tests/IO.Infrastructure.SqlTests/device-schedules-ui-check.cjs
           node ReCode/tests/IO.Infrastructure.SqlTests/device-commands-ui-check.cjs
           node ReCode/tests/IO.Infrastructure.SqlTests/device-settings-ui-check.cjs
+          node ReCode/tests/IO.Infrastructure.SqlTests/device-idle-ui-check.cjs
           node ReCode/tests/IO.Infrastructure.SqlTests/device-health-ui-check.cjs
           node ReCode/tests/IO.Infrastructure.SqlTests/device-files-ui-check.cjs
       - name: Test isolated SQL Server Developer

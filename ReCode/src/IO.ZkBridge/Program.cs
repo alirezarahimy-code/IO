@@ -74,9 +74,12 @@ internal static class Program
             {
                 if(!allowAdvancedSettingsRead)return new("unsupported");
                 var settings=ZkAdvancedSettingsReader.Read(serial.Trim(),new AdvancedSettingsSession(instance,input.MachineNumber));
+                var descriptor=new IdleSettingSession(instance,input.MachineNumber);
+                settings=settings with{Product=descriptor.Product(),Firmware=descriptor.Firmware()};
                 string after;if(!(bool)sdk.GetSerialNumber(input.MachineNumber,out after)||after?.Trim()!=input.ExpectedSerial)return new("identity-mismatch");
                 return new("succeeded",Settings:settings);
             }
+            if(operation=="settings.idle.set")return ZkIdleSettingExecutor.Execute(request!,new IdleSettingSession(instance,input.MachineNumber));
             if(operation is "network.ip.set" or "network.inspect")return ZkNetworkExecutor.Execute(request!,new NetworkSession(instance,input.MachineNumber));
             if(operation=="device.restart")return ZkRestartExecutor.Execute(allowRestart,new RestartSession(instance,input.MachineNumber));
             if(operation!="clock.set"||!allowClockSet||!ZkOperationInput.ValidClock(clockLocal))return new("unsupported");
@@ -90,6 +93,14 @@ internal static class Program
         {
             if(instance is not null){try{if(connected)((dynamic)instance).Disconnect();}catch{}try{if(Marshal.IsComObject(instance))Marshal.FinalReleaseComObject(instance);}catch{}}
         }
+    }
+
+    private sealed class IdleSettingSession(object instance,int machine):IZkIdleSettingSession
+    {
+        public string? Product(){try{string text="";return (bool)((dynamic)instance).GetProductCode(machine,out text)&&ZkIdlePlan.Text(text,120)?text:null;}catch{return null;}}
+        public string? Firmware(){try{string text="";return (bool)((dynamic)instance).GetFirmwareVersion(machine,ref text)&&ZkIdlePlan.Text(text,120)?text:null;}catch{return null;}}
+        public int? ReadIdleMinutes(){int value=0;return (bool)((dynamic)instance).GetDeviceInfo(machine,4,ref value)?value:null;}
+        public bool SetIdleMinutes(int minutes)=>(bool)((dynamic)instance).SetDeviceInfo(machine,4,minutes);
     }
 
     private sealed class NetworkSession(object instance,int machine):IZkNetworkSession

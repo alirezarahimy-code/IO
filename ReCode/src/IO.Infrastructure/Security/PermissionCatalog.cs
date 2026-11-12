@@ -187,6 +187,8 @@ public static class PermissionCatalog
         new("devices.users.download", "درخواست و لغو دریافت کاربران دستگاه", "فقط دریافت خواندنی SSR تأییدشده در پیکربندی worker؛ نتیجهٔ ناقص هرگز snapshot کامل نیست."),
         new("devices.users.execute", "اجرای سرویس مستقل دریافت کاربران", "فقط هویت سرویس صریح؛ بدون اعطای خودکار به نقش انسانی."),
         new("devices.info.read", "خواندن مشخصات، ظرفیت و ساعت دستگاه", "مجوز مستقل سراسری S06؛ درخواست خواندن و مشاهدهٔ snapshot/تاریخچه، نه رمز/بیومتریک یا تنظیم ساعت."),
+        new("devices.settings.idle.set", "پیش‌نمایش/تغییر مدت بیکاری دستگاه و بازبینی unknown", "فقط کد۴، تأیید احتمال خواب/خاموشی، snapshot/model/firmware مصوب و بدون retry کور."),
+        new("devices.settings.idle.execute", "اجرای سرویس تنظیم مدت بیکاری مدل مصوب", "مستقل از خواندن و انسان؛ flag نصب پیش‌فرض خاموش و approval دقیق محصول/firmware/مقادیر لازم است."),
         new("devices.network.ip.set", "تغییر صریح IPv4 دستگاه تردد و بازبینی شبکه", "SET-DEVICE-IP؛ مقصد قدیم/جدید و سریال immutable؛ بدون تغییر gateway/DHCP/port یا retry خودکار."),
         new("devices.network.read", "بررسی خواندنی مقصد قدیم/جدید تغییر IP", "INSPECT-DEVICE-IP؛ فقط به تغییر نامعلوم همان دستگاه و نسخه؛ خواندن عمومی شبکه نیست."),
         new("devices.network.ip.execute", "اجرای سرویس تغییر IP دستگاه", "نیازمند اجازهٔ نصب مستقل و allowlist دقیق هر دو IP؛ به نقش پیش‌فرض داده نمی‌شود."),

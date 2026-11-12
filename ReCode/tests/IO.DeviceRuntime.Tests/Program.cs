@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using IO.DeviceContracts;
 
+if (args is ["--idle-contracts"]) { await IdleTests.RunAsync(); return; }
+
 if (args is ["--network-contracts"]) { await NetworkTests.RunAsync(); return; }
 
 if (args is ["--restart-contracts"]) { await RestartTests.RunAsync(); return; }
@@ -78,6 +80,11 @@ if (args is not ["--verify"])
         {
             if(operation.Connection.ExpectedSerial=="network-hang"){await Task.Delay(TimeSpan.FromMinutes(1));return;}
             Console.WriteLine(JsonSerializer.Serialize(ZkNetworkExecutor.Execute(operation,new NetworkTests.Session(operation.Connection.Address))));return;
+        }
+        if(operation.Operation=="settings.idle.set")
+        {
+            if(operation.Connection.ExpectedSerial=="idle-hang"){await Task.Delay(TimeSpan.FromMinutes(1));return;}
+            Console.WriteLine(JsonSerializer.Serialize(ZkIdleSettingExecutor.Execute(operation,new IdleTests.Session())));return;
         }
         if(operation.Connection.ExpectedSerial=="restart-hang"){await Task.Delay(TimeSpan.FromMinutes(1));return;}
         if(operation.Operation=="settings.read")
