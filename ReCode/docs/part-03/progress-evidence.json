@@ -1,0 +1,50 @@
+{
+  "scope": "Part 3 is S04-S12. Execute all S05-S12; this is progress, NOT completion.",
+  "userTarget": {
+    "family": "ZK standalone/network SDK",
+    "lab": "Windows",
+    "referenceInstruction": "Use existing reference connection implementation",
+    "exactModelFirmware": "not supplied",
+    "realDeviceExecution": "not performed"
+  },
+  "latestVerifiedCode": "6c1652c0e0f5c159304fc3ec993ad982b43c6a50",
+  "checks": {
+    "integrationPassLines": 458,
+    "foundation": 38,
+    "domain": 26,
+    "portableNativeBoundaryAndFileParser": 19,
+    "permissions": 90,
+    "pagesAndHelp": 43,
+    "foundationMigrations": 26,
+    "foundationTables": 48
+  },
+  "stages": {
+    "S04": "accepted registry and metadata groups",
+    "S05": "partial: DB queue, independent service identity, grant/revoke, timeout isolation, TCP diagnostic and isolated native ZK serial-pin candidate; actual SDK installation and real device tests remain",
+    "S06": "not implemented: information, capacities and confirmed settings",
+    "S07": "not implemented: device user download and employee reconciliation",
+    "S08": "not implemented: per-person per-device upload and allowed biometrics",
+    "S09": "not implemented: real device log extraction and end-to-end ingestion",
+    "S10": "not implemented: scheduled polling and authenticated PUSH",
+    "S11": "not implemented: actual command queue, advanced settings and sensitive operations; diagnostic queue is not S11",
+    "S12": "partial internal reference USB parser only; no file import UI/commit or real hardware acceptance"
+  },
+  "hardwareVerified": false,
+  "part3Complete": false,
+  "runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 43124834036,
+      "headSha": "6c1652c0e0f5c159304fc3ec993ad982b43c6a50",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43124834036"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 43124834043,
+      "headSha": "6c1652c0e0f5c159304fc3ec993ad982b43c6a50",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43124834043"
+    }
+  ]
+}

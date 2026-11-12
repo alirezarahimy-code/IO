@@ -41,3 +41,5 @@
 مسیر آزمایش انتخاب‌شدهٔ کاربر: ZK / Windows؛ قرارداد اتصال از بدنهٔ باینری موجود استخراج و candidate probe مستقل نوشته شده، ولی مدل/firmware و نتیجهٔ آزمون دستگاه واقعی هنوز مشخص نیست.
 
 شاهد جزء نرم‌افزاری native S05: [s05-native-component-evidence.json](s05-native-component-evidence.json)، ۴۵۸ PASS؛ هیچ تست COM یا دستگاه واقعی اجرا نشده. parser داخلی قالب USB مرجع نیز با تست‌های تقویم/DST/رد فرمت مبهم افزوده شده؛ هنوز UI/import به DB و پذیرش S12 ندارد.
+
+آخرین وضعیت تمام مراحل و ماندهٔ نرم‌افزار/سخت‌افزار: [progress-evidence.json](progress-evidence.json). CI موفق جاری روی `6c1652c`: Windows/Linux `43124834036` و SQL/HTTPS/browser `43124834043`؛ ۴۵۸ PASS و ۱۹ تست portable. این اعداد پایان S05..S12 نیستند.
