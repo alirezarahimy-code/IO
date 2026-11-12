@@ -124,3 +124,12 @@ UserWriteFormat پیش‌فرض ssr-v1 است. ارسال legacy به UserWriteF
 - بعد از unknown، ابتدا `information.read` تازه از همان دستگاه/نسخه/منطقه اجرا کنید؛ پس از مشاهدهٔ snapshot از فرم بازبینی نوع restart و `REVIEWED-RESTART-REACHABILITY` استفاده کنید. مسیر API `/device-operations/{id}/resolve-restart` است؛ نسخهٔ عملیات unknown و InformationId تازه لازم‌اند. این کار نتیجهٔ قدیمی را unknown نگه می‌دارد؛ نه فرمانی تکرار می‌کند و نه وقوع reboot را ثابت می‌کند.
 - retry عمومی فرمان‌ها هیچ restart را تکرار نمی‌کند. اعطای read-retry، clock یا read-settings مجوز restart نیست. لغو حق انسان پیش از dispatch و لغو حق سرویس پیش از دریافت credential دوباره بررسی می‌شوند.
 - این برش `PowerOffDevice`، `ClearGLog`، `ClearData`، `ClearAdministrators`، reset کارخانه، تغییر تنظیم شبکه، ثبت بیومتریک و کنترل درب را فعال نمی‌کند. آزمون واقعی چنددستگاه/قطعی همچنان با تیم است.
+
+
+## تغییر IPv4 با allowlist مقصد قدیم و جدید
+
+[راهنمای کامل تغییر IP و بازیابی](s06-network-ip.fa.md). migration `20261112190000_DeviceNetworkIp` و ارتقای هماهنگ وب/worker/bridge لازم است. روی NativeEndpoint همان دستگاه، `Address` تا پایان بازبینی همان IP قدیم و `ExpectedSerial` همان pin قبلی می‌ماند. `AllowNetworkIpChange` و `AllowNetworkInspect` هر دو پیش‌فرض false هستند؛ `ApprovedNetworkAddresses` باید هر دو IP canonical مصوب را داشته باشد. این گزینه‌ها جزو سیاست نصب‌اند و از payload وب به‌تنهایی فعال نمی‌شوند.
+
+برای نمونهٔ شبکهٔ آزمایشیِ رزروشده، allowlist می‌تواند `["10.20.30.40", "10.20.30.41"]` باشد؛ این مثال مجوز استفاده از این آدرس‌ها در شبکهٔ سازمان نیست. service grantهای `devices.network.ip.execute` و `devices.network.read.execute` مستقل از هم و از `devices.operations.execute` هستند. انسان به `devices.network.ip.set` و برای inspection به `devices.network.read` نیاز دارد؛ هیچ قالب پیش‌فرض خودکار این حقوق را نمی‌گیرد.
+
+تغییر فقط IPv4 است؛ mask/gateway/DHCP/port تغییر نمی‌کنند. پیش از mutation، GetDeviceIP باید برابر مقصد قدیم باشد. زمان‌بندی‌ها باید pause و unknown ارسال کاربران تعیین تکلیف شده باشند. هر دو مقصد و مسیر بازیابی محلی باید توسط تیم شبکه تأیید شوند. پس از فراخوانی SetDeviceIP حتی ACK true، unknown ثبت می‌شود؛ خواندن تازهٔ مقصد قدیم/جدید و بازبینی صریح لازم است. وب Host یا pin نصب را خودکار عوض نمی‌کند؛ هماهنگی آنها بعد از بازبینی با مجوز و نسخهٔ تازه جداست.

@@ -6,7 +6,7 @@
 |---|---|---|
 | S04 | ثبت چنددستگاه، گروه metadata، grant/revoke، حفاظت secret | پذیرفته‌شده؛ ثبت دستگاه اثبات اتصال نیست |
 | S05 | صف SQL، هویت مستقل، timeout/چهار slot، bridge بیرون وب، pin سریال، سلامت و heartbeat؛ نصب/اجرا/توقف واقعی worker با SCM/systemd در CI جدا | نصب SDK سازگار در آزمایشگاه Windows، اتصال و خطا/قطعی واقعی چند دستگاه؛ نصب CI با DB synthetic این آزمون نیست |
-| S06 | مشخصات/ظرفیت/ساعت، تنظیم ساعت تأییدشده، unknown/review، شش GetDeviceInfo خام nullable | سایر تنظیمات از جمله شبکه و نوشتن تنظیمات پیشرفته پس از قرارداد دقیق مدل/firmware، واحد/دامنه/اثر و pin؛ پذیرش واقعی تنظیم ساعت/مشخصات |
+| S06 | مشخصات/ظرفیت/ساعت، تنظیم ساعت تأییدشده، unknown/review، شش GetDeviceInfo خام nullable؛ برش IPv4 قدیم/جدید با inspection خواندنی (CI موفق؛۲۶ SQL،۳ HTTPS و۱۶ قرارداد/فرایند) | سایر تنظیمات شبکه و نوشتن تنظیمات پیشرفته پس از قرارداد دقیق مدل/firmware، واحد/دامنه/اثر و pin؛ پذیرش واقعی تنظیم ساعت/مشخصات |
 | S07 | دریافت SSR کاربران و پیش‌نمایش exact نگاشت/تعارض/ناشناس بدون overwrite | اجرای واقعی مدل/SDK؛ مسیر non-TFT خواندنی GetAllUserInfo اکنون با قرارداد صریح legacy-int32-v1 و آزمون نرم‌افزاری ساخته شده، نه fallback حدسی SSR. پذیرش سخت‌افزار جدا باقی است |
 | S08 | preview/hash، ارسال عادی فردی/چند نفر/چند دستگاه، نتیجهٔ مستقل، partial retry و unknown review | رفت‌وبرگشت واقعی روی مدل/کارت مصوب و سنجش قطعی/موفقیت جزئی؛ ارسال عادی non-TFT اکنون با UserWriteFormat مستقل و read-back/unknown review ساخته و آزموده شده، ولی snapshot legacy مجوز اجرای SSR نیست و پذیرش مدل واقعی باز است؛ دادهٔ اثرانگشت/چهره/عکس بدون سیاست حریم خصوصی/نگهداری و پشتیبانی مدل فعال نیست |
 | S09 | دریافت SDK با حفظ اصل tuple، range UTC سرور، قرنطینه، receipt raw/conflict، تکرارپذیری و بازیابی restart | استخراج/قطعی/دریافت تکراری واقعی و trace تا محاسبه؛ tuple+رتبهٔ multiplicity شناسهٔ رخداد فیزیکی نیست؛ کامل‌شدن خواندن SDK snapshot اتمیک نیست |
@@ -32,3 +32,5 @@
 ## پژوهش سازنده و برش جدید
 
 [بررسی منابع رسمی/عمومی ZKTeco](zk-vendor-research.fa.md): تفاوت firmwareهای F18، محدودیت سند قدیمی PUSH، اثر حذف template و قرارداد راه‌اندازی مجدد ثبت شد. device.restart اکنون کد/UI/SQL و آزمون دارد؛ [شاهد CI این برش](s11-restart-evidence.json) با ۷۰۷ بررسی integration و موفقیت Windows/Linux ثبت شد. این برش reset/حذف/RemoteEnroll/PUSH امن را کامل نمی‌کند.
+
+[برش تغییر IPv4 و بازیابی دو مقصد](s06-network-ip.fa.md) اکنون کد/UI/SQL و آزمون دارد؛ [شاهد CI موفق](s06-network-ip-evidence.json) با۷۳۶ بررسی integration و Windows/Linux ثبت شد. این قابلیت gateway/mask/DHCP/port، نوشتن generic تنظیمات یا PUSH را پیاده‌سازی نمی‌کند.

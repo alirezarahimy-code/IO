@@ -8,15 +8,15 @@
     "realDeviceExecution": "not performed",
     "testingSequence": "User approved virtual-device software testing now, followed by real-device testing by the team. Virtual tests do not close actual model/SDK/hardware acceptance."
   },
-  "latestVerifiedCode": "dfc565ac01c36969fb8a1e64ec62ac7df78903d2",
+  "latestVerifiedCode": "a5decf9726cb4b27e605bea21c76a8243283bb9e",
   "checks": {
-    "integrationPassLines": 707,
+    "integrationPassLines": 736,
     "foundation": 48,
     "domain": 26,
     "portableNativeBoundaryAndFileParser": 61,
-    "permissions": 116,
+    "permissions": 120,
     "pagesAndHelp": 52,
-    "foundationMigrations": 39,
+    "foundationMigrations": 40,
     "foundationTables": 60,
     "s08ServiceChecks": 14,
     "s08HttpChecks": 5,
@@ -42,17 +42,20 @@
     "legacyUserUploadSqlChecks": 10,
     "portableRestartChecks": 11,
     "s11RestartSqlChecks": 17,
-    "s11RestartHttpChecks": 3
+    "s11RestartHttpChecks": 3,
+    "portableNetworkContractChecks": 16,
+    "s06NetworkSqlChecks": 26,
+    "s06NetworkHttpChecks": 3
   },
   "stages": {
     "S04": "accepted registry and metadata groups",
     "S05": "partial: real SQL queues and grant/revoke, four native execution slots, timeouts, serial-pinned candidate, independent persisted worker instance heartbeats and permissioned SQL health dashboard. Actual SCM/systemd published-worker install/start/stop verified in isolated CI with unavailable synthetic DB and no endpoints. Real lab SDK installation/device connection tests remain. Stateful two-endpoint loopback TCP test laboratory now verifies isolated child behavior and fail-fast rejection of blocked malformed streams; private test protocol is not ZK.",
-    "S06": "partial software candidate verified in CI: typed information/capacity/clock snapshots, independent read/set/execute permissions, explicitly confirmed UTC/timezone clock writes and immutable unknown outcome with later clock observation plus human review; real model/SDK tests and other supported settings remain",
+    "S06": "partial software candidate verified in CI: typed information/capacity/clock snapshots, independent read/set/execute permissions, explicitly confirmed UTC/timezone clock writes and immutable unknown outcome with later clock observation plus human review; real model/SDK tests and other supported settings remain Bounded IPv4 change now implemented and verified in software CI: exact immutable old/new/serial plan, separate human/service write and inspection grants, default-off installation flags and two-address allowlist, preflight GetDeviceIP and single SetDeviceIP/RefreshData. ACK remains unknown; fresh read-only old/new inspection plus explicit review records evidence without automatic metadata/pin update. Other network settings and actual model acceptance remain.",
     "S07": "partial software candidate verified in SQL/HTTPS/browser and Windows/Linux CI: streamed read-only SSR exact-string and separately explicitly approved legacy non-TFT Int32 user snapshots; immutable ReadFormat, installed-format match, typed IPC format fencing, stable count and serial checks, exact mapping preview and no employee overwrite. No fallback, no legacy write authorization and no real COM/model acceptance.",
     "S08": "partial software candidate: SSR and explicitly selected legacy non-TFT ordinary metadata writes, immutable target snapshot/format, mixed batch preview/hash, independent outcomes, protected password preservation/null rejection, exact read-back, separate installed write-format gate, distinct legacy IPC, same-format unknown review and selective fresh intent retry verified in SQL and Windows/Linux CI. No templates/biometrics/admin/AccGroup/door writes or real SDK/model acceptance.",
     "S09": "partial: software candidate verified in SQL/HTTPS/real browser and Windows/Linux CI. Serial-pinned isolated SSR all-log stream, exact typed tuples before explicit UTC interval filtering, immutable original payload and multiplicity receipts, retained invalid/unknown/outside-range quarantine, confirmed versioned page ingestion through existing raw/conflict core, repeated-download content-identity coalescence and explicit restart/partial recovery. No native physical event id or atomic snapshot proof; actual SDK/model/end-to-end hardware acceptance remains.",
     "S10": "partial: approved durable SSR polling, current creator grants, cursor/run, optional auto-ingestion, pause/resume/backoff and explicit bounded overlap verified in SQL/HTTPS/real browser and Windows/Linux CI. Late tuples inside the approved lookback enter existing immutable raw/dedup pipeline once; older late events remain unguaranteed. Incomplete reads cannot advance cursor. Authenticated supported-model vendor PUSH and actual SDK/model acceptance remain unimplemented/unverified.",
-    "S11": "partial: SQL command history, immutable FK lineage, current independent human/service grants and separately confirmed retries for information, six fixed advanced-settings reads and attendance downloads verified in SQL/HTTPS/browser and Windows/Linux CI. Settings retry needs additional READ-ADVANCED-SETTINGS consent and typed current read grant; SQL guards forbid native write retries. Setting writes, RemoteEnroll and real model/firmware/biometric policy acceptance remain unimplemented/unverified. Explicit independently granted Standalone restart candidate now verified with 17 SQL, 3 HTTPS and 11 native-boundary checks; immutable unknown recovery records later same-device reachability, not proven reboot completion. No factory reset/delete or arbitrary SDK command.",
+    "S11": "partial: SQL command history, immutable FK lineage, current independent human/service grants and separately confirmed retries for information, six fixed advanced-settings reads and attendance downloads verified in SQL/HTTPS/browser and Windows/Linux CI. Settings retry needs additional READ-ADVANCED-SETTINGS consent and typed current read grant; SQL guards forbid native write retries. Setting writes, RemoteEnroll and real model/firmware/biometric policy acceptance remain unimplemented/unverified. Explicit independently granted Standalone restart candidate now verified with 17 SQL, 3 HTTPS and 11 native-boundary checks; immutable unknown recovery records later same-device reachability, not proven reboot completion. No factory reset/delete or arbitrary SDK command. Independently granted IPv4 transition and serial-pinned read-only network recovery also implemented; no generic setting code write.",
     "S12": "partial: exact-byte USB/file preview and quarantine/confirmed raw ingestion, SQL health dashboard and actual published-worker SCM/systemd install/start/stop in isolated CI under dedicated accounts verified. Lifecycle smoke uses unavailable synthetic DB and no native endpoints; it is not real lab deployment or SDK acceptance. Actual multiple-device outages, repeated native downloads, user exchange/settings and model coverage remain. Additional 19 stateful virtual-device checks pass on Windows/Linux; synthetic state only, no SQL/HTTP/worker end-to-end virtual connection and no vendor protocol/COM acceptance."
   },
   "hardwareVerified": false,
@@ -75,7 +78,7 @@
   ],
   "remainingSoftware": [
     "S10 authenticated supported-model vendor PUSH with cryptographic device authentication/replay/size-rate/congestion/recovery security contract. Polling is not PUSH.",
-    "S06/S11 approved-model advanced setting write contracts and additional reads outside the six fixed observed GetDeviceInfo codes, separate sensitive grants and confirmed audited execution. Six raw nullable Int32 reads are implemented; units/ranges/model compatibility are not inferred. Existing gated native writes are clock, ordinary attendance-only user exchange and explicitly approved restart.",
+    "S06/S11 approved-model advanced setting write contracts (beyond the now implemented bounded IPv4 transition) and additional reads outside the six fixed observed GetDeviceInfo codes, separate sensitive grants and confirmed audited execution. Six raw nullable Int32 reads are implemented; units/ranges/model compatibility are not inferred. Existing gated native writes are clock, ordinary attendance-only user exchange, explicitly approved restart and bounded IPv4 transition. Gateway/mask/DHCP/MAC/port writes remain absent.",
     "S11 RemoteEnroll only after approved model contract and biometric consent/access/retention policy; no executable adapter enabled.",
     "S11 approved model-specific factory reset and attendance/user/admin deletion with independent destructive grants/confirmation and unknown recovery remain unimplemented. Standalone restart is implemented and software-verified; actual model acceptance remains. Physical-door control stays excluded."
   ],
@@ -106,5 +109,6 @@
   "legacyUserReadEvidence": "s07-legacy-users-evidence.json",
   "legacyUserWriteEvidence": "s08-legacy-user-write-evidence.json",
   "restartEvidence": "s11-restart-evidence.json",
-  "vendorResearch": "zk-vendor-research.fa.md"
+  "vendorResearch": "zk-vendor-research.fa.md",
+  "networkIpEvidence": "s06-network-ip-evidence.json"
 }
