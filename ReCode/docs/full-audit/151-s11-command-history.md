@@ -13,12 +13,13 @@
 
 ## CI دقیق و موفق
 
-کد **`41f9672ab0949e2f8c0d984ccd7c2a9ffd98ff98`**:
+کد **`e3c751f058b754005abccd44ba5b217ae6adf42e`**:
 
-- **SQL/HTTPS/مرورگر واقعی `43230927115`: success**؛ **۶۱۷ PASS**، شامل ۱۴ بررسی سرویس و ۴ HTTP جدید S11؛ ۲۰ سرویس و ۵ HTTP S10 هم مجدداً گذشتند.
-- **Windows/Linux `43230927087`: success**؛ **۴۶ Foundation، ۲۶ domain، ۵۵ portable**؛ build/test/publish و smoke میزبان منتشرشده.
+- **SQL/HTTPS/مرورگر واقعی `43232418581`: success**؛ **۶۱۸ PASS**، شامل ۱۵ بررسی سرویس و ۴ HTTP جدید S11؛ ۲۰ سرویس و ۵ HTTP S10 هم مجدداً گذشتند.
+- **Windows/Linux `43232418391`: success**؛ **۴۶ Foundation، ۲۶ domain، ۵۵ portable**؛ build/test/publish و smoke میزبان منتشرشده.
 - **۱۱۰ حق، ۵۰ صفحه و مقالهٔ راهنما، ۳۳ migration/۵۹ جدول**؛ SQL view به تعداد جدول‌ها اضافه شمرده نشده است.
 - مرورگر واقعی history را از SQL خواند، تلاش اطلاعات شکست‌خورده را با تأیید retry کرد، lineage و outcome قبلی را پس از reload دید و child pending را در صفحهٔ قابلیت لغو کرد. DOM آفلاین نوشتن unknown را فاقد retry نگه داشت، همان UUID/payload پاسخ نامعلوم را تکرار و revoke/XSS-safe text را بررسی کرد.
+- آزمون بازگشتی UUID یکسان در دو صف واقعی: history فیلترشدهٔ دستگاه تردد، lineage تلاش اطلاعات دستگاه دیگر را دریافت نمی‌کند؛ UI هم پیوند را با queue+id می‌بندد نه UUID تنها.
 - شواهد: [S11](../part-03/s11-component-evidence.json)، [S10](../part-03/s10-component-evidence.json)، [وضعیت همهٔ مراحل](../part-03/progress-evidence.json)، [قرارداد/نقش/مرز حساس](../part-03/s11-command-history.fa.md).
 
 ## ماندهٔ صریح، نه ادعای پایان
