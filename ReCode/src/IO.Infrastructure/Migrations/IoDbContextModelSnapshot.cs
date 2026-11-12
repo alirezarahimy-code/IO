@@ -84,6 +84,12 @@ namespace IO.Infrastructure.Migrations
             b.HasIndex(x=>x.ReviewedByUserId);
             b.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.ReviewedByUserId).OnDelete(DeleteBehavior.Restrict);
         });
+        modelBuilder.Entity<DeviceServiceHeartbeatRecord>(b=>
+        {
+            b.ToTable("DeviceServiceHeartbeats",t=>{t.HasTrigger("TR_DeviceServiceHeartbeats_History");t.UseSqlOutputClause(false);t.HasCheckConstraint("CK_DeviceServiceHeartbeats_State","[State] COLLATE Latin1_General_100_BIN2 IN(N'running',N'stopped') AND DATALENGTH([State]) IN(14) AND DATEPART(TZOFFSET,[StartedAtUtc])=0 AND DATEPART(TZOFFSET,[LastSeenAtUtc])=0 AND [StartedAtUtc]<=[LastSeenAtUtc]");});
+            b.HasKey(x=>x.Id);b.Property(x=>x.State).HasMaxLength(20).IsRequired();b.Property(x=>x.Version).IsRowVersion();
+            b.HasIndex(x=>new{x.ServiceUserId,x.LastSeenAtUtc});b.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.ServiceUserId).OnDelete(DeleteBehavior.Restrict);
+        });
         modelBuilder.Entity<DeviceCommandRetryRecord>(b=>
         {
             b.ToTable("DeviceCommandRetries",t=>{t.HasTrigger("TR_DeviceCommandRetries_History");t.UseSqlOutputClause(false);t.HasCheckConstraint("CK_DeviceCommandRetries_Data","DATALENGTH([ExpectedPreviousVersion])=8 AND DATALENGTH([ExpectedDeviceVersion])=8 AND DATEPART(TZOFFSET,[RequestedAtUtc])=0 AND (([PreviousOperationId] IS NOT NULL AND [NextOperationId] IS NOT NULL AND [NextOperationId]=[Id] AND [PreviousOperationId]<>[NextOperationId] AND [PreviousAttendanceDownloadId] IS NULL AND [NextAttendanceDownloadId] IS NULL) OR ([PreviousAttendanceDownloadId] IS NOT NULL AND [NextAttendanceDownloadId] IS NOT NULL AND [NextAttendanceDownloadId]=[Id] AND [PreviousAttendanceDownloadId]<>[NextAttendanceDownloadId] AND [PreviousOperationId] IS NULL AND [NextOperationId] IS NULL))");});

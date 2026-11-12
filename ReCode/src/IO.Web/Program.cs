@@ -192,6 +192,8 @@ public static class IoWebHost
         app.MapGet("/assets/device-files.js", () => Results.Content(Resource("IO.Web.Ui.device-files.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-user-uploads", () => Results.Content(Resource("IO.Web.Ui.DeviceUserUploads.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/device-user-uploads.js", () => Results.Content(Resource("IO.Web.Ui.device-user-uploads.js"), "text/javascript; charset=utf-8"));
+        app.MapGet("/workspace/device-health", () => Results.Content(Resource("IO.Web.Ui.DeviceHealth.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/device-health.js", () => Results.Content(Resource("IO.Web.Ui.device-health.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-settings", () => Results.Content(Resource("IO.Web.Ui.DeviceSettings.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/device-settings.js", () => Results.Content(Resource("IO.Web.Ui.device-settings.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-commands", () => Results.Content(Resource("IO.Web.Ui.DeviceCommands.html"), "text/html; charset=utf-8"));
@@ -402,6 +404,7 @@ public static class IoWebHost
         app.MapPost("/device-user-uploads", (DeviceUserUploads.Batch input,HttpContext c,IAntiforgery csrf,DeviceUserUploads service)=>Admin(c,csrf,actor=>service.RequestAsync(actor,input,c.RequestAborted)));
         app.MapPost("/device-user-uploads/{id:guid}/cancel", (Guid id,DeviceOperationVersion input,HttpContext c,IAntiforgery csrf,DeviceUserUploads service)=>Admin(c,csrf,actor=>service.CancelAsync(actor,id,input.ExpectedVersion,c.RequestAborted)));
         app.MapPost("/device-user-uploads/{id:guid}/review", (Guid id,DeviceUserUploadReview input,HttpContext c,IAntiforgery csrf,DeviceUserUploads service)=>Admin(c,csrf,actor=>service.ReviewAsync(actor,id,input.ExpectedVersion,input.SnapshotId,input.Confirmation,c.RequestAborted)));
+        app.MapGet("/device-health", (HttpContext c,DeviceHealth service,Guid? deviceId,int offset=0,int serviceOffset=0)=>AdminRead(c,actor=>service.ListAsync(actor,deviceId,offset,serviceOffset,c.RequestAborted)));
         app.MapGet("/device-commands", (HttpContext c,DeviceCommands service,Guid? deviceId,int offset=0)=>AdminRead(c,actor=>service.ListAsync(actor,deviceId,offset,c.RequestAborted)));
         app.MapPost("/device-commands/retries", (DeviceCommands.RetryInput input,HttpContext c,IAntiforgery csrf,DeviceCommands service)=>Admin(c,csrf,actor=>service.RetryAsync(actor,input,c.RequestAborted)));
         app.MapGet("/device-poll-schedules", (HttpContext c,DevicePollSchedules service,int offset=0)=>AdminRead(c,actor=>service.ListAsync(actor,offset,c.RequestAborted)));

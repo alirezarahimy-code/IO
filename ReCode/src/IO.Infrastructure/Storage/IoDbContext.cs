@@ -5,6 +5,7 @@ namespace IO.Infrastructure.Storage;
 /// <summary>Initial SQL Server schema only; no automatic migration at application startup.</summary>
 public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbContext(options)
 {
+    public DbSet<DeviceServiceHeartbeatRecord> DeviceServiceHeartbeats => Set<DeviceServiceHeartbeatRecord>();
     public DbSet<DeviceCommandRetryRecord> DeviceCommandRetries => Set<DeviceCommandRetryRecord>();
     public DbSet<DevicePollScheduleRecord> DevicePollSchedules => Set<DevicePollScheduleRecord>();
     public DbSet<DevicePollRunRecord> DevicePollRuns => Set<DevicePollRunRecord>();
@@ -133,6 +134,12 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.HasOne<RawEventConflictRecord>().WithMany().HasForeignKey(x=>x.ConflictId).OnDelete(DeleteBehavior.Restrict);
             b.HasIndex(x=>x.ReviewedByUserId);
             b.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.ReviewedByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<DeviceServiceHeartbeatRecord>(b=>
+        {
+            b.ToTable("DeviceServiceHeartbeats",t=>{t.HasTrigger("TR_DeviceServiceHeartbeats_History");t.UseSqlOutputClause(false);t.HasCheckConstraint("CK_DeviceServiceHeartbeats_State","[State] COLLATE Latin1_General_100_BIN2 IN(N'running',N'stopped') AND DATALENGTH([State]) IN(14) AND DATEPART(TZOFFSET,[StartedAtUtc])=0 AND DATEPART(TZOFFSET,[LastSeenAtUtc])=0 AND [StartedAtUtc]<=[LastSeenAtUtc]");});
+            b.HasKey(x=>x.Id);b.Property(x=>x.State).HasMaxLength(20).IsRequired();b.Property(x=>x.Version).IsRowVersion();
+            b.HasIndex(x=>new{x.ServiceUserId,x.LastSeenAtUtc});b.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.ServiceUserId).OnDelete(DeleteBehavior.Restrict);
         });
         model.Entity<DeviceCommandRetryRecord>(b=>
         {

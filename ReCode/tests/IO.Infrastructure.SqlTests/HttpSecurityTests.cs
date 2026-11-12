@@ -615,6 +615,19 @@ internal static class HttpSecurityTests
                       (await own.GetAsync("/help/topic/device-commands")).StatusCode==HttpStatusCode.Forbidden&&
                       !commandCaps.RootElement.GetProperty("pages").EnumerateArray().Any(x=>x.GetProperty("route").GetString()=="/workspace/device-commands"),
                       "HTTP S11 revoke removes existing session command history retry menu and help");
+            check((await anon.GetAsync("/device-health")).StatusCode==HttpStatusCode.Unauthorized&&
+                  (await own.GetAsync("/device-health")).StatusCode==HttpStatusCode.Forbidden,
+                  "HTTP S12 health observations require an authenticated independent server grant");
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.health.read"})).EnsureSuccessStatusCode();
+            using(var health=JsonDocument.Parse(await own.GetStringAsync("/device-health?deviceId="+s06Device)))
+                check(health.RootElement.GetProperty("items").GetArrayLength()==1&&
+                      (await own.GetAsync("/device-health?serviceOffset=-1")).StatusCode==HttpStatusCode.BadRequest&&
+                      (await own.GetAsync("/help/topic/device-health")).StatusCode==HttpStatusCode.OK,
+                      "HTTP S12 health returns actual filtered SQL metadata validates both page cursors and exposes grant-filtered help");
+            (await PostAdmin(adminClient,"/admin/role-permissions/revoke",new{RoleId=deviceRole,Code="devices.health.read"})).EnsureSuccessStatusCode();
+            check((await own.GetAsync("/device-health")).StatusCode==HttpStatusCode.Forbidden&&
+                  (await own.GetAsync("/help/topic/device-health")).StatusCode==HttpStatusCode.Forbidden,
+                  "HTTP S12 health grant revocation denies retained metadata and protected help on the next request");
             var settingsId=Guid.NewGuid();var settingsPayload=new DeviceSettingsInput(settingsId,s06Device,s06Version,30,"READ-ADVANCED-SETTINGS");
             check((await anon.GetAsync("/device-settings-snapshots")).StatusCode==HttpStatusCode.Unauthorized&&
                   (await own.GetAsync("/device-settings-snapshots")).StatusCode==HttpStatusCode.Forbidden&&

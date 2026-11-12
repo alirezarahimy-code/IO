@@ -38,6 +38,7 @@ if (native.Length > 0)
 builder.Logging.ClearProviders(); // No EF/provider exception strings or configuration secrets in stdout.
 builder.Services.AddIoIdentityStorage(connection);
 builder.Services.AddSingleton(new WorkerConfiguration(service, targets, native, dotnetPath, bridgePath, builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableOperations"),builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableUserDownloads"),builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableUserUploads"),builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableAttendanceDownloads"),builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableSchedules"),builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableSettingsReads")));
+if(builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableHealthReports"))builder.Services.AddHostedService<ServiceHeartbeatWorker>();
 builder.Services.AddHostedService<DiagnosticWorker>();
 await builder.Build().RunAsync();
 
@@ -183,4 +184,34 @@ internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfig
             new(new(claim.DeviceId,native.Address,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value),claim.Kind,claim.ClockLocal,native.AllowClockSet,native.AllowAdvancedSettingsRead),claim.TimeoutSeconds,ct);
     }
 
+}
+
+
+// Independent of the four native execution slots: a heartbeat does not certify
+// that an endpoint is reachable or that a queued command has completed.
+internal sealed class ServiceHeartbeatWorker(IServiceScopeFactory scopes,WorkerConfiguration configuration):BackgroundService
+{
+ private readonly Guid instance=Guid.NewGuid();
+ protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+ {
+  try
+  {
+   while(!stoppingToken.IsCancellationRequested)
+   {
+    await Report("running",stoppingToken);
+    await Task.Delay(TimeSpan.FromSeconds(30),stoppingToken);
+   }
+  }
+  catch(OperationCanceledException)when(stoppingToken.IsCancellationRequested){}
+  finally
+  {
+   using var timeout=new CancellationTokenSource(TimeSpan.FromSeconds(5));
+   await Report("stopped",timeout.Token);
+  }
+ }
+ private async Task Report(string state,CancellationToken ct)
+ {
+  try{await using var scope=scopes.CreateAsyncScope();await scope.ServiceProvider.GetRequiredService<DeviceHealth>().ReportAsync(configuration.ServiceUserId,instance,state,ct);}
+  catch(Exception){/* A missing/revoked grant or unavailable DB is not a success. Last SQL heartbeat ages naturally; no secrets or fabricated stopped row. */}
+ }
 }
