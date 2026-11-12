@@ -110,3 +110,17 @@ migration `20261112100000_DeviceCommandHistory` view پنج صف و lineage immu
 ### قرارداد مستقل ارسال legacy
 
 UserWriteFormat پیش‌فرض ssr-v1 است. ارسال legacy به UserWriteFormat=legacy-int32-v1 و UserReadFormat منطبق، به‌علاوهٔ EnableUserUploads، حق execute مستقل و AttendanceOnlyUserWriteApproved پس از پذیرش واقعی نیاز دارد. فرمت از snapshot هدف تغییرناپذیر است؛ نوع client نیست. مدل با password masked/خالیِ مبهم نباید تأیید شود؛ null password هدف پیش از mutation رد می‌شود. [راهنما، ارتقای هماهنگ bridge و unknown recovery](s08-legacy-user-write.fa.md). schema جدید نیاز نیست؛ مهاجرت موجود ReadFormat لازم است.
+
+
+## راه‌اندازی مجدد صریح Standalone؛ جدا از reset/حذف
+
+[بررسی منابع ZKTeco و قرارداد restart](zk-vendor-research.fa.md). وب، worker و bridge را هماهنگ ارتقا دهید و migration `20261112180000_DeviceRestart` را با روند migration موجود اعمال کنید؛ وجود تاریخچهٔ restart، downgrade ناسازگار را متوقف می‌کند.
+
+- `EnableOperations=true` و حق سرویس `devices.operations.execute` مانند قبل لازم‌اند. **افزون بر آن**، `devices.restart.execute` باید صریحاً به هویت worker اعطا شود.
+- روی همان NativeEndpoint پین‌شده، `AllowRestart` پیش‌فرض **false** است؛ فقط برای firmware/SDK پذیرفته‌شده در آزمایشگاه فعال شود. این گزینه روی همهٔ مدل‌ها به شکل جمعی روشن نشود. هیچ تغییر IP/port/serial یا استفاده از raw protocol fallback انجام نشده است.
+- حق انسانی `devices.restart` با پنل مدیریت نقش/حق اعطا می‌شود؛ هیچ نقش پیش‌فرض از جمله admin خودکار این حق را نمی‌گیرد. مشاهدهٔ تاریخچه و اطلاعات همچنان `devices.info.read` می‌خواهد؛ مجوز restart حق خواندن ضمنی نیست.
+- در صفحهٔ `/workspace/device-information` نوع `device.restart`، شناسه/نسخهٔ دستگاه و تأیید صریح را انتخاب کنید. API همان `/device-operations` با `Confirmation=RESTART-DEVICE` و `TargetUtc=null` است.
+- `succeeded` فقط پاسخ true SDK است، نه اثبات پایان reboot. false/قطع فرایند/قطع پاسخ پس از dispatch می‌تواند unknown باشد. هر درخواست صفِ بیش از دو دقیقه منقضی می‌شود؛ تنها pending قابل لغو تضمینی است.
+- بعد از unknown، ابتدا `information.read` تازه از همان دستگاه/نسخه/منطقه اجرا کنید؛ پس از مشاهدهٔ snapshot از فرم بازبینی نوع restart و `REVIEWED-RESTART-REACHABILITY` استفاده کنید. مسیر API `/device-operations/{id}/resolve-restart` است؛ نسخهٔ عملیات unknown و InformationId تازه لازم‌اند. این کار نتیجهٔ قدیمی را unknown نگه می‌دارد؛ نه فرمانی تکرار می‌کند و نه وقوع reboot را ثابت می‌کند.
+- retry عمومی فرمان‌ها هیچ restart را تکرار نمی‌کند. اعطای read-retry، clock یا read-settings مجوز restart نیست. لغو حق انسان پیش از dispatch و لغو حق سرویس پیش از دریافت credential دوباره بررسی می‌شوند.
+- این برش `PowerOffDevice`، `ClearGLog`، `ClearData`، `ClearAdministrators`، reset کارخانه، تغییر تنظیم شبکه، ثبت بیومتریک و کنترل درب را فعال نمی‌کند. آزمون واقعی چنددستگاه/قطعی همچنان با تیم است.

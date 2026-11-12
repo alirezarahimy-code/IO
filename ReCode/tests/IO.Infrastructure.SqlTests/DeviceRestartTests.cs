@@ -22,7 +22,7 @@ internal static class DeviceRestartTests
    db.Organizations.Add(new(){Id=org,Name="Restart lab"});db.Companies.Add(new(){Id=company,OrganizationId=org,Name="Restart company"});db.Sites.Add(new(){Id=site,CompanyId=company,Name="Restart site",TimeZoneId="UTC"});
    foreach(var(u,n)in new[]{(actor,"restart-actor"),(worker,"restart-worker"),(reader,"restart-reader")})db.Users.Add(new(){Id=u,UserName=n,IsActive=true});
    foreach(var(r,u,n,codes)in new[]{(role,actor,"restart-human",new[]{DeviceOperations.Restart,DeviceOperations.Read,DeviceOperations.SetClock,DeviceRegistry.Create,DeviceRegistry.Update,DeviceRegistry.Credentials,DeviceCommands.Read,DeviceCommands.Retry}),(exec,worker,"restart-exec",new[]{DeviceOperations.Execute}),(readonlyRole,reader,"restart-readonly",new[]{DeviceOperations.Read})}){
-    db.Roles.Add(new(){Id=r,Name=n});db.UserRoles.Add(new(){UserId=u,RoleId=r});foreach(var code in codes){var p=await db.Permissions.SingleAsync(x=>x.Code==code);db.RolePermissions.Add(new(){RoleId=r,PermissionId=p.Id});}}
+    db.Roles.Add(new(){Id=r,Name=n});db.UserRoles.Add(new(){UserId=u,RoleId=r});foreach(var code in codes){var p=await db.Permissions.SingleOrDefaultAsync(x=>x.Code==code);if(p is null){p=new(){Id=Guid.NewGuid(),Code=code};db.Permissions.Add(p);}db.RolePermissions.Add(new(){RoleId=r,PermissionId=p.Id});}}
    await db.SaveChangesAsync();return true;
   });
   var deviceInput=new DeviceRegistry.Input(site,"S11-RESTART","Restart candidate","unverified","zk-standalone","127.0.0.1",4370,true);
@@ -33,7 +33,7 @@ internal static class DeviceRestartTests
   Task<Guid> Request(Guid id,Guid? user=null,string? confirmation="RESTART-DEVICE",string kind="device.restart")=>Use<DeviceOperations,Guid>(s=>s.RequestAsync(user??actor,id,device,version,kind,5,null,confirmation));
   Task<DeviceOperations.Claim?> Claim()=>Use<DeviceOperations,DeviceOperations.Claim?>(s=>s.ClaimAsync(worker));
   Task<Guid> Finish(DeviceOperations.Claim claim,string state)=>Use<DeviceOperations,Guid>(s=>s.CompleteAsync(worker,claim.Id,claim.Token,new(state)));
-  async Task Grant(Guid r,string code){await Q(async db=>{db.RolePermissions.Add(new(){RoleId=r,PermissionId=await db.Permissions.Where(x=>x.Code==code).Select(x=>x.Id).SingleAsync()});await db.SaveChangesAsync();return true;});}
+  async Task Grant(Guid r,string code){await Q(async db=>{var permission=await db.Permissions.SingleOrDefaultAsync(x=>x.Code==code);if(permission is null){permission=new(){Id=Guid.NewGuid(),Code=code};db.Permissions.Add(permission);}db.RolePermissions.Add(new(){RoleId=r,PermissionId=permission.Id});await db.SaveChangesAsync();return true;});}
   Task<int> Revoke(Guid r,string code)=>Q(db=>db.RolePermissions.Where(x=>x.RoleId==r&&db.Permissions.Any(p=>p.Id==x.PermissionId&&p.Code==code)).ExecuteDeleteAsync());
   check(!PermissionCatalog.Templates.Any(t=>t.Permissions.Contains(DeviceOperations.Restart)||t.Permissions.Contains(DeviceOperations.ExecuteRestart))&&WorkspaceCatalog.Pages.Single(x=>x.Route=="/workspace/device-information").AnyPermissions.Contains(DeviceOperations.Restart),"S11 restart is explicitly grantable and menu-visible but never silently inherited by default roles");
   check(await Reject<UnauthorizedAccessException>(()=>Request(Guid.NewGuid(),reader))&&await Reject<ArgumentException>(()=>Request(Guid.NewGuid(),confirmation:null))&&await Reject<ArgumentException>(()=>Request(Guid.NewGuid(),confirmation:"RESET-DEVICE")),"S11 independent human grant and exact restart confirmation required without reset alias");

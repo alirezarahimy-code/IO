@@ -4,10 +4,10 @@ const root=__dirname+'/../../src/IO.Web/Ui/';
 async function wait(test){for(let i=0;i<250;i++){if(test())return;await new Promise(r=>setTimeout(r,10));}throw Error('S06 DOM contract timeout');}
 (async()=>{
  const dom=new JSDOM(fs.readFileSync(root+'DeviceInformation.html','utf8'),{url:'https://io.example/workspace/device-information',runScripts:'outside-only'}),w=dom.window;
- let granted=true,unknown=true,serverFailure=true;const posts=[];let row={id:'80e21cae-1680-4450-a4b2-692ce87e8284',deviceId:'b5d05212-7b3b-4779-83ca-6707ef1e00a3',kind:'information.read',state:'succeeded',requestedAtUtc:'2026-11-08',timeZoneId:'UTC',version:'AQIDBAUGBwg=',information:{serial:'<img src=x onerror=alert(1)>',users:0,userCapacity:null}};
+ let granted=true,restartOnly=false,unknown=true,serverFailure=true;const posts=[];let row={id:'80e21cae-1680-4450-a4b2-692ce87e8284',deviceId:'b5d05212-7b3b-4779-83ca-6707ef1e00a3',kind:'information.read',state:'succeeded',requestedAtUtc:'2026-11-08',timeZoneId:'UTC',version:'AQIDBAUGBwg=',information:{serial:'<img src=x onerror=alert(1)>',users:0,userCapacity:null}};
  w.confirm=()=>true;
  w.fetch=async(path,options={})=>{
-  let data={};if(path==='/workspace/capabilities')data={permissions:granted?['devices.info.read','devices.clock.set','devices.restart']:[]};
+  let data={};if(path==='/workspace/capabilities')data={permissions:granted?(restartOnly?['devices.restart']:['devices.info.read','devices.clock.set','devices.restart']):[]};
   else if(path==='/auth/csrf')data={token:'csrf-test'};
   else if(!granted)return{ok:false,status:403};
   else if(options.method==='POST'){assert.equal(options.headers['X-CSRF-TOKEN'],'csrf-test');posts.push({path,body:JSON.parse(options.body)});if(path==='/device-operations'&&unknown){unknown=false;throw new w.TypeError('unknown');}if(path==='/device-operations'&&serverFailure){serverFailure=false;return{ok:false,status:503};}if(path.endsWith('/cancel'))row={...row,state:'cancelled'};if(path.endsWith('/resolve-clock')||path.endsWith('/resolve-restart'))row={...row,resolvedAtUtc:'2026-11-08',resolutionInfoId:row.id};data={result:row.id};}
@@ -35,6 +35,7 @@ async function wait(test){for(let i=0;i<250;i++){if(test())return;await new Prom
  f.elements.confirmed.checked=true;f.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await wait(()=>posts.length===beforeRestart+1&&!f.querySelector('button').disabled);assert.equal(posts.at(-1).body.kind,'device.restart');assert.equal(posts.at(-1).body.targetUtc,null);assert.equal(posts.at(-1).body.confirmation,'RESTART-DEVICE');
  row={...row,kind:'device.restart',state:'unknown',resolvedAtUtc:null};w.document.getElementById('refresh').click();await wait(()=>w.document.querySelector('#items button'));
  w.document.querySelector('#items button').click();assert.equal(r.elements.kind.value,'device.restart');r.elements.informationId.value=row.id;r.elements.reviewed.checked=true;r.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await wait(()=>w.document.getElementById('items').textContent.includes('بازبینی شده'));assert.equal(posts.at(-1).path,'/device-operations/'+row.id+'/resolve-restart');assert.equal(posts.at(-1).body.confirmation,'REVIEWED-RESTART-REACHABILITY');
+ restartOnly=true;w.dispatchEvent(new w.Event('focus'));await wait(()=>!f.hidden&&w.document.getElementById('history').hidden&&!f.querySelector('button').disabled);assert.equal(f.elements.kind.value,'device.restart');assert.equal(f.elements.kind.querySelector('option[value="clock.set"]').disabled,true);assert.equal(w.document.getElementById('items').textContent,'');assert.equal(f.elements.deviceId.value,'');
  granted=false;w.dispatchEvent(new w.Event('focus'));await wait(()=>f.hidden);assert.equal(w.document.getElementById('items').textContent,'');assert.equal(f.elements.deviceId.value,'');assert.equal(r.elements.informationId.value,'');dom.window.close();
- console.log('PASS S06 offline DOM: safe nullable snapshots exact retry UTC explicit clock confirmation versioned cancellation unknown review and revoke clearing');
+ console.log('PASS S06 offline DOM: safe nullable snapshots exact retry UTC explicit clock confirmation versioned cancellation typed restart reachability review independent grants and revoke clearing');
 })().catch(e=>{console.error(e);process.exit(1);});
