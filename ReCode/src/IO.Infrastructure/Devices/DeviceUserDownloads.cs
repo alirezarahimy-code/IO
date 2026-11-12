@@ -20,6 +20,7 @@ public sealed class DeviceUserDownloads(IoDbContext db,PermissionTransaction tra
         await transaction.LockAsync("IO.DeviceConnections",token);
         var old=await db.DeviceUserDownloads.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==id,token);
         if(old is not null){if(old.DeviceId!=deviceId||old.RequestedByUserId!=actor||old.TimeoutSeconds!=seconds||!old.ExpectedDeviceVersion.SequenceEqual(version))throw new DomainConflictException("Changed download retry.");return(id,id);}
+        if(await db.DeviceUserUploads.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device has unfinished user uploads.");
         var d=await db.Devices.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==deviceId,token)??throw new ArgumentException("Unknown device.");
         if(!d.Enabled||!d.Version.SequenceEqual(version))throw new DomainConflictException("Device changed.");
         if(d.Profile!="zk-standalone")throw new ArgumentException("Only explicitly approved SSR native endpoints are supported.");

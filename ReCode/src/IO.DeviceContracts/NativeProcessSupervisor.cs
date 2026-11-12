@@ -27,6 +27,22 @@ public static class NativeProcessSupervisor
         catch(System.Text.Json.JsonException){return new("bridge-failed");}
     }
 
+    public static async Task<ZkUserWriteOutput> RunUserWriteAsync(string executable,string childAssembly,ZkUserWriteInput input,int timeoutSeconds,CancellationToken stoppingToken=default)
+    {
+        if(!input.IsValid())return new("unsupported");
+        if(stoppingToken.IsCancellationRequested)return new("failed-before-write");
+        var exchange=await ExchangeAsync(executable,childAssembly,System.Text.Json.JsonSerializer.Serialize(input),timeoutSeconds,stoppingToken);
+        // After dispatch even missing/invalid output or process kill is UNKNOWN,
+        // never evidence that retrying a write is safe.
+        if(exchange.State!="exited")return new("unknown");
+        try
+        {
+            var result=System.Text.Json.JsonSerializer.Deserialize<ZkUserWriteOutput>(exchange.Output,new System.Text.Json.JsonSerializerOptions{UnmappedMemberHandling=System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow});
+            return result?.IsValid()==true?result:new("unknown");
+        }
+        catch(System.Text.Json.JsonException){return new("unknown");}
+    }
+
     private sealed record Exchange(string State,string Output="");
     private static async Task<Exchange> ExchangeAsync(string executable,string childAssembly,string json,int timeoutSeconds,CancellationToken stoppingToken)
     {

@@ -190,6 +190,8 @@ public static class IoWebHost
         app.MapGet("/workspace/account", () => Results.Content(Resource("IO.Web.Ui.Account.html"), "text/html; charset=utf-8"));
         app.MapGet("/workspace/device-files", () => Results.Content(Resource("IO.Web.Ui.DeviceFiles.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/device-files.js", () => Results.Content(Resource("IO.Web.Ui.device-files.js"), "text/javascript; charset=utf-8"));
+        app.MapGet("/workspace/device-user-uploads", () => Results.Content(Resource("IO.Web.Ui.DeviceUserUploads.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/device-user-uploads.js", () => Results.Content(Resource("IO.Web.Ui.device-user-uploads.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-users", () => Results.Content(Resource("IO.Web.Ui.DeviceUsers.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/device-users.js", () => Results.Content(Resource("IO.Web.Ui.device-users.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-information", () => Results.Content(Resource("IO.Web.Ui.DeviceInformation.html"), "text/html; charset=utf-8"));
@@ -387,6 +389,11 @@ public static class IoWebHost
         app.MapGet("/device-file-imports/{id:guid}/original", (Guid id,HttpContext c,DeviceFileImports service)=>AdminRead(c,actor=>service.OriginalAsync(actor,id,c.RequestAborted)));
         app.MapPost("/device-file-imports", (DeviceFileImports.Input input,HttpContext c,IAntiforgery csrf,DeviceFileImports service)=>Admin(c,csrf,actor=>service.CreateAsync(actor,input,c.RequestAborted)));
         app.MapPost("/device-file-imports/{id:guid}/commit-page", (Guid id,DeviceFileCommit input,HttpContext c,IAntiforgery csrf,DeviceFileImports service)=>Admin(c,csrf,actor=>service.CommitPageAsync(actor,id,input.ExpectedVersion,input.After,input.Confirmation,c.RequestAborted)));
+        app.MapGet("/device-user-uploads", (HttpContext c,DeviceUserUploads service,Guid? batchId,int offset=0)=>AdminRead(c,actor=>service.ListAsync(actor,batchId,offset,c.RequestAborted)));
+        app.MapPost("/device-user-uploads/preview", (DeviceUserUploads.Batch input,HttpContext c,IAntiforgery csrf,DeviceUserUploads service)=>Admin(c,csrf,actor=>service.PreviewAsync(actor,input,c.RequestAborted)));
+        app.MapPost("/device-user-uploads", (DeviceUserUploads.Batch input,HttpContext c,IAntiforgery csrf,DeviceUserUploads service)=>Admin(c,csrf,actor=>service.RequestAsync(actor,input,c.RequestAborted)));
+        app.MapPost("/device-user-uploads/{id:guid}/cancel", (Guid id,DeviceOperationVersion input,HttpContext c,IAntiforgery csrf,DeviceUserUploads service)=>Admin(c,csrf,actor=>service.CancelAsync(actor,id,input.ExpectedVersion,c.RequestAborted)));
+        app.MapPost("/device-user-uploads/{id:guid}/review", (Guid id,DeviceUserUploadReview input,HttpContext c,IAntiforgery csrf,DeviceUserUploads service)=>Admin(c,csrf,actor=>service.ReviewAsync(actor,id,input.ExpectedVersion,input.SnapshotId,input.Confirmation,c.RequestAborted)));
         app.MapGet("/device-user-downloads", (HttpContext c,DeviceUserDownloads service,Guid? deviceId,int offset=0)=>AdminRead(c,actor=>service.ListAsync(actor,deviceId,offset,c.RequestAborted)));
         app.MapGet("/device-user-downloads/{id:guid}/preview", (Guid id,HttpContext c,DeviceUserDownloads service,long after=0)=>AdminRead(c,actor=>service.PreviewAsync(actor,id,after,c.RequestAborted)));
         app.MapPost("/device-user-downloads", (DeviceConnectionInput input,HttpContext c,IAntiforgery csrf,DeviceUserDownloads service)=>Admin(c,csrf,actor=>service.RequestAsync(actor,input.OperationId,input.DeviceId,input.ExpectedDeviceVersion,input.TimeoutSeconds,c.RequestAborted)));
@@ -772,3 +779,5 @@ public sealed record DeviceOperationVersion(byte[] ExpectedVersion);
 public sealed record DeviceClockResolution(byte[] ExpectedVersion,Guid InformationId,string Confirmation);
 
 public sealed record DeviceFileCommit(byte[] ExpectedVersion,int After,string Confirmation);
+
+public sealed record DeviceUserUploadReview(byte[] ExpectedVersion,Guid SnapshotId,string Confirmation);

@@ -16,6 +16,12 @@ internal static class Program
             using var stdin=Console.OpenStandardInput();using var bytes=new MemoryStream();var buffer=new byte[1024];int count;
             while((count=stdin.Read(buffer,0,buffer.Length))>0){if(bytes.Length+count>8192)return Result("invalid-input");bytes.Write(buffer,0,count);}
             var json=new UTF8Encoding(false,true).GetString(bytes.ToArray());using var document=JsonDocument.Parse(json);
+            if(document.RootElement.TryGetProperty("WriteUser",out _))
+            {
+                var request=JsonSerializer.Deserialize<ZkUserWriteInput>(json);
+                var writeResult=request?.IsValid()!=true||!OperatingSystem.IsWindows()?new ZkUserWriteOutput("unsupported"):WriteUserWindows(request);
+                Console.WriteLine(JsonSerializer.Serialize(writeResult));return 0;
+            }
             if(document.RootElement.TryGetProperty("ReadUsers",out _))
             {
                 var request=JsonSerializer.Deserialize<ZkUserReadInput>(json);
@@ -63,6 +69,45 @@ internal static class Program
         {
             if(instance is not null){try{if(connected)((dynamic)instance).Disconnect();}catch{}try{if(Marshal.IsComObject(instance))Marshal.FinalReleaseComObject(instance);}catch{}}
         }
+    }
+
+    [SupportedOSPlatform("windows")]
+    private static ZkUserWriteOutput WriteUserWindows(ZkUserWriteInput input)
+    {
+        object? instance=null;bool connected=false;
+        try
+        {
+            var pin=input.Connection;instance=Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("00853A19-BD51-419B-9269-2DABE57EB61F"),true)!)!;dynamic sdk=instance;
+            if(!(bool)sdk.SetCommPassword(pin.CommKey)||!(connected=(bool)sdk.Connect_Net(pin.Address,pin.Port)))return new("failed-before-write");
+            string serial;if(!(bool)sdk.GetSerialNumber(pin.MachineNumber,out serial)||serial?.Trim()!=pin.ExpectedSerial)return new("identity-mismatch");
+            return ZkUserWriteExecutor.Execute(input,new SsrWriteSession(instance,pin.MachineNumber));
+        }
+        catch{return new("unknown");}
+        finally{if(instance is not null){try{if(connected)((dynamic)instance).Disconnect();}catch{}try{if(Marshal.IsComObject(instance))Marshal.FinalReleaseComObject(instance);}catch{}}}
+    }
+    private sealed class SsrWriteSession(object instance,int machine):IZkUserWriteSession
+    {
+        public ZkUserWriteExisting? ReadExact(string personIdentifier)
+        {
+            dynamic sdk=instance;int before=0;
+            if(!(bool)sdk.GetDeviceStatus(machine,2,ref before)||before<0||!(bool)sdk.ReadAllUserID(machine))throw new InvalidOperationException();
+            ZkUserWriteExisting? found=null;long count=0;string badge,name,password;int privilege;bool enabled;
+            while((bool)sdk.SSR_GetAllUserInfo(machine,out badge,out name,out password,out privilege,out enabled))
+            {
+                count++;
+                if(badge==personIdentifier)
+                {
+                    if(found is not null)throw new InvalidOperationException();
+                    string card;if(!(bool)sdk.GetStrCardNumber(out card))throw new InvalidOperationException();
+                    found=new(new(badge,name,card,privilege,enabled),password);
+                }
+                password=string.Empty;
+            }
+            int after=0;if(!(bool)sdk.GetDeviceStatus(machine,2,ref after)||after!=before||count!=after)throw new InvalidOperationException();return found;
+        }
+        public bool SetCard(string card)=>(bool)((dynamic)instance).SetStrCardNumber(card);
+        public bool Write(ZkUser user,string password)=>(bool)((dynamic)instance).SSR_SetUserInfo(machine,user.PersonIdentifier,user.Name,password,0,user.Enabled);
+        // No AccGroup setter, access-control, batch-disable, template, photo or delete API.
     }
 
     private static void UserFrame(ZkUserFrame frame){Console.WriteLine(JsonSerializer.Serialize(frame));Console.Out.Flush();}

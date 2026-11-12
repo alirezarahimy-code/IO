@@ -7,6 +7,14 @@ if (args is not ["--verify"])
 {
     // This executable is a test-only child fixture, never deployed as the SDK bridge.
     var text=await Console.In.ReadToEndAsync();using var document=JsonDocument.Parse(text);
+    if(document.RootElement.TryGetProperty("WriteUser",out _))
+    {
+        var write=JsonSerializer.Deserialize<ZkUserWriteInput>(text)!;
+        if(write.Connection.ExpectedSerial=="write-hang")await Task.Delay(TimeSpan.FromMinutes(1));
+        else if(write.Connection.ExpectedSerial=="write-extra")Console.WriteLine("{\"State\":\"succeeded\",\"Password\":\"forbidden\"}");
+        else Console.WriteLine(JsonSerializer.Serialize(new ZkUserWriteOutput("succeeded")));
+        return;
+    }
     if(document.RootElement.TryGetProperty("ReadUsers",out _))
     {
         var request=JsonSerializer.Deserialize<ZkUserReadInput>(text)!;var serial=request.Connection.ExpectedSerial;
@@ -113,4 +121,30 @@ var maxZone=TimeZoneInfo.CreateCustomTimeZone("fixture-minus-twelve",TimeSpan.Fr
 var early=PersonnelUsbPreview.Parse(System.Text.Encoding.UTF8.GetBytes("1\t0001-01-01 00:00:00\t1\t0\t1"),"gregorian",minZone,1).Lines[0];
 var late=PersonnelUsbPreview.Parse(System.Text.Encoding.UTF8.GetBytes("1\t9999-12-31 23:59:59\t1\t0\t1"),"gregorian",maxZone,1).Lines[0];
 Check(early.Status=="invalid-time"&&late.Status=="invalid-time"&&early.OccurredAtUtc is null&&late.OccurredAtUtc is null,"S12 UTC underflow and overflow stay quarantined instead of silently clamping source time to date limits");
+var originalUser=new ZkUser("0001","Old","123",0,true);
+var writeInput=new ZkUserWriteInput(input,true,true,originalUser,originalUser with{Name="New",Card="456"});
+var session=new UserWriteFixture(new(originalUser,"existing-private-password"));
+Check(ZkUserWriteExecutor.Execute(writeInput,session).State=="succeeded"&&session.Current?.Password=="existing-private-password"&&session.Writes==1,"S08 ordinary metadata write preserves the existing password only in native memory and verifies read-back");
+session=new(new(originalUser,"private"));
+Check(ZkUserWriteExecutor.Execute(writeInput with{Desired=originalUser},session).State=="unchanged"&&session.Writes==0,"S08 unchanged ordinary data never triggers an SDK mutation");
+session=new(new(originalUser with{Name="External change"},"private"));
+Check(ZkUserWriteExecutor.Execute(writeInput,session).State=="conflict"&&session.Writes==0,"S08 a target changed since the approved snapshot is not silently overwritten");
+session=new(null);
+Check(ZkUserWriteExecutor.Execute(writeInput with{Expected=null},session).State=="succeeded"&&session.Current?.Password=="","S08 explicit absent-user creation uses no password rather than inventing one");
+session=new(new(originalUser,"private")){FailWrite=true};
+Check(ZkUserWriteExecutor.Execute(writeInput,session).State=="unknown"&&session.Writes==1,"S08 even a false SDK write response is unknown and is never automatically retried");
+session=new(new(originalUser,"private")){ChangeReadback=true};
+Check(ZkUserWriteExecutor.Execute(writeInput,session).State=="unknown","S08 a different read-back including card normalization is not labelled success");
+Check(!(writeInput with{Desired=originalUser with{Privilege=3}}).IsValid()&&!(writeInput with{Expected=originalUser with{Privilege=1}}).IsValid()&&!(writeInput with{Desired=originalUser with{Name=new string('x',21)}}).IsValid()&&!(writeInput with{AllowUserWrite=false}).IsValid(),"S08 admin edits name truncation and unapproved endpoint writes fail closed");
+Check(!JsonSerializer.Serialize(new ZkUserWriteExisting(originalUser,"sensitive-password")).Contains("sensitive-password",StringComparison.Ordinal)&&!writeInput.ToString().Contains("123456789",StringComparison.Ordinal),"S08 existing passwords never enter default JSON or request text rendering");
+Check((await NativeProcessSupervisor.RunUserWriteAsync(host,fixtureAssembly,writeInput with{Connection=input with{ExpectedSerial="write-extra"}},2)).State=="unknown","S08 untrusted extra SDK output fields cannot create a successful write receipt");
+Check((await NativeProcessSupervisor.RunUserWriteAsync(host,fixtureAssembly,writeInput with{Connection=input with{ExpectedSerial="write-hang"}},1)).State=="unknown","S08 external timeout kills a write child and retains uncertainty without retry");
 Console.WriteLine($"PASS {count} portable native-boundary and reference-file parser checks; no real device or SDK acceptance implied");
+
+internal sealed class UserWriteFixture(ZkUserWriteExisting? initial):IZkUserWriteSession
+{
+    public ZkUserWriteExisting? Current=initial;public int Writes;public bool FailWrite;public bool ChangeReadback;
+    public ZkUserWriteExisting? ReadExact(string id)=>Writes>0&&ChangeReadback?Current! with{User=Current!.User with{Card="different"}}:Current;
+    public bool SetCard(string card)=>true;
+    public bool Write(ZkUser user,string password){Writes++;if(FailWrite)return false;Current=new(user,password);return true;}
+}

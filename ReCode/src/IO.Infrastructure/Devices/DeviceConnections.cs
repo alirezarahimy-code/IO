@@ -25,6 +25,7 @@ public sealed class DeviceConnections(IoDbContext db, PermissionTransaction tran
                     throw new DomainConflictException("Changed connection test retry.");
                 return (old.Id, old.Id);
             }
+        if(await db.DeviceUserUploads.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device has unfinished user uploads.");
             var device = await db.Devices.AsNoTracking().SingleOrDefaultAsync(d => d.Id == deviceId, token) ?? throw new ArgumentException("Unknown device.");
             if (!device.Enabled || !device.Version.SequenceEqual(expectedDeviceVersion)) throw new DomainConflictException("Disabled or changed device; refresh.");
             if (await db.DeviceConnections.AnyAsync(x => x.DeviceId == deviceId && (x.State == "pending" || x.State == "running"), token))

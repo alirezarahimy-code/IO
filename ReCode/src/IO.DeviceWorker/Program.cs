@@ -37,12 +37,12 @@ if (native.Length > 0)
 }
 builder.Logging.ClearProviders(); // No EF/provider exception strings or configuration secrets in stdout.
 builder.Services.AddIoIdentityStorage(connection);
-builder.Services.AddSingleton(new WorkerConfiguration(service, targets, native, dotnetPath, bridgePath, builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableOperations"),builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableUserDownloads")));
+builder.Services.AddSingleton(new WorkerConfiguration(service, targets, native, dotnetPath, bridgePath, builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableOperations"),builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableUserDownloads"),builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableUserUploads")));
 builder.Services.AddHostedService<DiagnosticWorker>();
 await builder.Build().RunAsync();
 
-internal sealed record NativeEndpoint(Guid DeviceId, string Address, int Port, int MachineNumber, string ExpectedSerial, bool AllowDefaultCommunicationKey, bool AllowClockSet=false,bool AllowUserRead=false);
-internal sealed record WorkerConfiguration(Guid ServiceUserId, TcpConnectionDiagnostic.AllowedEndpoint[] AllowedEndpoints, NativeEndpoint[] NativeEndpoints, string? DotnetPath, string? BridgePath, bool EnableOperations,bool EnableUserDownloads);
+internal sealed record NativeEndpoint(Guid DeviceId, string Address, int Port, int MachineNumber, string ExpectedSerial, bool AllowDefaultCommunicationKey, bool AllowClockSet=false,bool AllowUserRead=false,bool AttendanceOnlyUserWriteApproved=false);
+internal sealed record WorkerConfiguration(Guid ServiceUserId, TcpConnectionDiagnostic.AllowedEndpoint[] AllowedEndpoints, NativeEndpoint[] NativeEndpoints, string? DotnetPath, string? BridgePath, bool EnableOperations,bool EnableUserDownloads,bool EnableUserUploads);
 internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfiguration configuration) : BackgroundService
 {
     protected override Task ExecuteAsync(CancellationToken stoppingToken) => Task.WhenAll(Enumerable.Range(0, 4).Select(_ => Loop(stoppingToken)));
@@ -54,22 +54,29 @@ internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfig
         {
             try
             {
-                DeviceConnections.Claim? claim=null;DeviceOperations.Claim? operation=null;DeviceUserDownloads.Claim? users=null;
+                DeviceConnections.Claim? claim=null;DeviceOperations.Claim? operation=null;DeviceUserDownloads.Claim? users=null;DeviceUserUploads.Claim? upload=null;
                 await using (var scope = scopes.CreateAsyncScope())
                 {
                     var db=scope.ServiceProvider.GetRequiredService<IoDbContext>();var now=DateTimeOffset.UtcNow;var cutoff=now.AddMinutes(-2);
                     var available=await db.DeviceConnections.AnyAsync(x=>x.State=="pending"||(x.State=="running"&&x.ClaimedAtUtc<cutoff),ct);
                     var operationsAvailable=configuration.EnableOperations&&await db.DeviceOperations.AnyAsync(x=>x.State=="pending"||(x.State=="running"&&x.ClaimedAtUtc<cutoff),ct);
                     var usersAvailable=configuration.EnableUserDownloads&&await db.DeviceUserDownloads.AnyAsync(x=>x.State=="pending"||(x.State=="running"&&x.LeaseAtUtc!=null&&x.LeaseAtUtc.Value.AddSeconds(x.TimeoutSeconds+120)<now),ct);
-                    var queues=new[]{usersAvailable,operationsAvailable,available};int selected=-1;
-                    for(int i=0;i<3;i++){var candidate=(queueCursor+i)%3;if(queues[candidate]){selected=candidate;break;}}
+                    var uploadsAvailable=configuration.EnableUserUploads&&await db.DeviceUserUploads.AnyAsync(x=>x.State=="pending"||(x.State=="running"&&x.ClaimedAtUtc!=null&&x.ClaimedAtUtc.Value.AddSeconds(x.TimeoutSeconds+120)<now),ct);
+                    var queues=new[]{usersAvailable,operationsAvailable,available,uploadsAvailable};int selected=-1;
+                    for(int i=0;i<4;i++){var candidate=(queueCursor+i)%4;if(queues[candidate]){selected=candidate;break;}}
                     // Advance even if the selected independent service grant was revoked.
-                    queueCursor=(queueCursor+1)%3;
+                    queueCursor=(queueCursor+1)%4;
                     if(selected==0)users=await scope.ServiceProvider.GetRequiredService<DeviceUserDownloads>().ClaimAsync(configuration.ServiceUserId,ct);
                     else if(selected==1)operation=await scope.ServiceProvider.GetRequiredService<DeviceOperations>().ClaimAsync(configuration.ServiceUserId,ct);
+                    else if(selected==3)upload=await scope.ServiceProvider.GetRequiredService<DeviceUserUploads>().ClaimAsync(configuration.ServiceUserId,ct);
                     else if(selected==2)claim=await scope.ServiceProvider.GetRequiredService<DeviceConnections>().ClaimAsync(configuration.ServiceUserId,ct);
                 }
-                if(users is not null)
+                if(upload is not null)
+                {
+                    var result=await UploadUser(upload,ct);await using var finish=scopes.CreateAsyncScope();
+                    await finish.ServiceProvider.GetRequiredService<DeviceUserUploads>().CompleteAsync(configuration.ServiceUserId,upload.Id,upload.Token,result,ct);
+                }
+                else if(users is not null)
                 {
                     var result=await DownloadUsers(users,ct);await using var finish=scopes.CreateAsyncScope();
                     await finish.ServiceProvider.GetRequiredService<DeviceUserDownloads>().CompleteAsync(configuration.ServiceUserId,users.Id,users.Token,result.State,result.Count,ct);
@@ -109,6 +116,19 @@ internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfig
         var result = await NativeProcessSupervisor.RunAsync(configuration.DotnetPath!,configuration.BridgePath!,
             new ZkProbeInput(claim.DeviceId,native.Address,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value),claim.TimeoutSeconds,ct);
         return result == "invalid-input" ? "bridge-failed" : result;
+    }
+
+    private async Task<ZkUserWriteOutput> UploadUser(DeviceUserUploads.Claim claim,CancellationToken ct)
+    {
+        var native=configuration.NativeEndpoints.SingleOrDefault(x=>x.DeviceId==claim.DeviceId);
+        // Installation approval is NOT a claim of model compatibility. No access-control
+        // terminals are admitted; approval requires the isolated lab acceptance procedure.
+        if(native is null||!native.AttendanceOnlyUserWriteApproved||!OperatingSystem.IsWindows())return new("unsupported");
+        if(claim.Port!=native.Port||!System.Net.IPAddress.TryParse(claim.Host,out var address)||!System.Net.IPAddress.Parse(native.Address).Equals(address))return new("failed-before-write");
+        DeviceCommunicationKey? credential;
+        await using(var scope=scopes.CreateAsyncScope())credential=await scope.ServiceProvider.GetRequiredService<DeviceUserUploads>().CredentialAsync(configuration.ServiceUserId,claim,native.AllowDefaultCommunicationKey,ct);
+        if(credential is null)return new("failed-before-write");
+        return await NativeProcessSupervisor.RunUserWriteAsync(configuration.DotnetPath!,configuration.BridgePath!,new(new(claim.DeviceId,native.Address,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value),true,true,claim.Expected,claim.Desired),claim.TimeoutSeconds,ct);
     }
 
     private async Task<NativeUserReadSupervisor.Result> DownloadUsers(DeviceUserDownloads.Claim claim,CancellationToken ct)

@@ -7,6 +7,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
 {
     public DbSet<DeviceFileImportRecord> DeviceFileImports => Set<DeviceFileImportRecord>();
     public DbSet<DeviceFileImportLineRecord> DeviceFileImportLines => Set<DeviceFileImportLineRecord>();
+    public DbSet<DeviceUserUploadRecord> DeviceUserUploads => Set<DeviceUserUploadRecord>();
     public DbSet<DeviceUserDownloadRecord> DeviceUserDownloads => Set<DeviceUserDownloadRecord>();
     public DbSet<DeviceDownloadedUserRecord> DeviceDownloadedUsers => Set<DeviceDownloadedUserRecord>();
     public DbSet<DeviceOperationRecord> DeviceOperations => Set<DeviceOperationRecord>();
@@ -127,6 +128,55 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.HasOne<RawEventConflictRecord>().WithMany().HasForeignKey(x=>x.ConflictId).OnDelete(DeleteBehavior.Restrict);
             b.HasIndex(x=>x.ReviewedByUserId);
             b.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.ReviewedByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<DeviceUserUploadRecord>(b =>
+        {
+            b.ToTable("DeviceUserUploads",t=>
+            {
+                t.HasTrigger("TR_DeviceUserUploads_History");t.UseSqlOutputClause(false);
+                t.HasCheckConstraint("CK_DeviceUserUploads_Request","DATALENGTH([ExpectedDeviceVersion])=8 AND LEN([RequestHash])=64 AND DATALENGTH([PersonIdentifier]) BETWEEN 2 AND 80 AND [TimeoutSeconds] BETWEEN 1 AND 60 AND ISJSON([DesiredJson])=1 AND ([ExpectedJson] IS NULL OR ISJSON([ExpectedJson])=1)");
+                t.HasCheckConstraint("CK_DeviceUserUploads_State","[State] COLLATE Latin1_General_100_BIN2 IN (N'pending',N'running',N'succeeded',N'unchanged',N'conflict',N'unsupported',N'identity-mismatch',N'failed-before-write',N'unknown',N'cancelled',N'revoked',N'device-changed')");
+                t.HasCheckConstraint("CK_DeviceUserUploads_Lifecycle","(([State]=N'pending' AND [ClaimId] IS NULL AND [ServiceUserId] IS NULL AND [ClaimedAtUtc] IS NULL AND [FinishedAtUtc] IS NULL) OR ([State]=N'running' AND [ClaimId] IS NOT NULL AND [ServiceUserId] IS NOT NULL AND [ClaimedAtUtc] IS NOT NULL AND [FinishedAtUtc] IS NULL) OR ([State] IN(N'cancelled',N'revoked',N'device-changed') AND [ClaimId] IS NULL AND [ServiceUserId] IS NULL AND [ClaimedAtUtc] IS NULL AND [FinishedAtUtc] IS NOT NULL) OR ([State] NOT IN(N'pending',N'running',N'cancelled',N'revoked',N'device-changed') AND [ClaimId] IS NOT NULL AND [ServiceUserId] IS NOT NULL AND [ClaimedAtUtc] IS NOT NULL AND [FinishedAtUtc] IS NOT NULL)) AND DATEPART(TZOFFSET,[RequestedAtUtc])=0 AND DATEPART(TZOFFSET,[ClaimedAtUtc])=0 AND DATEPART(TZOFFSET,[FinishedAtUtc])=0 AND ([ClaimedAtUtc] IS NULL OR [ClaimedAtUtc]>=[RequestedAtUtc]) AND ([FinishedAtUtc] IS NULL OR [FinishedAtUtc]>=COALESCE([ClaimedAtUtc],[RequestedAtUtc]))");
+                t.HasCheckConstraint("CK_DeviceUserUploads_Resolution","([ResolutionSnapshotId] IS NULL AND [ResolvedByUserId] IS NULL AND [ResolvedAtUtc] IS NULL) OR ([State]=N'unknown' AND [ResolutionSnapshotId] IS NOT NULL AND [ResolvedByUserId] IS NOT NULL AND [ResolvedAtUtc] IS NOT NULL AND [ResolvedAtUtc]>=[FinishedAtUtc] AND DATEPART(TZOFFSET,[ResolvedAtUtc])=0)");
+            });
+            b.HasKey(x=>x.Id);b.Property(x=>x.Id).ValueGeneratedNever();
+            b.Property(x=>x.Id).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.BatchId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.RequestHash).HasMaxLength(64).IsRequired().HasColumnType("nvarchar(64)");
+            b.Property(x=>x.DeviceId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.EmployeeId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.SnapshotId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.RequestedByUserId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.RequestedAtUtc).HasColumnType("datetimeoffset");
+            b.Property(x=>x.ExpectedDeviceVersion).HasMaxLength(8).IsRequired().HasColumnType("varbinary(8)");
+            b.Property(x=>x.PersonIdentifier).HasMaxLength(40).IsRequired().UseCollation("Latin1_General_100_BIN2").HasColumnType("nvarchar(40)");
+            b.Property(x=>x.ExpectedJson).HasMaxLength(2000).HasColumnType("nvarchar(2000)");
+            b.Property(x=>x.DesiredJson).HasMaxLength(2000).IsRequired().HasColumnType("nvarchar(2000)");
+            b.Property(x=>x.TimeoutSeconds).HasColumnType("int");
+            b.Property(x=>x.State).HasMaxLength(32).IsRequired().HasColumnType("nvarchar(32)");
+            b.Property(x=>x.ServiceUserId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.ClaimId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.ClaimedAtUtc).HasColumnType("datetimeoffset");
+            b.Property(x=>x.FinishedAtUtc).HasColumnType("datetimeoffset");
+            b.Property(x=>x.ResolutionSnapshotId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.ResolvedByUserId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.ResolvedAtUtc).HasColumnType("datetimeoffset");
+            b.Property(x=>x.Version).IsRequired().IsRowVersion().HasColumnType("rowversion");
+            b.HasIndex(x=>new{x.BatchId,x.Id});b.HasIndex(x=>new{x.RequestedAtUtc,x.Id});
+            b.HasIndex(x=>x.DeviceId).IsUnique().HasFilter("[State] = N'running'");
+            b.HasOne<DeviceRecord>().WithMany().HasForeignKey(x=>x.DeviceId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.EmployeeId);
+            b.HasOne<EmployeeRecord>().WithMany().HasForeignKey(x=>x.EmployeeId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.SnapshotId);
+            b.HasOne<DeviceUserDownloadRecord>().WithMany().HasForeignKey(x=>x.SnapshotId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.RequestedByUserId);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.RequestedByUserId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.ServiceUserId);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.ServiceUserId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.ResolutionSnapshotId);
+            b.HasOne<DeviceUserDownloadRecord>().WithMany().HasForeignKey(x=>x.ResolutionSnapshotId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.ResolvedByUserId);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.ResolvedByUserId).OnDelete(DeleteBehavior.Restrict);
         });
         model.Entity<DeviceUserDownloadRecord>(b =>
         {

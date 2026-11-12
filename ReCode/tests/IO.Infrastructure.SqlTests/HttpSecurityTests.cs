@@ -473,6 +473,29 @@ internal static class HttpSecurityTests
                       (await own.GetAsync("/help/topic/device-users")).StatusCode==HttpStatusCode.Forbidden&&
                       !downloadCaps.RootElement.GetProperty("pages").EnumerateArray().Any(x=>x.GetProperty("route").GetString()=="/workspace/device-users"),
                       "HTTP S07 grant revocation removes data help menu and request replay on the existing session");
+            var uploadPayload=new IO.Infrastructure.Devices.DeviceUserUploads.Batch(Guid.NewGuid(),[],"UPLOAD-ORDINARY-USERS");
+            check((await anon.GetAsync("/device-user-uploads")).StatusCode==HttpStatusCode.Unauthorized&&
+                  (await own.GetAsync("/device-user-uploads")).StatusCode==HttpStatusCode.Forbidden&&
+                  (await own.PostAsJsonAsync("/device-user-uploads/preview",uploadPayload)).StatusCode==HttpStatusCode.BadRequest&&
+                  (await PostAdmin(own,"/device-user-uploads",uploadPayload)).StatusCode==HttpStatusCode.Forbidden,
+                  "HTTP S08 upload preview and queue require authentication independent upload permission and CSRF");
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.users.upload"})).EnsureSuccessStatusCode();
+            check((await PostAdmin(own,"/device-user-uploads/preview",uploadPayload)).StatusCode==HttpStatusCode.BadRequest&&
+                  (await own.GetAsync("/device-user-uploads")).StatusCode==HttpStatusCode.Forbidden&&
+                  (await own.GetAsync("/help/topic/device-user-uploads")).StatusCode==HttpStatusCode.OK,
+                  "HTTP S08 upload grant exposes protected help but still validates intents and never grants retained history reads");
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.users.read"})).EnsureSuccessStatusCode();
+            check((await own.GetAsync("/device-user-uploads")).StatusCode==HttpStatusCode.OK&&
+                  (await PostAdmin(own,"/device-user-uploads/"+Guid.NewGuid()+"/review",new{ExpectedVersion=s06Version,SnapshotId=downloadId,Confirmation="not-confirmed"})).StatusCode==HttpStatusCode.BadRequest,
+                  "HTTP S08 read grant enables real SQL history while unknown review retains explicit confirmation validation");
+            foreach(var code in new[]{"devices.users.read","devices.users.upload"})
+                (await PostAdmin(adminClient,"/admin/role-permissions/revoke",new{RoleId=deviceRole,Code=code})).EnsureSuccessStatusCode();
+            using(var uploadCaps=JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities")))
+                check((await own.GetAsync("/device-user-uploads")).StatusCode==HttpStatusCode.Forbidden&&
+                      (await PostAdmin(own,"/device-user-uploads/preview",uploadPayload)).StatusCode==HttpStatusCode.Forbidden&&
+                      (await own.GetAsync("/help/topic/device-user-uploads")).StatusCode==HttpStatusCode.Forbidden&&
+                      !uploadCaps.RootElement.GetProperty("pages").EnumerateArray().Any(x=>x.GetProperty("route").GetString()=="/workspace/device-user-uploads"),
+                      "HTTP S08 grant revocation removes personal history help menu and preview on the existing session");
             var fileId=Guid.NewGuid();var filePayload=new IO.Infrastructure.Devices.DeviceFileImports.Input(fileId,s06Device,s06Version,"gregorian",1,4,5,Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("009	2026-11-08 08:00:00	1	4	1")));
             check((await anon.GetAsync("/device-file-imports")).StatusCode==HttpStatusCode.Unauthorized&&
                   (await own.GetAsync("/device-file-imports")).StatusCode==HttpStatusCode.Forbidden&&
