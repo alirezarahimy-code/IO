@@ -34,34 +34,44 @@ if (native.Length > 0)
 }
 builder.Logging.ClearProviders(); // No EF/provider exception strings or configuration secrets in stdout.
 builder.Services.AddIoIdentityStorage(connection);
-builder.Services.AddSingleton(new WorkerConfiguration(service, targets, native, dotnetPath, bridgePath));
+builder.Services.AddSingleton(new WorkerConfiguration(service, targets, native, dotnetPath, bridgePath, builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableOperations")));
 builder.Services.AddHostedService<DiagnosticWorker>();
 await builder.Build().RunAsync();
 
-internal sealed record NativeEndpoint(Guid DeviceId, string Address, int Port, int MachineNumber, string ExpectedSerial, bool AllowDefaultCommunicationKey);
-internal sealed record WorkerConfiguration(Guid ServiceUserId, TcpConnectionDiagnostic.AllowedEndpoint[] AllowedEndpoints, NativeEndpoint[] NativeEndpoints, string? DotnetPath, string? BridgePath);
+internal sealed record NativeEndpoint(Guid DeviceId, string Address, int Port, int MachineNumber, string ExpectedSerial, bool AllowDefaultCommunicationKey, bool AllowClockSet=false);
+internal sealed record WorkerConfiguration(Guid ServiceUserId, TcpConnectionDiagnostic.AllowedEndpoint[] AllowedEndpoints, NativeEndpoint[] NativeEndpoints, string? DotnetPath, string? BridgePath, bool EnableOperations);
 internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfiguration configuration) : BackgroundService
 {
     protected override Task ExecuteAsync(CancellationToken stoppingToken) => Task.WhenAll(Enumerable.Range(0, 4).Select(_ => Loop(stoppingToken)));
 
     private async Task Loop(CancellationToken ct)
     {
+        bool preferOperations=true;
         while (!ct.IsCancellationRequested)
         {
             try
             {
-                DeviceConnections.Claim? claim;
+                DeviceConnections.Claim? claim=null;DeviceOperations.Claim? operation=null;
                 await using (var scope = scopes.CreateAsyncScope())
                 {
-                    var db = scope.ServiceProvider.GetRequiredService<IoDbContext>();
-                    var cutoff = DateTimeOffset.UtcNow.AddMinutes(-2);
-                    var available = await db.DeviceConnections.AnyAsync(x => x.State == "pending" || (x.State == "running" && x.ClaimedAtUtc < cutoff), ct);
-                    claim = available ? await scope.ServiceProvider.GetRequiredService<DeviceConnections>().ClaimAsync(configuration.ServiceUserId, ct) : null;
+                    var db=scope.ServiceProvider.GetRequiredService<IoDbContext>();var cutoff=DateTimeOffset.UtcNow.AddMinutes(-2);
+                    var available=await db.DeviceConnections.AnyAsync(x=>x.State=="pending"||(x.State=="running"&&x.ClaimedAtUtc<cutoff),ct);
+                    var operationsAvailable=configuration.EnableOperations&&await db.DeviceOperations.AnyAsync(x=>x.State=="pending"||(x.State=="running"&&x.ClaimedAtUtc<cutoff),ct);
+                    if(operationsAvailable&&(!available||preferOperations))operation=await scope.ServiceProvider.GetRequiredService<DeviceOperations>().ClaimAsync(configuration.ServiceUserId,ct);
+                    else if(available)claim=await scope.ServiceProvider.GetRequiredService<DeviceConnections>().ClaimAsync(configuration.ServiceUserId,ct);
+                    preferOperations=!preferOperations;
                 }
-                if (claim is null) { await Task.Delay(TimeSpan.FromSeconds(3), ct); continue; }
-                var result = await Probe(claim, ct);
-                await using var finish = scopes.CreateAsyncScope();
-                await finish.ServiceProvider.GetRequiredService<DeviceConnections>().CompleteAsync(configuration.ServiceUserId, claim.Id, claim.Token, result, ct);
+                if(operation is not null)
+                {
+                    var result=await Operate(operation,ct);await using var finish=scopes.CreateAsyncScope();
+                    await finish.ServiceProvider.GetRequiredService<DeviceOperations>().CompleteAsync(configuration.ServiceUserId,operation.Id,operation.Token,result,ct);
+                }
+                else if(claim is not null)
+                {
+                    var result=await Probe(claim,ct);await using var finish=scopes.CreateAsyncScope();
+                    await finish.ServiceProvider.GetRequiredService<DeviceConnections>().CompleteAsync(configuration.ServiceUserId,claim.Id,claim.Token,result,ct);
+                }
+                else await Task.Delay(TimeSpan.FromSeconds(3),ct);
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested) { return; }
             catch (Exception)
@@ -86,6 +96,19 @@ internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfig
         var result = await NativeProcessSupervisor.RunAsync(configuration.DotnetPath!,configuration.BridgePath!,
             new ZkProbeInput(claim.DeviceId,native.Address,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value),claim.TimeoutSeconds,ct);
         return result == "invalid-input" ? "bridge-failed" : result;
+    }
+
+    private async Task<ZkOperationOutput> Operate(DeviceOperations.Claim claim,CancellationToken ct)
+    {
+        var native=configuration.NativeEndpoints.SingleOrDefault(x=>x.DeviceId==claim.DeviceId);
+        if(native is null||claim.Profile!="zk-standalone")return new("unsupported");
+        if(claim.Port!=native.Port||!System.Net.IPAddress.TryParse(claim.Host,out var address)||!System.Net.IPAddress.Parse(native.Address).Equals(address))return new("endpoint-denied");
+        if(!OperatingSystem.IsWindows()||(claim.Kind=="clock.set"&&!native.AllowClockSet))return new("unsupported");
+        await using var scope=scopes.CreateAsyncScope();
+        var credential=await scope.ServiceProvider.GetRequiredService<DeviceOperations>().CredentialAsync(configuration.ServiceUserId,claim,native.AllowDefaultCommunicationKey,ct);
+        if(credential is null)return new("credential-unavailable");
+        return await NativeProcessSupervisor.RunOperationAsync(configuration.DotnetPath!,configuration.BridgePath!,
+            new(new(claim.DeviceId,native.Address,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value),claim.Kind,claim.ClockLocal,native.AllowClockSet),claim.TimeoutSeconds,ct);
     }
 
 }

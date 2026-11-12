@@ -293,7 +293,7 @@ internal static class HttpSecurityTests
             (await PostAdmin(adminClient, "/admin/user-roles", new { UserId = self, RoleId = operatorTemplate.Id })).EnsureSuccessStatusCode();
             using var operatorCaps = JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities"));
             check(operatorCaps.RootElement.GetProperty("operator").GetBoolean() &&
-                  operatorCaps.RootElement.GetProperty("permissions").EnumerateArray().Where(x => x.GetString()!.StartsWith("devices.", StringComparison.Ordinal)).Select(x => x.GetString()).OrderBy(x=>x,StringComparer.Ordinal).SequenceEqual(new[] { "devices.connection.read", "devices.groups.read", "devices.read" }),
+                  operatorCaps.RootElement.GetProperty("permissions").EnumerateArray().Where(x => x.GetString()!.StartsWith("devices.", StringComparison.Ordinal)).Select(x => x.GetString()).OrderBy(x=>x,StringComparer.Ordinal).SequenceEqual(new[] { "devices.connection.read", "devices.groups.read", "devices.info.read", "devices.read" }),
                   "HTTP operator shell identifies role without granting unimplemented device operations");
             (await PostAdmin(adminClient, "/admin/user-roles/revoke", new { UserId = self, RoleId = operatorTemplate.Id })).EnsureSuccessStatusCode();
             var featureRole = await CreateId("/admin/roles", new { Name = "phase five six test role" });
@@ -441,6 +441,45 @@ internal static class HttpSecurityTests
                       (await PostAdmin(own,"/device-connection",diagnosticPayload)).StatusCode==HttpStatusCode.Forbidden&&
                       !diagnosticCaps.RootElement.GetProperty("pages").EnumerateArray().Any(x=>x.GetProperty("route").GetString()=="/workspace/device-connection"),
                       "HTTP connection revoke removes history help menu and retry on the same authenticated session");
+            var s06Device=Guid.NewGuid();
+            (await PostAdmin(own,"/devices",new{OperationId=s06Device,Device=deviceInput with{Number="HTTP-S06",Profile="zk-standalone",Host="127.0.0.1",Port=4370}})).EnsureSuccessStatusCode();
+            byte[] s06Version;
+            using(var json=JsonDocument.Parse(await own.GetStringAsync("/devices/"+s06Device)))s06Version=json.RootElement.GetProperty("version").GetBytesFromBase64();
+            var infoOperation=Guid.NewGuid();
+            var infoPayload=new{OperationId=infoOperation,DeviceId=s06Device,ExpectedDeviceVersion=s06Version,Kind="information.read",TimeoutSeconds=5,TargetUtc=(DateTimeOffset?)null,Confirmation=(string?)null};
+            check((await anon.GetAsync("/device-operations")).StatusCode==HttpStatusCode.Unauthorized&&
+                  (await own.GetAsync("/device-operations")).StatusCode==HttpStatusCode.Forbidden&&
+                  (await own.PostAsJsonAsync("/device-operations",infoPayload)).StatusCode==HttpStatusCode.BadRequest,
+                  "HTTP S06 operation endpoints require authentication independent permission and antiforgery");
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.info.read"})).EnsureSuccessStatusCode();
+            var clockOperation=Guid.NewGuid();
+            var s06ClockPayload=new{OperationId=clockOperation,DeviceId=s06Device,ExpectedDeviceVersion=s06Version,Kind="clock.set",TimeoutSeconds=5,TargetUtc=new DateTimeOffset(2026,11,8,10,0,0,TimeSpan.Zero),Confirmation="SET-CLOCK"};
+            check((await PostAdmin(own,"/device-operations",infoPayload)).StatusCode==HttpStatusCode.OK&&
+                  (await PostAdmin(own,"/device-operations",infoPayload)).StatusCode==HttpStatusCode.OK&&
+                  (await PostAdmin(own,"/device-operations",s06ClockPayload)).StatusCode==HttpStatusCode.Forbidden&&
+                  (await own.GetAsync("/help/topic/device-information")).StatusCode==HttpStatusCode.OK,
+                  "HTTP S06 information grant enables exact read retry and protected help without clock-setting rights");
+            byte[] s06InfoVersion;
+            using(var json=JsonDocument.Parse(await own.GetStringAsync("/device-operations?deviceId="+s06Device)))s06InfoVersion=json.RootElement.GetProperty("items").EnumerateArray().Single(x=>x.GetProperty("id").GetGuid()==infoOperation).GetProperty("version").GetBytesFromBase64();
+            (await PostAdmin(own,"/device-operations/"+infoOperation+"/cancel",new{ExpectedVersion=s06InfoVersion})).EnsureSuccessStatusCode();
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.clock.set"})).EnsureSuccessStatusCode();
+            var missingClockAck=(await PostAdmin(own,"/device-operations",new{OperationId=clockOperation,DeviceId=s06Device,ExpectedDeviceVersion=s06Version,Kind="clock.set",TimeoutSeconds=5,TargetUtc=s06ClockPayload.TargetUtc,Confirmation=""})).StatusCode;
+            (await PostAdmin(own,"/device-operations",s06ClockPayload)).EnsureSuccessStatusCode();
+            byte[] s06ClockVersion;
+            using(var json=JsonDocument.Parse(await own.GetStringAsync("/device-operations?deviceId="+s06Device)))s06ClockVersion=json.RootElement.GetProperty("items").EnumerateArray().Single(x=>x.GetProperty("id").GetGuid()==clockOperation).GetProperty("version").GetBytesFromBase64();
+            var firstCancel=(await PostAdmin(own,"/device-operations/"+clockOperation+"/cancel",new{ExpectedVersion=s06ClockVersion})).StatusCode;
+            check(missingClockAck==HttpStatusCode.BadRequest&&firstCancel==HttpStatusCode.OK&&
+                  (await PostAdmin(own,"/device-operations/"+clockOperation+"/cancel",new{ExpectedVersion=s06ClockVersion})).StatusCode==HttpStatusCode.Conflict,
+                  "HTTP S06 clock grant still requires explicit confirmation and only current pending work can be cancelled");
+            foreach(var code in new[]{"devices.info.read","devices.clock.set"})
+                (await PostAdmin(adminClient,"/admin/role-permissions/revoke",new{RoleId=deviceRole,Code=code})).EnsureSuccessStatusCode();
+            using(var capabilities=JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities")))
+                check((await own.GetAsync("/device-operations")).StatusCode==HttpStatusCode.Forbidden&&
+                      (await own.GetAsync("/help/topic/device-information")).StatusCode==HttpStatusCode.Forbidden&&
+                      (await PostAdmin(own,"/device-operations",s06ClockPayload)).StatusCode==HttpStatusCode.Forbidden&&
+                      (await PostAdmin(own,"/device-operations/"+clockOperation+"/resolve-clock",new{ExpectedVersion=s06ClockVersion,InformationId=infoOperation,Confirmation="REVIEWED-CLOCK"})).StatusCode==HttpStatusCode.Forbidden&&
+                      !capabilities.RootElement.GetProperty("pages").EnumerateArray().Any(x=>x.GetProperty("route").GetString()=="/workspace/device-information"),
+                      "HTTP S06 revocation removes data help menu clock replay and review on the existing session");
             (await PostAdmin(adminClient,"/admin/user-roles/revoke",new{UserId=self,RoleId=deviceRole})).EnsureSuccessStatusCode();
             using(var noDeviceCaps=JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities")))
                 check((await own.GetAsync("/devices")).StatusCode==HttpStatusCode.Forbidden&&

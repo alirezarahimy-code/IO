@@ -6,7 +6,17 @@ using IO.DeviceContracts;
 if (args is not ["--verify"])
 {
     // This executable is a test-only child fixture, never deployed as the SDK bridge.
-    var fixture=JsonSerializer.Deserialize<ZkProbeInput>(await Console.In.ReadToEndAsync())!;
+    var text=await Console.In.ReadToEndAsync();using var document=JsonDocument.Parse(text);
+    if(document.RootElement.TryGetProperty("Connection",out _))
+    {
+        var operation=JsonSerializer.Deserialize<ZkOperationInput>(text)!;
+        var information=new ZkDeviceInformation(operation.Connection.ExpectedSerial,"fixture-product",null,null,"2026-11-08 10:00:00",0,null,10,100,null,null,null,null,null,operation.AllowClockSet);
+        if(operation.Connection.ExpectedSerial=="wrong-serial")information=information with{Serial="other-device"};
+        if(operation.Connection.ExpectedSerial=="extra-field")Console.WriteLine("{\"State\":\"failed\",\"Secret\":\"must-not-pass\"}");
+        else Console.WriteLine(JsonSerializer.Serialize(new ZkOperationOutput("succeeded",operation.Operation=="information.read"?information:null)));
+        return;
+    }
+    var fixture=JsonSerializer.Deserialize<ZkProbeInput>(text)!;
     switch(fixture.ExpectedSerial)
     {
         case "ok": Console.WriteLine("sdk-serial-matched");break;
@@ -61,4 +71,13 @@ var wrongLayout=PersonnelUsbPreview.Parse(System.Text.Encoding.UTF8.GetBytes("12
 Check(wrongLayout.Lines[0].Status=="layout-mismatch","USB parser never guesses that another five/six-column vendor layout is the reference format");
 bool invalidEncoding=false;try{PersonnelUsbPreview.Parse(new byte[]{255},"gregorian",TimeZoneInfo.Utc,1);}catch(ArgumentException){invalidEncoding=true;}
 Check(invalidEncoding,"USB invalid UTF-8 is rejected rather than silently replacing source bytes");
+var operationInput=new ZkOperationInput(input with{ExpectedSerial="information-ok"},"information.read",null,false);
+var informationResult=await NativeProcessSupervisor.RunOperationAsync(host,fixtureAssembly,operationInput,2);
+Check(informationResult.State=="succeeded"&&informationResult.Information?.Records==0&&informationResult.Information.RecordCapacity is null,"S06 typed IPC distinguishes a reported zero from an unsupported capacity");
+Check((await NativeProcessSupervisor.RunOperationAsync(host,fixtureAssembly,operationInput with{Connection=input with{ExpectedSerial="wrong-serial"}},2)).State=="bridge-failed","S06 supervisor refuses an information response for a different serial pin");
+Check((await NativeProcessSupervisor.RunOperationAsync(host,fixtureAssembly,operationInput with{Connection=input with{ExpectedSerial="extra-field"}},2)).State=="bridge-failed","S06 supervisor rejects unknown output fields instead of persisting arbitrary SDK data");
+Check(!(operationInput with{Operation="door.open"}).IsValid()&&!(operationInput with{Operation="clock.set",ClockLocal="2026-11-08 10:00:00"}).IsValid(),"S06 operation allowlist excludes door controls and clock writes without configuration opt-in");
+var clockInput=operationInput with{Operation="clock.set",ClockLocal="2026-11-08 10:00:00",AllowClockSet=true};
+Check((await NativeProcessSupervisor.RunOperationAsync(host,fixtureAssembly,clockInput,2)).State=="succeeded"&&!(clockInput with{ClockLocal="2026-02-30 10:00:00"}).IsValid(),"S06 clock IPC accepts explicit valid wall-clock seconds and rejects invalid calendar dates");
+Check(!new ZkOperationOutput("succeeded",informationResult.Information! with{Users=-1}).IsValidFor(operationInput)&&!clockInput.ToString().Contains("123456789",StringComparison.Ordinal),"S06 invalid negative counters are rejected and operation text never reveals communication key");
 Console.WriteLine($"PASS {count} portable native-boundary and reference-file parser checks; no real device or SDK acceptance implied");

@@ -188,6 +188,8 @@ public static class IoWebHost
                 permissions = page.AnyPermissions });
         }).AllowAnonymous();
         app.MapGet("/workspace/account", () => Results.Content(Resource("IO.Web.Ui.Account.html"), "text/html; charset=utf-8"));
+        app.MapGet("/workspace/device-information", () => Results.Content(Resource("IO.Web.Ui.DeviceInformation.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/device-information.js", () => Results.Content(Resource("IO.Web.Ui.device-information.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-connection", () => Results.Content(Resource("IO.Web.Ui.DeviceConnection.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/device-connection.js", () => Results.Content(Resource("IO.Web.Ui.device-connection.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-groups", () => Results.Content(Resource("IO.Web.Ui.DeviceGroups.html"), "text/html; charset=utf-8"));
@@ -376,6 +378,14 @@ public static class IoWebHost
             Admin(c,csrf,actor => service.AssignAsync(actor,input.OperationId,input.DelegateUserId,input.ValidFrom,input.ValidUntilExclusive,c.RequestAborted)));
         app.MapPost("/delegations/{id:guid}/revoke", (Guid id,DelegationRevokeInput input,HttpContext c,IAntiforgery csrf,DelegationRegistry service) =>
             Admin(c,csrf,actor => service.RevokeAsync(actor,id,input.Reason,c.RequestAborted)));
+        app.MapGet("/device-operations", (HttpContext c, DeviceOperations service, Guid? deviceId, int offset=0) =>
+            AdminRead(c,actor=>service.ListAsync(actor,deviceId,offset,c.RequestAborted)));
+        app.MapPost("/device-operations", (DeviceOperationInput input,HttpContext c,IAntiforgery csrf,DeviceOperations service) =>
+            Admin(c,csrf,actor=>service.RequestAsync(actor,input.OperationId,input.DeviceId,input.ExpectedDeviceVersion,input.Kind,input.TimeoutSeconds,input.TargetUtc,input.Confirmation,c.RequestAborted)));
+        app.MapPost("/device-operations/{id:guid}/cancel", (Guid id,DeviceOperationVersion input,HttpContext c,IAntiforgery csrf,DeviceOperations service) =>
+            Admin(c,csrf,actor=>service.CancelAsync(actor,id,input.ExpectedVersion,c.RequestAborted)));
+        app.MapPost("/device-operations/{id:guid}/resolve-clock", (Guid id,DeviceClockResolution input,HttpContext c,IAntiforgery csrf,DeviceOperations service) =>
+            Admin(c,csrf,actor=>service.ResolveClockAsync(actor,id,input.ExpectedVersion,input.InformationId,input.Confirmation,c.RequestAborted)));
         app.MapGet("/device-connection", (HttpContext c, DeviceConnections service, Guid? deviceId, int offset = 0) =>
             AdminRead(c, actor => service.ListAsync(actor, deviceId, offset, c.RequestAborted)));
         app.MapPost("/device-connection", (DeviceConnectionInput input, HttpContext c, IAntiforgery csrf, DeviceConnections service) =>
@@ -743,3 +753,7 @@ public sealed record DeviceGroupAssignInput(byte[] ExpectedVersion, [property: S
 
 public sealed record DeviceConnectionInput(Guid OperationId, Guid DeviceId, byte[] ExpectedDeviceVersion, int TimeoutSeconds);
 public sealed record DeviceConnectionCancel(byte[] ExpectedVersion);
+
+public sealed record DeviceOperationInput(Guid OperationId,Guid DeviceId,byte[] ExpectedDeviceVersion,string Kind,int TimeoutSeconds,DateTimeOffset? TargetUtc,string? Confirmation);
+public sealed record DeviceOperationVersion(byte[] ExpectedVersion);
+public sealed record DeviceClockResolution(byte[] ExpectedVersion,Guid InformationId,string Confirmation);

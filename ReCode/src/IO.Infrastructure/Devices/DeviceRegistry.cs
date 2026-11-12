@@ -149,6 +149,8 @@ public sealed class DeviceRegistry(IoDbContext db, PermissionTransaction transac
     private async Task<DeviceRecord> LoadForWrite(Guid id, byte[] version, CancellationToken ct)
     {
         if (version is null || version.Length != 8) throw new ArgumentException("Rowversion required.");
+        await transaction.LockAsync("IO.DeviceConnections",ct);
+        if(await db.DeviceOperations.AnyAsync(x=>x.DeviceId==id&&x.Kind=="clock.set"&&(x.State=="pending"||x.State=="running"||(x.State=="unknown"&&x.ResolvedAtUtc==null)),ct))throw new DomainConflictException("Resolve or cancel clock work before changing device identity, credentials or version.");
         var device = await db.Devices.AsTracking().SingleOrDefaultAsync(d => d.Id == id, ct) ?? throw new ArgumentException("Unknown device.");
         if (!device.Version.SequenceEqual(version)) throw new DomainConflictException("Stale version.");
         db.Entry(device).Property(d => d.Version).OriginalValue = version;

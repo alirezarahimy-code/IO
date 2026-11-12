@@ -71,6 +71,8 @@ public sealed class DeviceGroups(IoDbContext db, PermissionTransaction transacti
             Version(expectedVersion);
             if(groupId==Guid.Empty)throw new ArgumentException("Empty group id.");
             await transaction.LockAsync("IO.DeviceRegistry",token);
+            await transaction.LockAsync("IO.DeviceConnections",token);
+            if(await db.DeviceOperations.AnyAsync(x=>x.DeviceId==deviceId&&x.Kind=="clock.set"&&(x.State=="pending"||x.State=="running"||(x.State=="unknown"&&x.ResolvedAtUtc==null)),token))throw new DomainConflictException("Resolve or cancel clock work before changing device version.");
             var device=await db.Devices.AsTracking().SingleOrDefaultAsync(d=>d.Id==deviceId,token)??throw new ArgumentException("Unknown device.");
             if(!device.Version.SequenceEqual(expectedVersion))throw new DomainConflictException("Stale device version.");
             if(groupId is not null)

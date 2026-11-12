@@ -33,6 +33,7 @@ public static class WorkspaceCatalog
         new("/workspace/shifts", "برنامه‌ریزی | سامانهٔ حضور", "admin", "Scheduling.html", ["schedule.manage", "schedule.catalog.read"]),
         new("/workspace/schedules", "برنامه‌ریزی | سامانهٔ حضور", "admin", "Scheduling.html", ["schedule.manage", "schedule.catalog.read"]),
         new("/workspace/employee-history", "برنامه‌ریزی | سامانهٔ حضور", "admin", "Scheduling.html", ["schedule.manage", "schedule.catalog.read"]),
+        new("/workspace/device-information", "مشخصات و ساعت دستگاه", "operator", "DeviceInformation.html", ["devices.info.read", "devices.clock.set"]),
         new("/workspace/device-connection", "تست و تاریخچهٔ ارتباط دستگاه", "operator", "DeviceConnection.html", ["devices.connection.read", "devices.connection.test"]),
         new("/workspace/device-groups", "گروه‌بندی درختی دستگاه‌ها", "operator", "DeviceGroups.html", ["devices.groups.read", "devices.groups.manage"]),
         new("/workspace/devices", "مدیریت دستگاه‌های تردد", "operator", "Devices.html", ["devices.read", "devices.create", "devices.update", "devices.credentials.manage", "devices.groups.assign"]),

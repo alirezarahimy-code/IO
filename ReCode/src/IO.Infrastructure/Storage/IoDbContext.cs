@@ -5,6 +5,7 @@ namespace IO.Infrastructure.Storage;
 /// <summary>Initial SQL Server schema only; no automatic migration at application startup.</summary>
 public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbContext(options)
 {
+    public DbSet<DeviceOperationRecord> DeviceOperations => Set<DeviceOperationRecord>();
     public DbSet<DeviceConnectionRecord> DeviceConnections => Set<DeviceConnectionRecord>();
     public DbSet<OrganizationRecord> Organizations => Set<OrganizationRecord>();
     public DbSet<CompanyRecord> Companies => Set<CompanyRecord>();
@@ -60,6 +61,28 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
 
     protected override void OnModelCreating(ModelBuilder model)
     {
+        model.Entity<DeviceOperationRecord>(b =>
+        {
+            b.ToTable("DeviceOperations",t=>
+            {
+                t.HasTrigger("TR_DeviceOperations_History");t.UseSqlOutputClause(false);
+                t.HasCheckConstraint("CK_DeviceOperations_Request","DATALENGTH([ExpectedDeviceVersion])=8 AND [TimeoutSeconds] BETWEEN 1 AND 60 AND (([Kind]=N'information.read' AND [TargetUtc] IS NULL) OR ([Kind]=N'clock.set' AND [TargetUtc] IS NOT NULL AND DATEPART(TZOFFSET,[TargetUtc])=0 AND DATEPART(NANOSECOND,[TargetUtc])=0))");
+                t.HasCheckConstraint("CK_DeviceOperations_State","[State] COLLATE Latin1_General_100_BIN2 IN (N'pending',N'running',N'succeeded',N'failed',N'unsupported',N'unknown',N'interrupted',N'timed-out',N'identity-mismatch',N'credential-unavailable',N'bridge-failed',N'endpoint-denied',N'cancelled',N'revoked',N'device-changed',N'expired')");
+                t.HasCheckConstraint("CK_DeviceOperations_Lifecycle","(([State]=N'pending' AND [ClaimId] IS NULL AND [ServiceUserId] IS NULL AND [ClaimedAtUtc] IS NULL AND [FinishedAtUtc] IS NULL) OR ([State]=N'running' AND [ClaimId] IS NOT NULL AND [ServiceUserId] IS NOT NULL AND [ClaimedAtUtc] IS NOT NULL AND [FinishedAtUtc] IS NULL) OR ([State] IN (N'cancelled',N'revoked',N'device-changed',N'expired') AND [FinishedAtUtc] IS NOT NULL AND [ClaimId] IS NULL AND [ServiceUserId] IS NULL AND [ClaimedAtUtc] IS NULL) OR ([State] NOT IN (N'pending',N'running',N'cancelled',N'revoked',N'device-changed',N'expired') AND [FinishedAtUtc] IS NOT NULL AND [ClaimId] IS NOT NULL AND [ServiceUserId] IS NOT NULL AND [ClaimedAtUtc] IS NOT NULL AND [FinishedAtUtc]>=[ClaimedAtUtc])) AND DATEPART(TZOFFSET,[RequestedAtUtc])=0 AND DATEPART(TZOFFSET,[ClaimedAtUtc])=0 AND DATEPART(TZOFFSET,[FinishedAtUtc])=0 AND ([ClaimedAtUtc] IS NULL OR [ClaimedAtUtc]>=[RequestedAtUtc]) AND ([FinishedAtUtc] IS NULL OR [FinishedAtUtc]>=[RequestedAtUtc])");
+                t.HasCheckConstraint("CK_DeviceOperations_Result","([ResultJson] IS NULL OR ([Kind]=N'information.read' AND [State]=N'succeeded' AND ISJSON([ResultJson])=1 AND DATALENGTH([ResultJson])<=8192)) AND ([Kind]<>N'information.read' OR [State]<>N'succeeded' OR [ResultJson] IS NOT NULL)");
+                t.HasCheckConstraint("CK_DeviceOperations_Resolution","([ResolutionInfoId] IS NULL AND [ResolvedAtUtc] IS NULL AND [ResolvedByUserId] IS NULL) OR ([Kind]=N'clock.set' AND [State]=N'unknown' AND [ResolutionInfoId] IS NOT NULL AND [ResolutionInfoId]<>[Id] AND [ResolvedByUserId] IS NOT NULL AND [ResolvedAtUtc] IS NOT NULL AND DATEPART(TZOFFSET,[ResolvedAtUtc])=0 AND [ResolvedAtUtc]>=[FinishedAtUtc])");
+            });
+            b.HasKey(x=>x.Id);b.Property(x=>x.Id).ValueGeneratedNever();b.Property(x=>x.Version).IsRowVersion();
+            b.Property(x=>x.Kind).HasMaxLength(40).IsRequired();b.Property(x=>x.State).HasMaxLength(32).IsRequired();b.Property(x=>x.TimeZoneId).HasMaxLength(100).IsRequired();
+            b.Property(x=>x.ExpectedDeviceVersion).HasMaxLength(8).IsRequired();b.Property(x=>x.ResultJson).HasMaxLength(4096);
+            b.HasIndex(x=>x.DeviceId).IsUnique().HasFilter("[State] IN (N'pending', N'running')");b.HasIndex(x=>new{x.DeviceId,x.RequestedAtUtc});
+            b.HasIndex(x=>x.RequestedByUserId);b.HasIndex(x=>x.ServiceUserId);b.HasIndex(x=>x.ResolvedByUserId);b.HasIndex(x=>x.ResolutionInfoId);
+            b.HasOne<DeviceRecord>().WithMany().HasForeignKey(x=>x.DeviceId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.RequestedByUserId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.ServiceUserId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.ResolvedByUserId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<DeviceOperationRecord>().WithMany().HasForeignKey(x=>x.ResolutionInfoId).OnDelete(DeleteBehavior.Restrict);
+        });
         model.Entity<DeviceConnectionRecord>(b =>
         {
             b.ToTable("DeviceConnections", t =>

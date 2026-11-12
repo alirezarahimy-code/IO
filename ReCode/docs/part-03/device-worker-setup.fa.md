@@ -36,3 +36,7 @@
 - برای web و worker، `IO__DataProtection__KeyRingPath` و `IO__DataProtection__ApplicationName` را **یکسان و صریح** تنظیم کنید. مسیر باید موجود، absolute، ACLدار و دارای پشتیبان باشد. worker کلید تازه ایجاد نمی‌کند. تغییر identity/default discriminator در نصب دارای ciphertext قبلی بدون برنامهٔ migration آن رمزها را ناخوانا می‌کند؛ کلید/identity موجود را حفظ یا با مجوز رمزها را دوباره تنظیم کنید. این تنظیم opt-in است و رفتار پیش‌فرض نصب قدیمی را خودکار تغییر نمی‌دهد. حفاظت at-rest/ACL/key escrow خودکار تضمین نمی‌شود.
 - فقط Windows اجازهٔ اجرای COM دارد؛ Linux وضعیت unsupported می‌گیرد و کنترل native را در process وب بار نمی‌کند. برای هستهٔ Linux و worker Windows، این نسخه اتصال مستقیم SQL رمز‌شدهٔ صریح دارد؛ تأیید نصب عملیاتی چنین ترکیبی هنوز باقی است.
 - `sdk-unavailable`: SDK/COM/معماری یا فراخوانی نامعتبر؛ `sdk-identity-mismatch`: سریال پاسخ با pin نمی‌خواند؛ `credential-unavailable`: کلید/نسخه/مجوز/key ring معتبر نیست. `sdk-serial-matched` احراز هویت رمزنگاری‌شده نیست و به معنای تکمیل S06..S12 نیست. در timeout فرایند child terminate می‌شود؛ هیچ retry خودکار وجود ندارد.
+
+## عملیات S06 (پیش‌فرض خاموش)
+
+برای مشخصات/ظرفیت/ساعت، [راهنمای S06](s06-information-clock.fa.md) را بخوانید. `IO:DeviceWorker:EnableOperations=true` و grant مستقل `devices.operations.execute` لازم است. `AllowClockSet` روی NativeEndpoint پیش‌فرض false است؛ فقط پس از آزمون مدل در آزمایشگاه روشن شود. `devices.clock.set` مستقل از خواندن و حقوق سرویس است؛ timeout نوشتن unknown است و replay خودکار ندارد.

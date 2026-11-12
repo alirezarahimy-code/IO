@@ -29,6 +29,7 @@ public sealed class DeviceConnections(IoDbContext db, PermissionTransaction tran
             if (!device.Enabled || !device.Version.SequenceEqual(expectedDeviceVersion)) throw new DomainConflictException("Disabled or changed device; refresh.");
             if (await db.DeviceConnections.AnyAsync(x => x.DeviceId == deviceId && (x.State == "pending" || x.State == "running"), token))
                 throw new DomainConflictException("This device already has an unfinished diagnostic.");
+            if(await db.DeviceOperations.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device has an unfinished operation.");
             db.DeviceConnections.Add(new() { Id = operationId, DeviceId = deviceId, RequestedByUserId = actor,
                 RequestedAtUtc = clock.GetUtcNow(), ExpectedDeviceVersion = expectedDeviceVersion.ToArray(), TimeoutSeconds = timeoutSeconds });
             return (operationId, operationId);
