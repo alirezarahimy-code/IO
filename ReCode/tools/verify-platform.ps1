@@ -37,8 +37,13 @@ try {
 
     }
     if ($IsLinux -and $env:GITHUB_ACTIONS -eq 'true') {
-        & bash (Join-Path $PSScriptRoot 'test-worker-linux-service.sh') --allow-isolated-ci-installation (Join-Path $publish 'device-worker') (Get-Command dotnet -CommandType Application).Source
-        if ($LASTEXITCODE -ne 0) { throw 'Actual Linux systemd worker lifecycle smoke failed.' }
+        & bash (Join-Path $PSScriptRoot 'test-worker-linux-service.sh') --allow-isolated-ci-installation (Join-Path $publish 'device-worker') (Get-Command dotnet -CommandType Application).Source 2>&1 | Tee-Object -Variable linuxLifecycleOutput
+        if ($LASTEXITCODE -ne 0) {
+            $diagnostic = Join-Path $publish 'linux-service-smoke.log'
+            $linuxLifecycleOutput | Set-Content -LiteralPath $diagnostic -Encoding utf8NoBOM
+            & python3 (Join-Path $PSScriptRoot 'phase03-annotate-error.py') $diagnostic 'Linux service lifecycle failure'
+            throw 'Actual Linux systemd worker lifecycle smoke failed.'
+        }
     }
     # Smoke the actual published web executable on this OS, not an HTML mock.
     $env:IO__EnableExperimentalIdentity = 'false'

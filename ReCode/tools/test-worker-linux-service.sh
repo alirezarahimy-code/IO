@@ -19,6 +19,7 @@ created_user=0; created_directory=0; created_unit=0
 cleanup() {
     status=$?; trap - EXIT; set +e
     if [[ $created_unit == 1 ]]; then
+        if [[ $status != 0 ]]; then sudo -n journalctl -u "$unit" -n 30 --no-pager >&2; fi
         sudo -n systemctl stop "$unit" || status=1
         sudo -n rm -- "$unit_path" || status=1
         sudo -n systemctl daemon-reload || status=1
@@ -53,7 +54,7 @@ PY
 sudo -n systemctl daemon-reload
 sudo -n systemctl start "$unit"
 sleep 3
-sudo -n systemctl is-active --quiet "$unit"
+sudo -n systemctl is-active "$unit"
 [[ $(sudo -n systemctl show "$unit" -p User --value) == "$name" ]]
 [[ $(sudo -n systemctl show "$unit" -p MainPID --value) -gt 0 ]]
 sudo -n systemctl stop "$unit"
