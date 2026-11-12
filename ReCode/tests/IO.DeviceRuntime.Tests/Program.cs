@@ -104,4 +104,13 @@ Check((await NativeUserReadSupervisor.RunAsync(host,fixtureAssembly,usersInput w
 Check((await NativeUserReadSupervisor.RunAsync(host,fixtureAssembly,usersInput with{AllowUserRead=false},2,Accept)).State=="unsupported", "S07 SSR user reading requires explicit per-endpoint installation opt-in");
 Check((await NativeUserReadSupervisor.RunAsync(host,fixtureAssembly,usersInput with{Connection=input with{ExpectedSerial="users-hang"}},1,Accept)).State=="timed-out", "S07 a hung enumeration has an external process deadline");
 Check(!new ZkUser(" 01","n",null,0,true).IsValid()&&!new ZkUser("01","n",null,9,true).IsValid()&&!usersInput.ToString().Contains("123456789",StringComparison.Ordinal)&&!received[0].ToString().Contains("00000",StringComparison.Ordinal), "S07 malformed identifiers and privilege values fail closed and personal data is redacted from text");
+var rowBudgetLine="1\t2026-11-08 08:00:00\t1\t0\t1";
+var withinBudget=string.Join('\n',Enumerable.Repeat(rowBudgetLine,10000));
+bool BudgetRejected(string value){try{PersonnelUsbPreview.Parse(System.Text.Encoding.UTF8.GetBytes(value),"gregorian",TimeZoneInfo.Utc,1);return false;}catch(ArgumentException){return true;}}
+Check(PersonnelUsbPreview.Parse(System.Text.Encoding.UTF8.GetBytes(withinBudget),"gregorian",TimeZoneInfo.Utc,1).Lines.Count==10000&&PersonnelUsbPreview.Parse(System.Text.Encoding.UTF8.GetBytes(withinBudget+"\n"),"gregorian",TimeZoneInfo.Utc,1).Lines.Count==10000&&BudgetRejected(withinBudget+"\n"+rowBudgetLine)&&BudgetRejected(withinBudget+"\n"+rowBudgetLine+"\n"),"S12 the 10000-row preview budget is independent of whether the last line has a terminator");
+var minZone=TimeZoneInfo.CreateCustomTimeZone("fixture-plus-fourteen",TimeSpan.FromHours(14),"fixture","fixture");
+var maxZone=TimeZoneInfo.CreateCustomTimeZone("fixture-minus-twelve",TimeSpan.FromHours(-12),"fixture","fixture");
+var early=PersonnelUsbPreview.Parse(System.Text.Encoding.UTF8.GetBytes("1\t0001-01-01 00:00:00\t1\t0\t1"),"gregorian",minZone,1).Lines[0];
+var late=PersonnelUsbPreview.Parse(System.Text.Encoding.UTF8.GetBytes("1\t9999-12-31 23:59:59\t1\t0\t1"),"gregorian",maxZone,1).Lines[0];
+Check(early.Status=="invalid-time"&&late.Status=="invalid-time"&&early.OccurredAtUtc is null&&late.OccurredAtUtc is null,"S12 UTC underflow and overflow stay quarantined instead of silently clamping source time to date limits");
 Console.WriteLine($"PASS {count} portable native-boundary and reference-file parser checks; no real device or SDK acceptance implied");

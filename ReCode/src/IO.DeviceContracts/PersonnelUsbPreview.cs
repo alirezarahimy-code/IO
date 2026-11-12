@@ -28,7 +28,10 @@ public static class PersonnelUsbPreview
         catch (DecoderFallbackException) { throw new ArgumentException("Only strict UTF-8 is supported; select another verified decoder before importing."); }
         if (text.StartsWith('\uFEFF')) text = text[1..];
         var lines = text.Replace("\r\n","\n",StringComparison.Ordinal).Split('\n');
-        if (lines.Length > 10001) throw new ArgumentException("File exceeds the preview row budget.");
+        // A final terminator is not an extra row. Without it, 10001 split parts
+        // are 10001 actual rows and must not sneak past the 10000-row budget.
+        var rowCount=lines.Length-(lines[^1].Length==0?1:0);
+        if (rowCount > 10000) throw new ArgumentException("File exceeds the preview row budget.");
         var result = new List<UsbPreviewLine>(); var seen = new HashSet<string>(StringComparer.Ordinal);
         for (var n=0;n<lines.Length;n++)
         {
@@ -61,8 +64,12 @@ public static class PersonnelUsbPreview
             var state=machine!=expectedMachineNumber?"machine-mismatch":zone.IsInvalidTime(local)?"invalid-local-time":zone.IsAmbiguousTime(local)?"ambiguous-local-time":"parsed-requires-mapping-review";
             if(state=="parsed-requires-mapping-review")
             {
-                utc=new DateTimeOffset(TimeZoneInfo.ConvertTimeToUtc(local,zone));
-                if(!seen.Add(hash))state="duplicate-in-file-requires-review";
+                // ConvertTimeToUtc silently clamps dates outside DateTime's UTC range.
+                // DateTimeOffset instead rejects overflow: never turn an unrepresentable
+                // wall clock into a different physical event at MinValue/MaxValue.
+                try { utc=new DateTimeOffset(local,zone.GetUtcOffset(local)).ToUniversalTime(); }
+                catch(ArgumentException) { state="invalid-time"; }
+                if(utc is not null&&!seen.Add(hash))state="duplicate-in-file-requires-review";
             }
             // Every repeated row is retained; a content hash is NOT declared a device-native event id.
             result.Add(new(n+1,fields[0],utc,machine,check,verify,state,hash,raw));
