@@ -7,15 +7,15 @@
     "exactModelFirmware": "not supplied",
     "realDeviceExecution": "not performed"
   },
-  "latestVerifiedCode": "e3c751f058b754005abccd44ba5b217ae6adf42e",
+  "latestVerifiedCode": "12db64abb159fa122bee621afd5ecfff1662e28c",
   "checks": {
-    "integrationPassLines": 618,
-    "foundation": 46,
+    "integrationPassLines": 638,
+    "foundation": 47,
     "domain": 26,
-    "portableNativeBoundaryAndFileParser": 55,
-    "permissions": 110,
-    "pagesAndHelp": 50,
-    "foundationMigrations": 33,
+    "portableNativeBoundaryAndFileParser": 61,
+    "permissions": 112,
+    "pagesAndHelp": 51,
+    "foundationMigrations": 34,
     "foundationTables": 59,
     "s08ServiceChecks": 14,
     "s08HttpChecks": 5,
@@ -25,7 +25,9 @@
     "s10ServiceChecks": 20,
     "s10HttpChecks": 5,
     "s11ServiceChecks": 15,
-    "s11HttpChecks": 4
+    "s11HttpChecks": 4,
+    "s11SettingsServiceChecks": 16,
+    "s11SettingsHttpChecks": 4
   },
   "stages": {
     "S04": "accepted registry and metadata groups",
@@ -35,33 +37,34 @@
     "S08": "partial: ordinary attendance-only software candidate verified in SQL/HTTPS/real browser and Windows/Linux CI: actual server preview and confirmed plan hash; per-person/device intents and partial outcomes; target conflict guard, transient existing-password preservation, exact retry, pending-only cancellation, unknown recovery and explicit fresh-snapshot review before selective retry. No templates/biometrics, admin or AccGroup/physical door writes. Real SDK/model round-trip acceptance remains.",
     "S09": "partial: software candidate verified in SQL/HTTPS/real browser and Windows/Linux CI. Serial-pinned isolated SSR all-log stream, exact typed tuples before explicit UTC interval filtering, immutable original payload and multiplicity receipts, retained invalid/unknown/outside-range quarantine, confirmed versioned page ingestion through existing raw/conflict core, repeated-download content-identity coalescence and explicit restart/partial recovery. No native physical event id or atomic snapshot proof; actual SDK/model/end-to-end hardware acceptance remains.",
     "S10": "partial: approved durable SSR polling software verified in SQL/HTTPS/real browser and Windows/Linux CI. Immutable target config, one enabled schedule per DeviceId, real run/download links, bounded lag/window/cursor, explicit optional raw ingestion under current creator authority, versioned pause/resume, durable read-only backoff and no cursor advancement over partial reads. Authenticated vendor PUSH protocol/replay/size-rate security and real model/SDK acceptance remain unimplemented/unverified.",
-    "S11": "partial: actual SQL command history across five typed queues and explicitly confirmed read-only retry component verified in SQL/HTTPS/real browser and Windows/Linux CI. Real new intents, immutable FK-backed parent-child lineage, current independent history/retry/typed-read server grants, exact uncertain replay, no native write retries and preserved S06/S08 unknown review gates. Advanced settings and RemoteEnroll executors remain unimplemented; model/firmware, setting contract and biometric consent/access/retention policy are not verified.",
+    "S11": "partial: SQL history and explicitly confirmed read-only retry plus six fixed GetDeviceInfo advanced-settings reads verified in SQL/HTTPS/real browser and Windows/Linux CI. Settings snapshots preserve exact signed/null Int32 under independent human and additional service grants, serial pinning and default-off installation gates. Generic retry excludes settings.read. Setting writes, RemoteEnroll, verified model/firmware and biometric consent/access/retention policy remain unimplemented/unverified.",
     "S12": "partial: file-import software verified in CI, exact original bytes, explicit interpretation, retained quarantine, confirmed transactional raw/conflict receipts; row budget and UTC overflow fixed. Windows SCM lifetime and manual-start virtual-account installer (read-only validation in CI), Linux systemd template prepared; actual OS installation and multi-device SDK/hardware acceptance remain"
   },
   "hardwareVerified": false,
   "part3Complete": false,
   "runs": [
     {
-      "databaseId": 43232418581,
-      "headSha": "e3c751f058b754005abccd44ba5b217ae6adf42e",
+      "databaseId": 43235930669,
+      "headSha": "12db64abb159fa122bee621afd5ecfff1662e28c",
       "status": "completed",
       "conclusion": "success",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43232418581"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43235930669"
     },
     {
-      "databaseId": 43232418391,
-      "headSha": "e3c751f058b754005abccd44ba5b217ae6adf42e",
+      "databaseId": 43235930789,
+      "headSha": "12db64abb159fa122bee621afd5ecfff1662e28c",
       "status": "completed",
       "conclusion": "success",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43232418391"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43235930789"
     }
   ],
   "remainingSoftware": [
     "S10 authenticated supported-model vendor PUSH with cryptographic device authentication/replay/size-rate/congestion/recovery security contract. Polling is not PUSH.",
-    "S06/S11 additional approved-model advanced setting read/write contracts, separate sensitive grants and confirmed audited execution. Current supported native write is the existing explicitly gated clock setting and ordinary attendance-only user exchange.",
+    "S06/S11 approved-model advanced setting write contracts and additional reads outside the six fixed observed GetDeviceInfo codes, separate sensitive grants and confirmed audited execution. Six raw nullable Int32 reads are implemented; units/ranges/model compatibility are not inferred. Existing gated native writes remain clock and ordinary attendance-only user exchange.",
     "S11 RemoteEnroll only after approved model contract and biometric consent/access/retention policy; no executable adapter enabled."
   ],
   "realSdkExecuted": false,
   "windowsServiceInstalled": false,
-  "linuxServiceInstalled": false
+  "linuxServiceInstalled": false,
+  "settingsReadEvidence": "s11-settings-read-evidence.json"
 }

@@ -27,3 +27,6 @@
 PUSH امنِ مدل تأییدشده هنوز پیاده نشده است؛ serial pin احراز هویت رمزنگاری‌شده نیست. `GetDeviceAdvancedOptions/SetDeviceInfo/StartEnrollEx` در باینری فقط‌خواندنی مشاهده شدند، ولی واحد/دامنهٔ مقدار، مدل/firmware و سیاست بیومتریک تأیید نشده‌اند؛ اجرایی کردن آن‌ها از روی حدس مجاز نیست و adapter تنظیمات پیشرفته/RemoteEnroll هنوز ساخته نشده است. [شاهد hashدار مرجع](../part-03/zk-reference-contract.json).
 
 هیچ SDK/دستگاه واقعی اجرا نشده، نصب واقعی Windows/Linux سرویس انجام نشده و سناریوی واقعی چند دستگاه/قطعی/دریافت تکراری/تبادل کاربران/تنظیمات S12 همچنان باز است. `realSdkExecuted=false`, `hardwareVerified=false`, `part3Complete=false`. کنترل درب و payroll خارج دامنه‌اند؛ simulator کافی نیست.
+
+
+ادامهٔ بعدی: [گزارش 152 — snapshot خواندنی شش تنظیم پیشرفته](152-s11-settings-read.md) با حق مستقل و CI موفق؛ اعداد بالا خط مبنای تاریخی این برش‌اند. نوشتن تنظیمات و RemoteEnroll همچنان پیاده نشده‌اند.

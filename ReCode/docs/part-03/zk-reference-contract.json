@@ -70,7 +70,7 @@
       "method": "GetDeviceAdvancedOptions; SetRepeatTime; SetSleepTime; SetCardReg; Get/SetMifareSector; Get/SetOneToOne; Get/SetOneToN",
       "contract": "GetDeviceInfo and SetDeviceInfo(machine,code,value): 25 OneToOne, 23 OneToN, 8 RepeatTime, 4 SleepTime, 30 RegCard, 62 MifareSector. IZKEM static metadata GetDeviceInfo DispId 12, SetDeviceInfo DispId 13.",
       "bodyObserved": true,
-      "limit": "Read-only decompilation of the recorded binary, not original source. No approved actual model, firmware, parameter range, unit or setting-side-effect evidence. New executable advanced-setting adapter is not implemented; do not infer native support from metadata."
+      "limit": "Read-only decompilation of the recorded binary, not original source. Six fixed GetDeviceInfo codes now have a default-off read-only executor with exact nullable Int32 values; no approved actual model, firmware, parameter range, unit, atomic snapshot or setting-side-effect evidence. No SetDeviceInfo executor; metadata is not native support proof."
     },
     {
       "type": "Personnel.ZK.ZKDevice",
@@ -80,7 +80,7 @@
       "limit": "Biometric/sensitive operation; no new executor or arbitrary passthrough enabled. Model/firmware, supported finger indices, meaning of Flag, consent/access/retention policy and real hardware behavior remain unverified. Reference long badge normalization must not be copied into exact-identity IO APIs."
     }
   ],
-  "implementation": "Independent private STA COM bridge for serial probe, typed information/clock, SSR user reads and gated ordinary attendance-only user writes; no copied Personnel business/licensing logic, access group setter, door command, admin escalation, biometric/template/photo/delete API or automatic SDK registration. Actual SDK/model acceptance remains.",
+  "implementation": "Independent private STA COM bridge for serial probe, typed information/clock, SSR user and attendance reads, six fixed raw nullable Int32 advanced-setting reads and gated ordinary attendance-only user writes; no copied Personnel business/licensing logic, SetDeviceInfo, access group setter, door command, admin escalation, RemoteEnroll, biometric/template/photo/delete API or automatic SDK registration. Actual SDK/model acceptance remains.",
   "hardwareVerified": false,
   "part3Complete": false
 }

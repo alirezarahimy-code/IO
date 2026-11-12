@@ -22,8 +22,11 @@
 
 `clock.set` یا ارسال کاربر حتی با حق کامل history/retry از این صفحه قابل تکرار نیستند. نتیجهٔ unknown باید با snapshot تازهٔ همان دستگاه و مسیر review صریح S06/S08 بررسی شود؛ retry انتخابی ارسال کاربر، preview/نسخه/hash و حقوق خودش را دارد. پاکسازی/reset/restart/درب یا arbitrary native passthrough ساخته نشده است.
 
-در [شاهد hashدار مرجع](zk-reference-contract.json)، بدنهٔ فقط‌خواندنی `Personnel.ZK.ZKDevice` این قراردادها دیده شدند: `GetDeviceAdvancedOptions` از `GetDeviceInfo` با کدهای 25/23/8/4/30، تنظیمات متناظر `SetDeviceInfo`، و `RemoteEnroll` با `StartEnrollEx(badgeNumber.ToString(), fingerIndex, 1)`. این‌ها **بدنهٔ decompile باینری** هستند، نه سورس اصلی یا اثبات سازگاری مدل. دامنهٔ مقدار/واحد/تأثیر تنظیمات و تأیید مدل واقعی هنوز موجود نیست. RemoteEnroll داده/عملیات بیومتریک است؛ بدون سیاست مصوب دسترسی، رضایت و نگهداری فعال نمی‌شود. بنابراین **adapter تنظیمات پیشرفته و RemoteEnroll هنوز پیاده‌سازی اجرایی نشده‌اند**؛ وجود تاریخچهٔ جدید پایان S11 نیست. payroll و کنترل درب همچنان خارج دامنه‌اند.
+در [شاهد hashدار مرجع](zk-reference-contract.json)، بدنهٔ فقط‌خواندنی `Personnel.ZK.ZKDevice` این قراردادها دیده شدند: `GetDeviceAdvancedOptions` از `GetDeviceInfo` با کدهای 25/23/8/4/30، تنظیمات متناظر `SetDeviceInfo`، و `RemoteEnroll` با `StartEnrollEx(badgeNumber.ToString(), fingerIndex, 1)`. این‌ها **بدنهٔ decompile باینری** هستند، نه سورس اصلی یا اثبات سازگاری مدل. دامنهٔ مقدار/واحد/تأثیر تنظیمات و تأیید مدل واقعی هنوز موجود نیست. RemoteEnroll داده/عملیات بیومتریک است؛ بدون سیاست مصوب دسترسی، رضایت و نگهداری فعال نمی‌شود. بنابراین **adapter نوشتن تنظیمات پیشرفته و RemoteEnroll هنوز پیاده‌سازی اجرایی نشده‌اند**؛ وجود تاریخچهٔ جدید پایان S11 نیست. payroll و کنترل درب همچنان خارج دامنه‌اند.
 
 ## پذیرش
 
 [شاهد جزء نرم‌افزاری](s11-component-evidence.json) باید CI موفق روی کد دقیق را نشان دهد؛ تعداد تست، تاریخچهٔ SQL، HTTP grant/revoke، مرورگر و DOM جای تست SDK/مدل واقعی را نمی‌گیرد. مدل/firmware و پذیرش واقعی چنددستگاه/قطعی/تبادل/تنظیمات S12 همچنان باز است.
+
+
+ادامهٔ خواندنی: [snapshot شش تنظیم پیشرفته](s11-settings-read.fa.md) با حق مستقل و raw nullable Int32 ساخته شده است؛ تاریخچهٔ اطلاعات عادی payload آن را نشان نمی‌دهد و retry عمومی settings.read را فعلاً نمی‌پذیرد. این افزودن، نوشتن تنظیمات یا RemoteEnroll را فعال نمی‌کند.
