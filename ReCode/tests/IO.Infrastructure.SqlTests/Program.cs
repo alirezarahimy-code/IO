@@ -58,7 +58,7 @@ var unitId = Guid.NewGuid(); var otherUnitId = Guid.NewGuid(); var employeeId = 
 var sourceId = Guid.NewGuid(); var otherSourceId = Guid.NewGuid();
 string[] expectedTables = ["Organizations", "Companies", "Sites", "OrgUnits", "Employees", "EmployeeAssignments",
     "Users", "Roles", "Permissions", "UserRoles", "RolePermissions", "UserOrgScopes", "EventSources", "RawAttendanceEvents",
-    "Calendars", "CalendarDays", "ShiftDefinitions", "WorkScheduleAssignments", "EmploymentProfiles", "EmployeeSiteAssignments", "SourceEmployeeMappings", "RawEventConflicts", "ObservedRuleVersions", "DailyCalculationRuns", "CorrectionPolicies", "CorrectionRequests", "CorrectionDecisions", "PeriodDrafts", "RawConflictNotes", "SourceMappingChanges", "CalculationInputRevision", "PeriodDiagnostics", "LeaveTypes", "LeaveLedgerEntries", "Delegations", "DelegationRevocations", "CorrectionSettings", "CorrectionDelegationGrants", "DelegatedCorrectionDecisions", "LeaveRequests", "LeaveDecisions", "Notifications", "CorrectionDecisionReversals", "LeaveDecisionReversals", "Devices", "DeviceSecrets", "DeviceGroups", "DeviceConnections", "DeviceOperations", "DeviceUserDownloads", "DeviceDownloadedUsers", "DeviceFileImports", "DeviceFileImportLines", "DeviceUserUploads", "DeviceAttendanceDownloads", "DeviceAttendanceRows", "DevicePollSchedules", "DevicePollRuns"];
+    "Calendars", "CalendarDays", "ShiftDefinitions", "WorkScheduleAssignments", "EmploymentProfiles", "EmployeeSiteAssignments", "SourceEmployeeMappings", "RawEventConflicts", "ObservedRuleVersions", "DailyCalculationRuns", "CorrectionPolicies", "CorrectionRequests", "CorrectionDecisions", "PeriodDrafts", "RawConflictNotes", "SourceMappingChanges", "CalculationInputRevision", "PeriodDiagnostics", "LeaveTypes", "LeaveLedgerEntries", "Delegations", "DelegationRevocations", "CorrectionSettings", "CorrectionDelegationGrants", "DelegatedCorrectionDecisions", "LeaveRequests", "LeaveDecisions", "Notifications", "CorrectionDecisionReversals", "LeaveDecisionReversals", "Devices", "DeviceSecrets", "DeviceGroups", "DeviceConnections", "DeviceOperations", "DeviceUserDownloads", "DeviceDownloadedUsers", "DeviceFileImports", "DeviceFileImportLines", "DeviceUserUploads", "DeviceAttendanceDownloads", "DeviceAttendanceRows", "DevicePollSchedules", "DevicePollRuns", "DeviceCommandRetries"];
 try
 {
     await using (var db = NewDb())
@@ -76,10 +76,10 @@ try
         Check(!db.Database.HasPendingModelChanges(), "model matches migration snapshot");
         await db.Database.MigrateAsync();
         await db.Database.MigrateAsync();
-        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 32, "foundation and thirty-one later migrations applied idempotently");
+        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 33, "foundation and thirty-two later migrations applied idempotently");
         var created = 0;
         foreach (var table in expectedTables) if (await HasTable(table)) created++;
-        Check(created == expectedTables.Length, "all 58 foundation and later tables created");
+        Check(created == expectedTables.Length, "all 59 foundation and later tables created");
         // Upgrade an existing settings row across the limits migration, not only an empty database.
         var legacyOrg=Guid.NewGuid(); var legacyCompany=Guid.NewGuid(); var legacyUser=Guid.NewGuid(); var legacySetting=Guid.NewGuid();
         var migrator=db.GetService<IMigrator>();
@@ -295,12 +295,12 @@ try
         await migrator.MigrateAsync("0");
         var remaining = 0;
         foreach (var table in expectedTables) if (await HasTable(table)) remaining++;
-        Check(remaining == 0, "rollback removed all 58 foundation and later tables");
+        Check(remaining == 0, "rollback removed all 59 foundation and later tables");
         await migrator.MigrateAsync();
         var recreated = 0;
         foreach (var table in expectedTables) if (await HasTable(table)) recreated++;
-        Check(recreated == expectedTables.Length, "migrations recreated all 58 foundation and later tables");
-        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 32, "migration history restored");
+        Check(recreated == expectedTables.Length, "migrations recreated all 59 foundation and later tables");
+        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 33, "migration history restored");
     }
     // Independent Identity schema and bootstrap: the foundation DB was just
     // recreated empty above. Never run this against non-disposable data.
@@ -370,6 +370,7 @@ try
     await DeviceUserUploadTests.RunAsync(connection, Check);
     await DeviceAttendanceDownloadTests.RunAsync(connection, Check);
     await DevicePollScheduleTests.RunAsync(connection, Check);
+    await DeviceCommandTests.RunAsync(connection, Check);
     await HttpSecurityTests.RunAsync(connection, Check);
     await OrganizationServiceTests.RunAsync(connection, Check);
     await SchedulingServiceTests.RunAsync(connection, Check);

@@ -17,6 +17,7 @@ public sealed class DeviceAttendanceDownloads(IoDbContext db,PermissionTransacti
     public Task<Guid> RequestAsync(Guid actor,Guid id,Guid deviceId,byte[] version,int seconds,DateTimeOffset fromUtc,DateTimeOffset untilUtcExclusive,int inCode,int outCode,CancellationToken ct=default)=>transaction.ExecuteAsync(actor,Download,"device-attendance.requested",token=>RequestInTransactionAsync(actor,id,deviceId,version,seconds,fromUtc,untilUtcExclusive,inCode,outCode,token),ct);
     internal async Task<(Guid Result,Guid Target)> RequestInTransactionAsync(Guid actor,Guid id,Guid deviceId,byte[] version,int seconds,DateTimeOffset fromUtc,DateTimeOffset untilUtcExclusive,int inCode,int outCode,CancellationToken token)
     {
+        if(!await transaction.HasPermissionAsync(actor,Download,token))throw new UnauthorizedAccessException();
         if(id==Guid.Empty||deviceId==Guid.Empty||version is not{Length:8}||seconds is <1 or >600||fromUtc.Offset!=TimeSpan.Zero||untilUtcExclusive.Offset!=TimeSpan.Zero||fromUtc>=untilUtcExclusive||fromUtc.Ticks%TimeSpan.TicksPerSecond!=0||untilUtcExclusive.Ticks%TimeSpan.TicksPerSecond!=0||inCode is <0 or >255||outCode is <0 or >255||inCode==outCode)throw new ArgumentException("Explicit id, device version and bounded deadline required.");
         await transaction.LockAsync("IO.DeviceConnections",token);
         var old=await db.DeviceAttendanceDownloads.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==id,token);
@@ -105,6 +106,7 @@ public sealed class DeviceAttendanceDownloads(IoDbContext db,PermissionTransacti
     public Task<object> CommitPageAsync(Guid actor,Guid id,byte[] version,long after,string confirmation,CancellationToken ct=default)=>transaction.ExecuteAsync<object>(actor,Commit,"device-attendance.page-reviewed",token=>CommitPageInTransactionAsync(actor,id,version,after,confirmation,token),ct);
     internal async Task<(object Result,Guid Target)> CommitPageInTransactionAsync(Guid actor,Guid id,byte[] version,long after,string confirmation,CancellationToken token)
     {
+        if(!await transaction.HasPermissionAsync(actor,Commit,token))throw new UnauthorizedAccessException();
         if(version is not{Length:8}||after<0||confirmation!="INGEST-SDK-ROWS")throw new ArgumentException("Explicit page confirmation and version required.");
         if(!await transaction.HasPermissionAsync(actor,"attendance.events.receive",token)&&!await transaction.HasPermissionAsync(actor,IO.Infrastructure.Attendance.AttendanceIngestion.Manage,token))throw new UnauthorizedAccessException();
         await transaction.LockAsync("IO.DeviceRegistry",token);await transaction.LockAsync("IO.DeviceConnections",token);var job=await Load(id,token);

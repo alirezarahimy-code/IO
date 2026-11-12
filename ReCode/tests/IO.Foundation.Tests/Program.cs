@@ -24,16 +24,16 @@ Check(PermissionCatalog.Resolve("identity.manage", "permission-revoke.123").Perm
 Check(PermissionCatalog.Resolve("correction.submit.self", "correction.request.created").Permission == "correction.create.self" && !PermissionCatalog.Templates.Single(t => t.Key == "employee").Permissions.Contains("correction.submit.self"), "new employee template uses independent create instead of legacy submission bundle");
 Check(PermissionCatalog.Templates.Count == 5 && PermissionCatalog.Templates.Select(t => t.Id).Distinct().Count() == 5, "five stable role templates");
 Check(PermissionCatalog.Templates.All(t => t.Permissions.All(PermissionCatalog.Codes.Contains)), "templates grant only implemented catalogue permissions");
-Check(PermissionCatalog.Templates.Single(t => t.Key == "operator").Permissions.SequenceEqual(new[] { "devices.schedules.read", "devices.attendance.read", "devices.files.read", "devices.users.read", "devices.info.read", "devices.connection.read", "devices.read", "devices.groups.read" }), "device operator grants only implemented registry read without hardware command rights");
+Check(PermissionCatalog.Templates.Single(t => t.Key == "operator").Permissions.SequenceEqual(new[] { "devices.commands.read", "devices.schedules.read", "devices.attendance.read", "devices.files.read", "devices.users.read", "devices.info.read", "devices.connection.read", "devices.read", "devices.groups.read" }), "device operator grants only implemented registry read without hardware command rights");
 Check(PermissionCatalog.Templates.Single(t => t.Key == "executive").Permissions.SequenceEqual(new[] { "executive.dashboard.read" }), "executive role has no administrator grant");
-Check(WorkspaceCatalog.Pages.Count == 49 && WorkspaceCatalog.Pages.Select(p => p.Route).Distinct().Count() == 49, "existing pages, help and reversal catalogue");
+Check(WorkspaceCatalog.Pages.Count == 50 && WorkspaceCatalog.Pages.Select(p => p.Route).Distinct().Count() == 50, "existing pages, help and reversal catalogue");
 Check(WorkspaceCatalog.Pages.All(p => p.AnyPermissions.All(PermissionCatalog.Codes.Contains)), "every page permission exists");
 var executive = new HashSet<string>(new[] { "executive.dashboard.read" }, StringComparer.Ordinal);
 Check(WorkspaceCatalog.Pages.Where(p => WorkspaceCatalog.CanView(p, executive) && p.Group != "common").Select(p => p.Route).SequenceEqual(new[] { "/workspace/executive-home" }), "executive exact menu excludes administration and team pages");
 var empty = new HashSet<string>(StringComparer.Ordinal);
 Check(!WorkspaceCatalog.CanView(WorkspaceCatalog.Pages.Single(p => p.Route == "/workspace/roles"), empty), "no-role account has no role administration menu");
 var articles = SystemHelp.Parse(Resource("HelpContent.json"));
-Check(articles.Count == 49 && articles.Select(a => a.Slug).Distinct().Count() == 49, "help has 49 unique articles");
+Check(articles.Count == 50 && articles.Select(a => a.Slug).Distinct().Count() == 50, "help has 50 unique articles");
 Check(WorkspaceCatalog.Pages.All(p => articles.Any(a => a.Route == p.Route)), "every existing route has context help");
 Check(articles.All(a => a.Steps.Length >= 3 && a.Errors.Length > 0 && a.Example.Length > 10 && a.Limitations.Length > 0), "articles include workflow example errors and limitations");
 Check(articles.Where(a => SystemHelp.CanRead(a, false, empty)).Select(a => a.Route).SequenceEqual(new[] { "/login" }), "anonymous help contains only login article");
@@ -63,4 +63,5 @@ Check(new[]{"devices.attendance.read","devices.attendance.extract","devices.atte
 
 
 Check(new[]{"devices.schedules.read","devices.schedules.manage","devices.schedules.execute"}.All(PermissionCatalog.Codes.Contains)&&!Resource("device-schedules.js").Contains("innerHTML",StringComparison.Ordinal)&&Resource("DeviceSchedules.html").Contains("schedule-form",StringComparison.Ordinal),"S10 independent schedule grants safe SQL UI and help");
+Check(new[]{"devices.commands.read","devices.commands.retry"}.All(PermissionCatalog.Codes.Contains)&&!Resource("device-commands.js").Contains("innerHTML",StringComparison.Ordinal)&&Resource("DeviceCommands.html").Contains("retry-form",StringComparison.Ordinal),"S11 actual queue history read retries immutable lineage and safe DB UI are independently grantable");
 Console.WriteLine($"PASS {count} foundation catalogue and offline-help checks on {System.Runtime.InteropServices.RuntimeInformation.OSDescription}");

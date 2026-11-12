@@ -84,6 +84,30 @@ namespace IO.Infrastructure.Migrations
             b.HasIndex(x=>x.ReviewedByUserId);
             b.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.ReviewedByUserId).OnDelete(DeleteBehavior.Restrict);
         });
+        modelBuilder.Entity<DeviceCommandRetryRecord>(b=>
+        {
+            b.ToTable("DeviceCommandRetries",t=>{t.HasTrigger("TR_DeviceCommandRetries_History");t.UseSqlOutputClause(false);t.HasCheckConstraint("CK_DeviceCommandRetries_Data","DATALENGTH([ExpectedPreviousVersion])=8 AND DATALENGTH([ExpectedDeviceVersion])=8 AND DATEPART(TZOFFSET,[RequestedAtUtc])=0 AND (([PreviousOperationId] IS NOT NULL AND [NextOperationId] IS NOT NULL AND [NextOperationId]=[Id] AND [PreviousOperationId]<>[NextOperationId] AND [PreviousAttendanceDownloadId] IS NULL AND [NextAttendanceDownloadId] IS NULL) OR ([PreviousAttendanceDownloadId] IS NOT NULL AND [NextAttendanceDownloadId] IS NOT NULL AND [NextAttendanceDownloadId]=[Id] AND [PreviousAttendanceDownloadId]<>[NextAttendanceDownloadId] AND [PreviousOperationId] IS NULL AND [NextOperationId] IS NULL))");});
+            b.HasKey(x=>x.Id);
+            b.Property(x=>x.Id).ValueGeneratedNever().HasColumnType("uniqueidentifier");
+            b.Property(x=>x.PreviousOperationId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.NextOperationId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.PreviousAttendanceDownloadId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.NextAttendanceDownloadId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.RequestedByUserId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.RequestedAtUtc).HasColumnType("datetimeoffset");
+            b.Property(x=>x.ExpectedPreviousVersion).HasMaxLength(8).IsRequired().HasColumnType("varbinary(8)");
+            b.Property(x=>x.ExpectedDeviceVersion).HasMaxLength(8).IsRequired().HasColumnType("varbinary(8)");
+            b.HasIndex(x=>x.PreviousOperationId).IsUnique().HasFilter("[PreviousOperationId] IS NOT NULL");
+            b.HasOne<DeviceOperationRecord>().WithMany().HasForeignKey(x=>x.PreviousOperationId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.NextOperationId).IsUnique().HasFilter("[NextOperationId] IS NOT NULL");
+            b.HasOne<DeviceOperationRecord>().WithMany().HasForeignKey(x=>x.NextOperationId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.PreviousAttendanceDownloadId).IsUnique().HasFilter("[PreviousAttendanceDownloadId] IS NOT NULL");
+            b.HasOne<DeviceAttendanceDownloadRecord>().WithMany().HasForeignKey(x=>x.PreviousAttendanceDownloadId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.NextAttendanceDownloadId).IsUnique().HasFilter("[NextAttendanceDownloadId] IS NOT NULL");
+            b.HasOne<DeviceAttendanceDownloadRecord>().WithMany().HasForeignKey(x=>x.NextAttendanceDownloadId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.RequestedByUserId);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.RequestedByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
         modelBuilder.Entity<DevicePollScheduleRecord>(b=>
         {
             b.ToTable("DevicePollSchedules",t=>

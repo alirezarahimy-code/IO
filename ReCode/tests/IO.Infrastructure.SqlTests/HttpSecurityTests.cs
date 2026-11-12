@@ -105,6 +105,12 @@ internal static class HttpSecurityTests
                 var logFixture=await logDb.DeviceAttendanceDownloads.AsNoTracking().Where(x=>logDb.Devices.Any(d=>d.Id==x.DeviceId&&d.Number=="S09-BROWSER")&&x.State=="succeeded").Select(x=>x.Id).SingleAsync();
                 browserProcess.ArgumentList.Add(logFixture.ToString());
             }
+            await using(var commandScope=provider.CreateAsyncScope())
+            {
+                var commandDb=commandScope.ServiceProvider.GetRequiredService<IoDbContext>();
+                var commandFixture=await commandDb.DeviceOperations.AsNoTracking().Where(x=>commandDb.Devices.Any(d=>d.Id==x.DeviceId&&d.Number=="S11-A")&&x.State=="failed").OrderByDescending(x=>x.RequestedAtUtc).Select(x=>x.Id).FirstAsync();
+                browserProcess.ArgumentList.Add(commandFixture.ToString());
+            }
             using (var browser = Process.Start(browserProcess) ?? throw new InvalidOperationException("Cannot start browser test."))
             {
                 var stdout = browser.StandardOutput.ReadToEndAsync();
@@ -308,7 +314,7 @@ internal static class HttpSecurityTests
             (await PostAdmin(adminClient, "/admin/user-roles", new { UserId = self, RoleId = operatorTemplate.Id })).EnsureSuccessStatusCode();
             using var operatorCaps = JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities"));
             check(operatorCaps.RootElement.GetProperty("operator").GetBoolean() &&
-                  operatorCaps.RootElement.GetProperty("permissions").EnumerateArray().Where(x => x.GetString()!.StartsWith("devices.", StringComparison.Ordinal)).Select(x => x.GetString()).OrderBy(x=>x,StringComparer.Ordinal).SequenceEqual(new[] { "devices.attendance.read", "devices.connection.read", "devices.files.read", "devices.groups.read", "devices.info.read", "devices.read", "devices.schedules.read", "devices.users.read" }),
+                  operatorCaps.RootElement.GetProperty("permissions").EnumerateArray().Where(x => x.GetString()!.StartsWith("devices.", StringComparison.Ordinal)).Select(x => x.GetString()).OrderBy(x=>x,StringComparer.Ordinal).SequenceEqual(new[] { "devices.attendance.read", "devices.commands.read", "devices.connection.read", "devices.files.read", "devices.groups.read", "devices.info.read", "devices.read", "devices.schedules.read", "devices.users.read" }),
                   "HTTP operator shell identifies role without granting unimplemented device operations");
             (await PostAdmin(adminClient, "/admin/user-roles/revoke", new { UserId = self, RoleId = operatorTemplate.Id })).EnsureSuccessStatusCode();
             var featureRole = await CreateId("/admin/roles", new { Name = "phase five six test role" });
@@ -588,6 +594,27 @@ internal static class HttpSecurityTests
                       (await own.GetAsync("/help/topic/device-schedules")).StatusCode==HttpStatusCode.Forbidden&&
                       !pollCaps.RootElement.GetProperty("pages").EnumerateArray().Any(x=>x.GetProperty("route").GetString()=="/workspace/device-schedules"),
                       "HTTP S10 existing session loses schedule menu help retained history and creation after server revoke");
+            var commandInput=new IO.Infrastructure.Devices.DeviceCommands.RetryInput(Guid.NewGuid(),"operation",Guid.NewGuid(),s06Version,s06Version,"RETRY-READ-ONLY-COMMAND");
+            check((await anon.GetAsync("/device-commands")).StatusCode==HttpStatusCode.Unauthorized&&
+                  (await own.GetAsync("/device-commands")).StatusCode==HttpStatusCode.Forbidden&&
+                  (await own.PostAsJsonAsync("/device-commands/retries",commandInput)).StatusCode==HttpStatusCode.BadRequest,
+                  "HTTP S11 command endpoints require authentication independent grants and CSRF");
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.commands.retry"})).EnsureSuccessStatusCode();
+            check((await PostAdmin(own,"/device-commands/retries",commandInput)).StatusCode==HttpStatusCode.Forbidden,
+                  "HTTP S11 generic retry alone cannot bypass command history or typed read authority");
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.commands.read"})).EnsureSuccessStatusCode();
+            check((await own.GetAsync("/device-commands?deviceId="+s06Device)).StatusCode==HttpStatusCode.OK&&
+                  (await own.GetAsync("/help/topic/device-commands")).StatusCode==HttpStatusCode.OK&&
+                  (await PostAdmin(own,"/device-commands/retries",commandInput with{Queue="users-upload"})).StatusCode==HttpStatusCode.BadRequest,
+                  "HTTP S11 independent read exposes actual history and help but arbitrary or write queue retry is rejected");
+            foreach(var code in new[]{"devices.commands.read","devices.commands.retry"})
+                (await PostAdmin(adminClient,"/admin/role-permissions/revoke",new{RoleId=deviceRole,Code=code})).EnsureSuccessStatusCode();
+            using(var commandCaps=JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities")))
+                check((await own.GetAsync("/device-commands")).StatusCode==HttpStatusCode.Forbidden&&
+                      (await PostAdmin(own,"/device-commands/retries",commandInput)).StatusCode==HttpStatusCode.Forbidden&&
+                      (await own.GetAsync("/help/topic/device-commands")).StatusCode==HttpStatusCode.Forbidden&&
+                      !commandCaps.RootElement.GetProperty("pages").EnumerateArray().Any(x=>x.GetProperty("route").GetString()=="/workspace/device-commands"),
+                      "HTTP S11 revoke removes existing session command history retry menu and help");
             var fileId=Guid.NewGuid();var filePayload=new IO.Infrastructure.Devices.DeviceFileImports.Input(fileId,s06Device,s06Version,"gregorian",1,4,5,Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("009	2026-11-08 08:00:00	1	4	1")));
             check((await anon.GetAsync("/device-file-imports")).StatusCode==HttpStatusCode.Unauthorized&&
                   (await own.GetAsync("/device-file-imports")).StatusCode==HttpStatusCode.Forbidden&&

@@ -18,8 +18,10 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
         DateTimeOffset? TargetUtc,string TimeZoneId,ZkDeviceInformation? Information,Guid? ResolutionInfoId,DateTimeOffset? ResolvedAtUtc,byte[] Version);
     private static string Permission(string kind)=>kind switch{"information.read"=>Read,"clock.set"=>SetClock,_=>throw new ArgumentException("Unknown operation.")};
     public Task<Guid> RequestAsync(Guid actor,Guid operationId,Guid deviceId,byte[] expectedDeviceVersion,string kind,int timeoutSeconds,DateTimeOffset? targetUtc,string? confirmation,CancellationToken ct=default)=>
-        transaction.ExecuteAsync(actor,Permission(kind),"device-operation.requested",async token=>
-        {
+        transaction.ExecuteAsync(actor,Permission(kind),"device-operation.requested",token=>RequestInTransactionAsync(actor,operationId,deviceId,expectedDeviceVersion,kind,timeoutSeconds,targetUtc,confirmation,token),ct);
+    internal async Task<(Guid Result,Guid Target)> RequestInTransactionAsync(Guid actor,Guid operationId,Guid deviceId,byte[] expectedDeviceVersion,string kind,int timeoutSeconds,DateTimeOffset? targetUtc,string? confirmation,CancellationToken token)
+    {
+            if(!await transaction.HasPermissionAsync(actor,Permission(kind),token))throw new UnauthorizedAccessException();
             if(operationId==Guid.Empty||deviceId==Guid.Empty||expectedDeviceVersion is not{Length:8}||timeoutSeconds is <1 or >60||
                 (kind=="information.read"&&(targetUtc is not null||confirmation is not null))||
                 (kind=="clock.set"&&(targetUtc is null||targetUtc.Value.Offset!=TimeSpan.Zero||targetUtc.Value.Ticks%TimeSpan.TicksPerSecond!=0||confirmation!="SET-CLOCK")))
@@ -43,7 +45,7 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
             if(targetUtc is not null)_=LocalClock(targetUtc.Value,zone);
             db.DeviceOperations.Add(new(){Id=operationId,DeviceId=deviceId,Kind=kind,RequestedByUserId=actor,RequestedAtUtc=clock.GetUtcNow(),ExpectedDeviceVersion=expectedDeviceVersion.ToArray(),TimeoutSeconds=timeoutSeconds,TimeZoneId=zone,TargetUtc=targetUtc});
             return(operationId,operationId);
-        },ct);
+    }
 
     public Task<object> ListAsync(Guid actor,Guid? deviceId,int offset,CancellationToken ct=default)=>transaction.ExecuteAsync<object>(actor,Read,"device-operation.viewed",async token=>
     {

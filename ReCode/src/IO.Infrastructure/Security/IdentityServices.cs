@@ -50,6 +50,7 @@ public static class IdentityServices
         services.AddScoped<DeviceUserDownloads>();
         services.AddScoped<DeviceAttendanceDownloads>();
         services.AddScoped<DevicePollSchedules>();
+        services.AddScoped<DeviceCommands>();
         services.AddScoped<DeviceUserUploads>();
         services.AddScoped<DeviceFileImports>();
         services.AddScoped<DeviceConnectionCredential>();
