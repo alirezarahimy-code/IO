@@ -373,6 +373,8 @@ try
     await DeviceCommandTests.RunAsync(connection, Check);
     await DeviceHealthTests.RunAsync(connection, Check);
     await DeviceAdvancedSettingsTests.RunAsync(connection, Check);
+    // Exercise older-format downgrade guard before HTTP tests retain restart history.
+    await LegacyUserReadTests.RunAsync(connection, Check);
     await HttpSecurityTests.RunAsync(connection, Check);
     await OrganizationServiceTests.RunAsync(connection, Check);
     await SchedulingServiceTests.RunAsync(connection, Check);
@@ -433,7 +435,6 @@ try
         }
         finally { await cliFoundation.Database.EnsureDeletedAsync(); }
     }
-    await LegacyUserReadTests.RunAsync(connection, Check);
     await LegacyUserUploadTests.RunAsync(connection, Check);
     await DeviceRestartTests.RunAsync(connection, Check);
     Console.WriteLine("PASS disposable SQL Server integration checks");

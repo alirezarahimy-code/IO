@@ -46,5 +46,7 @@ internal static class LegacyUserReadTests
   var defaultRow=await Q(db=>db.DeviceUserDownloads.AsNoTracking().SingleAsync(x=>x.Id==defaultId));
   check(defaultRow.ReadFormat==ZkUserReadFormats.Ssr,"S07 omitted read format stays SSR for compatibility and never silently enables a legacy endpoint");
   await Use<DeviceUserDownloads,Guid>(s=>s.CancelAsync(actor,defaultId,defaultRow.Version));
+  // A failed older downgrade may already have removed later empty migrations.
+  await Q(async db=>{await db.GetService<IMigrator>().MigrateAsync();return true;});
  }
 }
