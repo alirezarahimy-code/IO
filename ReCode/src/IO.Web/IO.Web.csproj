@@ -4,6 +4,8 @@
     <EmbeddedResource Include="Ui/device-files.js" />
     <EmbeddedResource Include="Ui/DeviceUsers.html" />
     <EmbeddedResource Include="Ui/DeviceAttendance.html" />
+    <EmbeddedResource Include="Ui/DeviceSettings.html" />
+    <EmbeddedResource Include="Ui/device-settings.js" />
     <EmbeddedResource Include="Ui/DeviceCommands.html" />
     <EmbeddedResource Include="Ui/device-commands.js" />
     <EmbeddedResource Include="Ui/DeviceSchedules.html" />

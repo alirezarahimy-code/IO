@@ -4481,5 +4481,81 @@
       "SDK در child Windows است؛ تاریخچه و SQL روی Windows/Linux آزموده می‌شوند، نه ادعای آزمون واقعی مدل.",
       "اصل history و lineage حذف یا overwrite نمی‌شود؛ downgrade مخرب بعد از اولین retry ممنوع است."
     ]
+  },
+  {
+    "Slug": "device-settings",
+    "Route": "/workspace/device-settings",
+    "Title": "تنظیمات پیشرفته؛ فقط خواندن",
+    "Group": "اپراتور دستگاه",
+    "Overview": "snapshot واقعی SQL از شش GetDeviceInfo ثابت مرجع؛ فقط خواندن و حفظ raw Int32. مدل واقعی هنوز تأیید نشده، واحد/دامنه حدس زده نمی‌شود.",
+    "Steps": [
+      "نقش اپراتور/admin تازه حق devices.settings.read دارد؛ اعطا/لغو موجود واقعی و مستقل از devices.info.read یا devices.settings قدیمی است.",
+      "از صفحهٔ دستگاه، UUID و نسخهٔ فعلی را بیاورید؛ deadline و خواندن شش کد را صریح تأیید کنید.",
+      "خواندن در صف عملیات واقعی ثبت می‌شود؛ وجود صف یا snapshot موفق به معنی تأیید مدل یا دریافت تمام تنظیمات نیست. هر مقدار unavailable با صفر متفاوت است.",
+      "تاریخچه را بازخوانی و snapshot را مشاهده کنید. Code 25/23/8/4/30/62 نام‌های تاریخی دارند، نه واحد یا محدودهٔ مجاز تأییدشده.",
+      "در پاسخ ایجاد نامعلوم همان UUID و داده را حفظ کنید؛ لغو فقط با نسخهٔ تازه و فقط pending پیش از dispatch تضمین می‌شود."
+    ],
+    "Example": "کد 8 با مقدار -1 همان -1 گزارش می‌شود؛ کد 23 با فراخوانی ناموفق «گزارش نشده» است، نه صفر. از این داده به‌تنهایی تغییر پارامتر مجاز نتیجه نگیرید.",
+    "Fields": [
+      {
+        "Name": "operationId",
+        "Label": "شناسهٔ درخواست",
+        "Description": "UUID ثابت برای replay همان پاسخ نامعلوم؛ هیچ فرمانی خودکار تکرار نمی‌شود."
+      },
+      {
+        "Name": "deviceId",
+        "Label": "دستگاه",
+        "Description": "یک endpoint و DeviceId مصوب؛ فیلتر دامنهٔ امنیتی نیست و حق history سراسری است."
+      },
+      {
+        "Name": "expectedDeviceVersion",
+        "Label": "نسخهٔ دستگاه",
+        "Description": "rowversion فعلی ۸بایتی به شکل base64؛ تغییر دستگاه/zone درخواست قدیمی را متوقف می‌کند."
+      },
+      {
+        "Name": "timeoutSeconds",
+        "Label": "مهلت",
+        "Description": "۱ تا ۶۰ ثانیه؛ child با deadline مستقل terminate می‌شود، خواندن interrupted بدون retry خودکار محفوظ است."
+      },
+      {
+        "Name": "confirmed",
+        "Label": "تأیید خواندن",
+        "Description": "READ-ADVANCED-SETTINGS؛ فقط همین شش کد، نه SetDeviceInfo یا enroll."
+      },
+      {
+        "Name": "OneToOne/OneToN",
+        "Label": "کد 25/23",
+        "Description": "نام و code فقط از مرجع؛ raw عدد صحیح signed یا unavailable، بدون تفسیر بیومتریک/واحد."
+      },
+      {
+        "Name": "RepeatTime/SleepTime",
+        "Label": "کد 8/4",
+        "Description": "raw عدد صحیح signed؛ دقیقه/ثانیه یا محدودهٔ مدل در این نسخه ادعا نمی‌شود."
+      },
+      {
+        "Name": "RegCard/MifareSector",
+        "Label": "کد 30/62",
+        "Description": "raw integer، نه تبدیل اجباری به Boolean یا تغییر کارت؛ مقدار نامتعارف محفوظ می‌ماند."
+      }
+    ],
+    "Actions": [
+      "درخواست snapshot خواندنی",
+      "لغو پیش از اجرا",
+      "بازخوانی مجوز/تاریخچه",
+      "فیلتر و صفحه‌بندی"
+    ],
+    "Errors": [
+      "۴۰۳: حق مستقل تنظیمات لازم است؛ اطلاعات عادی، clock یا حق قدیمی settings جای آن نیست.",
+      "۴۰۹: نسخه/صف/مقصد تغییر کرده؛ ابتدا بازخوانی کنید.",
+      "۴۰۰: تأیید، نسخه یا deadline نامعتبر؛ نوشتن یا SDK passthrough قابل درخواست نیست.",
+      "unsupported/identity-mismatch/credential-unavailable: flag نصب، pin و مجوز سرویس/رمز را بررسی کنید؛ نتیجهٔ واقعی را به موفقیت تبدیل نکنید."
+    ],
+    "Limitations": [
+      "EnableOperations و EnableSettingsReads و AllowAdvancedSettingsRead روی endpoint لازم است؛ دو مورد جدید پیش‌فرض false. سرویس افزون بر devices.operations.execute حق devices.settings.read.execute لازم دارد.",
+      "snapshot شش فراخوانی مستقل است، نه وضعیت اتمیک یا ادعای پشتیبانی کامل مدل. Serial قبل/بعد بررسی می‌شود و رمز هرگز snapshot نمی‌شود.",
+      "Settings write، شبکه، reset/restart، clear/delete، درب و RemoteEnroll اجرا نمی‌شوند. سیاست بیومتریک هنوز مصوب نشده است.",
+      "اطلاعات عادی settings payload را نشان نمی‌دهد؛ history metadata فرمان‌ها همچنان حق جدا دارد. retry عمومی تنظیمات را فعلاً نمی‌پذیرد.",
+      "SDK Windows/مدل/firmware، نصب واقعی و پذیرش چنددستگاه همچنان آزموده نشده‌اند؛ null دادهٔ موفقیت یا صفر ساختگی نیست."
+    ]
   }
 ]

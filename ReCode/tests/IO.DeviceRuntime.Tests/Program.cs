@@ -41,6 +41,15 @@ if (args is not ["--verify"])
     if(document.RootElement.TryGetProperty("Connection",out _))
     {
         var operation=JsonSerializer.Deserialize<ZkOperationInput>(text)!;
+        if(operation.Operation=="settings.read")
+        {
+            var settings=new ZkAdvancedSettings(ZkAdvancedSettings.Version,operation.Connection.ExpectedSerial,0,null,int.MinValue,int.MaxValue,2,-1);
+            if(operation.Connection.ExpectedSerial=="settings-hang"){await Task.Delay(TimeSpan.FromMinutes(1));return;}
+            if(operation.Connection.ExpectedSerial=="settings-wrong-pin")settings=settings with{Serial="different"};
+            if(operation.Connection.ExpectedSerial=="settings-missing")Console.WriteLine("{\"State\":\"succeeded\",\"Settings\":{\"Contract\":\"zk-device-info-v1\",\"Serial\":\"settings-missing\"}}");
+            else Console.WriteLine(JsonSerializer.Serialize(new ZkOperationOutput("succeeded",Settings:settings)));
+            return;
+        }
         var information=new ZkDeviceInformation(operation.Connection.ExpectedSerial,"fixture-product",null,null,"2026-11-08 10:00:00",0,null,10,100,null,null,null,null,null,operation.AllowClockSet);
         if(operation.Connection.ExpectedSerial=="wrong-serial")information=information with{Serial="other-device"};
         if(operation.Connection.ExpectedSerial=="extra-field")Console.WriteLine("{\"State\":\"failed\",\"Secret\":\"must-not-pass\"}");
@@ -166,6 +175,15 @@ bool missingSdkFields=false;try{JsonSerializer.Deserialize<ZkAttendanceRaw>("{\"
 Check(JsonSerializer.Deserialize<ZkAttendanceRaw>(validLog.CanonicalJson())==validLog&&validLog.CanonicalJson().Contains("\\u0030",StringComparison.Ordinal)&&missingSdkFields&&!(validLog with{PersonIdentifier="\uD800"}).IsBounded()&&invalidLog.Interpret(TimeZoneInfo.Utc).Status=="invalid-time"&&validLog.Interpret(TimeZoneInfo.Utc).Utc==new DateTimeOffset(2026,2,1,8,0,0,TimeSpan.Zero)&&!(validLog with{PersonIdentifier=new string('x',101)}).IsBounded(),"S09 interpretation never repairs invalid Gregorian dates and structural payload size is bounded");
 Check((validLog with{Year=2026,Month=11,Day=1,Hour=1,Minute=30}).Interpret(dst).Status=="ambiguous-local-time"&&(validLog with{Year=2026,Month=3,Day=8,Hour=2,Minute=30}).Interpret(dst).Status=="invalid-local-time","S09 ambiguous and nonexistent site-local SDK times are quarantined without host-zone guessing");
 Check((validLog with{PersonIdentifier=" 001"}).Interpret(TimeZoneInfo.Utc).Status=="invalid-identity"&&(validLog with{Year=1,Month=1,Day=1,Hour=0}).Interpret(minZone).Status=="invalid-time"&&!validLog.ToString().Contains(validLog.PersonIdentifier!,StringComparison.Ordinal)&&!attendanceInput.ToString().Contains("123456789",StringComparison.Ordinal),"S09 identity whitespace UTC range overflow and personal-data text rendering fail safely");
+var settingsInput=operationInput with{Operation="settings.read",AllowAdvancedSettingsRead=true};
+var settingsResult=await NativeProcessSupervisor.RunOperationAsync(host,fixtureAssembly,settingsInput,2);
+Check(settingsResult.State=="succeeded"&&settingsResult.Settings is{OneToOne:0,OneToN:null,RepeatTime:int.MinValue,SleepTime:int.MaxValue,RegCard:2,MifareSector:-1},"S11 advanced settings IPC retains unavailable zero and exact signed raw values without inventing units or boolean settings");
+Check((await NativeProcessSupervisor.RunOperationAsync(host,fixtureAssembly,settingsInput with{AllowAdvancedSettingsRead=false},2)).State=="unsupported"&&!(settingsInput with{Operation="settings.write"}).IsValid()&&!(settingsInput with{Operation="RemoteEnroll"}).IsValid(),"S11 advanced settings require explicit read opt-in and never admit settings writes or enrollment");
+Check((await NativeProcessSupervisor.RunOperationAsync(host,fixtureAssembly,settingsInput with{Connection=input with{ExpectedSerial="settings-wrong-pin"}},2)).State=="bridge-failed"&&(await NativeProcessSupervisor.RunOperationAsync(host,fixtureAssembly,settingsInput with{Connection=input with{ExpectedSerial="settings-missing"}},2)).State=="bridge-failed","S11 settings IPC rejects a different device and missing nullable fields instead of fabricating unavailable values");
+Check((await NativeProcessSupervisor.RunOperationAsync(host,fixtureAssembly,settingsInput with{Connection=input with{ExpectedSerial="settings-hang"}},1)).State=="timed-out","S11 settings child reads are externally bounded and timeout never becomes a retried write");
+var settingsSession=new SettingsFixture();var observedSettings=ZkAdvancedSettingsReader.Read("fixture",settingsSession);
+Check(settingsSession.Codes.SequenceEqual(new[]{25,23,8,4,30,62})&&observedSettings is{OneToOne:0,OneToN:null,RepeatTime:int.MinValue,SleepTime:null,RegCard:2,MifareSector:-1},"S11 closed read executor calls only six observed GetDeviceInfo codes and retains independent call failure rather than zero defaults");
+Check(!new ZkOperationOutput("succeeded",informationResult.Information,observedSettings).IsValidFor(settingsInput)&&!(observedSettings with{Contract="guess"}).IsValid()&&!(observedSettings with{Serial="\uD800"}).IsValid(),"S11 settings snapshots reject mixed payload kinds unknown contract versions and lossy serial encoding");
 Console.WriteLine($"PASS {count} portable native-boundary and reference-file parser checks; no real device or SDK acceptance implied");
 
 internal sealed class UserWriteFixture(ZkUserWriteExisting? initial):IZkUserWriteSession
@@ -174,4 +192,10 @@ internal sealed class UserWriteFixture(ZkUserWriteExisting? initial):IZkUserWrit
     public ZkUserWriteExisting? ReadExact(string id)=>Writes>0&&ChangeReadback?Current! with{User=Current!.User with{Card="different"}}:Current;
     public bool SetCard(string card)=>true;
     public bool Write(ZkUser user,string password){Writes++;if(FailWrite)return false;Current=new(user,password);return true;}
+}
+
+internal sealed class SettingsFixture:IZkAdvancedSettingsReadSession
+{
+    public List<int> Codes=new();
+    public int? ReadDeviceInfo(int code){Codes.Add(code);return code switch{25=>0,23=>null,8=>int.MinValue,4=>throw new InvalidOperationException(),30=>2,62=>-1,_=>throw new InvalidOperationException()};}
 }

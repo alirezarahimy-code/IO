@@ -37,12 +37,12 @@ if (native.Length > 0)
 }
 builder.Logging.ClearProviders(); // No EF/provider exception strings or configuration secrets in stdout.
 builder.Services.AddIoIdentityStorage(connection);
-builder.Services.AddSingleton(new WorkerConfiguration(service, targets, native, dotnetPath, bridgePath, builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableOperations"),builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableUserDownloads"),builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableUserUploads"),builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableAttendanceDownloads"),builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableSchedules")));
+builder.Services.AddSingleton(new WorkerConfiguration(service, targets, native, dotnetPath, bridgePath, builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableOperations"),builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableUserDownloads"),builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableUserUploads"),builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableAttendanceDownloads"),builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableSchedules"),builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableSettingsReads")));
 builder.Services.AddHostedService<DiagnosticWorker>();
 await builder.Build().RunAsync();
 
-internal sealed record NativeEndpoint(Guid DeviceId, string Address, int Port, int MachineNumber, string ExpectedSerial, bool AllowDefaultCommunicationKey, bool AllowClockSet=false,bool AllowUserRead=false,bool AttendanceOnlyUserWriteApproved=false,bool AllowAttendanceRead=false);
-internal sealed record WorkerConfiguration(Guid ServiceUserId, TcpConnectionDiagnostic.AllowedEndpoint[] AllowedEndpoints, NativeEndpoint[] NativeEndpoints, string? DotnetPath, string? BridgePath, bool EnableOperations,bool EnableUserDownloads,bool EnableUserUploads,bool EnableAttendanceDownloads,bool EnableSchedules);
+internal sealed record NativeEndpoint(Guid DeviceId, string Address, int Port, int MachineNumber, string ExpectedSerial, bool AllowDefaultCommunicationKey, bool AllowClockSet=false,bool AllowUserRead=false,bool AttendanceOnlyUserWriteApproved=false,bool AllowAttendanceRead=false,bool AllowAdvancedSettingsRead=false);
+internal sealed record WorkerConfiguration(Guid ServiceUserId, TcpConnectionDiagnostic.AllowedEndpoint[] AllowedEndpoints, NativeEndpoint[] NativeEndpoints, string? DotnetPath, string? BridgePath, bool EnableOperations,bool EnableUserDownloads,bool EnableUserUploads,bool EnableAttendanceDownloads,bool EnableSchedules,bool EnableSettingsReads);
 internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfiguration configuration) : BackgroundService
 {
     protected override Task ExecuteAsync(CancellationToken stoppingToken) => Task.WhenAll(Enumerable.Range(0, 4).Select(_ => Loop(stoppingToken)));
@@ -59,7 +59,7 @@ internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfig
                 {
                     var db=scope.ServiceProvider.GetRequiredService<IoDbContext>();var now=DateTimeOffset.UtcNow;var cutoff=now.AddMinutes(-2);
                     var available=await db.DeviceConnections.AnyAsync(x=>x.State=="pending"||(x.State=="running"&&x.ClaimedAtUtc<cutoff),ct);
-                    var operationsAvailable=configuration.EnableOperations&&await db.DeviceOperations.AnyAsync(x=>x.State=="pending"||(x.State=="running"&&x.ClaimedAtUtc<cutoff),ct);
+                    var operationsAvailable=configuration.EnableOperations&&await db.DeviceOperations.AnyAsync(x=>(x.Kind!="settings.read"||configuration.EnableSettingsReads)&&(x.State=="pending"||(x.State=="running"&&x.ClaimedAtUtc<cutoff)),ct);
                     var usersAvailable=configuration.EnableUserDownloads&&await db.DeviceUserDownloads.AnyAsync(x=>x.State=="pending"||(x.State=="running"&&x.LeaseAtUtc!=null&&x.LeaseAtUtc.Value.AddSeconds(x.TimeoutSeconds+120)<now),ct);
                     var uploadsAvailable=configuration.EnableUserUploads&&await db.DeviceUserUploads.AnyAsync(x=>x.State=="pending"||(x.State=="running"&&x.ClaimedAtUtc!=null&&x.ClaimedAtUtc.Value.AddSeconds(x.TimeoutSeconds+120)<now),ct);
                     var attendanceAvailable=configuration.EnableAttendanceDownloads&&await db.DeviceAttendanceDownloads.AnyAsync(x=>x.State=="pending"||(x.State=="running"&&x.LeaseAtUtc!=null&&x.LeaseAtUtc.Value.AddSeconds(x.TimeoutSeconds+120)<now),ct);
@@ -70,7 +70,7 @@ internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfig
                     queueCursor=(queueCursor+1)%6;
                     if(selected==5)await scope.ServiceProvider.GetRequiredService<DevicePollSchedules>().StepAsync(configuration.ServiceUserId,ct);
                     else if(selected==0)users=await scope.ServiceProvider.GetRequiredService<DeviceUserDownloads>().ClaimAsync(configuration.ServiceUserId,ct);
-                    else if(selected==1)operation=await scope.ServiceProvider.GetRequiredService<DeviceOperations>().ClaimAsync(configuration.ServiceUserId,ct);
+                    else if(selected==1)operation=await scope.ServiceProvider.GetRequiredService<DeviceOperations>().ClaimAsync(configuration.ServiceUserId,ct,configuration.EnableSettingsReads);
                     else if(selected==4)attendance=await scope.ServiceProvider.GetRequiredService<DeviceAttendanceDownloads>().ClaimAsync(configuration.ServiceUserId,ct);
                     else if(selected==3)upload=await scope.ServiceProvider.GetRequiredService<DeviceUserUploads>().ClaimAsync(configuration.ServiceUserId,ct);
                     else if(selected==2)claim=await scope.ServiceProvider.GetRequiredService<DeviceConnections>().ClaimAsync(configuration.ServiceUserId,ct);
@@ -175,12 +175,12 @@ internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfig
         var native=configuration.NativeEndpoints.SingleOrDefault(x=>x.DeviceId==claim.DeviceId);
         if(native is null||claim.Profile!="zk-standalone")return new("unsupported");
         if(claim.Port!=native.Port||!System.Net.IPAddress.TryParse(claim.Host,out var address)||!System.Net.IPAddress.Parse(native.Address).Equals(address))return new("endpoint-denied");
-        if(!OperatingSystem.IsWindows()||(claim.Kind=="clock.set"&&!native.AllowClockSet))return new("unsupported");
+        if(!OperatingSystem.IsWindows()||(claim.Kind=="clock.set"&&!native.AllowClockSet)||(claim.Kind=="settings.read"&&(!configuration.EnableSettingsReads||!native.AllowAdvancedSettingsRead)))return new("unsupported");
         await using var scope=scopes.CreateAsyncScope();
         var credential=await scope.ServiceProvider.GetRequiredService<DeviceOperations>().CredentialAsync(configuration.ServiceUserId,claim,native.AllowDefaultCommunicationKey,ct);
         if(credential is null)return new("credential-unavailable");
         return await NativeProcessSupervisor.RunOperationAsync(configuration.DotnetPath!,configuration.BridgePath!,
-            new(new(claim.DeviceId,native.Address,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value),claim.Kind,claim.ClockLocal,native.AllowClockSet),claim.TimeoutSeconds,ct);
+            new(new(claim.DeviceId,native.Address,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value),claim.Kind,claim.ClockLocal,native.AllowClockSet,native.AllowAdvancedSettingsRead),claim.TimeoutSeconds,ct);
     }
 
 }

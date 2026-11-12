@@ -314,7 +314,7 @@ internal static class HttpSecurityTests
             (await PostAdmin(adminClient, "/admin/user-roles", new { UserId = self, RoleId = operatorTemplate.Id })).EnsureSuccessStatusCode();
             using var operatorCaps = JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities"));
             check(operatorCaps.RootElement.GetProperty("operator").GetBoolean() &&
-                  operatorCaps.RootElement.GetProperty("permissions").EnumerateArray().Where(x => x.GetString()!.StartsWith("devices.", StringComparison.Ordinal)).Select(x => x.GetString()).OrderBy(x=>x,StringComparer.Ordinal).SequenceEqual(new[] { "devices.attendance.read", "devices.commands.read", "devices.connection.read", "devices.files.read", "devices.groups.read", "devices.info.read", "devices.read", "devices.schedules.read", "devices.users.read" }),
+                  operatorCaps.RootElement.GetProperty("permissions").EnumerateArray().Where(x => x.GetString()!.StartsWith("devices.", StringComparison.Ordinal)).Select(x => x.GetString()).OrderBy(x=>x,StringComparer.Ordinal).SequenceEqual(new[] { "devices.attendance.read", "devices.commands.read", "devices.connection.read", "devices.files.read", "devices.groups.read", "devices.info.read", "devices.read", "devices.schedules.read", "devices.settings.read", "devices.users.read" }),
                   "HTTP operator shell identifies role without granting unimplemented device operations");
             (await PostAdmin(adminClient, "/admin/user-roles/revoke", new { UserId = self, RoleId = operatorTemplate.Id })).EnsureSuccessStatusCode();
             var featureRole = await CreateId("/admin/roles", new { Name = "phase five six test role" });
@@ -615,6 +615,31 @@ internal static class HttpSecurityTests
                       (await own.GetAsync("/help/topic/device-commands")).StatusCode==HttpStatusCode.Forbidden&&
                       !commandCaps.RootElement.GetProperty("pages").EnumerateArray().Any(x=>x.GetProperty("route").GetString()=="/workspace/device-commands"),
                       "HTTP S11 revoke removes existing session command history retry menu and help");
+            var settingsId=Guid.NewGuid();var settingsPayload=new DeviceSettingsInput(settingsId,s06Device,s06Version,30,"READ-ADVANCED-SETTINGS");
+            check((await anon.GetAsync("/device-settings-snapshots")).StatusCode==HttpStatusCode.Unauthorized&&
+                  (await own.GetAsync("/device-settings-snapshots")).StatusCode==HttpStatusCode.Forbidden&&
+                  (await own.PostAsJsonAsync("/device-settings-snapshots",settingsPayload)).StatusCode==HttpStatusCode.BadRequest,
+                  "HTTP S11 advanced settings need authentication separate server permission and CSRF");
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.settings.read"})).EnsureSuccessStatusCode();
+            check((await PostAdmin(own,"/device-settings-snapshots",settingsPayload with{Confirmation="guess"})).StatusCode==HttpStatusCode.BadRequest&&
+                  (await PostAdmin(own,"/device-settings-snapshots",settingsPayload)).StatusCode==HttpStatusCode.OK&&
+                  (await PostAdmin(own,"/device-settings-snapshots",settingsPayload)).StatusCode==HttpStatusCode.OK&&
+                  (await own.GetAsync("/help/topic/device-settings")).StatusCode==HttpStatusCode.OK,
+                  "HTTP S11 explicit settings read confirmation queues one actual SQL intent on uncertain exact replay and exposes role-filtered help");
+            using(var settingsHistory=JsonDocument.Parse(await own.GetStringAsync("/device-settings-snapshots?deviceId="+s06Device)))
+            {
+                var settingsRow=settingsHistory.RootElement.GetProperty("items").EnumerateArray().Single(x=>x.GetProperty("id").GetGuid()==settingsId);
+                check((await PostAdmin(own,"/device-operations/"+settingsId+"/cancel",new DeviceOperationVersion(settingsRow.GetProperty("version").GetBytesFromBase64()))).StatusCode==HttpStatusCode.OK&&
+                      (await own.GetAsync("/device-operations")).StatusCode==HttpStatusCode.Forbidden,
+                      "HTTP S11 settings permission supports versioned pending cancellation but never grants ordinary information or clock rights");
+            }
+            (await PostAdmin(adminClient,"/admin/role-permissions/revoke",new{RoleId=deviceRole,Code="devices.settings.read"})).EnsureSuccessStatusCode();
+            using(var settingsCaps=JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities")))
+                check((await own.GetAsync("/device-settings-snapshots")).StatusCode==HttpStatusCode.Forbidden&&
+                      (await PostAdmin(own,"/device-settings-snapshots",settingsPayload)).StatusCode==HttpStatusCode.Forbidden&&
+                      (await own.GetAsync("/help/topic/device-settings")).StatusCode==HttpStatusCode.Forbidden&&
+                      !settingsCaps.RootElement.GetProperty("pages").EnumerateArray().Any(x=>x.GetProperty("route").GetString()=="/workspace/device-settings"),
+                      "HTTP S11 revoke removes advanced settings data requests protected help and menu without re-login");
             var fileId=Guid.NewGuid();var filePayload=new IO.Infrastructure.Devices.DeviceFileImports.Input(fileId,s06Device,s06Version,"gregorian",1,4,5,Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("009	2026-11-08 08:00:00	1	4	1")));
             check((await anon.GetAsync("/device-file-imports")).StatusCode==HttpStatusCode.Unauthorized&&
                   (await own.GetAsync("/device-file-imports")).StatusCode==HttpStatusCode.Forbidden&&

@@ -9,14 +9,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IO.Infrastructure.Devices;
 
-/// <summary>S06 typed information and clock jobs only; not the full S11 command queue.</summary>
+/// <summary>Closed typed operations: information, confirmed clock and opt-in read-only advanced settings. No arbitrary SDK writes or enrollment.</summary>
 public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transaction,TimeProvider clock,IDataProtectionProvider protection)
 {
-    public const string Read="devices.info.read",SetClock="devices.clock.set",Execute="devices.operations.execute";
+    public const string Read="devices.info.read",SetClock="devices.clock.set",Execute="devices.operations.execute",ReadSettings="devices.settings.read",ExecuteSettings="devices.settings.read.execute";
     public sealed record Claim(Guid Id,Guid Token,Guid DeviceId,string Profile,string? Host,int? Port,string Kind,string? ClockLocal,int TimeoutSeconds);
     public sealed record View(Guid Id,Guid DeviceId,string Kind,string State,DateTimeOffset RequestedAtUtc,DateTimeOffset? FinishedAtUtc,
         DateTimeOffset? TargetUtc,string TimeZoneId,ZkDeviceInformation? Information,Guid? ResolutionInfoId,DateTimeOffset? ResolvedAtUtc,byte[] Version);
-    private static string Permission(string kind)=>kind switch{"information.read"=>Read,"clock.set"=>SetClock,_=>throw new ArgumentException("Unknown operation.")};
+    private static string Permission(string kind)=>kind switch{"information.read"=>Read,"settings.read"=>ReadSettings,"clock.set"=>SetClock,_=>throw new ArgumentException("Unknown operation.")};
     public Task<Guid> RequestAsync(Guid actor,Guid operationId,Guid deviceId,byte[] expectedDeviceVersion,string kind,int timeoutSeconds,DateTimeOffset? targetUtc,string? confirmation,CancellationToken ct=default)=>
         transaction.ExecuteAsync(actor,Permission(kind),"device-operation.requested",token=>RequestInTransactionAsync(actor,operationId,deviceId,expectedDeviceVersion,kind,timeoutSeconds,targetUtc,confirmation,token),ct);
     internal async Task<(Guid Result,Guid Target)> RequestInTransactionAsync(Guid actor,Guid operationId,Guid deviceId,byte[] expectedDeviceVersion,string kind,int timeoutSeconds,DateTimeOffset? targetUtc,string? confirmation,CancellationToken token)
@@ -24,6 +24,7 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
             if(!await transaction.HasPermissionAsync(actor,Permission(kind),token))throw new UnauthorizedAccessException();
             if(operationId==Guid.Empty||deviceId==Guid.Empty||expectedDeviceVersion is not{Length:8}||timeoutSeconds is <1 or >60||
                 (kind=="information.read"&&(targetUtc is not null||confirmation is not null))||
+                (kind=="settings.read"&&(targetUtc is not null||confirmation!="READ-ADVANCED-SETTINGS"))||
                 (kind=="clock.set"&&(targetUtc is null||targetUtc.Value.Offset!=TimeSpan.Zero||targetUtc.Value.Ticks%TimeSpan.TicksPerSecond!=0||confirmation!="SET-CLOCK")))
                 throw new ArgumentException("Explicit operation, version, UTC seconds and confirmation required.");
             await transaction.LockAsync("IO.DeviceConnections",token);
@@ -50,8 +51,16 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
     public Task<object> ListAsync(Guid actor,Guid? deviceId,int offset,CancellationToken ct=default)=>transaction.ExecuteAsync<object>(actor,Read,"device-operation.viewed",async token=>
     {
         if(deviceId==Guid.Empty||offset is <0 or >100000)throw new ArgumentException("Invalid page.");
-        var rows=await db.DeviceOperations.AsNoTracking().Where(x=>deviceId==null||x.DeviceId==deviceId).OrderByDescending(x=>x.RequestedAtUtc).ThenBy(x=>x.Id).Skip(offset).Take(50).ToListAsync(token);
+        var rows=await db.DeviceOperations.AsNoTracking().Where(x=>x.Kind!="settings.read"&&(deviceId==null||x.DeviceId==deviceId)).OrderByDescending(x=>x.RequestedAtUtc).ThenBy(x=>x.Id).Skip(offset).Take(50).ToListAsync(token);
         var items=rows.Select(x=>new View(x.Id,x.DeviceId,x.Kind,x.State,x.RequestedAtUtc,x.FinishedAtUtc,x.TargetUtc,x.TimeZoneId,ParseInformation(x.ResultJson),x.ResolutionInfoId,x.ResolvedAtUtc,x.Version)).ToArray();
+        return(new{offset,pageSize=50,items},actor);
+    },ct);
+
+    public Task<object> ListSettingsAsync(Guid actor,Guid? deviceId,int offset,CancellationToken ct=default)=>transaction.ExecuteAsync<object>(actor,ReadSettings,"device-settings.viewed",async token=>
+    {
+        if(deviceId==Guid.Empty||offset is <0 or >100000)throw new ArgumentException("Invalid page.");
+        var rows=await db.DeviceOperations.AsNoTracking().Where(x=>x.Kind=="settings.read"&&(deviceId==null||x.DeviceId==deviceId)).OrderByDescending(x=>x.RequestedAtUtc).ThenBy(x=>x.Id).Skip(offset).Take(50).ToListAsync(token);
+        var items=rows.Select(x=>new{x.Id,x.DeviceId,x.Kind,x.State,x.RequestedAtUtc,x.FinishedAtUtc,x.ExpectedDeviceVersion,x.Version,settings=ParseSettings(x.ResultJson)}).ToArray();
         return(new{offset,pageSize=50,items},actor);
     },ct);
 
@@ -68,12 +77,13 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
         },ct);
     }
 
-    public Task<Claim?> ClaimAsync(Guid service,CancellationToken ct=default)=>transaction.ExecuteAsync<Claim?>(service,Execute,"device-operation.claimed",async token=>
+    public Task<Claim?> ClaimAsync(Guid service,CancellationToken ct=default,bool includeSettings=false)=>transaction.ExecuteAsync<Claim?>(service,Execute,"device-operation.claimed",async token=>
     {
         await transaction.LockAsync("IO.DeviceConnections",token);var now=clock.GetUtcNow();
-        var expired=await db.DeviceOperations.AsTracking().Where(x=>x.State=="running"&&x.ClaimedAtUtc<now.AddMinutes(-2)).ToListAsync(token);
+        var settings=includeSettings&&await transaction.HasPermissionAsync(service,ExecuteSettings,token);
+        var expired=await db.DeviceOperations.AsTracking().Where(x=>(x.Kind!="settings.read"||settings)&&x.State=="running"&&x.ClaimedAtUtc<now.AddMinutes(-2)).ToListAsync(token);
         foreach(var item in expired){item.State=item.Kind=="clock.set"?"unknown":"interrupted";item.FinishedAtUtc=now;}
-        var next=await db.DeviceOperations.AsTracking().Where(x=>x.State=="pending").OrderBy(x=>x.RequestedAtUtc).ThenBy(x=>x.Id).FirstOrDefaultAsync(token);
+        var next=await db.DeviceOperations.AsTracking().Where(x=>(x.Kind!="settings.read"||settings)&&x.State=="pending").OrderBy(x=>x.RequestedAtUtc).ThenBy(x=>x.Id).FirstOrDefaultAsync(token);
         if(next is null)return(null,service);
         var device=await db.Devices.AsNoTracking().SingleAsync(x=>x.Id==next.DeviceId,token);
         if(!await transaction.HasPermissionAsync(next.RequestedByUserId,Permission(next.Kind),token)){next.State="revoked";next.FinishedAtUtc=now;return(null,next.Id);}
@@ -87,17 +97,22 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
     public Task<Guid> CompleteAsync(Guid service,Guid id,Guid claimId,ZkOperationOutput result,CancellationToken ct=default)=>transaction.ExecuteAsync(service,Execute,"device-operation.finished",async token=>
     {
         await transaction.LockAsync("IO.DeviceConnections",token);var item=await Owned(service,id,claimId,token);
+        if(item.Kind=="settings.read"&&!await transaction.HasPermissionAsync(service,ExecuteSettings,token))throw new UnauthorizedAccessException();
+        if(result is null)throw new ArgumentException("Result required.");
         if(!new[]{"succeeded","unsupported","identity-mismatch","failed","unknown","timed-out","interrupted","endpoint-denied","credential-unavailable","bridge-failed"}.Contains(result.State,StringComparer.Ordinal)||
             (result.Information is not null&&(item.Kind!="information.read"||result.State!="succeeded"||!result.Information.IsValid()))||
-            (item.Kind=="information.read"&&result.State=="succeeded"&&result.Information is null))throw new ArgumentException("Invalid typed operation result.");
+            (item.Kind=="information.read"&&result.State=="succeeded"&&result.Information is null)||
+            (result.Settings is not null&&(item.Kind!="settings.read"||result.State!="succeeded"||!result.Settings.IsValid()))||
+            (item.Kind=="settings.read"&&result.State=="succeeded"&&result.Settings is null))throw new ArgumentException("Invalid typed operation result.");
         item.State=item.Kind=="clock.set"&&result.State is "timed-out" or "interrupted" or "bridge-failed" or "unknown"?"unknown":result.State;
-        item.FinishedAtUtc=clock.GetUtcNow();item.ResultJson=result.Information is null?null:JsonSerializer.Serialize(result.Information);
+        item.FinishedAtUtc=clock.GetUtcNow();item.ResultJson=result.Settings is not null?JsonSerializer.Serialize(result.Settings):result.Information is null?null:JsonSerializer.Serialize(result.Information);
         return(id,id);
     },ct);
 
     public Task<DeviceCommunicationKey?> CredentialAsync(Guid service,Claim claim,bool allowDefault,CancellationToken ct=default)=>transaction.ExecuteAsync<DeviceCommunicationKey?>(service,Execute,"device-operation.credential-used",async token=>
     {
         await transaction.LockAsync("IO.DeviceConnections",token);var item=await Owned(service,claim.Id,claim.Token,token);
+        if(item.Kind=="settings.read"&&!await transaction.HasPermissionAsync(service,ExecuteSettings,token))throw new UnauthorizedAccessException();
         var device=await db.Devices.AsNoTracking().SingleAsync(x=>x.Id==item.DeviceId,token);
         var zone=await db.Sites.Where(x=>x.Id==device.SiteId).Select(x=>x.TimeZoneId).SingleAsync(token);
         if((item.Kind=="clock.set"&&item.RequestedAtUtc<clock.GetUtcNow().AddMinutes(-2))||item.DeviceId!=claim.DeviceId||item.Kind!=claim.Kind||!device.Enabled||!device.Version.SequenceEqual(item.ExpectedDeviceVersion)||zone!=item.TimeZoneId||!await transaction.HasPermissionAsync(item.RequestedByUserId,Permission(item.Kind),token))return(null,item.Id);
@@ -128,6 +143,10 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
     {
         var item=await db.DeviceOperations.AsTracking().SingleOrDefaultAsync(x=>x.Id==id,ct)??throw new ArgumentException("Unknown job.");
         if(item.State!="running"||item.ServiceUserId!=service||item.ClaimId!=claimId||item.ClaimedAtUtc<clock.GetUtcNow().AddMinutes(-2))throw new DomainConflictException("Expired or foreign claim.");return item;
+    }
+    private static ZkAdvancedSettings? ParseSettings(string? json)
+    {
+        try{var item=json is null?null:JsonSerializer.Deserialize<ZkAdvancedSettings>(json,new JsonSerializerOptions{UnmappedMemberHandling=System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow});return item?.IsValid()==true?item:null;}catch(JsonException){return null;}
     }
     private static ZkDeviceInformation? ParseInformation(string? json)
     {

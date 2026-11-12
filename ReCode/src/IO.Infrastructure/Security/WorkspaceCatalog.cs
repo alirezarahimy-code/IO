@@ -35,6 +35,7 @@ public static class WorkspaceCatalog
         new("/workspace/employee-history", "برنامه‌ریزی | سامانهٔ حضور", "admin", "Scheduling.html", ["schedule.manage", "schedule.catalog.read"]),
         new("/workspace/device-files", "ورود فایل دستگاه و قرنطینه", "operator", "DeviceFiles.html", ["devices.files.read", "devices.files.preview", "devices.files.commit"]),
         new("/workspace/device-user-uploads", "ارسال عادی کاربران و نتیجهٔ هر نفر/دستگاه", "operator", "DeviceUserUploads.html", ["devices.users.read", "devices.users.upload"]),
+        new("/workspace/device-settings", "snapshot خواندنی تنظیمات پیشرفته", "operator", "DeviceSettings.html", ["devices.settings.read"]),
         new("/workspace/device-commands", "فرمان‌های پایدار و retry خواندنی", "operator", "DeviceCommands.html", ["devices.commands.read", "devices.commands.retry"]),
         new("/workspace/device-schedules", "زمان‌بندی دریافت SDK و پیگیری cursor", "operator", "DeviceSchedules.html", ["devices.schedules.read", "devices.schedules.manage"]),
         new("/workspace/device-attendance", "استخراج بازه‌ای تردد SDK و قرنطینه", "operator", "DeviceAttendance.html", ["devices.attendance.read", "devices.attendance.extract", "devices.attendance.commit"]),

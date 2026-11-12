@@ -192,6 +192,8 @@ public static class IoWebHost
         app.MapGet("/assets/device-files.js", () => Results.Content(Resource("IO.Web.Ui.device-files.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-user-uploads", () => Results.Content(Resource("IO.Web.Ui.DeviceUserUploads.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/device-user-uploads.js", () => Results.Content(Resource("IO.Web.Ui.device-user-uploads.js"), "text/javascript; charset=utf-8"));
+        app.MapGet("/workspace/device-settings", () => Results.Content(Resource("IO.Web.Ui.DeviceSettings.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/device-settings.js", () => Results.Content(Resource("IO.Web.Ui.device-settings.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-commands", () => Results.Content(Resource("IO.Web.Ui.DeviceCommands.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/device-commands.js", () => Results.Content(Resource("IO.Web.Ui.device-commands.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-schedules", () => Results.Content(Resource("IO.Web.Ui.DeviceSchedules.html"), "text/html; charset=utf-8"));
@@ -415,6 +417,8 @@ public static class IoWebHost
         app.MapGet("/device-user-downloads/{id:guid}/preview", (Guid id,HttpContext c,DeviceUserDownloads service,long after=0)=>AdminRead(c,actor=>service.PreviewAsync(actor,id,after,c.RequestAborted)));
         app.MapPost("/device-user-downloads", (DeviceConnectionInput input,HttpContext c,IAntiforgery csrf,DeviceUserDownloads service)=>Admin(c,csrf,actor=>service.RequestAsync(actor,input.OperationId,input.DeviceId,input.ExpectedDeviceVersion,input.TimeoutSeconds,c.RequestAborted)));
         app.MapPost("/device-user-downloads/{id:guid}/cancel", (Guid id,DeviceOperationVersion input,HttpContext c,IAntiforgery csrf,DeviceUserDownloads service)=>Admin(c,csrf,actor=>service.CancelAsync(actor,id,input.ExpectedVersion,c.RequestAborted)));
+        app.MapGet("/device-settings-snapshots", (HttpContext c,DeviceOperations service,Guid? deviceId,int offset=0)=>AdminRead(c,actor=>service.ListSettingsAsync(actor,deviceId,offset,c.RequestAborted)));
+        app.MapPost("/device-settings-snapshots", (DeviceSettingsInput input,HttpContext c,IAntiforgery csrf,DeviceOperations service)=>Admin(c,csrf,actor=>service.RequestAsync(actor,input.OperationId,input.DeviceId,input.ExpectedDeviceVersion,"settings.read",input.TimeoutSeconds,null,input.Confirmation,c.RequestAborted)));
         app.MapGet("/device-operations", (HttpContext c, DeviceOperations service, Guid? deviceId, int offset=0) =>
             AdminRead(c,actor=>service.ListAsync(actor,deviceId,offset,c.RequestAborted)));
         app.MapPost("/device-operations", (DeviceOperationInput input,HttpContext c,IAntiforgery csrf,DeviceOperations service) =>
@@ -809,3 +813,5 @@ public sealed record DeviceAttendanceCommit(byte[] ExpectedVersion,long After,st
 
 public sealed record DevicePollInput(Guid Id,Guid DeviceId,byte[] ExpectedDeviceVersion,[property:System.Text.Json.Serialization.JsonRequired]string StartUtc,int EverySeconds,int WindowSeconds,int LagSeconds,int TimeoutSeconds,[property:System.Text.Json.Serialization.JsonRequired]int InCode,[property:System.Text.Json.Serialization.JsonRequired]int OutCode,[property:System.Text.Json.Serialization.JsonRequired]bool AutoCommit,string Confirmation);
 public sealed record DevicePollToggle(byte[] ExpectedVersion,[property:System.Text.Json.Serialization.JsonRequired]bool Enabled,string Confirmation);
+
+public sealed record DeviceSettingsInput(Guid OperationId,Guid DeviceId,byte[] ExpectedDeviceVersion,int TimeoutSeconds,string Confirmation);

@@ -1,0 +1,28 @@
+using System.Text;
+using System.Text.Json.Serialization;
+namespace IO.DeviceContracts;
+
+/// <summary>Exact nullable Int32 results of the six observed GetDeviceInfo calls.
+/// Not interpreted units, approved ranges, setting-write capabilities or an atomic snapshot.</summary>
+public sealed record ZkAdvancedSettings(
+    [property:JsonRequired]string Contract,[property:JsonRequired]string Serial,
+    [property:JsonRequired]int? OneToOne,[property:JsonRequired]int? OneToN,
+    [property:JsonRequired]int? RepeatTime,[property:JsonRequired]int? SleepTime,
+    [property:JsonRequired]int? RegCard,[property:JsonRequired]int? MifareSector)
+{
+    public const string Version="zk-device-info-v1";
+    public bool IsValid()
+    {
+        if(Contract!=Version||string.IsNullOrWhiteSpace(Serial)||Serial.Length>100||Serial.Trim()!=Serial||Serial.Any(char.IsControl))return false;
+        try{_=new UTF8Encoding(false,true).GetByteCount(Serial);return true;}catch(EncoderFallbackException){return false;}
+    }
+}
+public interface IZkAdvancedSettingsReadSession{int? ReadDeviceInfo(int code);}
+public static class ZkAdvancedSettingsReader
+{
+    public static ZkAdvancedSettings Read(string serial,IZkAdvancedSettingsReadSession session)
+    {
+        int? Read(int code){try{return session.ReadDeviceInfo(code);}catch{return null;}}
+        return new(ZkAdvancedSettings.Version,serial,Read(25),Read(23),Read(8),Read(4),Read(30),Read(62));
+    }
+}

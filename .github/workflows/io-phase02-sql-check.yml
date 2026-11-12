@@ -256,6 +256,7 @@ jobs:
           node ReCode/tests/IO.Infrastructure.SqlTests/device-attendance-ui-check.cjs
           node ReCode/tests/IO.Infrastructure.SqlTests/device-schedules-ui-check.cjs
           node ReCode/tests/IO.Infrastructure.SqlTests/device-commands-ui-check.cjs
+          node ReCode/tests/IO.Infrastructure.SqlTests/device-settings-ui-check.cjs
           node ReCode/tests/IO.Infrastructure.SqlTests/device-files-ui-check.cjs
       - name: Test isolated SQL Server Developer
         shell: bash
