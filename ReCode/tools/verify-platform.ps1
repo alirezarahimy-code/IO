@@ -36,6 +36,10 @@ try {
         }
 
     }
+    if ($IsLinux -and $env:GITHUB_ACTIONS -eq 'true') {
+        & bash (Join-Path $PSScriptRoot 'test-worker-linux-service.sh') --allow-isolated-ci-installation (Join-Path $publish 'device-worker') (Get-Command dotnet -CommandType Application).Source
+        if ($LASTEXITCODE -ne 0) { throw 'Actual Linux systemd worker lifecycle smoke failed.' }
+    }
     # Smoke the actual published web executable on this OS, not an HTML mock.
     $env:IO__EnableExperimentalIdentity = 'false'
     $env:ASPNETCORE_URLS = 'http://127.0.0.1:5198'
