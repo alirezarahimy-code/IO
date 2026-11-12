@@ -40,3 +40,7 @@
 ## عملیات S06 (پیش‌فرض خاموش)
 
 برای مشخصات/ظرفیت/ساعت، [راهنمای S06](s06-information-clock.fa.md) را بخوانید. `IO:DeviceWorker:EnableOperations=true` و grant مستقل `devices.operations.execute` لازم است. `AllowClockSet` روی NativeEndpoint پیش‌فرض false است؛ فقط پس از آزمون مدل در آزمایشگاه روشن شود. `devices.clock.set` مستقل از خواندن و حقوق سرویس است؛ timeout نوشتن unknown است و replay خودکار ندارد.
+
+## دریافت کاربران S07 (پیش‌فرض خاموش)
+
+`IO:DeviceWorker:EnableUserDownloads=true`، grant مستقل `devices.users.execute` و `AllowUserRead=true` روی NativeEndpoint لازم است. فقط SSR/TFT پس از آزمون مدل؛ [قرارداد و بازیابی](s07-user-download.fa.md). رمز کاربران/قالب بایومتریک ذخیره نمی‌شود. این مسیر نه مجوز ارسال کاربر است و نه پذیرش سخت‌افزار.

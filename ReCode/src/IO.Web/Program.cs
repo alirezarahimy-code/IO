@@ -188,6 +188,8 @@ public static class IoWebHost
                 permissions = page.AnyPermissions });
         }).AllowAnonymous();
         app.MapGet("/workspace/account", () => Results.Content(Resource("IO.Web.Ui.Account.html"), "text/html; charset=utf-8"));
+        app.MapGet("/workspace/device-users", () => Results.Content(Resource("IO.Web.Ui.DeviceUsers.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/device-users.js", () => Results.Content(Resource("IO.Web.Ui.device-users.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-information", () => Results.Content(Resource("IO.Web.Ui.DeviceInformation.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/device-information.js", () => Results.Content(Resource("IO.Web.Ui.device-information.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-connection", () => Results.Content(Resource("IO.Web.Ui.DeviceConnection.html"), "text/html; charset=utf-8"));
@@ -378,6 +380,10 @@ public static class IoWebHost
             Admin(c,csrf,actor => service.AssignAsync(actor,input.OperationId,input.DelegateUserId,input.ValidFrom,input.ValidUntilExclusive,c.RequestAborted)));
         app.MapPost("/delegations/{id:guid}/revoke", (Guid id,DelegationRevokeInput input,HttpContext c,IAntiforgery csrf,DelegationRegistry service) =>
             Admin(c,csrf,actor => service.RevokeAsync(actor,id,input.Reason,c.RequestAborted)));
+        app.MapGet("/device-user-downloads", (HttpContext c,DeviceUserDownloads service,Guid? deviceId,int offset=0)=>AdminRead(c,actor=>service.ListAsync(actor,deviceId,offset,c.RequestAborted)));
+        app.MapGet("/device-user-downloads/{id:guid}/preview", (Guid id,HttpContext c,DeviceUserDownloads service,long after=0)=>AdminRead(c,actor=>service.PreviewAsync(actor,id,after,c.RequestAborted)));
+        app.MapPost("/device-user-downloads", (DeviceConnectionInput input,HttpContext c,IAntiforgery csrf,DeviceUserDownloads service)=>Admin(c,csrf,actor=>service.RequestAsync(actor,input.OperationId,input.DeviceId,input.ExpectedDeviceVersion,input.TimeoutSeconds,c.RequestAborted)));
+        app.MapPost("/device-user-downloads/{id:guid}/cancel", (Guid id,DeviceOperationVersion input,HttpContext c,IAntiforgery csrf,DeviceUserDownloads service)=>Admin(c,csrf,actor=>service.CancelAsync(actor,id,input.ExpectedVersion,c.RequestAborted)));
         app.MapGet("/device-operations", (HttpContext c, DeviceOperations service, Guid? deviceId, int offset=0) =>
             AdminRead(c,actor=>service.ListAsync(actor,deviceId,offset,c.RequestAborted)));
         app.MapPost("/device-operations", (DeviceOperationInput input,HttpContext c,IAntiforgery csrf,DeviceOperations service) =>

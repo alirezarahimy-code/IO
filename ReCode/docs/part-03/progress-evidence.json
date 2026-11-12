@@ -24,7 +24,7 @@
     "S04": "accepted registry and metadata groups",
     "S05": "partial: DB queue, independent service identity, grant/revoke, timeout isolation, TCP diagnostic and isolated native ZK serial-pin candidate; actual SDK installation and real device tests remain",
     "S06": "partial software candidate verified in CI: typed information/capacity/clock snapshots, independent read/set/execute permissions, explicitly confirmed UTC/timezone clock writes and immutable unknown outcome with later clock observation plus human review; real model/SDK tests and other supported settings remain",
-    "S07": "not implemented: device user download and employee reconciliation",
+    "S07": "software candidate under verification: streamed SSR user snapshots, durable bounded batches, independent read/download/execute grants and exact mapping preview; no employee overwrite and no SDK/hardware execution",
     "S08": "not implemented: per-person per-device upload and allowed biometrics",
     "S09": "not implemented: real device log extraction and end-to-end ingestion",
     "S10": "not implemented: scheduled polling and authenticated PUSH",
@@ -48,5 +48,14 @@
       "conclusion": "success",
       "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43167046677"
     }
-  ]
+  ],
+  "pendingVerification": {
+    "integrationPassLines": 510,
+    "foundation": 41,
+    "portableNativeBoundaryAndFileParser": 33,
+    "permissions": 96,
+    "pagesAndHelp": 45,
+    "foundationMigrations": 28,
+    "foundationTables": 51
+  }
 }

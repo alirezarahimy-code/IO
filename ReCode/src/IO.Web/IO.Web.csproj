@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <ItemGroup>
+    <EmbeddedResource Include="Ui/DeviceUsers.html" />
+    <EmbeddedResource Include="Ui/device-users.js" />
     <EmbeddedResource Include="Ui/DeviceInformation.html" />
     <EmbeddedResource Include="Ui/device-information.js" />
     <EmbeddedResource Include="Ui/DeviceConnection.html" />

@@ -79,6 +79,7 @@ internal static class DeviceOperationTests
         check(await Claim()==null&&await State(revoked)=="revoked"&&await Reject<UnauthorizedAccessException>(()=>Use<DeviceOperations,object>(s=>s.ListAsync(actor,null,0))),"S06 read permission revocation denies snapshots and prevents queued reads on the next dispatch");
         bool guard=false;try{await Query(db=>db.Database.ExecuteSqlInterpolatedAsync($"DELETE dbo.DeviceOperations WHERE Id={id}"));}catch(SqlException e)when(e.Number==51017){guard=true;}
         bool down=false;try{await Query(async db=>{await db.GetService<IMigrator>().MigrateAsync("20261112030000_ZkConnectionProbe");return true;});}catch(SqlException e)when(e.Number==51017){down=true;}
+        await Query(async db=>{await db.GetService<IMigrator>().MigrateAsync();return true;});
         check(guard&&down&&await State(id)=="succeeded","S06 SQL history guard and downgrade guard retain operation and snapshot evidence");
         await Query(db=>db.RolePermissions.Where(x=>x.RoleId==workerRole).ExecuteDeleteAsync());
         check(await Reject<UnauthorizedAccessException>(()=>Claim()),"S06 service execution revocation is enforced on the next claim");

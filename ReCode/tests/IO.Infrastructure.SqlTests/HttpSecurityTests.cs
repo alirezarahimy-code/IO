@@ -293,7 +293,7 @@ internal static class HttpSecurityTests
             (await PostAdmin(adminClient, "/admin/user-roles", new { UserId = self, RoleId = operatorTemplate.Id })).EnsureSuccessStatusCode();
             using var operatorCaps = JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities"));
             check(operatorCaps.RootElement.GetProperty("operator").GetBoolean() &&
-                  operatorCaps.RootElement.GetProperty("permissions").EnumerateArray().Where(x => x.GetString()!.StartsWith("devices.", StringComparison.Ordinal)).Select(x => x.GetString()).OrderBy(x=>x,StringComparer.Ordinal).SequenceEqual(new[] { "devices.connection.read", "devices.groups.read", "devices.info.read", "devices.read" }),
+                  operatorCaps.RootElement.GetProperty("permissions").EnumerateArray().Where(x => x.GetString()!.StartsWith("devices.", StringComparison.Ordinal)).Select(x => x.GetString()).OrderBy(x=>x,StringComparer.Ordinal).SequenceEqual(new[] { "devices.connection.read", "devices.groups.read", "devices.info.read", "devices.read", "devices.users.read" }),
                   "HTTP operator shell identifies role without granting unimplemented device operations");
             (await PostAdmin(adminClient, "/admin/user-roles/revoke", new { UserId = self, RoleId = operatorTemplate.Id })).EnsureSuccessStatusCode();
             var featureRole = await CreateId("/admin/roles", new { Name = "phase five six test role" });
@@ -445,6 +445,34 @@ internal static class HttpSecurityTests
             (await PostAdmin(own,"/devices",new{OperationId=s06Device,Device=deviceInput with{Number="HTTP-S06",Profile="zk-standalone",Host="127.0.0.1",Port=4370}})).EnsureSuccessStatusCode();
             byte[] s06Version;
             using(var json=JsonDocument.Parse(await own.GetStringAsync("/devices/"+s06Device)))s06Version=json.RootElement.GetProperty("version").GetBytesFromBase64();
+            var downloadId=Guid.NewGuid();var downloadPayload=new{OperationId=downloadId,DeviceId=s06Device,ExpectedDeviceVersion=s06Version,TimeoutSeconds=30};
+            check((await anon.GetAsync("/device-user-downloads")).StatusCode==HttpStatusCode.Unauthorized&&
+                  (await own.GetAsync("/device-user-downloads")).StatusCode==HttpStatusCode.Forbidden&&
+                  (await own.PostAsJsonAsync("/device-user-downloads",downloadPayload)).StatusCode==HttpStatusCode.BadRequest,
+                  "HTTP S07 user downloads require authentication independent permission and CSRF");
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.users.download"})).EnsureSuccessStatusCode();
+            check((await PostAdmin(own,"/device-user-downloads",downloadPayload)).StatusCode==HttpStatusCode.OK&&
+                  (await PostAdmin(own,"/device-user-downloads",downloadPayload)).StatusCode==HttpStatusCode.OK&&
+                  (await own.GetAsync("/device-user-downloads")).StatusCode==HttpStatusCode.Forbidden&&
+                  (await own.GetAsync("/device-user-downloads/"+downloadId+"/preview")).StatusCode==HttpStatusCode.Forbidden,
+                  "HTTP S07 download grant permits exact retry without granting retained user or mapping preview reads");
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.users.read"})).EnsureSuccessStatusCode();
+            using(var downloads=JsonDocument.Parse(await own.GetStringAsync("/device-user-downloads?deviceId="+s06Device)))
+            {
+                var download=downloads.RootElement.GetProperty("items").EnumerateArray().Single(x=>x.GetProperty("id").GetGuid()==downloadId);
+                check((await own.GetAsync("/help/topic/device-users")).StatusCode==HttpStatusCode.OK&&
+                      (await own.GetAsync("/device-user-downloads/"+downloadId+"/preview")).StatusCode==HttpStatusCode.OK&&
+                      (await PostAdmin(own,"/device-user-downloads/"+downloadId+"/cancel",new{ExpectedVersion=download.GetProperty("version").GetBytesFromBase64()})).StatusCode==HttpStatusCode.OK,
+                      "HTTP S07 read grant enables protected help and real preview while cancellation is versioned pending-only");
+            }
+            foreach(var code in new[]{"devices.users.read","devices.users.download"})
+                (await PostAdmin(adminClient,"/admin/role-permissions/revoke",new{RoleId=deviceRole,Code=code})).EnsureSuccessStatusCode();
+            using(var downloadCaps=JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities")))
+                check((await own.GetAsync("/device-user-downloads/"+downloadId+"/preview")).StatusCode==HttpStatusCode.Forbidden&&
+                      (await PostAdmin(own,"/device-user-downloads",downloadPayload)).StatusCode==HttpStatusCode.Forbidden&&
+                      (await own.GetAsync("/help/topic/device-users")).StatusCode==HttpStatusCode.Forbidden&&
+                      !downloadCaps.RootElement.GetProperty("pages").EnumerateArray().Any(x=>x.GetProperty("route").GetString()=="/workspace/device-users"),
+                      "HTTP S07 grant revocation removes data help menu and request replay on the existing session");
             var infoOperation=Guid.NewGuid();
             var infoPayload=new{OperationId=infoOperation,DeviceId=s06Device,ExpectedDeviceVersion=s06Version,Kind="information.read",TimeoutSeconds=5,TargetUtc=(DateTimeOffset?)null,Confirmation=(string?)null};
             check((await anon.GetAsync("/device-operations")).StatusCode==HttpStatusCode.Unauthorized&&

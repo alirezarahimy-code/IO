@@ -7,6 +7,18 @@ if (args is not ["--verify"])
 {
     // This executable is a test-only child fixture, never deployed as the SDK bridge.
     var text=await Console.In.ReadToEndAsync();using var document=JsonDocument.Parse(text);
+    if(document.RootElement.TryGetProperty("ReadUsers",out _))
+    {
+        var request=JsonSerializer.Deserialize<ZkUserReadInput>(text)!;var serial=request.Connection.ExpectedSerial;
+        void Frame(ZkUserFrame frame)=>Console.WriteLine(JsonSerializer.Serialize(frame));
+        Frame(new("start",Serial:serial=="users-wrong-pin"?"wrong":serial));
+        if(serial=="users-hang"){await Task.Delay(TimeSpan.FromMinutes(1));return;}
+        var total=serial=="users-ok"?103:1;
+        for(int i=0;i<total;i++)Frame(new("user",User:new(i.ToString("D5"),"<img src=x>",null,0,true)));
+        if(serial=="users-extra")Console.WriteLine("{\"Type\":\"user\",\"Password\":\"must-not-pass\"}");
+        if(serial!="users-truncated")Frame(new("end",Count:serial=="users-count-mismatch"?total+1:total,State:"succeeded"));
+        return;
+    }
     if(document.RootElement.TryGetProperty("Connection",out _))
     {
         var operation=JsonSerializer.Deserialize<ZkOperationInput>(text)!;
@@ -80,4 +92,16 @@ Check(!(operationInput with{Operation="door.open"}).IsValid()&&!(operationInput 
 var clockInput=operationInput with{Operation="clock.set",ClockLocal="2026-11-08 10:00:00",AllowClockSet=true};
 Check((await NativeProcessSupervisor.RunOperationAsync(host,fixtureAssembly,clockInput,2)).State=="succeeded"&&!(clockInput with{ClockLocal="2026-02-30 10:00:00"}).IsValid(),"S06 clock IPC accepts explicit valid wall-clock seconds and rejects invalid calendar dates");
 Check(!new ZkOperationOutput("succeeded",informationResult.Information! with{Users=-1}).IsValidFor(operationInput)&&!clockInput.ToString().Contains("123456789",StringComparison.Ordinal),"S06 invalid negative counters are rejected and operation text never reveals communication key");
+var usersInput=new ZkUserReadInput(input with{ExpectedSerial="users-ok"},true,true);
+var received=new List<ZkUser>();var batches=new List<int>();
+async Task Accept(IReadOnlyList<ZkUser> users,CancellationToken token){token.ThrowIfCancellationRequested();received.AddRange(users);batches.Add(users.Count);await Task.CompletedTask;}
+var usersResult=await NativeUserReadSupervisor.RunAsync(host,fixtureAssembly,usersInput,5,Accept);
+Check(usersResult.State=="succeeded"&&usersResult.Count==103&&received.Count==103&&batches.SequenceEqual(new[]{50,50,3})&&received[0].PersonIdentifier=="00000", "S07 user stream applies backpressure in bounded batches without a product user-count ceiling or losing leading zeros");
+Check((await NativeUserReadSupervisor.RunAsync(host,fixtureAssembly,usersInput with{Connection=input with{ExpectedSerial="users-wrong-pin"}},2,Accept)).State=="bridge-failed", "S07 no user frame is accepted before an exact serial-pinned header");
+Check((await NativeUserReadSupervisor.RunAsync(host,fixtureAssembly,usersInput with{Connection=input with{ExpectedSerial="users-truncated"}},2,Accept)).State=="bridge-failed", "S07 truncated output is never a complete user snapshot");
+Check((await NativeUserReadSupervisor.RunAsync(host,fixtureAssembly,usersInput with{Connection=input with{ExpectedSerial="users-count-mismatch"}},2,Accept)).State=="bridge-failed", "S07 terminal row count must match the exact stream");
+Check((await NativeUserReadSupervisor.RunAsync(host,fixtureAssembly,usersInput with{Connection=input with{ExpectedSerial="users-extra"}},2,Accept)).State=="bridge-failed", "S07 unknown frame fields including passwords are rejected rather than stored");
+Check((await NativeUserReadSupervisor.RunAsync(host,fixtureAssembly,usersInput with{AllowUserRead=false},2,Accept)).State=="unsupported", "S07 SSR user reading requires explicit per-endpoint installation opt-in");
+Check((await NativeUserReadSupervisor.RunAsync(host,fixtureAssembly,usersInput with{Connection=input with{ExpectedSerial="users-hang"}},1,Accept)).State=="timed-out", "S07 a hung enumeration has an external process deadline");
+Check(!new ZkUser(" 01","n",null,0,true).IsValid()&&!new ZkUser("01","n",null,9,true).IsValid()&&!usersInput.ToString().Contains("123456789",StringComparison.Ordinal)&&!received[0].ToString().Contains("00000",StringComparison.Ordinal), "S07 malformed identifiers and privilege values fail closed and personal data is redacted from text");
 Console.WriteLine($"PASS {count} portable native-boundary and reference-file parser checks; no real device or SDK acceptance implied");

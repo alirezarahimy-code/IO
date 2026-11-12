@@ -16,6 +16,12 @@ internal static class Program
             using var stdin=Console.OpenStandardInput();using var bytes=new MemoryStream();var buffer=new byte[1024];int count;
             while((count=stdin.Read(buffer,0,buffer.Length))>0){if(bytes.Length+count>8192)return Result("invalid-input");bytes.Write(buffer,0,count);}
             var json=new UTF8Encoding(false,true).GetString(bytes.ToArray());using var document=JsonDocument.Parse(json);
+            if(document.RootElement.TryGetProperty("ReadUsers",out _))
+            {
+                var request=JsonSerializer.Deserialize<ZkUserReadInput>(json);
+                if(request?.IsValid()!=true||!OperatingSystem.IsWindows()){UserFrame(new("end",Count:0,State:"unsupported"));return 0;}
+                ReadUsersWindows(request);return 0;
+            }
             operationMode=document.RootElement.TryGetProperty("Connection",out _);
             var operation=operationMode?JsonSerializer.Deserialize<ZkOperationInput>(json):null;
             var connection=operationMode?operation?.Connection:JsonSerializer.Deserialize<ZkProbeInput>(json);
@@ -57,6 +63,35 @@ internal static class Program
         {
             if(instance is not null){try{if(connected)((dynamic)instance).Disconnect();}catch{}try{if(Marshal.IsComObject(instance))Marshal.FinalReleaseComObject(instance);}catch{}}
         }
+    }
+
+    private static void UserFrame(ZkUserFrame frame){Console.WriteLine(JsonSerializer.Serialize(frame));Console.Out.Flush();}
+    [SupportedOSPlatform("windows")]
+    private static void ReadUsersWindows(ZkUserReadInput request)
+    {
+        object? instance=null;bool connected=false;long count=0;
+        try
+        {
+            var pin=request.Connection;var type=Type.GetTypeFromCLSID(new Guid("00853A19-BD51-419B-9269-2DABE57EB61F"),true)!;
+            instance=Activator.CreateInstance(type)!;dynamic sdk=instance;
+            if(!(bool)sdk.SetCommPassword(pin.CommKey)||!(connected=(bool)sdk.Connect_Net(pin.Address,pin.Port))){UserFrame(new("end",Count:0,State:"failed"));return;}
+            string serial;if(!(bool)sdk.GetSerialNumber(pin.MachineNumber,out serial)||serial?.Trim()!=pin.ExpectedSerial){UserFrame(new("end",Count:0,State:"identity-mismatch"));return;}
+            // Only the explicitly approved SSR/TFT user contract is supported here.
+            int before=0;if(!(bool)sdk.GetDeviceStatus(pin.MachineNumber,2,ref before)||before<0||!(bool)sdk.ReadAllUserID(pin.MachineNumber)){UserFrame(new("end",Count:0,State:"failed"));return;}
+            UserFrame(new("start",Serial:pin.ExpectedSerial));
+            string badge,name,password;int privilege;bool enabled;
+            while((bool)sdk.SSR_GetAllUserInfo(pin.MachineNumber,out badge,out name,out password,out privilege,out enabled))
+            {
+                password=string.Empty; // Never put a device password in a frame, file, log or database.
+                string card;string? availableCard=null;try{if((bool)sdk.GetStrCardNumber(out card))availableCard=card;}catch{}
+                var user=new ZkUser(badge,name,availableCard,privilege,enabled);if(!user.IsValid()){UserFrame(new("end",Count:count,State:"incomplete"));return;}
+                UserFrame(new("user",User:user));count++;
+            }
+            int after=0;var complete=(bool)sdk.GetDeviceStatus(pin.MachineNumber,2,ref after)&&before==after&&after==count;
+            UserFrame(new("end",Count:count,State:complete?"succeeded":"incomplete"));
+        }
+        catch{UserFrame(new("end",Count:count,State:"failed"));}
+        finally{if(instance is not null){try{if(connected)((dynamic)instance).Disconnect();}catch{}try{if(Marshal.IsComObject(instance))Marshal.FinalReleaseComObject(instance);}catch{}}}
     }
 
     private static ZkDeviceInformation ReadInformation(dynamic sdk,int machine,string serial,bool clockConfigured)
