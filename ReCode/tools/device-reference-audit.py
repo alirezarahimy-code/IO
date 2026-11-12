@@ -26,7 +26,17 @@ def verify(repeat=False):
     assert manifest['originalSourceAvailable'] is False and manifest['part3Complete'] is False
     expected=[]
     for source in manifest['sources']:
-        data=git_source(source['path']) if source.get('commit') else (ROOT/source['path']).read_bytes()
+        if source.get('commit'):
+            data=git_source(source['path'])
+        else:
+            # GitHub Windows checkout may convert tracked text LF to CRLF.
+            # Provenance is the exact Git blob; local edits still fail, except EOL.
+            data=subprocess.check_output(['git','show','HEAD:'+source['path']],cwd=ROOT)
+            working=(ROOT/source['path']).read_bytes()
+            if pathlib.Path(source['path']).suffix=='.cshtml':
+                assert working.replace(b'\r\n',b'\n')==data.replace(b'\r\n',b'\n'),f"Working reference edited: {source['path']}"
+            else:
+                assert working==data,f"Working binary edited: {source['path']}"
         assert sha(data)==source['sha256'],f"Reference changed: {source['path']}"
         if source.get('type'):
             if repeat:
@@ -41,6 +51,7 @@ def verify(repeat=False):
     with (OUT/'device-reference-crosswalk.csv').open(encoding='utf-8-sig',newline='') as f:rows=list(csv.DictReader(f))
     actual=[(r['source'],r['controller'],r['member'],r['overload'])for r in rows if r['source']!='AriaAdmin-catalog']
     assert len(actual)==len(set(actual)) and set(actual)==set(expected),'Missing duplicate or unreviewed reference action'
+    assert len(rows)==len(expected)+5
     assert {r['member']for r in rows if r['source']=='AriaAdmin-catalog'}=={'sync-users','sync-time','pull-punches','pull-users','clear-punches'}
     statuses={'software-verified','partial-software','intentional-replacement','pending-contract','pending-sensitive','pending-secure-push'}
     for r in rows:
@@ -52,4 +63,10 @@ def verify(repeat=False):
     print(f"PASS device reference audit: {len(expected)} action declarations + 5 AriaAdmin catalog entries, exact hash provenance, explicit dispositions; NOT feature or hardware completion")
     return manifest,rows
 if __name__=='__main__':
-    parser=argparse.ArgumentParser();parser.add_argument('--inventory',action='store_true');args=parser.parse_args();verify(args.inventory)
+    parser=argparse.ArgumentParser();parser.add_argument('--inventory',action='store_true');args=parser.parse_args()
+    try:verify(args.inventory)
+    except Exception as error:
+        if os.environ.get('GITHUB_ACTIONS')=='true':
+            message=str(error).replace('%','%25').replace('\r','%0D').replace('\n','%0A')
+            print('::error title=Device reference audit::'+message)
+        raise
