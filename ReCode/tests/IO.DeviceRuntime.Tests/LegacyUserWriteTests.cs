@@ -14,7 +14,8 @@ internal static class LegacyUserWriteTests
    Check(wire.RootElement.GetProperty("WriteLegacyUser").GetBoolean()&&!wire.RootElement.TryGetProperty("WriteUser",out _)&&!wire.RootElement.TryGetProperty("Operation",out _),"legacy request uses a distinct discriminator and cannot enter an old bridge SSR WriteUser branch");
   Check(JsonSerializer.Deserialize<ZkLegacyUserWriteInput>(ZkUserWriteWire.Serialize(input))!.AsRequest()==input&&JsonDocument.Parse(ZkUserWriteWire.Serialize(input with{WriteFormat=ZkUserReadFormats.Ssr})).RootElement.GetProperty("WriteUser").GetBoolean(),"private serialization keeps legacy and SSR routing distinct without changing default SSR semantics");
   var session=new Session(new(original,"private-password"));var result=ZkUserWriteExecutor.Execute(input,session);
-  Check(result.State=="succeeded"&&session.Current?.User==desired&&session.Current.Password=="private-password"&&session.Writes==1,"legacy executor preserves existing password only in native-session memory and verifies exact metadata read-back");
+  var unavailablePassword=new Session(new(original,null!));
+  Check(result.State=="succeeded"&&session.Current?.User==desired&&session.Current.Password=="private-password"&&session.Writes==1&&ZkUserWriteExecutor.Execute(input,unavailablePassword).State=="failed-before-write"&&unavailablePassword.Writes==0,"legacy executor preserves existing password only in native-session memory and verifies exact metadata read-back");
   session=new(null);result=ZkUserWriteExecutor.Execute(input with{Expected=null},session);
   Check(result.State=="succeeded"&&session.Current?.Password==""&&session.Writes==1,"explicit absent legacy-user creation invents no password");
   session=new(new(original with{Privilege=3},"private-password"));

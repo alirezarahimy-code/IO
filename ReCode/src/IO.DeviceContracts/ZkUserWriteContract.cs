@@ -45,6 +45,9 @@ public static class ZkUserWriteExecutor
         try
         {
             var current=session.ReadExact(input.Desired.PersonIdentifier);
+            // Missing protected data is not proof of an empty password. Never
+            // turn a null SDK password into a password-clearing metadata write.
+            if(current is not null&&current.Password is null)return new("failed-before-write");
             if(current?.User!=input.Expected)return new("conflict");
             if(current?.User==input.Desired)return new("unchanged");
             // No password comes from web/DB. Existing password stays only in this
