@@ -65,3 +65,8 @@ dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-b
 ## CI تأییدشده
 
 کد `50087b92919dd0ce18ae258893c91bf41bcc0cd1`: [SQL/HTTPS/مرورگر 43295571681](https://github.com/alirezarahimy-code/IO/actions/runs/43295571681) و [Windows/Linux 43295571689](https://github.com/alirezarahimy-code/IO/actions/runs/43295571689) هر دو **success**. **۶۷۷ integration** شامل ۸ بررسی SQL و۲ HTTP جدید؛ ۱۰ بررسی جدید قرارداد portable جدا از۶۱ قبلی و۱۹ آزمایشگاه TCP گزارش می‌شود. ۴۸ Foundation،۲۶ domain،۱۱۴ حق،۵۲ صفحه/راهنما،۳۸ migration و۶۰ جدول. نصب/توقف واقعی worker در SCM/systemd CI هم سبز ماند؛ SDK یا مدل واقعی اجرا نشده است. [شاهد ماشین‌خوان](s07-legacy-users-evidence.json).
+
+
+## ادامهٔ بعدی S08
+
+محدودیت تاریخی «نوشتن non-TFT ساخته نشده» در این برش خواندن، با [candidate مستقل ارسال عادی legacy](s08-legacy-user-write.fa.md) تکمیل‌تر شد. snapshot legacy همچنان مجوز اجرای SSR نیست؛ فرمت نوشتن جدا، pin نصب، تأیید preview و same-format recovery لازم‌اند. مدل واقعی هنوز تأیید نشده است.

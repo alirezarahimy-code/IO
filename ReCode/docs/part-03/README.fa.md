@@ -115,3 +115,8 @@
 ### ادامهٔ S07 — دریافت legacy non-TFT بدون fallback
 
 کد `50087b9` با SQL/HTTPS/مرورگر `43295571681` و Windows/Linux `43295571689` هر دو **success**؛ **۶۷۷ integration،۱۰ portable جدید قرارداد خواندن،۶۱ portable قبلی،۱۹ virtual،۳۸ migration و۶۰ جدول**. `ReadFormat` در فرم/API/SQL ثابت، claim و start frame صریح و UserReadFormat نصب منطبق است؛ legacy فقط Int32 غیرمنفی canonical دارد، صفر ابتدایی قابل بازیابی نیست و کارت تبدیل عددی نمی‌شود. snapshot هدف legacy و endpoint legacy هر دو از نوشتن SSR جلوگیری می‌کنند. [راهنما](s07-legacy-users.fa.md)، [شاهد](s07-legacy-users-evidence.json). شمارندهٔ ثابت و تست مجازی جای مدل/SDK واقعی نیست؛ بخش سوم هنوز کامل نشده است.
+
+
+### ادامهٔ S08 — ارسال عادی legacy non-TFT
+
+کد `cce03b0`؛ SQL/HTTPS/مرورگر `43300044652` و Windows/Linux `43300044555` هر دو **success**؛ **۶۸۷ integration،۱۲ قرارداد نوشتن و۴ TCP جدید**. snapshot هدف نوع immutable را تعیین می‌کند؛ UserWriteFormat نصب مستقل و پیش‌فرض SSR است. legacy فقط شناسهٔ canonical Int32 و پیام WriteLegacyUser جدا دارد؛ نه fallback SSR. حفظ password فقط حافظه‌ای، null پیش از mutation رد، read-back متفاوت/پاسخ گم‌شده unknown، review فقط با شاهد تازهٔ همان قرارداد و retry انتخابی تازه است. مدل با password masked قابل تأیید نیست. schema/حق/endpoint جدید لازم نبود؛ SnapshotId و ReadFormat SQL قبلاً immutable‌اند. [راهنما](s08-legacy-user-write.fa.md)، [شاهد](s08-legacy-user-write-evidence.json)، [مانده‌ها](remaining-work.fa.md). `part3Complete=false` و SDK/مدل واقعی همچنان تأییدنشده‌اند.

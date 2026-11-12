@@ -67,7 +67,7 @@ worker اکنون روی Windows با `AddWindowsService` و نام ثابت `IO
 
 ## ارسال عادی S08 (پیش‌فرض خاموش)
 
-`IO:DeviceWorker:EnableUserUploads=true`، grant مستقل `devices.users.upload.execute` و `AttendanceOnlyUserWriteApproved=true` روی NativeEndpoint لازم‌اند. فقط SSR attendance-only و **نه ترمینال کنترل درب**، پس از آزمون مدل واقعی؛ این flag اثبات سازگاری نیست. [راهنمای preview/تأیید/بازیابی/partial](s08-user-upload.fa.md). عملیات عادی به سیاست بایومتریک وابسته نیست؛ password قدیمی فقط در حافظهٔ child حفظ می‌شود. صف مشترک چهار slot را بین دریافت کاربران/ارسال عادی/عملیات/diagnostic/استخراج تردد عادلانه تقسیم می‌کند؛ چهار slot سقف تعداد دستگاه نیست.
+`IO:DeviceWorker:EnableUserUploads=true`، grant مستقل `devices.users.upload.execute` و `AttendanceOnlyUserWriteApproved=true` روی NativeEndpoint لازم‌اند. SSR یا legacy Int32 فقط attendance-only و **نه ترمینال کنترل درب**، پس از آزمون مدل واقعی؛ این flag اثبات سازگاری نیست. [راهنمای preview/تأیید/بازیابی/partial](s08-user-upload.fa.md). عملیات عادی به سیاست بایومتریک وابسته نیست؛ password قدیمی فقط در حافظهٔ child حفظ می‌شود. صف مشترک چهار slot را بین دریافت کاربران/ارسال عادی/عملیات/diagnostic/استخراج تردد عادلانه تقسیم می‌کند؛ چهار slot سقف تعداد دستگاه نیست.
 
 ## استخراج خواندنی S09 (پیش‌فرض خاموش)
 
@@ -105,3 +105,8 @@ migration `20261112100000_DeviceCommandHistory` view پنج صف و lineage immu
 ### بازخوانی دیررس زمان‌بندی
 
 `OverlapSeconds` در schedule جدید صریح تصویب می‌شود؛ پیش‌فرض۰ قرارداد قبلی را حفظ می‌کند. تنظیم endpoint جدید یا grant خودکار اضافه نشده است؛ همان اختیار سازنده/سرویس S10 و auto-ingest S09 پابرجاست. [پنجره، clamp، dedup و downgrade 51027](s10-overlap.fa.md). نوشتن دستگاه و PUSH از این flag به دست نمی‌آیند.
+
+
+### قرارداد مستقل ارسال legacy
+
+UserWriteFormat پیش‌فرض ssr-v1 است. ارسال legacy به UserWriteFormat=legacy-int32-v1 و UserReadFormat منطبق، به‌علاوهٔ EnableUserUploads، حق execute مستقل و AttendanceOnlyUserWriteApproved پس از پذیرش واقعی نیاز دارد. فرمت از snapshot هدف تغییرناپذیر است؛ نوع client نیست. مدل با password masked/خالیِ مبهم نباید تأیید شود؛ null password هدف پیش از mutation رد می‌شود. [راهنما، ارتقای هماهنگ bridge و unknown recovery](s08-legacy-user-write.fa.md). schema جدید نیاز نیست؛ مهاجرت موجود ReadFormat لازم است.

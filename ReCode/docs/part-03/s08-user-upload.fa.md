@@ -33,3 +33,8 @@ unknown همان فرد/هدف را مسدود می‌کند. ابتدا snapsho
 آزمون‌های SQL، HTTP و DOM و تست مستقل state machine/IPC اضافه شده‌اند؛ کد `ce81149` در SQL/HTTPS/browser `43218632179` و Windows/Linux `43218632286` موفق شد: ۵۵۱ integration، ۴۳ Foundation، ۴۵ portable، ۱۰۱ حق، ۴۷ صفحه/مقاله، ۳۰ migration و ۵۴ جدول. آزمون mock، SDK یا نصب مدل واقعی نیست. بایومتریک بدون سیاست مصوب همچنان غیرفعال است؛ این مانع ارسال عادی نیست. S09–S11 و سناریوی واقعی چند دستگاه/قطعی/تبادل/تنظیمات باقی‌اند و بخش سوم کامل نشده است.
 
 [شاهد ماشین‌خوان و مرزهای پذیرش](s08-component-evidence.json). آزمون مرورگر واقعی شامل preview نام/دادهٔ SQL، تأیید، صف، لغو و reload است؛ تست HTTP جداگانه envelope واقعی preview، hash و چرخهٔ صف/لغو را نیز بررسی می‌کند. این شاهد نرم‌افزاری است، نه تبادل واقعی SDK.
+
+
+## ادامهٔ non-TFT
+
+[ارسال عادی legacy با UserWriteFormat مستقل](s08-legacy-user-write.fa.md) اضافه شده است: snapshot هدف immutable نوع را تعیین می‌کند؛ legacy پیام خصوصی جدا دارد، unknown review قرارداد یکسان می‌خواهد، null password به خالی تبدیل نمی‌شود و مدل با password masked قابل تأیید نیست. متن SSR بالا قرارداد اولیه است؛ نوشتن non-TFT اکنون candidate نرم‌افزاری است، نه تأیید مدل واقعی.

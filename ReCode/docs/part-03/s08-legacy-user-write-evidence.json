@@ -1,0 +1,437 @@
+{
+  "scope": "S08 separately approved ordinary legacy non-TFT user-write candidate. No biometric/admin/access group/delete operations, no vendor wire emulator and no actual COM/model acceptance.",
+  "codeCommit": "cce03b0ec2de6e5f5ac20f08cf676c3ea7472ff9",
+  "reference": {
+    "body": "Personnel.ZK.ZKDevice.UploadUsers non-TFT branch, read-only static decompilation; not original source",
+    "interface": "zkemkeeper.IZKEM.SetUserInfo(machine, Int32 badge, BStr name, BStr password, Int32 privilege, bool enabled), DispId 41; signature metadata only",
+    "hashes": "zk-reference-contract.json",
+    "notCopied": [
+      "AccGroup",
+      "name truncation",
+      "Int64-to-Int32 narrowing",
+      "administrator mapping",
+      "template deletion/write",
+      "device disable",
+      "activation/licensing"
+    ]
+  },
+  "checks": {
+    "integrationPassLines": 687,
+    "foundation": 48,
+    "domain": 26,
+    "portableLegacyUserWriteContractChecks": 12,
+    "statefulLegacyTcpWriteChecks": 4,
+    "portableNativeBoundaryAndFileParser": 61,
+    "portableUserReadContractChecks": 10,
+    "statefulTcpVirtualDeviceChecks": 19,
+    "permissions": 114,
+    "pagesAndHelp": 52,
+    "foundationMigrations": 38,
+    "foundationTables": 60,
+    "legacyUserUploadSqlChecks": 10
+  },
+  "contracts": {
+    "source": "writeFormat derived from immutable target snapshot.ReadFormat, not client input",
+    "approval": "existing preview hash binds immutable SnapshotId; snapshot.ReadFormat is also SQL immutable",
+    "installation": "AttendanceOnlyUserWriteApproved and EnableUserUploads default false; UserReadFormat and separate UserWriteFormat must both equal claim.WriteFormat; omitted UserWriteFormat remains ssr-v1",
+    "credential": "foreign DeviceId or different-format claim cannot get communication key",
+    "legacyIdentity": "canonical invariant nonnegative Int32; padded/signed/overflow identities not normalized",
+    "ipc": "legacy serialized as WriteLegacyUser with no WriteUser key; new bridge also rejects legacy in SSR branch; old bridge cannot choose its SSR write path for this envelope",
+    "password": "current target password remains native-memory-only; new user has empty password; null existing password is refused before mutation; a model with masked/ambiguous password reads must not be approved",
+    "readback": "exact metadata and transient password equality; false SDK return, loss, timeout, malformed result and post-mutation failures remain unknown",
+    "unknownReview": "fresh successful same-device/version snapshot requested after finish and with the same original format; evidence does not rewrite unknown",
+    "schema": "existing immutable SnapshotId and ReadFormat used; no new migration/column/permission/endpoint"
+  },
+  "rights": {
+    "human": "devices.users.upload for preview/request/cancel/review; admin template, operator explicit grant",
+    "read": "devices.users.read; operator/admin templates",
+    "service": "devices.users.upload.execute only dedicated service identity",
+    "independent": "devices.users.download/execute and attendance.mappings.manage are not implied by upload"
+  },
+  "verifiedCases": [
+    "Mixed SSR and legacy previews show independent formats and require server hash",
+    "Exact request replay retains one durable intent per target",
+    "SQL preserves original snapshot format and intent link",
+    "Each claim carries its format; a forged format cannot access credentials",
+    "Unknown legacy outcome and successful SSR outcome remain independent",
+    "Unresolved unknown blocks blind enqueue",
+    "Newer different-format snapshot cannot review unknown",
+    "Fresh same-format review retains original unknown outcome",
+    "Selective retry uses fresh expected state and leaves other outcomes unchanged",
+    "Human grant revocation blocks pending legacy work and even old replay",
+    "Private legacy discriminator is distinct from old SSR message",
+    "Canonical identity, protected password/null rejection, no truncation/admin writes, conflict and exact read-back",
+    "Actual child timeout remains unknown",
+    "Two stateful legacy TCP endpoints: ordinary round trip, applied-write lost acknowledgement versus another success, explicit reread, stale conflict and unchanged/no extra mutation"
+  ],
+  "limitations": [
+    "Private TCP JSON test protocol is not vendor ZK wire protocol.",
+    "Virtual TCP endpoints do not feed production UI/SQL/worker end-to-end; SQL/HTTP/browser suites test those layers separately.",
+    "No actual zkemkeeper.dll or real device execution.",
+    "SDK may mask passwords; model acceptance must explicitly verify actual password preservation before installation approval.",
+    "Counter stability is not an atomic snapshot or protection from concurrent external managers.",
+    "Advanced/network setting writes, sensitive restart/reset/delete, RemoteEnroll/biometric policy, authenticated vendor PUSH and real lab acceptance remain."
+  ],
+  "realSdkExecuted": false,
+  "hardwareVerified": false,
+  "part3Complete": false,
+  "runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 43300044652,
+      "headSha": "cce03b0ec2de6e5f5ac20f08cf676c3ea7472ff9",
+      "jobs": [
+        {
+          "completedAt": "2026-11-12T20:30:34Z",
+          "conclusion": "success",
+          "databaseId": 131468450402,
+          "name": "verify",
+          "startedAt": "2026-11-12T20:24:48Z",
+          "status": "completed",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "number": 2,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "number": 3,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Build and run domain checks",
+              "number": 4,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Test isolated native process boundary without hardware",
+              "number": 5,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Test stateful TCP virtual devices (not vendor protocol or SDK acceptance)",
+              "number": 6,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Test explicit SSR and legacy user read contracts",
+              "number": 7,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Test legacy user-write contracts and two stateful TCP endpoints",
+              "number": 8,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Verify foundation catalogue and role-filtered help",
+              "number": 9,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned identity migration",
+              "number": 10,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned foundation migration",
+              "number": 11,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned scheduling migration",
+              "number": 12,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned employment migration",
+              "number": 13,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned attendance processing migration",
+              "number": 14,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned calculation migration",
+              "number": 15,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned correction migration",
+              "number": 16,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned period draft migration",
+              "number": 17,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned conflict notes migration",
+              "number": 18,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned mapping change migration",
+              "number": 19,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned calculation revision migration",
+              "number": 20,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned period diagnostics migration",
+              "number": 21,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned revision health migration",
+              "number": 22,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned leave ledger migration",
+              "number": 23,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned delegation registry migration",
+              "number": 24,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned correction settings migration",
+              "number": 25,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned correction limits migration",
+              "number": 26,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned correction settings evidence migration",
+              "number": 27,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require delegated correction evidence migration",
+              "number": 28,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Validate capability audit inventory",
+              "number": 29,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Generate migration scripts offline",
+              "number": 30,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Prepare browser test dependencies",
+              "number": 31,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Verify page-first preview in browser",
+              "number": 32,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Test offline workflow DOM contracts",
+              "number": 33,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Test isolated SQL Server Developer",
+              "number": 34,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "number": 67,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "number": 68,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 69,
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43300044652/job/131468450402"
+        }
+      ],
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43300044652"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 43300044555,
+      "headSha": "cce03b0ec2de6e5f5ac20f08cf676c3ea7472ff9",
+      "jobs": [
+        {
+          "completedAt": "2026-11-12T20:26:25Z",
+          "conclusion": "success",
+          "databaseId": 131468450606,
+          "name": "platform (windows-2022)",
+          "startedAt": "2026-11-12T20:24:48Z",
+          "status": "completed",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "number": 2,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "number": 3,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Build, catalogue checks and portable publish",
+              "number": 4,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "number": 7,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "number": 8,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 9,
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43300044555/job/131468450606"
+        },
+        {
+          "completedAt": "2026-11-12T20:26:25Z",
+          "conclusion": "success",
+          "databaseId": 131468451594,
+          "name": "platform (ubuntu-24.04)",
+          "startedAt": "2026-11-12T20:24:48Z",
+          "status": "completed",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "number": 2,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "number": 3,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Build, catalogue checks and portable publish",
+              "number": 4,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "number": 7,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "number": 8,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 9,
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43300044555/job/131468451594"
+        }
+      ],
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43300044555"
+    }
+  ]
+}
