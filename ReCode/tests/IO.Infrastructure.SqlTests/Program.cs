@@ -63,6 +63,16 @@ try
 {
     await using (var db = NewDb())
     {
+        if(db.Database.HasPendingModelChanges())
+        {
+            // Schema-only diagnostic; never include connection strings or row data.
+            var snapshot=db.GetService<IMigrationsAssembly>().ModelSnapshot!.Model;
+            var initialized=db.GetService<IModelRuntimeInitializer>().Initialize(snapshot,designTime:true);
+            var current=db.GetService<Microsoft.EntityFrameworkCore.Metadata.IDesignTimeModel>().Model;
+            var differences=db.GetService<IMigrationsModelDiffer>().GetDifferences(initialized.GetRelationalModel(),current.GetRelationalModel());
+            var sql=db.GetService<IMigrationsSqlGenerator>().Generate(differences,current);
+            throw new InvalidOperationException("Pending schema differences: "+string.Join(" | ",sql.Select(x=>x.CommandText)));
+        }
         Check(!db.Database.HasPendingModelChanges(), "model matches migration snapshot");
         await db.Database.MigrateAsync();
         await db.Database.MigrateAsync();
