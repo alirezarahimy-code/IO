@@ -13,7 +13,7 @@ async function wait(test){for(let i=0;i<250;i++){if(test())return;await new Prom
   else if(!granted)return{ok:false,status:403};
   else if(options.method==='POST'){
    assert.equal(options.headers['X-CSRF-TOKEN'],'csrf-test');posts.push({path,body:JSON.parse(options.body)});
-   if(path==='/device-user-uploads/preview')data={previewHash:'HASH',items:[row]};
+   if(path==='/device-user-uploads/preview')data={result:{previewHash:'HASH',items:[row]}};
    else if(path==='/device-user-uploads'&&unknown){unknown=false;throw new w.TypeError('unknown');}
    else data={result:row.batchId};
   }else data={items:[row]};return{ok:true,status:200,json:async()=>data};
