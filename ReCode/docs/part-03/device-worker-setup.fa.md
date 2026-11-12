@@ -4,7 +4,7 @@
 
 ## پیش‌نیاز و اعتماد
 
-1. از DB پشتیبان بگیرید؛ تمام migrationها تا `20261112130000_DeviceSettingsReadRetries` (یا آخرین نسخهٔ تأییدشدهٔ استقرار) با ابزار مهاجرت موجود اعمال شوند؛ اعمال فقط migration اتصال برای قابلیت‌های جدید کافی نیست. میزبان وب/worker خودکار migrate یا seed نمی‌کند. downgrade پس از اولین درخواست تست عمداً خطای 51016 می‌دهد؛ زنجیرهٔ downgrade اتمیک فرض نشود.
+1. از DB پشتیبان بگیرید؛ تمام migrationها تا `20261112140000_DevicePollOverlap` (یا آخرین نسخهٔ تأییدشدهٔ استقرار) با ابزار مهاجرت موجود اعمال شوند؛ اعمال فقط migration اتصال برای قابلیت‌های جدید کافی نیست. میزبان وب/worker خودکار migrate یا seed نمی‌کند. downgrade پس از اولین درخواست تست عمداً خطای 51016 می‌دهد؛ زنجیرهٔ downgrade اتمیک فرض نشود.
 2. حساب سرویس اختصاصی سیستم‌عامل و دسترسی SQL کمینهٔ متناسب با query/transactionهای سرویس تنظیم کنید؛ اتصال رمز‌شده با گواهی معتبر و ACL برای تنظیمات لازم است. هویت بنیادینِ فعالِ جدا، بدون نیاز به حساب ورود وب، و نقش اختصاصی دارای فقط `devices.connection.execute` بسازید. هیچ قالب نقش این مجوز را نمی‌دهد. این نسخه هویت بنیادین را در هر claim/ثبت نتیجه از DB بررسی می‌کند؛ نگاشت config به هویت سیستم‌عامل/SQL مسئولیت استقرار است، نه هویت دستگاه یا گواهی دستگاه.
 3. تنظیمات صریح از secret store/متغیر محیطی امن یا فایل خارج از Git با ACL بیاید. `ConnectionStrings__IO` رشتهٔ واقعی SQL است؛ رمز آن در چت یا نمونه ثبت نشود. `IO__DeviceWorker__ServiceUserId` UUID هویت بنیادین سرویس است.
 4. برای هر endpoint تأییدشده، این کلیدها را تنظیم کنید: `IO__DeviceWorker__AllowedEndpoints__0__DeviceId`، `...__0__Address` و `...__0__Port`. مقدار Address باید IP دقیق و Port عدد صحیح باشد؛ نام DNS، wildcard، subnet، تغییر endpoint صرفاً از metadata و اسکن شبکه پشتیبانی نمی‌شوند. شناسه و IP/port باید با snapshot ثبت دستگاه مطابقت داشته باشند. نبود فهرست یعنی هیچ اتصال خروجی مجاز نیست.
@@ -100,3 +100,8 @@ migration `20261112100000_DeviceCommandHistory` view پنج صف و lineage immu
 ### آزمون نصب واقعی CI در برابر نصب آزمایشگاه
 
 `tools/test-worker-windows-service.ps1` و `tools/test-worker-linux-service.sh` فقط با opt-in صریح و محیط GitHub runner جدا اجازهٔ نصب/شروع/توقف می‌دهند؛ از محیط production اجرا نمی‌شوند و سرویس موجود را overwrite نمی‌کنند. worker منتشرشده با هویت اختصاصی، DB synthetic عمداً unavailable و بدون pin/endpoint native اجرا می‌شود و منابع موقت پاک می‌شوند. هر دو روی commit تأییدشدهٔ [شاهد سلامت](s12-service-health-evidence.json) موفق شدند؛ این نتیجه نصب SDK/آزمایشگاه کاربر یا پذیرش مدل نیست. `ValidateOnly` installer همچنان واقعاً read-only است؛ smoke نصب مرحلهٔ جداگانه و صریح CI است.
+
+
+### بازخوانی دیررس زمان‌بندی
+
+`OverlapSeconds` در schedule جدید صریح تصویب می‌شود؛ پیش‌فرض۰ قرارداد قبلی را حفظ می‌کند. تنظیم endpoint جدید یا grant خودکار اضافه نشده است؛ همان اختیار سازنده/سرویس S10 و auto-ingest S09 پابرجاست. [پنجره، clamp، dedup و downgrade 51027](s10-overlap.fa.md). نوشتن دستگاه و PUSH از این flag به دست نمی‌آیند.

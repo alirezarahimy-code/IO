@@ -98,3 +98,8 @@
 کد `8faefd5` با SQL/HTTPS/مرورگر `43243793048` و Windows/Linux `43243792727` **موفق**: **۶۵۷ integration، ۴۸ Foundation، ۲۶ domain، ۶۱ portable؛ ۱۱۴ حق، ۵۲ صفحه/مقاله، ۳۶ migration/۶۰ جدول**. `/workspace/device-health` صف‌ها، آخرین خواندن تردد، زمان‌بندی و heartbeat مستقل SQL را نشان می‌دهد؛ نه آنلاین/آفلاین حدسی. retry تنظیمات به حق typed جاری و checkbox/تأیید دوم نیاز دارد و هیچ نوشتنی را replay نمی‌کند.
 
 نصب/اجرا/توقف واقعی SCM ویندوز و systemd لینوکس با worker منتشرشده و حساب اختصاصی در CI آزموده شد؛ DB آن عمداً unavailable/synthetic و endpoint native خالی است. این نصب آزمایشگاه یا اجرای SDK نیست. [راهنما](s12-service-health.fa.md) و [شاهد](s12-service-health-evidence.json). نوشتن تنظیمات مدل‌محور، RemoteEnroll با سیاست بیومتریک، vendor PUSH امن و پذیرش واقعی چنددستگاه هنوز بازند؛ بخش سوم کامل نشده است.
+
+
+### ادامهٔ S10 — تردد دیررس در بازخوانی هم‌پوشان
+
+کد `0f31066`، SQL/HTTPS/مرورگر `43255522942` و Windows/Linux `43255522608` هر دو **موفق**: **۶۶۷ integration؛ ۴۸ Foundation، ۲۶ domain، ۶۱ portable؛ ۳۷ migration/۶۰ جدول**. `OverlapSeconds` پیش‌فرض۰، مصوب و immutable است؛ تردد دیررس داخل lookback از مسیر raw/receipt موجود وارد می‌شود و اصل تکراری دوباره ساخته نمی‌شود؛ cursor عقب نمی‌رود و روی partial جلو نمی‌رود. دیررس خارج lookback تضمین نشده است. [راهنما](s10-overlap.fa.md)، [شاهد](s10-overlap-evidence.json)، و **[ماندهٔ دقیق S04–S12 و پیش‌نیاز هر مورد](remaining-work.fa.md)**. این جزء جای PUSH/نوشتن/بیومتریک یا پذیرش واقعی دستگاه نیست.

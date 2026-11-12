@@ -7,29 +7,31 @@
     "exactModelFirmware": "not supplied",
     "realDeviceExecution": "not performed"
   },
-  "latestVerifiedCode": "8faefd5928a0f03be3c8d6ce7b9090524ca54403",
+  "latestVerifiedCode": "0f31066f2b1cd8d7ac156fad56026ed831c96267",
   "checks": {
-    "integrationPassLines": 657,
+    "integrationPassLines": 667,
     "foundation": 48,
     "domain": 26,
     "portableNativeBoundaryAndFileParser": 61,
     "permissions": 114,
     "pagesAndHelp": 52,
-    "foundationMigrations": 36,
+    "foundationMigrations": 37,
     "foundationTables": 60,
     "s08ServiceChecks": 14,
     "s08HttpChecks": 5,
     "s09ServiceChecks": 18,
     "s09HttpChecks": 5,
     "windowsServiceInstallerReadOnlyValidation": true,
-    "s10ServiceChecks": 20,
-    "s10HttpChecks": 5,
+    "s10ServiceChecks": 28,
+    "s10HttpChecks": 7,
     "s11ServiceChecks": 15,
     "s11HttpChecks": 4,
     "s11SettingsServiceChecks": 18,
     "s11SettingsHttpChecks": 4,
     "s12HealthServiceChecks": 14,
-    "s12HealthHttpChecks": 3
+    "s12HealthHttpChecks": 3,
+    "s10OverlapServiceChecks": 8,
+    "s10OverlapHttpChecks": 2
   },
   "stages": {
     "S04": "accepted registry and metadata groups",
@@ -38,7 +40,7 @@
     "S07": "partial: software candidate verified in SQL/HTTPS/browser and Windows/Linux CI; streamed SSR snapshots, long-read deadline fencing, exact mapping preview and grant/revoke; no employee overwrite; actual model/SDK execution remains",
     "S08": "partial: ordinary attendance-only software candidate verified in SQL/HTTPS/real browser and Windows/Linux CI: actual server preview and confirmed plan hash; per-person/device intents and partial outcomes; target conflict guard, transient existing-password preservation, exact retry, pending-only cancellation, unknown recovery and explicit fresh-snapshot review before selective retry. No templates/biometrics, admin or AccGroup/physical door writes. Real SDK/model round-trip acceptance remains.",
     "S09": "partial: software candidate verified in SQL/HTTPS/real browser and Windows/Linux CI. Serial-pinned isolated SSR all-log stream, exact typed tuples before explicit UTC interval filtering, immutable original payload and multiplicity receipts, retained invalid/unknown/outside-range quarantine, confirmed versioned page ingestion through existing raw/conflict core, repeated-download content-identity coalescence and explicit restart/partial recovery. No native physical event id or atomic snapshot proof; actual SDK/model/end-to-end hardware acceptance remains.",
-    "S10": "partial: approved durable SSR polling software verified in SQL/HTTPS/real browser and Windows/Linux CI. Immutable target config, one enabled schedule per DeviceId, real run/download links, bounded lag/window/cursor, explicit optional raw ingestion under current creator authority, versioned pause/resume, durable read-only backoff and no cursor advancement over partial reads. Authenticated vendor PUSH protocol/replay/size-rate security and real model/SDK acceptance remain unimplemented/unverified.",
+    "S10": "partial: approved durable SSR polling, current creator grants, cursor/run, optional auto-ingestion, pause/resume/backoff and explicit bounded overlap verified in SQL/HTTPS/real browser and Windows/Linux CI. Late tuples inside the approved lookback enter existing immutable raw/dedup pipeline once; older late events remain unguaranteed. Incomplete reads cannot advance cursor. Authenticated supported-model vendor PUSH and actual SDK/model acceptance remain unimplemented/unverified.",
     "S11": "partial: SQL command history, immutable FK lineage, current independent human/service grants and separately confirmed retries for information, six fixed advanced-settings reads and attendance downloads verified in SQL/HTTPS/browser and Windows/Linux CI. Settings retry needs additional READ-ADVANCED-SETTINGS consent and typed current read grant; SQL guards forbid native write retries. Setting writes, RemoteEnroll and real model/firmware/biometric policy acceptance remain unimplemented/unverified.",
     "S12": "partial: exact-byte USB/file preview and quarantine/confirmed raw ingestion, SQL health dashboard and actual published-worker SCM/systemd install/start/stop in isolated CI under dedicated accounts verified. Lifecycle smoke uses unavailable synthetic DB and no native endpoints; it is not real lab deployment or SDK acceptance. Actual multiple-device outages, repeated native downloads, user exchange/settings and model coverage remain."
   },
@@ -46,24 +48,26 @@
   "part3Complete": false,
   "runs": [
     {
-      "databaseId": 43243793048,
-      "headSha": "8faefd5928a0f03be3c8d6ce7b9090524ca54403",
+      "databaseId": 43255522942,
+      "headSha": "0f31066f2b1cd8d7ac156fad56026ed831c96267",
       "status": "completed",
       "conclusion": "success",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43243793048"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43255522942"
     },
     {
-      "databaseId": 43243792727,
-      "headSha": "8faefd5928a0f03be3c8d6ce7b9090524ca54403",
+      "databaseId": 43255522608,
+      "headSha": "0f31066f2b1cd8d7ac156fad56026ed831c96267",
       "status": "completed",
       "conclusion": "success",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43243792727"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43255522608"
     }
   ],
   "remainingSoftware": [
     "S10 authenticated supported-model vendor PUSH with cryptographic device authentication/replay/size-rate/congestion/recovery security contract. Polling is not PUSH.",
     "S06/S11 approved-model advanced setting write contracts and additional reads outside the six fixed observed GetDeviceInfo codes, separate sensitive grants and confirmed audited execution. Six raw nullable Int32 reads are implemented; units/ranges/model compatibility are not inferred. Existing gated native writes remain clock and ordinary attendance-only user exchange.",
-    "S11 RemoteEnroll only after approved model contract and biometric consent/access/retention policy; no executable adapter enabled."
+    "S11 RemoteEnroll only after approved model contract and biometric consent/access/retention policy; no executable adapter enabled.",
+    "S07 non-TFT GetAllUserInfo read path is observed but not implemented; needed only if an actual target model requires it. No silent SSR fallback.",
+    "S11 approved model-specific restart/reset/delete attendance/user/admin operations and unknown-outcome recovery remain unimplemented; physical-door control stays excluded."
   ],
   "realSdkExecuted": false,
   "windowsServiceInstalled": false,
@@ -85,5 +89,7 @@
     "resourcesRemovedAfterSmoke": true
   },
   "installationFlagsReferToUserLabNotCi": true,
-  "healthEvidence": "s12-service-health-evidence.json"
+  "healthEvidence": "s12-service-health-evidence.json",
+  "overlapEvidence": "s10-overlap-evidence.json",
+  "remainingWorkRegister": "remaining-work.fa.md"
 }
