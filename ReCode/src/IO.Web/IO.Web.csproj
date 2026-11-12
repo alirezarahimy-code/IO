@@ -3,6 +3,8 @@
     <EmbeddedResource Include="Ui/DeviceFiles.html" />
     <EmbeddedResource Include="Ui/device-files.js" />
     <EmbeddedResource Include="Ui/DeviceUsers.html" />
+    <EmbeddedResource Include="Ui/DeviceAttendance.html" />
+    <EmbeddedResource Include="Ui/device-attendance.js" />
     <EmbeddedResource Include="Ui/device-users.js" />
     <EmbeddedResource Include="Ui/device-user-uploads.js" />
     <EmbeddedResource Include="Ui/DeviceUserUploads.html" />

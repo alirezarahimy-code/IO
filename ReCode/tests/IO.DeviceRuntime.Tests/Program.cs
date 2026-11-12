@@ -7,6 +7,17 @@ if (args is not ["--verify"])
 {
     // This executable is a test-only child fixture, never deployed as the SDK bridge.
     var text=await Console.In.ReadToEndAsync();using var document=JsonDocument.Parse(text);
+    if(document.RootElement.TryGetProperty("ReadAttendance",out _))
+    {
+        var attendance=JsonSerializer.Deserialize<ZkAttendanceReadInput>(text)!;var serial=attendance.Connection.ExpectedSerial;
+        void Frame(ZkAttendanceFrame frame)=>Console.WriteLine(JsonSerializer.Serialize(frame));
+        Frame(new("start",Serial:serial=="logs-wrong-pin"?"wrong":serial));
+        if(serial=="logs-hang"){await Task.Delay(TimeSpan.FromMinutes(1));return;}
+        var total=serial=="logs-ok"?103:1;
+        for(int i=0;i<total;i++)Frame(new("record",Record:new(i.ToString("D5"),int.MaxValue,4,2026,2,i==1?30:1,8,0,0,int.MinValue)));
+        if(serial=="logs-extra")Console.WriteLine("{\"Type\":\"record\",\"Password\":\"forbidden\"}");
+        if(serial!="logs-truncated")Frame(new("end",Count:serial=="logs-count-mismatch"?total+1:total,State:"succeeded"));return;
+    }
     if(document.RootElement.TryGetProperty("WriteUser",out _))
     {
         var write=JsonSerializer.Deserialize<ZkUserWriteInput>(text)!;
@@ -139,6 +150,21 @@ Check(!(writeInput with{Desired=originalUser with{Privilege=3}}).IsValid()&&!(wr
 Check(!JsonSerializer.Serialize(new ZkUserWriteExisting(originalUser,"sensitive-password")).Contains("sensitive-password",StringComparison.Ordinal)&&!writeInput.ToString().Contains("123456789",StringComparison.Ordinal),"S08 existing passwords never enter default JSON or request text rendering");
 Check((await NativeProcessSupervisor.RunUserWriteAsync(host,fixtureAssembly,writeInput with{Connection=input with{ExpectedSerial="write-extra"}},2)).State=="unknown","S08 untrusted extra SDK output fields cannot create a successful write receipt");
 Check((await NativeProcessSupervisor.RunUserWriteAsync(host,fixtureAssembly,writeInput with{Connection=input with{ExpectedSerial="write-hang"}},1)).State=="unknown","S08 external timeout kills a write child and retains uncertainty without retry");
+var attendanceInput=new ZkAttendanceReadInput(input with{ExpectedSerial="logs-ok"},true,true);
+var logRows=new List<ZkAttendanceRaw>();var logBatches=new List<int>();
+async Task AcceptLogs(IReadOnlyList<ZkAttendanceRaw> rows,CancellationToken token){token.ThrowIfCancellationRequested();logRows.AddRange(rows);logBatches.Add(rows.Count);await Task.CompletedTask;}
+var logs=await NativeAttendanceReadSupervisor.RunAsync(host,fixtureAssembly,attendanceInput,5,AcceptLogs);
+Check(logs.State=="succeeded"&&logs.Count==103&&logBatches.SequenceEqual(new[]{50,50,3})&&logRows[0].PersonIdentifier=="00000"&&logRows[1].Day==30&&logRows[0].WorkCode==int.MinValue,"S09 bounded SDK frames preserve exact identifiers invalid dates and full signed raw codes without a total-record ceiling");
+Check((await NativeAttendanceReadSupervisor.RunAsync(host,fixtureAssembly,attendanceInput with{Connection=input with{ExpectedSerial="logs-wrong-pin"}},2,AcceptLogs)).State=="bridge-failed","S09 no attendance tuple is accepted before exact serial pinning");
+Check((await NativeAttendanceReadSupervisor.RunAsync(host,fixtureAssembly,attendanceInput with{Connection=input with{ExpectedSerial="logs-truncated"}},2,AcceptLogs)).State=="bridge-failed","S09 truncated SDK output cannot be a complete extraction");
+Check((await NativeAttendanceReadSupervisor.RunAsync(host,fixtureAssembly,attendanceInput with{Connection=input with{ExpectedSerial="logs-count-mismatch"}},2,AcceptLogs)).State=="bridge-failed","S09 complete SDK streams require an exact terminal record count");
+Check((await NativeAttendanceReadSupervisor.RunAsync(host,fixtureAssembly,attendanceInput with{Connection=input with{ExpectedSerial="logs-extra"}},2,AcceptLogs)).State=="bridge-failed","S09 unknown fields including secret-bearing payloads are refused at the private IPC boundary");
+Check((await NativeAttendanceReadSupervisor.RunAsync(host,fixtureAssembly,attendanceInput with{AllowAttendanceRead=false},2,AcceptLogs)).State=="unsupported","S09 extraction requires explicit per-endpoint Gregorian SSR installation approval");
+Check((await NativeAttendanceReadSupervisor.RunAsync(host,fixtureAssembly,attendanceInput with{Connection=input with{ExpectedSerial="logs-hang"}},1,AcceptLogs)).State=="timed-out","S09 hung SDK reads have an external process deadline with no automatic replay");
+var invalidLog=logRows[1];var validLog=invalidLog with{Day=1};
+Check(invalidLog.Interpret(TimeZoneInfo.Utc).Status=="invalid-time"&&validLog.Interpret(TimeZoneInfo.Utc).Utc==new DateTimeOffset(2026,2,1,8,0,0,TimeSpan.Zero)&&!(validLog with{PersonIdentifier=new string('x',101)}).IsBounded(),"S09 interpretation never repairs invalid Gregorian dates and structural payload size is bounded");
+Check((validLog with{Year=2026,Month=11,Day=1,Hour=1,Minute=30}).Interpret(dst).Status=="ambiguous-local-time"&&(validLog with{Year=2026,Month=3,Day=8,Hour=2,Minute=30}).Interpret(dst).Status=="invalid-local-time","S09 ambiguous and nonexistent site-local SDK times are quarantined without host-zone guessing");
+Check((validLog with{PersonIdentifier=" 001"}).Interpret(TimeZoneInfo.Utc).Status=="invalid-identity"&&(validLog with{Year=1,Month=1,Day=1,Hour=0}).Interpret(minZone).Status=="invalid-time"&&!validLog.ToString().Contains(validLog.PersonIdentifier!,StringComparison.Ordinal)&&!attendanceInput.ToString().Contains("123456789",StringComparison.Ordinal),"S09 identity whitespace UTC range overflow and personal-data text rendering fail safely");
 Console.WriteLine($"PASS {count} portable native-boundary and reference-file parser checks; no real device or SDK acceptance implied");
 
 internal sealed class UserWriteFixture(ZkUserWriteExisting? initial):IZkUserWriteSession

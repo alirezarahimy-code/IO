@@ -99,6 +99,12 @@ internal static class HttpSecurityTests
                 var uploadEmployee=await uploadDb.SourceEmployeeMappings.Where(x=>x.SourceId==uploadDevice.SourceId&&x.SourcePersonId=="0001").Select(x=>x.EmployeeId).SingleAsync();
                 browserProcess.ArgumentList.Add(JsonSerializer.Serialize(new{id=Guid.NewGuid(),deviceId=uploadDevice.Id,expectedDeviceVersion=uploadDevice.Version,snapshotId=uploadSnapshot.Id,employeeId=uploadEmployee,personIdentifier="0001",card="789",enabled=true,timeoutSeconds=30}));
             }
+            await using(var logScope=provider.CreateAsyncScope())
+            {
+                var logDb=logScope.ServiceProvider.GetRequiredService<IoDbContext>();
+                var logFixture=await logDb.DeviceAttendanceDownloads.AsNoTracking().Where(x=>logDb.Devices.Any(d=>d.Id==x.DeviceId&&d.Number=="S09-BROWSER")&&x.State=="succeeded").Select(x=>x.Id).SingleAsync();
+                browserProcess.ArgumentList.Add(logFixture.ToString());
+            }
             using (var browser = Process.Start(browserProcess) ?? throw new InvalidOperationException("Cannot start browser test."))
             {
                 var stdout = browser.StandardOutput.ReadToEndAsync();
@@ -302,7 +308,7 @@ internal static class HttpSecurityTests
             (await PostAdmin(adminClient, "/admin/user-roles", new { UserId = self, RoleId = operatorTemplate.Id })).EnsureSuccessStatusCode();
             using var operatorCaps = JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities"));
             check(operatorCaps.RootElement.GetProperty("operator").GetBoolean() &&
-                  operatorCaps.RootElement.GetProperty("permissions").EnumerateArray().Where(x => x.GetString()!.StartsWith("devices.", StringComparison.Ordinal)).Select(x => x.GetString()).OrderBy(x=>x,StringComparer.Ordinal).SequenceEqual(new[] { "devices.connection.read", "devices.files.read", "devices.groups.read", "devices.info.read", "devices.read", "devices.users.read" }),
+                  operatorCaps.RootElement.GetProperty("permissions").EnumerateArray().Where(x => x.GetString()!.StartsWith("devices.", StringComparison.Ordinal)).Select(x => x.GetString()).OrderBy(x=>x,StringComparer.Ordinal).SequenceEqual(new[] { "devices.attendance.read", "devices.connection.read", "devices.files.read", "devices.groups.read", "devices.info.read", "devices.read", "devices.users.read" }),
                   "HTTP operator shell identifies role without granting unimplemented device operations");
             (await PostAdmin(adminClient, "/admin/user-roles/revoke", new { UserId = self, RoleId = operatorTemplate.Id })).EnsureSuccessStatusCode();
             var featureRole = await CreateId("/admin/roles", new { Name = "phase five six test role" });
@@ -493,7 +499,7 @@ internal static class HttpSecurityTests
                   (await own.GetAsync("/device-user-uploads")).StatusCode==HttpStatusCode.Forbidden&&
                   (await own.GetAsync("/help/topic/device-user-uploads")).StatusCode==HttpStatusCode.OK,
                   "HTTP S08 upload grant exposes protected help but still validates intents and never grants retained history reads");
-            var validUploadItem=JsonSerializer.Deserialize<IO.Infrastructure.Devices.DeviceUserUploads.Item>(browserProcess.ArgumentList[^1],new JsonSerializerOptions{PropertyNameCaseInsensitive=true})! with{Id=Guid.NewGuid()};
+            var validUploadItem=JsonSerializer.Deserialize<IO.Infrastructure.Devices.DeviceUserUploads.Item>(browserProcess.ArgumentList[5],new JsonSerializerOptions{PropertyNameCaseInsensitive=true})! with{Id=Guid.NewGuid()};
             var validUploadBatch=new IO.Infrastructure.Devices.DeviceUserUploads.Batch(Guid.NewGuid(),[validUploadItem],"UPLOAD-ORDINARY-USERS");
             var validUploadPreview=await PostAdmin(own,"/device-user-uploads/preview",validUploadBatch);validUploadPreview.EnsureSuccessStatusCode();
             using(var validPreviewJson=JsonDocument.Parse(await validUploadPreview.Content.ReadAsStringAsync()))
@@ -520,6 +526,36 @@ internal static class HttpSecurityTests
                       (await own.GetAsync("/help/topic/device-user-uploads")).StatusCode==HttpStatusCode.Forbidden&&
                       !uploadCaps.RootElement.GetProperty("pages").EnumerateArray().Any(x=>x.GetProperty("route").GetString()=="/workspace/device-user-uploads"),
                       "HTTP S08 grant revocation removes personal history help menu and preview on the existing session");
+            var logId=Guid.NewGuid();var logPayload=new DeviceAttendanceInput(logId,s06Device,s06Version,30,new DateTimeOffset(2026,11,8,0,0,0,TimeSpan.Zero),new DateTimeOffset(2026,11,9,0,0,0,TimeSpan.Zero),4,5);
+            check((await anon.GetAsync("/device-attendance-downloads")).StatusCode==HttpStatusCode.Unauthorized&&
+                  (await own.GetAsync("/device-attendance-downloads")).StatusCode==HttpStatusCode.Forbidden&&
+                  (await own.PostAsJsonAsync("/device-attendance-downloads",logPayload)).StatusCode==HttpStatusCode.BadRequest,
+                  "HTTP S09 SDK extraction requires authentication independent permission and CSRF");
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.attendance.extract"})).EnsureSuccessStatusCode();
+            check((await PostAdmin(own,"/device-attendance-downloads",logPayload)).StatusCode==HttpStatusCode.OK&&
+                  (await PostAdmin(own,"/device-attendance-downloads",logPayload)).StatusCode==HttpStatusCode.OK&&
+                  (await own.GetAsync("/device-attendance-downloads/"+logId+"/rows")).StatusCode==HttpStatusCode.Forbidden,
+                  "HTTP S09 extraction permission grants exact queue retry but never retained personal tuple reads");
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.attendance.read"})).EnsureSuccessStatusCode();
+            using(var logHistory=JsonDocument.Parse(await own.GetStringAsync("/device-attendance-downloads?deviceId="+s06Device)))
+            {
+                var logJob=logHistory.RootElement.GetProperty("items").EnumerateArray().Single(x=>x.GetProperty("id").GetGuid()==logId);
+                check((await own.GetAsync("/help/topic/device-attendance")).StatusCode==HttpStatusCode.OK&&
+                      (await own.GetAsync("/device-attendance-downloads/"+logId+"/rows")).StatusCode==HttpStatusCode.OK&&
+                      (await PostAdmin(own,"/device-attendance-downloads/"+logId+"/cancel",new{ExpectedVersion=logJob.GetProperty("version").GetBytesFromBase64()})).StatusCode==HttpStatusCode.OK,
+                      "HTTP S09 read grant exposes the real retained preview help and versioned pending cancellation");
+            }
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.attendance.commit"})).EnsureSuccessStatusCode();
+            check((await PostAdmin(own,"/device-attendance-downloads/"+logId+"/commit-page",new{ExpectedVersion=s06Version,After=0,Confirmation="INGEST-SDK-ROWS"})).StatusCode==HttpStatusCode.Forbidden,
+                  "HTTP S09 commit permission alone cannot bypass independent attendance receive authority");
+            foreach(var code in new[]{"devices.attendance.read","devices.attendance.extract","devices.attendance.commit"})
+                (await PostAdmin(adminClient,"/admin/role-permissions/revoke",new{RoleId=deviceRole,Code=code})).EnsureSuccessStatusCode();
+            using(var logCaps=JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities")))
+                check((await own.GetAsync("/device-attendance-downloads/"+logId+"/rows")).StatusCode==HttpStatusCode.Forbidden&&
+                      (await PostAdmin(own,"/device-attendance-downloads",logPayload)).StatusCode==HttpStatusCode.Forbidden&&
+                      (await own.GetAsync("/help/topic/device-attendance")).StatusCode==HttpStatusCode.Forbidden&&
+                      !logCaps.RootElement.GetProperty("pages").EnumerateArray().Any(x=>x.GetProperty("route").GetString()=="/workspace/device-attendance"),
+                      "HTTP S09 revocation removes original tuples help menu and request retries without re-login");
             var fileId=Guid.NewGuid();var filePayload=new IO.Infrastructure.Devices.DeviceFileImports.Input(fileId,s06Device,s06Version,"gregorian",1,4,5,Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("009	2026-11-08 08:00:00	1	4	1")));
             check((await anon.GetAsync("/device-file-imports")).StatusCode==HttpStatusCode.Unauthorized&&
                   (await own.GetAsync("/device-file-imports")).StatusCode==HttpStatusCode.Forbidden&&

@@ -5,6 +5,8 @@ namespace IO.Infrastructure.Storage;
 /// <summary>Initial SQL Server schema only; no automatic migration at application startup.</summary>
 public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbContext(options)
 {
+    public DbSet<DeviceAttendanceDownloadRecord> DeviceAttendanceDownloads => Set<DeviceAttendanceDownloadRecord>();
+    public DbSet<DeviceAttendanceRowRecord> DeviceAttendanceRows => Set<DeviceAttendanceRowRecord>();
     public DbSet<DeviceFileImportRecord> DeviceFileImports => Set<DeviceFileImportRecord>();
     public DbSet<DeviceFileImportLineRecord> DeviceFileImportLines => Set<DeviceFileImportLineRecord>();
     public DbSet<DeviceUserUploadRecord> DeviceUserUploads => Set<DeviceUserUploadRecord>();
@@ -122,6 +124,80 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.Property(x=>x.ReviewedByUserId).HasColumnType("uniqueidentifier");
             b.Property(x=>x.ReviewedAtUtc).HasColumnType("datetimeoffset");
             b.HasOne<DeviceFileImportRecord>().WithMany().HasForeignKey(x=>x.ImportId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.RawEventId);
+            b.HasOne<RawAttendanceEventRecord>().WithMany().HasForeignKey(x=>x.RawEventId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.ConflictId);
+            b.HasOne<RawEventConflictRecord>().WithMany().HasForeignKey(x=>x.ConflictId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.ReviewedByUserId);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.ReviewedByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<DeviceAttendanceDownloadRecord>(b=>
+        {
+            b.ToTable("DeviceAttendanceDownloads",t=>
+            {
+                t.HasTrigger("TR_DeviceAttendanceDownloads_History");t.UseSqlOutputClause(false);
+                t.HasCheckConstraint("CK_DeviceAttendanceDownloads_Request","DATALENGTH([ExpectedDeviceVersion])=8 AND [TimeoutSeconds] BETWEEN 1 AND 600 AND [ReceivedCount]>=0 AND [FromUtc]<[UntilUtcExclusive] AND DATEPART(TZOFFSET,[FromUtc])=0 AND DATEPART(TZOFFSET,[UntilUtcExclusive])=0 AND [InCode] BETWEEN 0 AND 255 AND [OutCode] BETWEEN 0 AND 255 AND [InCode]<>[OutCode]");
+                t.HasCheckConstraint("CK_DeviceAttendanceDownloads_State","[State] COLLATE Latin1_General_100_BIN2 IN(N'pending',N'running',N'succeeded',N'incomplete',N'failed',N'interrupted',N'timed-out',N'unsupported',N'identity-mismatch',N'credential-unavailable',N'endpoint-denied',N'bridge-failed',N'cancelled',N'revoked',N'device-changed')");
+                t.HasCheckConstraint("CK_DeviceAttendanceDownloads_Lifecycle","(([State]=N'pending' AND [ClaimId] IS NULL AND [ServiceUserId] IS NULL AND [LeaseAtUtc] IS NULL AND [FinishedAtUtc] IS NULL AND [ReceivedCount]=0) OR ([State]=N'running' AND [ClaimId] IS NOT NULL AND [ServiceUserId] IS NOT NULL AND [LeaseAtUtc] IS NOT NULL AND [FinishedAtUtc] IS NULL) OR ([State] IN(N'cancelled',N'revoked',N'device-changed') AND [ClaimId] IS NULL AND [ServiceUserId] IS NULL AND [LeaseAtUtc] IS NULL AND [FinishedAtUtc] IS NOT NULL AND [ReceivedCount]=0) OR ([State] NOT IN(N'pending',N'running',N'cancelled',N'revoked',N'device-changed') AND [ClaimId] IS NOT NULL AND [ServiceUserId] IS NOT NULL AND [LeaseAtUtc] IS NOT NULL AND [FinishedAtUtc] IS NOT NULL)) AND DATEPART(TZOFFSET,[RequestedAtUtc])=0 AND DATEPART(TZOFFSET,[LeaseAtUtc])=0 AND DATEPART(TZOFFSET,[FinishedAtUtc])=0 AND DATEPART(TZOFFSET,[LastReviewedAtUtc])=0 AND ([LeaseAtUtc] IS NULL OR [LeaseAtUtc]>=[RequestedAtUtc]) AND ([FinishedAtUtc] IS NULL OR [FinishedAtUtc]>=COALESCE([LeaseAtUtc],[RequestedAtUtc])) AND ([LastReviewedAtUtc] IS NULL OR ([State]=N'succeeded' AND [LastReviewedAtUtc]>=[FinishedAtUtc]))");
+            });
+            b.HasKey(x=>x.Id);
+            b.Property(x=>x.Id).ValueGeneratedNever().HasColumnType("uniqueidentifier");
+            b.Property(x=>x.DeviceId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.SourceId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.SiteId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.CompanyId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.RequestedByUserId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.RequestedAtUtc).HasColumnType("datetimeoffset");
+            b.Property(x=>x.ExpectedDeviceVersion).HasMaxLength(8).IsRequired().HasColumnType("varbinary(8)");
+            b.Property(x=>x.FromUtc).HasColumnType("datetimeoffset");
+            b.Property(x=>x.UntilUtcExclusive).HasColumnType("datetimeoffset");
+            b.Property(x=>x.TimeZoneId).HasMaxLength(100).IsRequired().HasColumnType("nvarchar(100)");
+            b.Property(x=>x.InCode).HasColumnType("int");
+            b.Property(x=>x.OutCode).HasColumnType("int");
+            b.Property(x=>x.TimeoutSeconds).HasColumnType("int");
+            b.Property(x=>x.State).HasMaxLength(32).IsRequired().HasColumnType("nvarchar(32)");
+            b.Property(x=>x.ServiceUserId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.ClaimId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.LeaseAtUtc).HasColumnType("datetimeoffset");
+            b.Property(x=>x.FinishedAtUtc).HasColumnType("datetimeoffset");
+            b.Property(x=>x.ReceivedCount).HasColumnType("bigint");
+            b.Property(x=>x.LastReviewedAtUtc).HasColumnType("datetimeoffset");
+            b.Property(x=>x.Version).IsRequired().IsRowVersion().HasColumnType("rowversion");
+            b.HasIndex(x=>x.DeviceId).IsUnique().HasFilter("[State] IN (N'pending', N'running')");
+            b.HasIndex(x=>new{x.RequestedAtUtc,x.Id});
+            b.HasOne<DeviceRecord>().WithMany().HasForeignKey(x=>x.DeviceId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.SourceId);
+            b.HasOne<EventSourceRecord>().WithMany().HasForeignKey(x=>x.SourceId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.SiteId);
+            b.HasOne<SiteRecord>().WithMany().HasForeignKey(x=>x.SiteId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.CompanyId);
+            b.HasOne<CompanyRecord>().WithMany().HasForeignKey(x=>x.CompanyId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.RequestedByUserId);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.RequestedByUserId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.ServiceUserId);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.ServiceUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<DeviceAttendanceRowRecord>(b=>
+        {
+            b.ToTable("DeviceAttendanceRows",t=>
+            {
+                t.HasTrigger("TR_DeviceAttendanceRows_History");t.UseSqlOutputClause(false);
+                t.HasCheckConstraint("CK_DeviceAttendanceRows_Data","[Sequence]>0 AND [OccurrenceOrdinal]>0 AND ISJSON([PayloadJson])=1 AND LEN([PayloadHash])=64");
+                t.HasCheckConstraint("CK_DeviceAttendanceRows_Receipt","(([ReviewedByUserId] IS NULL AND [ReviewedAtUtc] IS NULL AND [Status]=N'received' AND [RawEventId] IS NULL AND [ConflictId] IS NULL) OR ([ReviewedByUserId] IS NOT NULL AND [ReviewedAtUtc] IS NOT NULL AND DATEPART(TZOFFSET,[ReviewedAtUtc])=0)) AND ([ConflictId] IS NULL OR [RawEventId] IS NOT NULL) AND (([Status] IN(N'imported',N'already-recorded',N'ingestion-conflict') AND [RawEventId] IS NOT NULL) OR ([Status] NOT IN(N'imported',N'already-recorded',N'ingestion-conflict') AND [RawEventId] IS NULL AND [ConflictId] IS NULL))");
+            });
+            b.HasKey(x=>new{x.DownloadId,x.Sequence});
+            b.Property(x=>x.DownloadId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.Sequence).HasColumnType("bigint");
+            b.Property(x=>x.PayloadJson).HasMaxLength(2000).IsRequired().HasColumnType("nvarchar(2000)");
+            b.Property(x=>x.PayloadHash).HasMaxLength(64).IsRequired().HasColumnType("nvarchar(64)");
+            b.Property(x=>x.OccurrenceOrdinal).HasColumnType("bigint");
+            b.Property(x=>x.Status).HasMaxLength(64).IsRequired().HasColumnType("nvarchar(64)");
+            b.Property(x=>x.RawEventId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.ConflictId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.ReviewedByUserId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.ReviewedAtUtc).HasColumnType("datetimeoffset");
+            b.HasIndex(x=>new{x.DownloadId,x.PayloadHash,x.OccurrenceOrdinal}).IsUnique();
+            b.HasOne<DeviceAttendanceDownloadRecord>().WithMany().HasForeignKey(x=>x.DownloadId).OnDelete(DeleteBehavior.Restrict);
             b.HasIndex(x=>x.RawEventId);
             b.HasOne<RawAttendanceEventRecord>().WithMany().HasForeignKey(x=>x.RawEventId).OnDelete(DeleteBehavior.Restrict);
             b.HasIndex(x=>x.ConflictId);

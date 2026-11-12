@@ -150,6 +150,7 @@ public sealed class DeviceRegistry(IoDbContext db, PermissionTransaction transac
     {
         if (version is null || version.Length != 8) throw new ArgumentException("Rowversion required.");
         await transaction.LockAsync("IO.DeviceConnections",ct);
+        if(await db.DeviceAttendanceDownloads.AnyAsync(x=>x.DeviceId==id&&(x.State=="pending"||x.State=="running"),ct))throw new DomainConflictException("Finish or cancel attendance extraction before changing device identity or credentials.");
         if(await db.DeviceUserUploads.AnyAsync(x=>x.DeviceId==id&&(x.State=="pending"||x.State=="running"||(x.State=="unknown"&&x.ResolutionSnapshotId==null)),ct))throw new DomainConflictException("Resolve or cancel user uploads before changing device identity, credentials or version.");
         if(await db.DeviceOperations.AnyAsync(x=>x.DeviceId==id&&x.Kind=="clock.set"&&(x.State=="pending"||x.State=="running"||(x.State=="unknown"&&x.ResolvedAtUtc==null)),ct))throw new DomainConflictException("Resolve or cancel clock work before changing device identity, credentials or version.");
         var device = await db.Devices.AsTracking().SingleOrDefaultAsync(d => d.Id == id, ct) ?? throw new ArgumentException("Unknown device.");

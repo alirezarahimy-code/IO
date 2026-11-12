@@ -1,0 +1,75 @@
+using System.Text;
+using System.Text.Json;
+using IO.DeviceContracts;
+using IO.Infrastructure.Devices;
+using IO.Infrastructure.Security;
+using IO.Infrastructure.Storage;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.Extensions.DependencyInjection;
+internal static class DeviceAttendanceDownloadTests
+{
+    public static async Task RunAsync(string connection,Action<bool,string> check)
+    {
+        var services=new ServiceCollection();services.AddLogging();services.AddIoIdentityStorage(connection);var clock=new Clock();services.AddSingleton<TimeProvider>(clock);await using var provider=services.BuildServiceProvider();
+        var actor=Guid.NewGuid();var reader=Guid.NewGuid();var service=Guid.NewGuid();var committer=Guid.NewGuid();var full=Guid.NewGuid();var read=Guid.NewGuid();var exec=Guid.NewGuid();var commitRole=Guid.NewGuid();var org=Guid.NewGuid();var company=Guid.NewGuid();var site=Guid.NewGuid();var employee=Guid.NewGuid();var second=Guid.NewGuid();var device=Guid.NewGuid();var browserDevice=Guid.NewGuid();
+        async Task<T> Use<S,T>(Func<S,Task<T>> f)where S:notnull{await using var scope=provider.CreateAsyncScope();return await f(scope.ServiceProvider.GetRequiredService<S>());}
+        Task<T> Q<T>(Func<IoDbContext,Task<T>> f)=>Use<IoDbContext,T>(f);
+        async Task<bool> Reject<E>(Func<Task> f)where E:Exception{try{await f();return false;}catch(E){return true;}}
+        await Q(async db=>{await db.GetService<IMigrator>().MigrateAsync();db.Organizations.Add(new(){Id=org,Name="SDK log org"});db.Companies.Add(new(){Id=company,OrganizationId=org,Name="SDK log company"});db.Sites.Add(new(){Id=site,CompanyId=company,Name="SDK log site",TimeZoneId="UTC"});db.Employees.AddRange(new EmployeeRecord{Id=employee,CompanyId=company,PersonnelNumber="001",DisplayName="SDK employee"},new EmployeeRecord{Id=second,CompanyId=company,PersonnelNumber="099",DisplayName="SDK second"});
+            foreach(var(u,n)in new[]{(actor,"log-actor"),(reader,"log-reader"),(service,"log-service"),(committer,"log-committer")})db.Users.Add(new(){Id=u,UserName=n,IsActive=true});
+            foreach(var(r,u,n,codes)in new[]{(full,actor,"log-full",new[]{DeviceAttendanceDownloads.Read,DeviceAttendanceDownloads.Download,DeviceAttendanceDownloads.Commit,"attendance.events.receive",DeviceRegistry.Create,DeviceRegistry.Update,DeviceConnections.Test}),(read,reader,"log-read",new[]{DeviceAttendanceDownloads.Read}),(exec,service,"log-exec",new[]{DeviceAttendanceDownloads.Execute}),(commitRole,committer,"log-commit",new[]{DeviceAttendanceDownloads.Commit})}){
+                db.Roles.Add(new(){Id=r,Name=n});db.UserRoles.Add(new(){UserId=u,RoleId=r});foreach(var code in codes){var p=db.Permissions.Local.FirstOrDefault(x=>x.Code==code)??await db.Permissions.SingleOrDefaultAsync(x=>x.Code==code);if(p is null){p=new(){Id=Guid.NewGuid(),Code=code};db.Permissions.Add(p);}db.RolePermissions.Add(new(){RoleId=r,PermissionId=p.Id});}}
+            await db.SaveChangesAsync();return true;});
+        var di=new DeviceRegistry.Input(site,"S09-A","SDK log target","unverified SSR","zk-standalone","127.0.0.1",4370,true);await Use<DeviceRegistry,Guid>(s=>s.CreateAsync(actor,device,di));await Use<DeviceRegistry,Guid>(s=>s.CreateAsync(actor,browserDevice,di with{Number="S09-BROWSER"}));
+        await Q(async db=>{foreach(var d in new[]{device,browserDevice})db.SourceEmployeeMappings.Add(new(){Id=Guid.NewGuid(),SourceId=d,CompanyId=company,SourcePersonId="001",EmployeeId=employee,ValidFromUtc=new(2026,1,1,0,0,0,TimeSpan.Zero)});await db.SaveChangesAsync();return true;});
+        var dv=await Q(db=>db.Devices.Where(x=>x.Id==device).Select(x=>x.Version).SingleAsync());var bv=await Q(db=>db.Devices.Where(x=>x.Id==browserDevice).Select(x=>x.Version).SingleAsync());var from=new DateTimeOffset(2026,11,8,0,0,0,TimeSpan.Zero);var until=from.AddDays(1);
+        Task<byte[]> V(Guid id)=>Q(db=>db.DeviceAttendanceDownloads.Where(x=>x.Id==id).Select(x=>x.Version).SingleAsync());
+        Task<string> State(Guid id)=>Q(db=>db.DeviceAttendanceDownloads.Where(x=>x.Id==id).Select(x=>x.State).SingleAsync());
+        Task<Guid> Request(Guid id,Guid? target=null,Guid? user=null,int seconds=60,int inCode=4,int outCode=5)=>Use<DeviceAttendanceDownloads,Guid>(s=>s.RequestAsync(user??actor,id,target??device,target==browserDevice?bv:dv,seconds,from,until,inCode,outCode));
+        Task<DeviceAttendanceDownloads.Claim?> Claim()=>Use<DeviceAttendanceDownloads,DeviceAttendanceDownloads.Claim?>(s=>s.ClaimAsync(service));
+        Task<long> Append(DeviceAttendanceDownloads.Claim c,long after,params ZkAttendanceRaw[] rows)=>Use<DeviceAttendanceDownloads,long>(s=>s.AppendAsync(service,c.Id,c.Token,after,rows));
+        Task<Guid> Finish(DeviceAttendanceDownloads.Claim c,string state,long count)=>Use<DeviceAttendanceDownloads,Guid>(s=>s.CompleteAsync(service,c.Id,c.Token,state,count));
+        async Task<JsonElement> Commit(Guid id,Guid? user=null,string confirmation="INGEST-SDK-ROWS",byte[]? version=null){var current=version??await V(id);return JsonSerializer.SerializeToElement(await Use<DeviceAttendanceDownloads,object>(s=>s.CommitPageAsync(user??actor,id,current,0,confirmation)));}
+        var first=new ZkAttendanceRaw("001",int.MaxValue,4,2026,11,8,8,0,0,int.MinValue);
+        ZkAttendanceRaw[] rows=[first,first,first with{PersonIdentifier="099",Hour=9},first with{Month=2,Day=30},first with{Day=9,Hour=0},first with{PersonIdentifier=" 001"},first with{CheckType=9},first with{CheckType=5,Hour=17}];
+        check(await Reject<UnauthorizedAccessException>(()=>Request(Guid.NewGuid(),user:reader))&&await Reject<UnauthorizedAccessException>(()=>Use<DeviceAttendanceDownloads,DeviceAttendanceDownloads.Claim?>(s=>s.ClaimAsync(actor)))&&await Reject<UnauthorizedAccessException>(()=>Use<DeviceAttendanceDownloads,object>(s=>s.ListAsync(service,null,0))),"S09 personal reads extraction and service execution are independent server grants");
+        check(await Reject<ArgumentException>(()=>Use<DeviceAttendanceDownloads,Guid>(s=>s.RequestAsync(actor,Guid.NewGuid(),device,dv,60,until,from,4,5)))&&await Reject<ArgumentException>(()=>Request(Guid.NewGuid(),inCode:5))&&await Reject<ArgumentException>(()=>Request(Guid.NewGuid(),seconds:601)),"S09 explicit UTC range distinct check codes version and deadline are validated before writes");
+        var id=Guid.NewGuid();await Request(id);
+        check(await Request(id)==id&&await Reject<DomainConflictException>(()=>Request(id,seconds:61))&&await Reject<DomainConflictException>(()=>Request(Guid.NewGuid())),"S09 exact request replay is idempotent and changed retry or concurrent same-device extraction is rejected");
+        check(await Reject<DomainConflictException>(()=>Use<DeviceConnections,Guid>(s=>s.RequestAsync(actor,Guid.NewGuid(),device,dv,1)))&&await Reject<DomainConflictException>(()=>Use<DeviceRegistry,Guid>(s=>s.UpdateAsync(actor,device,dv,di with{Name="retarget denied"}))),"S09 pending extraction shares exclusion with diagnostics and identity or credential retarget");
+        var c=await Claim()??throw new InvalidOperationException();
+        check(await Append(c,0,rows)==8&&await Append(c,0,rows)==8&&await Q(db=>db.DeviceAttendanceRows.CountAsync(x=>x.DownloadId==id))==8&&await Reject<DomainConflictException>(()=>Append(c,0,rows.Select(x=>x with{WorkCode=7}).ToArray())),"S09 durable raw batches preserve exact tuples and repeated batch delivery cannot append or mutate evidence");
+        var firstHash=await Q(db=>db.DeviceAttendanceRows.Where(x=>x.DownloadId==id&&x.Sequence==1).Select(x=>x.PayloadHash).SingleAsync());var ranks=await Q(db=>db.DeviceAttendanceRows.Where(x=>x.DownloadId==id&&x.PayloadHash==firstHash).OrderBy(x=>x.Sequence).Select(x=>x.OccurrenceOrdinal).ToArrayAsync());
+        check(ranks.SequenceEqual(new long[]{1,2})&&await Q(db=>db.RawAttendanceEvents.CountAsync(x=>x.SourceId==device))==0,"S09 identical SDK tuples retain separate multiplicity ranks and raw collection alone does not ingest attendance");
+        check(await Reject<DomainConflictException>(()=>Finish(c,"succeeded",99))&&await Reject<DomainConflictException>(()=>Commit(id)),"S09 incomplete or count-mismatched extraction cannot be labelled complete or committed");
+        await Finish(c,"succeeded",8);var preview=JsonSerializer.SerializeToElement(await Use<DeviceAttendanceDownloads,object>(s=>s.RowsAsync(reader,id,0)));var statuses=preview.GetProperty("items").EnumerateArray().Select(x=>x.GetProperty("status").GetString()).ToArray();
+        check(statuses.Count(x=>x=="ready")==3&&statuses.Contains("unknown-employee")&&statuses.Contains("invalid-time")&&statuses.Contains("outside-requested-range")&&statuses.Contains("invalid-identity")&&statuses.Contains("unmapped-check-code"),"S09 complete preview distinguishes range boundaries unknown identity invalid dates and unmapped codes without discarding original tuples");
+        check(await Reject<UnauthorizedAccessException>(()=>Commit(id,committer))&&await Reject<ArgumentException>(()=>Commit(id,confirmation:"guess")),"S09 ingestion needs its separate commit right attendance receive authority and explicit page confirmation");
+        var oldVersion=await V(id);var result=await Commit(id);
+        check(result.GetProperty("added").GetInt32()==3&&result.GetProperty("quarantined").GetInt32()==5&&await Q(db=>db.RawAttendanceEvents.CountAsync(x=>x.SourceId==device))==3&&await Reject<DomainConflictException>(()=>Commit(id,version:oldVersion)),"S09 confirmed range-ready tuples enter existing raw ingestion atomically while rejected tuples remain quarantined and stale page replay conflicts");
+        var rawReceipt=await Q(db=>db.DeviceAttendanceRows.Where(x=>x.DownloadId==id&&x.Sequence==1).Select(x=>new{x.RawEventId,x.PayloadJson,x.PayloadHash}).SingleAsync());
+        check(await Q(db=>db.RawAttendanceEvents.AnyAsync(x=>x.Id==rawReceipt.RawEventId&&x.SourceEmployeeIdentifier=="001"&&x.ReportedEventType=="in"&&x.SourcePayload==Encoding.UTF8.GetBytes(rawReceipt.PayloadJson)&&x.ExternalEventId=="zk-ssr-v1:"+rawReceipt.PayloadHash+":1")),"S09 download sequence hash and multiplicity link to an actual immutable RawEventId and exact original typed SDK payload");
+        await Q(async db=>{db.SourceEmployeeMappings.Add(new(){Id=Guid.NewGuid(),SourceId=device,CompanyId=company,SourcePersonId="099",EmployeeId=second,ValidFromUtc=new(2026,1,1,0,0,0,TimeSpan.Zero)});await db.SaveChangesAsync();return true;});result=await Commit(id);
+        check(result.GetProperty("added").GetInt32()==1&&await Q(db=>db.Employees.Where(x=>x.Id==employee).Select(x=>x.DisplayName).SingleAsync())=="SDK employee","S09 unknown identities release only on explicit re-review after independent mapping and never overwrite employees");
+        var repeat=Guid.NewGuid();await Request(repeat);var again=await Claim()??throw new InvalidOperationException();await Append(again,0,rows);await Finish(again,"succeeded",8);result=await Commit(repeat);
+        check(result.GetProperty("added").GetInt32()==0&&result.GetProperty("already").GetInt32()==4&&await Q(db=>db.RawAttendanceEvents.CountAsync(x=>x.SourceId==device))==4&&await Q(db=>db.DeviceAttendanceRows.CountAsync(x=>x.DownloadId==repeat))==8,"S09 repeated complete downloads keep all original tuples and separate receipts while canonical tuple plus multiplicity prevents duplicate raw envelopes");
+        var conflict=Guid.NewGuid();await Request(conflict,inCode:5,outCode:4);var conflicting=await Claim()??throw new InvalidOperationException();await Append(conflicting,0,first);await Finish(conflicting,"succeeded",1);result=await Commit(conflict);
+        check(result.GetProperty("conflicts").GetInt32()==1&&await Q(db=>db.DeviceAttendanceRows.AnyAsync(x=>x.DownloadId==conflict&&x.RawEventId==rawReceipt.RawEventId&&x.ConflictId!=null))&&await Q(db=>db.RawAttendanceEvents.CountAsync(x=>x.SourceId==device))==4,"S09 changed interpretation reuses the existing external-identity conflict pipeline rather than overwriting raw history");
+        var crash=Guid.NewGuid();await Request(crash,seconds:600);var crashed=await Claim()??throw new InvalidOperationException();await Append(crashed,0,first);clock.Advance(TimeSpan.FromMinutes(3));var retained=await Claim()==null&&await State(crash)=="running";clock.Advance(TimeSpan.FromMinutes(10));
+        check(retained&&await Claim()==null&&await State(crash)=="interrupted"&&await Q(db=>db.DeviceAttendanceRows.CountAsync(x=>x.DownloadId==crash))==1&&await Reject<DomainConflictException>(()=>Finish(crashed,"succeeded",1)),"S09 restart recovery waits past the full child deadline retains partial tuples and never blindly restarts or accepts a late completion");
+        var cancelled=Guid.NewGuid();await Request(cancelled);await Use<DeviceAttendanceDownloads,Guid>(s=>s.CancelAsync(actor,cancelled,V(cancelled).GetAwaiter().GetResult()));
+        check(await State(cancelled)=="cancelled"&&await Claim()==null,"S09 versioned cancellation guarantees prevention of dispatch only while pending");
+        // Synthetic complete SDK extraction reserved for real-browser SQL UI tests; not hardware.
+        clock.Reset();var browser=Guid.NewGuid();await Request(browser,browserDevice);var browserClaim=await Claim()??throw new InvalidOperationException();await Append(browserClaim,0,first with{WorkCode=999},first with{PersonIdentifier="099",WorkCode=999});await Finish(browserClaim,"succeeded",2);
+        await Q(db=>db.RolePermissions.Where(x=>x.RoleId==read).ExecuteDeleteAsync());
+        check(await Reject<UnauthorizedAccessException>(()=>Use<DeviceAttendanceDownloads,object>(s=>s.RowsAsync(reader,id,0))),"S09 personal SDK tuple reads are denied immediately after grant revocation");
+        bool immutable=false,receipt=false,down=false;try{await Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.DeviceAttendanceRows SET PayloadJson=N'{{}}' WHERE DownloadId={id} AND Sequence=4"));}catch(SqlException e)when(e.Number==51021){immutable=true;}
+        try{await Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"DELETE dbo.DeviceAttendanceRows WHERE DownloadId={id} AND Sequence=1"));}catch(SqlException e)when(e.Number==51021){receipt=true;}
+        try{await Q(async db=>{await db.GetService<IMigrator>().MigrateAsync("20261112070000_DeviceUserUploads");return true;});}catch(SqlException e)when(e.Number==51021){down=true;}
+        check(immutable&&receipt&&down&&await Q(db=>db.DeviceAttendanceDownloads.AnyAsync(x=>x.Id==id)),"S09 SQL guards preserve original SDK tuples ingested receipts and extraction history against mutation deletion or destructive downgrade");
+    }
+    private sealed class Clock:TimeProvider{private DateTimeOffset now=DateTimeOffset.UtcNow;public override DateTimeOffset GetUtcNow()=>now;public void Advance(TimeSpan value)=>now=now.Add(value);public void Reset()=>now=DateTimeOffset.UtcNow;}
+}

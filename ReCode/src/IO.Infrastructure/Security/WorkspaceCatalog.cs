@@ -35,6 +35,7 @@ public static class WorkspaceCatalog
         new("/workspace/employee-history", "برنامه‌ریزی | سامانهٔ حضور", "admin", "Scheduling.html", ["schedule.manage", "schedule.catalog.read"]),
         new("/workspace/device-files", "ورود فایل دستگاه و قرنطینه", "operator", "DeviceFiles.html", ["devices.files.read", "devices.files.preview", "devices.files.commit"]),
         new("/workspace/device-user-uploads", "ارسال عادی کاربران و نتیجهٔ هر نفر/دستگاه", "operator", "DeviceUserUploads.html", ["devices.users.read", "devices.users.upload"]),
+        new("/workspace/device-attendance", "استخراج بازه‌ای تردد SDK و قرنطینه", "operator", "DeviceAttendance.html", ["devices.attendance.read", "devices.attendance.extract", "devices.attendance.commit"]),
         new("/workspace/device-users", "کاربران دستگاه و پیش‌نمایش تطبیق", "operator", "DeviceUsers.html", ["devices.users.read", "devices.users.download"]),
         new("/workspace/device-information", "مشخصات و ساعت دستگاه", "operator", "DeviceInformation.html", ["devices.info.read", "devices.clock.set"]),
         new("/workspace/device-connection", "تست و تاریخچهٔ ارتباط دستگاه", "operator", "DeviceConnection.html", ["devices.connection.read", "devices.connection.test"]),

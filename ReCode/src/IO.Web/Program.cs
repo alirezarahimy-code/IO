@@ -192,6 +192,8 @@ public static class IoWebHost
         app.MapGet("/assets/device-files.js", () => Results.Content(Resource("IO.Web.Ui.device-files.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-user-uploads", () => Results.Content(Resource("IO.Web.Ui.DeviceUserUploads.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/device-user-uploads.js", () => Results.Content(Resource("IO.Web.Ui.device-user-uploads.js"), "text/javascript; charset=utf-8"));
+        app.MapGet("/workspace/device-attendance", () => Results.Content(Resource("IO.Web.Ui.DeviceAttendance.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/device-attendance.js", () => Results.Content(Resource("IO.Web.Ui.device-attendance.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-users", () => Results.Content(Resource("IO.Web.Ui.DeviceUsers.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/device-users.js", () => Results.Content(Resource("IO.Web.Ui.device-users.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-information", () => Results.Content(Resource("IO.Web.Ui.DeviceInformation.html"), "text/html; charset=utf-8"));
@@ -394,6 +396,11 @@ public static class IoWebHost
         app.MapPost("/device-user-uploads", (DeviceUserUploads.Batch input,HttpContext c,IAntiforgery csrf,DeviceUserUploads service)=>Admin(c,csrf,actor=>service.RequestAsync(actor,input,c.RequestAborted)));
         app.MapPost("/device-user-uploads/{id:guid}/cancel", (Guid id,DeviceOperationVersion input,HttpContext c,IAntiforgery csrf,DeviceUserUploads service)=>Admin(c,csrf,actor=>service.CancelAsync(actor,id,input.ExpectedVersion,c.RequestAborted)));
         app.MapPost("/device-user-uploads/{id:guid}/review", (Guid id,DeviceUserUploadReview input,HttpContext c,IAntiforgery csrf,DeviceUserUploads service)=>Admin(c,csrf,actor=>service.ReviewAsync(actor,id,input.ExpectedVersion,input.SnapshotId,input.Confirmation,c.RequestAborted)));
+        app.MapGet("/device-attendance-downloads", (HttpContext c,DeviceAttendanceDownloads service,Guid? deviceId,int offset=0)=>AdminRead(c,actor=>service.ListAsync(actor,deviceId,offset,c.RequestAborted)));
+        app.MapGet("/device-attendance-downloads/{id:guid}/rows", (Guid id,HttpContext c,DeviceAttendanceDownloads service,long after=0)=>AdminRead(c,actor=>service.RowsAsync(actor,id,after,c.RequestAborted)));
+        app.MapPost("/device-attendance-downloads", (DeviceAttendanceInput input,HttpContext c,IAntiforgery csrf,DeviceAttendanceDownloads service)=>Admin(c,csrf,actor=>service.RequestAsync(actor,input.OperationId,input.DeviceId,input.ExpectedDeviceVersion,input.TimeoutSeconds,input.FromUtc,input.UntilUtcExclusive,input.InCode,input.OutCode,c.RequestAborted)));
+        app.MapPost("/device-attendance-downloads/{id:guid}/cancel", (Guid id,DeviceOperationVersion input,HttpContext c,IAntiforgery csrf,DeviceAttendanceDownloads service)=>Admin(c,csrf,actor=>service.CancelAsync(actor,id,input.ExpectedVersion,c.RequestAborted)));
+        app.MapPost("/device-attendance-downloads/{id:guid}/commit-page", (Guid id,DeviceAttendanceCommit input,HttpContext c,IAntiforgery csrf,DeviceAttendanceDownloads service)=>Admin(c,csrf,actor=>service.CommitPageAsync(actor,id,input.ExpectedVersion,input.After,input.Confirmation,c.RequestAborted)));
         app.MapGet("/device-user-downloads", (HttpContext c,DeviceUserDownloads service,Guid? deviceId,int offset=0)=>AdminRead(c,actor=>service.ListAsync(actor,deviceId,offset,c.RequestAborted)));
         app.MapGet("/device-user-downloads/{id:guid}/preview", (Guid id,HttpContext c,DeviceUserDownloads service,long after=0)=>AdminRead(c,actor=>service.PreviewAsync(actor,id,after,c.RequestAborted)));
         app.MapPost("/device-user-downloads", (DeviceConnectionInput input,HttpContext c,IAntiforgery csrf,DeviceUserDownloads service)=>Admin(c,csrf,actor=>service.RequestAsync(actor,input.OperationId,input.DeviceId,input.ExpectedDeviceVersion,input.TimeoutSeconds,c.RequestAborted)));
@@ -781,3 +788,6 @@ public sealed record DeviceClockResolution(byte[] ExpectedVersion,Guid Informati
 public sealed record DeviceFileCommit(byte[] ExpectedVersion,int After,string Confirmation);
 
 public sealed record DeviceUserUploadReview(byte[] ExpectedVersion,Guid SnapshotId,string Confirmation);
+
+public sealed record DeviceAttendanceInput(Guid OperationId,Guid DeviceId,byte[] ExpectedDeviceVersion,int TimeoutSeconds,DateTimeOffset FromUtc,DateTimeOffset UntilUtcExclusive,[property:System.Text.Json.Serialization.JsonRequired]int InCode,[property:System.Text.Json.Serialization.JsonRequired]int OutCode);
+public sealed record DeviceAttendanceCommit(byte[] ExpectedVersion,long After,string Confirmation);

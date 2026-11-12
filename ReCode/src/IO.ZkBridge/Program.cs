@@ -16,6 +16,12 @@ internal static class Program
             using var stdin=Console.OpenStandardInput();using var bytes=new MemoryStream();var buffer=new byte[1024];int count;
             while((count=stdin.Read(buffer,0,buffer.Length))>0){if(bytes.Length+count>8192)return Result("invalid-input");bytes.Write(buffer,0,count);}
             var json=new UTF8Encoding(false,true).GetString(bytes.ToArray());using var document=JsonDocument.Parse(json);
+            if(document.RootElement.TryGetProperty("ReadAttendance",out _))
+            {
+                var attendance=JsonSerializer.Deserialize<ZkAttendanceReadInput>(json);
+                if(attendance?.IsValid()!=true||!OperatingSystem.IsWindows()){AttendanceFrame(new("end",Count:0,State:"unsupported"));return 0;}
+                ReadAttendanceWindows(attendance);return 0;
+            }
             if(document.RootElement.TryGetProperty("WriteUser",out _))
             {
                 var request=JsonSerializer.Deserialize<ZkUserWriteInput>(json);
@@ -108,6 +114,35 @@ internal static class Program
         public bool SetCard(string card)=>(bool)((dynamic)instance).SetStrCardNumber(card);
         public bool Write(ZkUser user,string password)=>(bool)((dynamic)instance).SSR_SetUserInfo(machine,user.PersonIdentifier,user.Name,password,0,user.Enabled);
         // No AccGroup setter, access-control, batch-disable, template, photo or delete API.
+    }
+
+    private static void AttendanceFrame(ZkAttendanceFrame frame){Console.WriteLine(JsonSerializer.Serialize(frame));Console.Out.Flush();}
+    [SupportedOSPlatform("windows")]
+    private static void ReadAttendanceWindows(ZkAttendanceReadInput request)
+    {
+        object? instance=null;bool connected=false;long count=0;
+        try
+        {
+            var pin=request.Connection;instance=Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("00853A19-BD51-419B-9269-2DABE57EB61F"),true)!)!;dynamic sdk=instance;
+            if(!(bool)sdk.SetCommPassword(pin.CommKey)||!(connected=(bool)sdk.Connect_Net(pin.Address,pin.Port))){AttendanceFrame(new("end",Count:0,State:"failed"));return;}
+            string serial;if(!(bool)sdk.GetSerialNumber(pin.MachineNumber,out serial)||serial?.Trim()!=pin.ExpectedSerial){AttendanceFrame(new("end",Count:0,State:"identity-mismatch"));return;}
+            int before=0;if(!(bool)sdk.GetDeviceStatus(pin.MachineNumber,6,ref before)||before<0||!(bool)sdk.ReadAllGLogData(pin.MachineNumber)){AttendanceFrame(new("end",Count:0,State:"failed"));return;}
+            AttendanceFrame(new("start",Serial:pin.ExpectedSerial));
+            string badge;int verify,check,y,m,d,h,n,s,work=0;
+            // No DisableDevice, clear/delete, clock write or physical-control command.
+            // Enumerate the complete SDK log: date filtering happens after preserving
+            // each tuple, so bad/ambiguous dates never silently disappear in the child.
+            while((bool)sdk.SSR_GetGeneralLogData(pin.MachineNumber,out badge,out verify,out check,out y,out m,out d,out h,out n,out s,ref work))
+            {
+                var row=new ZkAttendanceRaw(badge,verify,check,y,m,d,h,n,s,work);
+                if(!row.IsBounded()){AttendanceFrame(new("end",Count:count,State:"incomplete"));return;}
+                AttendanceFrame(new("record",Record:row));count++;
+            }
+            int after=0;var complete=(bool)sdk.GetDeviceStatus(pin.MachineNumber,6,ref after)&&before==after&&after==count;
+            AttendanceFrame(new("end",Count:count,State:complete?"succeeded":"incomplete"));
+        }
+        catch{AttendanceFrame(new("end",Count:count,State:"failed"));}
+        finally{if(instance is not null){try{if(connected)((dynamic)instance).Disconnect();}catch{}try{if(Marshal.IsComObject(instance))Marshal.FinalReleaseComObject(instance);}catch{}}}
     }
 
     private static void UserFrame(ZkUserFrame frame){Console.WriteLine(JsonSerializer.Serialize(frame));Console.Out.Flush();}
