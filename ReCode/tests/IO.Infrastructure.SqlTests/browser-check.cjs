@@ -661,7 +661,7 @@ async function main() {
     await infoRow.filter({hasText:'در صف'}).waitFor();infoPage.on('dialog',d=>d.accept());
     await infoRow.locator('button').click();await infoRow.filter({hasText:'پیش از dispatch لغو شد'}).waitFor();
     await infoPage.locator('#operation-form select[name=kind]').selectOption('clock.set');
-    await infoPage.locator('#operation-form input[name=targetUtc]').fill('2026-11-08T10:00:00');
+    await infoPage.locator('#operation-form input[name=targetUtc]').fill('2026-11-08T10:00');
     await infoPage.locator('#operation-form input[name=confirmed]').check();
     const clockOperation=await infoPage.locator('#operation-form input[name=operationId]').inputValue();
     await infoPage.locator('#operation-form button').click();
