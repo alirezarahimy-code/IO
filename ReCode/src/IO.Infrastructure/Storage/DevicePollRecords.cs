@@ -14,6 +14,7 @@ public sealed class DevicePollScheduleRecord
     public int EverySeconds {get;set;}
     public int WindowSeconds {get;set;}
     public int LagSeconds {get;set;}
+    public int OverlapSeconds {get;set;}
     public int TimeoutSeconds {get;set;}
     public int InCode {get;set;}
     public int OutCode {get;set;}

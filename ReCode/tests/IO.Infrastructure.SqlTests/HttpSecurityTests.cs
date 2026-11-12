@@ -563,7 +563,7 @@ internal static class HttpSecurityTests
                       (await own.GetAsync("/help/topic/device-attendance")).StatusCode==HttpStatusCode.Forbidden&&
                       !logCaps.RootElement.GetProperty("pages").EnumerateArray().Any(x=>x.GetProperty("route").GetString()=="/workspace/device-attendance"),
                       "HTTP S09 revocation removes original tuples help menu and request retries without re-login");
-            var pollId=Guid.NewGuid();var pollPayload=new DevicePollInput(pollId,s06Device,s06Version,"2026-11-08T00:00:00Z",300,3600,60,30,4,5,false,"ENABLE-SCHEDULED-SDK-READ");
+            var pollId=Guid.NewGuid();var pollPayload=new DevicePollInput(pollId,s06Device,s06Version,"2026-11-08T00:00:00Z",300,3600,60,30,4,5,false,"ENABLE-SCHEDULED-SDK-READ",900);
             check((await anon.GetAsync("/device-poll-schedules")).StatusCode==HttpStatusCode.Unauthorized&&
                   (await own.GetAsync("/device-poll-schedules")).StatusCode==HttpStatusCode.Forbidden&&
                   (await own.PostAsJsonAsync("/device-poll-schedules",pollPayload)).StatusCode==HttpStatusCode.BadRequest,
@@ -572,16 +572,21 @@ internal static class HttpSecurityTests
             check((await PostAdmin(own,"/device-poll-schedules",pollPayload)).StatusCode==HttpStatusCode.Forbidden,
                   "HTTP S10 manage alone cannot approve extraction or automatic attendance ingestion");
             (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.attendance.extract"})).EnsureSuccessStatusCode();
+            check((await PostAdmin(own,"/device-poll-schedules",pollPayload with{OverlapSeconds=-1})).StatusCode==HttpStatusCode.BadRequest&&
+                  (await PostAdmin(own,"/device-poll-schedules",pollPayload with{OverlapSeconds=3601})).StatusCode==HttpStatusCode.BadRequest,
+                  "HTTP S10 explicit overlap rejects negative or larger-than-window reads before schedule creation");
             check((await PostAdmin(own,"/device-poll-schedules",pollPayload with{StartUtc="2026-11-08T00:00:00"})).StatusCode==HttpStatusCode.BadRequest&&
                   (await PostAdmin(own,"/device-poll-schedules",pollPayload)).StatusCode==HttpStatusCode.OK&&
                   (await PostAdmin(own,"/device-poll-schedules",pollPayload)).StatusCode==HttpStatusCode.OK&&
                   (await own.GetAsync("/device-poll-schedules")).StatusCode==HttpStatusCode.Forbidden,
                   "HTTP S10 exact approved schedule replay queues once and manage never implies history read");
+            check((await PostAdmin(own,"/device-poll-schedules",pollPayload with{OverlapSeconds=0})).StatusCode==HttpStatusCode.Conflict,
+                  "HTTP S10 unknown-response replay cannot silently change an approved overlap contract");
             (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.schedules.read"})).EnsureSuccessStatusCode();
             using(var polls=JsonDocument.Parse(await own.GetStringAsync("/device-poll-schedules")))
             {
                 var poll=polls.RootElement.GetProperty("items").EnumerateArray().Single(x=>x.GetProperty("id").GetGuid()==pollId);
-                check((await own.GetAsync("/help/topic/device-schedules")).StatusCode==HttpStatusCode.OK&&
+                check(poll.GetProperty("overlapSeconds").GetInt32()==900&&(await own.GetAsync("/help/topic/device-schedules")).StatusCode==HttpStatusCode.OK&&
                       (await own.GetAsync("/device-poll-schedules/"+pollId+"/runs")).StatusCode==HttpStatusCode.OK&&
                       (await PostAdmin(own,"/device-poll-schedules/"+pollId+"/enabled",new DevicePollToggle(poll.GetProperty("version").GetBytesFromBase64(),false,"PAUSE-SCHEDULE"))).StatusCode==HttpStatusCode.OK,
                       "HTTP S10 independent read exposes retained SQL history help and versioned pause");

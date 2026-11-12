@@ -122,6 +122,7 @@ namespace IO.Infrastructure.Migrations
             {
                 t.HasTrigger("TR_DevicePollSchedules_History");t.UseSqlOutputClause(false);
                 t.HasCheckConstraint("CK_DevicePollSchedules_Config","DATALENGTH([ExpectedDeviceVersion])=8 AND [EverySeconds] BETWEEN 15 AND 86400 AND [WindowSeconds] BETWEEN 60 AND 86400 AND [LagSeconds] BETWEEN 0 AND 86400 AND [TimeoutSeconds] BETWEEN 1 AND 600 AND [InCode] BETWEEN 0 AND 255 AND [OutCode] BETWEEN 0 AND 255 AND [InCode]<>[OutCode] AND [Failures]>=0 AND [CursorUtc]>=[StartUtc] AND ([Enabled]=1 OR [ActiveRunId] IS NULL)");
+                t.HasCheckConstraint("CK_DevicePollSchedules_Overlap","[OverlapSeconds]>=0 AND [OverlapSeconds]<=[WindowSeconds]");
                 t.HasCheckConstraint("CK_DevicePollSchedules_Utc","DATEPART(TZOFFSET,[CreatedAtUtc])=0 AND DATEPART(TZOFFSET,[StartUtc])=0 AND DATEPART(TZOFFSET,[CursorUtc])=0 AND DATEPART(TZOFFSET,[NextDueUtc])=0");
             });
             b.HasKey(x=>x.Id);
@@ -138,6 +139,7 @@ namespace IO.Infrastructure.Migrations
             b.Property(x=>x.EverySeconds).HasColumnType("int");
             b.Property(x=>x.WindowSeconds).HasColumnType("int");
             b.Property(x=>x.LagSeconds).HasColumnType("int");
+            b.Property(x=>x.OverlapSeconds).ValueGeneratedOnAdd().HasColumnType("int").HasDefaultValue(0);
             b.Property(x=>x.TimeoutSeconds).HasColumnType("int");
             b.Property(x=>x.InCode).HasColumnType("int");
             b.Property(x=>x.OutCode).HasColumnType("int");

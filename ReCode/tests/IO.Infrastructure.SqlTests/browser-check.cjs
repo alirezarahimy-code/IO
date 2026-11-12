@@ -694,10 +694,10 @@ async function main() {
     const pollOperation=await pollPage.locator('#schedule-form input[name=id]').inputValue();
     await pollPage.locator('#schedule-form input[name=startUtc]').fill('2026-11-08T00:00:00Z');
     await pollPage.locator('#schedule-form input[name=inCode]').fill('4');await pollPage.locator('#schedule-form input[name=outCode]').fill('5');
-    await pollPage.locator('#schedule-form input[name=confirmed]').check();await pollPage.locator('#schedule-form button').click();
+    await pollPage.locator('#schedule-form input[name=overlapSeconds]').fill('900');await pollPage.locator('#schedule-form input[name=confirmed]').check();await pollPage.locator('#schedule-form button').click();
     const pollRow=pollPage.locator('#schedules li').filter({hasText:pollOperation});await pollRow.filter({hasText:'فعال'}).waitFor();
     pollPage.on('dialog',d=>d.accept());await pollRow.locator('button').filter({hasText:'توقف'}).click();await pollRow.filter({hasText:'متوقف'}).waitFor();
-    await pollPage.reload();await pollRow.filter({hasText:'متوقف'}).waitFor();await pollRow.locator('button').filter({hasText:'تاریخچه'}).click();
+    await pollPage.reload();await pollRow.filter({hasText:'متوقف'}).waitFor();if(!(await pollRow.textContent()).includes('900'))throw Error('S10 approved overlap missing after SQL reload');await pollRow.locator('button').filter({hasText:'تاریخچه'}).click();
     await pollPage.waitForFunction(()=>!document.getElementById('run-history').hidden&&!document.getElementById('refresh').disabled);
     await pollRow.locator('button').filter({hasText:'ادامه'}).click();await pollRow.filter({hasText:'فعال'}).waitFor();
     await pollRow.locator('button').filter({hasText:'توقف'}).click();await pollRow.filter({hasText:'متوقف'}).waitFor();await pollPage.close();

@@ -10,19 +10,19 @@ namespace IO.Infrastructure.Devices;
 public sealed class DevicePollSchedules(IoDbContext db,PermissionTransaction transaction,TimeProvider clock,DeviceAttendanceDownloads downloads)
 {
     public const string Read="devices.schedules.read",Manage="devices.schedules.manage",Execute="devices.schedules.execute";
-    public sealed record Input(Guid Id,Guid DeviceId,byte[] ExpectedDeviceVersion,DateTimeOffset StartUtc,int EverySeconds,int WindowSeconds,int LagSeconds,int TimeoutSeconds,int InCode,int OutCode,bool AutoCommit,string Confirmation);
+    public sealed record Input(Guid Id,Guid DeviceId,byte[] ExpectedDeviceVersion,DateTimeOffset StartUtc,int EverySeconds,int WindowSeconds,int LagSeconds,int TimeoutSeconds,int InCode,int OutCode,bool AutoCommit,string Confirmation,int OverlapSeconds=0);
     public sealed record Step(string State,Guid? ScheduleId=null,Guid? RunId=null,Guid? DownloadId=null);
     public Task<Guid> CreateAsync(Guid actor,Input input,CancellationToken ct=default)=>transaction.ExecuteAsync(actor,Manage,"device-poll.created",async token=>
     {
-        if(input is null||input.Id==Guid.Empty||input.DeviceId==Guid.Empty||input.ExpectedDeviceVersion is not{Length:8}||input.StartUtc.Offset!=TimeSpan.Zero||input.StartUtc.Ticks%TimeSpan.TicksPerSecond!=0||input.EverySeconds is <15 or >86400||input.WindowSeconds is <60 or >86400||input.LagSeconds is <0 or >86400||input.TimeoutSeconds is <1 or >600||input.InCode is <0 or >255||input.OutCode is <0 or >255||input.InCode==input.OutCode||input.Confirmation!=(input.AutoCommit?"ENABLE-AUTOMATIC-SDK-INGEST":"ENABLE-SCHEDULED-SDK-READ"))throw new ArgumentException("Explicit schedule cursor, bounded budgets, exact target and consent required.");
+        if(input is null||input.Id==Guid.Empty||input.DeviceId==Guid.Empty||input.ExpectedDeviceVersion is not{Length:8}||input.StartUtc.Offset!=TimeSpan.Zero||input.StartUtc.Ticks%TimeSpan.TicksPerSecond!=0||input.EverySeconds is <15 or >86400||input.WindowSeconds is <60 or >86400||input.LagSeconds is <0 or >86400||input.TimeoutSeconds is <1 or >600||input.InCode is <0 or >255||input.OutCode is <0 or >255||input.InCode==input.OutCode||input.OverlapSeconds<0||input.OverlapSeconds>input.WindowSeconds||input.Confirmation!=(input.AutoCommit?"ENABLE-AUTOMATIC-SDK-INGEST":"ENABLE-SCHEDULED-SDK-READ"))throw new ArgumentException("Explicit schedule cursor, bounded budgets, exact target and consent required.");
         if(!await Authority(actor,input.AutoCommit,token))throw new UnauthorizedAccessException();
         await Locks(token);var old=await db.DevicePollSchedules.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==input.Id,token);
-        if(old is not null){if(old.CreatedByUserId!=actor||old.DeviceId!=input.DeviceId||!old.ExpectedDeviceVersion.SequenceEqual(input.ExpectedDeviceVersion)||old.StartUtc!=input.StartUtc||old.EverySeconds!=input.EverySeconds||old.WindowSeconds!=input.WindowSeconds||old.LagSeconds!=input.LagSeconds||old.TimeoutSeconds!=input.TimeoutSeconds||old.InCode!=input.InCode||old.OutCode!=input.OutCode||old.AutoCommit!=input.AutoCommit)throw new DomainConflictException("Changed schedule retry.");return(old.Id,old.Id);}
+        if(old is not null){if(old.CreatedByUserId!=actor||old.DeviceId!=input.DeviceId||!old.ExpectedDeviceVersion.SequenceEqual(input.ExpectedDeviceVersion)||old.StartUtc!=input.StartUtc||old.EverySeconds!=input.EverySeconds||old.WindowSeconds!=input.WindowSeconds||old.LagSeconds!=input.LagSeconds||old.OverlapSeconds!=input.OverlapSeconds||old.TimeoutSeconds!=input.TimeoutSeconds||old.InCode!=input.InCode||old.OutCode!=input.OutCode||old.AutoCommit!=input.AutoCommit)throw new DomainConflictException("Changed schedule retry.");return(old.Id,old.Id);}
         var device=await db.Devices.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==input.DeviceId,token)??throw new ArgumentException("Unknown device.");
         if(!device.Enabled||device.Profile!="zk-standalone"||!device.Version.SequenceEqual(input.ExpectedDeviceVersion))throw new DomainConflictException("Current enabled SSR endpoint required.");
         if(await db.DevicePollSchedules.AnyAsync(x=>x.DeviceId==device.Id&&x.Enabled,token))throw new DomainConflictException("Pause the existing schedule first.");
         var site=await db.Sites.AsNoTracking().SingleAsync(x=>x.Id==device.SiteId,token);
-        db.DevicePollSchedules.Add(new(){Id=input.Id,DeviceId=device.Id,SourceId=device.SourceId,SiteId=site.Id,CompanyId=site.CompanyId,TimeZoneId=site.TimeZoneId,CreatedByUserId=actor,CreatedAtUtc=clock.GetUtcNow(),ExpectedDeviceVersion=input.ExpectedDeviceVersion.ToArray(),StartUtc=input.StartUtc,CursorUtc=input.StartUtc,EverySeconds=input.EverySeconds,WindowSeconds=input.WindowSeconds,LagSeconds=input.LagSeconds,TimeoutSeconds=input.TimeoutSeconds,InCode=input.InCode,OutCode=input.OutCode,AutoCommit=input.AutoCommit,NextDueUtc=clock.GetUtcNow()});return(input.Id,input.Id);
+        db.DevicePollSchedules.Add(new(){Id=input.Id,DeviceId=device.Id,SourceId=device.SourceId,SiteId=site.Id,CompanyId=site.CompanyId,TimeZoneId=site.TimeZoneId,CreatedByUserId=actor,CreatedAtUtc=clock.GetUtcNow(),ExpectedDeviceVersion=input.ExpectedDeviceVersion.ToArray(),StartUtc=input.StartUtc,CursorUtc=input.StartUtc,EverySeconds=input.EverySeconds,WindowSeconds=input.WindowSeconds,LagSeconds=input.LagSeconds,OverlapSeconds=input.OverlapSeconds,TimeoutSeconds=input.TimeoutSeconds,InCode=input.InCode,OutCode=input.OutCode,AutoCommit=input.AutoCommit,NextDueUtc=clock.GetUtcNow()});return(input.Id,input.Id);
     },ct);
     public Task<object> ListAsync(Guid actor,int offset,CancellationToken ct=default)=>transaction.ExecuteAsync<object>(actor,Read,"device-poll.viewed",async token=>
     {
@@ -87,8 +87,12 @@ public sealed class DevicePollSchedules(IoDbContext db,PermissionTransaction tra
         if(s.CursorUtc>=limit){s.NextDueUtc=now.AddSeconds(s.EverySeconds);s.LastOutcome="waiting";return(new Step("waiting",s.Id),s.Id);}
         if(await Busy(s.DeviceId,token)){s.NextDueUtc=now.AddSeconds(15);s.LastOutcome="busy";return(new Step("busy",s.Id),s.Id);}
         var until=s.CursorUtc.AddSeconds(Math.Min(s.WindowSeconds,(limit-s.CursorUtc).TotalSeconds));var id=Guid.NewGuid();
-        await downloads.RequestInTransactionAsync(s.CreatedByUserId,id,s.DeviceId,s.ExpectedDeviceVersion,s.TimeoutSeconds,s.CursorUtc,until,s.InCode,s.OutCode,token);
-        db.DevicePollRuns.Add(new(){Id=id,ScheduleId=s.Id,DownloadId=id,FromUtc=s.CursorUtc,UntilUtcExclusive=until,CreatedAtUtc=now});
+        // Re-read only the explicitly approved lookback; never move the logical
+        // acknowledged cursor backwards or read before this schedule's start.
+        var lookback=Math.Min(s.OverlapSeconds,(s.CursorUtc-s.StartUtc).TotalSeconds);
+        var from=s.CursorUtc.AddSeconds(-lookback);
+        await downloads.RequestInTransactionAsync(s.CreatedByUserId,id,s.DeviceId,s.ExpectedDeviceVersion,s.TimeoutSeconds,from,until,s.InCode,s.OutCode,token);
+        db.DevicePollRuns.Add(new(){Id=id,ScheduleId=s.Id,DownloadId=id,FromUtc=from,UntilUtcExclusive=until,CreatedAtUtc=now});
         await db.SaveChangesAsync(token); // Persist real run before linking the cyclic active-run FK.
         s.ActiveRunId=id;s.NextDueUtc=now.AddSeconds(10);s.LastOutcome="queued";return(new Step("queued",s.Id,id,id),s.Id);
     },ct);
