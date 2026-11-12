@@ -98,6 +98,9 @@ internal static class DeviceConnectionTests
         check(await Credential(false)==null,"native wrong-purpose credentials fail closed without leaking protected or plaintext values");
         await Finish(nativeClaim,"sdk-unavailable");
         var downBlocked=false;try{await Query(async db=>{await db.GetService<IMigrator>().MigrateAsync("20261112020000_DeviceConnections");return true;});}catch(SqlException e)when(e.Number==51016){downBlocked=true;}
+        // A completed newer empty Down may already have committed before the native
+        // history guard rejects this downgrade. Restore latest, retaining its guard.
+        await Query(async db=>{await db.GetService<IMigrator>().MigrateAsync();return true;});
         check(downBlocked&&await State(nativeId)=="sdk-unavailable","native probe result history prevents a downgrade that would invalidate its outcome");
         await Query(db=>db.RolePermissions.Where(x=>x.RoleId==serviceRole||x.RoleId==readerRole).ExecuteDeleteAsync());
         check(await Reject<UnauthorizedAccessException>(()=>Claim())&&await Reject<UnauthorizedAccessException>(()=>Use<DeviceConnections,object>(s=>s.ListAsync(reader,null,0))),"connection service and history grant revocations apply on the next operation");
