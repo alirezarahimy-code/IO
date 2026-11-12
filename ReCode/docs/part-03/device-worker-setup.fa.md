@@ -4,7 +4,7 @@
 
 ## پیش‌نیاز و اعتماد
 
-1. از DB پشتیبان بگیرید؛ تمام migrationها تا `20261112080000_DeviceAttendanceDownloads` (یا آخرین نسخهٔ تأییدشدهٔ استقرار) با ابزار مهاجرت موجود اعمال شوند؛ اعمال فقط migration اتصال برای قابلیت‌های جدید کافی نیست. میزبان وب/worker خودکار migrate یا seed نمی‌کند. downgrade پس از اولین درخواست تست عمداً خطای 51016 می‌دهد؛ زنجیرهٔ downgrade اتمیک فرض نشود.
+1. از DB پشتیبان بگیرید؛ تمام migrationها تا `20261112100000_DeviceCommandHistory` (یا آخرین نسخهٔ تأییدشدهٔ استقرار) با ابزار مهاجرت موجود اعمال شوند؛ اعمال فقط migration اتصال برای قابلیت‌های جدید کافی نیست. میزبان وب/worker خودکار migrate یا seed نمی‌کند. downgrade پس از اولین درخواست تست عمداً خطای 51016 می‌دهد؛ زنجیرهٔ downgrade اتمیک فرض نشود.
 2. حساب سرویس اختصاصی سیستم‌عامل و دسترسی SQL کمینهٔ متناسب با query/transactionهای سرویس تنظیم کنید؛ اتصال رمز‌شده با گواهی معتبر و ACL برای تنظیمات لازم است. هویت بنیادینِ فعالِ جدا، بدون نیاز به حساب ورود وب، و نقش اختصاصی دارای فقط `devices.connection.execute` بسازید. هیچ قالب نقش این مجوز را نمی‌دهد. این نسخه هویت بنیادین را در هر claim/ثبت نتیجه از DB بررسی می‌کند؛ نگاشت config به هویت سیستم‌عامل/SQL مسئولیت استقرار است، نه هویت دستگاه یا گواهی دستگاه.
 3. تنظیمات صریح از secret store/متغیر محیطی امن یا فایل خارج از Git با ACL بیاید. `ConnectionStrings__IO` رشتهٔ واقعی SQL است؛ رمز آن در چت یا نمونه ثبت نشود. `IO__DeviceWorker__ServiceUserId` UUID هویت بنیادین سرویس است.
 4. برای هر endpoint تأییدشده، این کلیدها را تنظیم کنید: `IO__DeviceWorker__AllowedEndpoints__0__DeviceId`، `...__0__Address` و `...__0__Port`. مقدار Address باید IP دقیق و Port عدد صحیح باشد؛ نام DNS، wildcard، subnet، تغییر endpoint صرفاً از metadata و اسکن شبکه پشتیبانی نمی‌شوند. شناسه و IP/port باید با snapshot ثبت دستگاه مطابقت داشته باشند. نبود فهرست یعنی هیچ اتصال خروجی مجاز نیست.
@@ -74,3 +74,12 @@ worker اکنون روی Windows با `AddWindowsService` و نام ثابت `IO
 `IO:DeviceWorker:EnableAttendanceDownloads=true` و grant مستقل `devices.attendance.execute` برای سرویس، همراه `AllowAttendanceRead=true` روی NativeEndpoint پس از آزمون مدل لازم است. فقط SSR و تقویم Gregorian صریح؛ Linux native unsupported است. بدون DisableDevice/clear/delete/نوشتن ساعت یا درب. کل log با backpressure خوانده می‌شود؛ بازه پس از حفظ tupleها اعمال می‌شود. read ناقص قابل commit نیست؛ worker حق ورود به attendance را از execute به دست نمی‌آورد. [راهنما، بازیابی، trace و محدودیت هویت tuple/multiplicity](s09-attendance-extraction.fa.md).
 
 هر endpoint فیزیکی SDK باید تنها یک DeviceId در نصب مصوب داشته باشد؛ چند alias به همان دستگاه، exclusion مبتنی بر DeviceId را دور می‌زند و سناریوی پشتیبانی‌شده/آزموده‌شده نیست. قبل از پذیرش چند دستگاه، pin سریال و نبود endpoint alias را مستقلاً بررسی کنید.
+
+
+## زمان‌بندی S10 (پیش‌فرض خاموش)
+
+`IO:DeviceWorker:EnableSchedules=true` و grant مستقل `devices.schedules.execute` لازم‌اند؛ در کنار مسیر استخراج S09 و `EnableAttendanceDownloads/AllowAttendanceRead`، نه جای آن‌ها. سرویس شش صف را نوبتی بررسی می‌کند؛ چهار slot سقف دستگاه نیست. زمان‌بندی زیر اختیار فعلی سازنده، range/cursor و تأیید صریح خودش کار می‌کند؛ ثبت خودکار پیش‌فرض خاموش است و grant execute سرویس به‌تنهایی به attendance نمی‌نویسد. [دامنه/نقش/قطعی/توقف و محدودیت PUSH](s10-sdk-schedules.fa.md).
+
+## تاریخچه و retry S11
+
+migration `20261112100000_DeviceCommandHistory` view پنج صف و lineage immutable تکرارِ صریح خواندن را می‌سازد. config اجرایی یا سرویس هویت تازه‌ای برای تاریخچه ساخته نمی‌شود؛ تلاش فرزند از صف و execute مستقل همان قابلیت استفاده می‌کند. [قرارداد و مرز تنظیمات پیشرفته/RemoteEnroll](s11-command-history.fa.md). این فرمان‌های حساس هنوز adapter مدل/سیاست مصوب ندارند و روشن‌کردن worker آن‌ها را فعال نمی‌کند. نصب Windows/Linux و آزمایش واقعی همچنان انجام نشده است.
