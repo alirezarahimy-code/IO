@@ -42,6 +42,9 @@ internal static class DeviceNetworkTests
   check(await Claim()==null&&await State(change)=="pending","S06 generic worker execution grant cannot claim an IP write");
   await Grant(exec,DeviceOperations.ExecuteNetworkWrite);var claim=await Claim()??throw new InvalidOperationException("Missing IP claim");
   check(claim.Id==change&&claim.NetworkPlan==plan&&(await Use<DeviceOperations,DeviceCommunicationKey?>(s=>s.CredentialAsync(worker,claim,true)))?.Value==0&&await Use<DeviceOperations,DeviceCommunicationKey?>(s=>s.CredentialAsync(worker,claim with{NetworkPlan=plan with{NewAddress="10.20.30.42"}},true))==null,"S06 owned network credentials bind the exact immutable old new and serial plan");
+  await Revoke(exec,DeviceOperations.ExecuteNetworkWrite);
+  check(await Reject<UnauthorizedAccessException>(()=>Use<DeviceOperations,DeviceCommunicationKey?>(s=>s.CredentialAsync(worker,claim,true)))&&await Reject<UnauthorizedAccessException>(()=>Finish(claim,new("unknown"))),"S06 revoked IP execution grant denies private credential access and result submission");
+  await Grant(exec,DeviceOperations.ExecuteNetworkWrite);
   check(await Reject<ArgumentException>(()=>Finish(claim,new("succeeded"))),"S06 SDK write ACK cannot be stored as confirmed network success");
   await Finish(claim,new("timed-out"));
   check(await State(change)=="unknown"&&await Request(change)==change&&await Reject<DomainConflictException>(()=>Request(Guid.NewGuid())),"S06 IP write timeout remains unknown and is never blindly repeated");
@@ -52,6 +55,9 @@ internal static class DeviceNetworkTests
   await Request(inspect,inspectPlan,"network.inspect","INSPECT-DEVICE-IP");
   check(await Claim()==null&&await State(inspect)=="pending","S06 IP write service grant never implies read-only recovery execution");
   await Grant(exec,DeviceOperations.ExecuteNetworkRead);var observed=await Claim()??throw new InvalidOperationException("Missing inspection");
+  await Revoke(exec,DeviceOperations.ExecuteNetworkRead);
+  check(await Reject<UnauthorizedAccessException>(()=>Use<DeviceOperations,DeviceCommunicationKey?>(s=>s.CredentialAsync(worker,observed,true)))&&await Reject<UnauthorizedAccessException>(()=>Finish(observed,new("failed"))),"S06 revoked recovery-read execution grant independently denies credentials and completion");
+  await Grant(exec,DeviceOperations.ExecuteNetworkRead);
   check(await Reject<ArgumentException>(()=>Finish(observed,new("succeeded",Network:new("foreign",plan.NewAddress,plan.NewAddress))))&&await Reject<ArgumentException>(()=>Finish(observed,new("succeeded",Network:new(plan.Serial,plan.OldAddress,plan.OldAddress)))),"S06 recovery result cannot substitute a foreign serial or unrequested endpoint");
   await Finish(observed,new("succeeded",Network:new(plan.Serial,plan.NewAddress,plan.OldAddress)));clock.Advance(1);
   check(await Reject<DomainConflictException>(()=>Use<DeviceOperations,Guid>(async s=>await s.ResolveNetworkAsync(actor,change,await V(change),inspect,"REVIEWED-DEVICE-IP"))),"S06 reaching a target that reports a different device IP cannot falsely resolve network recovery");
