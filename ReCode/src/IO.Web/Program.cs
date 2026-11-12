@@ -192,6 +192,8 @@ public static class IoWebHost
         app.MapGet("/assets/device-files.js", () => Results.Content(Resource("IO.Web.Ui.device-files.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-user-uploads", () => Results.Content(Resource("IO.Web.Ui.DeviceUserUploads.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/device-user-uploads.js", () => Results.Content(Resource("IO.Web.Ui.device-user-uploads.js"), "text/javascript; charset=utf-8"));
+        app.MapGet("/workspace/device-schedules", () => Results.Content(Resource("IO.Web.Ui.DeviceSchedules.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/device-schedules.js", () => Results.Content(Resource("IO.Web.Ui.device-schedules.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-attendance", () => Results.Content(Resource("IO.Web.Ui.DeviceAttendance.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/device-attendance.js", () => Results.Content(Resource("IO.Web.Ui.device-attendance.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-users", () => Results.Content(Resource("IO.Web.Ui.DeviceUsers.html"), "text/html; charset=utf-8"));
@@ -396,6 +398,10 @@ public static class IoWebHost
         app.MapPost("/device-user-uploads", (DeviceUserUploads.Batch input,HttpContext c,IAntiforgery csrf,DeviceUserUploads service)=>Admin(c,csrf,actor=>service.RequestAsync(actor,input,c.RequestAborted)));
         app.MapPost("/device-user-uploads/{id:guid}/cancel", (Guid id,DeviceOperationVersion input,HttpContext c,IAntiforgery csrf,DeviceUserUploads service)=>Admin(c,csrf,actor=>service.CancelAsync(actor,id,input.ExpectedVersion,c.RequestAborted)));
         app.MapPost("/device-user-uploads/{id:guid}/review", (Guid id,DeviceUserUploadReview input,HttpContext c,IAntiforgery csrf,DeviceUserUploads service)=>Admin(c,csrf,actor=>service.ReviewAsync(actor,id,input.ExpectedVersion,input.SnapshotId,input.Confirmation,c.RequestAborted)));
+        app.MapGet("/device-poll-schedules", (HttpContext c,DevicePollSchedules service,int offset=0)=>AdminRead(c,actor=>service.ListAsync(actor,offset,c.RequestAborted)));
+        app.MapGet("/device-poll-schedules/{id:guid}/runs", (Guid id,HttpContext c,DevicePollSchedules service,int offset=0)=>AdminRead(c,actor=>service.RunsAsync(actor,id,offset,c.RequestAborted)));
+        app.MapPost("/device-poll-schedules", (DevicePollInput input,HttpContext c,IAntiforgery csrf,DevicePollSchedules service)=>Admin(c,csrf,actor=>service.CreateAsync(actor,new(input.Id,input.DeviceId,input.ExpectedDeviceVersion,AttendanceUtc(input.StartUtc),input.EverySeconds,input.WindowSeconds,input.LagSeconds,input.TimeoutSeconds,input.InCode,input.OutCode,input.AutoCommit,input.Confirmation),c.RequestAborted)));
+        app.MapPost("/device-poll-schedules/{id:guid}/enabled", (Guid id,DevicePollToggle input,HttpContext c,IAntiforgery csrf,DevicePollSchedules service)=>Admin(c,csrf,actor=>service.SetEnabledAsync(actor,id,input.ExpectedVersion,input.Enabled,input.Confirmation,c.RequestAborted)));
         app.MapGet("/device-attendance-downloads", (HttpContext c,DeviceAttendanceDownloads service,Guid? deviceId,int offset=0)=>AdminRead(c,actor=>service.ListAsync(actor,deviceId,offset,c.RequestAborted)));
         app.MapGet("/device-attendance-downloads/{id:guid}/rows", (Guid id,HttpContext c,DeviceAttendanceDownloads service,long after=0)=>AdminRead(c,actor=>service.RowsAsync(actor,id,after,c.RequestAborted)));
         app.MapPost("/device-attendance-downloads", (DeviceAttendanceInput input,HttpContext c,IAntiforgery csrf,DeviceAttendanceDownloads service)=>Admin(c,csrf,actor=>service.RequestAsync(actor,input.OperationId,input.DeviceId,input.ExpectedDeviceVersion,input.TimeoutSeconds,AttendanceUtc(input.FromUtc),AttendanceUtc(input.UntilUtcExclusive),input.InCode,input.OutCode,c.RequestAborted)));
@@ -796,3 +802,6 @@ public sealed record DeviceUserUploadReview(byte[] ExpectedVersion,Guid Snapshot
 
 public sealed record DeviceAttendanceInput(Guid OperationId,Guid DeviceId,byte[] ExpectedDeviceVersion,int TimeoutSeconds,[property:System.Text.Json.Serialization.JsonRequired]string FromUtc,[property:System.Text.Json.Serialization.JsonRequired]string UntilUtcExclusive,[property:System.Text.Json.Serialization.JsonRequired]int InCode,[property:System.Text.Json.Serialization.JsonRequired]int OutCode);
 public sealed record DeviceAttendanceCommit(byte[] ExpectedVersion,long After,string Confirmation);
+
+public sealed record DevicePollInput(Guid Id,Guid DeviceId,byte[] ExpectedDeviceVersion,[property:System.Text.Json.Serialization.JsonRequired]string StartUtc,int EverySeconds,int WindowSeconds,int LagSeconds,int TimeoutSeconds,[property:System.Text.Json.Serialization.JsonRequired]int InCode,[property:System.Text.Json.Serialization.JsonRequired]int OutCode,[property:System.Text.Json.Serialization.JsonRequired]bool AutoCommit,string Confirmation);
+public sealed record DevicePollToggle(byte[] ExpectedVersion,[property:System.Text.Json.Serialization.JsonRequired]bool Enabled,string Confirmation);

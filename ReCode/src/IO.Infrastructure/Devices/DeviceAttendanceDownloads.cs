@@ -14,7 +14,8 @@ public sealed class DeviceAttendanceDownloads(IoDbContext db,PermissionTransacti
 {
     public const string Read="devices.attendance.read",Download="devices.attendance.extract",Execute="devices.attendance.execute",Commit="devices.attendance.commit";
     public sealed record Claim(Guid Id,Guid Token,Guid DeviceId,string? Host,int? Port,int TimeoutSeconds);
-    public Task<Guid> RequestAsync(Guid actor,Guid id,Guid deviceId,byte[] version,int seconds,DateTimeOffset fromUtc,DateTimeOffset untilUtcExclusive,int inCode,int outCode,CancellationToken ct=default)=>transaction.ExecuteAsync(actor,Download,"device-attendance.requested",async token=>
+    public Task<Guid> RequestAsync(Guid actor,Guid id,Guid deviceId,byte[] version,int seconds,DateTimeOffset fromUtc,DateTimeOffset untilUtcExclusive,int inCode,int outCode,CancellationToken ct=default)=>transaction.ExecuteAsync(actor,Download,"device-attendance.requested",token=>RequestInTransactionAsync(actor,id,deviceId,version,seconds,fromUtc,untilUtcExclusive,inCode,outCode,token),ct);
+    internal async Task<(Guid Result,Guid Target)> RequestInTransactionAsync(Guid actor,Guid id,Guid deviceId,byte[] version,int seconds,DateTimeOffset fromUtc,DateTimeOffset untilUtcExclusive,int inCode,int outCode,CancellationToken token)
     {
         if(id==Guid.Empty||deviceId==Guid.Empty||version is not{Length:8}||seconds is <1 or >600||fromUtc.Offset!=TimeSpan.Zero||untilUtcExclusive.Offset!=TimeSpan.Zero||fromUtc>=untilUtcExclusive||fromUtc.Ticks%TimeSpan.TicksPerSecond!=0||untilUtcExclusive.Ticks%TimeSpan.TicksPerSecond!=0||inCode is <0 or >255||outCode is <0 or >255||inCode==outCode)throw new ArgumentException("Explicit id, device version and bounded deadline required.");
         await transaction.LockAsync("IO.DeviceConnections",token);
@@ -28,7 +29,7 @@ public sealed class DeviceAttendanceDownloads(IoDbContext db,PermissionTransacti
         if(await db.DeviceAttendanceDownloads.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token)||await db.DeviceOperations.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token)||await db.DeviceConnections.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device already has active work.");
         var site=await db.Sites.AsNoTracking().SingleAsync(x=>x.Id==d.SiteId,token);_=Zone(site.TimeZoneId);
         db.DeviceAttendanceDownloads.Add(new(){Id=id,DeviceId=deviceId,SourceId=d.SourceId,CompanyId=site.CompanyId,SiteId=site.Id,TimeZoneId=site.TimeZoneId,FromUtc=fromUtc,UntilUtcExclusive=untilUtcExclusive,InCode=inCode,OutCode=outCode,RequestedByUserId=actor,RequestedAtUtc=clock.GetUtcNow(),ExpectedDeviceVersion=version.ToArray(),TimeoutSeconds=seconds});return(id,id);
-    },ct);
+    }
     public Task<object> ListAsync(Guid actor,Guid? deviceId,int offset,CancellationToken ct=default)=>transaction.ExecuteAsync<object>(actor,Read,"device-attendance.viewed",async token=>
     {
         if(deviceId==Guid.Empty||offset is <0 or >100000)throw new ArgumentException("Invalid page.");
@@ -101,7 +102,8 @@ public sealed class DeviceAttendanceDownloads(IoDbContext db,PermissionTransacti
         var items=new List<object>();foreach(var row in rows){var raw=Raw(row);var interpreted=raw.Interpret(Zone(job.TimeZoneId));items.Add(new{row.Sequence,raw,row.PayloadHash,row.OccurrenceOrdinal,status=row.RawEventId is not null?row.Status:await Status(job,raw,same,token),occurredAtUtc=interpreted.Utc,row.RawEventId,row.ConflictId});}
         return(new{downloadId=id,job.State,job.SourceId,job.ReceivedCount,job.FromUtc,job.UntilUtcExclusive,job.TimeZoneId,job.Version,sameTarget=same,after,nextAfter=rows.LastOrDefault()?.Sequence??after,items},id);
     },ct);
-    public Task<object> CommitPageAsync(Guid actor,Guid id,byte[] version,long after,string confirmation,CancellationToken ct=default)=>transaction.ExecuteAsync<object>(actor,Commit,"device-attendance.page-reviewed",async token=>
+    public Task<object> CommitPageAsync(Guid actor,Guid id,byte[] version,long after,string confirmation,CancellationToken ct=default)=>transaction.ExecuteAsync<object>(actor,Commit,"device-attendance.page-reviewed",token=>CommitPageInTransactionAsync(actor,id,version,after,confirmation,token),ct);
+    internal async Task<(object Result,Guid Target)> CommitPageInTransactionAsync(Guid actor,Guid id,byte[] version,long after,string confirmation,CancellationToken token)
     {
         if(version is not{Length:8}||after<0||confirmation!="INGEST-SDK-ROWS")throw new ArgumentException("Explicit page confirmation and version required.");
         if(!await transaction.HasPermissionAsync(actor,"attendance.events.receive",token)&&!await transaction.HasPermissionAsync(actor,IO.Infrastructure.Attendance.AttendanceIngestion.Manage,token))throw new UnauthorizedAccessException();
@@ -122,7 +124,7 @@ public sealed class DeviceAttendanceDownloads(IoDbContext db,PermissionTransacti
         }
         job.LastReviewedAtUtc=clock.GetUtcNow();db.Entry(job).Property(x=>x.LastReviewedAtUtc).IsModified=true;
         return(new{downloadId=id,after,nextAfter=rows.LastOrDefault()?.Sequence??after,added,already,quarantined,conflicts},id);
-    },ct);
+    }
     private async Task<string> Status(DeviceAttendanceDownloadRecord job,ZkAttendanceRaw raw,bool same,CancellationToken ct)
     {
         if(!same)return "target-changed";if(job.State!="succeeded")return "incomplete-extraction";

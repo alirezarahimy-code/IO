@@ -1,0 +1,64 @@
+using System.Text.Json;
+using IO.DeviceContracts;
+using IO.Infrastructure.Devices;
+using IO.Infrastructure.Security;
+using IO.Infrastructure.Storage;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.Extensions.DependencyInjection;
+internal static class DevicePollScheduleTests
+{
+ public static async Task RunAsync(string connection,Action<bool,string> check)
+ {
+  var services=new ServiceCollection();services.AddLogging();services.AddIoIdentityStorage(connection);var clock=new Clock();services.AddSingleton<TimeProvider>(clock);await using var provider=services.BuildServiceProvider();
+  var actor=Guid.NewGuid();var reader=Guid.NewGuid();var service=Guid.NewGuid();var role=Guid.NewGuid();var readRole=Guid.NewGuid();var execRole=Guid.NewGuid();var org=Guid.NewGuid();var company=Guid.NewGuid();var site=Guid.NewGuid();var employee=Guid.NewGuid();var device=Guid.NewGuid();
+  async Task<T> Use<S,T>(Func<S,Task<T>> f)where S:notnull{await using var scope=provider.CreateAsyncScope();return await f(scope.ServiceProvider.GetRequiredService<S>());}
+  Task<T> Q<T>(Func<IoDbContext,Task<T>> f)=>Use<IoDbContext,T>(f);
+  async Task<bool> Reject<E>(Func<Task> f)where E:Exception{try{await f();return false;}catch(E){return true;}}
+  await Q(async db=>{await db.GetService<IMigrator>().MigrateAsync();db.Organizations.Add(new(){Id=org,Name="S10 org"});db.Companies.Add(new(){Id=company,OrganizationId=org,Name="S10 company"});db.Sites.Add(new(){Id=site,CompanyId=company,Name="S10 site",TimeZoneId="UTC"});db.Employees.Add(new(){Id=employee,CompanyId=company,PersonnelNumber="S10-1",DisplayName="S10 employee"});
+   foreach(var(u,n)in new[]{(actor,"poll-owner"),(reader,"poll-reader"),(service,"poll-service")})db.Users.Add(new(){Id=u,UserName=n,IsActive=true});
+   foreach(var(r,u,n,codes)in new[]{(role,actor,"poll-full",new[]{DevicePollSchedules.Read,DevicePollSchedules.Manage,DeviceAttendanceDownloads.Download,DeviceAttendanceDownloads.Commit,"attendance.events.receive",DeviceRegistry.Create,DeviceRegistry.Update}),(readRole,reader,"poll-read",new[]{DevicePollSchedules.Read}),(execRole,service,"poll-exec",new[]{DevicePollSchedules.Execute,DeviceAttendanceDownloads.Execute})}){
+    db.Roles.Add(new(){Id=r,Name=n});db.UserRoles.Add(new(){UserId=u,RoleId=r});foreach(var code in codes){var p=db.Permissions.Local.FirstOrDefault(x=>x.Code==code)??await db.Permissions.SingleOrDefaultAsync(x=>x.Code==code);if(p is null){p=new(){Id=Guid.NewGuid(),Code=code};db.Permissions.Add(p);}db.RolePermissions.Add(new(){RoleId=r,PermissionId=p.Id});}}
+   await db.SaveChangesAsync();return true;});
+  var di=new DeviceRegistry.Input(site,"S10-A","Scheduled SSR","unverified SSR","zk-standalone","127.0.0.1",4370,true);await Use<DeviceRegistry,Guid>(s=>s.CreateAsync(actor,device,di));
+  await Q(async db=>{db.SourceEmployeeMappings.Add(new(){Id=Guid.NewGuid(),SourceId=device,CompanyId=company,SourcePersonId="001",EmployeeId=employee,ValidFromUtc=new(2026,1,1,0,0,0,TimeSpan.Zero)});await db.SaveChangesAsync();return true;});
+  var dv=await Q(db=>db.Devices.Where(x=>x.Id==device).Select(x=>x.Version).SingleAsync());var from=clock.Now.AddHours(-2);
+  DevicePollSchedules.Input Input(bool auto=false)=>new(Guid.NewGuid(),device,dv,from,15,3600,60,60,4,5,auto,auto?"ENABLE-AUTOMATIC-SDK-INGEST":"ENABLE-SCHEDULED-SDK-READ");
+  Task<Guid> Create(DevicePollSchedules.Input i,Guid? user=null)=>Use<DevicePollSchedules,Guid>(s=>s.CreateAsync(user??actor,i));
+  Task<DevicePollSchedules.Step> Step(Guid? user=null)=>Use<DevicePollSchedules,DevicePollSchedules.Step>(s=>s.StepAsync(user??service));
+  Task<DevicePollScheduleRecord> S(Guid id)=>Q(db=>db.DevicePollSchedules.AsNoTracking().SingleAsync(x=>x.Id==id));
+  async Task<Guid> Toggle(Guid id,bool enabled,Guid? user=null,byte[]? version=null)=>await Use<DevicePollSchedules,Guid>(s=>s.SetEnabledAsync(user??actor,id,version??S(id).GetAwaiter().GetResult().Version,enabled,enabled?"RESUME-APPROVED-SCHEDULE":"PAUSE-SCHEDULE"));
+  async Task<DeviceAttendanceDownloads.Claim> Claim(Guid id){var c=await Use<DeviceAttendanceDownloads,DeviceAttendanceDownloads.Claim?>(s=>s.ClaimAsync(service));if(c?.Id!=id)throw new InvalidOperationException("Expected exact scheduled claim.");return c;}
+  Task<long> Append(DeviceAttendanceDownloads.Claim c,long after,params ZkAttendanceRaw[] rows)=>Use<DeviceAttendanceDownloads,long>(s=>s.AppendAsync(service,c.Id,c.Token,after,rows));
+  Task<Guid> Finish(DeviceAttendanceDownloads.Claim c,string state,long count)=>Use<DeviceAttendanceDownloads,Guid>(s=>s.CompleteAsync(service,c.Id,c.Token,state,count));
+  async Task Permission(string code,bool grant){await Q(async db=>{var p=await db.Permissions.SingleAsync(x=>x.Code==code);if(grant)db.RolePermissions.Add(new(){RoleId=role,PermissionId=p.Id});else await db.RolePermissions.Where(x=>x.RoleId==role&&x.PermissionId==p.Id).ExecuteDeleteAsync();await db.SaveChangesAsync();return true;});}
+  check(await Reject<UnauthorizedAccessException>(()=>Create(Input(),reader))&&await Reject<UnauthorizedAccessException>(()=>Step(actor))&&await Reject<UnauthorizedAccessException>(()=>Use<DevicePollSchedules,object>(s=>s.ListAsync(service,0))),"S10 schedule read manage and service execute are independent server grants");
+  check(await Reject<ArgumentException>(()=>Create(Input() with{Confirmation="guess"}))&&await Reject<ArgumentException>(()=>Create(Input() with{EverySeconds=0}))&&await Reject<ArgumentException>(()=>Create(Input() with{StartUtc=from.AddMilliseconds(1)}))&&await Reject<ArgumentException>(()=>Create(Input() with{InCode=5})),"S10 explicit whole-second UTC budgets different codes and approval are mandatory");
+  await Permission("attendance.events.receive",false);check(await Reject<UnauthorizedAccessException>(()=>Create(Input(true))),"S10 automatic ingestion cannot be approved without independent raw receive authority");await Permission("attendance.events.receive",true);
+  var input=Input();var id=await Create(input);check(await Create(input)==id&&await Reject<DomainConflictException>(()=>Create(input with{LagSeconds=61}))&&await Reject<DomainConflictException>(()=>Create(Input())),"S10 approved config replays exactly and only one enabled schedule per device exists");
+  var step=await Step();var run=step.RunId!.Value;var download=step.DownloadId!.Value;var schedule=await S(id);
+  check(step.State=="queued"&&schedule.CursorUtc==from&&schedule.ActiveRunId==run&&await Q(db=>db.DeviceAttendanceDownloads.AnyAsync(x=>x.Id==download&&x.RequestedByUserId==actor&&x.FromUtc==from&&x.UntilUtcExclusive==from.AddHours(1))),"S10 tick atomically creates a real extraction and immutable linked run without advancing cursor");
+  clock.Advance(11);check((await Step()).State=="queued"&&await Q(db=>db.DevicePollRuns.CountAsync(x=>x.ScheduleId==id))==1,"S10 pending congestion or repeated tick does not duplicate scheduled reads");
+  var c=await Claim(download);await Finish(c,"succeeded",0);clock.Advance(11);check((await Step()).State=="succeeded"&&(await S(id)).CursorUtc==from.AddHours(1)&&await Q(db=>db.RawAttendanceEvents.CountAsync(x=>x.SourceId==device))==0,"S10 complete read-only schedule acknowledges acquired window but never silently ingests attendance");
+  check(await Reject<SqlException>(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.DevicePollSchedules SET CursorUtc=DATEADD(second,1,CursorUtc) WHERE Id={id}")))&&await Reject<SqlException>(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.DevicePollRuns SET Outcome=N'failed' WHERE Id={run}")))&&await Reject<SqlException>(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"DELETE dbo.DevicePollSchedules WHERE Id={id}"))),"S10 SQL rejects fabricated cursor advancement terminal evidence rewrites and history deletion");
+  var old=(await S(id)).Version;await Toggle(id,false);check(await Reject<DomainConflictException>(()=>Toggle(id,true,version:old))&&await Reject<UnauthorizedAccessException>(()=>Toggle(id,true,reader)),"S10 pause and resume require current rowversion and creator authority");
+  await Toggle(id,true);step=await Step();download=step.DownloadId!.Value;await Toggle(id,false);check(await Q(db=>db.DeviceAttendanceDownloads.AnyAsync(x=>x.Id==download&&x.State=="cancelled"))&&(await S(id)).CursorUtc==from.AddHours(1),"S10 pause cancels pending extraction and preserves acknowledged cursor");
+  var autoInput=Input(true);var auto=await Create(autoInput);step=await Step();download=step.DownloadId!.Value;c=await Claim(download);
+  var raw=new ZkAttendanceRaw("001",1,4,2026,11,8,8,0,0,0);var batch=Enumerable.Repeat(raw,50).ToArray();await Append(c,0,batch);await Append(c,50,raw with{PersonIdentifier="099"});await Finish(c,"succeeded",51);clock.Advance(11);step=await Step();
+  check(step.State=="reviewing"&&(await S(auto)).CursorUtc==from&&await Q(db=>db.RawAttendanceEvents.CountAsync(x=>x.SourceId==device))==50&&await Q(db=>db.DevicePollRuns.AnyAsync(x=>x.Id==step.RunId&&x.NextAfter==50&&x.FinishedAtUtc==null)),"S10 automatic review is bounded to 50 real rows atomically records receipts and cannot advance past an unreviewed page");
+  clock.Advance(2);step=await Step();check(step.State=="succeeded"&&(await S(auto)).CursorUtc==from.AddHours(1)&&await Q(db=>db.DeviceAttendanceRows.AnyAsync(x=>x.DownloadId==download&&x.Sequence==51&&x.Status=="unknown-employee"&&x.RawEventId==null))&&await Q(db=>db.DevicePollRuns.AnyAsync(x=>x.Id==step.RunId&&x.NextAfter==51&&x.Outcome=="succeeded")),"S10 automatic completion retains unknown identity quarantine and trace before acknowledging the acquired window");
+  clock.Advance(16);step=await Step();download=step.DownloadId!.Value;c=await Claim(download);await Finish(c,"incomplete",0);clock.Advance(11);step=await Step();schedule=await S(auto);check(step.State=="incomplete"&&schedule.CursorUtc==from.AddHours(1)&&schedule.Failures==1&&schedule.NextDueUtc>clock.Now,"S10 partial reads retain evidence and back off durably without cursor advancement");
+  clock.Advance(31);step=await Step();download=step.DownloadId!.Value;c=await Claim(download);check(await Q(db=>db.DeviceAttendanceDownloads.AnyAsync(x=>x.Id==download&&x.FromUtc==from.AddHours(1))),"S10 retry after failure rereads the same unacknowledged window, never a native write");
+  await Toggle(auto,false);await Finish(c,"succeeded",0);check(!(await S(auto)).Enabled&&(await S(auto)).CursorUtc==from.AddHours(1)&&await Q(db=>db.DevicePollRuns.AnyAsync(x=>x.Id==step.RunId&&x.Outcome=="paused")),"S10 pause cannot undo a running read but prevents automatic commit and cursor advancement for that run");
+  await Toggle(auto,true);step=await Step();download=step.DownloadId!.Value;await Permission(DeviceAttendanceDownloads.Commit,false);clock.Advance(11);check((await Step()).State=="revoked"&&!(await S(auto)).Enabled&&await Q(db=>db.DeviceAttendanceDownloads.AnyAsync(x=>x.Id==download&&x.State=="cancelled")),"S10 original actor commit revocation stops automation and cancels pending dispatch on the next tick");
+  await Permission(DeviceAttendanceDownloads.Commit,true);await Toggle(auto,true);step=await Step();download=step.DownloadId!.Value;c=await Claim(download);await Finish(c,"unsupported",0);clock.Advance(11);check((await Step()).State=="unsupported"&&!(await S(auto)).Enabled,"S10 unsupported model outcome durably disables schedule instead of endless retry");
+  await Toggle(auto,true);await Use<DeviceRegistry,Guid>(s=>s.UpdateAsync(actor,device,dv,di with{Name="Changed approved target"}));check((await Step()).State=="device-changed"&&!(await S(auto)).Enabled&&await Reject<DomainConflictException>(()=>Toggle(auto,true)),"S10 any device rowversion change requires a newly approved schedule not silent retarget");
+  await Q(db=>db.RolePermissions.Where(x=>x.RoleId==readRole).ExecuteDeleteAsync());check(await Reject<UnauthorizedAccessException>(()=>Use<DevicePollSchedules,object>(s=>s.RunsAsync(reader,id,0))),"S10 existing reader loses retained schedule history immediately after server revoke");
+  check(await Reject<SqlException>(()=>Q(async db=>{await db.GetService<IMigrator>().MigrateAsync("20261112080000_DeviceAttendanceDownloads");return true;})),"S10 destructive downgrade is refused when durable schedule history exists");
+  // Durable synthetic schedule for the browser; no native SDK or physical device executed.
+  dv=await Q(db=>db.Devices.Where(x=>x.Id==device).Select(x=>x.Version).SingleAsync());var browser=await Create(Input());await Toggle(browser,false);
+ }
+ private sealed class Clock:TimeProvider{public DateTimeOffset Now{get;private set;}=new(2026,11,8,10,0,0,TimeSpan.Zero);public override DateTimeOffset GetUtcNow()=>Now;public void Advance(int seconds)=>Now=Now.AddSeconds(seconds);}
+}

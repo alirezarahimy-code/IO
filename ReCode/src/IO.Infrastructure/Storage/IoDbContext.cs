@@ -5,6 +5,8 @@ namespace IO.Infrastructure.Storage;
 /// <summary>Initial SQL Server schema only; no automatic migration at application startup.</summary>
 public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbContext(options)
 {
+    public DbSet<DevicePollScheduleRecord> DevicePollSchedules => Set<DevicePollScheduleRecord>();
+    public DbSet<DevicePollRunRecord> DevicePollRuns => Set<DevicePollRunRecord>();
     public DbSet<DeviceAttendanceDownloadRecord> DeviceAttendanceDownloads => Set<DeviceAttendanceDownloadRecord>();
     public DbSet<DeviceAttendanceRowRecord> DeviceAttendanceRows => Set<DeviceAttendanceRowRecord>();
     public DbSet<DeviceFileImportRecord> DeviceFileImports => Set<DeviceFileImportRecord>();
@@ -130,6 +132,75 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.HasOne<RawEventConflictRecord>().WithMany().HasForeignKey(x=>x.ConflictId).OnDelete(DeleteBehavior.Restrict);
             b.HasIndex(x=>x.ReviewedByUserId);
             b.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.ReviewedByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<DevicePollScheduleRecord>(b=>
+        {
+            b.ToTable("DevicePollSchedules",t=>
+            {
+                t.HasTrigger("TR_DevicePollSchedules_History");t.UseSqlOutputClause(false);
+                t.HasCheckConstraint("CK_DevicePollSchedules_Config","DATALENGTH([ExpectedDeviceVersion])=8 AND [EverySeconds] BETWEEN 15 AND 86400 AND [WindowSeconds] BETWEEN 60 AND 86400 AND [LagSeconds] BETWEEN 0 AND 86400 AND [TimeoutSeconds] BETWEEN 1 AND 600 AND [InCode] BETWEEN 0 AND 255 AND [OutCode] BETWEEN 0 AND 255 AND [InCode]<>[OutCode] AND [Failures]>=0 AND [CursorUtc]>=[StartUtc] AND ([Enabled]=1 OR [ActiveRunId] IS NULL)");
+                t.HasCheckConstraint("CK_DevicePollSchedules_Utc","DATEPART(TZOFFSET,[CreatedAtUtc])=0 AND DATEPART(TZOFFSET,[StartUtc])=0 AND DATEPART(TZOFFSET,[CursorUtc])=0 AND DATEPART(TZOFFSET,[NextDueUtc])=0");
+            });
+            b.HasKey(x=>x.Id);
+            b.Property(x=>x.Id).ValueGeneratedNever().HasColumnType("uniqueidentifier");
+            b.Property(x=>x.DeviceId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.SourceId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.SiteId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.CompanyId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.TimeZoneId).HasMaxLength(100).IsRequired().HasColumnType("nvarchar(100)");
+            b.Property(x=>x.CreatedByUserId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.CreatedAtUtc).HasColumnType("datetimeoffset");
+            b.Property(x=>x.ExpectedDeviceVersion).HasMaxLength(8).IsRequired().HasColumnType("varbinary(8)");
+            b.Property(x=>x.StartUtc).HasColumnType("datetimeoffset");
+            b.Property(x=>x.EverySeconds).HasColumnType("int");
+            b.Property(x=>x.WindowSeconds).HasColumnType("int");
+            b.Property(x=>x.LagSeconds).HasColumnType("int");
+            b.Property(x=>x.TimeoutSeconds).HasColumnType("int");
+            b.Property(x=>x.InCode).HasColumnType("int");
+            b.Property(x=>x.OutCode).HasColumnType("int");
+            b.Property(x=>x.AutoCommit).HasColumnType("bit");
+            b.Property(x=>x.Enabled).HasColumnType("bit");
+            b.Property(x=>x.CursorUtc).HasColumnType("datetimeoffset");
+            b.Property(x=>x.NextDueUtc).HasColumnType("datetimeoffset");
+            b.Property(x=>x.ActiveRunId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.Failures).HasColumnType("int");
+            b.Property(x=>x.LastOutcome).HasMaxLength(32).IsRequired().HasColumnType("nvarchar(32)");
+            b.Property(x=>x.Version).IsRequired().IsRowVersion().HasColumnType("rowversion");
+            b.HasIndex(x=>x.DeviceId).IsUnique().HasFilter("[Enabled] = 1");
+            b.HasIndex(x=>new{x.NextDueUtc,x.Id});
+            b.HasOne<DeviceRecord>().WithMany().HasForeignKey(x=>x.DeviceId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.SourceId);
+            b.HasOne<EventSourceRecord>().WithMany().HasForeignKey(x=>x.SourceId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.SiteId);
+            b.HasOne<SiteRecord>().WithMany().HasForeignKey(x=>x.SiteId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.CompanyId);
+            b.HasOne<CompanyRecord>().WithMany().HasForeignKey(x=>x.CompanyId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.CreatedByUserId);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.ActiveRunId);
+            b.HasOne<DevicePollRunRecord>().WithMany().HasForeignKey(x=>x.ActiveRunId).OnDelete(DeleteBehavior.Restrict);
+        });
+        model.Entity<DevicePollRunRecord>(b=>
+        {
+            b.ToTable("DevicePollRuns",t=>
+            {
+                t.HasTrigger("TR_DevicePollRuns_History");t.UseSqlOutputClause(false);
+                t.HasCheckConstraint("CK_DevicePollRuns_Data","[FromUtc]<[UntilUtcExclusive] AND [NextAfter]>=0 AND DATEPART(TZOFFSET,[CreatedAtUtc])=0 AND DATEPART(TZOFFSET,[FromUtc])=0 AND DATEPART(TZOFFSET,[UntilUtcExclusive])=0 AND DATEPART(TZOFFSET,[FinishedAtUtc])=0 AND (([Outcome] IN(N'queued',N'collecting',N'reviewing') AND [FinishedAtUtc] IS NULL) OR ([Outcome] NOT IN(N'queued',N'collecting',N'reviewing') AND [FinishedAtUtc] IS NOT NULL AND [FinishedAtUtc]>=[CreatedAtUtc]))");
+            });
+            b.HasKey(x=>x.Id);
+            b.Property(x=>x.Id).ValueGeneratedNever().HasColumnType("uniqueidentifier");
+            b.Property(x=>x.ScheduleId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.DownloadId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.FromUtc).HasColumnType("datetimeoffset");
+            b.Property(x=>x.UntilUtcExclusive).HasColumnType("datetimeoffset");
+            b.Property(x=>x.CreatedAtUtc).HasColumnType("datetimeoffset");
+            b.Property(x=>x.NextAfter).HasColumnType("bigint");
+            b.Property(x=>x.Outcome).HasMaxLength(32).IsRequired().HasColumnType("nvarchar(32)");
+            b.Property(x=>x.FinishedAtUtc).HasColumnType("datetimeoffset");
+            b.HasIndex(x=>x.DownloadId).IsUnique();
+            b.HasIndex(x=>new{x.ScheduleId,x.CreatedAtUtc,x.Id});
+            b.HasOne<DevicePollScheduleRecord>().WithMany().HasForeignKey(x=>x.ScheduleId).OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<DeviceAttendanceDownloadRecord>().WithMany().HasForeignKey(x=>x.DownloadId).OnDelete(DeleteBehavior.Restrict);
         });
         model.Entity<DeviceAttendanceDownloadRecord>(b=>
         {
