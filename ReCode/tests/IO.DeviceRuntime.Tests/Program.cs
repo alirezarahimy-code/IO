@@ -3,7 +3,19 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using IO.DeviceContracts;
 
-if (args is ["--virtual-lab"]) { await VirtualDeviceLab.VerifyAsync(); return; }
+if (args is ["--virtual-lab"])
+{
+    try { await VirtualDeviceLab.VerifyAsync(); }
+    catch (Exception error)
+    {
+        // Keep CI failures inspectable through the GitHub annotations API even
+        // when its external log-storage host is unavailable. Synthetic data only.
+        var message = error.ToString().Replace("%", "%25").Replace("\r", "%0D").Replace("\n", "%0A");
+        Console.Error.WriteLine("::error title=Virtual device laboratory failure::" + message);
+        Environment.ExitCode = 1;
+    }
+    return;
+}
 
 if (args is not ["--verify"])
 {
