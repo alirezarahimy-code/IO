@@ -109,7 +109,7 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
         var info=await db.DeviceOperations.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==informationId,token);
         var currentZone=await (from d in db.Devices join site in db.Sites on d.SiteId equals site.Id where d.Id==item.DeviceId select site.TimeZoneId).SingleAsync(token);
         var deviceVersion=await db.Devices.Where(x=>x.Id==item.DeviceId).Select(x=>x.Version).SingleAsync(token);
-        if(info is null||info.DeviceId!=item.DeviceId||info.Kind!="information.read"||info.State!="succeeded"||info.FinishedAtUtc<item.FinishedAtUtc||info.TimeZoneId!=item.TimeZoneId||info.TimeZoneId!=currentZone||!info.ExpectedDeviceVersion.SequenceEqual(item.ExpectedDeviceVersion)||!deviceVersion.SequenceEqual(info.ExpectedDeviceVersion)||ParseInformation(info.ResultJson)?.ClockLocal is null)
+        if(info is null||info.DeviceId!=item.DeviceId||info.Kind!="information.read"||info.State!="succeeded"||info.FinishedAtUtc<item.FinishedAtUtc||info.RequestedAtUtc<=item.FinishedAtUtc||info.TimeZoneId!=item.TimeZoneId||info.TimeZoneId!=currentZone||!info.ExpectedDeviceVersion.SequenceEqual(item.ExpectedDeviceVersion)||!deviceVersion.SequenceEqual(info.ExpectedDeviceVersion)||ParseInformation(info.ResultJson)?.ClockLocal is null)
             throw new DomainConflictException("A later successful clock observation of the same unchanged device is required.");
         item.ResolutionInfoId=info.Id;item.ResolvedByUserId=actor;item.ResolvedAtUtc=clock.GetUtcNow();return(id,id);
     },ct);

@@ -42,3 +42,4 @@
 /workspace/devices,مدیریت دستگاه‌های تردد,operator,Devices.html,devices.read; devices.create; devices.update; devices.credentials.manage; devices.groups.assign,موجودی DB؛ پروفایل ارتباط تأییدنشده، نه اتصال واقعی.
 /workspace/device-groups,گروه‌بندی درختی دستگاه‌ها,operator,DeviceGroups.html,devices.groups.read; devices.groups.manage,metadata گروه‌های هم‌شرکت، نه درب یا مجوز سازمانی.
 /workspace/device-connection,تست و تاریخچهٔ ارتباط دستگاه,operator,DeviceConnection.html,devices.connection.read | devices.connection.test,TCP/native serial-pin probe candidate; S05 and Part 3 not accepted; no hardware proof
+/workspace/device-information,مشخصات و ساعت دستگاه,operator,DeviceInformation.html,devices.info.read | devices.clock.set,S06 candidate SQL snapshots and explicitly confirmed clock setting; hardware unverified; Part 3 incomplete

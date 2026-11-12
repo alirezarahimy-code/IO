@@ -49,7 +49,7 @@ public sealed class DeviceOperations:Migration
                 (d.State NOT IN(N''pending'',N''running'') AND EXISTS(SELECT d.State COLLATE Latin1_General_100_BIN2,DATALENGTH(d.State),d.ServiceUserId,d.ClaimId,d.ClaimedAtUtc,d.FinishedAtUtc,d.ResultJson COLLATE Latin1_General_100_BIN2,DATALENGTH(d.ResultJson) EXCEPT SELECT i.State COLLATE Latin1_General_100_BIN2,DATALENGTH(i.State),i.ServiceUserId,i.ClaimId,i.ClaimedAtUtc,i.FinishedAtUtc,i.ResultJson COLLATE Latin1_General_100_BIN2,DATALENGTH(i.ResultJson))) OR d.ResolvedAtUtc IS NOT NULL)
                 THROW 51017,''Terminal results and owned claims are immutable.'',1;
               IF EXISTS(SELECT 1 FROM inserted i LEFT JOIN dbo.DeviceOperations r ON r.Id=i.ResolutionInfoId WHERE i.ResolutionInfoId IS NOT NULL AND
-                (r.Id IS NULL OR r.DeviceId<>i.DeviceId OR r.Kind<>N''information.read'' OR r.State<>N''succeeded'' OR r.FinishedAtUtc<i.FinishedAtUtc OR r.ExpectedDeviceVersion<>i.ExpectedDeviceVersion OR JSON_VALUE(r.ResultJson,''$.ClockLocal'') IS NULL))
+                (r.Id IS NULL OR r.DeviceId<>i.DeviceId OR r.Kind<>N''information.read'' OR r.State<>N''succeeded'' OR r.FinishedAtUtc<i.FinishedAtUtc OR r.RequestedAtUtc<=i.FinishedAtUtc OR r.ExpectedDeviceVersion<>i.ExpectedDeviceVersion OR JSON_VALUE(r.ResultJson,''$.ClockLocal'') IS NULL))
                 THROW 51017,''Clock review requires a later valid observation of the same unchanged device.'',1;
             END');
             """);
