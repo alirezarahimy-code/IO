@@ -8,7 +8,7 @@
 2. حساب سرویس اختصاصی سیستم‌عامل و دسترسی SQL کمینهٔ متناسب با query/transactionهای سرویس تنظیم کنید؛ اتصال رمز‌شده با گواهی معتبر و ACL برای تنظیمات لازم است. هویت بنیادینِ فعالِ جدا، بدون نیاز به حساب ورود وب، و نقش اختصاصی دارای فقط `devices.connection.execute` بسازید. هیچ قالب نقش این مجوز را نمی‌دهد. این نسخه هویت بنیادین را در هر claim/ثبت نتیجه از DB بررسی می‌کند؛ نگاشت config به هویت سیستم‌عامل/SQL مسئولیت استقرار است، نه هویت دستگاه یا گواهی دستگاه.
 3. تنظیمات صریح از secret store/متغیر محیطی امن یا فایل خارج از Git با ACL بیاید. `ConnectionStrings__IO` رشتهٔ واقعی SQL است؛ رمز آن در چت یا نمونه ثبت نشود. `IO__DeviceWorker__ServiceUserId` UUID هویت بنیادین سرویس است.
 4. برای هر endpoint تأییدشده، این کلیدها را تنظیم کنید: `IO__DeviceWorker__AllowedEndpoints__0__DeviceId`، `...__0__Address` و `...__0__Port`. مقدار Address باید IP دقیق و Port عدد صحیح باشد؛ نام DNS، wildcard، subnet، تغییر endpoint صرفاً از metadata و اسکن شبکه پشتیبانی نمی‌شوند. شناسه و IP/port باید با snapshot ثبت دستگاه مطابقت داشته باشند. نبود فهرست یعنی هیچ اتصال خروجی مجاز نیست.
-5. `dotnet publish ReCode/src/IO.DeviceWorker -c Release -o <deployment-directory>` و سپس `dotnet <deployment-directory>/IO.DeviceWorker.dll`؛ پوشهٔ استقرار خارج از مراجع legacy و خارج Git باشد. سرویس OS را با حساب و سیاست restart مصوب نصب کنید. ثبت Windows Service/systemd و آزمون نصب عملیاتی هنوز انجام نشده‌اند؛ publish دو سیستم جای آن نیست.
+5. `dotnet publish ReCode/src/IO.DeviceWorker -c Release -o <deployment-directory>` و سپس `dotnet <deployment-directory>/IO.DeviceWorker.dll`؛ پوشهٔ استقرار خارج از مراجع legacy و خارج Git باشد. سرویس OS را با حساب و سیاست restart مصوب نصب کنید. ابزار نصب Windows Service و الگوی systemd در بخش پایانی این سند آماده‌اند؛ نصب عملیاتی هنوز آزموده نشده و publish دو سیستم جای آن نیست.
 
 ## اجرای کنترل‌شده
 
@@ -44,3 +44,23 @@
 ## دریافت کاربران S07 (پیش‌فرض خاموش)
 
 `IO:DeviceWorker:EnableUserDownloads=true`، grant مستقل `devices.users.execute` و `AllowUserRead=true` روی NativeEndpoint لازم است. فقط SSR/TFT پس از آزمون مدل؛ [قرارداد و بازیابی](s07-user-download.fa.md). رمز کاربران/قالب بایومتریک ذخیره نمی‌شود. این مسیر نه مجوز ارسال کاربر است و نه پذیرش سخت‌افزار.
+
+## نصب واقعی سرویس سیستم‌عامل: ابزار آماده، پذیرش عملیاتی هنوز باز
+
+worker اکنون روی Windows با `AddWindowsService` و نام ثابت `IODeviceWorker` به SCM متصل می‌شود؛ اجرای console همچنان ممکن است. `ContentRootPath` پوشهٔ binary منتشرشده است، نه working directory متغیر یا `System32`. بنابراین config معتبر و ACLدار را در پوشهٔ استقرار یا secret provider مصوب نصب کنید؛ فایل محرمانه وارد Git نشود. این تغییر migration یا SDK را اجرا نمی‌کند و grant جدیدی نمی‌سازد.
+
+### Windows / PowerShell 7
+
+1. worker و bridge را در پوشه‌های محلی مورد اعتماد publish کنید. worker و child می‌توانند معماری متفاوت داشته باشند؛ runtime child باید با SDK نصب‌شده هم‌معماری باشد. SDK فقط با installer دارای مجوز فروشنده نصب شود؛ اسکریپت زیر COM یا DLL مرجع را ثبت/کپی نمی‌کند.
+2. `ReCode/deploy/device-worker/install-windows-service.ps1 -DotnetPath <absolute-dotnet.exe> -WorkerAssemblyPath <absolute-IO.DeviceWorker.dll> -ValidateOnly` فقط وجود مسیر محلیِ کامل و فایل‌های publish را بررسی می‌کند. این گزینه **ACL، درستی SDK، اتصال SQL، نصب سرویس یا سخت‌افزار** را تأیید نمی‌کند.
+3. همان فرمان بدون `-ValidateOnly` را با اختیار نصب Administrator اجرا کنید. `-WhatIf` هم موجود است. نصب با startup دستی و حساب مجازی اختصاصی `NT SERVICE\IODeviceWorker` انجام می‌شود؛ LocalSystem، گذرواژهٔ حساب، grant دیتابیس، policy بازیابی و شروع خودکار ساخته نمی‌شود. سرویس موجود هرگز overwrite نمی‌شود. خروج ناموفق `sc.exe` نصب موفق تلقی نمی‌شود.
+4. پیش از `Start-Service IODeviceWorker`، مجوز read/execute پوشهٔ برنامه و runtime، read تنظیمات و key ring موجود، دسترسی SQL لازم و identity فعالِ بنیادین را برای همان حساب فراهم کنید. ACL نوشتن روی binary/runtime را به اپراتور وب ندهید. حساب مجازی مجوز خودکارِ SQL راه‌دور یا هویت دستگاه نیست؛ روش احراز هویت SQL/سرویس باید توسط استقرار تنظیم شود. برای تغییر به حساب سازمانی از ابزار امن سیستم‌عامل استفاده شود؛ password در آرگومان/فایل repo/چت نرود.
+5. وضعیت شروع/توقف/راه‌اندازی مجدد را در آزمایشگاه Windows ثبت کنید. اجرای همین script در CI **فقط Parse و ValidateOnly بدون نصب/شروع** است و شاهد نصب عملیاتی نیست. حذف دستی بعد از توقف با `sc.exe delete IODeviceWorker` صرفاً registration سرویس را حذف می‌کند؛ تاریخچهٔ SQL یا اصل فایل‌ها حذف نمی‌شود.
+
+### Linux / systemd
+
+الگوی `ReCode/deploy/device-worker/io-device-worker.service` را پس از provision حساب کم‌اختیار `io-device-worker`، فایل‌های `/opt/io/device-worker` و محیط محرمانهٔ `/etc/io/device-worker.env` نصب کنید. فایل محیط را root با دسترسی 0600 نگه دارد؛ systemd آن را پیش از افت privilege می‌خواند. مسیر dotnet و محل نصب باید با استقرار واقعی تطبیق داده شوند. فایل محیط شناسهٔ فعال سرویس، رشتهٔ اتصال رمز‌شده و endpointهای صریح را تأمین می‌کند؛ نبود آن یا config ناقص fail-closed است.
+
+`Type=simple` و توقف SIGTERM از lifetime استاندارد .NET استفاده می‌کنند؛ `KillMode=control-group` childهای باقیمانده را نیز در stop می‌بندد. `Restart=on-failure` فقط میزبان را برمی‌گرداند، نه replay کار running یا نوشتن unknown. واحد با `ProtectSystem=strict` فایل برنامه/کلیدهای موجود را read-only می‌بیند؛ پیکربندی باید از پیش provision شده باشد. `systemctl daemon-reload`، `systemctl start io-device-worker` و enable فقط پس از آزمون نصب مجازند. COM بومی ZK روی Linux پشتیبانی نمی‌شود؛ این واحد آن را شبیه‌سازی یا تأیید نمی‌کند.
+
+تا اجرای واقعی نصب Windows، چند دستگاه، قطع ارتباط، تکرار دریافت و تبادل کاربران/تنظیمات، **S12 و بخش سوم همچنان بازند**.

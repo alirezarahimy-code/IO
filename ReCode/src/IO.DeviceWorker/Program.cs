@@ -10,7 +10,10 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 // A separate process, never a COM/native library inside the web host.
-var builder = Host.CreateApplicationBuilder(args);
+// SCM launches services with a system working directory. Always resolve deployed
+// configuration relative to the trusted published binary, not System32 or caller cwd.
+var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { Args=args,ContentRootPath=AppContext.BaseDirectory });
+if(OperatingSystem.IsWindows())builder.Services.AddWindowsService(options=>options.ServiceName="IODeviceWorker");
 var connection = builder.Configuration.GetConnectionString("IO");
 if (string.IsNullOrWhiteSpace(connection) || !Guid.TryParse(builder.Configuration["IO:DeviceWorker:ServiceUserId"], out var service) || service == Guid.Empty)
     throw new InvalidOperationException("An explicit database connection and provisioned service identity are required.");

@@ -17,6 +17,21 @@ try {
     Run-Dotnet publish src/IO.Bootstrap --configuration Release --no-restore --output (Join-Path $publish 'bootstrap')
     Run-Dotnet publish src/IO.DeviceWorker --configuration Release --no-restore --output (Join-Path $publish 'device-worker')
     Run-Dotnet publish src/IO.ZkBridge --configuration Release --no-restore --output (Join-Path $publish 'zk-bridge')
+    # Parse installation tooling on both platforms; validation on Windows is read-only.
+    # Neither this check nor publish pretends that an actual OS service was installed.
+    $tokens = $null; $parseErrors = $null
+    $installer = Join-Path $PSScriptRoot '../deploy/device-worker/install-windows-service.ps1'
+    $null = [System.Management.Automation.Language.Parser]::ParseFile($installer, [ref]$tokens, [ref]$parseErrors)
+    if ($parseErrors.Count -gt 0) { throw 'Windows worker installer syntax check failed.' }
+    if ($IsWindows) {
+        $dotnetHost = (Get-Command dotnet -CommandType Application).Source
+        $validation = & $installer -DotnetPath $dotnetHost -WorkerAssemblyPath (Join-Path $publish 'device-worker/IO.DeviceWorker.dll') -ValidateOnly
+        if (!$validation.validated -or $validation.installed -or $validation.started -or $validation.hardwareVerified) { throw 'Worker installer validation must not install/start or assert hardware acceptance.' }
+        $invalidPathRejected = $false
+        try { & $installer -DotnetPath 'relative-dotnet.exe' -WorkerAssemblyPath (Join-Path $publish 'device-worker/IO.DeviceWorker.dll') -ValidateOnly } catch { $invalidPathRejected = $true }
+        if (!$invalidPathRejected) { throw 'Worker installer accepted an untrusted relative executable.' }
+        Write-Host 'PASS Windows service installer validates complete published files and rejects relative hosts without registering or starting a service'
+    }
     # Smoke the actual published web executable on this OS, not an HTML mock.
     $env:IO__EnableExperimentalIdentity = 'false'
     $env:ASPNETCORE_URLS = 'http://127.0.0.1:5198'
