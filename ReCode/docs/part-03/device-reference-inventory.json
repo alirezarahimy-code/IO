@@ -1,0 +1,435 @@
+{
+  "scope": "All public action declarations from four original T5Web device controllers, the AriaAdmin device controller, its five closed commands, and eleven reference views. Does not claim full model/SDK parity.",
+  "ariaAdminCommit": "2c01d1074ebf18adc3c43063dd14dbe639246e04",
+  "originalSourceAvailable": false,
+  "legacyExecuted": false,
+  "part3Complete": false,
+  "hardwareVerified": false,
+  "decompiler": "ILSpy v9.1 read-only decompilation; unresolved framework references can produce annotations; never original source",
+  "sources": [
+    {
+      "label": "T5Web-binary",
+      "path": "T5Web [3.5.7]/App/bin/T5V3Web.dll",
+      "sha256": "96c71335ca080f4fa568e65f81957590ffdb953a9fe133ed0000b416afc7e755",
+      "type": "T5V3Web.Controllers.DeviceController",
+      "decompiledSha256": "5d03958de17e9068d5cf6b89ef88a27f407c91164021c946f6e5e99e24c1464c",
+      "actions": [
+        {
+          "member": "Index",
+          "overload": 1,
+          "line": 24,
+          "signature": "public ActionResult Index(int pageNumber = 1, int deviceID = -1)"
+        },
+        {
+          "member": "Edit",
+          "overload": 1,
+          "line": 32,
+          "signature": "public ActionResult Edit(int isNew, Device device)"
+        },
+        {
+          "member": "Delete",
+          "overload": 1,
+          "line": 115,
+          "signature": "public ActionResult Delete(int id)"
+        },
+        {
+          "member": "DeleteAll",
+          "overload": 1,
+          "line": 150,
+          "signature": "public ActionResult DeleteAll(int[] ids)"
+        },
+        {
+          "member": "GetAllDevicesTree",
+          "overload": 1,
+          "line": 213,
+          "signature": "public ActionResult GetAllDevicesTree(List<int> selectedDevices, List<int> shownDevices = null)"
+        }
+      ]
+    },
+    {
+      "label": "T5Web-binary",
+      "path": "T5Web [3.5.7]/App/bin/T5V3Web.dll",
+      "sha256": "96c71335ca080f4fa568e65f81957590ffdb953a9fe133ed0000b416afc7e755",
+      "type": "T5V3Web.Controllers.DeviceOperationsController",
+      "decompiledSha256": "363a05685278fd939825257042d754e5c27df5333ff00ed0d614e8246233a316",
+      "actions": [
+        {
+          "member": "Index",
+          "overload": 1,
+          "line": 42,
+          "signature": "public ActionResult Index()"
+        },
+        {
+          "member": "DeviceStates",
+          "overload": 1,
+          "line": 75,
+          "signature": "public ActionResult DeviceStates()"
+        },
+        {
+          "member": "DownloadUsers",
+          "overload": 1,
+          "line": 89,
+          "signature": "public ActionResult DownloadUsers()"
+        },
+        {
+          "member": "UploadUsers",
+          "overload": 1,
+          "line": 116,
+          "signature": "public ActionResult UploadUsers()"
+        },
+        {
+          "member": "UploadUsers",
+          "overload": 2,
+          "line": 155,
+          "signature": "public JsonResult UploadUsers(List<long> selectedBadgeNumbers, List<int> selectedDevices, bool? finger, bool? face, bool? userinfo, bool? photo)"
+        },
+        {
+          "member": "ShowUsers",
+          "overload": 1,
+          "line": 243,
+          "signature": "public ActionResult ShowUsers(List<int> selectedDevices)"
+        },
+        {
+          "member": "ModifyUsers",
+          "overload": 1,
+          "line": 296,
+          "signature": "public JsonResult ModifyUsers(List<string> selectedUsers, List<string> currentUsers, string operation, bool? finger, bool? face, bool? deleteAll, bool? deleteFingersOnly)"
+        },
+        {
+          "member": "DeviceProperties",
+          "overload": 1,
+          "line": 456,
+          "signature": "public ActionResult DeviceProperties(int id)"
+        },
+        {
+          "member": "GetCapacity",
+          "overload": 1,
+          "line": 465,
+          "signature": "public JsonResult GetCapacity(int selectedDevice)"
+        },
+        {
+          "member": "Restart",
+          "overload": 1,
+          "line": 488,
+          "signature": "public JsonResult Restart(int selectedDevice)"
+        },
+        {
+          "member": "DeleteAllData",
+          "overload": 1,
+          "line": 522,
+          "signature": "public JsonResult DeleteAllData(int selectedDevice)"
+        },
+        {
+          "member": "DeleteAdmins",
+          "overload": 1,
+          "line": 556,
+          "signature": "public JsonResult DeleteAdmins(int selectedDevice)"
+        },
+        {
+          "member": "DeleteAllRecords",
+          "overload": 1,
+          "line": 590,
+          "signature": "public JsonResult DeleteAllRecords(int selectedDevice)"
+        },
+        {
+          "member": "TimeSync",
+          "overload": 1,
+          "line": 624,
+          "signature": "public JsonResult TimeSync(int selectedDevice)"
+        },
+        {
+          "member": "SyncTimeData",
+          "overload": 1,
+          "line": 658,
+          "signature": "public JsonResult SyncTimeData(int selectedDevice, string date, string time)"
+        },
+        {
+          "member": "SetDLST",
+          "overload": 1,
+          "line": 697,
+          "signature": "public JsonResult SetDLST(int selectedDevice, string fromDate, string fromTime, string toDate, string toTime)"
+        },
+        {
+          "member": "RemoveTimeRecords",
+          "overload": 1,
+          "line": 738,
+          "signature": "public JsonResult RemoveTimeRecords(int selectedDevice, string fromDate, string fromTime, string toDate, string toTime)"
+        },
+        {
+          "member": "GetAdvanced",
+          "overload": 1,
+          "line": 779,
+          "signature": "public JsonResult GetAdvanced(int selectedDevice)"
+        },
+        {
+          "member": "Set1_1",
+          "overload": 1,
+          "line": 802,
+          "signature": "public JsonResult Set1_1(int selectedDevice, int newVal)"
+        },
+        {
+          "member": "Set1_N",
+          "overload": 1,
+          "line": 836,
+          "signature": "public JsonResult Set1_N(int selectedDevice, int newVal)"
+        },
+        {
+          "member": "SetRepeatTime",
+          "overload": 1,
+          "line": 870,
+          "signature": "public JsonResult SetRepeatTime(int selectedDevice, int newVal)"
+        },
+        {
+          "member": "SetSleepTime",
+          "overload": 1,
+          "line": 904,
+          "signature": "public JsonResult SetSleepTime(int selectedDevice, int newVal)"
+        },
+        {
+          "member": "SetCardReg",
+          "overload": 1,
+          "line": 938,
+          "signature": "public JsonResult SetCardReg(int selectedDevice, bool newVal)"
+        },
+        {
+          "member": "GetAdvanced2",
+          "overload": 1,
+          "line": 972,
+          "signature": "public JsonResult GetAdvanced2(int selectedDevice)"
+        },
+        {
+          "member": "SetIP",
+          "overload": 1,
+          "line": 1004,
+          "signature": "public JsonResult SetIP(int selectedDevice, string newVal)"
+        },
+        {
+          "member": "SetAlgorithm",
+          "overload": 1,
+          "line": 1038,
+          "signature": "public JsonResult SetAlgorithm(int selectedDevice, int newVal)"
+        },
+        {
+          "member": "SetSector",
+          "overload": 1,
+          "line": 1072,
+          "signature": "public JsonResult SetSector(int selectedDevice, int newVal)"
+        },
+        {
+          "member": "RemoteEnroll",
+          "overload": 1,
+          "line": 1106,
+          "signature": "public JsonResult RemoteEnroll(int selectedDevice, long badgeNumber, int fingerIndex)"
+        },
+        {
+          "member": "ChangeKey",
+          "overload": 1,
+          "line": 1140,
+          "signature": "public JsonResult ChangeKey(int selectedDevice, int index, int operation, int code, string name)"
+        },
+        {
+          "member": "ReadKey",
+          "overload": 1,
+          "line": 1173,
+          "signature": "public JsonResult ReadKey(int selectedDevice, int key)"
+        },
+        {
+          "member": "Connect",
+          "overload": 1,
+          "line": 1196,
+          "signature": "public ActionResult Connect(int id)"
+        },
+        {
+          "member": "Disconnect",
+          "overload": 1,
+          "line": 1203,
+          "signature": "public ActionResult Disconnect(int id)"
+        },
+        {
+          "member": "GetRecords",
+          "overload": 1,
+          "line": 1210,
+          "signature": "public JsonResult GetRecords(int id)"
+        },
+        {
+          "member": "GetTimeRecords",
+          "overload": 1,
+          "line": 1244,
+          "signature": "public JsonResult GetTimeRecords(int id, string fromDate, string fromTime, string toDate, string toTime)"
+        }
+      ]
+    },
+    {
+      "label": "T5Web-binary",
+      "path": "T5Web [3.5.7]/App/bin/T5V3Web.dll",
+      "sha256": "96c71335ca080f4fa568e65f81957590ffdb953a9fe133ed0000b416afc7e755",
+      "type": "T5V3Web.Controllers.iclockController",
+      "decompiledSha256": "483a44203b6bfae53aa4f22f114d51f7a8e590835f0887e6ac1c66f5c07d6ea4",
+      "actions": [
+        {
+          "member": "cdata",
+          "overload": 1,
+          "line": 15,
+          "signature": "public ActionResult cdata(string SN = \"\", string pushver = \"\", string language = \"\", string options = \"\")"
+        },
+        {
+          "member": "cdata",
+          "overload": 2,
+          "line": 31,
+          "signature": "public ActionResult cdata(string SN = \"\", string table = \"\", string OpStamp = \"\", string Stamp = \"\", string data = \"\")"
+        },
+        {
+          "member": "getrequest",
+          "overload": 1,
+          "line": 106,
+          "signature": "public ActionResult getrequest(string SN = \"\", string INFO = \"\")"
+        }
+      ]
+    },
+    {
+      "label": "T5Web-binary",
+      "path": "T5Web [3.5.7]/App/bin/T5V3Web.dll",
+      "sha256": "96c71335ca080f4fa568e65f81957590ffdb953a9fe133ed0000b416afc7e755",
+      "type": "T5V3Web.Controllers.USBManagementController",
+      "decompiledSha256": "5a6b9230aa094e23c9cb64cf356cc9cfe20efe9838be14ad221db6a42979544f",
+      "actions": [
+        {
+          "member": "Index",
+          "overload": 1,
+          "line": 22,
+          "signature": "public ActionResult Index()"
+        },
+        {
+          "member": "ReadRecords",
+          "overload": 1,
+          "line": 29,
+          "signature": "public ActionResult ReadRecords(HttpPostedFileBase attlog)"
+        }
+      ]
+    },
+    {
+      "label": "AriaAdmin-source",
+      "path": "src/T5Web/T5Web.Web/Controllers/DeviceController.cs",
+      "commit": "2c01d1074ebf18adc3c43063dd14dbe639246e04",
+      "sha256": "1f35cd9e3fb97a62582ea4abf970893196a6754685b6618d4573fee86ed5d93e",
+      "controller": "DeviceController",
+      "actions": [
+        {
+          "member": "Index",
+          "overload": 1,
+          "line": 15,
+          "signature": "public ActionResult Index(int? gateId)"
+        },
+        {
+          "member": "Edit",
+          "overload": 1,
+          "line": 31,
+          "signature": "public ActionResult Edit(int id)"
+        },
+        {
+          "member": "Edit",
+          "overload": 2,
+          "line": 46,
+          "signature": "public ActionResult Edit(DeviceRow row)"
+        },
+        {
+          "member": "Command",
+          "overload": 1,
+          "line": 71,
+          "signature": "public ActionResult Command(int machineNumber, string command)"
+        }
+      ]
+    },
+    {
+      "label": "AriaAdmin-source",
+      "path": "src/T5Web/T5Web.Application/Services/DeviceCommandService.cs",
+      "commit": "2c01d1074ebf18adc3c43063dd14dbe639246e04",
+      "sha256": "d23977a52ff867e901daa98b5b7e8c24abab21b37d9850f0694f89ca91e4d3ec"
+    },
+    {
+      "label": "AriaAdmin-source",
+      "path": "src/T5Web/T5Web.Application/Services/DeviceTransport.cs",
+      "commit": "2c01d1074ebf18adc3c43063dd14dbe639246e04",
+      "sha256": "e56b877470ef6421eaa0751904d0ccd2edeb06ea7580be3ff015f01c06a05683"
+    },
+    {
+      "label": "AriaAdmin-source",
+      "path": "src/T5Web/T5Web.Web/Views/Device/Index.cshtml",
+      "commit": "2c01d1074ebf18adc3c43063dd14dbe639246e04",
+      "sha256": "e916d6916b75b2e927219a206865a95d3c782401f49af4cac63e36ee3e497b58"
+    },
+    {
+      "label": "AriaAdmin-source",
+      "path": "src/T5Web/T5Web.Web/Views/Device/Edit.cshtml",
+      "commit": "2c01d1074ebf18adc3c43063dd14dbe639246e04",
+      "sha256": "2c52bb3f335b3d1f502ea15ff0aaf33ff0c7f04026b3e0503ff4893c317f43dc"
+    },
+    {
+      "label": "AriaAdmin-source",
+      "path": "src/T5Web/docs/15-device-integration.md",
+      "commit": "2c01d1074ebf18adc3c43063dd14dbe639246e04",
+      "sha256": "a735eabe000777cbccc2deda6df996ab2a30a4936ab16c1939cd5c0d02d90f36"
+    },
+    {
+      "label": "T5Web-view",
+      "path": "T5Web [3.5.7]/App/Views/Device/Index.cshtml",
+      "sha256": "ed1d8320bb2e7b7687a99e59718d16d723d1241d95d707925081e88284bdd896"
+    },
+    {
+      "label": "T5Web-view",
+      "path": "T5Web [3.5.7]/App/Views/DeviceOperations/DeviceProperties.cshtml",
+      "sha256": "ca0974252065813df7c82223058aa5d23a2d32d849755cc8274959e41fdb5f6b"
+    },
+    {
+      "label": "T5Web-view",
+      "path": "T5Web [3.5.7]/App/Views/DeviceOperations/DownloadUsers.cshtml",
+      "sha256": "bfc25f24bbdfb035cddbb754e35ddd41978576b72014d6f940bdfd640f056b93"
+    },
+    {
+      "label": "T5Web-view",
+      "path": "T5Web [3.5.7]/App/Views/DeviceOperations/Index.cshtml",
+      "sha256": "5c12806f52f668db954a1abc558c0424e8ed04912948195139aadc814aa37331"
+    },
+    {
+      "label": "T5Web-view",
+      "path": "T5Web [3.5.7]/App/Views/DeviceOperations/ShowUsers.cshtml",
+      "sha256": "26ea537e305e80229f6d67d9433786221025035b00060600b52b10ce8a1d111c"
+    },
+    {
+      "label": "T5Web-view",
+      "path": "T5Web [3.5.7]/App/Views/DeviceOperations/UploadUsers.cshtml",
+      "sha256": "6efb4f35a6a109be50797ba4b049845148b60de729f6f18b3c7bce1207542209"
+    },
+    {
+      "label": "T5Web-view",
+      "path": "T5Web [3.5.7]/App/Views/Gate/Index.cshtml",
+      "sha256": "f37a6e0af6f8f52e28a2116568b45860e6915df7d869cf9b70ebc38d26299f1a"
+    },
+    {
+      "label": "T5Web-view",
+      "path": "T5Web [3.5.7]/App/Views/Shared/_DeviceSelection.cshtml",
+      "sha256": "55eab78fc15ac9f53ee6caed75ea33b7ceda59cf5bab4b649431bd9bab66245a"
+    },
+    {
+      "label": "T5Web-view",
+      "path": "T5Web [3.5.7]/App/Views/Shared/_SelectUser.cshtml",
+      "sha256": "701b6946df8e76e8ccb211f83685a8b0c12eba7984ad59ece0ef776a6c6b0cb8"
+    },
+    {
+      "label": "T5Web-view",
+      "path": "T5Web [3.5.7]/App/Views/USBManagement/Index.cshtml",
+      "sha256": "66a46c74e7b2e4ec663b06128507d52fb0ee512aaf805efa657dbf7b151fc68a"
+    },
+    {
+      "label": "T5Web-view",
+      "path": "T5Web [3.5.7]/App/Views/UserInfo/Index.cshtml",
+      "sha256": "2efdaa6997e5f33f61fcdd43b3db54d82fe18244a3253e1c97b08d37c556fecf"
+    },
+    {
+      "label": "supporting-sdk-binary",
+      "path": "T5V3.9.2/Personnel.DLL",
+      "sha256": "185b084072a552e92ab0c8b0c2a03ca926b2aa362b5aada1ca8a39f998144be4",
+      "notes": "Personnel.ZK.ZKDevice bodies and interface metadata already recorded in zk-reference-contract.json; not original source"
+    }
+  ]
+}

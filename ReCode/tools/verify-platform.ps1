@@ -86,3 +86,6 @@ try {
     Remove-Item Env:ASPNETCORE_URLS -ErrorAction SilentlyContinue
     if (Test-Path $publish) { Remove-Item $publish -Recurse -Force }
 }
+
+& python tools/device-reference-audit.py
+if ($LASTEXITCODE -ne 0) { throw "device reference crosswalk verification failed" }

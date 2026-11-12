@@ -38,3 +38,7 @@
 ## برش زمان بیکاری
 
 [کد۴، دقیقه و مرز خواب/خاموشی](s11-idle-minutes.fa.md) با [CI موفق](s11-idle-minutes-evidence.json)،۷۶۸ integration و۲۳ قرارداد/فرایند ساخته شد. فقط دامنهٔ برنامه۱..۹۹۹ و مقادیر مصوب دقیق نصب؛ صفر/غیرفعال و کد۸ حدس زده نشد. این برش نه سایر تنظیمات را می‌بندد و نه پذیرش مدل واقعی را.
+
+## تطبیق سرتاسری جدید و اصلاح‌های ایمنی
+
+[گزارش تطبیق ۵۳ ردیفی](device-reference-parity.fa.md) با [موجودی هش‌دار](device-reference-inventory.json) و [crosswalk کامل](device-reference-crosswalk.csv) اضافه شد. دامنهٔ دستگاه منتخب اپراتور (GetManagerDevices) با grant سراسری IO معادل نیست و هنوز باز است؛ adapter تردد native non-TFT نیز ساخته نشده است. USB فایل با اتصال مستقیم USB یکی نیست. خواندن ثابت IP گزارش‌شده و نسخهٔ خام الگوریتم اضافه شد؛ هیچ setter عمومی یا fallback نسخه۹ فعال نشد. محدودیت بین صف‌های polling و چهار نوشتن حساس/unknown و binding کامل credential اصلاح و regression اضافه شد. نتیجهٔ CI دقیق در [شاهد جدید](device-reference-parity-evidence.json) ثبت می‌شود؛ جدول بالا پذیرش سخت‌افزاری نمی‌شود.

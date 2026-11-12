@@ -12,6 +12,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
       - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
         with:
           dotnet-version: 10.0.x
@@ -218,6 +220,8 @@ jobs:
       - name: Validate capability audit inventory
         working-directory: ReCode
         run: python3 tools/validate-capability-audit.py
+      - name: Verify complete legacy device action crosswalk
+        run: python3 ReCode/tools/device-reference-audit.py
       - name: Generate migration scripts offline
         working-directory: ReCode
         shell: bash
