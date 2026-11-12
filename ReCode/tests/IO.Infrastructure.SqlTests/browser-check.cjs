@@ -637,6 +637,14 @@ async function main() {
     await diagnosticRow.filter({hasText:'پیش از اجرا لغو شد'}).waitFor();
     if((await diagnosticRow.textContent()).includes('tcp-reachable'))throw new Error('Pending diagnostic invented network success');
     await diagnosticPage.close();
+    // The fixture already has a secret: the production retargeting guard must
+    // remain enforced. Explicitly clear that synthetic credential before changing profile.
+    await devicesPage.bringToFront();await devicesPage.locator('#refresh').click();
+    await devicesPage.waitForFunction(()=>!document.getElementById('refresh').disabled);
+    await deviceRow.locator('button').click();
+    await devicesPage.locator('#credential-form input[name=remove]').check();
+    await devicesPage.locator('#credential-form button').click();
+    await devicesPage.waitForFunction(()=>document.getElementById('notice').textContent.includes('تغییر رمز ثبت شد')&&!document.getElementById('refresh').disabled);
     await deviceRow.locator('button').click();
     await devicesPage.locator('#device-form select[name=profile]').selectOption('zk-standalone');
     await devicesPage.locator('#device-form input[name=host]').fill('127.0.0.1');
