@@ -8,7 +8,7 @@ namespace IO.Infrastructure.Devices;
 public sealed class DeviceCommands(IoDbContext db,PermissionTransaction transaction,DeviceOperations operations,DeviceAttendanceDownloads attendance)
 {
  public const string Read="devices.commands.read",Retry="devices.commands.retry";
- public sealed record RetryInput(Guid Id,string Queue,Guid PreviousId,byte[] ExpectedPreviousVersion,byte[] ExpectedDeviceVersion,string Confirmation);
+ public sealed record RetryInput(Guid Id,string Queue,Guid PreviousId,byte[] ExpectedPreviousVersion,byte[] ExpectedDeviceVersion,string Confirmation,string? SettingsConfirmation=null);
  public sealed class Row
  {
   public string Queue{get;set;}=null!;public Guid Id{get;set;}public Guid DeviceId{get;set;}public string Kind{get;set;}=null!;public string State{get;set;}=null!;
@@ -31,8 +31,18 @@ public sealed class DeviceCommands(IoDbContext db,PermissionTransaction transact
   if(input is null||input.Id==Guid.Empty||input.PreviousId==Guid.Empty||input.Id==input.PreviousId||input.ExpectedPreviousVersion is not{Length:8}||input.ExpectedDeviceVersion is not{Length:8}||input.Confirmation!="RETRY-READ-ONLY-COMMAND"||input.Queue is not("operation" or "attendance-download"))throw new ArgumentException("Only explicitly confirmed typed read retries are supported.");
   await transaction.LockAsync("IO.DeviceRegistry",token);await transaction.LockAsync("IO.DeviceConnections",token);
   var old=await db.DeviceCommandRetries.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==input.Id,token);
-  var permission=input.Queue=="operation"?DeviceOperations.Read:DeviceAttendanceDownloads.Download;
-  if(!await transaction.HasPermissionAsync(actor,Read,token)||!await transaction.HasPermissionAsync(actor,permission,token))throw new UnauthorizedAccessException();
+  if(!await transaction.HasPermissionAsync(actor,Read,token))throw new UnauthorizedAccessException();
+  DeviceOperationRecord? previousOperation=null;
+  if(input.Queue=="operation")
+  {
+   previousOperation=await db.DeviceOperations.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==input.PreviousId,token)??throw new ArgumentException("Unknown command.");
+   if(previousOperation.Kind is not("information.read" or "settings.read"))throw new DomainConflictException("Native writes cannot be retried here.");
+  }
+  var settings=previousOperation?.Kind=="settings.read";
+  var permission=input.Queue=="operation"?(settings?DeviceOperations.ReadSettings:DeviceOperations.Read):DeviceAttendanceDownloads.Download;
+  if(!await transaction.HasPermissionAsync(actor,permission,token))throw new UnauthorizedAccessException();
+  if(settings&&input.SettingsConfirmation!="READ-ADVANCED-SETTINGS")throw new DomainConflictException("Additional explicit settings read consent required.");
+  if(!settings&&input.SettingsConfirmation is not null)throw new ArgumentException("Settings consent cannot retarget another typed queue.");
   if(old is not null)
   {
    if(old.RequestedByUserId!=actor||old.PreviousOperationId!=(input.Queue=="operation"?input.PreviousId:null)||old.PreviousAttendanceDownloadId!=(input.Queue=="attendance-download"?input.PreviousId:null)||!old.ExpectedPreviousVersion.SequenceEqual(input.ExpectedPreviousVersion)||!old.ExpectedDeviceVersion.SequenceEqual(input.ExpectedDeviceVersion))throw new DomainConflictException("Changed retry replay.");return(input.Id,input.Id);
@@ -42,9 +52,9 @@ public sealed class DeviceCommands(IoDbContext db,PermissionTransaction transact
   DateTimeOffset at;
   if(input.Queue=="operation")
   {
-   var previous=await db.DeviceOperations.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==input.PreviousId,token)??throw new ArgumentException("Unknown command.");
-   if(previous.Kind!="information.read"||!Retryable(previous.State,false)||previous.FinishedAtUtc is null||!previous.Version.SequenceEqual(input.ExpectedPreviousVersion)||!previous.ExpectedDeviceVersion.SequenceEqual(input.ExpectedDeviceVersion))throw new DomainConflictException("Only a terminal unchanged information read can be retried; never a native write.");
-   await operations.RequestInTransactionAsync(actor,input.Id,previous.DeviceId,input.ExpectedDeviceVersion,previous.Kind,previous.TimeoutSeconds,null,null,token);
+   var previous=previousOperation!;
+   if(previous.Kind is not("information.read" or "settings.read")||!Retryable(previous.State,false)||previous.FinishedAtUtc is null||!previous.Version.SequenceEqual(input.ExpectedPreviousVersion)||!previous.ExpectedDeviceVersion.SequenceEqual(input.ExpectedDeviceVersion))throw new DomainConflictException("Only a terminal unchanged typed read can be retried; never a native write.");
+   await operations.RequestInTransactionAsync(actor,input.Id,previous.DeviceId,input.ExpectedDeviceVersion,previous.Kind,previous.TimeoutSeconds,null,settings?"READ-ADVANCED-SETTINGS":null,token);
    var next=db.DeviceOperations.Local.Single(x=>x.Id==input.Id);if(next.TimeZoneId!=previous.TimeZoneId)throw new DomainConflictException("Target zone changed; approve a new request instead.");at=next.RequestedAtUtc;
   }
   else
