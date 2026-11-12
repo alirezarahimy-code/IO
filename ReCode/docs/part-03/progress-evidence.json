@@ -7,21 +7,23 @@
     "exactModelFirmware": "not supplied",
     "realDeviceExecution": "not performed"
   },
-  "latestVerifiedCode": "6c1652c0e0f5c159304fc3ec993ad982b43c6a50",
+  "latestVerifiedCode": "ba0b0b8c321c8bc58bfb8f6035f232c6f12b59bc",
   "checks": {
-    "integrationPassLines": 458,
-    "foundation": 38,
+    "integrationPassLines": 485,
+    "foundation": 40,
     "domain": 26,
-    "portableNativeBoundaryAndFileParser": 19,
-    "permissions": 90,
-    "pagesAndHelp": 43,
-    "foundationMigrations": 26,
-    "foundationTables": 48
+    "portableNativeBoundaryAndFileParser": 25,
+    "permissions": 93,
+    "pagesAndHelp": 44,
+    "foundationMigrations": 27,
+    "foundationTables": 49,
+    "s06ServiceChecks": 23,
+    "s06HttpChecks": 4
   },
   "stages": {
     "S04": "accepted registry and metadata groups",
     "S05": "partial: DB queue, independent service identity, grant/revoke, timeout isolation, TCP diagnostic and isolated native ZK serial-pin candidate; actual SDK installation and real device tests remain",
-    "S06": "not implemented: information, capacities and confirmed settings",
+    "S06": "partial software candidate verified in CI: typed information/capacity/clock snapshots, independent read/set/execute permissions, explicitly confirmed UTC/timezone clock writes and immutable unknown outcome with later clock observation plus human review; real model/SDK tests and other supported settings remain",
     "S07": "not implemented: device user download and employee reconciliation",
     "S08": "not implemented: per-person per-device upload and allowed biometrics",
     "S09": "not implemented: real device log extraction and end-to-end ingestion",
@@ -33,18 +35,18 @@
   "part3Complete": false,
   "runs": [
     {
-      "conclusion": "success",
-      "databaseId": 43124834036,
-      "headSha": "6c1652c0e0f5c159304fc3ec993ad982b43c6a50",
+      "databaseId": 43167046675,
+      "headSha": "ba0b0b8c321c8bc58bfb8f6035f232c6f12b59bc",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43124834036"
+      "conclusion": "success",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43167046675"
     },
     {
-      "conclusion": "success",
-      "databaseId": 43124834043,
-      "headSha": "6c1652c0e0f5c159304fc3ec993ad982b43c6a50",
+      "databaseId": 43167046677,
+      "headSha": "ba0b0b8c321c8bc58bfb8f6035f232c6f12b59bc",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43124834043"
+      "conclusion": "success",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43167046677"
     }
   ]
 }
