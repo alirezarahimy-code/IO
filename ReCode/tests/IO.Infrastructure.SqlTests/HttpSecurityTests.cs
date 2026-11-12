@@ -501,11 +501,11 @@ internal static class HttpSecurityTests
                 var plan=validPreviewJson.RootElement.GetProperty("result");
                 validUploadBatch=validUploadBatch with{PreviewHash=plan.GetProperty("previewHash").GetString()};
                 var queuedUpload=await PostAdmin(own,"/device-user-uploads",validUploadBatch);
-                using var uploadHistory=JsonDocument.Parse(await adminClient.GetStringAsync("/device-user-uploads?batchId="+validUploadBatch.BatchId));
-                var uploadReceipt=uploadHistory.RootElement.GetProperty("items").EnumerateArray().Single();
+                await using var uploadReceiptScope=provider.CreateAsyncScope();
+                var uploadReceipt=await uploadReceiptScope.ServiceProvider.GetRequiredService<IoDbContext>().DeviceUserUploads.AsNoTracking().SingleAsync(x=>x.Id==validUploadItem.Id);
                 check(plan.GetProperty("items")[0].GetProperty("desired").GetProperty("name").GetString()=="Ordinary employee"&&
-                      queuedUpload.StatusCode==HttpStatusCode.OK&&uploadReceipt.GetProperty("state").GetString()=="pending"&&
-                      (await PostAdmin(own,"/device-user-uploads/"+validUploadItem.Id+"/cancel",new{ExpectedVersion=uploadReceipt.GetProperty("version").GetBytesFromBase64()})).StatusCode==HttpStatusCode.OK,
+                      queuedUpload.StatusCode==HttpStatusCode.OK&&uploadReceipt.State=="pending"&&
+                      (await PostAdmin(own,"/device-user-uploads/"+validUploadItem.Id+"/cancel",new{ExpectedVersion=uploadReceipt.Version})).StatusCode==HttpStatusCode.OK,
                       "HTTP S08 preview returns the actual authenticated response envelope and exact confirmed plan queues and cancels a real SQL intent");
             }
             (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.users.read"})).EnsureSuccessStatusCode();
