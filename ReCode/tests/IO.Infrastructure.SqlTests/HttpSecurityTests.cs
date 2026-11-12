@@ -739,6 +739,29 @@ internal static class HttpSecurityTests
             check((await PostAdmin(own,"/device-operations",restartPayload)).StatusCode==HttpStatusCode.Forbidden&&
                   (await PostAdmin(own,"/device-operations/"+restartId+"/resolve-restart",new{ExpectedVersion=restartVersion,InformationId=infoOperation,Confirmation="REVIEWED-RESTART-REACHABILITY"})).StatusCode==HttpStatusCode.Forbidden,
                   "HTTP S11 revoking human restart grant blocks old registration replay and recovery on the existing session");
+            var networkDevice=Guid.NewGuid();
+            (await PostAdmin(own,"/devices",new{OperationId=networkDevice,Device=deviceInput with{Number="HTTP-S06-IP",Profile="zk-standalone",Host="10.40.50.60",Port=4370}})).EnsureSuccessStatusCode();
+            byte[] networkDeviceVersion;
+            using(var json=JsonDocument.Parse(await own.GetStringAsync("/devices/"+networkDevice)))networkDeviceVersion=json.RootElement.GetProperty("version").GetBytesFromBase64();
+            var networkId=Guid.NewGuid();var networkPlan=new IO.DeviceContracts.ZkNetworkPlan("10.40.50.60","10.40.50.61","http-network-fixture");
+            var networkPayload=new DeviceOperationInput(networkId,networkDevice,networkDeviceVersion,"network.ip.set",5,null,"SET-DEVICE-IP",networkPlan);
+            check((await PostAdmin(own,"/device-operations",networkPayload)).StatusCode==HttpStatusCode.Forbidden&&
+                  (await own.PostAsJsonAsync("/device-operations",networkPayload)).StatusCode==HttpStatusCode.BadRequest,
+                  "HTTP S06 network write is not implied by information clock or restart and requires antiforgery");
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.network.ip.set"})).EnsureSuccessStatusCode();
+            check((await PostAdmin(own,"/device-operations",networkPayload with{Confirmation="SET-CLOCK"})).StatusCode==HttpStatusCode.BadRequest&&
+                  (await PostAdmin(own,"/device-operations",networkPayload)).StatusCode==HttpStatusCode.OK&&
+                  (await PostAdmin(own,"/device-operations",networkPayload)).StatusCode==HttpStatusCode.OK&&
+                  (await PostAdmin(own,"/device-operations",networkPayload with{NetworkPlan=networkPlan with{NewAddress="10.40.50.62"}})).StatusCode==HttpStatusCode.Conflict,
+                  "HTTP S06 approved network change requires exact consent and immutable old new serial plan across registration replay");
+            byte[] networkVersion;
+            using(var json=JsonDocument.Parse(await own.GetStringAsync("/device-operations?deviceId="+networkDevice)))networkVersion=json.RootElement.GetProperty("items")[0].GetProperty("version").GetBytesFromBase64();
+            (await PostAdmin(own,"/device-operations/"+networkId+"/cancel",new{ExpectedVersion=networkVersion})).EnsureSuccessStatusCode();
+            (await PostAdmin(adminClient,"/admin/role-permissions/revoke",new{RoleId=deviceRole,Code="devices.network.ip.set"})).EnsureSuccessStatusCode();
+            check((await PostAdmin(own,"/device-operations",networkPayload)).StatusCode==HttpStatusCode.Forbidden&&
+                  (await PostAdmin(own,"/device-operations/"+networkId+"/resolve-network",new{ExpectedVersion=networkVersion,InformationId=infoOperation,Confirmation="REVIEWED-DEVICE-IP"})).StatusCode==HttpStatusCode.Forbidden&&
+                  (await PostAdmin(own,"/device-operations",networkPayload with{OperationId=Guid.NewGuid(),Kind="network.inspect",Confirmation="INSPECT-DEVICE-IP",NetworkPlan=networkPlan with{ChangeId=networkId}})).StatusCode==HttpStatusCode.Forbidden,
+                  "HTTP S06 revoke removes old network replay and review and write grant never implies recovery-read rights");
             foreach(var code in new[]{"devices.info.read","devices.clock.set"})
                 (await PostAdmin(adminClient,"/admin/role-permissions/revoke",new{RoleId=deviceRole,Code=code})).EnsureSuccessStatusCode();
             using(var capabilities=JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities")))

@@ -42,7 +42,7 @@ if(builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableHealthReports"))b
 builder.Services.AddHostedService<DiagnosticWorker>();
 await builder.Build().RunAsync();
 
-internal sealed record NativeEndpoint(Guid DeviceId, string Address, int Port, int MachineNumber, string ExpectedSerial, bool AllowDefaultCommunicationKey, bool AllowClockSet=false,bool AllowUserRead=false,bool AttendanceOnlyUserWriteApproved=false,bool AllowAttendanceRead=false,bool AllowAdvancedSettingsRead=false,string UserReadFormat=ZkUserReadFormats.Ssr,string UserWriteFormat=ZkUserReadFormats.Ssr,bool AllowRestart=false);
+internal sealed record NativeEndpoint(Guid DeviceId, string Address, int Port, int MachineNumber, string ExpectedSerial, bool AllowDefaultCommunicationKey, bool AllowClockSet=false,bool AllowUserRead=false,bool AttendanceOnlyUserWriteApproved=false,bool AllowAttendanceRead=false,bool AllowAdvancedSettingsRead=false,string UserReadFormat=ZkUserReadFormats.Ssr,string UserWriteFormat=ZkUserReadFormats.Ssr,bool AllowRestart=false,bool AllowNetworkIpChange=false,bool AllowNetworkInspect=false,string[]? ApprovedNetworkAddresses=null);
 internal sealed record WorkerConfiguration(Guid ServiceUserId, TcpConnectionDiagnostic.AllowedEndpoint[] AllowedEndpoints, NativeEndpoint[] NativeEndpoints, string? DotnetPath, string? BridgePath, bool EnableOperations,bool EnableUserDownloads,bool EnableUserUploads,bool EnableAttendanceDownloads,bool EnableSchedules,bool EnableSettingsReads);
 internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfiguration configuration) : BackgroundService
 {
@@ -177,11 +177,18 @@ internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfig
         if(native is null||claim.Profile!="zk-standalone")return new("unsupported");
         if(claim.Port!=native.Port||!System.Net.IPAddress.TryParse(claim.Host,out var address)||!System.Net.IPAddress.Parse(native.Address).Equals(address))return new("endpoint-denied");
         if(!OperatingSystem.IsWindows()||(claim.Kind=="device.restart"&&!native.AllowRestart)||(claim.Kind=="clock.set"&&!native.AllowClockSet)||(claim.Kind=="settings.read"&&(!configuration.EnableSettingsReads||!native.AllowAdvancedSettingsRead)))return new("unsupported");
+        var target=native.Address;
+        if(claim.Kind is "network.ip.set" or "network.inspect")
+        {
+            if(claim.NetworkPlan is not{} plan||!ZkNetworkPolicy.Allows(plan,claim.Kind,native.Address,native.ExpectedSerial,native.AllowNetworkIpChange,native.AllowNetworkInspect,native.ApprovedNetworkAddresses))return new("endpoint-denied");
+            target=plan.TargetAddress(claim.Kind);
+        }
+        else if(claim.NetworkPlan is not null)return new("unsupported");
         await using var scope=scopes.CreateAsyncScope();
         var credential=await scope.ServiceProvider.GetRequiredService<DeviceOperations>().CredentialAsync(configuration.ServiceUserId,claim,native.AllowDefaultCommunicationKey,ct);
         if(credential is null)return new("credential-unavailable");
         return await NativeProcessSupervisor.RunOperationAsync(configuration.DotnetPath!,configuration.BridgePath!,
-            new(new(claim.DeviceId,native.Address,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value),claim.Kind,claim.ClockLocal,native.AllowClockSet,native.AllowAdvancedSettingsRead,native.AllowRestart),claim.TimeoutSeconds,ct);
+            new(new(claim.DeviceId,target,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value),claim.Kind,claim.ClockLocal,native.AllowClockSet,native.AllowAdvancedSettingsRead,native.AllowRestart,claim.NetworkPlan,native.AllowNetworkIpChange,native.AllowNetworkInspect),claim.TimeoutSeconds,ct);
     }
 
 }

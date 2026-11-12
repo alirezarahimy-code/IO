@@ -41,7 +41,7 @@ public static class WorkspaceCatalog
         new("/workspace/device-schedules", "زمان‌بندی دریافت SDK و پیگیری cursor", "operator", "DeviceSchedules.html", ["devices.schedules.read", "devices.schedules.manage"]),
         new("/workspace/device-attendance", "استخراج بازه‌ای تردد SDK و قرنطینه", "operator", "DeviceAttendance.html", ["devices.attendance.read", "devices.attendance.extract", "devices.attendance.commit"]),
         new("/workspace/device-users", "کاربران دستگاه و پیش‌نمایش تطبیق", "operator", "DeviceUsers.html", ["devices.users.read", "devices.users.download"]),
-        new("/workspace/device-information", "مشخصات و ساعت دستگاه", "operator", "DeviceInformation.html", ["devices.info.read", "devices.clock.set", "devices.restart"]),
+        new("/workspace/device-information", "مشخصات و ساعت دستگاه", "operator", "DeviceInformation.html", ["devices.info.read", "devices.clock.set", "devices.restart", "devices.network.ip.set", "devices.network.read"]),
         new("/workspace/device-connection", "تست و تاریخچهٔ ارتباط دستگاه", "operator", "DeviceConnection.html", ["devices.connection.read", "devices.connection.test"]),
         new("/workspace/device-groups", "گروه‌بندی درختی دستگاه‌ها", "operator", "DeviceGroups.html", ["devices.groups.read", "devices.groups.manage"]),
         new("/workspace/devices", "مدیریت دستگاه‌های تردد", "operator", "Devices.html", ["devices.read", "devices.create", "devices.update", "devices.credentials.manage", "devices.groups.assign"]),

@@ -65,6 +65,7 @@ internal static class DeviceRestartTests
   check(await Claim()==null&&await State(lost)=="unknown","S11 abandoned running restart becomes unknown and is never returned for replay");
   bool blocked=false;try{await Q(async db=>{await db.GetService<IMigrator>().MigrateAsync("20261112150000_DeviceLegacyUserReads");return true;});}catch(SqlException e)when(e.Number==51029){blocked=true;}
   check(blocked&&await State(first)=="unknown","S11 downgrade refuses to discard retained restart and recovery contracts");
+  await Q(async db=>{await db.GetService<IMigrator>().MigrateAsync();return true;});
  }
  private sealed class Clock:TimeProvider{private DateTimeOffset now=DateTimeOffset.UtcNow;public override DateTimeOffset GetUtcNow()=>now;public void Advance(int seconds)=>now=now.AddSeconds(seconds);}
 }

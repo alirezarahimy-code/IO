@@ -3974,6 +3974,10 @@
     "Group": "اپراتور دستگاه",
     "Overview": "صف مستقل S06 و snapshot واقعی SQL؛ خواندن مشخصات با تنظیم ساعت متفاوت است. آداپتر بومی candidate است و پذیرش مدل واقعی هنوز انجام نشده.",
     "Steps": [
+      "network.ip.set فقط IPv4 canonical با حق devices.network.ip.set، طرح قدیم/جدید/سریال و SET-DEVICE-IP است. هر دو IP باید در ApprovedNetworkAddresses نصب worker باشند؛ AllowNetworkIpChange پیش‌فرض false و devices.network.ip.execute جداگانه لازم است. زمان‌بندی‌ها را پیش از تغییر pause و IP جدید را با تیم شبکه رزرو کنید؛ mask/gateway/DHCP/port تغییر نمی‌کنند.",
+      "پیش از SetDeviceIP، GetDeviceIP باید با IP قدیم برابر باشد؛ NAT/DHCP یا مقدار تغییرکرده پیش از mutation رد می‌شود. پس از فراخوانی حتی ACK true هم unknown است؛ retry خودکار یا تغییر خودکار IP موجودی انجام نمی‌شود. IP جدید بدون تعارض، مسیر شبکه و بازیابی محلی مسئولیت نصب هستند.",
+      "network.inspect فقط برای parent تغییر unknown همان دستگاه/نسخه/طرح است؛ یکی از مقصدهای قدیم/جدید و همان سریال را با GetDeviceIP می‌خواند. حق انسانی devices.network.read، حق سرویس devices.network.read.execute و AllowNetworkInspect جداگانه لازم‌اند؛ خواندن هیچ SetDeviceIP یا RefreshData فراخوانی نمی‌کند. اگر هیچ‌یک پاسخ ندهند، بازیابی دستی شبکه لازم است.",
+      "با مشاهدهٔ موفق و تازه و برابر بودن DeviceIp با مقصد اتصال، REVIEWED-DEVICE-IP در resolve-network دسترسی مشاهده‌شده را ثبت می‌کند؛ نتیجهٔ اصلی unknown باقی می‌ماند و وب Host موجودی را خودکار تغییر نمی‌دهد. سپس به‌روزرسانی هماهنگ موجودی و pin نصب، با حقوق جدا و نسخهٔ تازه لازم است. در unresolved، تغییر metadata/رمز/گروه و ارسال عادی کاربر مسدود است.",
       "با devices.info.read و شناسه/نسخهٔ دستگاه درخواست information.read ثبت کنید. برای مشاهدهٔ موجودی، devices.read نیز جداگانه لازم است. اپراتور جدید فقط حق خواندن دارد؛ نقش‌های قبلی خودکار تغییر نمی‌کنند.",
       "برای clock.set، حق مستقل devices.clock.set، زمان دقیق UTC با ثانیه و تأیید SET-CLOCK لازم است. سرور منطقهٔ زمانی محل نصب را ذخیره و زمان مبهم DST را رد می‌کند. زمان تنظیم همان مقدار صریح است؛ با زمان صف خودکار جلو نمی‌رود. درخواست بیش از دو دقیقه در صف منقضی می‌شود.",
       "worker مستقل Windows باید EnableOperations=true، مجوز devices.operations.execute و مقصد پین‌شده داشته باشد؛ تنظیم ساعت افزون بر این به AllowClockSet=true برای همان مقصد نیاز دارد. این پرچم گواه پشتیبانی firmware نیست.",
@@ -3997,7 +4001,7 @@
       {
         "Name": "kind",
         "Label": "عملیات",
-        "Description": "فقط information.read یا clock.set یا device.restart؛ reset کارخانه، حذف داده و کنترل درب نیست."
+        "Description": "information.read، clock.set، device.restart، network.ip.set یا network.inspect؛ فقط تغییر IPv4 صریح، نه gateway/mask/DHCP/port یا reset/حذف/درب."
       },
       {
         "Name": "targetUtc",
@@ -4029,6 +4033,7 @@
       "ثبت خواندن مشخصات/ساعت",
       "ثبت تنظیم صریح ساعت با تأیید",
       "ثبت راه‌اندازی مجدد با حق مستقل و تأیید RESTART-DEVICE؛ نه reset یا حذف اطلاعات",
+      "تغییر IPv4 با SET-DEVICE-IP و بررسی خواندنی مقصد قدیم/جدید با INSPECT-DEVICE-IP؛ بازبینی با REVIEWED-DEVICE-IP",
       "بازخوانی مجوز و تاریخچه؛ فیلتر و صفحه‌بندی",
       "لغو پیش از اجرا با نسخهٔ تازه",
       "بازبینی unknown بدون تکرار فرمان"

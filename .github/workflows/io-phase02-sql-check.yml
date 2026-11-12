@@ -43,6 +43,9 @@ jobs:
       - name: Test explicit restart contract and native isolation
         working-directory: ReCode
         run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --restart-contracts
+      - name: Test approved IP transition contracts and recovery isolation
+        working-directory: ReCode
+        run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --network-contracts
       - name: Verify foundation catalogue and role-filtered help
         working-directory: ReCode
         run: dotnet run --project tests/IO.Foundation.Tests --configuration Release --no-build

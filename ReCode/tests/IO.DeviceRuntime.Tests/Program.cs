@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using IO.DeviceContracts;
 
+if (args is ["--network-contracts"]) { await NetworkTests.RunAsync(); return; }
+
 if (args is ["--restart-contracts"]) { await RestartTests.RunAsync(); return; }
 
 if (args is ["--legacy-user-writes"]) { await LegacyUserWriteTests.RunAsync(); await VirtualDeviceLab.VerifyLegacyWritesAsync(); return; }
@@ -72,6 +74,11 @@ if (args is not ["--verify"])
     if(document.RootElement.TryGetProperty("Connection",out _))
     {
         var operation=JsonSerializer.Deserialize<ZkOperationInput>(text)!;
+        if(operation.Operation is "network.ip.set" or "network.inspect")
+        {
+            if(operation.Connection.ExpectedSerial=="network-hang"){await Task.Delay(TimeSpan.FromMinutes(1));return;}
+            Console.WriteLine(JsonSerializer.Serialize(ZkNetworkExecutor.Execute(operation,new NetworkTests.Session(operation.Connection.Address))));return;
+        }
         if(operation.Connection.ExpectedSerial=="restart-hang"){await Task.Delay(TimeSpan.FromMinutes(1));return;}
         if(operation.Operation=="settings.read")
         {

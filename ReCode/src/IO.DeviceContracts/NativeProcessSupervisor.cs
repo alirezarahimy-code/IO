@@ -18,13 +18,13 @@ public static class NativeProcessSupervisor
     {
         if(!input.IsValid())return new("unsupported");
         var exchange=await ExchangeAsync(executable,childAssembly,System.Text.Json.JsonSerializer.Serialize(input),timeoutSeconds,stoppingToken);
-        if(exchange.State!="exited")return new(input.Operation=="device.restart"?"unknown":exchange.State);
+        if(exchange.State!="exited")return new((input.Operation=="device.restart"||input.Operation=="network.ip.set")?"unknown":exchange.State);
         try
         {
             var result=System.Text.Json.JsonSerializer.Deserialize<ZkOperationOutput>(exchange.Output,new System.Text.Json.JsonSerializerOptions{UnmappedMemberHandling=System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow});
-            return result is not null&&result.IsValidFor(input)?result:new(input.Operation=="device.restart"?"unknown":"bridge-failed");
+            return result is not null&&result.IsValidFor(input)?result:new((input.Operation=="device.restart"||input.Operation=="network.ip.set")?"unknown":"bridge-failed");
         }
-        catch(System.Text.Json.JsonException){return new(input.Operation=="device.restart"?"unknown":"bridge-failed");}
+        catch(System.Text.Json.JsonException){return new((input.Operation=="device.restart"||input.Operation=="network.ip.set")?"unknown":"bridge-failed");}
     }
 
     public static async Task<ZkUserWriteOutput> RunUserWriteAsync(string executable,string childAssembly,ZkUserWriteInput input,int timeoutSeconds,CancellationToken stoppingToken=default)

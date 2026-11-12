@@ -76,7 +76,7 @@ try
         Check(!db.Database.HasPendingModelChanges(), "model matches migration snapshot");
         await db.Database.MigrateAsync();
         await db.Database.MigrateAsync();
-        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 39, "foundation and thirty-eight later migrations applied idempotently");
+        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 40, "foundation and thirty-nine later migrations applied idempotently");
         var created = 0;
         foreach (var table in expectedTables) if (await HasTable(table)) created++;
         Check(created == expectedTables.Length, "all 60 foundation and later tables created");
@@ -300,7 +300,7 @@ try
         var recreated = 0;
         foreach (var table in expectedTables) if (await HasTable(table)) recreated++;
         Check(recreated == expectedTables.Length, "migrations recreated all 60 foundation and later tables");
-        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 39, "migration history restored");
+        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 40, "migration history restored");
     }
     // Independent Identity schema and bootstrap: the foundation DB was just
     // recreated empty above. Never run this against non-disposable data.
@@ -375,6 +375,7 @@ try
     await DeviceAdvancedSettingsTests.RunAsync(connection, Check);
     // Exercise older-format downgrade guard before HTTP tests retain restart history.
     await LegacyUserReadTests.RunAsync(connection, Check);
+    await DeviceRestartTests.RunAsync(connection, Check);
     await HttpSecurityTests.RunAsync(connection, Check);
     await OrganizationServiceTests.RunAsync(connection, Check);
     await SchedulingServiceTests.RunAsync(connection, Check);
@@ -436,7 +437,7 @@ try
         finally { await cliFoundation.Database.EnsureDeletedAsync(); }
     }
     await LegacyUserUploadTests.RunAsync(connection, Check);
-    await DeviceRestartTests.RunAsync(connection, Check);
+    await DeviceNetworkTests.RunAsync(connection, Check);
     Console.WriteLine("PASS disposable SQL Server integration checks");
     return 0;
 }
