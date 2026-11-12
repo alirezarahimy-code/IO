@@ -37,6 +37,7 @@ internal static class LegacyUserReadTests
   var preview=JsonSerializer.SerializeToElement(await Use<DeviceUserDownloads,object>(s=>s.PreviewAsync(actor,id,0)));
   var rows=preview.GetProperty("items").EnumerateArray().ToArray();
   check(invalidLegacy&&preview.GetProperty("readFormat").GetString()==ZkUserReadFormats.Legacy&&rows[0].GetProperty("status").GetString()=="candidate-requires-confirmation"&&rows[1].GetProperty("status").GetString()=="unknown-identifier"&&rows[0].GetProperty("card").GetString()=="000123","S07 SQL preview exposes legacy provenance but rejects zero-padded legacy service frames while preserving exact matching and original card text");
+  await Q(async db=>{db.SourceEmployeeMappings.Add(new(){Id=Guid.NewGuid(),SourceId=device,CompanyId=company,SourcePersonId="1",EmployeeId=employee,ValidFromUtc=DateTimeOffset.UtcNow.AddDays(-1)});await db.SaveChangesAsync();return true;});
   var upload=new DeviceUserUploads.Batch(Guid.NewGuid(),new[]{new DeviceUserUploads.Item(Guid.NewGuid(),device,version,id,employee,"1","000123",true,30)},"UPLOAD-ORDINARY-USERS");
   check(await Reject<DomainConflictException>(()=>Use<DeviceUserUploads,object>(s=>s.PreviewAsync(actor,upload)))&&!await Q(db=>db.DeviceUserUploads.AnyAsync(x=>x.DeviceId==device)),"S07 a legacy target snapshot cannot authorize the SSR-only user-write adapter or create a mutation intent");
   bool down=false;try{await Q(async db=>{await db.GetService<IMigrator>().MigrateAsync("20261112140000_DevicePollOverlap");return true;});}catch(SqlException e)when(e.Number==51028){down=true;}
