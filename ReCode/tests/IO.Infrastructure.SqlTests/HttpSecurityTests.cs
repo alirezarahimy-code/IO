@@ -90,6 +90,15 @@ internal static class HttpSecurityTests
             browserProcess.ArgumentList.Add(first.ToString());
             browserProcess.ArgumentList.Add(second.ToString());
             browserProcess.ArgumentList.Add(adminName);
+            // Synthetic DB snapshot fixture only: never an SDK/hardware acceptance test.
+            await using(var uploadScope=provider.CreateAsyncScope())
+            {
+                var uploadDb=uploadScope.ServiceProvider.GetRequiredService<IoDbContext>();
+                var uploadDevice=await uploadDb.Devices.AsNoTracking().Where(d=>(d.Number=="S08-A"||d.Number=="S08-B")&&!uploadDb.DeviceUserUploads.Any(u=>u.DeviceId==d.Id&&(u.State=="pending"||u.State=="running"||(u.State=="unknown"&&u.ResolutionSnapshotId==null)))).FirstAsync();
+                var uploadSnapshot=await uploadDb.DeviceUserDownloads.AsNoTracking().Where(x=>x.DeviceId==uploadDevice.Id&&x.State=="succeeded").OrderByDescending(x=>x.RequestedAtUtc).FirstAsync();
+                var uploadEmployee=await uploadDb.SourceEmployeeMappings.Where(x=>x.SourceId==uploadDevice.SourceId&&x.SourcePersonId=="0001").Select(x=>x.EmployeeId).SingleAsync();
+                browserProcess.ArgumentList.Add(JsonSerializer.Serialize(new{id=Guid.NewGuid(),deviceId=uploadDevice.Id,expectedDeviceVersion=uploadDevice.Version,snapshotId=uploadSnapshot.Id,employeeId=uploadEmployee,personIdentifier="0001",card="789",enabled=true,timeoutSeconds=30}));
+            }
             using (var browser = Process.Start(browserProcess) ?? throw new InvalidOperationException("Cannot start browser test."))
             {
                 var stdout = browser.StandardOutput.ReadToEndAsync();

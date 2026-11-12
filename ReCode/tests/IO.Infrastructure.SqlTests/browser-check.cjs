@@ -1,7 +1,7 @@
 'use strict';
 // Only synthetic credentials and an ephemeral loopback server are used here.
 const { chromium } = require('playwright-core');
-const [address, first, second, adminName] = process.argv.slice(2);
+const [address, first, second, adminName, uploadFixtureJson] = process.argv.slice(2);
 if (!address || !first || !second || !adminName || !address.startsWith('https://127.0.0.1:'))
   throw new Error('Expected the disposable HTTPS loopback server and synthetic IDs.');
 async function main() {
@@ -679,6 +679,16 @@ async function main() {
     await s07UsersJob.locator('button').filter({hasText:'پیش‌نمایش'}).click();await s07UsersPage.waitForFunction(()=>document.getElementById('snapshot').textContent.includes('تعداد 0'));
     s07UsersPage.on('dialog',d=>d.accept());await s07UsersJob.locator('button').filter({hasText:'لغو'}).click();await s07UsersJob.filter({hasText:'پیش از اجرا لغو شد'}).waitFor();
     await s07UsersPage.reload();await s07UsersJob.filter({hasText:'پیش از اجرا لغو شد'}).waitFor();await s07UsersPage.close();
+    const uploadFixture=JSON.parse(uploadFixtureJson);
+    const uploadPage=await context.newPage();await uploadPage.goto(address+'/workspace/device-user-uploads');
+    await uploadPage.waitForFunction(()=>!document.getElementById('upload-form').hidden&&!document.getElementById('preview').disabled);
+    await uploadPage.locator('#upload-form textarea[name=items]').fill(JSON.stringify([uploadFixture]));
+    await uploadPage.locator('#preview').click();await uploadPage.waitForFunction(()=>document.getElementById('intent-preview').textContent.includes('Ordinary employee')&&!document.getElementById('preview').disabled);
+    await uploadPage.locator('#upload-form input[name=confirmed]').check();
+    await uploadPage.locator('#upload-form button:not([type])').click();
+    const uploadJob=uploadPage.locator('#jobs li').filter({hasText:uploadFixture.id});await uploadJob.filter({hasText:'pending'}).waitFor();
+    uploadPage.on('dialog',d=>d.accept());await uploadJob.locator('button').filter({hasText:'لغو'}).click();await uploadJob.filter({hasText:'cancelled'}).waitFor();
+    await uploadPage.reload();await uploadJob.filter({hasText:'cancelled'}).waitFor();await uploadPage.close();
     const filePage=await context.newPage();
     await filePage.goto(address+await deviceRow.locator('a[href^="/workspace/device-files?"]').getAttribute('href'));
     await filePage.waitForFunction(()=>!document.querySelector('#file-form button').disabled&&!document.getElementById('file-form').hidden);
@@ -1734,7 +1744,7 @@ async function main() {
     if(!await panelPage.locator('a[href="/workspace/organization"]').count() || !await panelPage.locator('a[href="/workspace/inbox"]').count())
       throw new Error('Role panel did not list admin and manager tools');
     await panelPage.close();
-    const routes = ['/workspace/device-files','/workspace/device-users','/workspace/device-information','/workspace/device-connection','/workspace/device-groups','/workspace/devices','/workspace/reversals','/workspace/help','/workspace/help/roles','/workspace','/workspace/employee-home','/workspace/my-attendance','/workspace/my-schedule','/workspace/my-leave','/workspace/my-reports','/workspace/new-request','/workspace/my-requests','/workspace/delegation','/workspace/account','/workspace/manager-home','/workspace/inbox','/workspace/decision-history','/workspace/team-attendance','/workspace/organization','/workspace/employees','/workspace/users','/workspace/roles','/workspace/calendars','/workspace/shifts','/workspace/schedules','/workspace/employee-history','/workspace/sources','/workspace/settings','/workspace/raw-events','/workspace/mappings','/workspace/conflicts','/workspace/calculations','/workspace/rules','/workspace/periods','/workspace/leave-admin','/workspace/reports','/workspace/report-builder','/workspace/workflow','/workspace/audit','/workspace/executive-home','/panel'];
+    const routes = ['/workspace/device-user-uploads','/workspace/device-files','/workspace/device-users','/workspace/device-information','/workspace/device-connection','/workspace/device-groups','/workspace/devices','/workspace/reversals','/workspace/help','/workspace/help/roles','/workspace','/workspace/employee-home','/workspace/my-attendance','/workspace/my-schedule','/workspace/my-leave','/workspace/my-reports','/workspace/new-request','/workspace/my-requests','/workspace/delegation','/workspace/account','/workspace/manager-home','/workspace/inbox','/workspace/decision-history','/workspace/team-attendance','/workspace/organization','/workspace/employees','/workspace/users','/workspace/roles','/workspace/calendars','/workspace/shifts','/workspace/schedules','/workspace/employee-history','/workspace/sources','/workspace/settings','/workspace/raw-events','/workspace/mappings','/workspace/conflicts','/workspace/calculations','/workspace/rules','/workspace/periods','/workspace/leave-admin','/workspace/reports','/workspace/report-builder','/workspace/workflow','/workspace/audit','/workspace/executive-home','/panel'];
     const scriptFailures = [];
     for (const route of routes) {
       const health = await context.newPage();

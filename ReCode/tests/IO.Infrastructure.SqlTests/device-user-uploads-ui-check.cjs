@@ -26,7 +26,8 @@ async function wait(test){for(let i=0;i<250;i++){if(test())return;await new Prom
  f.elements.confirmed.checked=true;f.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));assert.equal(posts.length,0);
  w.document.getElementById('preview').click();await wait(()=>w.document.getElementById('intent-preview').textContent.includes('img')&&!w.document.getElementById('preview').disabled);
  assert.equal(w.document.querySelector('#intent-preview img'),null);assert.equal(f.elements.confirmed.checked,false);
- f.elements.confirmed.checked=true;f.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await wait(()=>notice.textContent.includes('پاسخ نامعلوم')&&!w.document.getElementById('preview').disabled);
+ f.elements.confirmed.checked=true;f.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await wait(()=>notice.textContent.includes('پاسخ نامعلوم')&&!f.querySelector('button:not([type])').disabled);
+ assert.equal(w.document.getElementById('preview').disabled,true);
  const old=f.elements.batchId.value;f.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));await wait(()=>notice.textContent.includes('صف SQL ثبت شد')&&!w.document.getElementById('preview').disabled);
  assert.deepEqual(posts[1],posts[2]);assert.equal(posts[1].body.previewHash,'HASH');assert.notEqual(f.elements.batchId.value,old);
  granted=false;w.dispatchEvent(new w.Event('focus'));await wait(()=>f.hidden);assert.equal(w.document.getElementById('jobs').textContent,'');assert.equal(f.elements.items.value,'');assert.equal(w.document.getElementById('intent-preview').textContent,'');dom.window.close();
