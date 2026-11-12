@@ -22,7 +22,8 @@ async function wait(test){for(let i=0;i<250;i++){if(test())return;await new Prom
  const f=w.document.getElementById('upload-form'),notice=w.document.getElementById('notice');
  await wait(()=>!f.hidden&&!w.document.getElementById('preview').disabled&&w.document.querySelector('#jobs li'));
  assert.equal(w.document.querySelector('#jobs img'),null);
- f.elements.items.value=JSON.stringify([{id:row.id,deviceId:row.deviceId,personIdentifier:'0001',card:'123'}]);
+ f.elements.rowDeviceId.value=row.deviceId;f.elements.rowDeviceVersion.value=row.version;f.elements.rowSnapshotId.value='ad96d024-a1f1-4920-9e4b-a1ee468b0e9e';f.elements.rowEmployeeId.value=row.employeeId;f.elements.rowPersonIdentifier.value='0001';f.elements.rowCard.value='00123';w.document.getElementById('add-item').click();
+ assert.equal(JSON.parse(f.elements.items.value)[0].personIdentifier,'0001');assert.equal(JSON.parse(f.elements.items.value)[0].card,'00123');
  f.elements.confirmed.checked=true;f.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));assert.equal(posts.length,0);
  w.document.getElementById('preview').click();await wait(()=>w.document.getElementById('intent-preview').textContent.includes('img')&&!w.document.getElementById('preview').disabled);
  assert.equal(w.document.querySelector('#intent-preview img'),null);assert.equal(f.elements.confirmed.checked,false);
