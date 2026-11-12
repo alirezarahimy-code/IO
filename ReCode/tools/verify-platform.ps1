@@ -37,7 +37,9 @@ try {
 
     }
     if ($IsLinux -and $env:GITHUB_ACTIONS -eq 'true') {
-        & bash (Join-Path $PSScriptRoot 'test-worker-linux-service.sh') --allow-isolated-ci-installation (Join-Path $publish 'device-worker') (Get-Command dotnet -CommandType Application).Source 2>&1 | Tee-Object -Variable linuxLifecycleOutput
+        $linuxDotnetHost = (Get-Command dotnet -CommandType Application | Select-Object -First 1).Source
+        $linuxArguments = @((Join-Path $PSScriptRoot 'test-worker-linux-service.sh'), '--allow-isolated-ci-installation', (Join-Path $publish 'device-worker'), $linuxDotnetHost)
+        & bash @linuxArguments 2>&1 | Tee-Object -Variable linuxLifecycleOutput
         if ($LASTEXITCODE -ne 0) {
             $diagnostic = Join-Path $publish 'linux-service-smoke.log'
             $linuxLifecycleOutput | Set-Content -LiteralPath $diagnostic -Encoding utf8NoBOM

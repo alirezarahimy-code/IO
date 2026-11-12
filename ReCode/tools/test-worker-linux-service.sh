@@ -2,7 +2,7 @@
 # Real systemd lifecycle of the published worker, only in an expendable CI VM.
 set -euo pipefail
 if [[ "${1:-}" != --allow-isolated-ci-installation || "${GITHUB_ACTIONS:-}" != true || "${RUNNER_OS:-}" != Linux || $# != 3 ]]; then
-    echo 'Explicit isolated GitHub Linux installation opt-in required.' >&2; exit 1
+    printf 'Explicit isolated GitHub Linux installation opt-in required (argc=%s; github=%s; runner=%s).\n' "$#" "${GITHUB_ACTIONS:-missing}" "${RUNNER_OS:-missing}" >&2; exit 1
 fi
 published=$2
 host=$(readlink -f "$3")
