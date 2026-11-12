@@ -31,6 +31,10 @@ try {
         try { & $installer -DotnetPath 'relative-dotnet.exe' -WorkerAssemblyPath (Join-Path $publish 'device-worker/IO.DeviceWorker.dll') -ValidateOnly } catch { $invalidPathRejected = $true }
         if (!$invalidPathRejected) { throw 'Worker installer accepted an untrusted relative executable.' }
         Write-Host 'PASS Windows service installer validates complete published files and rejects relative hosts without registering or starting a service'
+        if ($env:GITHUB_ACTIONS -eq 'true') {
+            & (Join-Path $PSScriptRoot 'test-worker-windows-service.ps1') -DotnetPath $dotnetHost -PublishDirectory (Join-Path $publish 'device-worker') -AllowIsolatedCiInstallation
+        }
+
     }
     # Smoke the actual published web executable on this OS, not an HTML mock.
     $env:IO__EnableExperimentalIdentity = 'false'
