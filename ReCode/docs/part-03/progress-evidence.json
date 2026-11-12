@@ -8,15 +8,15 @@
     "realDeviceExecution": "not performed",
     "testingSequence": "User approved virtual-device software testing now, followed by real-device testing by the team. Virtual tests do not close actual model/SDK/hardware acceptance."
   },
-  "latestVerifiedCode": "b1df7dd3b590dc038ee576b6044c682c8b8414c4",
+  "latestVerifiedCode": "50087b92919dd0ce18ae258893c91bf41bcc0cd1",
   "checks": {
-    "integrationPassLines": 667,
+    "integrationPassLines": 677,
     "foundation": 48,
     "domain": 26,
     "portableNativeBoundaryAndFileParser": 61,
     "permissions": 114,
     "pagesAndHelp": 52,
-    "foundationMigrations": 37,
+    "foundationMigrations": 38,
     "foundationTables": 60,
     "s08ServiceChecks": 14,
     "s08HttpChecks": 5,
@@ -33,13 +33,16 @@
     "s12HealthHttpChecks": 3,
     "s10OverlapServiceChecks": 8,
     "s10OverlapHttpChecks": 2,
-    "statefulTcpVirtualDeviceChecks": 19
+    "statefulTcpVirtualDeviceChecks": 19,
+    "legacyUserSqlServiceChecks": 8,
+    "legacyUserHttpChecks": 2,
+    "portableUserReadContractChecks": 10
   },
   "stages": {
     "S04": "accepted registry and metadata groups",
     "S05": "partial: real SQL queues and grant/revoke, four native execution slots, timeouts, serial-pinned candidate, independent persisted worker instance heartbeats and permissioned SQL health dashboard. Actual SCM/systemd published-worker install/start/stop verified in isolated CI with unavailable synthetic DB and no endpoints. Real lab SDK installation/device connection tests remain. Stateful two-endpoint loopback TCP test laboratory now verifies isolated child behavior and fail-fast rejection of blocked malformed streams; private test protocol is not ZK.",
     "S06": "partial software candidate verified in CI: typed information/capacity/clock snapshots, independent read/set/execute permissions, explicitly confirmed UTC/timezone clock writes and immutable unknown outcome with later clock observation plus human review; real model/SDK tests and other supported settings remain",
-    "S07": "partial: software candidate verified in SQL/HTTPS/browser and Windows/Linux CI; streamed SSR snapshots, long-read deadline fencing, exact mapping preview and grant/revoke; no employee overwrite; actual model/SDK execution remains",
+    "S07": "partial software candidate verified in SQL/HTTPS/browser and Windows/Linux CI: streamed read-only SSR exact-string and separately explicitly approved legacy non-TFT Int32 user snapshots; immutable ReadFormat, installed-format match, typed IPC format fencing, stable count and serial checks, exact mapping preview and no employee overwrite. No fallback, no legacy write authorization and no real COM/model acceptance.",
     "S08": "partial: ordinary attendance-only software candidate verified in SQL/HTTPS/real browser and Windows/Linux CI: actual server preview and confirmed plan hash; per-person/device intents and partial outcomes; target conflict guard, transient existing-password preservation, exact retry, pending-only cancellation, unknown recovery and explicit fresh-snapshot review before selective retry. No templates/biometrics, admin or AccGroup/physical door writes. Real SDK/model round-trip acceptance remains.",
     "S09": "partial: software candidate verified in SQL/HTTPS/real browser and Windows/Linux CI. Serial-pinned isolated SSR all-log stream, exact typed tuples before explicit UTC interval filtering, immutable original payload and multiplicity receipts, retained invalid/unknown/outside-range quarantine, confirmed versioned page ingestion through existing raw/conflict core, repeated-download content-identity coalescence and explicit restart/partial recovery. No native physical event id or atomic snapshot proof; actual SDK/model/end-to-end hardware acceptance remains.",
     "S10": "partial: approved durable SSR polling, current creator grants, cursor/run, optional auto-ingestion, pause/resume/backoff and explicit bounded overlap verified in SQL/HTTPS/real browser and Windows/Linux CI. Late tuples inside the approved lookback enter existing immutable raw/dedup pipeline once; older late events remain unguaranteed. Incomplete reads cannot advance cursor. Authenticated supported-model vendor PUSH and actual SDK/model acceptance remain unimplemented/unverified.",
@@ -50,26 +53,26 @@
   "part3Complete": false,
   "runs": [
     {
-      "databaseId": 43290520893,
-      "headSha": "b1df7dd3b590dc038ee576b6044c682c8b8414c4",
+      "databaseId": 43295571681,
+      "headSha": "50087b92919dd0ce18ae258893c91bf41bcc0cd1",
       "status": "completed",
       "conclusion": "success",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43290520893"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43295571681"
     },
     {
-      "databaseId": 43290520920,
-      "headSha": "b1df7dd3b590dc038ee576b6044c682c8b8414c4",
+      "databaseId": 43295571689,
+      "headSha": "50087b92919dd0ce18ae258893c91bf41bcc0cd1",
       "status": "completed",
       "conclusion": "success",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43290520920"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43295571689"
     }
   ],
   "remainingSoftware": [
     "S10 authenticated supported-model vendor PUSH with cryptographic device authentication/replay/size-rate/congestion/recovery security contract. Polling is not PUSH.",
     "S06/S11 approved-model advanced setting write contracts and additional reads outside the six fixed observed GetDeviceInfo codes, separate sensitive grants and confirmed audited execution. Six raw nullable Int32 reads are implemented; units/ranges/model compatibility are not inferred. Existing gated native writes remain clock and ordinary attendance-only user exchange.",
     "S11 RemoteEnroll only after approved model contract and biometric consent/access/retention policy; no executable adapter enabled.",
-    "S07 non-TFT GetAllUserInfo read path is observed but not implemented; needed only if an actual target model requires it. No silent SSR fallback.",
-    "S11 approved model-specific restart/reset/delete attendance/user/admin operations and unknown-outcome recovery remain unimplemented; physical-door control stays excluded."
+    "S11 approved model-specific restart/reset/delete attendance/user/admin operations and unknown-outcome recovery remain unimplemented; physical-door control stays excluded.",
+    "S08 legacy/non-TFT user write adapter is not implemented; numeric legacy target snapshots cannot authorize the SSR-only mutation adapter. Add only with approved model contract and separate safety/unknown recovery."
   ],
   "realSdkExecuted": false,
   "windowsServiceInstalled": false,
@@ -94,5 +97,6 @@
   "healthEvidence": "s12-service-health-evidence.json",
   "overlapEvidence": "s10-overlap-evidence.json",
   "remainingWorkRegister": "remaining-work.fa.md",
-  "virtualDeviceLabEvidence": "virtual-device-lab-evidence.json"
+  "virtualDeviceLabEvidence": "virtual-device-lab-evidence.json",
+  "legacyUserReadEvidence": "s07-legacy-users-evidence.json"
 }

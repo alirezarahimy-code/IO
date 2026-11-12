@@ -78,9 +78,17 @@
       "contract": "Connected-only call z.StartEnrollEx(badgeNumber.ToString(),fingerIndex,1). IZKEM static signature StartEnrollEx(BStr UserID,Int32 FingerID,Int32 Flag), DispId 203.",
       "bodyObserved": true,
       "limit": "Biometric/sensitive operation; no new executor or arbitrary passthrough enabled. Model/firmware, supported finger indices, meaning of Flag, consent/access/retention policy and real hardware behavior remain unverified. Reference long badge normalization must not be copied into exact-identity IO APIs."
+    },
+    {
+      "type": "Personnel.ZK.ZKDevice",
+      "method": "WriteUserIDsToList non-TFT branch",
+      "contract": "GetAllUserInfo(machine, ref Int32 badge, ref BStr name, ref BStr password, ref Int32 privilege, ref bool enabled); DispId 47; GetStrCardNumber text. No numeric normalization of cards copied.",
+      "bodyObserved": true,
+      "limit": "Independent default-SSR explicit legacy-int32-v1 read candidate now implemented; no legacy write or arbitrary fallback. Int32 cannot recover original badge leading zeros; passwords never leave native memory. Actual model/firmware/SDK acceptance remains unverified.",
+      "interfaceMetadata": "IZKEM.GetAllUserInfo DispId 47 is signature metadata only, not a method body."
     }
   ],
-  "implementation": "Independent private STA COM bridge for serial probe, typed information/clock, SSR user and attendance reads, six fixed raw nullable Int32 advanced-setting reads and gated ordinary attendance-only user writes; no copied Personnel business/licensing logic, SetDeviceInfo, access group setter, door command, admin escalation, RemoteEnroll, biometric/template/photo/delete API or automatic SDK registration. Actual SDK/model acceptance remains.",
+  "implementation": "Independent private STA COM bridge for serial probe, typed information/clock, explicitly selected SSR string or legacy Int32 user reads and SSR attendance reads, six fixed raw nullable Int32 advanced-setting reads and gated ordinary attendance-only user writes; no copied Personnel business/licensing logic, SetDeviceInfo, access group setter, door command, admin escalation, RemoteEnroll, biometric/template/photo/delete API or automatic SDK registration. Actual SDK/model acceptance remains.",
   "hardwareVerified": false,
   "part3Complete": false
 }

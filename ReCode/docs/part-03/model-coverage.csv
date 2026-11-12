@@ -1,7 +1,7 @@
 family,profile,observed_contract,implementation,real_hardware_verified,limitation
 ZK network SDK,zk-standalone,Personnel.ZK.ZKDevice Connect and IZKEM,isolated serial probe and S06 information/clock candidate,false,Exact model and firmware not supplied; licensed matching Windows SDK required
 ZK SSR TFT,zk-standalone,ReadAllUserID SSR_GetAllUserInfo GetStrCardNumber,S07 streamed read-only candidate,false,AllowUserRead is installation approval not proof of compatibility; no atomic device snapshot
-ZK non-TFT,zk-standalone,GetAllUserInfo observed in reference,not implemented,false,Do not silently use SSR contract for non-TFT devices
+ZK non-TFT,zk-standalone,GetAllUserInfo Int32 observed in reference,S07 explicit legacy-int32-v1 read-only candidate,false,ReadFormat must match installed UserReadFormat; no fallback or restored leading zeros; no legacy writes; real model acceptance remains
 ZK PUSH,zk-push,Device controller metadata only,not implemented,false,Authenticated supported model protocol not yet verified
 Personnel five-column UTF-8,offline-file,Personnel.USBFiles.RecordReader observed layout,explicit file preview quarantine and raw-ingestion candidate,false,Not universal attlog; Gregorian/Persian and in/out codes explicit; no cross-file physical-event dedup guarantee
 ZK SSR attendance-only,zk-standalone,SSR_SetUserInfo and SetStrCardNumber observed without copying AccGroup branch,S08 confirmed ordinary-metadata candidate,false,AttendanceOnlyUserWriteApproved default false; no access-control terminals or admin edits; actual SDK round-trip not executed

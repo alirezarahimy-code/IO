@@ -110,3 +110,8 @@
 طبق تصمیم کاربر، تست نرم‌افزاری با دستگاه مجازی جلو رفت و تست دستگاه واقعی برای تیم باز ماند. کد `b1df7dd` با [Windows/Linux 43290520920](https://github.com/alirezarahimy-code/IO/actions/runs/43290520920) و [SQL/HTTPS/مرورگر 43290520893](https://github.com/alirezarahimy-code/IO/actions/runs/43290520893) **هر دو موفق**. ۱۹ بررسی TCP دو دستگاه stateful به ۶۱ بررسی مرزی موجود اضافه شد؛ ۶۶۷ integration موجود نیز سبز ماند. این ۱۹ بررسی از SQL/UI/worker عبور نمی‌کنند و private JSON هستند، نه پروتکل ZK یا اجرای COM.
 
 یک ایراد واقعی Windows کشف و رفع شد: پس از رد frame، `Task.WhenAll` منتظر childِ گیرکرده در pipe می‌ماند. انتظار اکنون fail-fast است؛ regression با ۸۱۹۲ frame اضافی و اجرای کنترلِ الگوی قبلی در Linux نیز آزموده شد. post-dispatch write همچنان unknown است؛ retry خودکار اضافه نشده است. [راهنما/سناریوها/تحویل آزمایشگاه واقعی](virtual-device-lab.fa.md)، [شاهد](virtual-device-lab-evidence.json). `hardwareVerified=false` و `part3Complete=false` پابرجاست.
+
+
+### ادامهٔ S07 — دریافت legacy non-TFT بدون fallback
+
+کد `50087b9` با SQL/HTTPS/مرورگر `43295571681` و Windows/Linux `43295571689` هر دو **success**؛ **۶۷۷ integration،۱۰ portable جدید قرارداد خواندن،۶۱ portable قبلی،۱۹ virtual،۳۸ migration و۶۰ جدول**. `ReadFormat` در فرم/API/SQL ثابت، claim و start frame صریح و UserReadFormat نصب منطبق است؛ legacy فقط Int32 غیرمنفی canonical دارد، صفر ابتدایی قابل بازیابی نیست و کارت تبدیل عددی نمی‌شود. snapshot هدف legacy و endpoint legacy هر دو از نوشتن SSR جلوگیری می‌کنند. [راهنما](s07-legacy-users.fa.md)، [شاهد](s07-legacy-users-evidence.json). شمارندهٔ ثابت و تست مجازی جای مدل/SDK واقعی نیست؛ بخش سوم هنوز کامل نشده است.
