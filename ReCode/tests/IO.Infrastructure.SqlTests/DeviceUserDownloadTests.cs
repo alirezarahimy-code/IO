@@ -63,6 +63,8 @@ internal static class DeviceUserDownloadTests
         check(await State(cancelled)=="cancelled"&&await Reject<DomainConflictException>(()=>Cancel(cancelled,cv)),"S07 pending cancellation retains immutable history and rejects stale replay");
         var a=Guid.NewGuid();var b=Guid.NewGuid();await Request(a);await Request(b,d2,v2);var claims=await Task.WhenAll(Claim(),Claim());
         check(claims.All(x=>x is not null)&&claims.Select(x=>x!.DeviceId).Distinct().Count()==2,"S07 independent service slots claim different devices without serializing hardware waits");foreach(var c in claims)await Complete(c!,"unsupported",0);
+        var longId=Guid.NewGuid();await Request(longId,seconds:600);var longClaim=await Claim()??throw new InvalidOperationException();clock.Advance(TimeSpan.FromMinutes(3));
+        check(await Claim()==null&&await State(longId)=="running","S07 a silent long read retains per-device exclusion beyond the old two-minute lease until its full child deadline and grace");await Complete(longClaim,"unsupported",0);
         var crashed=Guid.NewGuid();await Request(crashed);var cj=await Claim()??throw new InvalidOperationException();await Append(cj,0,new ZkUser("001","Before outage",null,0,true));clock.Advance(TimeSpan.FromMinutes(3));
         check(await Claim()==null&&await State(crashed)=="interrupted"&&await Reject<DomainConflictException>(()=>Complete(cj,"succeeded",1))&&await Query(db=>db.DeviceDownloadedUsers.CountAsync(x=>x.DownloadId==crashed))==1,"S07 restart recovery retains partial evidence without blind reread or accepting a late success");
         var changed=Guid.NewGuid();await Request(changed);await Use<DeviceRegistry,Guid>(s=>s.UpdateAsync(actor,d1,v,input with{Name="Changed metadata"}));v=await Version(d1);
