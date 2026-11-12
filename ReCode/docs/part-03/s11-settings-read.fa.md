@@ -54,3 +54,7 @@
 کد `12db64abb159fa122bee621afd5ecfff1662e28c`: SQL/HTTPS/مرورگر واقعی `43235930669` و Windows/Linux `43235930789` هر دو **success**؛ ۶۳۸ بررسی integration (۱۶ سرویس و ۴ HTTP اضافه‌شده)، ۴۷ Foundation، ۲۶ domain و ۶۱ portable. کاتالوگ ۱۱۲ حق، ۵۱ صفحه/مقاله، ۳۴ migration و ۵۹ جدول. [شاهد با جزئیات job/step](s11-settings-read-evidence.json).
 
 آزمون‌های افزوده استقلال حق انسانی/سرویس، تأیید و نسخه، replay دقیق، opt-in claim، عدم انسداد صف اطلاعات، revoke پیش از credential/complete، raw صفر/null/منفی و RegCard غیرBoolean، فیلد JSON ناقص/بیگانه، pin و سریال، recovery بدون replay و guard SQL/downgrade را پوشش می‌دهند. مرورگر واقعی درخواست را در SQL ثبت و پس از reload مشاهده و pending را با نسخه لغو کرد؛ DOM آفلاین پاسخ نامعلوم، تأیید، نمایش safe متن و پاک‌سازی revoke را سنجید. هیچ‌کدام شاهد اجرای واقعی COM/SDK نیستند.
+
+## افزودهٔ بعدی: نوشتن مستقل زمان بیکاری
+
+مرز «بدون نوشتن» این سند مربوط به executor خواندن است و همچنان برقرار است. صفحه اکنون مسیر **جداگانهٔ** [تنظیم محدود کد۴](s11-idle-minutes.fa.md) با مجوز مستقل، preview و approval دقیق مدل/firmware دارد؛ مجوز خواندن هیچ setter را فعال نمی‌کند. snapshot خواندنی Product/Firmware nullable را نیز می‌خواند؛ unavailable نمی‌تواند مدل مصوب بسازد.

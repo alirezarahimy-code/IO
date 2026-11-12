@@ -43,3 +43,7 @@
 4. **reset/حذف تردد/کاربر/مدیر:** دامنهٔ حذف و آثار template باید پیش‌نمایش، snapshot/backup، حقوق مستقل و unknown recovery داشته باشند؛ `RestartDevice` این عملیات را پیاده‌سازی یا مجاز نمی‌کند.
 
 `part3Complete=false`، `realSdkExecuted=false` و `hardwareVerified=false` باقی می‌مانند. نتایج آزمون این برش در evidence جدا ثبت می‌شوند؛ [شاهد این برش](s11-restart-evidence.json): CI ویندوز/لینوکس و SQL/HTTPS/مرورگر موفق؛ ۷۰۷ بررسی integration،۱۱ بررسی قرارداد/فرایند جدید،۱۷ SQL و۳ HTTPS جدید. دریافت مستقیم mirror راهنمای Security PUSH در این نوبت پاسخ 503 داد؛ جزئیات آن فقط از متن نمایه‌شده نقل شده‌اند، نه از دانلود کامل یا اجرای پروتکل.
+
+## نتیجهٔ پژوهش کد۴؛ زمان بیکاری نه تنظیم دلخواه
+
+[پژوهش و قرارداد محدود](s11-idle-minutes.fa.md): متن منطقه‌ای SDK برای GetDeviceInfo کد۴، دقیقه و standby یا power-off را مشخص می‌کند؛ راهنمای رسمی EFace10 تنها برای رابط همان مدل۱..۹۹۹دقیقه را دارد، نه اثبات نگاشت COM/سازگاری firmware. از این شواهد envelope برنامه، پیش‌فرض خاموش و approval دقیق مدل/مقدار ساخته شد؛ صفر/disabled و واحد کد۸ حدس زده نشد.۲۳ بررسی قرارداد/فرایند،۲۹ SQL و۳ HTTPS جدید موفق؛ [شاهد](s11-idle-minutes-evidence.json). سایر نوشتن‌ها، PUSH امن و RemoteEnroll باقی‌اند.

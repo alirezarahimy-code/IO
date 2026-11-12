@@ -133,3 +133,7 @@ UserWriteFormat پیش‌فرض ssr-v1 است. ارسال legacy به UserWriteF
 برای نمونهٔ شبکهٔ آزمایشیِ رزروشده، allowlist می‌تواند `["10.20.30.40", "10.20.30.41"]` باشد؛ این مثال مجوز استفاده از این آدرس‌ها در شبکهٔ سازمان نیست. service grantهای `devices.network.ip.execute` و `devices.network.read.execute` مستقل از هم و از `devices.operations.execute` هستند. انسان به `devices.network.ip.set` و برای inspection به `devices.network.read` نیاز دارد؛ هیچ قالب پیش‌فرض خودکار این حقوق را نمی‌گیرد.
 
 تغییر فقط IPv4 است؛ mask/gateway/DHCP/port تغییر نمی‌کنند. پیش از mutation، GetDeviceIP باید برابر مقصد قدیم باشد. زمان‌بندی‌ها باید pause و unknown ارسال کاربران تعیین تکلیف شده باشند. هر دو مقصد و مسیر بازیابی محلی باید توسط تیم شبکه تأیید شوند. پس از فراخوانی SetDeviceIP حتی ACK true، unknown ثبت می‌شود؛ خواندن تازهٔ مقصد قدیم/جدید و بازبینی صریح لازم است. وب Host یا pin نصب را خودکار عوض نمی‌کند؛ هماهنگی آنها بعد از بازبینی با مجوز و نسخهٔ تازه جداست.
+
+## زمان بیکاری کد۴؛ approval دقیق و پیش‌فرض خاموش
+
+[ساختار نصب، مجوزها، اثر خواب/خاموشی و بازیابی](s11-idle-minutes.fa.md). ارتقای هماهنگ وب/worker/bridge و migration۴۱ لازم است؛ `AllowIdleMinutesWrite=false` پیش‌فرض و `IdleMinutesApproval` دقیق محصول/firmware، allowlist مقادیر، مرجع و `Effect=standby-or-power-off` اجباری است. علاوه بر اجرای عمومی، `devices.settings.idle.execute` مستقل لازم است؛ خواندن برای بازیابی حق جدا دارد. این تنظیم نه RemoteEnroll است نه اجازهٔ کنترل درب. flag تنها پس از شاهد معتبر همان مدل/firmware فعال شود.

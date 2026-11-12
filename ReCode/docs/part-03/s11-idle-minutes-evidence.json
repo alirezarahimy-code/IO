@@ -1,0 +1,448 @@
+{
+  "slice": "S11 exact-model code4 idle minutes write and unknown review",
+  "codeCommit": "9fff2cf32539e6f5028432976dc6183fdedc1bc7",
+  "ci": {
+    "platform": {
+      "conclusion": "success",
+      "databaseId": 43311610211,
+      "headSha": "9fff2cf32539e6f5028432976dc6183fdedc1bc7",
+      "jobs": [
+        {
+          "completedAt": "2026-11-12T21:36:08Z",
+          "conclusion": "success",
+          "databaseId": 131508833420,
+          "name": "platform (windows-2022)",
+          "startedAt": "2026-11-12T21:35:07Z",
+          "status": "completed",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "number": 2,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "number": 3,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Build, catalogue checks and portable publish",
+              "number": 4,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "number": 7,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "number": 8,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 9,
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43311610211/job/131508833420"
+        },
+        {
+          "completedAt": "2026-11-12T21:36:08Z",
+          "conclusion": "success",
+          "databaseId": 131508833774,
+          "name": "platform (ubuntu-24.04)",
+          "startedAt": "2026-11-12T21:34:50Z",
+          "status": "completed",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "number": 2,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "number": 3,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Build, catalogue checks and portable publish",
+              "number": 4,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "number": 7,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "number": 8,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 9,
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43311610211/job/131508833774"
+        }
+      ],
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43311610211"
+    },
+    "sql": {
+      "conclusion": "success",
+      "databaseId": 43311610215,
+      "headSha": "9fff2cf32539e6f5028432976dc6183fdedc1bc7",
+      "jobs": [
+        {
+          "completedAt": "2026-11-12T21:40:14Z",
+          "conclusion": "success",
+          "databaseId": 131508833722,
+          "name": "verify",
+          "startedAt": "2026-11-12T21:34:41Z",
+          "status": "completed",
+          "steps": [
+            {
+              "conclusion": "success",
+              "name": "Set up job",
+              "number": 1,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "number": 2,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "number": 3,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Build and run domain checks",
+              "number": 4,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Test isolated native process boundary without hardware",
+              "number": 5,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Test stateful TCP virtual devices (not vendor protocol or SDK acceptance)",
+              "number": 6,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Test explicit SSR and legacy user read contracts",
+              "number": 7,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Test legacy user-write contracts and two stateful TCP endpoints",
+              "number": 8,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Test explicit restart contract and native isolation",
+              "number": 9,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Test approved IP transition contracts and recovery isolation",
+              "number": 10,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Test exact-model idle minutes and native isolation",
+              "number": 11,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Verify foundation catalogue and role-filtered help",
+              "number": 12,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned identity migration",
+              "number": 13,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned foundation migration",
+              "number": 14,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned scheduling migration",
+              "number": 15,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned employment migration",
+              "number": 16,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned attendance processing migration",
+              "number": 17,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned calculation migration",
+              "number": 18,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned correction migration",
+              "number": 19,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned period draft migration",
+              "number": 20,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned conflict notes migration",
+              "number": 21,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned mapping change migration",
+              "number": 22,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned calculation revision migration",
+              "number": 23,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned period diagnostics migration",
+              "number": 24,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned revision health migration",
+              "number": 25,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned leave ledger migration",
+              "number": 26,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned delegation registry migration",
+              "number": 27,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned correction settings migration",
+              "number": 28,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned correction limits migration",
+              "number": 29,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require versioned correction settings evidence migration",
+              "number": 30,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Require delegated correction evidence migration",
+              "number": 31,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Validate capability audit inventory",
+              "number": 32,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Generate migration scripts offline",
+              "number": 33,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Prepare browser test dependencies",
+              "number": 34,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Verify page-first preview in browser",
+              "number": 35,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Test offline workflow DOM contracts",
+              "number": 36,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Test isolated SQL Server Developer",
+              "number": 37,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "number": 73,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "number": 74,
+              "status": "completed"
+            },
+            {
+              "conclusion": "success",
+              "name": "Complete job",
+              "number": 75,
+              "status": "completed"
+            }
+          ],
+          "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43311610215/job/131508833722"
+        }
+      ],
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43311610215"
+    }
+  },
+  "checks": {
+    "integrationPassLines": 768,
+    "idleSqlChecks": 29,
+    "idleHttpChecks": 3,
+    "portableIdleContractChecks": 23,
+    "permissions": 122,
+    "pagesAndHelp": 52,
+    "foundationMigrations": 41,
+    "foundationTables": 60,
+    "foundation": 48,
+    "domain": 26,
+    "portableNativeBoundaryAndFileParser": 61,
+    "portableNetworkChecks": 16,
+    "portableRestartChecks": 11
+  },
+  "contract": {
+    "kind": "settings.idle.set",
+    "version": "zk-idle-minutes-v1",
+    "previewConfirmation": "SET-IDLE-MINUTES-MAY-POWER-OFF",
+    "reviewConfirmation": "REVIEWED-IDLE-MINUTES",
+    "readGrant": "devices.settings.read",
+    "humanGrant": "devices.settings.idle.set",
+    "executionGrant": "devices.settings.idle.execute",
+    "generalServiceGrantAlsoRequired": "devices.operations.execute",
+    "defaultRoleAutoGrant": false,
+    "installedWriteFlagDefault": false,
+    "approval": [
+      "exact Product",
+      "exact Firmware",
+      "explicit ApprovedMinutes[] maximum 64 unique values",
+      "exact EvidenceReference",
+      "Effect standby-or-power-off"
+    ],
+    "code": 4,
+    "unit": "minutes",
+    "applicationEnvelope": [
+      1,
+      999
+    ],
+    "zeroDisabledEncodingSupported": false,
+    "sourceSnapshotMaxAgeSecondsAtRequest": 300,
+    "queueExpirySeconds": 120,
+    "maxWriteCalls": 1,
+    "refreshDisableRestartFallbackOrBlindRetry": false,
+    "trueAckAloneIsSuccess": false,
+    "postDispatchFalseExceptionTimeoutOrMismatch": "unknown",
+    "successRequiresExactTypedReadback": true,
+    "unknownReview": "later settings.read same version zone serial product firmware with exactly old OR new minutes; preserve unknown"
+  },
+  "sources": [
+    {
+      "url": "https://desarrollo.zktecolatinoamerica.com/sdk/get_device_info",
+      "evidence": "indexed regional SDK text says code4 idle duration in minutes, standby or power-off; direct fetch unsuccessful",
+      "provesAllFirmwareCompatibility": false
+    },
+    {
+      "url": "https://zkteco.eu/wp-content/uploads/downloads/legacy/eface10/eface10%C2%A0user%C2%A0manual-v1.0-20220120.pdf",
+      "evidence": "official EFace10 manual Jan2022 v1.0, indexed Idle Time to Sleep disabled or 1..999 minutes",
+      "provesComMappingOrAllModelRange": false
+    },
+    {
+      "file": "zk-reference-contract.json",
+      "evidence": "read-only decompiled binary setter code4 and IZKEM metadata; not original source"
+    }
+  ],
+  "documentation": "s11-idle-minutes.fa.md",
+  "realSdkExecuted": false,
+  "hardwareVerified": false,
+  "part3Complete": false
+}
