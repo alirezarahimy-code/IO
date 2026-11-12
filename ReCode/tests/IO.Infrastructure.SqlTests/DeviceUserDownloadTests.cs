@@ -73,6 +73,7 @@ internal static class DeviceUserDownloadTests
         check(await Reject<UnauthorizedAccessException>(()=>Use<DeviceUserDownloads,object>(s=>s.PreviewAsync(reader,id,0))),"S07 read revocation removes retained personal data access immediately");
         bool rowGuard=false,downGuard=false;try{await Query(db=>db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.DeviceDownloadedUsers SET Name=N'changed' WHERE DownloadId={id}"));}catch(SqlException e)when(e.Number==51018){rowGuard=true;}
         try{await Query(async db=>{await db.GetService<IMigrator>().MigrateAsync("20261112040000_DeviceOperations");return true;});}catch(SqlException e)when(e.Number==51018){downGuard=true;}
+        await Query(async db=>{await db.GetService<IMigrator>().MigrateAsync();return true;});
         check(rowGuard&&downGuard&&await State(id)=="succeeded","S07 database row immutability and guarded downgrade preserve complete and incomplete snapshot evidence");
         await Query(db=>db.RolePermissions.Where(x=>x.RoleId==serviceRole).ExecuteDeleteAsync());check(await Reject<UnauthorizedAccessException>(()=>Claim()),"S07 service execution revocation is enforced independently of human read grants");
     }

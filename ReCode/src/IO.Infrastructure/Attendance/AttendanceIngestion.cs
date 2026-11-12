@@ -40,8 +40,13 @@ public sealed class AttendanceIngestion(IoDbContext db, PermissionTransaction tr
     // retained separately without altering the original immutable event.
     public Task<Receipt> AppendAsync(Guid actor, Guid sourceId, string? externalId, string? personId,
         DateTimeOffset? occurredAt, string? sourceZone, string? eventType, byte[] payload, CancellationToken ct = default) =>
-        transaction.ExecuteAsync(actor, Manage, "attendance.received", async token =>
-        {
+        transaction.ExecuteAsync(actor, Manage, "attendance.received", token => AppendInTransactionAsync(sourceId,externalId,personId,occurredAt,sourceZone,eventType,payload,token),ct);
+
+    // Internal composition only: caller must already hold the PermissionTransaction
+    // and separately verify attendance.events.receive (or its legacy bundle).
+    internal async Task<(Receipt Result,Guid Target)> AppendInTransactionAsync(Guid sourceId,string? externalId,string? personId,
+        DateTimeOffset? occurredAt,string? sourceZone,string? eventType,byte[] payload,CancellationToken token)
+    {
             if (sourceId == Guid.Empty || payload is null || payload.Length > 1024 * 1024 ||
                 (externalId is not null && (string.IsNullOrWhiteSpace(externalId) || externalId.Length > 180)) ||
                 personId?.Length > 100 || sourceZone?.Length > 100 || eventType?.Length > 80)
@@ -78,7 +83,7 @@ public sealed class AttendanceIngestion(IoDbContext db, PermissionTransaction tr
                 SourceTimeZoneId = sourceZone, ReportedEventType = eventType, SourcePayload = payload.ToArray() });
             var added = new Receipt(id, externalId is null ? RawEventAppendResult.IdentityRequiresReview : RawEventAppendResult.Appended);
             return (added, id);
-        }, ct);
+    }
 
     public Task<Guid> AddMappingAsync(Guid actor, Guid sourceId, string sourcePersonId, Guid employeeId,
         DateTimeOffset fromUtc, DateTimeOffset? untilUtcExclusive, CancellationToken ct = default) =>

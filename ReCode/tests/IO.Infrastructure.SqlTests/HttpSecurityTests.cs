@@ -293,7 +293,7 @@ internal static class HttpSecurityTests
             (await PostAdmin(adminClient, "/admin/user-roles", new { UserId = self, RoleId = operatorTemplate.Id })).EnsureSuccessStatusCode();
             using var operatorCaps = JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities"));
             check(operatorCaps.RootElement.GetProperty("operator").GetBoolean() &&
-                  operatorCaps.RootElement.GetProperty("permissions").EnumerateArray().Where(x => x.GetString()!.StartsWith("devices.", StringComparison.Ordinal)).Select(x => x.GetString()).OrderBy(x=>x,StringComparer.Ordinal).SequenceEqual(new[] { "devices.connection.read", "devices.groups.read", "devices.info.read", "devices.read", "devices.users.read" }),
+                  operatorCaps.RootElement.GetProperty("permissions").EnumerateArray().Where(x => x.GetString()!.StartsWith("devices.", StringComparison.Ordinal)).Select(x => x.GetString()).OrderBy(x=>x,StringComparer.Ordinal).SequenceEqual(new[] { "devices.connection.read", "devices.files.read", "devices.groups.read", "devices.info.read", "devices.read", "devices.users.read" }),
                   "HTTP operator shell identifies role without granting unimplemented device operations");
             (await PostAdmin(adminClient, "/admin/user-roles/revoke", new { UserId = self, RoleId = operatorTemplate.Id })).EnsureSuccessStatusCode();
             var featureRole = await CreateId("/admin/roles", new { Name = "phase five six test role" });
@@ -473,6 +473,32 @@ internal static class HttpSecurityTests
                       (await own.GetAsync("/help/topic/device-users")).StatusCode==HttpStatusCode.Forbidden&&
                       !downloadCaps.RootElement.GetProperty("pages").EnumerateArray().Any(x=>x.GetProperty("route").GetString()=="/workspace/device-users"),
                       "HTTP S07 grant revocation removes data help menu and request replay on the existing session");
+            var fileId=Guid.NewGuid();var filePayload=new IO.Infrastructure.Devices.DeviceFileImports.Input(fileId,s06Device,s06Version,"gregorian",1,4,5,Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("009	2026-11-08 08:00:00	1	4	1")));
+            check((await anon.GetAsync("/device-file-imports")).StatusCode==HttpStatusCode.Unauthorized&&
+                  (await own.GetAsync("/device-file-imports")).StatusCode==HttpStatusCode.Forbidden&&
+                  (await own.PostAsJsonAsync("/device-file-imports",filePayload)).StatusCode==HttpStatusCode.BadRequest,
+                  "HTTP S12 file import endpoints require authentication independent grants and CSRF");
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.files.preview"})).EnsureSuccessStatusCode();
+            check((await PostAdmin(own,"/device-file-imports",filePayload)).StatusCode==HttpStatusCode.OK&&
+                  (await PostAdmin(own,"/device-file-imports",filePayload)).StatusCode==HttpStatusCode.OK&&
+                  (await own.GetAsync("/device-file-imports/"+fileId+"/original")).StatusCode==HttpStatusCode.Forbidden&&
+                  (await own.GetAsync("/device-file-imports/"+fileId+"/rows")).StatusCode==HttpStatusCode.Forbidden,
+                  "HTTP S12 preview grant supports exact retry without granting original file or retained row reads");
+            (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.files.read"})).EnsureSuccessStatusCode();
+            byte[] fileVersion;using(var fileRows=JsonDocument.Parse(await own.GetStringAsync("/device-file-imports/"+fileId+"/rows")))fileVersion=fileRows.RootElement.GetProperty("version").GetBytesFromBase64();
+            check((await own.GetAsync("/help/topic/device-files")).StatusCode==HttpStatusCode.OK&&
+                  (await own.GetAsync("/device-file-imports/"+fileId+"/original")).StatusCode==HttpStatusCode.OK&&
+                  (await PostAdmin(own,"/device-file-imports/"+fileId+"/commit-page",new{ExpectedVersion=fileVersion,After=0,Confirmation="IMPORT-READY-ROWS"})).StatusCode==HttpStatusCode.Forbidden,
+                  "HTTP S12 read and help expose the real retained file without granting commit authority");
+            foreach(var code in new[]{"devices.files.read","devices.files.preview"})
+                (await PostAdmin(adminClient,"/admin/role-permissions/revoke",new{RoleId=deviceRole,Code=code})).EnsureSuccessStatusCode();
+            using(var fileCaps=JsonDocument.Parse(await own.GetStringAsync("/workspace/capabilities")))
+                check((await own.GetAsync("/device-file-imports/"+fileId+"/original")).StatusCode==HttpStatusCode.Forbidden&&
+                      (await own.GetAsync("/device-file-imports/"+fileId+"/rows")).StatusCode==HttpStatusCode.Forbidden&&
+                      (await own.GetAsync("/help/topic/device-files")).StatusCode==HttpStatusCode.Forbidden&&
+                      (await PostAdmin(own,"/device-file-imports",filePayload)).StatusCode==HttpStatusCode.Forbidden&&
+                      !fileCaps.RootElement.GetProperty("pages").EnumerateArray().Any(x=>x.GetProperty("route").GetString()=="/workspace/device-files"),
+                      "HTTP S12 revocation removes original bytes parsed data help menu and preview retries on the existing session");
             var infoOperation=Guid.NewGuid();
             var infoPayload=new{OperationId=infoOperation,DeviceId=s06Device,ExpectedDeviceVersion=s06Version,Kind="information.read",TimeoutSeconds=5,TargetUtc=(DateTimeOffset?)null,Confirmation=(string?)null};
             check((await anon.GetAsync("/device-operations")).StatusCode==HttpStatusCode.Unauthorized&&

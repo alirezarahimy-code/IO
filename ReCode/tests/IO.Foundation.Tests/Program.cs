@@ -24,16 +24,16 @@ Check(PermissionCatalog.Resolve("identity.manage", "permission-revoke.123").Perm
 Check(PermissionCatalog.Resolve("correction.submit.self", "correction.request.created").Permission == "correction.create.self" && !PermissionCatalog.Templates.Single(t => t.Key == "employee").Permissions.Contains("correction.submit.self"), "new employee template uses independent create instead of legacy submission bundle");
 Check(PermissionCatalog.Templates.Count == 5 && PermissionCatalog.Templates.Select(t => t.Id).Distinct().Count() == 5, "five stable role templates");
 Check(PermissionCatalog.Templates.All(t => t.Permissions.All(PermissionCatalog.Codes.Contains)), "templates grant only implemented catalogue permissions");
-Check(PermissionCatalog.Templates.Single(t => t.Key == "operator").Permissions.SequenceEqual(new[] { "devices.users.read", "devices.info.read", "devices.connection.read", "devices.read", "devices.groups.read" }), "device operator grants only implemented registry read without hardware command rights");
+Check(PermissionCatalog.Templates.Single(t => t.Key == "operator").Permissions.SequenceEqual(new[] { "devices.files.read", "devices.users.read", "devices.info.read", "devices.connection.read", "devices.read", "devices.groups.read" }), "device operator grants only implemented registry read without hardware command rights");
 Check(PermissionCatalog.Templates.Single(t => t.Key == "executive").Permissions.SequenceEqual(new[] { "executive.dashboard.read" }), "executive role has no administrator grant");
-Check(WorkspaceCatalog.Pages.Count == 45 && WorkspaceCatalog.Pages.Select(p => p.Route).Distinct().Count() == 45, "existing pages, help and reversal catalogue");
+Check(WorkspaceCatalog.Pages.Count == 46 && WorkspaceCatalog.Pages.Select(p => p.Route).Distinct().Count() == 46, "existing pages, help and reversal catalogue");
 Check(WorkspaceCatalog.Pages.All(p => p.AnyPermissions.All(PermissionCatalog.Codes.Contains)), "every page permission exists");
 var executive = new HashSet<string>(new[] { "executive.dashboard.read" }, StringComparer.Ordinal);
 Check(WorkspaceCatalog.Pages.Where(p => WorkspaceCatalog.CanView(p, executive) && p.Group != "common").Select(p => p.Route).SequenceEqual(new[] { "/workspace/executive-home" }), "executive exact menu excludes administration and team pages");
 var empty = new HashSet<string>(StringComparer.Ordinal);
 Check(!WorkspaceCatalog.CanView(WorkspaceCatalog.Pages.Single(p => p.Route == "/workspace/roles"), empty), "no-role account has no role administration menu");
 var articles = SystemHelp.Parse(Resource("HelpContent.json"));
-Check(articles.Count == 45 && articles.Select(a => a.Slug).Distinct().Count() == 45, "help has 45 unique articles");
+Check(articles.Count == 46 && articles.Select(a => a.Slug).Distinct().Count() == 46, "help has 46 unique articles");
 Check(WorkspaceCatalog.Pages.All(p => articles.Any(a => a.Route == p.Route)), "every existing route has context help");
 Check(articles.All(a => a.Steps.Length >= 3 && a.Errors.Length > 0 && a.Example.Length > 10 && a.Limitations.Length > 0), "articles include workflow example errors and limitations");
 Check(articles.Where(a => SystemHelp.CanRead(a, false, empty)).Select(a => a.Route).SequenceEqual(new[] { "/login" }), "anonymous help contains only login article");
@@ -57,4 +57,5 @@ Check(!Resource("device-connection.js").Contains("innerHTML", StringComparison.O
 Check(new[]{"devices.info.read","devices.clock.set","devices.operations.execute"}.All(PermissionCatalog.Codes.Contains), "S06 read clock and service execution permissions are independent");
 Check(!Resource("device-information.js").Contains("innerHTML",StringComparison.Ordinal)&&Resource("DeviceInformation.html").Contains("resolve-form",StringComparison.Ordinal), "S06 typed snapshots render safe text and unknown clock results require explicit review");
 Check(new[]{"devices.users.read","devices.users.download","devices.users.execute"}.All(PermissionCatalog.Codes.Contains)&&!Resource("device-users.js").Contains("innerHTML",StringComparison.Ordinal), "S07 separate grants and safe personal snapshot rendering are catalogued");
+Check(new[]{"devices.files.read","devices.files.preview","devices.files.commit"}.All(PermissionCatalog.Codes.Contains)&&!Resource("device-files.js").Contains("innerHTML",StringComparison.Ordinal)&&Resource("DeviceFiles.html").Contains("commit-form",StringComparison.Ordinal), "S12 file read preview and confirmed commit permissions and safe database UI are separate");
 Console.WriteLine($"PASS {count} foundation catalogue and offline-help checks on {System.Runtime.InteropServices.RuntimeInformation.OSDescription}");

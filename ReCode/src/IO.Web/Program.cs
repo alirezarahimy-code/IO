@@ -188,6 +188,8 @@ public static class IoWebHost
                 permissions = page.AnyPermissions });
         }).AllowAnonymous();
         app.MapGet("/workspace/account", () => Results.Content(Resource("IO.Web.Ui.Account.html"), "text/html; charset=utf-8"));
+        app.MapGet("/workspace/device-files", () => Results.Content(Resource("IO.Web.Ui.DeviceFiles.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/device-files.js", () => Results.Content(Resource("IO.Web.Ui.device-files.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-users", () => Results.Content(Resource("IO.Web.Ui.DeviceUsers.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/device-users.js", () => Results.Content(Resource("IO.Web.Ui.device-users.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-information", () => Results.Content(Resource("IO.Web.Ui.DeviceInformation.html"), "text/html; charset=utf-8"));
@@ -380,6 +382,11 @@ public static class IoWebHost
             Admin(c,csrf,actor => service.AssignAsync(actor,input.OperationId,input.DelegateUserId,input.ValidFrom,input.ValidUntilExclusive,c.RequestAborted)));
         app.MapPost("/delegations/{id:guid}/revoke", (Guid id,DelegationRevokeInput input,HttpContext c,IAntiforgery csrf,DelegationRegistry service) =>
             Admin(c,csrf,actor => service.RevokeAsync(actor,id,input.Reason,c.RequestAborted)));
+        app.MapGet("/device-file-imports", (HttpContext c,DeviceFileImports service,Guid? deviceId,int offset=0)=>AdminRead(c,actor=>service.ListAsync(actor,deviceId,offset,c.RequestAborted)));
+        app.MapGet("/device-file-imports/{id:guid}/rows", (Guid id,HttpContext c,DeviceFileImports service,int after=0)=>AdminRead(c,actor=>service.RowsAsync(actor,id,after,c.RequestAborted)));
+        app.MapGet("/device-file-imports/{id:guid}/original", (Guid id,HttpContext c,DeviceFileImports service)=>AdminRead(c,actor=>service.OriginalAsync(actor,id,c.RequestAborted)));
+        app.MapPost("/device-file-imports", (DeviceFileImports.Input input,HttpContext c,IAntiforgery csrf,DeviceFileImports service)=>Admin(c,csrf,actor=>service.CreateAsync(actor,input,c.RequestAborted)));
+        app.MapPost("/device-file-imports/{id:guid}/commit-page", (Guid id,DeviceFileCommit input,HttpContext c,IAntiforgery csrf,DeviceFileImports service)=>Admin(c,csrf,actor=>service.CommitPageAsync(actor,id,input.ExpectedVersion,input.After,input.Confirmation,c.RequestAborted)));
         app.MapGet("/device-user-downloads", (HttpContext c,DeviceUserDownloads service,Guid? deviceId,int offset=0)=>AdminRead(c,actor=>service.ListAsync(actor,deviceId,offset,c.RequestAborted)));
         app.MapGet("/device-user-downloads/{id:guid}/preview", (Guid id,HttpContext c,DeviceUserDownloads service,long after=0)=>AdminRead(c,actor=>service.PreviewAsync(actor,id,after,c.RequestAborted)));
         app.MapPost("/device-user-downloads", (DeviceConnectionInput input,HttpContext c,IAntiforgery csrf,DeviceUserDownloads service)=>Admin(c,csrf,actor=>service.RequestAsync(actor,input.OperationId,input.DeviceId,input.ExpectedDeviceVersion,input.TimeoutSeconds,c.RequestAborted)));
@@ -763,3 +770,5 @@ public sealed record DeviceConnectionCancel(byte[] ExpectedVersion);
 public sealed record DeviceOperationInput(Guid OperationId,Guid DeviceId,byte[] ExpectedDeviceVersion,string Kind,int TimeoutSeconds,DateTimeOffset? TargetUtc,string? Confirmation);
 public sealed record DeviceOperationVersion(byte[] ExpectedVersion);
 public sealed record DeviceClockResolution(byte[] ExpectedVersion,Guid InformationId,string Confirmation);
+
+public sealed record DeviceFileCommit(byte[] ExpectedVersion,int After,string Confirmation);

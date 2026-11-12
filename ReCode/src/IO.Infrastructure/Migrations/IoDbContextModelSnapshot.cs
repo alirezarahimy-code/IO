@@ -21,6 +21,69 @@ namespace IO.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+        modelBuilder.Entity<DeviceFileImportRecord>(b =>
+        {
+            b.ToTable("DeviceFileImports",t=>
+            {
+                t.HasTrigger("TR_DeviceFileImports_History");t.UseSqlOutputClause(false);
+                t.HasCheckConstraint("CK_DeviceFileImports_File","DATALENGTH([OriginalFile]) BETWEEN 1 AND 1048576 AND DATALENGTH([ExpectedDeviceVersion])=8 AND LEN([FileHash])=64 AND [LineCount] BETWEEN 1 AND 10000");
+                t.HasCheckConstraint("CK_DeviceFileImports_Interpretation","[Calendar] COLLATE Latin1_General_100_BIN2 IN(N'gregorian',N'persian') AND [MachineNumber]>0 AND [InCode] BETWEEN 0 AND 255 AND [OutCode] BETWEEN 0 AND 255 AND [InCode]<>[OutCode]");
+                t.HasCheckConstraint("CK_DeviceFileImports_Utc","DATEPART(TZOFFSET,[CreatedAtUtc])=0 AND DATEPART(TZOFFSET,[LastReviewedAtUtc])=0 AND ([LastReviewedAtUtc] IS NULL OR [LastReviewedAtUtc]>=[CreatedAtUtc])");
+            });
+            b.HasKey(x=>x.Id);b.Property(x=>x.Id).ValueGeneratedNever();
+            b.Property(x=>x.Id).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.DeviceId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.SourceId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.SiteId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.CompanyId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.CreatedByUserId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.CreatedAtUtc).HasColumnType("datetimeoffset");
+            b.Property(x=>x.ExpectedDeviceVersion).HasMaxLength(8).IsRequired().HasColumnType("varbinary(8)");
+            b.Property(x=>x.OriginalFile).IsRequired().HasColumnType("varbinary(max)");
+            b.Property(x=>x.FileHash).HasMaxLength(64).IsRequired().HasColumnType("nvarchar(64)");
+            b.Property(x=>x.Calendar).HasMaxLength(16).IsRequired().HasColumnType("nvarchar(16)");
+            b.Property(x=>x.TimeZoneId).HasMaxLength(100).IsRequired().HasColumnType("nvarchar(100)");
+            b.Property(x=>x.MachineNumber).HasColumnType("int");
+            b.Property(x=>x.InCode).HasColumnType("int");
+            b.Property(x=>x.OutCode).HasColumnType("int");
+            b.Property(x=>x.LineCount).HasColumnType("int");
+            b.Property(x=>x.LastReviewedAtUtc).HasColumnType("datetimeoffset");
+            b.Property(x=>x.Version).IsRowVersion().IsRequired().HasColumnType("rowversion");
+            b.HasIndex(x=>new{x.DeviceId,x.FileHash}).IsUnique();
+            b.HasIndex(x=>x.DeviceId);
+            b.HasOne<DeviceRecord>().WithMany().HasForeignKey(x=>x.DeviceId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.SourceId);
+            b.HasOne<EventSourceRecord>().WithMany().HasForeignKey(x=>x.SourceId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.SiteId);
+            b.HasOne<SiteRecord>().WithMany().HasForeignKey(x=>x.SiteId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.CompanyId);
+            b.HasOne<CompanyRecord>().WithMany().HasForeignKey(x=>x.CompanyId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.CreatedByUserId);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.CreatedByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
+        modelBuilder.Entity<DeviceFileImportLineRecord>(b =>
+        {
+            b.ToTable("DeviceFileImportLines",t=>
+            {
+                t.HasTrigger("TR_DeviceFileImportLines_History");t.UseSqlOutputClause(false);
+                t.HasCheckConstraint("CK_DeviceFileImportLines_Receipt","[LineNumber] BETWEEN 1 AND 10000 AND LEN([Status])>0 AND DATEPART(TZOFFSET,[ReviewedAtUtc])=0 AND ([ConflictId] IS NULL OR [RawEventId] IS NOT NULL) AND (([Status] IN(N'imported',N'already-recorded') AND [RawEventId] IS NOT NULL AND [ConflictId] IS NULL) OR ([Status]=N'ingestion-conflict' AND [RawEventId] IS NOT NULL AND [ConflictId] IS NOT NULL) OR ([Status] NOT IN(N'imported',N'already-recorded',N'ingestion-conflict') AND [RawEventId] IS NULL AND [ConflictId] IS NULL))");
+            });
+            b.HasKey(x=>new{x.ImportId,x.LineNumber});b.Property(x=>x.LineNumber).ValueGeneratedNever();
+            b.Property(x=>x.ImportId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.LineNumber).HasColumnType("int");
+            b.Property(x=>x.Status).HasMaxLength(64).IsRequired().HasColumnType("nvarchar(64)");
+            b.Property(x=>x.RawEventId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.ConflictId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.ReviewedByUserId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.ReviewedAtUtc).HasColumnType("datetimeoffset");
+            b.HasOne<DeviceFileImportRecord>().WithMany().HasForeignKey(x=>x.ImportId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.RawEventId);
+            b.HasOne<RawAttendanceEventRecord>().WithMany().HasForeignKey(x=>x.RawEventId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.ConflictId);
+            b.HasOne<RawEventConflictRecord>().WithMany().HasForeignKey(x=>x.ConflictId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.ReviewedByUserId);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.ReviewedByUserId).OnDelete(DeleteBehavior.Restrict);
+        });
         modelBuilder.Entity<DeviceUserDownloadRecord>(b =>
         {
             b.ToTable("DeviceUserDownloads",t=>

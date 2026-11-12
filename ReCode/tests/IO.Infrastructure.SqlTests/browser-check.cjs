@@ -443,7 +443,7 @@ async function main() {
       await waitText('result');
       return JSON.parse(await page.locator('#result').textContent()).result;
     }
-    for (const code of ['devices.users.read', 'devices.users.download', 'devices.info.read', 'devices.clock.set', 'devices.connection.read', 'devices.connection.test', 'devices.groups.read', 'devices.groups.manage', 'devices.groups.assign', 'devices.read', 'devices.create', 'devices.update', 'devices.credentials.manage', 'organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.read.team', 'attendance.read.all', 'executive.dashboard.read', 'leave.manage', 'settings.correction.manage', 'attendance.calculate', 'correction.configure', 'correction.reverse', 'correction.decide', 'correction.decide.all', 'period.preflight', 'period.draft.manage', 'period.diagnostic.manage']) {
+    for (const code of ['devices.files.read', 'devices.files.preview', 'devices.files.commit', 'devices.users.read', 'devices.users.download', 'devices.info.read', 'devices.clock.set', 'devices.connection.read', 'devices.connection.test', 'devices.groups.read', 'devices.groups.manage', 'devices.groups.assign', 'devices.read', 'devices.create', 'devices.update', 'devices.credentials.manage', 'organization.manage', 'schedule.manage', 'schedule.read.all', 'attendance.ingest', 'attendance.read.team', 'attendance.read.all', 'executive.dashboard.read', 'leave.manage', 'settings.correction.manage', 'attendance.calculate', 'correction.configure', 'correction.reverse', 'correction.decide', 'correction.decide.all', 'period.preflight', 'period.draft.manage', 'period.diagnostic.manage']) {
       await page.locator('#permission input[name=roleId]').fill(role);
       await page.locator('#permission select[name=code]').selectOption(code);
       await submit('permission');
@@ -679,6 +679,17 @@ async function main() {
     await s07UsersJob.locator('button').filter({hasText:'پیش‌نمایش'}).click();await s07UsersPage.waitForFunction(()=>document.getElementById('snapshot').textContent.includes('تعداد 0'));
     s07UsersPage.on('dialog',d=>d.accept());await s07UsersJob.locator('button').filter({hasText:'لغو'}).click();await s07UsersJob.filter({hasText:'پیش از اجرا لغو شد'}).waitFor();
     await s07UsersPage.reload();await s07UsersJob.filter({hasText:'پیش از اجرا لغو شد'}).waitFor();await s07UsersPage.close();
+    const filePage=await context.newPage();
+    await filePage.goto(address+await deviceRow.locator('a[href^="/workspace/device-files?"]').getAttribute('href'));
+    await filePage.waitForFunction(()=>!document.querySelector('#file-form button').disabled&&!document.getElementById('file-form').hidden);
+    const fileOperation=await filePage.locator('#file-form input[name=operationId]').inputValue();
+    await filePage.locator('#file-form select[name=calendar]').selectOption('gregorian');
+    await filePage.locator('#file-form input[name=machineNumber]').fill('1');await filePage.locator('#file-form input[name=inCode]').fill('4');await filePage.locator('#file-form input[name=outCode]').fill('5');
+    await filePage.locator('#file-form input[name=file]').setInputFiles({name:'synthetic-reference.dat',mimeType:'text/plain',buffer:Buffer.from('009\t2026-11-08 08:00:00\t1\t4\t1\n','utf8')});
+    await filePage.locator('#file-form button').click();const fileJob=filePage.locator('#imports li').filter({hasText:fileOperation});await fileJob.waitFor();await fileJob.locator('button').click();
+    await filePage.locator('#rows tr').filter({hasText:'کارمند ناشناس'}).waitFor();await filePage.locator('#commit-form input[name=confirmed]').check();await filePage.locator('#commit-form button').click();
+    await fileJob.filter({hasText:'بررسی‌شده 1 / 1'}).waitFor();if(!(await fileJob.textContent()).includes('ثبت‌شده 0'))throw new Error('Unknown file identity was silently imported');
+    await filePage.reload();await fileJob.filter({hasText:'بررسی‌شده 1 / 1'}).waitFor();await filePage.close();
     await devicesPage.close();
 
     const sourcePage = await context.newPage();
@@ -1723,7 +1734,7 @@ async function main() {
     if(!await panelPage.locator('a[href="/workspace/organization"]').count() || !await panelPage.locator('a[href="/workspace/inbox"]').count())
       throw new Error('Role panel did not list admin and manager tools');
     await panelPage.close();
-    const routes = ['/workspace/device-users','/workspace/device-information','/workspace/device-connection','/workspace/device-groups','/workspace/devices','/workspace/reversals','/workspace/help','/workspace/help/roles','/workspace','/workspace/employee-home','/workspace/my-attendance','/workspace/my-schedule','/workspace/my-leave','/workspace/my-reports','/workspace/new-request','/workspace/my-requests','/workspace/delegation','/workspace/account','/workspace/manager-home','/workspace/inbox','/workspace/decision-history','/workspace/team-attendance','/workspace/organization','/workspace/employees','/workspace/users','/workspace/roles','/workspace/calendars','/workspace/shifts','/workspace/schedules','/workspace/employee-history','/workspace/sources','/workspace/settings','/workspace/raw-events','/workspace/mappings','/workspace/conflicts','/workspace/calculations','/workspace/rules','/workspace/periods','/workspace/leave-admin','/workspace/reports','/workspace/report-builder','/workspace/workflow','/workspace/audit','/workspace/executive-home','/panel'];
+    const routes = ['/workspace/device-files','/workspace/device-users','/workspace/device-information','/workspace/device-connection','/workspace/device-groups','/workspace/devices','/workspace/reversals','/workspace/help','/workspace/help/roles','/workspace','/workspace/employee-home','/workspace/my-attendance','/workspace/my-schedule','/workspace/my-leave','/workspace/my-reports','/workspace/new-request','/workspace/my-requests','/workspace/delegation','/workspace/account','/workspace/manager-home','/workspace/inbox','/workspace/decision-history','/workspace/team-attendance','/workspace/organization','/workspace/employees','/workspace/users','/workspace/roles','/workspace/calendars','/workspace/shifts','/workspace/schedules','/workspace/employee-history','/workspace/sources','/workspace/settings','/workspace/raw-events','/workspace/mappings','/workspace/conflicts','/workspace/calculations','/workspace/rules','/workspace/periods','/workspace/leave-admin','/workspace/reports','/workspace/report-builder','/workspace/workflow','/workspace/audit','/workspace/executive-home','/panel'];
     const scriptFailures = [];
     for (const route of routes) {
       const health = await context.newPage();
