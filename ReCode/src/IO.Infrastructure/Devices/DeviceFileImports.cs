@@ -10,7 +10,10 @@ namespace IO.Infrastructure.Devices;
 public sealed class DeviceFileImports(IoDbContext db,PermissionTransaction transaction,AttendanceIngestion ingestion,TimeProvider clock)
 {
     public const string Read="devices.files.read",Preview="devices.files.preview",Commit="devices.files.commit";
-    public sealed record Input(Guid OperationId,Guid DeviceId,byte[] ExpectedDeviceVersion,string Calendar,int MachineNumber,int InCode,int OutCode,string FileBase64);
+    public sealed record Input(Guid OperationId,Guid DeviceId,byte[] ExpectedDeviceVersion,string Calendar,int MachineNumber,int InCode,int OutCode,string FileBase64)
+    {
+        public override string ToString()=>"DeviceFileImportInput [original file and identifiers redacted]";
+    }
     public Task<Guid> CreateAsync(Guid actor,Input input,CancellationToken ct=default)=>transaction.ExecuteAsync(actor,Preview,"device-file.preview-created",async token=>
     {
         if(input is null||input.OperationId==Guid.Empty||input.DeviceId==Guid.Empty||input.ExpectedDeviceVersion is not{Length:8}||input.Calendar is not("gregorian" or "persian")||input.MachineNumber<=0||input.InCode is <0 or >255||input.OutCode is <0 or >255||input.InCode==input.OutCode||input.FileBase64 is null||input.FileBase64.Length is 0 or >1398104)throw new ArgumentException("Explicit file layout interpretation and device version required.");
