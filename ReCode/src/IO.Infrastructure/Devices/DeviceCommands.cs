@@ -19,7 +19,11 @@ public sealed class DeviceCommands(IoDbContext db,PermissionTransaction transact
   if(deviceId==Guid.Empty||offset is <0 or >100000)throw new ArgumentException("Invalid page.");
   var query=db.Database.SqlQuery<Row>($"SELECT * FROM dbo.DeviceCommandHistory");
   var items=await query.Where(x=>deviceId==null||x.DeviceId==deviceId).OrderByDescending(x=>x.RequestedAtUtc).ThenBy(x=>x.Queue).ThenBy(x=>x.Id).Skip(offset).Take(50).ToListAsync(token);
-  var ids=items.Select(x=>x.Id).ToArray();var retries=await db.DeviceCommandRetries.AsNoTracking().Where(x=>ids.Contains(x.Id)||(x.PreviousOperationId!=null&&ids.Contains(x.PreviousOperationId.Value))||(x.PreviousAttendanceDownloadId!=null&&ids.Contains(x.PreviousAttendanceDownloadId.Value))).ToListAsync(token);
+  // Queue + id is the history identity: client-selected UUIDs may legitimately
+  // recur in different typed tables. Never attach another queue's retry evidence.
+  var operationIds=items.Where(x=>x.Queue=="operation").Select(x=>x.Id).ToArray();
+  var attendanceIds=items.Where(x=>x.Queue=="attendance-download").Select(x=>x.Id).ToArray();
+  var retries=await db.DeviceCommandRetries.AsNoTracking().Where(x=>(x.PreviousOperationId!=null&&operationIds.Contains(x.PreviousOperationId.Value))||(x.NextOperationId!=null&&operationIds.Contains(x.NextOperationId.Value))||(x.PreviousAttendanceDownloadId!=null&&attendanceIds.Contains(x.PreviousAttendanceDownloadId.Value))||(x.NextAttendanceDownloadId!=null&&attendanceIds.Contains(x.NextAttendanceDownloadId.Value))).ToListAsync(token);
   return(new{offset,pageSize=50,items,retries},actor);
  },ct);
  public Task<Guid> RetryAsync(Guid actor,RetryInput input,CancellationToken ct=default)=>transaction.ExecuteAsync(actor,Retry,"device-command.read-retried",async token=>
