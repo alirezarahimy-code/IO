@@ -45,6 +45,7 @@ internal static class DeviceHealthTests
   await Q(db=>db.RolePermissions.Where(x=>x.RoleId==readRole).ExecuteDeleteAsync());check(await Reject<UnauthorizedAccessException>(()=>List()),"S12 health read revocation denies all retained observations without trusting cached role names");
   check(await Reject<SqlException>(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"DELETE dbo.DeviceServiceHeartbeats WHERE Id={instance}")))&&await Reject<SqlException>(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.DeviceServiceHeartbeats SET State=N'running' WHERE Id={instance}")))&&await Reject<SqlException>(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.DeviceServiceHeartbeats SET ServiceUserId={other} WHERE Id={restarted}"))),"S12 SQL guards retain stopped heartbeat evidence identity and process history against rewriting or deletion");
   check(await Reject<SqlException>(()=>Q(async db=>{await db.GetService<IMigrator>().MigrateAsync("20261112110000_DeviceAdvancedSettingsReads");return true;})),"S12 retained worker reports refuse destructive downgrade of the service health schema");
+  await Q(async db=>{await db.GetService<IMigrator>().MigrateAsync();return true;});
  }
  private sealed class Clock:TimeProvider{private DateTimeOffset now=new(DateTimeOffset.UtcNow.Ticks/TimeSpan.TicksPerSecond*TimeSpan.TicksPerSecond,TimeSpan.Zero);public override DateTimeOffset GetUtcNow()=>now;public void Advance(int seconds)=>now=now.AddSeconds(seconds);}
 }
