@@ -4057,7 +4057,7 @@
       "با devices.users.read تاریخچه و پیش‌نمایش همان دریافت را باز کنید. جریان ردیف‌ها مرحله‌ای ذخیره می‌شود؛ نبود worker pending است و دریافت ناقص هرگز کامل معرفی نمی‌شود.",
       "تکراری‌ها، ناشناس‌ها، تعارض نگاشت و تفاوت نام را بررسی کنید؛ صفر اول شناسه حفظ می‌شود. تطابق دقیق شماره پرسنلی فقط پیشنهاد است، نه مجوز بازنویسی کارمند.",
       "برای ثبت/اصلاح نگاشت به صفحهٔ نگاشت‌ها با حق مستقل attendance.mappings.manage بروید؛ دریافت کاربر به‌تنهایی این حق را نمی‌دهد.",
-      "worker نیازمند EnableUserDownloads=true، grant مستقل devices.users.execute، endpoint سریال‌پین‌شده و AllowUserRead=true برای قرارداد SSR آزموده‌شده است؛ پیش‌فرض خاموش.",
+      "worker نیازمند EnableUserDownloads=true، grant مستقل devices.users.execute، endpoint سریال‌پین‌شده و AllowUserRead=true با UserReadFormat مصوب و منطبق است؛ پیش‌فرض خاموش.",
       "readFormat را صریح انتخاب کنید: ssr-v1 پیش‌فرض است؛ legacy-int32-v1 فقط GetAllUserInfo عددی. UserReadFormat نصب worker باید دقیقاً همین مقدار باشد؛ fallback یا auto-detect نداریم."
     ],
     "Example": "مثال: 001 و 0001 یک نفر فرض نمی‌شوند. دو ردیف 001 تکراری‌اند؛ نگاشت 002 به کارمندی متفاوت از نامزد شماره پرسنلی، تعارض است. نام دستگاه هیچ‌وقت نام کارمند را عوض نمی‌کند.",
@@ -4065,7 +4065,7 @@
       {
         "Name": "deviceId",
         "Label": "شناسه دستگاه",
-        "Description": "UUID فعال zk-standalone؛ SSR فقط با تأیید مدل در نصب؛ نه تمام مدل‌های ZK."
+        "Description": "UUID فعال zk-standalone؛ نوع خواندن باید با UserReadFormat مصوب نصب یکسان باشد، نه انتخاب بر اساس نام مدل یا فرض پشتیبانی همهٔ مدل‌های ZK."
       },
       {
         "Name": "expectedDeviceVersion",

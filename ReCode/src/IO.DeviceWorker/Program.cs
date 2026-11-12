@@ -23,7 +23,7 @@ if (targets.Any(t => t.DeviceId == Guid.Empty || !System.Net.IPAddress.TryParse(
 var native = builder.Configuration.GetSection("IO:DeviceWorker:NativeEndpoints").Get<NativeEndpoint[]>() ?? [];
 var dotnetPath = builder.Configuration["IO:DeviceWorker:BridgeDotnetPath"];
 var bridgePath = builder.Configuration["IO:DeviceWorker:BridgeAssemblyPath"];
-if (native.Any(t => !new ZkProbeInput(t.DeviceId,t.Address,t.Port,t.MachineNumber,t.ExpectedSerial,0).IsValid()) ||
+if (native.Any(t => (!new ZkProbeInput(t.DeviceId,t.Address,t.Port,t.MachineNumber,t.ExpectedSerial,0).IsValid()||!ZkUserReadFormats.IsKnown(t.UserReadFormat))) ||
     targets.Select(x=>x.DeviceId).Concat(native.Select(x=>x.DeviceId)).Distinct().Count() != targets.Length+native.Length)
     throw new InvalidOperationException("Invalid or ambiguous native endpoint pin.");
 if (native.Length > 0)
