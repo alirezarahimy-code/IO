@@ -18,10 +18,27 @@ internal static class ReferenceParityTests
   session=new(){ForeignAfter=true};result=ZkInformationReader.Read("fixture",false,session);
   Check(result.State=="identity-mismatch"&&result.Information==null,"serial drift after descriptor collection cannot be used as unknown-write recovery evidence");
   session=new(){ThrowAfter=true};Check(ZkInformationReader.Read("fixture",false,session).State=="identity-mismatch","unavailable final identity is not successful recovery evidence");
+  var snapshot=new ZkAdvancedSettings(ZkAdvancedSettings.Version,"fixture",1,2,3,4,5,6);
+  var additional=new Additional();var settings=ZkAdditionalSettingsReader.Add(snapshot,additional);
+  Check(settings.IsValid()&&settings.ReportedIp=="10.20.30.40"&&settings.AlgorithmVersionRaw=="10"&&settings.SleepTime==4&&additional.Calls==2,"GetAdvanced2 reads only reported IP and raw fixed algorithm option without changing six raw fields");
+  additional=new(){FailIp=true};settings=ZkAdditionalSettingsReader.Add(snapshot,additional);
+  Check(settings.ReportedIp==null&&settings.AlgorithmVersionRaw=="10","failed GetDeviceIP does not erase independent algorithm observation");
+  additional=new(){Algorithm=null};settings=ZkAdditionalSettingsReader.Add(snapshot,additional);
+  Check(settings.AlgorithmVersionRaw==null&&settings.ReportedIp!=null,"missing algorithm remains unavailable instead of the reference guessed default version nine");
+  additional=new(){Algorithm="not-numeric"};settings=ZkAdditionalSettingsReader.Add(snapshot,additional);
+  Check(settings.AlgorithmVersionRaw=="not-numeric"&&settings.IsValid(),"unknown algorithm text is preserved raw and never parsed into a supported biometric capability");
+  additional=new(){Algorithm="\uD800"};settings=ZkAdditionalSettingsReader.Add(snapshot,additional);
+  Check(settings.AlgorithmVersionRaw==null&&!(snapshot with{ReportedIp="bad\ntext"}).IsValid(),"malformed descriptor encoding and control characters cannot enter typed settings evidence");
   var pin=new ZkProbeInput(Guid.NewGuid(),"10.20.30.40",4370,1,"fixture",0);
   foreach(var operation in new[]{"DeleteAllData","DeleteAllRecords","DeleteAdmins","RemoveTimeRecords","RemoteEnroll","ModifyUsers","Set1_1","Set1_N","SetAlgorithm","SetCardReg","SetDLST","SetRepeatTime","SetSector","ReadKey","ChangeKey","clear-punches","sync-users","factory.reset","settings.write","door.open"})
    Check(!new ZkOperationInput(pin,operation,null,true,true,true,AllowIdleMinutesWrite:true).IsValid(),"legacy action cannot escape closed dispatch: "+operation);
   Console.WriteLine($"PASS {count} reference parity checks; static contract and synthetic sessions, no actual SDK or hardware acceptance");
+ }
+ private sealed class Additional:IZkAdditionalSettingsSession
+ {
+  public int Calls;public bool FailIp;public string? Algorithm="10";
+  public string? ReportedIp(){Calls++;if(FailIp)throw new IOException();return "10.20.30.40";}
+  public string? AlgorithmVersionRaw(){Calls++;return Algorithm;}
  }
  private sealed class Session:IZkInformationSession
  {

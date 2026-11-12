@@ -75,7 +75,7 @@ internal static class Program
                 if(!allowAdvancedSettingsRead)return new("unsupported");
                 var settings=ZkAdvancedSettingsReader.Read(serial.Trim(),new AdvancedSettingsSession(instance,input.MachineNumber));
                 var descriptor=new IdleSettingSession(instance,input.MachineNumber);
-                settings=settings with{Product=descriptor.Product(),Firmware=descriptor.Firmware()};
+                settings=ZkAdditionalSettingsReader.Add(settings with{Product=descriptor.Product(),Firmware=descriptor.Firmware()},new AdditionalSettingsSession(instance,input.MachineNumber));
                 string after;if(!(bool)sdk.GetSerialNumber(input.MachineNumber,out after)||after?.Trim()!=input.ExpectedSerial)return new("identity-mismatch");
                 return new("succeeded",Settings:settings);
             }
@@ -113,6 +113,12 @@ internal static class Program
     private sealed class RestartSession(object instance,int machine):IZkRestartSession
     {
         public bool Restart()=> (bool)((dynamic)instance).RestartDevice(machine);
+    }
+
+    private sealed class AdditionalSettingsSession(object instance,int machine):IZkAdditionalSettingsSession
+    {
+        public string? ReportedIp(){string value="";return (bool)((dynamic)instance).GetDeviceIP(machine,ref value)?value:null;}
+        public string? AlgorithmVersionRaw(){string value;return (bool)((dynamic)instance).GetSysOption(machine,"~ZKFPVersion",out value)?value:null;}
     }
 
     private sealed class AdvancedSettingsSession(object instance,int machine):IZkAdvancedSettingsReadSession
