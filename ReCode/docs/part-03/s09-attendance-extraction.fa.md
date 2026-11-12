@@ -33,7 +33,7 @@ worker با `EnableAttendanceDownloads=true` و `AllowAttendanceRead=true` رو�
 
 هر tuple کامل، hash SHA256 و رتبهٔ occurrence در **کل enumeration** دارد. تکرارهای کاملاً یکسان داخل همان log حذف نمی‌شوند: ordinalهای ۱،۲ و... جدا می‌مانند. شناسهٔ external، `zk-ssr-v1:<tupleHash>:<occurrenceOrdinal>`، صریحاً canonical-content/multiplicity است، **نه شناسهٔ بومی یا فیزیکی**. دریافت کامل دوباره با envelope یکسان، receipt جدید ولی raw مشترک می‌گیرد؛ تفسیر متفاوت به مسیر تعارض موجود می‌رود و raw قبلی overwrite نمی‌شود. همهٔ tupleهای هر download، از جمله خارج بازه/تکراری، نگه داشته می‌شوند.
 
-پس از پاک‌سازی/جایگزینی log، تغییر سخت‌افزار با همان source، یا رخداد فیزیکی جدیدِ کاملاً یکسان با tuple و rank قبلی، هویت فیزیکی قابل اثبات نیست. این coalescence را به‌عنوان dedup سخت‌افزاری تضمین‌شده معرفی نکنید؛ پذیرش مدل/سیاست هویت و بازبینی trace لازم است. فرمت canonical v1 و ترتیب/نام فیلدهای قرارداد باید پایدار بماند؛ تغییر layout نیازمند طراحی نسخه و migration صریح است.
+پس از پاک‌سازی/جایگزینی log، تغییر سخت‌افزار با همان source، یا رخداد فیزیکی جدیدِ کاملاً یکسان با tuple و rank قبلی، هویت فیزیکی قابل اثبات نیست. این coalescence را به‌عنوان dedup سخت‌افزاری تضمین‌شده معرفی نکنید؛ پذیرش مدل/سیاست هویت و بازبینی trace لازم است. فرمت canonical v1 نام/ترتیب ثابت فیلدها، عدد decimal با InvariantCulture و escape صریح هر code unit شناسه به \uXXXX دارد؛ به escaping/reflection/culture تنظیمات serializer وابسته نیست و باید پایدار بماند؛ تغییر layout نیازمند طراحی نسخه و migration صریح است.
 
 ## آزمون
 

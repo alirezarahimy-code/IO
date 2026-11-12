@@ -65,7 +65,7 @@ public sealed class DeviceAttendanceDownloads(IoDbContext db,PermissionTransacti
         if(records is null||records.Count is <1 or >50||records.Any(x=>x?.IsBounded()!=true)||after<0)throw new ArgumentException("Invalid private SDK batch.");
         await transaction.LockAsync("IO.DeviceConnections",token);var job=await Owned(service,id,claim,token);
         if(!await transaction.HasPermissionAsync(job.RequestedByUserId,Download,token))throw new UnauthorizedAccessException();
-        var payloads=records.Select(x=>JsonSerializer.Serialize(x)).ToArray();
+        var payloads=records.Select(x=>x.CanonicalJson()).ToArray();
         if(after!=job.ReceivedCount)
         {
             var previous=await db.DeviceAttendanceRows.AsNoTracking().Where(x=>x.DownloadId==id&&x.Sequence>after&&x.Sequence<=after+records.Count).OrderBy(x=>x.Sequence).Select(x=>x.PayloadJson).ToArrayAsync(token);

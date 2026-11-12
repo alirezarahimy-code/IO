@@ -14,6 +14,17 @@ public sealed record ZkAttendanceRaw([property:JsonRequired]string? PersonIdenti
         if(PersonIdentifier is null)return true;if(PersonIdentifier.Length>100)return false;
         try{_=new System.Text.UTF8Encoding(false,true).GetByteCount(PersonIdentifier);return true;}catch(System.Text.EncoderFallbackException){return false;}
     }
+    // v1 identity bytes must not depend on serializer options, property reflection
+    // order, HTML escaping policy, current culture, or a runtime's Unicode blocklist.
+    public string CanonicalJson()
+    {
+        if(!IsBounded())throw new ArgumentException("Unsupported SDK identity encoding.");
+        var culture=System.Globalization.CultureInfo.InvariantCulture;
+        var identity=PersonIdentifier is null?"null":"\""+string.Concat(PersonIdentifier.Select(c=>"\\u"+((int)c).ToString("X4",culture)))+"\"";
+        var names=new[]{"VerifyMode","CheckType","Year","Month","Day","Hour","Minute","Second","WorkCode"};
+        var values=new[]{VerifyMode,CheckType,Year,Month,Day,Hour,Minute,Second,WorkCode};
+        return "{\"PersonIdentifier\":"+identity+","+string.Join(",",names.Select((name,i)=>"\""+name+"\":"+values[i].ToString(culture)))+"}";
+    }
     public override string ToString()=>"ZkAttendanceRaw [personal data redacted]";
     public (string Status,DateTimeOffset? Utc) Interpret(TimeZoneInfo zone)
     {
