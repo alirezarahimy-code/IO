@@ -45,7 +45,7 @@ public static class NativeUserReadSupervisor
                 }
                 if(!ended)throw new InvalidDataException();
             }
-            interaction=Task.WhenAll(Send(),Error(),Frames(),process.WaitForExitAsync(deadline.Token));await interaction.WaitAsync(deadline.Token);
+            interaction=NativeInteraction.RunAsync(Send(),Error(),Frames(),process.WaitForExitAsync(deadline.Token));await interaction.WaitAsync(deadline.Token);
             return new(process.ExitCode==0?state:"bridge-failed",count);
         }
         catch(OperationCanceledException){return new(ct.IsCancellationRequested?"interrupted":"timed-out",count);}

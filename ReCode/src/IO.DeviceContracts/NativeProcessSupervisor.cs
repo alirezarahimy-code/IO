@@ -70,7 +70,7 @@ public static class NativeProcessSupervisor
                 process.StandardInput.Close();
             }
             async Task ReadOutput() => output = await ReadBounded(process.StandardOutput, deadline.Token);
-            interaction = Task.WhenAll(Send(), ReadOutput(), ReadBounded(process.StandardError, deadline.Token), process.WaitForExitAsync(deadline.Token));
+            interaction = NativeInteraction.RunAsync(Send(), ReadOutput(), ReadBounded(process.StandardError, deadline.Token), process.WaitForExitAsync(deadline.Token));
             await interaction.WaitAsync(deadline.Token);
             var result = output?.Trim() ?? "";
             return process.ExitCode==0?new("exited",result):new("bridge-failed");

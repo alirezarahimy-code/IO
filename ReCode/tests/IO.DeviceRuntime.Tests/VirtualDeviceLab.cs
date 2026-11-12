@@ -178,6 +178,10 @@ internal static class VirtualDeviceLab
                     {
                         ZkAttendanceRaw[] snapshot; lock (gate) snapshot = logs.ToArray();
                         await Frame(new ZkAttendanceFrame("start", Serial: fault == "wrong-serial" ? "different" : Pin.ExpectedSerial));
+                        // Fill more than an OS pipe buffer after the rejected header.
+                        // A plain WhenAll would wait for the blocked relay until timeout.
+                        if (fault == "wrong-serial")
+                            for (int i = 0; i < 8192; i++) await Frame(new ZkAttendanceFrame("record", Record: snapshot[0]));
                         for (int i = 0; i < snapshot.Length; i++)
                         {
                             await Frame(new ZkAttendanceFrame("record", Record: snapshot[i]));
