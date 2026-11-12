@@ -54,6 +54,9 @@ internal static class DeviceAdvancedSettingsTests
   var stale=Guid.NewGuid();await Request(stale);await Use<DeviceRegistry,Guid>(s=>s.UpdateAsync(actor,device,dv,di with{Name="Changed advanced read target"}));check(await Claim()==null&&await Q(db=>db.DeviceOperations.AnyAsync(x=>x.Id==stale&&x.State=="device-changed")),"S11 a changed device version fences older settings requests without retargeting their snapshot");
   check(await Reject<SqlException>(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.DeviceOperations SET ResultJson=N'{{}}' WHERE Id={id}")))&&await Reject<SqlException>(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"DELETE dbo.DeviceOperations WHERE Id={id}"))),"S11 SQL preserves original advanced settings terminal snapshots against rewriting or deletion");
   check(await Reject<SqlException>(()=>Q(async db=>{await db.GetService<IMigrator>().MigrateAsync("20261112100000_DeviceCommandHistory");return true;})),"S11 advanced settings history refuses a destructive downgrade to the earlier closed operation contract");
+  // A guarded DOWN can already have removed newer empty migrations. Restore
+  // latest before building the browser fixture consumed by the next suite.
+  await Q(async db=>{await db.GetService<IMigrator>().MigrateAsync();return true;});
   // The real-browser fixture is a synthetic service response, NOT SDK/hardware execution.
   clock.Reset();dv=await Q(db=>db.Devices.Where(x=>x.Id==device).Select(x=>x.Version).SingleAsync());var browser=Guid.NewGuid();await Request(browser);c=await Claim()??throw new InvalidOperationException();await Finish(c,new("succeeded",Settings:snapshot));
  }
