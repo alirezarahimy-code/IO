@@ -87,7 +87,9 @@ namespace IO.Infrastructure.Migrations
         modelBuilder.Entity<DeviceServiceHeartbeatRecord>(b=>
         {
             b.ToTable("DeviceServiceHeartbeats",t=>{t.HasTrigger("TR_DeviceServiceHeartbeats_History");t.UseSqlOutputClause(false);t.HasCheckConstraint("CK_DeviceServiceHeartbeats_State","[State] COLLATE Latin1_General_100_BIN2 IN(N'running',N'stopped') AND DATALENGTH([State]) IN(14) AND DATEPART(TZOFFSET,[StartedAtUtc])=0 AND DATEPART(TZOFFSET,[LastSeenAtUtc])=0 AND [StartedAtUtc]<=[LastSeenAtUtc]");});
-            b.HasKey(x=>x.Id);b.Property(x=>x.State).HasMaxLength(20).IsRequired();b.Property(x=>x.Version).IsRowVersion();
+            b.HasKey(x=>x.Id);b.Property(x=>x.Id).ValueGeneratedNever().HasColumnType("uniqueidentifier");
+            b.Property(x=>x.ServiceUserId).HasColumnType("uniqueidentifier");b.Property(x=>x.StartedAtUtc).HasColumnType("datetimeoffset");b.Property(x=>x.LastSeenAtUtc).HasColumnType("datetimeoffset");
+            b.Property(x=>x.State).HasMaxLength(20).IsRequired().HasColumnType("nvarchar(20)");b.Property(x=>x.Version).IsRowVersion().IsRequired().HasColumnType("rowversion");
             b.HasIndex(x=>new{x.ServiceUserId,x.LastSeenAtUtc});b.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.ServiceUserId).OnDelete(DeleteBehavior.Restrict);
         });
         modelBuilder.Entity<DeviceCommandRetryRecord>(b=>
