@@ -54,10 +54,10 @@ internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfig
                 DeviceConnections.Claim? claim=null;DeviceOperations.Claim? operation=null;DeviceUserDownloads.Claim? users=null;
                 await using (var scope = scopes.CreateAsyncScope())
                 {
-                    var db=scope.ServiceProvider.GetRequiredService<IoDbContext>();var cutoff=DateTimeOffset.UtcNow.AddMinutes(-2);
+                    var db=scope.ServiceProvider.GetRequiredService<IoDbContext>();var now=DateTimeOffset.UtcNow;var cutoff=now.AddMinutes(-2);
                     var available=await db.DeviceConnections.AnyAsync(x=>x.State=="pending"||(x.State=="running"&&x.ClaimedAtUtc<cutoff),ct);
                     var operationsAvailable=configuration.EnableOperations&&await db.DeviceOperations.AnyAsync(x=>x.State=="pending"||(x.State=="running"&&x.ClaimedAtUtc<cutoff),ct);
-                    var usersAvailable=configuration.EnableUserDownloads&&await db.DeviceUserDownloads.AnyAsync(x=>x.State=="pending"||(x.State=="running"&&x.LeaseAtUtc<cutoff),ct);
+                    var usersAvailable=configuration.EnableUserDownloads&&await db.DeviceUserDownloads.AnyAsync(x=>x.State=="pending"||(x.State=="running"&&x.LeaseAtUtc!=null&&x.LeaseAtUtc.Value.AddSeconds(x.TimeoutSeconds+120)<now),ct);
                     var queues=new[]{usersAvailable,operationsAvailable,available};int selected=-1;
                     for(int i=0;i<3;i++){var candidate=(queueCursor+i)%3;if(queues[candidate]){selected=candidate;break;}}
                     // Advance even if the selected independent service grant was revoked.

@@ -61,7 +61,7 @@ public sealed class DeviceUserDownloads(IoDbContext db,PermissionTransaction tra
     public Task<Claim?> ClaimAsync(Guid service,CancellationToken ct=default)=>transaction.ExecuteAsync<Claim?>(service,Execute,"device-users.claimed",async token=>
     {
         await transaction.LockAsync("IO.DeviceConnections",token);var now=clock.GetUtcNow();
-        foreach(var row in await db.DeviceUserDownloads.AsTracking().Where(x=>x.State=="running"&&x.LeaseAtUtc<now.AddMinutes(-2)).ToListAsync(token)){row.State="interrupted";row.FinishedAtUtc=now;}
+        foreach(var row in await db.DeviceUserDownloads.AsTracking().Where(x=>x.State=="running"&&x.LeaseAtUtc!=null&&x.LeaseAtUtc.Value.AddSeconds(x.TimeoutSeconds+120)<now).ToListAsync(token)){row.State="interrupted";row.FinishedAtUtc=now;}
         var next=await db.DeviceUserDownloads.AsTracking().Where(x=>x.State=="pending").OrderBy(x=>x.RequestedAtUtc).ThenBy(x=>x.Id).FirstOrDefaultAsync(token);if(next is null)return(null,service);
         if(!await transaction.HasPermissionAsync(next.RequestedByUserId,Download,token)){next.State="revoked";next.FinishedAtUtc=now;return(null,next.Id);}
         var d=await db.Devices.AsNoTracking().SingleAsync(x=>x.Id==next.DeviceId,token);
@@ -101,6 +101,6 @@ public sealed class DeviceUserDownloads(IoDbContext db,PermissionTransaction tra
     private async Task<DeviceUserDownloadRecord> Owned(Guid service,Guid id,Guid claim,CancellationToken ct)
     {
         var job=await db.DeviceUserDownloads.AsTracking().SingleOrDefaultAsync(x=>x.Id==id,ct)??throw new ArgumentException("Unknown download.");
-        if(job.State!="running"||job.ServiceUserId!=service||job.ClaimId!=claim||job.LeaseAtUtc<clock.GetUtcNow().AddMinutes(-2))throw new DomainConflictException("Expired or foreign claim.");return job;
+        if(job.State!="running"||job.ServiceUserId!=service||job.ClaimId!=claim||job.LeaseAtUtc is null||job.LeaseAtUtc.Value.AddSeconds(job.TimeoutSeconds+120)<clock.GetUtcNow())throw new DomainConflictException("Expired or foreign claim.");return job;
     }
 }
