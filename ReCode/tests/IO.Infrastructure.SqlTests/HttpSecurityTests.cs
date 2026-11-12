@@ -526,13 +526,14 @@ internal static class HttpSecurityTests
                       (await own.GetAsync("/help/topic/device-user-uploads")).StatusCode==HttpStatusCode.Forbidden&&
                       !uploadCaps.RootElement.GetProperty("pages").EnumerateArray().Any(x=>x.GetProperty("route").GetString()=="/workspace/device-user-uploads"),
                       "HTTP S08 grant revocation removes personal history help menu and preview on the existing session");
-            var logId=Guid.NewGuid();var logPayload=new DeviceAttendanceInput(logId,s06Device,s06Version,30,new DateTimeOffset(2026,11,8,0,0,0,TimeSpan.Zero),new DateTimeOffset(2026,11,9,0,0,0,TimeSpan.Zero),4,5);
+            var logId=Guid.NewGuid();var logPayload=new DeviceAttendanceInput(logId,s06Device,s06Version,30,"2026-11-08T00:00:00Z","2026-11-09T00:00:00Z",4,5);
             check((await anon.GetAsync("/device-attendance-downloads")).StatusCode==HttpStatusCode.Unauthorized&&
                   (await own.GetAsync("/device-attendance-downloads")).StatusCode==HttpStatusCode.Forbidden&&
                   (await own.PostAsJsonAsync("/device-attendance-downloads",logPayload)).StatusCode==HttpStatusCode.BadRequest,
                   "HTTP S09 SDK extraction requires authentication independent permission and CSRF");
             (await PostAdmin(adminClient,"/admin/role-permissions",new{RoleId=deviceRole,Code="devices.attendance.extract"})).EnsureSuccessStatusCode();
-            check((await PostAdmin(own,"/device-attendance-downloads",logPayload)).StatusCode==HttpStatusCode.OK&&
+            check((await PostAdmin(own,"/device-attendance-downloads",logPayload with{FromUtc="2026-11-08T00:00:00"})).StatusCode==HttpStatusCode.BadRequest&&
+                  (await PostAdmin(own,"/device-attendance-downloads",logPayload)).StatusCode==HttpStatusCode.OK&&
                   (await PostAdmin(own,"/device-attendance-downloads",logPayload)).StatusCode==HttpStatusCode.OK&&
                   (await own.GetAsync("/device-attendance-downloads/"+logId+"/rows")).StatusCode==HttpStatusCode.Forbidden,
                   "HTTP S09 extraction permission grants exact queue retry but never retained personal tuple reads");

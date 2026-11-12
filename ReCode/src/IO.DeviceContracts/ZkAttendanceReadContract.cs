@@ -9,7 +9,11 @@ public sealed record ZkAttendanceReadInput(ZkProbeInput Connection,bool ReadAtte
 /// Invalid identities/calendar values must remain available for quarantine.</summary>
 public sealed record ZkAttendanceRaw([property:JsonRequired]string? PersonIdentifier,[property:JsonRequired]int VerifyMode,[property:JsonRequired]int CheckType,[property:JsonRequired]int Year,[property:JsonRequired]int Month,[property:JsonRequired]int Day,[property:JsonRequired]int Hour,[property:JsonRequired]int Minute,[property:JsonRequired]int Second,[property:JsonRequired]int WorkCode)
 {
-    public bool IsBounded()=>PersonIdentifier is null||PersonIdentifier.Length<=100;
+    public bool IsBounded()
+    {
+        if(PersonIdentifier is null)return true;if(PersonIdentifier.Length>100)return false;
+        try{_=new System.Text.UTF8Encoding(false,true).GetByteCount(PersonIdentifier);return true;}catch(System.Text.EncoderFallbackException){return false;}
+    }
     public override string ToString()=>"ZkAttendanceRaw [personal data redacted]";
     public (string Status,DateTimeOffset? Utc) Interpret(TimeZoneInfo zone)
     {
