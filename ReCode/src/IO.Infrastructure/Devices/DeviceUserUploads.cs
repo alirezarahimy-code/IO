@@ -47,7 +47,7 @@ public sealed class DeviceUserUploads(IoDbContext db,PermissionTransaction trans
             if(await db.DeviceAttendanceDownloads.AnyAsync(x=>x.DeviceId==item.DeviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device has unfinished attendance extraction.");
             if(await db.DeviceConnections.AnyAsync(x=>x.DeviceId==item.DeviceId&&(x.State=="pending"||x.State=="running"),token)||await db.DeviceOperations.AnyAsync(x=>x.DeviceId==item.DeviceId&&(x.State=="pending"||x.State=="running"),token)||await db.DeviceUserDownloads.AnyAsync(x=>x.DeviceId==item.DeviceId&&(x.State=="pending"||x.State=="running"),token)||await db.DeviceUserUploads.AnyAsync(x=>x.DeviceId==item.DeviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device has unfinished work.");
             if(await db.DeviceUserUploads.AnyAsync(x=>x.DeviceId==item.DeviceId&&x.PersonIdentifier==item.PersonIdentifier&&x.State=="unknown"&&x.ResolutionSnapshotId==null,token))throw new DomainConflictException("Review the prior unknown user write before another intent.");
-            if(await db.DeviceOperations.AnyAsync(x=>x.DeviceId==item.DeviceId&&(x.Kind=="network.ip.set"||x.Kind=="settings.idle.set")&&x.State=="unknown"&&x.ResolvedAtUtc==null,token))throw new DomainConflictException("Review unknown network transition before any user writes.");
+            if(await db.DeviceOperations.AnyAsync(x=>x.DeviceId==item.DeviceId&&(x.Kind=="clock.set"||x.Kind=="device.restart"||x.Kind=="network.ip.set"||x.Kind=="settings.idle.set")&&x.State=="unknown"&&x.ResolvedAtUtc==null,token))throw new DomainConflictException("Review unknown native operation before any user writes.");
             var snapshot=await Snapshot(item.SnapshotId,item.DeviceId,item.ExpectedDeviceVersion,token);
             var employee=await db.Employees.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==item.EmployeeId,token)??throw new ArgumentException("Unknown employee.");
             if(!await Mapped(device.SourceId,snapshot.CompanyId,item.EmployeeId,item.PersonIdentifier,token)||employee.CompanyId!=snapshot.CompanyId)throw new DomainConflictException("An explicit current employee mapping is required.");
@@ -92,6 +92,7 @@ public sealed class DeviceUserUploads(IoDbContext db,PermissionTransaction trans
         if(!d.Enabled||!d.Version.SequenceEqual(row.ExpectedDeviceVersion)||!await Mapped(d.SourceId,snapshot.CompanyId,row.EmployeeId,row.PersonIdentifier,token)||!await db.Employees.AnyAsync(x=>x.Id==row.EmployeeId&&x.DisplayName==desired.Name,token)){row.State="device-changed";row.FinishedAtUtc=now;return(null,row.Id);}
         // Unknown recovery for the same person must not be bypassed by queued siblings.
         if(await db.DeviceUserUploads.AnyAsync(x=>x.DeviceId==row.DeviceId&&x.PersonIdentifier==row.PersonIdentifier&&x.State=="unknown"&&x.ResolutionSnapshotId==null,token))return(null,row.Id);
+        if(await DeviceWriteSafety.UnreviewedAsync(db,row.DeviceId,token))return(null,row.Id);
         row.State="running";row.ServiceUserId=service;row.ClaimId=Guid.NewGuid();row.ClaimedAtUtc=now;
         return(new Claim(row.Id,row.ClaimId.Value,d.Id,d.Host,d.Port,row.TimeoutSeconds,row.ExpectedJson is null?null:JsonSerializer.Deserialize<ZkUser>(row.ExpectedJson),desired,snapshot.ReadFormat),row.Id);
     },ct);
@@ -99,7 +100,9 @@ public sealed class DeviceUserUploads(IoDbContext db,PermissionTransaction trans
     {
         await transaction.LockAsync("IO.DeviceConnections",token);var row=await Owned(service,claim.Id,claim.Token,token);var d=await db.Devices.AsNoTracking().SingleAsync(x=>x.Id==row.DeviceId,token);
         var format=await db.DeviceUserDownloads.Where(x=>x.Id==row.SnapshotId).Select(x=>x.ReadFormat).SingleAsync(token);
-        if(claim.DeviceId!=row.DeviceId||claim.WriteFormat!=format||!d.Enabled||!d.Version.SequenceEqual(row.ExpectedDeviceVersion)||!await transaction.HasPermissionAsync(row.RequestedByUserId,Upload,token))return(null,row.Id);
+        if(claim.DeviceId!=row.DeviceId||claim.Host!=d.Host||claim.Port!=d.Port||claim.TimeoutSeconds!=row.TimeoutSeconds||claim.Expected!=(row.ExpectedJson is null?null:JsonSerializer.Deserialize<ZkUser>(row.ExpectedJson))||claim.Desired!=JsonSerializer.Deserialize<ZkUser>(row.DesiredJson)||claim.WriteFormat!=format||!d.Enabled||!d.Version.SequenceEqual(row.ExpectedDeviceVersion)||!await transaction.HasPermissionAsync(row.RequestedByUserId,Upload,token))return(null,row.Id);
+        var snapshot=await db.DeviceUserDownloads.AsNoTracking().SingleAsync(x=>x.Id==row.SnapshotId,token);
+        if(d.SourceId!=snapshot.SourceId||!await Mapped(d.SourceId,snapshot.CompanyId,row.EmployeeId,row.PersonIdentifier,token)||!await db.Employees.AnyAsync(x=>x.Id==row.EmployeeId&&x.CompanyId==snapshot.CompanyId&&x.DisplayName==claim.Desired.Name,token)||await DeviceWriteSafety.UnreviewedAsync(db,row.DeviceId,token))return(null,row.Id);
         var cipher=await db.DeviceSecrets.Where(x=>x.DeviceId==d.Id).Select(x=>x.ProtectedValue).SingleOrDefaultAsync(token);if(cipher is null)return(allowDefault?new DeviceCommunicationKey(0):null,row.Id);
         try{var text=protection.CreateProtector("IO.Devices.Credential.v1",d.Id.ToString("N")).Unprotect(cipher);return(text.Length>0&&text.All(c=>c is >='0' and <='9')&&int.TryParse(text,NumberStyles.None,CultureInfo.InvariantCulture,out var key)?new DeviceCommunicationKey(key):null,row.Id);}catch(CryptographicException){return(null,row.Id);}
     },ct);

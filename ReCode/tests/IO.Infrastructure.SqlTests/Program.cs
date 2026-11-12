@@ -439,6 +439,7 @@ try
     await LegacyUserUploadTests.RunAsync(connection, Check);
     await DeviceNetworkTests.RunAsync(connection, Check);
     await DeviceIdleTests.RunAsync(connection, Check);
+    await DeviceSafetyRegressionTests.RunAsync(connection, Check);
     Console.WriteLine("PASS disposable SQL Server integration checks");
     return 0;
 }

@@ -21,6 +21,7 @@ public sealed class DevicePollSchedules(IoDbContext db,PermissionTransaction tra
         var device=await db.Devices.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==input.DeviceId,token)??throw new ArgumentException("Unknown device.");
         if(!device.Enabled||device.Profile!="zk-standalone"||!device.Version.SequenceEqual(input.ExpectedDeviceVersion))throw new DomainConflictException("Current enabled SSR endpoint required.");
         if(await db.DevicePollSchedules.AnyAsync(x=>x.DeviceId==device.Id&&x.Enabled,token))throw new DomainConflictException("Pause the existing schedule first.");
+        if(await DeviceWriteSafety.UnreviewedAsync(db,device.Id,token)||await DeviceWriteSafety.InFlightAsync(db,device.Id,token))throw new DomainConflictException("Review native writes before enabling polling.");
         var site=await db.Sites.AsNoTracking().SingleAsync(x=>x.Id==device.SiteId,token);
         db.DevicePollSchedules.Add(new(){Id=input.Id,DeviceId=device.Id,SourceId=device.SourceId,SiteId=site.Id,CompanyId=site.CompanyId,TimeZoneId=site.TimeZoneId,CreatedByUserId=actor,CreatedAtUtc=clock.GetUtcNow(),ExpectedDeviceVersion=input.ExpectedDeviceVersion.ToArray(),StartUtc=input.StartUtc,CursorUtc=input.StartUtc,EverySeconds=input.EverySeconds,WindowSeconds=input.WindowSeconds,LagSeconds=input.LagSeconds,OverlapSeconds=input.OverlapSeconds,TimeoutSeconds=input.TimeoutSeconds,InCode=input.InCode,OutCode=input.OutCode,AutoCommit=input.AutoCommit,NextDueUtc=clock.GetUtcNow()});return(input.Id,input.Id);
     },ct);
@@ -42,6 +43,7 @@ public sealed class DevicePollSchedules(IoDbContext db,PermissionTransaction tra
             if(actor!=s.CreatedByUserId||!await Authority(s.CreatedByUserId,s.AutoCommit,token))throw new UnauthorizedAccessException();
             if(!await SameTarget(s,token))throw new DomainConflictException("Changed target requires a new schedule and explicit approval.");
             if(await db.DevicePollSchedules.AnyAsync(x=>x.DeviceId==s.DeviceId&&x.Id!=s.Id&&x.Enabled,token))throw new DomainConflictException("Another schedule is enabled.");
+            if(await DeviceWriteSafety.UnreviewedAsync(db,s.DeviceId,token)||await DeviceWriteSafety.InFlightAsync(db,s.DeviceId,token))throw new DomainConflictException("Review native writes before resuming polling.");
             if(!s.Enabled){s.Enabled=true;s.NextDueUtc=clock.GetUtcNow();s.LastOutcome="waiting";s.Failures=0;}
         }
         else
@@ -56,6 +58,7 @@ public sealed class DevicePollSchedules(IoDbContext db,PermissionTransaction tra
         if(s is null)return(new Step("idle"),service);
         if(!await Authority(s.CreatedByUserId,s.AutoCommit,token)){await StopActive(s,"revoked",token);s.Enabled=false;s.LastOutcome="revoked";return(new Step("revoked",s.Id),s.Id);}
         if(!await SameTarget(s,token)){await StopActive(s,"device-changed",token);s.Enabled=false;s.LastOutcome="device-changed";return(new Step("device-changed",s.Id),s.Id);}
+        if(await DeviceWriteSafety.UnreviewedAsync(db,s.DeviceId,token)){await StopActive(s,"paused",token);s.Enabled=false;s.LastOutcome="paused";return(new Step("paused",s.Id),s.Id);}
         if(s.ActiveRunId is Guid active)
         {
             var run=await db.DevicePollRuns.AsTracking().SingleAsync(x=>x.Id==active,token);var job=await db.DeviceAttendanceDownloads.AsTracking().SingleAsync(x=>x.Id==run.DownloadId,token);

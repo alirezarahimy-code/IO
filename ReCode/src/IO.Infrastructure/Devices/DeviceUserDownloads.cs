@@ -75,7 +75,8 @@ public sealed class DeviceUserDownloads(IoDbContext db,PermissionTransaction tra
     {
         await transaction.LockAsync("IO.DeviceConnections",token);var item=await Owned(service,claim.Id,claim.Token,token);
         var d=await db.Devices.AsNoTracking().SingleAsync(x=>x.Id==item.DeviceId,token);
-        if(item.DeviceId!=claim.DeviceId||!d.Enabled||!d.Version.SequenceEqual(item.ExpectedDeviceVersion)||!await transaction.HasPermissionAsync(item.RequestedByUserId,Download,token))return(null,item.Id);
+        if(item.DeviceId!=claim.DeviceId||claim.Host!=d.Host||claim.Port!=d.Port||claim.TimeoutSeconds!=item.TimeoutSeconds||claim.ReadFormat!=item.ReadFormat||!d.Enabled||!d.Version.SequenceEqual(item.ExpectedDeviceVersion)||!await transaction.HasPermissionAsync(item.RequestedByUserId,Download,token))return(null,item.Id);
+        if(d.SourceId!=item.SourceId||!await db.Sites.AnyAsync(x=>x.Id==d.SiteId&&x.CompanyId==item.CompanyId,token))return(null,item.Id);
         var ciphertext=await db.DeviceSecrets.Where(x=>x.DeviceId==item.DeviceId).Select(x=>x.ProtectedValue).SingleOrDefaultAsync(token);if(ciphertext is null)return(allowDefault?new DeviceCommunicationKey(0):null,item.Id);
         try{var text=protection.CreateProtector("IO.Devices.Credential.v1",item.DeviceId.ToString("N")).Unprotect(ciphertext);return(text.Length>0&&text.All(c=>c is >='0' and <='9')&&int.TryParse(text,NumberStyles.None,CultureInfo.InvariantCulture,out var key)?new DeviceCommunicationKey(key):null,item.Id);}catch(CryptographicException){return(null,item.Id);}
     },ct);

@@ -69,7 +69,7 @@ internal static class Program
             if(!(bool)sdk.GetSerialNumber(input.MachineNumber,out serial)||string.IsNullOrWhiteSpace(serial)||serial.Length>100||serial.Any(char.IsControl)||serial.Trim()!=input.ExpectedSerial)
                 return new(operation=="probe"?"sdk-identity-mismatch":"identity-mismatch");
             if(operation=="probe")return new("sdk-serial-matched");
-            if(operation=="information.read")return new("succeeded",ReadInformation(sdk,input.MachineNumber,serial.Trim(),allowClockSet));
+            if(operation=="information.read")return ZkInformationReader.Read(serial.Trim(),allowClockSet,new InformationSession(instance,input.MachineNumber));
             if(operation=="settings.read")
             {
                 if(!allowAdvancedSettingsRead)return new("unsupported");
@@ -246,15 +246,13 @@ internal static class Program
         }
     }
 
-    private static ZkDeviceInformation ReadInformation(dynamic sdk,int machine,string serial,bool clockConfigured)
+    private sealed class InformationSession(object instance,int machine):IZkInformationSession
     {
-        static string? Text(Func<string?> read,int max=120){try{var value=read();return !string.IsNullOrWhiteSpace(value)&&value.Length<=max&&!value.Any(char.IsControl)?value.Trim():null;}catch{return null;}}
-        string? product=Text(()=>{string value;return (bool)sdk.GetProductCode(machine,out value)?value:null;});
-        string? firmware=Text(()=>{string value="";return (bool)sdk.GetFirmwareVersion(machine,ref value)?value:null;});
-        string? mac=Text(()=>{string value="";return (bool)sdk.GetDeviceMAC(machine,ref value)?value:null;},100);
-        string? clock=Text(()=>{int y=0,m=0,d=0,h=0,n=0,s=0;return (bool)sdk.GetDeviceTime(machine,ref y,ref m,ref d,ref h,ref n,ref s)?new DateTime(y,m,d,h,n,s).ToString("yyyy-MM-dd HH:mm:ss",CultureInfo.InvariantCulture):null;});
-        int? Status(int code){try{int value=0;return (bool)sdk.GetDeviceStatus(machine,code,ref value)&&value>=0?value:null;}catch{return null;}}
-        // Counter codes are observed reference contracts; missing/failed calls remain null, never fabricated zero.
-        return new(serial,product,firmware,mac,clock,Status(6),Status(9),Status(2),Status(8),Status(1),Status(3),Status(7),Status(21),Status(22),clockConfigured);
+        public string? Serial(){string value;return (bool)((dynamic)instance).GetSerialNumber(machine,out value)?value?.Trim():null;}
+        public string? Product(){string value;return (bool)((dynamic)instance).GetProductCode(machine,out value)?value:null;}
+        public string? Firmware(){string value="";return (bool)((dynamic)instance).GetFirmwareVersion(machine,ref value)?value:null;}
+        public string? Mac(){string value="";return (bool)((dynamic)instance).GetDeviceMAC(machine,ref value)?value:null;}
+        public string? ClockLocal(){int y=0,m=0,d=0,h=0,n=0,s=0;return (bool)((dynamic)instance).GetDeviceTime(machine,ref y,ref m,ref d,ref h,ref n,ref s)?new DateTime(y,m,d,h,n,s).ToString("yyyy-MM-dd HH:mm:ss",CultureInfo.InvariantCulture):null;}
+        public int? Status(int code){int value=0;return (bool)((dynamic)instance).GetDeviceStatus(machine,code,ref value)?value:null;}
     }
 }

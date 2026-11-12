@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using IO.DeviceContracts;
 
+if (args is ["--reference-parity"]) { ReferenceParityTests.Run(); return; }
+
 if (args is ["--idle-contracts"]) { await IdleTests.RunAsync(); return; }
 
 if (args is ["--network-contracts"]) { await NetworkTests.RunAsync(); return; }

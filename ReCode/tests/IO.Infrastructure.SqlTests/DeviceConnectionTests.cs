@@ -89,6 +89,8 @@ internal static class DeviceConnectionTests
         Task<DeviceCommunicationKey?> Credential(bool allowDefault,Guid? user=null)=>Use<DeviceConnectionCredential,DeviceCommunicationKey?>(s=>s.LoadAsync(user??service,nativeClaim,allowDefault));
         check(await Credential(false)==null&&(await Credential(true))?.Value==0,"native credential use requires a protected value or explicit operator opt-in to the SDK default key");
         check(await Reject<UnauthorizedAccessException>(()=>Credential(true,actor)),"native protected credential cannot be retrieved through requester or read grants");
+        bool bound=true;foreach(var changed in new[]{nativeClaim with{Host="10.99.99.99"},nativeClaim with{Port=1},nativeClaim with{Profile="file"},nativeClaim with{TimeoutSeconds=60}})bound&=await Use<DeviceConnectionCredential,DeviceCommunicationKey?>(s=>s.LoadAsync(service,changed,true))==null;
+        check(bound,"parity diagnostic credentials bind exact host port profile and timeout, not just an owned token");
         var protectedKey=provider.GetRequiredService<IDataProtectionProvider>().CreateProtector("IO.Devices.Credential.v1",first.ToString("N")).Protect("81237");
         await Query(async db=>{db.DeviceSecrets.Add(new(){DeviceId=first,ProtectedValue=protectedKey});await db.SaveChangesAsync();return true;});
         var loadedKey=await Credential(false);

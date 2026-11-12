@@ -43,6 +43,8 @@ internal static class DeviceUserUploadTests
         var c1=await Claim()??throw new InvalidOperationException();var c2=await Claim()??throw new InvalidOperationException();
         check(c1.DeviceId!=c2.DeviceId&&await Claim()==null&&await Reject<DomainConflictException>(()=>Use<DeviceUserUploads,Guid>(s=>s.CancelAsync(actor,c1.Id,V(c1.Id).GetAwaiter().GetResult()))),"S08 distinct devices can run independently and executing intents cannot be cancelled as if no write happened");
         check((await Use<DeviceUserUploads,DeviceCommunicationKey?>(s=>s.CredentialAsync(service,c1,true)))?.Value==0&&await Use<DeviceUserUploads,DeviceCommunicationKey?>(s=>s.CredentialAsync(service,c1,false))==null,"S08 credential dispatch requires explicit permission and default-key approval");
+        bool bound=true;foreach(var changed in new[]{c1 with{Host="10.99.99.99"},c1 with{Port=1},c1 with{TimeoutSeconds=60},c1 with{Expected=c1.Expected is null?new ZkUser("999","foreign",null,0,true):null},c1 with{Desired=c1.Desired with{Card="789"}},c1 with{WriteFormat=ZkUserReadFormats.Legacy}}){if(changed!=c1)bound&=await Use<DeviceUserUploads,DeviceCommunicationKey?>(s=>s.CredentialAsync(service,changed,true))==null;}
+        check(bound,"parity user-write credentials bind endpoint budget expected and desired user plus native format before dispatch");
         await Finish(c1,"succeeded");await Finish(c2,"unknown");
         check(await State(c1.Id)=="succeeded"&&await State(c2.Id)=="unknown"&&await Reject<DomainConflictException>(()=>Finish(c2,"succeeded")),"S08 partial batch outcomes are independent immutable evidence and a late success cannot replace unknown");
         var unknownDevice=c2.DeviceId;var unknownSnapshot=unknownDevice==d1?snap1:snap2;
