@@ -84,8 +84,8 @@
 | `DeviceOperationsController.ReadKey#1` | 1173 | قرارداد/آداپتر ناتمام | قرارداد مدل دقیق، مقدار/واحد/اثر و readback/unknown و مجوز مستقل لازم؛ generic setter باز نشده است. |
 | `DeviceOperationsController.Connect#1` | 1196 | جایگزین ایمن؛ نه هم‌ارزی عینی | Disconnect صف به معنی لغو عملیات dispatch‌شده نیست؛ پایداری/قطعی مدل واقعی باز. |
 | `DeviceOperationsController.Disconnect#1` | 1203 | جایگزین ایمن؛ نه هم‌ارزی عینی | Disconnect صف به معنی لغو عملیات dispatch‌شده نیست؛ پایداری/قطعی مدل واقعی باز. |
-| `DeviceOperationsController.GetRecords#1` | 1210 | بخشی ساخته؛ مانده دارد | خواندن native legacy non-TFT تردد هنوز adapter ندارد؛ فقط SSR؛ مرز ReadTimeGLogData روی دستگاه اجرا نشده، فیلتر در سرور است؛ آزمون واقعی باز. |
-| `DeviceOperationsController.GetTimeRecords#1` | 1244 | بخشی ساخته؛ مانده دارد | خواندن native legacy non-TFT تردد هنوز adapter ندارد؛ فقط SSR؛ مرز ReadTimeGLogData روی دستگاه اجرا نشده، فیلتر در سرور است؛ آزمون واقعی باز. |
+| `DeviceOperationsController.GetRecords#1` | 1210 | بخشی ساخته؛ مانده دارد | SSR و non-TFT صریح با قالب ثابت در دریافت/زمان‌بندی و worker آزموده‌اند؛ ReadTimeGLogData بومی ادعا نشده، فیلتر سرورمحور و پذیرش دستگاه واقعی باز است. |
+| `DeviceOperationsController.GetTimeRecords#1` | 1244 | بخشی ساخته؛ مانده دارد | SSR و non-TFT صریح با قالب ثابت در دریافت/زمان‌بندی و worker آزموده‌اند؛ ReadTimeGLogData بومی ادعا نشده، فیلتر سرورمحور و پذیرش دستگاه واقعی باز است. |
 | `iclockController.cdata#1` | 15 | PUSH امن هنوز ناتمام | PUSH امن مدل‌محور ساخته نشده؛ polling جای آن نیست؛ این کد بدون قرارداد هویت/replay/bounds قابل انتقال نیست. |
 | `iclockController.cdata#2` | 31 | PUSH امن هنوز ناتمام | PUSH امن مدل‌محور ساخته نشده؛ polling جای آن نیست؛ این کد بدون قرارداد هویت/replay/bounds قابل انتقال نیست. |
 | `iclockController.getrequest#1` | 106 | PUSH امن هنوز ناتمام | PUSH امن مدل‌محور ساخته نشده؛ polling جای آن نیست؛ این کد بدون قرارداد هویت/replay/bounds قابل انتقال نیست. |
@@ -107,7 +107,7 @@
 |---|---:|---|---|
 | `DeviceCommandService.sync-users#1` | 38 | بخشی ساخته؛ مانده دارد | اثر انگشت/چهره/عکس، حذف فرد/الگو و admin/group/password write فاقد policy/adapter مستقل؛ scope منتخب و مدل واقعی باز. |
 | `DeviceCommandService.sync-time#1` | 45 | جایگزین ایمن؛ نه هم‌ارزی عینی | هم‌ارزی خودکار TimeSync قدیمی ادعا نمی‌شود؛ آزمون drift/zone مدل واقعی باز. |
-| `DeviceCommandService.pull-punches#1` | 52 | بخشی ساخته؛ مانده دارد | خواندن native legacy non-TFT تردد هنوز adapter ندارد؛ فقط SSR؛ مرز ReadTimeGLogData روی دستگاه اجرا نشده، فیلتر در سرور است؛ آزمون واقعی باز. |
+| `DeviceCommandService.pull-punches#1` | 52 | بخشی ساخته؛ مانده دارد | SSR و non-TFT صریح با قالب ثابت در دریافت/زمان‌بندی و worker آزموده‌اند؛ ReadTimeGLogData بومی ادعا نشده، فیلتر سرورمحور و پذیرش دستگاه واقعی باز است. |
 | `DeviceCommandService.pull-users#1` | 59 | بخشی ساخته؛ مانده دارد | اثر انگشت/چهره/عکس، حذف فرد/الگو و admin/group/password write فاقد policy/adapter مستقل؛ scope منتخب و مدل واقعی باز. |
 | `DeviceCommandService.clear-punches#1` | 66 | عملیات حساس هنوز ناتمام | سیاست داده/بیومتریک یا حذف، قرارداد مدل، مجوز/تأیید مستقل، شاهد دریافت و recovery هنوز تکمیل نشده؛ restart مجوز اینها نیست. |
 
@@ -141,4 +141,8 @@ validator هش دقیق Git blob منابع ثابت (و برابری worktree؛
 
 ## دریافت تردد non-TFT منتقل‌شده
 
-[انتقال GetGeneralLogData مرجع](s09-legacy-attendance.fa.md) با ReadFormat ثابت، دقت دقیقه، دو خروجی machine، namespace مستقل canonical/multiplicity، جلوگیری از ingestion خاموش قالب مختلط، lineage retry و فرم واقعی Chromium/SQL/worker ساخته و آزموده شد. فیلتر بازه همچنان سرورمحور است، نه ادعای ReadTimeGLogData بومی؛ زمان‌بندی legacy هنوز انتخاب قالب صریح ندارد. شاهد دقیق CI در [سند این برش](s09-legacy-attendance-evidence.json) است؛ snapshot تطبیق اولیه تاریخی باقی می‌ماند.
+[انتقال GetGeneralLogData مرجع](s09-legacy-attendance.fa.md) با ReadFormat ثابت، دقت دقیقه، دو خروجی machine، namespace مستقل canonical/multiplicity، جلوگیری از ingestion خاموش قالب مختلط، lineage retry و فرم واقعی Chromium/SQL/worker ساخته و آزموده شد. فیلتر بازه همچنان سرورمحور است، نه ادعای ReadTimeGLogData بومی؛ [زمان‌بندی legacy با قالب صریح و ثابت](s10-legacy-polling.fa.md) نیز اکنون در SQL/مرورگر/worker آزموده شده است. شاهد دقیق CI در [سند این برش](s09-legacy-attendance-evidence.json) است؛ snapshot تطبیق اولیه تاریخی باقی می‌ماند.
+
+### ادامهٔ S10 — polling با قالب ثابت
+
+کد `468e02a` و [شاهد CI مستقل](s10-legacy-polling-evidence.json): ۸۵۱ بررسی نام‌دار SQL، ۱۴ بررسی قرارداد زمان‌بندی legacy، ۲۱ بررسی محیط واقعی worker با دستگاه مجازی، و CI ویندوز/لینوکس سبز. اعداد و جدول snapshot اولیه در بالا تاریخی‌اند؛ دسته‌بندی مانده‌ها و عدم پذیرش سخت‌افزار تغییر نکرده است.

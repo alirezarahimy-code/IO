@@ -78,7 +78,7 @@ worker اکنون روی Windows با `AddWindowsService` و نام ثابت `IO
 
 ## زمان‌بندی S10 (پیش‌فرض خاموش)
 
-`IO:DeviceWorker:EnableSchedules=true` و grant مستقل `devices.schedules.execute` لازم‌اند؛ در کنار مسیر استخراج S09 و `EnableAttendanceDownloads/AllowAttendanceRead`، نه جای آن‌ها. سرویس شش صف را نوبتی بررسی می‌کند؛ چهار slot سقف دستگاه نیست. زمان‌بندی زیر اختیار فعلی سازنده، range/cursor و تأیید صریح خودش کار می‌کند؛ ثبت خودکار پیش‌فرض خاموش است و grant execute سرویس به‌تنهایی به attendance نمی‌نویسد. [دامنه/نقش/قطعی/توقف و محدودیت PUSH](s10-sdk-schedules.fa.md).
+`IO:DeviceWorker:EnableSchedules=true` و grant مستقل `devices.schedules.execute` لازم‌اند؛ در کنار مسیر استخراج S09 و `EnableAttendanceDownloads/AllowAttendanceRead`، نه جای آن‌ها. قالب مصوب schedule باید با AttendanceReadFormat نصب‌شده برابر باشد؛ SSR پیش‌فرض و legacy-int32-minute-v1 انتخاب صریح non-TFT است. [قرارداد و بازیابی زمان‌بندی legacy](s10-legacy-polling.fa.md). سرویس شش صف را نوبتی بررسی می‌کند؛ چهار slot سقف دستگاه نیست. زمان‌بندی زیر اختیار فعلی سازنده، range/cursor و تأیید صریح خودش کار می‌کند؛ ثبت خودکار پیش‌فرض خاموش است و grant execute سرویس به‌تنهایی به attendance نمی‌نویسد. [دامنه/نقش/قطعی/توقف و محدودیت PUSH](s10-sdk-schedules.fa.md).
 
 ## تاریخچه و retry S11
 

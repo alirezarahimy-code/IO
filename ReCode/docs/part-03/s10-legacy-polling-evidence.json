@@ -1,0 +1,49 @@
+{
+  "scope": "Explicit immutable SSR/non-TFT format on approved durable polling, SQL lineage/cursor and actual HTTPS/Chromium/scheduler/worker/child stateful virtual endpoint. Not vendor SDK, PUSH or Part 3 completion.",
+  "verifiedCode": "468e02a6475b14a2a611e8917171f3ddca192aa0",
+  "runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 43501783778,
+      "headSha": "468e02a6475b14a2a611e8917171f3ddca192aa0",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43501783778"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 43501783928,
+      "headSha": "468e02a6475b14a2a611e8917171f3ddca192aa0",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43501783928"
+    }
+  ],
+  "checks": {
+    "integrationNamedPassLines": 851,
+    "countEnforcedBy": "ReCode/tools/phase03-report-tests.py (successful required CI step refuses a different total)",
+    "legacyPollScheduleSqlChecks": 14,
+    "virtualWorkerEndToEndChecks": 21,
+    "freshPreflight": "21 virtual-worker checks plus the same 14 LegacyPollScheduleTests checks, on a fresh migrated SQL database",
+    "foundationMigrations": 43,
+    "identityMigrations": 2,
+    "foundationTables": 60,
+    "permissions": 123,
+    "pagesAndHelp": 52
+  },
+  "contract": {
+    "default": "ssr-v1",
+    "explicitLegacy": "legacy-int32-minute-v1",
+    "lineage": "approval -> SQL schedule -> run -> immutable download -> claim -> installed-format worker -> tagged child -> retained tuples/review",
+    "guards": "Exact binary format, immutable approval, same-format run linkage SQL 51032, retained legacy approval downgrade guard",
+    "recovery": "Incomplete leaves cursor unchanged; durable backoff rereads the same overlap and format; receipt multiplicity preserves original dedup",
+    "rights": "Current creator device scope and independent manage/extract/commit/attendance rights; execute never grants ingestion",
+    "browser": "Actual Chromium form creates approved automatic legacy polling; 103 retained tuples/receipts and review cursor to 09:00; versioned pause; prior raw not duplicated",
+    "readinessConflict": "Bounded read-only run-history GET retries HTTP 409 while serializable worker review proceeds; never replays schedule create/pause POST"
+  },
+  "provenance": "s09-legacy-attendance-evidence.json",
+  "referenceFilesModified": false,
+  "realSdkExecuted": false,
+  "hardwareVerified": false,
+  "softwareComplete": false,
+  "part3Complete": false,
+  "remaining": "Supported-model secure vendor PUSH, additional approved advanced/sensitive/RemoteEnroll contracts and final Windows/real-device acceptance remain separately tracked."
+}
