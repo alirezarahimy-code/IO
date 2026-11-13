@@ -68,9 +68,11 @@ if(!address?.startsWith('https://127.0.0.1:')||!user?.startsWith('virtual-operat
   await page.locator('#notice').filter({hasText:'SQL ثبت شد'}).waitFor();
   const pollDeadline=Date.now()+90000;let acknowledged=false;
   while(Date.now()<pollDeadline){
-   const body=await page.evaluate(async id=>{const r=await fetch('/device-poll-schedules/'+id+'/runs?offset=0',{cache:'no-store'});if(!r.ok)throw Error('Poll HTTP '+r.status);return r.json();},scheduleId);
-   if(body.items[0]?.outcome==='succeeded'){assert.equal(body.items[0].readFormat,'legacy-int32-minute-v1');assert.equal(body.items[0].nextAfter,103);assert.equal(body.items[0].receivedCount,103);acknowledged=true;break;}
-   await page.waitForTimeout(100);
+   const body=await page.evaluate(async id=>{const r=await fetch('/device-poll-schedules/'+id+'/runs?offset=0',{cache:'no-store'});if(r.status===409)return null;if(!r.ok)throw Error('Poll HTTP '+r.status);return r.json();},scheduleId);
+   if(body?.items[0]?.outcome==='succeeded'){assert.equal(body.items[0].readFormat,'legacy-int32-minute-v1');assert.equal(body.items[0].nextAfter,103);assert.equal(body.items[0].receivedCount,103);acknowledged=true;break;}
+   // Readiness GET may deliberately conflict with serializable worker review.
+   // Retry only this read, never the schedule-creation or pause POST.
+   await page.waitForTimeout(500);
   }
   assert(acknowledged,'Legacy polling did not complete acquisition and approved automatic review');
   await page.locator('#refresh').click();const scheduleRow=page.locator('#schedules li').filter({hasText:scheduleId});
