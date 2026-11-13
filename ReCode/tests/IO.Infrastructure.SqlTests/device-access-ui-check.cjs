@@ -23,7 +23,7 @@ async function wait(test){for(let i=0;i<250;i++){if(test())return;await new Prom
  await wait(()=>!section.hidden&&!operator.querySelector('button').disabled);
  operator.elements.userId.value='b184266d-b253-4bd5-a025-9136e9570a52';operator.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));
  await wait(()=>w.document.getElementById('scope-policy').textContent.includes('b184266d')&&!mode.querySelector('button').disabled);
- mode.elements.confirmed.checked=true;mode.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));
+ mode.elements.restricted.value='true';mode.elements.confirmed.checked=true;mode.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));
  await wait(()=>notice.textContent.includes('دامنه ثبت شد')&&!grant.querySelector('button').disabled);assert.equal(mode.elements.confirmed.checked,false);
  grant.elements.deviceId.value='<img src=x onerror=alert(1)>';const id=grant.elements.id.value;grant.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));
  await wait(()=>notice.textContent.includes('نامعلوم')&&!grant.querySelector('button').disabled);
