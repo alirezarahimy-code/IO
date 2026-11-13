@@ -139,8 +139,9 @@
   "functionKeyReadEvidence": "s11-function-key-read-evidence.json",
   "modelAndPolicyDecisionRegister": "model-and-policy-decisions.fa.md",
   "pendingSoftwareSlice": {
-    "implementedCode": "59343995f6c8578ad62ca827b41d1e9bafe9be45",
+    "implementedCode": "f08cbb3fd06ac08d98ababd948ab7100ecb67bf4",
     "status": "integration-pending",
-    "evidence": "s11-function-key-read-evidence.json"
+    "evidence": "s11-function-key-read-evidence.json",
+    "nextAction": "Inspect SQL 43510974928 and platform 43510974900 for exact f08cbb3; fix any failure, then update verified evidence/counts only after success. Previous 5934399 full SQL failed the browser target fixture; production typed worker result was already observed."
   }
 }

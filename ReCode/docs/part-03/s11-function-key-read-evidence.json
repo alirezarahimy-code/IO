@@ -1,29 +1,29 @@
 {
   "scope": "Read-only exact-model installed function key allowlist and four fixed raw additional settings reports, including NetMask/GATEIPAddress. No key/network option writes, biometric policy, secure vendor PUSH or Part 3 completion.",
-  "implementedCode": "59343995f6c8578ad62ca827b41d1e9bafe9be45",
+  "implementedCode": "f08cbb3fd06ac08d98ababd948ab7100ecb67bf4",
   "verifiedCode": null,
   "status": "integration-pending",
   "runs": [
     {
       "conclusion": "",
-      "databaseId": 43509662396,
-      "headSha": "59343995f6c8578ad62ca827b41d1e9bafe9be45",
+      "databaseId": 43510974928,
+      "headSha": "f08cbb3fd06ac08d98ababd948ab7100ecb67bf4",
       "status": "in_progress",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43509662396"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43510974928"
+    },
+    {
+      "conclusion": "",
+      "databaseId": 43510974900,
+      "headSha": "f08cbb3fd06ac08d98ababd948ab7100ecb67bf4",
+      "status": "in_progress",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43510974900"
     },
     {
       "conclusion": "success",
-      "databaseId": 43509662424,
-      "headSha": "59343995f6c8578ad62ca827b41d1e9bafe9be45",
+      "databaseId": 43510974923,
+      "headSha": "f08cbb3fd06ac08d98ababd948ab7100ecb67bf4",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43509662424"
-    },
-    {
-      "conclusion": "success",
-      "databaseId": 43509662272,
-      "headSha": "59343995f6c8578ad62ca827b41d1e9bafe9be45",
-      "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43509662272"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43510974923"
     }
   ],
   "localChecks": {
@@ -91,5 +91,22 @@
   "part3Complete": false,
   "realSdkExecuted": false,
   "hardwareVerified": false,
-  "remainingDecisionRegister": "model-and-policy-decisions.fa.md"
+  "remainingDecisionRegister": "model-and-policy-decisions.fa.md",
+  "failedRuns": [
+    {
+      "sha": "59343995f6c8578ad62ca827b41d1e9bafe9be45",
+      "sqlRun": 43509662396,
+      "platformRun": 43509662424,
+      "platformConclusion": "success",
+      "sqlConclusion": "failure",
+      "reason": "Actual worker/child/TCP/SQL key assertion passed, but browser inspected device B while settings snapshot was created on A. No cross-device history was exposed; empty B history was correct. f08cbb3 passes an explicit separate settingsDevice=A argument rather than changing production scope or fabricating snapshots.",
+      "failure": "Timeout waiting for [data-function-keys] in wrong device history. Full suite did not complete; 855 expected lines are not claimed as passed."
+    }
+  ],
+  "manualFocusedDispatch": {
+    "attempted": true,
+    "accepted": false,
+    "result": "GitHub API HTTP 403 Resource not accessible by integration; no manual run was created. Automatic push workflows remain active.",
+    "suite": "virtual-worker"
+  }
 }
