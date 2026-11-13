@@ -2,6 +2,19 @@ name: IO .NET 10 Windows and Linux
 on:
   push:
     branches: [arena/5496cceb-io]
+    paths:
+      - '**'
+      - '!ReCode/docs/**'
+      - '!**/*.md'
+      - '!ReCode/preview/**'
+      - '!ReCode/src/IO.Web/Ui/**'
+      # The permission-filtered help catalogue is also consumed by C# tests.
+      - 'ReCode/src/IO.Web/Ui/HelpContent.json'
+      - '!ReCode/tests/**/*-ui-check.cjs'
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:

@@ -4,6 +4,25 @@ on:
   push:
     branches:
       - arena/5496cceb-io
+    paths:
+      - '**'
+      - '!ReCode/docs/**'
+      - '!**/*.md'
+      - '!ReCode/preview/**'
+      - '!ReCode/src/IO.Web/Ui/**'
+      # The permission-filtered help catalogue is also consumed by C# tests.
+      - 'ReCode/src/IO.Web/Ui/HelpContent.json'
+      - '!ReCode/tests/**/*-ui-check.cjs'
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: 'Full integration, focused worker lab, or full with extra fresh-DB isolation'
+        type: choice
+        options: [full, virtual-worker, full-with-preflight]
+        default: full
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
@@ -274,22 +293,10 @@ jobs:
         run: |
           set -euo pipefail
           export NODE_PATH="$RUNNER_TEMP/io-browser/node_modules"
-          node ReCode/tests/IO.Infrastructure.SqlTests/reversal-ui-check.cjs
-          node ReCode/tests/IO.Infrastructure.SqlTests/device-ui-check.cjs
-          node ReCode/tests/IO.Infrastructure.SqlTests/device-access-ui-check.cjs
-          node ReCode/tests/IO.Infrastructure.SqlTests/device-groups-ui-check.cjs
-          node ReCode/tests/IO.Infrastructure.SqlTests/device-connection-ui-check.cjs
-          node ReCode/tests/IO.Infrastructure.SqlTests/device-information-ui-check.cjs
-          node ReCode/tests/IO.Infrastructure.SqlTests/device-users-ui-check.cjs
-          node ReCode/tests/IO.Infrastructure.SqlTests/device-user-uploads-ui-check.cjs
-          node ReCode/tests/IO.Infrastructure.SqlTests/device-attendance-ui-check.cjs
-          node ReCode/tests/IO.Infrastructure.SqlTests/device-schedules-ui-check.cjs
-          node ReCode/tests/IO.Infrastructure.SqlTests/device-commands-ui-check.cjs
-          node ReCode/tests/IO.Infrastructure.SqlTests/device-settings-ui-check.cjs
-          node ReCode/tests/IO.Infrastructure.SqlTests/device-idle-ui-check.cjs
-          node ReCode/tests/IO.Infrastructure.SqlTests/device-health-ui-check.cjs
-          node ReCode/tests/IO.Infrastructure.SqlTests/device-files-ui-check.cjs
+          bash ReCode/tools/check-ui-dom.sh
       - name: Test isolated SQL Server Developer
+        env:
+          IO_CI_SQL_SUITE: ${{ inputs.suite || 'full' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -346,15 +353,29 @@ jobs:
           export IO_BROWSER_TEST=yes
           export NODE_PATH="$RUNNER_TEMP/io-browser/node_modules"
           export IO_CHROME_BINARY="$(command -v google-chrome)"
-          if ! dotnet run --project tests/IO.Infrastructure.SqlTests/IO.Infrastructure.SqlTests.csproj --configuration Release --no-build -- --virtual-worker-only > "$RUNNER_TEMP/io-virtual-preflight.log" 2>&1; then
-            python3 tools/phase03-annotate-error.py "$RUNNER_TEMP/io-virtual-preflight.log" "Virtual worker preflight failure"
-            exit 1
+          case "$IO_CI_SQL_SUITE" in
+            full|virtual-worker|full-with-preflight) ;;
+            *) echo 'Unknown SQL suite; refusing to skip tests.' >&2; exit 1 ;;
+          esac
+          # The full suite already runs VirtualWorkerTests and LegacyPollScheduleTests.
+          # Repeat them on a separate fresh DB only when explicitly diagnosing isolation.
+          if [[ "$IO_CI_SQL_SUITE" != full ]]; then
+            if ! dotnet run --project tests/IO.Infrastructure.SqlTests/IO.Infrastructure.SqlTests.csproj --configuration Release --no-build -- --virtual-worker-only > "$RUNNER_TEMP/io-virtual-preflight.log" 2>&1; then
+              python3 tools/phase03-annotate-error.py "$RUNNER_TEMP/io-virtual-preflight.log" "Virtual worker preflight failure"
+              exit 1
+            fi
+            grep -q '^PASS disposable virtual worker preflight complete$' "$RUNNER_TEMP/io-virtual-preflight.log"
+            echo '::notice title=Virtual worker preflight::Fresh SQL HTTPS Chromium and real worker path passed'
+            echo 'Fresh SQL/HTTPS/Chromium worker laboratory: passed.' >> "$GITHUB_STEP_SUMMARY"
           fi
-          grep -q '^PASS disposable virtual worker preflight complete$' "$RUNNER_TEMP/io-virtual-preflight.log"
-          echo '::notice title=Virtual worker preflight::Fresh SQL HTTPS Chromium and real worker path passed'
+          if [[ "$IO_CI_SQL_SUITE" == virtual-worker ]]; then
+            echo 'Focused worker laboratory only; full SQL regression was NOT run.' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           if ! dotnet run --project tests/IO.Infrastructure.SqlTests/IO.Infrastructure.SqlTests.csproj --configuration Release --no-build > "$RUNNER_TEMP/io-sql-tests.log" 2>&1; then
             python3 tools/phase03-annotate-error.py "$RUNNER_TEMP/io-sql-tests.log" "SQL integration failure"
             exit 1
           fi
           python3 tools/phase03-report-tests.py "$RUNNER_TEMP/io-sql-tests.log"
           echo '::notice title=Phase 3 SQL integration::Disposable SQL migration and constraint checks passed'
+          echo 'Full SQL regression passed (strict named-check count enforced).' >> "$GITHUB_STEP_SUMMARY"

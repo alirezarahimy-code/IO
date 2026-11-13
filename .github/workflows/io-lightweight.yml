@@ -1,0 +1,84 @@
+name: IO lightweight UI and documentation checks
+on:
+  push:
+    branches: [arena/5496cceb-io]
+    paths:
+      - 'ReCode/docs/**'
+      - '**/*.md'
+      - 'ReCode/src/IO.Web/Ui/**'
+      - 'ReCode/preview/**'
+      - 'ReCode/tests/**/*-ui-check.cjs'
+      - 'ReCode/tools/ci-*'
+      - 'ReCode/tools/check-ui-dom.sh'
+      - '.github/workflows/**'
+  workflow_dispatch:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  light:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          fetch-depth: 0
+      - name: Select lightweight scope over the entire push
+        id: scope
+        env:
+          IO_CI_BASE: ${{ github.event.before }}
+          IO_CI_HEAD: ${{ github.sha }}
+        run: python3 ReCode/tools/ci-light-scope.py
+      - name: Prepare workflow policy test dependency
+        run: python3 -m pip install --disable-pip-version-check PyYAML==6.0.3
+      - name: Test CI routing and retained safety gates
+        run: python3 ReCode/tools/ci-policy-tests.py
+      - name: Validate reference evidence and capability inventory
+        run: |
+          python3 ReCode/tools/device-reference-audit.py
+          python3 ReCode/tools/validate-capability-audit.py
+      - name: Prepare offline DOM dependencies
+        if: steps.scope.outputs.ui == 'true' || steps.scope.outputs.preview == 'true'
+        run: npm install --prefix "$RUNNER_TEMP/io-browser" --ignore-scripts --no-audit --no-fund playwright-core@1.56.1 jsdom@26.1.0
+      - name: Check JavaScript syntax and offline DOM contracts
+        if: steps.scope.outputs.ui == 'true'
+        env:
+          NODE_PATH: ${{ runner.temp }}/io-browser/node_modules
+        run: |
+          set -euo pipefail
+          for script in ReCode/src/IO.Web/Ui/*.js; do node --check "$script"; done
+          bash ReCode/tools/check-ui-dom.sh
+      - name: Check standalone page preview in Chromium
+        if: steps.scope.outputs.preview == 'true'
+        working-directory: ReCode
+        env:
+          NODE_PATH: ${{ runner.temp }}/io-browser/node_modules
+        run: |
+          set -euo pipefail
+          export IO_CHROME_BINARY="$(command -v google-chrome)"
+          python3 -m http.server 4174 --bind 127.0.0.1 > "$RUNNER_TEMP/io-pages-server.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          python3 -c 'import time, urllib.request
+          for _ in range(100):
+              try:
+                  urllib.request.urlopen("http://127.0.0.1:4174/", timeout=1).close()
+                  break
+              except OSError:
+                  time.sleep(0.1)
+          else:
+              raise RuntimeError("preview server did not start")'
+          node preview/pages-first/browser-check.cjs http://127.0.0.1:4174/
+      - name: Record actual coverage
+        env:
+          UI_CHECKED: ${{ steps.scope.outputs.ui }}
+          PREVIEW_CHECKED: ${{ steps.scope.outputs.preview }}
+        run: |
+          {
+            echo 'Lightweight checks only; no .NET build, SQL, worker or device SDK execution.'
+            echo "Offline UI contracts selected: $UI_CHECKED"
+            echo "Standalone Chromium preview selected: $PREVIEW_CHECKED"
+            echo 'This result does not replace full integration or Windows/Linux acceptance.'
+          } >> "$GITHUB_STEP_SUMMARY"
