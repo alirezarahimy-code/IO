@@ -23,6 +23,10 @@ internal static class RawSettingTests
   Check(!new ZkOperationOutput("succeeded").IsValidFor(input)&&!(result with{RawSetting=result.RawSetting! with{Value=1}}).IsValidFor(input)&&!(result with{State="unknown"}).IsValidFor(input),"bare ACK wrong value and mixed unknown evidence rejected");
   var host=Path.GetFullPath(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(),"..","..","..",OperatingSystem.IsWindows()?"dotnet.exe":"dotnet"));var assembly=typeof(RawSettingTests).Assembly.Location;
   Check((await NativeProcessSupervisor.RunOperationAsync(host,assembly,input,5)).IsValidFor(input),"real isolated child round-trips typed approved result not vendor acceptance");
+  var largePlan=plan with{Serial="raw-long",Product=new string('ژ',120),Firmware=new string('ژ',120),Unit=new string('ژ',80),Effect=new string('ژ',200),ApprovalReference=new string('ژ',200)};
+  var largeApproval=new ZkRawSettingApproval(largePlan.Product,largePlan.Firmware,largePlan.Parameter,[-1,0],largePlan.Unit,largePlan.Effect,largePlan.ApprovalReference);
+  var largeInput=input with{Connection=pin with{ExpectedSerial=largePlan.Serial},RawSettingPlan=largePlan,RawSettingApproval=largeApproval};
+  Check(System.Text.Json.JsonSerializer.Serialize(largeInput).Length>8192&&(await NativeProcessSupervisor.RunOperationAsync(host,assembly,largeInput,5)).IsValidFor(largeInput),"bounded maximum Unicode descriptors round-trip beyond old input budget without trimming or truncation");
   Check((await NativeProcessSupervisor.RunOperationAsync(host,assembly,input with{Connection=pin with{ExpectedSerial="raw-hang"},RawSettingPlan=plan with{Serial="raw-hang"}},1)).State=="unknown","external deadline kills child and preserves unknown without write retry");
   Console.WriteLine($"PASS {count} raw setting contract checks; synthetic only not SDK or hardware acceptance");
  }

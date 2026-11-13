@@ -92,7 +92,8 @@ if (args is not ["--verify"])
         if(operation.Operation=="settings.raw.set")
         {
             if(operation.Connection.ExpectedSerial=="raw-hang"){await Task.Delay(TimeSpan.FromMinutes(1));return;}
-            Console.WriteLine(JsonSerializer.Serialize(ZkRawSettingExecutor.Execute(operation,new RawSettingTests.Session())));return;
+            var rawSession=operation.Connection.ExpectedSerial=="raw-long"?new RawSettingTests.Session{SerialValue="raw-long",ProductValue=operation.RawSettingPlan!.Product,FirmwareValue=operation.RawSettingPlan.Firmware,Value=operation.RawSettingPlan.ExpectedValue}:new RawSettingTests.Session();
+            Console.WriteLine(JsonSerializer.Serialize(ZkRawSettingExecutor.Execute(operation,rawSession)));return;
         }
         if(operation.Operation=="settings.idle.set")
         {

@@ -152,10 +152,11 @@
     "rawSettingsImplementedCode": "d3290fc5d3a3b8db2bc80d675fd4917062cc91c0",
     "rawSettings": "d3290fc passed SQL878 and Windows/Linux/light; installed actual model contract still required. e202dde adds further HTTPS/worker lost-ACK/review coverage.",
     "keyAuthorization": "independent read/execute grants, live claim and history redaction implemented; pending exact-SHA CI",
-    "expectedFullSuitePassLines": 886,
+    "expectedFullSuitePassLines": 888,
     "expectedFoundationMigrations": 45,
     "expectedPermissions": 127,
     "part3Complete": false,
-    "keyAuthorizationImplementedCode": "e202dde7f79de44ca71365ee173432ff3e439bf0"
+    "keyAuthorizationImplementedCode": "e202dde7f79de44ca71365ee173432ff3e439bf0",
+    "followupNativeContractChecks": 23
   }
 }

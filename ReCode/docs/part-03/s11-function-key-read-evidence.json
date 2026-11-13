@@ -117,6 +117,7 @@
     "claimCredentialCompletion": "current independent grants checked; unauthorized collection flag cannot obtain credentials",
     "history": "redacted without independent human key grant; immutable SQL retained",
     "newSqlRegressions": 6,
-    "fullSuitePassedOnFollowup": false
+    "fullSuitePassedOnFollowup": false,
+    "newActualWorkerRevokeChecks": 2
   }
 }
