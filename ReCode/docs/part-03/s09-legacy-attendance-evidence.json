@@ -1,0 +1,101 @@
+{
+  "scope": "Port of observed reference non-TFT GetGeneralLogData attendance path, manual extraction and explicit retry through SQL/web/worker; not hardware or full Part 3 acceptance. Existing polling stays explicitly SSR pending a separate approved-format schedule extension.",
+  "verifiedCode": "2dfec50b7cd5ae99642f46c46be125722e89fc31",
+  "runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 43495693517,
+      "headSha": "2dfec50b7cd5ae99642f46c46be125722e89fc31",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43495693517"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 43495693412,
+      "headSha": "2dfec50b7cd5ae99642f46c46be125722e89fc31",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43495693412"
+    }
+  ],
+  "checks": {
+    "integrationNamedPassLines": 836,
+    "enforcedBy": "ReCode/tools/phase03-report-tests.py",
+    "legacyAttendanceSqlChecks": 13,
+    "legacyAttendanceHttpsWorkerChromiumSqlChecks": 3,
+    "portableAttendanceContractsAndStatefulTcpChecks": 16,
+    "freshVirtualWorkerPreflightChecks": 20,
+    "foundationMigrations": 42,
+    "identityMigrations": 2,
+    "pagesAndHelp": 52,
+    "permissions": 123,
+    "previousPortableBoundaryChecks": 61,
+    "previousStatefulTcpChecks": 19
+  },
+  "provenance": {
+    "binary": {
+      "path": "T5V3.9.2/Personnel.DLL",
+      "sha256": "185b084072a552e92ab0c8b0c2a03ca926b2aa362b5aada1ca8a39f998144be4"
+    },
+    "method": "Personnel.ZK.ZKDevice.WriteRecordsToList non-TFT branch; GetGeneralLogData after ReadAllGLogData",
+    "decompiledBody": {
+      "scratchName": "PersonnelZKDevice.decompiled.cs",
+      "sha256": "58e33195ab271660e2f48b81d80167b91c693cb7986b955ee14c94d1b58b7eb5",
+      "methodLine": 1237,
+      "legacyCallLine": 1283
+    },
+    "interface": {
+      "type": "zkemkeeper.IZKEM.GetGeneralLogData",
+      "scratchName": "IZKEM.decompiled.cs",
+      "line": 56,
+      "sha256": "49856b1ed0aa89838405cfcef3a46da2f6275a80425898cda3cc70964a5ab701"
+    },
+    "originalSourceAvailable": false,
+    "legacyExecuted": false,
+    "referenceFilesModified": false
+  },
+  "contract": {
+    "ssr": "ssr-v1",
+    "legacy": "legacy-int32-minute-v1",
+    "unknownFormat": "rejected; never auto-detected or retried as SSR",
+    "identity": "Canonical invariant signed Int32 native output; negative values retained but quarantined; no leading-zero inference.",
+    "time": "Gregorian minute precision; zero Second and WorkCode are absence/precision representation, not measured native values.",
+    "machineOutputs": "Separate LegacyTerminalNumber and LegacyEnrollmentMachineNumber retained; reference aliases the two ref outputs, IO does not.",
+    "stream": "ReadFormat-tagged start frame; bounded owned child, serial before/after and complete counter checks; incomplete rows remain retained.",
+    "storage": "Immutable default-compatible job ReadFormat, exact SQL constraint, update trigger and retained-history downgrade guard. SSR canonical bytes and external IDs unchanged.",
+    "crossFormatHistory": "Different precision contracts never silently deduplicate or double-ingest; source with prior other-format ingested receipts yields format-history-review-required quarantine.",
+    "retry": "Confirmed typed read-only retry carries immutable parent format and SQL lineage.",
+    "worker": "Installed AttendanceReadFormat must equal claimed format before secret/child use; default SSR; no production Linux COM or test-enable switch.",
+    "permissions": "Existing independent read/extract/execute/commit plus attendance receive and selected-device scope, without automatic rights elevation."
+  },
+  "e2e": [
+    "Installed legacy endpoint refuses an SSR request without native dispatch.",
+    "A truncated legacy stream retains 50 original SQL rows and no raw ingestion.",
+    "Real Chromium selects legacy, queues two fresh reads via HTTPS; actual worker/private child/stateful TCP endpoint produce 103 minute tuples each; three confirmed page commits per read retain 206 receipts but 103 immutable raw multiplicity identities.",
+    "Same fixture still verifies SSR, scope grant/revoke and isolated multi-device outage behavior."
+  ],
+  "localChecks": [
+    "Bridge and portable contracts compile with zero errors.",
+    "16 new attendance contract/TCP checks pass.",
+    "61 prior portable native boundary checks, 19 prior virtual-lab checks and 33 parity checks pass.",
+    "Attendance DOM exact uncertain-retry guard includes ReadFormat; scope DOM regression passes.",
+    "Reference audit 48 actions + 5 catalog entries and capability audit pass."
+  ],
+  "correctedFailures": [
+    {
+      "run": 43493980815,
+      "reason": "Initial model edit accidentally attached ReadFormat to schedule mapping; fixed extraction-only mapping in 7c535c5."
+    },
+    {
+      "run": 43494181967,
+      "reason": "Guarded old polling DOWN had legitimately removed newer empty migration before its own history guard; restore latest before subsequent current-schema service tests."
+    },
+    {
+      "run": 43494866359,
+      "reason": "Later idle downgrade probe similarly removed new empty migration before full virtual-worker fixture; network/idle probes now restore latest without weakening downgrade assertions."
+    }
+  ],
+  "hardwareVerified": false,
+  "realSdkExecuted": false,
+  "softwareComplete": false,
+  "part3Complete": false
+}

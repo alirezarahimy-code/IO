@@ -36,9 +36,9 @@
 
 | وضعیت | تعداد ردیف |
 |---|---:|
-| بخشی ساخته؛ مانده دارد | 14 |
-| پیاده‌شده؛ آزمون نرم‌افزاری | 13 |
-| جایگزین ایمن؛ نه هم‌ارزی عینی | 8 |
+| بخشی ساخته؛ مانده دارد | 12 |
+| پیاده‌شده؛ آزمون نرم‌افزاری | 14 |
+| جایگزین ایمن؛ نه هم‌ارزی عینی | 9 |
 | عملیات حساس هنوز ناتمام | 6 |
 | قرارداد/آداپتر ناتمام | 9 |
 | PUSH امن هنوز ناتمام | 3 |
@@ -138,3 +138,7 @@ validator هش دقیق Git blob منابع ثابت (و برابری worktree؛
 کد `aca96d7f55b1963dc3e57a3efd1e4f04e3773746` در [Windows/Linux](https://github.com/alirezarahimy-code/IO/actions/runs/43315707982) و [SQL/HTTPS](https://github.com/alirezarahimy-code/IO/actions/runs/43315707957) **success** شد؛ جزئیات و اجراهای ناموفق قبلی در [شاهد تحویل](device-reference-parity-evidence.json) ثبت شدند. suite جدید شامل۳۳ بررسی portable قرارداد/خواندن، پنج گروه SQL claim-binding، هشت regression بین صف‌ها و یک round-trip SQL برای GetAdvanced2 است. suite یکپارچه با کنترل سخت تعداد۷۸۲ PASS و نشانگر پایان موفق شد. مسیرهای DOM قبلی settings/idle نیز محلی دوباره موفق شدند.
 
 **`part3Complete=false`، `realSdkExecuted=false` و `hardwareVerified=false`؛ این گزارش پایان تطبیق موجودیِ مشخص است، نه پایان تمام قسمت دستگاه.**
+
+## دریافت تردد non-TFT منتقل‌شده
+
+[انتقال GetGeneralLogData مرجع](s09-legacy-attendance.fa.md) با ReadFormat ثابت، دقت دقیقه، دو خروجی machine، namespace مستقل canonical/multiplicity، جلوگیری از ingestion خاموش قالب مختلط، lineage retry و فرم واقعی Chromium/SQL/worker ساخته و آزموده شد. فیلتر بازه همچنان سرورمحور است، نه ادعای ReadTimeGLogData بومی؛ زمان‌بندی legacy هنوز انتخاب قالب صریح ندارد. شاهد دقیق CI در [سند این برش](s09-legacy-attendance-evidence.json) است؛ snapshot تطبیق اولیه تاریخی باقی می‌ماند.

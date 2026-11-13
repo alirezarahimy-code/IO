@@ -89,11 +89,12 @@
   "report": "device-reference-parity.fa.md",
   "operatorScopeSupplement": "s04-device-operator-scope-evidence.json",
   "currentMatrixCounts": {
-    "software-verified": 13,
-    "intentional-replacement": 8,
-    "partial-software": 14,
+    "software-verified": 14,
+    "intentional-replacement": 9,
+    "partial-software": 12,
     "pending-sensitive": 6,
     "pending-contract": 9,
     "pending-secure-push": 3
-  }
+  },
+  "legacyAttendanceSupplement": "s09-legacy-attendance-evidence.json"
 }

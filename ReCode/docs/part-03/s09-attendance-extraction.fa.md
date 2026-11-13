@@ -1,6 +1,8 @@
-# S09 — candidate استخراج بازه‌ای تردد SSR، نه پذیرش SDK/مدل واقعی
+# S09 — استخراج بازه‌ای تردد SSR و non-TFT، نه پذیرش SDK/مدل واقعی
 
 `DeviceAttendanceDownloads` و `DeviceAttendanceRows` با migration `20261112080000` اصل tupleهای typed SDK را در SQL نگه می‌دارند. `/workspace/device-attendance` از موجودی لینک دارد؛ تاریخچه، اصل داده، قرنطینه و رسیدهای `RawEventId/ConflictId` دیتابیس‌محورند. منابع legacy فقط خوانده شده‌اند؛ بدنهٔ decompile‌شده سورس اصلی نامیده نمی‌شود.
+
+[انتقال متدبه‌متد شاخهٔ non-TFT، دقت دقیقه، نصب هماهنگ و مرز قالب‌های مختلط](s09-legacy-attendance.fa.md).
 
 ## قرارداد مشاهده‌شده و مرز دادهٔ اصلی
 
@@ -8,18 +10,18 @@
 
 SDK مشاهده‌شده کل log را می‌خواند؛ بازه در سرور **پس از نگهداری همهٔ tupleها** اعمال می‌شود، نه اینکه ادعای range API تأییدنشده شود. شروع بازه شامل و پایان غیرشامل با UTC صریح و دقت ثانیه است. timezone محل/شرکت/منبع و نسخهٔ هدف هنگام درخواست ثابت می‌شوند. کدهای متفاوت ورود/خروج صریح‌اند؛ پیش‌فرض حدسی وجود ندارد.
 
-child فقط اتصال، pin سریال، شمارندهٔ رکورد (status 6)، ReadAllGLogData و enumeration SSR را انجام می‌دهد. هیچ clear/delete، DisableDevice، تغییر ساعت، template/photo/بایومتریک یا کنترل درب ندارد. موفقیت نیازمند برابری تعداد قبل/بعد با تعداد tupleهای ارسال‌شده است؛ **این برابری snapshot اتمیک یا مدل تأییدشده نیست**.
+child فقط اتصال، pin سریال، شمارندهٔ رکورد (status 6)، ReadAllGLogData و enumeration همان قالب صریح SSR یا non-TFT را انجام می‌دهد. هیچ clear/delete، DisableDevice، تغییر ساعت، template/photo/بایومتریک یا کنترل درب ندارد. موفقیت نیازمند برابری تعداد قبل/بعد با تعداد tupleهای ارسال‌شده است؛ **این برابری snapshot اتمیک یا مدل تأییدشده نیست**.
 
 ## مجوز، صف و بازیابی
 
 - `devices.attendance.extract`: درخواست/لغو pending با UUID، نسخه، بازه و کدهای دقیق؛ retry همان UUID با دادهٔ یکسان idempotent است.
-- `devices.attendance.read`: اصل tupleهای شخصی، قرنطینه، تاریخچه و رسیدها؛ سراسری، نه محدودهٔ دستگاه منتخب.
+- `devices.attendance.read`: اصل tupleهای شخصی، قرنطینه، تاریخچه و رسیدها؛ در حدود scope جاری دستگاه منتخب اپراتور و حق مستقل read.
 - `devices.attendance.execute`: فقط هویت مستقل سرویس؛ بدون حق ثبت به attendance.
 - `devices.attendance.commit`: بررسی صریح همان صفحه، با `INGEST-SDK-ROWS` و نسخهٔ تازه؛ حق همراه `attendance.events.receive` یا بستهٔ قدیمی `attendance.ingest` نیز در همان PermissionTransaction لازم است.
 
 قالب admin تازه read/extract/commit و operator تازه فقط read می‌گیرد. execute به هیچ قالب انسانی داده نمی‌شود. grant/revoke و منو/help سرور واقعی‌اند؛ نقش‌های موجود خودکار تغییر نمی‌کنند.
 
-worker با `EnableAttendanceDownloads=true` و `AllowAttendanceRead=true` روی NativeEndpoint، فقط پس از آزمون قرارداد Gregorian/SSR مدل مجاز است؛ هر دو پیش‌فرض false. Windows و runtime/SDK هم‌معماری، IP/port/serial pin و key ring معتبر لازم‌اند. opt-in اثبات سازگاری نیست؛ Linux native unsupported است.
+worker با `EnableAttendanceDownloads=true` و `AllowAttendanceRead=true` روی NativeEndpoint، با AttendanceReadFormat منطبق با ReadFormat درخواست (ssr-v1 یا legacy-int32-minute-v1) مجاز است؛ هر دو پیش‌فرض false. Windows و runtime/SDK هم‌معماری، IP/port/serial pin و key ring معتبر لازم‌اند. opt-in اثبات سازگاری نیست؛ Linux native unsupported است.
 
 چهار slot بین پنج queue عادلانه می‌چرخند؛ این سقف تعداد دستگاه/کاربر نیست. یک دستگاه با سایر دریافت/ارسال/diagnostic/تنظیمات هم‌زمان اجرا نمی‌شود. batch و صفحه ۵۰ tuple و frame حداکثر ۴۰۹۶ نویسه‌اند؛ شمار کل log سقف محصولی ندارد. deadline ۱–۶۰۰ ثانیه است. اصل بخش‌های committed تا آخرین batch پس از قطعی باقی می‌ماند؛ snapshot ناقص مجوز ورود به raw نمی‌گیرد. recovery پس از مهلت کامل child + دو دقیقه grace، running رهاشده را interrupted می‌کند؛ خودکار دوباره نمی‌خواند و موفقیت دیررس نمی‌پذیرد. بازخوانی تازه، intent تازه و بررسی صریح می‌خواهد.
 

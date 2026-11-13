@@ -71,7 +71,7 @@ worker اکنون روی Windows با `AddWindowsService` و نام ثابت `IO
 
 ## استخراج خواندنی S09 (پیش‌فرض خاموش)
 
-`IO:DeviceWorker:EnableAttendanceDownloads=true` و grant مستقل `devices.attendance.execute` برای سرویس، همراه `AllowAttendanceRead=true` روی NativeEndpoint پس از آزمون مدل لازم است. فقط SSR و تقویم Gregorian صریح؛ Linux native unsupported است. بدون DisableDevice/clear/delete/نوشتن ساعت یا درب. کل log با backpressure خوانده می‌شود؛ بازه پس از حفظ tupleها اعمال می‌شود. read ناقص قابل commit نیست؛ worker حق ورود به attendance را از execute به دست نمی‌آورد. [راهنما، بازیابی، trace و محدودیت هویت tuple/multiplicity](s09-attendance-extraction.fa.md).
+`IO:DeviceWorker:EnableAttendanceDownloads=true` و grant مستقل `devices.attendance.execute` برای سرویس، همراه `AllowAttendanceRead=true` روی NativeEndpoint پس از آزمون مدل لازم است. SSR پیش‌فرض و non-TFT با AttendanceReadFormat=legacy-int32-minute-v1 صریح و منطبق با ReadFormat درخواست، هر دو با تقویم Gregorian مرجع؛ Linux native unsupported است. worker و bridge باید هماهنگ ارتقا یابند چون start frame اکنون قالب را هم pin می‌کند. [انتقال non-TFT و دقت دقیقه](s09-legacy-attendance.fa.md). بدون DisableDevice/clear/delete/نوشتن ساعت یا درب. کل log با backpressure خوانده می‌شود؛ بازه پس از حفظ tupleها اعمال می‌شود. read ناقص قابل commit نیست؛ worker حق ورود به attendance را از execute به دست نمی‌آورد. [راهنما، بازیابی، trace و محدودیت هویت tuple/multiplicity](s09-attendance-extraction.fa.md).
 
 هر endpoint فیزیکی SDK باید تنها یک DeviceId در نصب مصوب داشته باشد؛ چند alias به همان دستگاه، exclusion مبتنی بر DeviceId را دور می‌زند و سناریوی پشتیبانی‌شده/آزموده‌شده نیست. قبل از پذیرش چند دستگاه، pin سریال و نبود endpoint alias را مستقلاً بررسی کنید.
 
