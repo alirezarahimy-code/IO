@@ -152,8 +152,10 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
         var idlePlan=ParseIdle(item.IdlePlanJson);
         if(result.Idle is not null&&(item.Kind!="settings.idle.set"||result.State!="succeeded"||!result.Idle.IsValid()||idlePlan is null||result.Idle.Serial!=idlePlan.Serial||result.Idle.Product!=idlePlan.Product||result.Idle.Firmware!=idlePlan.Firmware||result.Idle.Minutes!=idlePlan.NewMinutes))throw new ArgumentException("Invalid exact idle read-back.");
         if(item.Kind=="settings.idle.set"&&result.State=="succeeded"&&result.Idle is null)throw new ArgumentException("Idle success requires typed read-back.");
+        var payload=result.Idle is not null?JsonSerializer.Serialize(result.Idle):result.Network is not null?JsonSerializer.Serialize(result.Network):result.Settings is not null?JsonSerializer.Serialize(result.Settings):result.Information is null?null:JsonSerializer.Serialize(result.Information);
+        if(payload is not null&&payload.Length>(item.Kind=="settings.read"?32768:4000))throw new ArgumentException("Typed observation exceeds its retained SQL result budget.");
         item.State=(item.Kind=="clock.set"||item.Kind=="device.restart"||item.Kind=="network.ip.set"||item.Kind=="settings.idle.set")&&result.State is "timed-out" or "interrupted" or "bridge-failed" or "unknown"?"unknown":result.State;
-        item.FinishedAtUtc=clock.GetUtcNow();item.ResultJson=result.Idle is not null?JsonSerializer.Serialize(result.Idle):result.Network is not null?JsonSerializer.Serialize(result.Network):result.Settings is not null?JsonSerializer.Serialize(result.Settings):result.Information is null?null:JsonSerializer.Serialize(result.Information);
+        item.FinishedAtUtc=clock.GetUtcNow();item.ResultJson=payload;
         return(id,id);
     },ct);
 

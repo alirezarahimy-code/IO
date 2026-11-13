@@ -93,7 +93,7 @@ try
         Check(!db.Database.HasPendingModelChanges(), "model matches migration snapshot");
         await db.Database.MigrateAsync();
         await db.Database.MigrateAsync();
-        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 43, "foundation and forty-two later migrations applied idempotently");
+        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 44, "foundation and forty-three later migrations applied idempotently");
         var created = 0;
         foreach (var table in expectedTables) if (await HasTable(table)) created++;
         Check(created == expectedTables.Length, "all 60 foundation and later tables created");
@@ -317,7 +317,7 @@ try
         var recreated = 0;
         foreach (var table in expectedTables) if (await HasTable(table)) recreated++;
         Check(recreated == expectedTables.Length, "migrations recreated all 60 foundation and later tables");
-        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 43, "migration history restored");
+        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 44, "migration history restored");
     }
     // Independent Identity schema and bootstrap: the foundation DB was just
     // recreated empty above. Never run this against non-disposable data.
@@ -461,6 +461,7 @@ try
     await VirtualWorkerTests.RunAsync(connection, Check);
     await DeviceAccessTests.RunAsync(connection, Check);
     await LegacyPollScheduleTests.RunAsync(connection, Check);
+    await DeviceSettingsPayloadTests.RunAsync(connection, Check);
     Console.WriteLine("PASS disposable SQL Server integration checks");
     return 0;
 }

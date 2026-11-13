@@ -1,21 +1,21 @@
 {
   "scope": "Read-only exact-model installed function key allowlist and four fixed raw additional settings reports, including NetMask/GATEIPAddress. No key/network option writes, biometric policy, secure vendor PUSH or Part 3 completion.",
   "implementedCode": "f08cbb3fd06ac08d98ababd948ab7100ecb67bf4",
-  "verifiedCode": null,
-  "status": "integration-pending",
+  "verifiedCode": "f08cbb3fd06ac08d98ababd948ab7100ecb67bf4",
+  "status": "software-verified",
   "runs": [
     {
-      "conclusion": "",
+      "conclusion": "success",
       "databaseId": 43510974928,
       "headSha": "f08cbb3fd06ac08d98ababd948ab7100ecb67bf4",
-      "status": "in_progress",
+      "status": "completed",
       "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43510974928"
     },
     {
-      "conclusion": "",
+      "conclusion": "success",
       "databaseId": 43510974900,
       "headSha": "f08cbb3fd06ac08d98ababd948ab7100ecb67bf4",
-      "status": "in_progress",
+      "status": "completed",
       "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43510974900"
     },
     {
@@ -39,7 +39,7 @@
   "integration": {
     "expectedNamedPassLines": 855,
     "countEnforcedBy": "ReCode/tools/phase03-report-tests.py",
-    "fullSuitePassed": false,
+    "fullSuitePassed": true,
     "newSqlChecks": 3,
     "newActualHttpsWorkerChildTcpSqlCheck": 1,
     "virtualWorkerChecksWhenSuccessful": 22,
@@ -53,7 +53,8 @@
     "permissions": 123,
     "pagesAndHelp": 52,
     "newMigrationOrPermission": false,
-    "payload": "Optional typed fields inside existing immutable DeviceOperations.ResultJson; old snapshots remain valid."
+    "payload": "Optional typed fields inside existing immutable DeviceOperations.ResultJson; old snapshots remain valid.",
+    "knownFollowup": "Migration 44 under development: align old nvarchar(4000) SQL result capacity with the already-bounded settings pipe; add large Unicode SQL round-trip and downgrade guard. This verified SHA has only the small two-key full worker case, not a large eight-key SQL case."
   },
   "authority": {
     "human": "devices.settings.read with current selected-device scope; known operator/admin roles in existing catalogue",

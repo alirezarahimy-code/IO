@@ -87,9 +87,9 @@
   "report": "device-reference-parity.fa.md",
   "operatorScopeSupplement": "s04-device-operator-scope-evidence.json",
   "currentMatrixCounts": {
-    "software-verified": 14,
+    "software-verified": 15,
     "intentional-replacement": 9,
-    "partial-software": 13,
+    "partial-software": 12,
     "pending-sensitive": 6,
     "pending-contract": 8,
     "pending-secure-push": 3
