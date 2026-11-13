@@ -192,7 +192,7 @@ internal class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfiguration
         var credential=await scope.ServiceProvider.GetRequiredService<DeviceOperations>().CredentialAsync(configuration.ServiceUserId,claim,native.AllowDefaultCommunicationKey,ct);
         if(credential is null)return new("credential-unavailable");
         return await NativeProcessSupervisor.RunOperationAsync(configuration.DotnetPath!,configuration.BridgePath!,
-            new(new(claim.DeviceId,target,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value),claim.Kind,claim.ClockLocal,native.AllowClockSet,native.AllowAdvancedSettingsRead,native.AllowRestart,claim.NetworkPlan,native.AllowNetworkIpChange,native.AllowNetworkInspect,claim.IdlePlan,native.AllowIdleMinutesWrite,native.IdleMinutesApproval),claim.TimeoutSeconds,ct);
+            new(new(claim.DeviceId,target,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value),claim.Kind,claim.ClockLocal,native.AllowClockSet,native.AllowAdvancedSettingsRead,native.AllowRestart,claim.NetworkPlan,native.AllowNetworkIpChange,native.AllowNetworkInspect,claim.IdlePlan,native.AllowIdleMinutesWrite,claim.Kind=="settings.idle.set"?native.IdleMinutesApproval:null),claim.TimeoutSeconds,ct);
     }
 
 }
