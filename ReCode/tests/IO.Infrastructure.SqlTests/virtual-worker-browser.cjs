@@ -3,7 +3,7 @@
 // stateful loopback laboratory. No route/fetch/outcome/receipt mocks.
 const assert=require('node:assert/strict');
 const {chromium}=require('playwright-core');
-const [address,user,device,version]=process.argv.slice(2);
+const [address,user,device,version,scopeUser,scopeDevice]=process.argv.slice(2);
 if(!address?.startsWith('https://127.0.0.1:')||!user?.startsWith('virtual-operator-'))throw Error('Disposable virtual laboratory only');
 (async()=>{
  const browser=await chromium.launch({executablePath:process.env.IO_CHROME_BINARY,headless:true,args:['--no-sandbox']});
@@ -51,6 +51,21 @@ if(!address?.startsWith('https://127.0.0.1:')||!user?.startsWith('virtual-operat
    }
   }
   assert.notEqual(completed[0],completed[1]);
+  // Exercise actual operator-scope administration forms with the explicitly
+  // granted human administrator, targeting the OTHER (worker) identity.
+  page.on('dialog',dialog=>dialog.accept());
+  await page.goto(address+'/workspace/devices');await page.locator('#device-access').waitFor({state:'visible'});
+  await page.locator('#scope-operator input[name=userId]').fill(scopeUser);await page.locator('#scope-operator button').click();
+  await page.locator('#scope-policy').filter({hasText:scopeUser}).waitFor();
+  await page.locator('#scope-mode select[name=restricted]').selectOption('true');await page.locator('#scope-mode input[name=confirmed]').check();
+  await page.locator('#scope-mode button').click();await page.locator('#scope-notice').filter({hasText:'دامنه ثبت شد'}).waitFor();
+  await page.locator('#scope-grant input[name=deviceId]').fill(scopeDevice);await page.locator('#scope-grant button').click();
+  await page.locator('#scope-notice').filter({hasText:'انتساب دستگاه ثبت شد'}).waitFor();
+  await page.locator('#scope-grants button').click();await page.locator('#scope-notice').filter({hasText:'دسترسی لغو شد'}).waitFor();
+  await page.locator('#scope-grant button').click();await page.locator('#scope-notice').filter({hasText:'انتساب دستگاه ثبت شد'}).waitFor();
+  assert.equal(await page.locator('#scope-grants li').count(),2);
+  assert.equal(await page.locator('#scope-grants button').count(),1);
+
   console.log('Virtual browser device flow passed.');
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exit(1);});

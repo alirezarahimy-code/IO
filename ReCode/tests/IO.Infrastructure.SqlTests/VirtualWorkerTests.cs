@@ -49,7 +49,7 @@ internal static class VirtualWorkerTests
         var actor=Guid.NewGuid();var service=Guid.NewGuid();var role=Guid.NewGuid();var workerRole=Guid.NewGuid();
         var org=Guid.NewGuid();var company=Guid.NewGuid();var site=Guid.NewGuid();var employee=Guid.NewGuid();
         var name="virtual-operator-"+actor.ToString("N");
-        var humanRights=new[]{DeviceRegistry.Read,DeviceRegistry.Create,DeviceRegistry.Credentials,DeviceConnections.Read,DeviceConnections.Test,DeviceOperations.Read,DeviceOperations.SetClock,DeviceOperations.ReadSettings,DeviceOperations.SetIdle,DeviceOperations.Restart,DeviceUserDownloads.Read,DeviceUserDownloads.Download,DeviceUserUploads.Upload,DeviceAttendanceDownloads.Read,DeviceAttendanceDownloads.Download,DeviceAttendanceDownloads.Commit,"attendance.events.receive"};
+        var humanRights=new[]{DeviceAccess.Manage,DeviceRegistry.Read,DeviceRegistry.Create,DeviceRegistry.Credentials,DeviceConnections.Read,DeviceConnections.Test,DeviceOperations.Read,DeviceOperations.SetClock,DeviceOperations.ReadSettings,DeviceOperations.SetIdle,DeviceOperations.Restart,DeviceUserDownloads.Read,DeviceUserDownloads.Download,DeviceUserUploads.Upload,DeviceAttendanceDownloads.Read,DeviceAttendanceDownloads.Download,DeviceAttendanceDownloads.Commit,"attendance.events.receive"};
         var serviceRights=new[]{DeviceConnections.Execute,DeviceOperations.Execute,DeviceOperations.ExecuteSettings,DeviceOperations.ExecuteIdle,DeviceOperations.ExecuteRestart,DeviceUserDownloads.Execute,DeviceUserUploads.Execute,DeviceAttendanceDownloads.Execute};
         await Q(async db=>
         {
@@ -60,7 +60,7 @@ internal static class VirtualWorkerTests
             foreach(var (r,u,n,rights) in new[]{(role,actor,"virtual-human",humanRights),(workerRole,service,"virtual-worker",serviceRights)})
             {
                 db.Roles.Add(new(){Id=r,Name=n+u.ToString("N")});db.UserRoles.Add(new(){UserId=u,RoleId=r});
-                foreach(var right in rights){var permission=await db.Permissions.SingleAsync(x=>x.Code==right);db.RolePermissions.Add(new(){RoleId=r,PermissionId=permission.Id});}
+                foreach(var right in rights){var permission=db.Permissions.Local.FirstOrDefault(x=>x.Code==right)??await db.Permissions.SingleOrDefaultAsync(x=>x.Code==right);if(permission is null){permission=new(){Id=Guid.NewGuid(),Code=right};db.Permissions.Add(permission);}db.RolePermissions.Add(new(){RoleId=r,PermissionId=permission.Id});}
             }
             await db.SaveChangesAsync();return true;
         });
@@ -166,7 +166,7 @@ internal static class VirtualWorkerTests
             // is live. No routes, fetch, responses, SQL receipts or outcomes are mocked.
             var browser=new ProcessStartInfo("node"){RedirectStandardOutput=true,RedirectStandardError=true,UseShellExecute=false};
             browser.Environment.Remove("MSSQL_SA_PASSWORD");browser.ArgumentList.Add("tests/IO.Infrastructure.SqlTests/virtual-worker-browser.cjs");
-            foreach(var argument in new[]{address,name,b.Pin.DeviceId.ToString(),Convert.ToBase64String(bv)})browser.ArgumentList.Add(argument);
+            foreach(var argument in new[]{address,name,b.Pin.DeviceId.ToString(),Convert.ToBase64String(bv),service.ToString(),a.Pin.DeviceId.ToString()})browser.ArgumentList.Add(argument);
             using(var process=Process.Start(browser)??throw new InvalidOperationException())
             {
                 var stdout=process.StandardOutput.ReadToEndAsync();var stderr=process.StandardError.ReadToEndAsync();using var timeout=new CancellationTokenSource(TimeSpan.FromSeconds(150));
@@ -174,6 +174,7 @@ internal static class VirtualWorkerTests
                 if(process.ExitCode!=0)throw new InvalidOperationException("Virtual browser failed: "+await stderr);
                 check((await stdout).Contains("Virtual browser device flow passed.",StringComparison.Ordinal),"virtual-e2e real Chromium form queues downloads and commits all three pages from the live worker and two-device laboratory");
             }
+            check(await Use<LoginIdentityDbContext,bool>(async db=>await db.DeviceOperatorPolicies.AnyAsync(x=>x.UserId==service&&x.Restricted)&&await db.DeviceOperatorGrants.CountAsync(x=>x.UserId==service)==2&&await db.DeviceOperatorGrants.CountAsync(x=>x.UserId==service&&x.RevokedAtUtc==null&&x.DeviceId==a.Pin.DeviceId)==1),"virtual-e2e real Chromium scope forms restrict the worker and retain explicit grant revoke and new-grant history through HTTPS SQL");
             check(await Q(db=>db.RawAttendanceEvents.CountAsync(x=>x.SourceId==b.Pin.DeviceId))==103&&await Q(db=>db.DeviceAttendanceRows.CountAsync(x=>db.DeviceAttendanceDownloads.Any(d=>d.Id==x.DownloadId&&d.DeviceId==b.Pin.DeviceId)&&x.RawEventId!=null))==206,"virtual-e2e repeated browser extraction retains 206 original receipts but only 103 immutable raw events including tuple multiplicity");
             // Stop before revocation to prove a queued intent cannot execute after its
             // original operator loses authority (not merely that new HTTP calls fail).
