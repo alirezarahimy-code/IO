@@ -5,8 +5,8 @@ import sys
 
 lines = [line.strip() for line in pathlib.Path(sys.argv[1]).read_text(encoding='utf-8').splitlines()
          if line.startswith('PASS ')]
-if len(lines) != 878 or lines[-1] != 'PASS disposable SQL Server integration checks':
-    raise SystemExit(f'Unexpected integration check output: {len(lines)} named PASS lines; expected 878 and a final completion marker. Refusing to report success.')
+if len(lines) != 886 or lines[-1] != 'PASS disposable SQL Server integration checks':
+    raise SystemExit(f'Unexpected integration check output: {len(lines)} named PASS lines; expected 886 and a final completion marker. Refusing to report success.')
 chunks = []
 current = ''
 for line in lines:

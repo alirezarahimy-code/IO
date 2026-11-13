@@ -87,13 +87,15 @@
   "report": "device-reference-parity.fa.md",
   "operatorScopeSupplement": "s04-device-operator-scope-evidence.json",
   "currentMatrixCounts": {
-    "software-verified": 15,
+    "software-verified": 14,
     "intentional-replacement": 9,
-    "partial-software": 12,
+    "partial-software": 18,
     "pending-sensitive": 6,
-    "pending-contract": 8,
+    "pending-contract": 3,
     "pending-secure-push": 3
   },
   "legacyAttendanceSupplement": "s09-legacy-attendance-evidence.json",
-  "functionKeyAndNetworkReadSupplement": "s11-function-key-read-evidence.json"
+  "functionKeyAndNetworkReadSupplement": "s11-function-key-read-evidence.json",
+  "rawSettingSupplement": "s11-approved-raw-settings.fa.md",
+  "authorizationFollowup": "Independent key read/execute permissions and history redaction implemented; exact-SHA SQL and Windows/Linux verification still pending. Prior green SHA did not contain this authorization fix."
 }

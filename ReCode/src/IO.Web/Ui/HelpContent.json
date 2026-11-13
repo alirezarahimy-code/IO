@@ -4552,7 +4552,8 @@
       "SSR_GetShortkey فقط با FunctionKeyReadApproval معتبر در نصب worker، تطبیق دقیق محصول/firmware و شماره‌کلیدهای مصوب خوانده می‌شود. پیش‌فرض null است و هیچ شماره‌ای حدس زده نمی‌شود. قرارداد، مرجع تأیید، Function/StateCode/StateName/AutoChange/AutoChangeTime خام و نتیجهٔ مستقل هر شماره در SQL حفظ می‌شوند. خطای SDK گزارش نشده است، نه صفر. این کلید عملکردی است، نه رمز ارتباط؛ نوشتن آن فعال نشده است.",
       "برای پنج پارامتر بسته، devices.settings.raw.set همراه settings.read و مجوز مستقل سرویس devices.settings.raw.execute لازم است؛ هیچ قالب نقشی خودکار این حقوق را نمی‌گیرد.",
       "snapshot موفق تازه را انتخاب کنید؛ parameter، مقدار raw، واحد، اثر و مرجع قرارداد مدل را وارد و پیش‌نمایش بگیرید. هیچ واحد یا بازه مدل از نام یا Int32 استنتاج نمی‌شود. AllowRawSettingsWrite و RawSettingsApprovals نصب باید دقیقاً مدل/firmware/پارامتر/واحد/اثر/مرجع و هر دو مقدار قدیم و جدید را تأیید کنند.",
-      "تأیید SET-EXACT-MODEL-APPROVED-RAW-SETTING فقط همان plan/hash را صف می‌کند؛ موفقیت تنها پس از یک dispatch و read-back دقیق است. false یا exception پس از dispatch نتیجه unknown دارد. برای بازبینی، snapshot موفق بعد از unknown و REVIEWED-APPROVED-RAW-SETTING لازم است؛ retry نوشتن وجود ندارد."
+      "تأیید SET-EXACT-MODEL-APPROVED-RAW-SETTING فقط همان plan/hash را صف می‌کند؛ موفقیت تنها پس از یک dispatch و read-back دقیق است. false یا exception پس از dispatch نتیجه unknown دارد. برای بازبینی، snapshot موفق بعد از unknown و REVIEWED-APPROVED-RAW-SETTING لازم است؛ retry نوشتن وجود ندارد.",
+      "کلیدهای عملکردی علاوه بر settings.read به devices.settings.keys.read برای انسان و devices.settings.keys.execute برای سرویس نیاز دارند؛ هیچ قالب نقشی آن‌ها را خودکار نمی‌گیرد. حق موجود نصب کافی نیست. claim فقط با هر دو حق فعال اجازهٔ خواندن کلید دارد؛ revoke قبل از dispatch credential را قطع می‌کند و تاریخچهٔ settings-only کلیدها و مرجعشان را نشان نمی‌دهد."
     ],
     "Example": "کد 8 با مقدار -1 همان -1 گزارش می‌شود؛ کد 23 با فراخوانی ناموفق «گزارش نشده» است، نه صفر. از این داده به‌تنهایی تغییر پارامتر مجاز نتیجه نگیرید.",
     "Fields": [
@@ -4616,7 +4617,8 @@
       "اطلاعات عادی settings payload را نشان نمی‌دهد؛ history metadata فرمان‌ها همچنان حق جدا دارد. retry عمومی خواندن تنظیمات با commands.read/retry، settings.read جاری و تأیید اضافی مجاز است؛ gateهای سرویس/نصب همچنان لازم‌اند.",
       "SDK Windows/مدل/firmware، نصب واقعی و پذیرش چنددستگاه همچنان آزموده نشده‌اند؛ null دادهٔ موفقیت یا صفر ساختگی نیست.",
       "بازهٔ برنامه تضمین سازگاری مدل یا پذیرش سخت‌افزار نیست. پیش‌فرض نصب خاموش؛ هیچ تنظیم دلخواه، RefreshData، Restart یا فرمان درب در این مسیر انجام نمی‌شود.",
-      "پیش از تنظیم، polling را متوقف و unknownهای تبادل کاربران را بازبینی کنید. فقط لغو پیش از اجرا تضمین می‌شود؛ مهلت پس از dispatch اثبات شکست نوشتن نیست."
+      "پیش از تنظیم، polling را متوقف و unknownهای تبادل کاربران را بازبینی کنید. فقط لغو پیش از اجرا تضمین می‌شود؛ مهلت پس از dispatch اثبات شکست نوشتن نیست.",
+      "لغو حق keys.read دادهٔ کلید را از صفحه پاک و از پاسخ بعدی سرور redact می‌کند؛ سابقهٔ اصلی SQL حذف نمی‌شود. تنظیمات عادی بدون این حق همچنان قابل خواندن‌اند. کلید بدون مجوز/approval نصب null است، نه ادعای نبود پشتیبانی مدل."
     ]
   },
   {

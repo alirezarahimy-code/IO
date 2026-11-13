@@ -187,6 +187,8 @@ public static class PermissionCatalog
         new("devices.users.download", "درخواست و لغو دریافت کاربران دستگاه", "فقط دریافت خواندنی SSR تأییدشده در پیکربندی worker؛ نتیجهٔ ناقص هرگز snapshot کامل نیست."),
         new("devices.users.execute", "اجرای سرویس مستقل دریافت کاربران", "فقط هویت سرویس صریح؛ بدون اعطای خودکار به نقش انسانی."),
         new("devices.info.read", "خواندن مشخصات، ظرفیت و ساعت دستگاه", "مجوز مستقل سراسری S06؛ درخواست خواندن و مشاهدهٔ snapshot/تاریخچه، نه رمز/بیومتریک یا تنظیم ساعت."),
+        new("devices.settings.keys.read", "درخواست و مشاهده کلیدهای عملکردی دستگاه", "مستقل از خواندن تنظیمات؛ دامنه دستگاه و approval مدل نصب لازم است. لغو حق، payload کلیدها را از تاریخچه مخفی می‌کند."),
+        new("devices.settings.keys.execute", "خواندن کلید عملکردی توسط سرویس", "مستقل از operations.execute و settings.read.execute؛ فقط با حق جاری درخواست‌کننده و approval دقیق نصب."),
         new("devices.settings.raw.set", "تغییر پنج پارامتر عددی مدل مصوب و بازبینی unknown", "فقط قرارداد دقیق محصول/firmware/واحد/اثر/مقادیر مصوب؛ snapshot و preview/hash؛ بدون generic setter یا retry کور."),
         new("devices.settings.raw.execute", "اجرای سرویس پارامتر عددی مدل مصوب", "مستقل از انسان و settings.read.execute؛ نصب پیش‌فرض خاموش و approval دقیق هر پارامتر الزامی است."),
         new("devices.settings.idle.set", "پیش‌نمایش/تغییر مدت بیکاری دستگاه و بازبینی unknown", "فقط کد۴، تأیید احتمال خواب/خاموشی، snapshot/model/firmware مصوب و بدون retry کور."),

@@ -2,7 +2,7 @@
   "scope": "Read-only exact-model installed function key allowlist and four fixed raw additional settings reports, including NetMask/GATEIPAddress. No key/network option writes, biometric policy, secure vendor PUSH or Part 3 completion.",
   "implementedCode": "f08cbb3fd06ac08d98ababd948ab7100ecb67bf4",
   "verifiedCode": "f08cbb3fd06ac08d98ababd948ab7100ecb67bf4",
-  "status": "software-verified",
+  "status": "prior-read-software-verified-authorization-followup-pending",
   "runs": [
     {
       "conclusion": "success",
@@ -109,5 +109,14 @@
     "accepted": false,
     "result": "GitHub API HTTP 403 Resource not accessible by integration; no manual run was created. Automatic push workflows remain active.",
     "suite": "virtual-worker"
+  },
+  "authorizationFollowup": {
+    "human": "devices.settings.keys.read",
+    "service": "devices.settings.keys.execute",
+    "defaultRoleGrant": false,
+    "claimCredentialCompletion": "current independent grants checked; unauthorized collection flag cannot obtain credentials",
+    "history": "redacted without independent human key grant; immutable SQL retained",
+    "newSqlRegressions": 6,
+    "fullSuitePassedOnFollowup": false
   }
 }

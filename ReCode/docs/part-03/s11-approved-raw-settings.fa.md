@@ -1,6 +1,6 @@
 # S11 — پنج پارامتر عددی با قرارداد دقیق نصب
 
-وضعیت: **پیاده‌سازی و آزمون محلی قرارداد/DOM؛ SQL و Windows/Linux روی SHA جدید هنوز تأیید نشده‌اند. تکمیل بخش سوم نیست.**
+وضعیت: **پیاده‌سازی و آزمون محلی قرارداد/DOM؛ Windows/Linux کد d3290fc موفق؛ SQL این SHA و آزمون followup مجوز/مسیر واقعی جدید هنوز تأیید نشده‌اند. تکمیل بخش سوم نیست.**
 
 ## منشأ، نه حدس واحد یا دامنه
 
@@ -31,3 +31,7 @@
 ## آزمون و مانده
 
 `RawSettingTests`: ۲۲ بررسی موفق محلی، از جمله child واقعی و deadline؛ session مصنوعی نه SDK. `device-raw-ui-check.cjs`: پیش‌نمایش/تأیید، replay دقیق پاسخ نامعلوم، safe text و پاکسازی revoke موفق. `DeviceRawSettingTests`: ۱۵ بررسی SQL/مجوز/revoke/credential/review/retention افزوده شده، اجرای CI لازم است. Windows/Linux و SQL کامل همان SHA شرط پذیرش نرم‌افزاری است. دستگاه واقعی و چنددستگاه/قطعی همچنان برای انتها باقی‌اند.
+
+### تکمیل شاهد مسیر واقعی در برش بعدی
+
+دو regression به VirtualWorkerTests افزوده شد: HTTPS مصدق → preview/hash → SQL → production worker/credential → child واقعی → endpoint مصنوعی TCP، lost ACK بعد از یک mutation و سپس snapshot/read-only و review بدون replay. این سناریو دو endpoint مستقل را کنترل می‌کند؛ پروتکل خصوصی تست است، نه ZK/SDK/سخت‌افزار. اجرای آن هنوز وابسته به CI کد followup است.

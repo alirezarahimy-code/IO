@@ -140,5 +140,14 @@
   "legacyPollingEvidence": "s10-legacy-polling-evidence.json",
   "functionKeyReadEvidence": "s11-function-key-read-evidence.json",
   "modelAndPolicyDecisionRegister": "model-and-policy-decisions.fa.md",
-  "settingsPayloadBudgetFollowup": "Migration 44 being implemented: preserve valid bounded large settings observations in SQL; not yet verified."
+  "settingsPayloadBudgetFollowup": "f08364d: migration44 implemented; platform43512541829 and light43512541801 success, SQL43512541814 cancelled by superseding code push; not counted as verified.",
+  "currentCodeFollowup": {
+    "rawSettingsImplementedCode": "d3290fc5d3a3b8db2bc80d675fd4917062cc91c0",
+    "rawSettings": "five closed model-approved raw parameters; migration45; exact-SHA SQL/Windows/Linux pending",
+    "keyAuthorization": "independent read/execute grants, live claim and history redaction implemented; pending exact-SHA CI",
+    "expectedFullSuitePassLines": 886,
+    "expectedFoundationMigrations": 45,
+    "expectedPermissions": 127,
+    "part3Complete": false
+  }
 }

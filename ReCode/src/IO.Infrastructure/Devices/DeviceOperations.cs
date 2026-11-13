@@ -9,12 +9,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace IO.Infrastructure.Devices;
 
-/// <summary>Closed typed operations: information, confirmed clock/restart/IP and exact-model idle minutes. No arbitrary SDK writes or enrollment.</summary>
+/// <summary>Closed typed operations: information, confirmed clock/restart/IP and exact-model idle and five installed-approved raw parameters. No arbitrary SDK writes or enrollment.</summary>
 public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transaction,TimeProvider clock,IDataProtectionProvider protection)
 {
+    public const string ReadFunctionKeys="devices.settings.keys.read",ExecuteFunctionKeys="devices.settings.keys.execute";
     public const string SetRaw="devices.settings.raw.set",ExecuteRaw="devices.settings.raw.execute";
     public const string SetIdle="devices.settings.idle.set",ExecuteIdle="devices.settings.idle.execute",SetIp="devices.network.ip.set",InspectNetwork="devices.network.read",ExecuteNetworkWrite="devices.network.ip.execute",ExecuteNetworkRead="devices.network.read.execute",Restart="devices.restart",ExecuteRestart="devices.restart.execute",Read="devices.info.read",SetClock="devices.clock.set",Execute="devices.operations.execute",ReadSettings="devices.settings.read",ExecuteSettings="devices.settings.read.execute";
-    public sealed record Claim(Guid Id,Guid Token,Guid DeviceId,string Profile,string? Host,int? Port,string Kind,string? ClockLocal,int TimeoutSeconds,ZkNetworkPlan? NetworkPlan=null,ZkIdlePlan? IdlePlan=null,ZkRawSettingPlan? RawSettingPlan=null);
+    public sealed record Claim(Guid Id,Guid Token,Guid DeviceId,string Profile,string? Host,int? Port,string Kind,string? ClockLocal,int TimeoutSeconds,ZkNetworkPlan? NetworkPlan=null,ZkIdlePlan? IdlePlan=null,ZkRawSettingPlan? RawSettingPlan=null,bool ReadFunctionKeys=false);
     public sealed record View(Guid Id,Guid DeviceId,string Kind,string State,DateTimeOffset RequestedAtUtc,DateTimeOffset? FinishedAtUtc,
         DateTimeOffset? TargetUtc,string TimeZoneId,ZkDeviceInformation? Information,Guid? ResolutionInfoId,DateTimeOffset? ResolvedAtUtc,byte[] Version,ZkNetworkPlan? NetworkPlan=null,ZkNetworkObservation? Network=null,ZkIdlePlan? IdlePlan=null,ZkIdleObservation? Idle=null);
     private static string Permission(string kind)=>kind switch{"settings.raw.set"=>SetRaw,"settings.idle.set"=>SetIdle,"network.ip.set"=>SetIp,"network.inspect"=>InspectNetwork,"device.restart"=>Restart,"information.read"=>Read,"settings.read"=>ReadSettings,"clock.set"=>SetClock,_=>throw new ArgumentException("Unknown operation.")};
@@ -105,7 +106,9 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
     {
         if(deviceId==Guid.Empty||offset is <0 or >100000)throw new ArgumentException("Invalid page.");
         var rows=await db.DeviceOperations.AsNoTracking().Where(x=>(x.Kind=="settings.read"||x.Kind=="settings.idle.set"||x.Kind=="settings.raw.set")&&(deviceId==null||x.DeviceId==deviceId)).OrderByDescending(x=>x.RequestedAtUtc).ThenBy(x=>x.Id).Skip(offset).Take(50).ToListAsync(token);
-        var items=rows.Select(x=>new{x.Id,x.DeviceId,x.Kind,x.State,x.RequestedAtUtc,x.FinishedAtUtc,x.ExpectedDeviceVersion,x.Version,settings=x.Kind=="settings.read"?ParseSettings(x.ResultJson):null,rawSettingPlan=ParseRaw(x.RawSettingPlanJson),rawSetting=ParseTyped<ZkRawSettingObservation>(x.ResultJson),idlePlan=ParseIdle(x.IdlePlanJson),idle=ParseTyped<ZkIdleObservation>(x.ResultJson),x.ResolutionInfoId,x.ResolvedAtUtc}).ToArray();
+        var discloseKeys=await transaction.HasPermissionAsync(actor,ReadFunctionKeys,token);
+        ZkAdvancedSettings? VisibleSettings(string? json){var value=ParseSettings(json);return discloseKeys?value:value is null?null:value with{FunctionKeys=null};}
+        var items=rows.Select(x=>new{x.Id,x.DeviceId,x.Kind,x.State,x.RequestedAtUtc,x.FinishedAtUtc,x.ExpectedDeviceVersion,x.Version,settings=x.Kind=="settings.read"?VisibleSettings(x.ResultJson):null,rawSettingPlan=ParseRaw(x.RawSettingPlanJson),rawSetting=ParseTyped<ZkRawSettingObservation>(x.ResultJson),idlePlan=ParseIdle(x.IdlePlanJson),idle=ParseTyped<ZkIdleObservation>(x.ResultJson),x.ResolutionInfoId,x.ResolvedAtUtc}).ToArray();
         return(new{offset,pageSize=50,items},actor);
     },ct);
 
@@ -141,7 +144,7 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
         if(!device.Enabled||!device.Version.SequenceEqual(next.ExpectedDeviceVersion)||zone!=next.TimeZoneId){next.State="device-changed";next.FinishedAtUtc=now;return(null,next.Id);}
         if((next.Kind=="clock.set"||next.Kind=="device.restart"||next.Kind=="network.ip.set"||next.Kind=="settings.idle.set"||next.Kind=="settings.raw.set")&&next.RequestedAtUtc<now.AddMinutes(-2)){next.State="expired";next.FinishedAtUtc=now;return(null,next.Id);}
         next.ServiceUserId=service;next.ClaimId=Guid.NewGuid();next.ClaimedAtUtc=now;next.State="running";
-        return(new Claim(next.Id,next.ClaimId.Value,next.DeviceId,device.Profile,device.Host,device.Port,next.Kind,next.TargetUtc is null?null:LocalClock(next.TargetUtc.Value,next.TimeZoneId),next.TimeoutSeconds,ParsePlan(next.NetworkPlanJson),ParseIdle(next.IdlePlanJson),ParseRaw(next.RawSettingPlanJson)),next.Id);
+        return(new Claim(next.Id,next.ClaimId.Value,next.DeviceId,device.Profile,device.Host,device.Port,next.Kind,next.TargetUtc is null?null:LocalClock(next.TargetUtc.Value,next.TimeZoneId),next.TimeoutSeconds,ParsePlan(next.NetworkPlanJson),ParseIdle(next.IdlePlanJson),ParseRaw(next.RawSettingPlanJson),await KeysAuthorized(service,next,token)),next.Id);
     },ct);
 
     public Task<Guid> CompleteAsync(Guid service,Guid id,Guid claimId,ZkOperationOutput result,CancellationToken ct=default)=>transaction.ExecuteAsync(service,Execute,"device-operation.finished",async token=>
@@ -159,6 +162,7 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
             (item.Kind=="information.read"&&result.State=="succeeded"&&result.Information is null)||
             (result.Settings is not null&&(item.Kind!="settings.read"||result.State!="succeeded"||!result.Settings.IsValid()))||
             (item.Kind=="settings.read"&&result.State=="succeeded"&&result.Settings is null))throw new ArgumentException("Invalid typed operation result.");
+        if(result.Settings?.FunctionKeys is not null&&!await KeysAuthorized(service,item,token))throw new UnauthorizedAccessException();
         if(result.Network is not null&&(item.Kind!="network.inspect"||result.State!="succeeded"||!result.Network.IsValid()))throw new ArgumentException("Unexpected network evidence.");
         var plan=ParsePlan(item.NetworkPlanJson);
         if(item.Kind=="network.inspect"&&result.State=="succeeded"&&(result.Network is null||plan is null||result.Network.Serial!=plan.Serial||result.Network.ConnectedAddress!=plan.TargetAddress(item.Kind)))throw new ArgumentException("Inspection must bind exact serial and approved endpoint.");
@@ -185,6 +189,7 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
         if(item.Kind=="device.restart"&&!await transaction.HasPermissionAsync(service,ExecuteRestart,token))throw new UnauthorizedAccessException();
         if(item.Kind=="settings.read"&&!await transaction.HasPermissionAsync(service,ExecuteSettings,token))throw new UnauthorizedAccessException();
         if(item.Kind=="settings.raw.set"&&!await transaction.HasPermissionAsync(service,ExecuteRaw,token))throw new UnauthorizedAccessException();
+        if(claim.ReadFunctionKeys!=await KeysAuthorized(service,item,token))return(null,item.Id);
         var device=await db.Devices.AsNoTracking().SingleAsync(x=>x.Id==item.DeviceId,token);
         var zone=await db.Sites.Where(x=>x.Id==device.SiteId).Select(x=>x.TimeZoneId).SingleAsync(token);
         if(((item.Kind=="clock.set"||item.Kind=="device.restart"||item.Kind=="network.ip.set"||item.Kind=="settings.idle.set"||item.Kind=="settings.raw.set")&&item.RequestedAtUtc<clock.GetUtcNow().AddMinutes(-2))||item.DeviceId!=claim.DeviceId||claim.Profile!=device.Profile||claim.Host!=device.Host||claim.Port!=device.Port||claim.TimeoutSeconds!=item.TimeoutSeconds||claim.ClockLocal!=(item.TargetUtc is null?null:LocalClock(item.TargetUtc.Value,item.TimeZoneId))||item.Kind!=claim.Kind||ParsePlan(item.NetworkPlanJson)!=claim.NetworkPlan||ParseIdle(item.IdlePlanJson)!=claim.IdlePlan||ParseRaw(item.RawSettingPlanJson)!=claim.RawSettingPlan||!device.Enabled||!device.Version.SequenceEqual(item.ExpectedDeviceVersion)||zone!=item.TimeZoneId||!await transaction.HasDevicePermissionAsync(item.RequestedByUserId,Permission(item.Kind),item.DeviceId,token))return(null,item.Id);
@@ -275,6 +280,7 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
         if(info is null||info.DeviceId!=item.DeviceId||info.Kind!="settings.read"||info.State!="succeeded"||info.RequestedAtUtc<=item.FinishedAtUtc||info.TimeZoneId!=item.TimeZoneId||zone!=item.TimeZoneId||!info.ExpectedDeviceVersion.SequenceEqual(item.ExpectedDeviceVersion)||!device.Version.SequenceEqual(item.ExpectedDeviceVersion)||observed?.IsValid()!=true||observed.Serial!=plan.Serial||observed.Product!=plan.Product||observed.Firmware!=plan.Firmware||(observed.SleepTime!=plan.ExpectedMinutes&&observed.SleepTime!=plan.NewMinutes))throw new DomainConflictException("Fresh same-model old/new idle observation required; do not retry an unknown write.");
         item.ResolutionInfoId=info.Id;item.ResolvedByUserId=actor;item.ResolvedAtUtc=clock.GetUtcNow();return(id,id);
     },ct);
+    private async Task<bool> KeysAuthorized(Guid service,DeviceOperationRecord item,CancellationToken ct)=>item.Kind=="settings.read"&&await transaction.HasPermissionAsync(service,ExecuteFunctionKeys,ct)&&await transaction.HasDevicePermissionAsync(item.RequestedByUserId,ReadFunctionKeys,item.DeviceId,ct);
     private static ZkRawSettingPlan? ParseRaw(string? json)=>ParseTyped<ZkRawSettingPlan>(json);
     private static ZkIdlePlan? ParseIdle(string? json)=>ParseTyped<ZkIdlePlan>(json);
     private static ZkNetworkPlan? ParsePlan(string? json)=>ParseTyped<ZkNetworkPlan>(json);

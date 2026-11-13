@@ -36,30 +36,30 @@
 
 | وضعیت | تعداد ردیف |
 |---|---:|
-| بخشی ساخته؛ مانده دارد | 12 |
-| پیاده‌شده؛ آزمون نرم‌افزاری | 15 |
+| بخشی ساخته؛ مانده دارد | 18 |
+| پیاده‌شده؛ آزمون نرم‌افزاری | 14 |
 | جایگزین ایمن؛ نه هم‌ارزی عینی | 9 |
 | عملیات حساس هنوز ناتمام | 6 |
-| قرارداد/آداپتر ناتمام | 8 |
+| قرارداد/آداپتر ناتمام | 3 |
 | PUSH امن هنوز ناتمام | 3 |
 
 ### T5Web-binary
 
 | کنترلر/کنش | شماره خط مرجع | وضعیت | مانده یا مرز |
 |---|---:|---|---|
-| `DeviceController.Index#1` | 24 | بخشی ساخته؛ مانده دارد | دامنهٔ امنیتی اپراتور به دستگاه‌های منتخب هنوز ساخته نشده؛ گروه metadata را scope ننامید. |
+| `DeviceController.Index#1` | 24 | پیاده‌شده؛ آزمون نرم‌افزاری | پذیرش SDK/مدل واقعی مستقل است؛ گروه metadata دامنهٔ امنیتی نیست. |
 | `DeviceController.Edit#1` | 32 | پیاده‌شده؛ آزمون نرم‌افزاری | مدل/پروفایل ثبت‌شده اثبات قابلیت و اتصال نیست؛ Serial/USB direct adapter هنوز ندارد. |
 | `DeviceController.Delete#1` | 115 | جایگزین ایمن؛ نه هم‌ارزی عینی | حذف گروهی metadata به همان رفتار legacy هم‌ارز نیست؛ درگاه مخرب عمومی اضافه نشود. |
 | `DeviceController.DeleteAll#1` | 150 | جایگزین ایمن؛ نه هم‌ارزی عینی | حذف گروهی metadata به همان رفتار legacy هم‌ارز نیست؛ درگاه مخرب عمومی اضافه نشود. |
-| `DeviceController.GetAllDevicesTree#1` | 213 | بخشی ساخته؛ مانده دارد | دامنهٔ امنیتی اپراتور به دستگاه‌های منتخب هنوز ساخته نشده؛ گروه metadata را scope ننامید. |
-| `DeviceOperationsController.Index#1` | 42 | بخشی ساخته؛ مانده دارد | selected-device authorization و وضعیت اتصال زندهٔ دائمی legacy هم‌ارز نیست؛ پذیرفتن سخت‌افزار باقی است. |
-| `DeviceOperationsController.DeviceStates#1` | 75 | بخشی ساخته؛ مانده دارد | selected-device authorization و وضعیت اتصال زندهٔ دائمی legacy هم‌ارز نیست؛ پذیرفتن سخت‌افزار باقی است. |
-| `DeviceOperationsController.DownloadUsers#1` | 89 | بخشی ساخته؛ مانده دارد | اثر انگشت/چهره/عکس، حذف فرد/الگو و admin/group/password write فاقد policy/adapter مستقل؛ scope منتخب و مدل واقعی باز. |
-| `DeviceOperationsController.UploadUsers#1` | 116 | بخشی ساخته؛ مانده دارد | اثر انگشت/چهره/عکس، حذف فرد/الگو و admin/group/password write فاقد policy/adapter مستقل؛ scope منتخب و مدل واقعی باز. |
-| `DeviceOperationsController.UploadUsers#2` | 155 | بخشی ساخته؛ مانده دارد | اثر انگشت/چهره/عکس، حذف فرد/الگو و admin/group/password write فاقد policy/adapter مستقل؛ scope منتخب و مدل واقعی باز. |
-| `DeviceOperationsController.ShowUsers#1` | 243 | بخشی ساخته؛ مانده دارد | اثر انگشت/چهره/عکس، حذف فرد/الگو و admin/group/password write فاقد policy/adapter مستقل؛ scope منتخب و مدل واقعی باز. |
-| `DeviceOperationsController.ModifyUsers#1` | 296 | بخشی ساخته؛ مانده دارد | اثر انگشت/چهره/عکس، حذف فرد/الگو و admin/group/password write فاقد policy/adapter مستقل؛ scope منتخب و مدل واقعی باز. |
-| `DeviceOperationsController.DeviceProperties#1` | 456 | بخشی ساخته؛ مانده دارد | selected-device authorization و وضعیت اتصال زندهٔ دائمی legacy هم‌ارز نیست؛ پذیرفتن سخت‌افزار باقی است. |
+| `DeviceController.GetAllDevicesTree#1` | 213 | جایگزین ایمن؛ نه هم‌ارزی عینی | درخت مدیریت گروه برای اپراتور محدود بسته است؛ نمای جایگزین فهرست دستگاه‌های مجاز است، نه نمایش ساختار سراسری. |
+| `DeviceOperationsController.Index#1` | 42 | بخشی ساخته؛ مانده دارد | دامنهٔ منتخب اکنون آزموده شده؛ وضعیت اتصال زندهٔ دائمی legacy با heartbeat هم‌ارز نیست و پذیرش سخت‌افزار باقی است. |
+| `DeviceOperationsController.DeviceStates#1` | 75 | بخشی ساخته؛ مانده دارد | دامنهٔ منتخب اکنون آزموده شده؛ وضعیت اتصال زندهٔ دائمی legacy با heartbeat هم‌ارز نیست و پذیرش سخت‌افزار باقی است. |
+| `DeviceOperationsController.DownloadUsers#1` | 89 | بخشی ساخته؛ مانده دارد | اثر انگشت/چهره/عکس، حذف فرد/الگو و admin/group/password write فاقد policy/adapter مستقل؛ دامنهٔ منتخب اکنون آزموده شده؛ مدل واقعی باز. |
+| `DeviceOperationsController.UploadUsers#1` | 116 | بخشی ساخته؛ مانده دارد | اثر انگشت/چهره/عکس، حذف فرد/الگو و admin/group/password write فاقد policy/adapter مستقل؛ دامنهٔ منتخب اکنون آزموده شده؛ مدل واقعی باز. |
+| `DeviceOperationsController.UploadUsers#2` | 155 | بخشی ساخته؛ مانده دارد | اثر انگشت/چهره/عکس، حذف فرد/الگو و admin/group/password write فاقد policy/adapter مستقل؛ دامنهٔ منتخب اکنون آزموده شده؛ مدل واقعی باز. |
+| `DeviceOperationsController.ShowUsers#1` | 243 | بخشی ساخته؛ مانده دارد | اثر انگشت/چهره/عکس، حذف فرد/الگو و admin/group/password write فاقد policy/adapter مستقل؛ دامنهٔ منتخب اکنون آزموده شده؛ مدل واقعی باز. |
+| `DeviceOperationsController.ModifyUsers#1` | 296 | بخشی ساخته؛ مانده دارد | اثر انگشت/چهره/عکس، حذف فرد/الگو و admin/group/password write فاقد policy/adapter مستقل؛ دامنهٔ منتخب اکنون آزموده شده؛ مدل واقعی باز. |
+| `DeviceOperationsController.DeviceProperties#1` | 456 | بخشی ساخته؛ مانده دارد | دامنهٔ منتخب اکنون آزموده شده؛ وضعیت اتصال زندهٔ دائمی legacy با heartbeat هم‌ارز نیست و پذیرش سخت‌افزار باقی است. |
 | `DeviceOperationsController.GetCapacity#1` | 465 | پیاده‌شده؛ آزمون نرم‌افزاری | اطلاعات snapshot غیراتمیک و سازگاری مدل واقعی باز. |
 | `DeviceOperationsController.Restart#1` | 488 | پیاده‌شده؛ آزمون نرم‌افزاری | پذیرش restart مدل واقعی و قطعی/بازیابی محلی باز. |
 | `DeviceOperationsController.DeleteAllData#1` | 522 | عملیات حساس هنوز ناتمام | سیاست داده/بیومتریک یا حذف، قرارداد مدل، مجوز/تأیید مستقل، شاهد دریافت و recovery هنوز تکمیل نشده؛ restart مجوز اینها نیست. |
@@ -70,22 +70,22 @@
 | `DeviceOperationsController.SetDLST#1` | 697 | قرارداد/آداپتر ناتمام | قرارداد مدل دقیق، مقدار/واحد/اثر و readback/unknown و مجوز مستقل لازم؛ generic setter باز نشده است. |
 | `DeviceOperationsController.RemoveTimeRecords#1` | 738 | عملیات حساس هنوز ناتمام | سیاست داده/بیومتریک یا حذف، قرارداد مدل، مجوز/تأیید مستقل، شاهد دریافت و recovery هنوز تکمیل نشده؛ restart مجوز اینها نیست. |
 | `DeviceOperationsController.GetAdvanced#1` | 779 | پیاده‌شده؛ آزمون نرم‌افزاری | unit/range سایر کدها و firmwareها تأیید نشده؛ این snapshot اجازه نوشتن نیست. |
-| `DeviceOperationsController.Set1_1#1` | 802 | قرارداد/آداپتر ناتمام | قرارداد مدل دقیق، مقدار/واحد/اثر و readback/unknown و مجوز مستقل لازم؛ generic setter باز نشده است. |
-| `DeviceOperationsController.Set1_N#1` | 836 | قرارداد/آداپتر ناتمام | قرارداد مدل دقیق، مقدار/واحد/اثر و readback/unknown و مجوز مستقل لازم؛ generic setter باز نشده است. |
-| `DeviceOperationsController.SetRepeatTime#1` | 870 | قرارداد/آداپتر ناتمام | قرارداد مدل دقیق، مقدار/واحد/اثر و readback/unknown و مجوز مستقل لازم؛ generic setter باز نشده است. |
+| `DeviceOperationsController.Set1_1#1` | 802 | بخشی ساخته؛ مانده دارد | قرارداد واقعی مدل/firmware/واحد/اثر/مقادیر و پذیرش سخت‌افزار تعیین نشده؛ CI نهایی همان SHA باید موفق شود. هیچ generic setter فعال نیست. |
+| `DeviceOperationsController.Set1_N#1` | 836 | بخشی ساخته؛ مانده دارد | قرارداد واقعی مدل/firmware/واحد/اثر/مقادیر و پذیرش سخت‌افزار تعیین نشده؛ CI نهایی همان SHA باید موفق شود. هیچ generic setter فعال نیست. |
+| `DeviceOperationsController.SetRepeatTime#1` | 870 | بخشی ساخته؛ مانده دارد | قرارداد واقعی مدل/firmware/واحد/اثر/مقادیر و پذیرش سخت‌افزار تعیین نشده؛ CI نهایی همان SHA باید موفق شود. هیچ generic setter فعال نیست. |
 | `DeviceOperationsController.SetSleepTime#1` | 904 | پیاده‌شده؛ آزمون نرم‌افزاری | zero/disabled و سازگاری عمومی ادعا نمی‌شود؛ پذیرش مدل واقعی باز. |
-| `DeviceOperationsController.SetCardReg#1` | 938 | قرارداد/آداپتر ناتمام | قرارداد مدل دقیق، مقدار/واحد/اثر و readback/unknown و مجوز مستقل لازم؛ generic setter باز نشده است. |
+| `DeviceOperationsController.SetCardReg#1` | 938 | بخشی ساخته؛ مانده دارد | قرارداد واقعی مدل/firmware/واحد/اثر/مقادیر و پذیرش سخت‌افزار تعیین نشده؛ CI نهایی همان SHA باید موفق شود. هیچ generic setter فعال نیست. |
 | `DeviceOperationsController.GetAdvanced2#1` | 972 | پیاده‌شده؛ آزمون نرم‌افزاری | IP گزارش‌شده اثبات دسترسی مقصد و algorithm raw تأیید قابلیت بیومتریک نیست. |
 | `DeviceOperationsController.SetIP#1` | 1004 | پیاده‌شده؛ آزمون نرم‌افزاری | gateway/mask/DHCP/MAC/port و پذیرش مدل واقعی باز. |
 | `DeviceOperationsController.SetAlgorithm#1` | 1038 | قرارداد/آداپتر ناتمام | قرارداد مدل دقیق، مقدار/واحد/اثر و readback/unknown و مجوز مستقل لازم؛ generic setter باز نشده است. |
-| `DeviceOperationsController.SetSector#1` | 1072 | قرارداد/آداپتر ناتمام | قرارداد مدل دقیق، مقدار/واحد/اثر و readback/unknown و مجوز مستقل لازم؛ generic setter باز نشده است. |
+| `DeviceOperationsController.SetSector#1` | 1072 | بخشی ساخته؛ مانده دارد | قرارداد واقعی مدل/firmware/واحد/اثر/مقادیر و پذیرش سخت‌افزار تعیین نشده؛ CI نهایی همان SHA باید موفق شود. هیچ generic setter فعال نیست. |
 | `DeviceOperationsController.RemoteEnroll#1` | 1106 | عملیات حساس هنوز ناتمام | سیاست داده/بیومتریک یا حذف، قرارداد مدل، مجوز/تأیید مستقل، شاهد دریافت و recovery هنوز تکمیل نشده؛ restart مجوز اینها نیست. |
 | `DeviceOperationsController.ChangeKey#1` | 1140 | قرارداد/آداپتر ناتمام | قرارداد مدل دقیق، مقدار/واحد/اثر و readback/unknown و مجوز مستقل لازم؛ generic setter باز نشده است. |
-| `DeviceOperationsController.ReadKey#1` | 1173 | پیاده‌شده؛ آزمون نرم‌افزاری | خواندن مصوب هر پنج خروجی با pin مدل و index نصب ساخته شد؛ وضعیت CI در s11-function-key-read-evidence.json. نوشتن و پذیرش دستگاه واقعی جدا باقی است. |
+| `DeviceOperationsController.ReadKey#1` | 1173 | بخشی ساخته؛ مانده دارد | خواندن قبلی CI موفق دارد؛ اصلاح مجوز مستقل انسان/سرویس، redaction تاریخچه و تست revoke در برش جدید هنوز CI نهایی می‌خواهد. پذیرش مدل واقعی و نوشتن کلید مستقل باقی‌اند. |
 | `DeviceOperationsController.Connect#1` | 1196 | جایگزین ایمن؛ نه هم‌ارزی عینی | Disconnect صف به معنی لغو عملیات dispatch‌شده نیست؛ پایداری/قطعی مدل واقعی باز. |
 | `DeviceOperationsController.Disconnect#1` | 1203 | جایگزین ایمن؛ نه هم‌ارزی عینی | Disconnect صف به معنی لغو عملیات dispatch‌شده نیست؛ پایداری/قطعی مدل واقعی باز. |
-| `DeviceOperationsController.GetRecords#1` | 1210 | بخشی ساخته؛ مانده دارد | SSR و non-TFT صریح با قالب ثابت در دریافت/زمان‌بندی و worker آزموده‌اند؛ ReadTimeGLogData بومی ادعا نشده، فیلتر سرورمحور و پذیرش دستگاه واقعی باز است. |
-| `DeviceOperationsController.GetTimeRecords#1` | 1244 | بخشی ساخته؛ مانده دارد | SSR و non-TFT صریح با قالب ثابت در دریافت/زمان‌بندی و worker آزموده‌اند؛ ReadTimeGLogData بومی ادعا نشده، فیلتر سرورمحور و پذیرش دستگاه واقعی باز است. |
+| `DeviceOperationsController.GetRecords#1` | 1210 | پیاده‌شده؛ آزمون نرم‌افزاری | بازه در سرور پس از حفظ تمام tupleها اعمال می‌شود؛ معادل اجرای native ReadTimeGLogData ادعا نمی‌شود. قالب legacy زمان‌بندی نیز صریح و ثابت شده؛ شاهد s10-legacy-polling-evidence.json. پذیرش واقعی مدل/SDK در انتها. |
+| `DeviceOperationsController.GetTimeRecords#1` | 1244 | جایگزین ایمن؛ نه هم‌ارزی عینی | بازه در سرور پس از حفظ تمام tupleها اعمال می‌شود؛ معادل اجرای native ReadTimeGLogData ادعا نمی‌شود. قالب legacy زمان‌بندی نیز صریح و ثابت شده؛ شاهد s10-legacy-polling-evidence.json. پذیرش واقعی مدل/SDK در انتها. |
 | `iclockController.cdata#1` | 15 | PUSH امن هنوز ناتمام | PUSH امن مدل‌محور ساخته نشده؛ polling جای آن نیست؛ این کد بدون قرارداد هویت/replay/bounds قابل انتقال نیست. |
 | `iclockController.cdata#2` | 31 | PUSH امن هنوز ناتمام | PUSH امن مدل‌محور ساخته نشده؛ polling جای آن نیست؛ این کد بدون قرارداد هویت/replay/bounds قابل انتقال نیست. |
 | `iclockController.getrequest#1` | 106 | PUSH امن هنوز ناتمام | PUSH امن مدل‌محور ساخته نشده؛ polling جای آن نیست؛ این کد بدون قرارداد هویت/replay/bounds قابل انتقال نیست. |
@@ -96,7 +96,7 @@
 
 | کنترلر/کنش | شماره خط مرجع | وضعیت | مانده یا مرز |
 |---|---:|---|---|
-| `DeviceController.Index#1` | 15 | بخشی ساخته؛ مانده دارد | دامنهٔ امنیتی اپراتور به دستگاه‌های منتخب هنوز ساخته نشده؛ گروه metadata را scope ننامید. |
+| `DeviceController.Index#1` | 15 | پیاده‌شده؛ آزمون نرم‌افزاری | پذیرش SDK/مدل واقعی مستقل است؛ گروه metadata دامنهٔ امنیتی نیست. |
 | `DeviceController.Edit#1` | 31 | پیاده‌شده؛ آزمون نرم‌افزاری | مدل/پروفایل ثبت‌شده اثبات قابلیت و اتصال نیست؛ Serial/USB direct adapter هنوز ندارد. |
 | `DeviceController.Edit#2` | 46 | پیاده‌شده؛ آزمون نرم‌افزاری | مدل/پروفایل ثبت‌شده اثبات قابلیت و اتصال نیست؛ Serial/USB direct adapter هنوز ندارد. |
 | `DeviceController.Command#1` | 71 | بخشی ساخته؛ مانده دارد | clear-punches و داده بیومتریک/مدل واقعی باز؛ هر دستور بستهٔ واقعی IO مسیر مستقل خود دارد. |
@@ -105,10 +105,10 @@
 
 | کنترلر/کنش | شماره خط مرجع | وضعیت | مانده یا مرز |
 |---|---:|---|---|
-| `DeviceCommandService.sync-users#1` | 38 | بخشی ساخته؛ مانده دارد | اثر انگشت/چهره/عکس، حذف فرد/الگو و admin/group/password write فاقد policy/adapter مستقل؛ scope منتخب و مدل واقعی باز. |
+| `DeviceCommandService.sync-users#1` | 38 | بخشی ساخته؛ مانده دارد | اثر انگشت/چهره/عکس، حذف فرد/الگو و admin/group/password write فاقد policy/adapter مستقل؛ دامنهٔ منتخب اکنون آزموده شده؛ مدل واقعی باز. |
 | `DeviceCommandService.sync-time#1` | 45 | جایگزین ایمن؛ نه هم‌ارزی عینی | هم‌ارزی خودکار TimeSync قدیمی ادعا نمی‌شود؛ آزمون drift/zone مدل واقعی باز. |
-| `DeviceCommandService.pull-punches#1` | 52 | بخشی ساخته؛ مانده دارد | SSR و non-TFT صریح با قالب ثابت در دریافت/زمان‌بندی و worker آزموده‌اند؛ ReadTimeGLogData بومی ادعا نشده، فیلتر سرورمحور و پذیرش دستگاه واقعی باز است. |
-| `DeviceCommandService.pull-users#1` | 59 | بخشی ساخته؛ مانده دارد | اثر انگشت/چهره/عکس، حذف فرد/الگو و admin/group/password write فاقد policy/adapter مستقل؛ scope منتخب و مدل واقعی باز. |
+| `DeviceCommandService.pull-punches#1` | 52 | بخشی ساخته؛ مانده دارد | SSR و non-TFT صریح در دریافت/زمان‌بندی و worker ساخته و آزموده‌اند؛ ReadTimeGLogData بومی ادعا نشده و فیلتر سرورمحور است؛ پذیرش مدل واقعی باز. |
+| `DeviceCommandService.pull-users#1` | 59 | بخشی ساخته؛ مانده دارد | اثر انگشت/چهره/عکس، حذف فرد/الگو و admin/group/password write فاقد policy/adapter مستقل؛ دامنهٔ منتخب اکنون آزموده شده؛ مدل واقعی باز. |
 | `DeviceCommandService.clear-punches#1` | 66 | عملیات حساس هنوز ناتمام | سیاست داده/بیومتریک یا حذف، قرارداد مدل، مجوز/تأیید مستقل، شاهد دریافت و recovery هنوز تکمیل نشده؛ restart مجوز اینها نیست. |
 
 ## آنچه برای تکمیل واقعی هنوز باید انجام شود
@@ -118,7 +118,7 @@
 1. **دامنهٔ دستگاه منتخب برای اپراتور** اکنون ساخته و در SQL/Chromium/worker آزموده شده؛ [شاهد مستقل](s04-device-operator-scope-evidence.json). گروه metadata جای آن نیست؛ پذیرش واقعی مدل همچنان جداست.
 2. **قراردادهای نوشتنی تنظیمات باقی‌مانده**: آستانه1:1/1:N، duplicate interval، card mode، sector، الگوریتم، DLST و نوشتن کلید عملکردی؛ مقدار/اثر/حریم خصوصی و read-back دقیق هر مدل، نه setter عمومی.
 3. **عملیات حساس**: حذف تردد/بازه/کاربر/الگو/مدیر و reset، هرکدام مجوز/تأیید/شاهد دریافت و unknown recovery مستقل؛ RemoteEnroll و جابه‌جایی دادهٔ بیومتریک فقط با سیاست دسترسی/رضایت/نگهداری و قرارداد مدل. دستور کلی «تکمیل» سیاست بیومتریک یا اجازهٔ کنترل درب محسوب نمی‌شود.
-4. **PUSH امن** برای مدل پشتیبان؛ SN ساده/Encrypt=0 قدیمی کافی نیست. مدل‌هایی که قرارداد امن ندارند باید صریح unsupported بمانند، نه endpoint ظاهراً موفق.
+4. **PUSH امن** برای مدل پشتیبان؛ SN ساده/Encrypt=0 قدیمی کافی نیست. مدل‌هایی که قرارداد امن ندارند باید صریحاً با وضعیت پشتیبانی اثبات‌نشده/غیرفعال بمانند؛ unsupported فقط با شاهد همان مدل، نه endpoint ظاهراً موفق.
 5. **پوشش مدل/فرمت**: تردد native non-TFT اکنون adapter صریح و زمان‌بندی قالب‌دار دارد؛ [شواهد انتقال](s09-legacy-attendance-evidence.json) و [polling](s10-legacy-polling-evidence.json). پذیرش مدل واقعی باقی است؛ Serial/USB اتصال مستقیم یا پروتکل‌های دیگر با واردکردن فایل یکی نیستند. پشتیبانی Virdi/UNIS نیز مشروط و اثبات‌نشده باقی است.
 6. **پذیرش عملیاتی**: نصب SDK واقعی در Windows، حداقل دو دستگاه با firmware مشخص، رفت‌وبرگشت کاربر/کارت، دانلود تکراری، قطعی قبل/بعد dispatch، recovery، clock/idle/IP/restart و فایل واقعی از UI/worker، نه صرف heartbeat یا simulator.
 
@@ -152,3 +152,7 @@ validator هش دقیق Git blob منابع ثابت (و برابری worktree؛
 [جدول قرارداد و تصمیم مشخص هر خانواده](model-and-policy-decisions.fa.md) API و خط مرجع، ابهام دقیق واحد/اثر/داده، و شرط پیاده‌سازی امن را جدا می‌کند. دستور عمومی ادامه، مجوز حذف/بیومتریک نیست و pending یا غیرفعال‌بودن به معنی تکمیل قابلیت نیست.
 
 برش خواندنی کلید عملکردی و mask/gateway روی `f08cbb3` با۸۵۵ بررسی SQL و ویندوز/لینوکس سبز شد؛ [شاهد](s11-function-key-read-evidence.json). ناسازگاری سقف بزرگ SQL در ممیزی بعدی پیدا شد و migration مستقل۴۴ و regression بزرگ برای آن در دست پیاده‌سازی است؛ این شاهد، تست SQL هشت کلید بزرگ را ادعا نمی‌کند.
+
+## برش جاری، نه پذیرش نهایی
+
+پنج setter عددی اکنون مسیر بستهٔ [مدل مصوب](s11-approved-raw-settings.fa.md) دارند، ولی قرارداد واقعی نصب و CI نهایی هنوز لازم است. ReadKey نیز به دلیل اصلاح حق مستقل انسان/سرویس و حذف افشای تاریخچه، تا CI همان SHA در وضعیت partial-software ثبت می‌شود؛ نتیجه سبز قبلی مجوز مستقل را اثبات نکرده بود. جدول بالا از CSV جاری بازسازی شد و متن قدیمی «scope ساخته نشده» حذف شد.
