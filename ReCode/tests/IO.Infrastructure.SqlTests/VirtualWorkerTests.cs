@@ -114,7 +114,7 @@ internal static class VirtualWorkerTests
             var itemA=Guid.NewGuid();var itemB=Guid.NewGuid();
             var batch=new DeviceUserUploads.Batch(Guid.NewGuid(),[new(itemA,a.Pin.DeviceId,av,sa,employee,"00001","456",true,10),new(itemB,b.Pin.DeviceId,bv,sb,employee,"00001","789",true,10)],"UPLOAD-ORDINARY-USERS");
             using(var preview=await Post("/device-user-uploads/preview",batch))
-            {preview.EnsureSuccessStatusCode();using var json=JsonDocument.Parse(await preview.Content.ReadAsStringAsync());batch=batch with{PreviewHash=json.RootElement.GetProperty("previewHash").GetString()};}
+            {preview.EnsureSuccessStatusCode();using var json=JsonDocument.Parse(await preview.Content.ReadAsStringAsync());batch=batch with{PreviewHash=json.RootElement.GetProperty("result").GetProperty("previewHash").GetString()};}
             a.Fault="drop-write-ack";await Send("/device-user-uploads",batch);
             await Wait(()=>Q(async db=>await db.DeviceUserUploads.CountAsync(x=>x.BatchId==batch.BatchId&&x.State!="pending"&&x.State!="running")==2),"upload");
             check(await Q(db=>db.DeviceUserUploads.AnyAsync(x=>x.Id==itemA&&x.State=="unknown"))&&await Q(db=>db.DeviceUserUploads.AnyAsync(x=>x.Id==itemB&&x.State=="succeeded"))&&a.ReadExact("00001")!.User.Card=="456"&&b.ReadExact("00001")!.User.Card=="789","virtual-e2e lost write acknowledgement retains SQL unknown while the second device succeeds and both remote states persist");
