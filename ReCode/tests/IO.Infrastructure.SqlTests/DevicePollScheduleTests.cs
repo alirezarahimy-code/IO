@@ -76,6 +76,9 @@ internal static class DevicePollScheduleTests
   check(stableCursor==overlapStart.AddHours(2)&&(await S(overlapId)).CursorUtc==stableCursor&&await Q(db=>db.DeviceAttendanceDownloads.AnyAsync(x=>x.Id==download&&x.FromUtc==overlapStart.AddMinutes(90)&&x.UntilUtcExclusive==overlapStart.AddHours(3))),"S10 incomplete overlapped reads do not acknowledge a window and read-only backoff retries the same overlap and forward range");
   await Toggle(overlapId,false);
   check(await Reject<SqlException>(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.DevicePollSchedules SET OverlapSeconds=0 WHERE Id={overlapId}")))&&await Reject<SqlException>(()=>Q(async db=>{await db.GetService<IMigrator>().MigrateAsync("20261112130000_DeviceSettingsReadRetries");return true;})),"S10 SQL retains immutable approved overlap and refuses a downgrade that would discard its historical interpretation");
+  // A guarded downgrade may have removed newer, still-empty migrations before
+  // reaching the overlap guard. Restore latest before running current services.
+  await Q(async db=>{await db.GetService<IMigrator>().MigrateAsync();return true;});
   var minInput=Input() with{StartUtc=DateTimeOffset.MinValue,WindowSeconds=60,OverlapSeconds=60};var minId=await Create(minInput);step=await Step();download=step.DownloadId!.Value;
   check(await Q(db=>db.DeviceAttendanceDownloads.AnyAsync(x=>x.Id==download&&x.FromUtc==DateTimeOffset.MinValue&&x.UntilUtcExclusive==DateTimeOffset.MinValue.AddSeconds(60))),"S10 overlap at the minimum UTC date clamps before subtraction in application and SQL rather than overflowing");await Toggle(minId,false);
   // Durable synthetic schedule for the browser; no native SDK or physical device executed.
