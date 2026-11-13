@@ -46,7 +46,7 @@ if(!address?.startsWith('https://127.0.0.1:')||!user?.startsWith('virtual-operat
     const rows=JSON.parse(await page.locator('#rows').textContent());
     assert.equal(rows.length,after===100?3:50);assert(rows.every(x=>x.rawEventId));
     if(after<100){await page.locator('#more-rows').click();await page.waitForFunction(after=>{
-      const rows=JSON.parse(document.querySelector('#rows').textContent()||'[]');return rows[0]?.sequence===after+51&&!document.querySelector('#more-rows').disabled;
+      const rows=JSON.parse(document.querySelector('#rows').textContent||'[]');return rows[0]?.sequence===after+51&&!document.querySelector('#more-rows').disabled;
     },after);}
    }
   }
