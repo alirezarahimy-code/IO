@@ -87,15 +87,39 @@
   "report": "device-reference-parity.fa.md",
   "operatorScopeSupplement": "s04-device-operator-scope-evidence.json",
   "currentMatrixCounts": {
-    "software-verified": 14,
+    "software-verified": 20,
     "intentional-replacement": 9,
-    "partial-software": 18,
+    "partial-software": 12,
     "pending-sensitive": 6,
     "pending-contract": 3,
     "pending-secure-push": 3
   },
   "legacyAttendanceSupplement": "s09-legacy-attendance-evidence.json",
   "functionKeyAndNetworkReadSupplement": "s11-function-key-read-evidence.json",
-  "rawSettingSupplement": "s11-approved-raw-settings.fa.md",
-  "authorizationFollowup": "Independent key read/execute permissions and history redaction implemented; exact-SHA SQL and Windows/Linux verification still pending. Prior green SHA did not contain this authorization fix."
+  "rawSettingSupplement": "s11-approved-raw-settings-evidence.json",
+  "authorizationFollowup": "Independent key read/execute permissions, live credential/completion checks and historical redaction verified on f737144, including6 SQL regressions and2 actual worker revoke scenarios.",
+  "latestVerifiedSupplementCode": "f737144189b87b45476e9ef0bba55da287054458",
+  "latestSupplementRuns": [
+    {
+      "conclusion": "success",
+      "databaseId": 43515064905,
+      "headSha": "f737144189b87b45476e9ef0bba55da287054458",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43515064905"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 43515065013,
+      "headSha": "f737144189b87b45476e9ef0bba55da287054458",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43515065013"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 43515064866,
+      "headSha": "f737144189b87b45476e9ef0bba55da287054458",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43515064866"
+    }
+  ]
 }

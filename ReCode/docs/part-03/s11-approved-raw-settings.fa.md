@@ -1,6 +1,6 @@
 # S11 — پنج پارامتر عددی با قرارداد دقیق نصب
 
-وضعیت: **پیاده‌سازی و آزمون محلی قرارداد/DOM؛ هستهٔ d3290fc با SQL۸۷۸ و Windows/Linux/light موفق؛ آزمون followup مجوز/مسیر واقعی جدید هنوز تأیید نشده است. تکمیل بخش سوم نیست.**
+وضعیت: **پیاده‌سازی و آزمون محلی قرارداد/DOM؛ کد f737144 با SQL۸۸۸ و Windows/Linux/light موفق؛ شامل اصلاح مجوز و مسیر واقعی worker. تکمیل بخش سوم نیست.**
 
 ## منشأ، نه حدس واحد یا دامنه
 
@@ -30,11 +30,11 @@
 
 ## آزمون و مانده
 
-`RawSettingTests`: ۲۲ بررسی موفق محلی، از جمله child واقعی و deadline؛ session مصنوعی نه SDK. `device-raw-ui-check.cjs`: پیش‌نمایش/تأیید، replay دقیق پاسخ نامعلوم، safe text و پاکسازی revoke موفق. `DeviceRawSettingTests`: ۱۵ بررسی SQL/مجوز/revoke/credential/review/retention افزوده شده، در d3290fc همراه suite کامل۸۷۸ موفق شد؛ [شاهد دقیق](s11-approved-raw-settings-evidence.json). Windows/Linux و SQL کامل همان SHA برای followup نیز شرط پذیرش نرم‌افزاری است. دستگاه واقعی و چنددستگاه/قطعی همچنان برای انتها باقی‌اند.
+`RawSettingTests`: ۲۳ بررسی موفق محلی/CI، از جمله child واقعی و deadline؛ session مصنوعی نه SDK. `device-raw-ui-check.cjs`: پیش‌نمایش/تأیید، replay دقیق پاسخ نامعلوم، safe text و پاکسازی revoke موفق. `DeviceRawSettingTests`: ۱۵ بررسی SQL/مجوز/revoke/credential/review/retention افزوده شده، در d3290fc همراه suite کامل۸۷۸ موفق شد؛ [شاهد دقیق](s11-approved-raw-settings-evidence.json). Windows/Linux و SQL کامل همان SHA برای followup نیز شرط پذیرش نرم‌افزاری است. دستگاه واقعی و چنددستگاه/قطعی همچنان برای انتها باقی‌اند.
 
 ### تکمیل شاهد مسیر واقعی در برش بعدی
 
-دو regression به VirtualWorkerTests افزوده شد: HTTPS مصدق → preview/hash → SQL → production worker/credential → child واقعی → endpoint مصنوعی TCP، lost ACK بعد از یک mutation و سپس snapshot/read-only و review بدون replay. این سناریو دو endpoint مستقل را کنترل می‌کند؛ پروتکل خصوصی تست است، نه ZK/SDK/سخت‌افزار. اجرای آن هنوز وابسته به CI کد followup است.
+دو regression به VirtualWorkerTests افزوده شد: HTTPS مصدق → preview/hash → SQL → production worker/credential → child واقعی → endpoint مصنوعی TCP، lost ACK بعد از یک mutation و سپس snapshot/read-only و review بدون replay. این سناریو دو endpoint مستقل را کنترل می‌کند؛ پروتکل خصوصی تست است، نه ZK/SDK/سخت‌افزار. هر دو سناریو در suite کامل۸۸۸ کد f737144 موفق شدند.
 
 ### ترتیب regressionهای downgrade
 

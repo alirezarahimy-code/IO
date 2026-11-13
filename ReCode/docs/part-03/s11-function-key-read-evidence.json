@@ -1,29 +1,29 @@
 {
   "scope": "Read-only exact-model installed function key allowlist and four fixed raw additional settings reports, including NetMask/GATEIPAddress. No key/network option writes, biometric policy, secure vendor PUSH or Part 3 completion.",
-  "implementedCode": "f08cbb3fd06ac08d98ababd948ab7100ecb67bf4",
-  "verifiedCode": "f08cbb3fd06ac08d98ababd948ab7100ecb67bf4",
-  "status": "prior-read-software-verified-authorization-followup-pending",
+  "implementedCode": "f737144189b87b45476e9ef0bba55da287054458",
+  "verifiedCode": "f737144189b87b45476e9ef0bba55da287054458",
+  "status": "software-verified",
   "runs": [
     {
       "conclusion": "success",
-      "databaseId": 43510974928,
-      "headSha": "f08cbb3fd06ac08d98ababd948ab7100ecb67bf4",
+      "databaseId": 43515064905,
+      "headSha": "f737144189b87b45476e9ef0bba55da287054458",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43510974928"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43515064905"
     },
     {
       "conclusion": "success",
-      "databaseId": 43510974900,
-      "headSha": "f08cbb3fd06ac08d98ababd948ab7100ecb67bf4",
+      "databaseId": 43515065013,
+      "headSha": "f737144189b87b45476e9ef0bba55da287054458",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43510974900"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43515065013"
     },
     {
       "conclusion": "success",
-      "databaseId": 43510974923,
-      "headSha": "f08cbb3fd06ac08d98ababd948ab7100ecb67bf4",
+      "databaseId": 43515064866,
+      "headSha": "f737144189b87b45476e9ef0bba55da287054458",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43510974923"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43515064866"
     }
   ],
   "localChecks": {
@@ -31,34 +31,34 @@
     "referenceParity": 36,
     "existingPortableNativeBoundary": 61,
     "existingStatefulTcpLaboratory": 19,
-    "offlineDomFiles": 15,
+    "offlineDomFiles": 16,
     "ciPolicyRegressions": 14,
     "runtimeAndBridgeReleaseBuild": "passed",
     "workerLocalBuild": "not run: local restore assets unavailable; solution build covered by successful Windows/Linux CI on implementedCode"
   },
   "integration": {
-    "expectedNamedPassLines": 855,
+    "expectedNamedPassLines": 888,
     "countEnforcedBy": "ReCode/tools/phase03-report-tests.py",
     "fullSuitePassed": true,
-    "newSqlChecks": 3,
+    "newSqlChecks": 9,
     "newActualHttpsWorkerChildTcpSqlCheck": 1,
-    "virtualWorkerChecksWhenSuccessful": 22,
+    "virtualWorkerChecksWhenSuccessful": 26,
     "actualBrowser": "Reads worker-created model-bound function key results and raw network reports from actual authenticated SQL history; no fetch mocks.",
     "freshPreflight": "Not repeated automatically; full suite already runs worker and polling SQL checks. Explicit full-with-preflight remains available."
   },
   "storage": {
-    "foundationMigrations": 43,
+    "foundationMigrations": 45,
     "identityMigrations": 2,
     "foundationTables": 60,
-    "permissions": 123,
+    "permissions": 127,
     "pagesAndHelp": 52,
-    "newMigrationOrPermission": false,
+    "newMigrationOrPermission": true,
     "payload": "Optional typed fields inside existing immutable DeviceOperations.ResultJson; old snapshots remain valid.",
-    "knownFollowup": "Migration 44 under development: align old nvarchar(4000) SQL result capacity with the already-bounded settings pipe; add large Unicode SQL round-trip and downgrade guard. This verified SHA has only the small two-key full worker case, not a large eight-key SQL case."
+    "knownFollowup": "Resolved and verified in full SQL888 on f737144: migration44 bounded settings payload65536bytes with large eight-key Unicode exact SQL round-trip and downgrade51033; migration45 protects approved raw setting history. Additional two independent key permissions do not grant themselves to role templates."
   },
   "authority": {
-    "human": "devices.settings.read with current selected-device scope; known operator/admin roles in existing catalogue",
-    "service": "devices.operations.execute plus independent devices.settings.read.execute and installed settings opt-ins",
+    "human": "devices.settings.read plus independent devices.settings.keys.read, intersected with current selected-device scope; key grant default absent from all templates",
+    "service": "devices.operations.execute plus devices.settings.read.execute and independent devices.settings.keys.execute for key collection; installed settings/model opt-ins remain necessary",
     "keys": "FunctionKeyReadApproval null by default; exact live product/firmware, unique explicit installed indices, evidence reference; never inferred from device name. Eight is an application work budget, not model key count.",
     "result": "Exact approval reference/ordered index/model binding in child boundary; native false/exception has Reported=false with null values, never initialized zero; all five raw outputs retained only on valid read.",
     "network": "Four fixed raw reports; no option name supplied by web/IPC and no reported mask/gateway used as connection pin or routing authority.",
@@ -117,7 +117,10 @@
     "claimCredentialCompletion": "current independent grants checked; unauthorized collection flag cannot obtain credentials",
     "history": "redacted without independent human key grant; immutable SQL retained",
     "newSqlRegressions": 6,
-    "fullSuitePassedOnFollowup": false,
-    "newActualWorkerRevokeChecks": 2
+    "fullSuitePassedOnFollowup": true,
+    "newActualWorkerRevokeChecks": 2,
+    "verifiedCode": "f737144189b87b45476e9ef0bba55da287054458",
+    "permissionCount": 127,
+    "note": "Default templates unchanged. Read grant and service execute grant are independent of settings; revocation checked at credential/completion and retained history redacted. Two actual HTTPS/worker negative scenarios confirm no native key calls despite installation approval."
   }
 }

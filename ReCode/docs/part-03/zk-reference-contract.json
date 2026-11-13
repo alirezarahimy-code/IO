@@ -70,7 +70,7 @@
       "method": "GetDeviceAdvancedOptions; SetRepeatTime; SetSleepTime; SetCardReg; Get/SetMifareSector; Get/SetOneToOne; Get/SetOneToN",
       "contract": "GetDeviceInfo and SetDeviceInfo(machine,code,value): 25 OneToOne, 23 OneToN, 8 RepeatTime, 4 SleepTime, 30 RegCard, 62 MifareSector. IZKEM static metadata GetDeviceInfo DispId 12, SetDeviceInfo DispId 13.",
       "bodyObserved": true,
-      "limit": "Six fixed nullable Int32 reads implemented. Only code4 idle minutes has a separately approved exact-model write path; no generic SetDeviceInfo. Other units/ranges/effects and actual model/firmware acceptance remain unverified."
+      "limit": "Six fixed nullable Int32 reads implemented. Code4 idle and five closed raw parameters25/23/8/30/62 now have separately permissioned installed-exact-model-approved write paths. No generic SetDeviceInfo; raw parameter units/effects and both old/new explicit approved values are installation evidence, never inferred. Actual model/firmware acceptance remains unverified. See s11-approved-raw-settings-evidence.json; independent key authorization and further real-worker tests passed full SQL888 and Windows/Linux/light on f737144."
     },
     {
       "type": "Personnel.ZK.ZKDevice",

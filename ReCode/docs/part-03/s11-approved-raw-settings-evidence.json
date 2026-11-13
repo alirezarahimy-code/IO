@@ -1,40 +1,41 @@
 {
   "scope": "Five closed installed-model-approved raw parameters, not generic SDK writes or actual model acceptance",
-  "verifiedCode": "d3290fc5d3a3b8db2bc80d675fd4917062cc91c0",
+  "verifiedCode": "f737144189b87b45476e9ef0bba55da287054458",
   "runs": [
     {
       "conclusion": "success",
-      "databaseId": 43513411066,
-      "headSha": "d3290fc5d3a3b8db2bc80d675fd4917062cc91c0",
+      "databaseId": 43515064905,
+      "headSha": "f737144189b87b45476e9ef0bba55da287054458",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43513411066"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43515064905"
     },
     {
       "conclusion": "success",
-      "databaseId": 43513411041,
-      "headSha": "d3290fc5d3a3b8db2bc80d675fd4917062cc91c0",
+      "databaseId": 43515065013,
+      "headSha": "f737144189b87b45476e9ef0bba55da287054458",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43513411041"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43515065013"
     },
     {
       "conclusion": "success",
-      "databaseId": 43513411052,
-      "headSha": "d3290fc5d3a3b8db2bc80d675fd4917062cc91c0",
+      "databaseId": 43515064866,
+      "headSha": "f737144189b87b45476e9ef0bba55da287054458",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43513411052"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43515064866"
     }
   ],
-  "integrationNamedPassLines": 878,
+  "integrationNamedPassLines": 888,
   "foundationMigrations": 45,
-  "permissions": 125,
-  "localContractChecks": 22,
+  "permissions": 127,
+  "localContractChecks": 23,
   "offlineDomFiles": 16,
   "rawSqlChecks": 15,
-  "status": "software-verified-core-followup-pending",
-  "followup": "e202dde adds independent function key permissions plus two actual HTTPS/SQL/worker/child/private-TCP raw mutation lost ACK/review tests; exact-SHA full CI pending.",
+  "status": "software-verified",
+  "followup": "Independent function-key authorization, maximum Unicode raw IPC, real raw lost-ACK/review and negative real-worker key revoke scenarios all passed in the complete suite on verifiedCode.",
   "actualModelContract": "not supplied; production writes default off; exact product firmware values unit effect and evidence installation approval required",
   "part3Complete": false,
   "softwareComplete": false,
   "realSdkExecuted": false,
-  "hardwareVerified": false
+  "hardwareVerified": false,
+  "actualHttpsWorkerRawScenarios": 2
 }
