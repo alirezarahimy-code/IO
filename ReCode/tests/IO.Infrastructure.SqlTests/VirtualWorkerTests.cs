@@ -101,7 +101,7 @@ internal static class VirtualWorkerTests
         try
         {
             await worker.StartAsync(CancellationToken.None);
-            var probe=Guid.NewGuid();await Send("/device-connections",new DeviceConnectionInput(probe,a.Pin.DeviceId,av,10));
+            var probe=Guid.NewGuid();await Send("/device-connection",new DeviceConnectionInput(probe,a.Pin.DeviceId,av,10));
             await Wait(()=>Q(db=>db.DeviceConnections.AnyAsync(x=>x.Id==probe&&x.State!="pending"&&x.State!="running")),"probe");
             check(await Q(db=>db.DeviceConnections.AnyAsync(x=>x.Id==probe&&x.State=="sdk-serial-matched")),"virtual-e2e HTTPS queue and real worker decrypt bound credential and verify the stateful device through a real child");
             async Task<Guid> Users(VirtualDeviceLab.Device d,byte[] version)
