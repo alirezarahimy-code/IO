@@ -97,7 +97,6 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.ToTable("DeviceFileImports",t=>
             {
                 t.HasTrigger("TR_DeviceFileImports_History");t.UseSqlOutputClause(false);
-                t.HasCheckConstraint("CK_DeviceAttendanceDownloads_Format","[ReadFormat] COLLATE Latin1_General_100_BIN2 IN(N'ssr-v1',N'legacy-int32-minute-v1') AND DATALENGTH([ReadFormat])=CASE WHEN [ReadFormat]=N'ssr-v1' THEN 12 ELSE 44 END");
                 t.HasCheckConstraint("CK_DeviceFileImports_File","DATALENGTH([OriginalFile]) BETWEEN 1 AND 1048576 AND DATALENGTH([ExpectedDeviceVersion])=8 AND LEN([FileHash])=64 AND [LineCount] BETWEEN 1 AND 10000");
                 t.HasCheckConstraint("CK_DeviceFileImports_Interpretation","[Calendar] COLLATE Latin1_General_100_BIN2 IN(N'gregorian',N'persian') AND [MachineNumber]>0 AND [InCode] BETWEEN 0 AND 255 AND [OutCode] BETWEEN 0 AND 255 AND [InCode]<>[OutCode]");
                 t.HasCheckConstraint("CK_DeviceFileImports_Utc","DATEPART(TZOFFSET,[CreatedAtUtc])=0 AND DATEPART(TZOFFSET,[LastReviewedAtUtc])=0 AND ([LastReviewedAtUtc] IS NULL OR [LastReviewedAtUtc]>=[CreatedAtUtc])");
@@ -212,7 +211,6 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.Property(x=>x.WindowSeconds).HasColumnType("int");
             b.Property(x=>x.LagSeconds).HasColumnType("int");
             b.Property(x=>x.OverlapSeconds).ValueGeneratedOnAdd().HasColumnType("int").HasDefaultValue(0);
-            b.Property(x=>x.ReadFormat).HasMaxLength(32).IsRequired().HasDefaultValue("ssr-v1").HasColumnType("nvarchar(32)");
             b.Property(x=>x.TimeoutSeconds).HasColumnType("int");
             b.Property(x=>x.InCode).HasColumnType("int");
             b.Property(x=>x.OutCode).HasColumnType("int");
@@ -264,7 +262,8 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
         {
             b.ToTable("DeviceAttendanceDownloads",t=>
             {
-                t.HasTrigger("TR_DeviceAttendanceDownloads_History");t.UseSqlOutputClause(false);
+                t.HasTrigger("TR_DeviceAttendanceDownloads_History");t.HasTrigger("TR_DeviceAttendanceDownloads_Format");t.UseSqlOutputClause(false);
+                t.HasCheckConstraint("CK_DeviceAttendanceDownloads_Format","[ReadFormat] COLLATE Latin1_General_100_BIN2 IN(N'ssr-v1',N'legacy-int32-minute-v1') AND DATALENGTH([ReadFormat])=CASE WHEN [ReadFormat]=N'ssr-v1' THEN 12 ELSE 44 END");
                 t.HasCheckConstraint("CK_DeviceAttendanceDownloads_Request","DATALENGTH([ExpectedDeviceVersion])=8 AND [TimeoutSeconds] BETWEEN 1 AND 600 AND [ReceivedCount]>=0 AND [FromUtc]<[UntilUtcExclusive] AND DATEPART(TZOFFSET,[FromUtc])=0 AND DATEPART(TZOFFSET,[UntilUtcExclusive])=0 AND [InCode] BETWEEN 0 AND 255 AND [OutCode] BETWEEN 0 AND 255 AND [InCode]<>[OutCode]");
                 t.HasCheckConstraint("CK_DeviceAttendanceDownloads_State","[State] COLLATE Latin1_General_100_BIN2 IN(N'pending',N'running',N'succeeded',N'incomplete',N'failed',N'interrupted',N'timed-out',N'unsupported',N'identity-mismatch',N'credential-unavailable',N'endpoint-denied',N'bridge-failed',N'cancelled',N'revoked',N'device-changed')");
                 t.HasCheckConstraint("CK_DeviceAttendanceDownloads_Lifecycle","(([State]=N'pending' AND [ClaimId] IS NULL AND [ServiceUserId] IS NULL AND [LeaseAtUtc] IS NULL AND [FinishedAtUtc] IS NULL AND [ReceivedCount]=0) OR ([State]=N'running' AND [ClaimId] IS NOT NULL AND [ServiceUserId] IS NOT NULL AND [LeaseAtUtc] IS NOT NULL AND [FinishedAtUtc] IS NULL) OR ([State] IN(N'cancelled',N'revoked',N'device-changed') AND [ClaimId] IS NULL AND [ServiceUserId] IS NULL AND [LeaseAtUtc] IS NULL AND [FinishedAtUtc] IS NOT NULL AND [ReceivedCount]=0) OR ([State] NOT IN(N'pending',N'running',N'cancelled',N'revoked',N'device-changed') AND [ClaimId] IS NOT NULL AND [ServiceUserId] IS NOT NULL AND [LeaseAtUtc] IS NOT NULL AND [FinishedAtUtc] IS NOT NULL)) AND DATEPART(TZOFFSET,[RequestedAtUtc])=0 AND DATEPART(TZOFFSET,[LeaseAtUtc])=0 AND DATEPART(TZOFFSET,[FinishedAtUtc])=0 AND DATEPART(TZOFFSET,[LastReviewedAtUtc])=0 AND ([LeaseAtUtc] IS NULL OR [LeaseAtUtc]>=[RequestedAtUtc]) AND ([FinishedAtUtc] IS NULL OR [FinishedAtUtc]>=COALESCE([LeaseAtUtc],[RequestedAtUtc])) AND ([LastReviewedAtUtc] IS NULL OR ([State]=N'succeeded' AND [LastReviewedAtUtc]>=[FinishedAtUtc]))");
@@ -283,6 +282,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.Property(x=>x.TimeZoneId).HasMaxLength(100).IsRequired().HasColumnType("nvarchar(100)");
             b.Property(x=>x.InCode).HasColumnType("int");
             b.Property(x=>x.OutCode).HasColumnType("int");
+            b.Property(x=>x.ReadFormat).HasMaxLength(32).IsRequired().HasDefaultValue("ssr-v1").HasColumnType("nvarchar(32)");
             b.Property(x=>x.TimeoutSeconds).HasColumnType("int");
             b.Property(x=>x.State).HasMaxLength(32).IsRequired().HasColumnType("nvarchar(32)");
             b.Property(x=>x.ServiceUserId).HasColumnType("uniqueidentifier");
