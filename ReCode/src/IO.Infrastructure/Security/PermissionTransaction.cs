@@ -19,6 +19,7 @@ public sealed class PermissionTransaction(LoginIdentityDbContext identity, IoDbC
     public async Task<T> ExecuteEitherAsync<T>(Guid actor, string permission, string alternative, string action,
         Func<CancellationToken, Task<(T Result, Guid Target)>> operation, CancellationToken ct = default)
     {
+        var previousRestriction=db.RestrictDeviceAccess;var previousIds=db.PermittedDeviceIds;
         try
         {
             await using var transaction = await identity.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
@@ -36,6 +37,11 @@ public sealed class PermissionTransaction(LoginIdentityDbContext identity, IoDbC
                                           EF.Functions.DataLength(p.Code) == alternative.Length * 2))
                                     select user.Id).AnyAsync(ct);
             if (!authorized) throw new UnauthorizedAccessException();
+            db.RestrictDeviceAccess=await identity.DeviceOperatorPolicies.AsNoTracking().AnyAsync(x=>x.UserId==actor&&x.Restricted,ct);
+            db.PermittedDeviceIds=db.RestrictDeviceAccess?await identity.DeviceOperatorGrants.AsNoTracking().Where(x=>x.UserId==actor&&x.RevokedAtUtc==null).Select(x=>x.DeviceId).ToArrayAsync(ct):[];
+            // Scope administration and company-wide group mutation are global
+            // administrative capabilities, never an escape for a restricted actor.
+            if(db.RestrictDeviceAccess&&(action.StartsWith("device-access.",StringComparison.Ordinal)||action.StartsWith("device-groups.",StringComparison.Ordinal)))throw new UnauthorizedAccessException();
             var (result, target) = await operation(ct);
             identity.SecurityAudit.Add(new SecurityAuditRecord { Id = Guid.NewGuid(), ActorUserId = actor,
                 Action = action + ":" + target.ToString("N"), OccurredAtUtc = DateTimeOffset.UtcNow });
@@ -56,6 +62,7 @@ public sealed class PermissionTransaction(LoginIdentityDbContext identity, IoDbC
             // callers may retry deliberately, never infer that it committed.
             throw new DomainConflictException("Concurrent operation conflicted; retry the complete request.");
         }
+        finally{db.RestrictDeviceAccess=previousRestriction;db.PermittedDeviceIds=previousIds;}
     }
 
     // Must be used inside the same Execute transaction as the protected operation.
@@ -68,6 +75,13 @@ public sealed class PermissionTransaction(LoginIdentityDbContext identity, IoDbC
                EF.Functions.Collate(p.Code, "Latin1_General_100_BIN2") == permission &&
                EF.Functions.DataLength(p.Code) == permission.Length * 2
          select user.Id).AnyAsync(ct);
+
+    // Also used for the original human actor from a worker transaction. A service
+    // grant does not override an operator's later device-scope revoke.
+    public async Task<bool> HasDevicePermissionAsync(Guid actor,string permission,Guid deviceId,CancellationToken ct)=>
+        await HasPermissionAsync(actor,permission,ct)&&
+        (!await identity.DeviceOperatorPolicies.AsNoTracking().AnyAsync(x=>x.UserId==actor&&x.Restricted,ct)||
+         await identity.DeviceOperatorGrants.AsNoTracking().AnyAsync(x=>x.UserId==actor&&x.DeviceId==deviceId&&x.RevokedAtUtc==null,ct));
 
     private static bool IsRetryableConcurrency(Exception error)
     {

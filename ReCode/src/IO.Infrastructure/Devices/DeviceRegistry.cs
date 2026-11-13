@@ -38,6 +38,7 @@ public sealed class DeviceRegistry(IoDbContext db, PermissionTransaction transac
     public Task<Guid> CreateAsync(Guid actor, Guid operationId, Input input, CancellationToken ct = default) =>
         transaction.ExecuteAsync(actor, Create, "devices.created", async token =>
         {
+            if(db.RestrictDeviceAccess)throw new UnauthorizedAccessException();
             var value = Validate(input);
             if (operationId == Guid.Empty) throw new ArgumentException("Operation id required.");
             var fingerprint = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(value))));
@@ -126,7 +127,7 @@ public sealed class DeviceRegistry(IoDbContext db, PermissionTransaction transac
         transaction.ExecuteEitherAsync<object>(actor, Read, Create, "devices.locations.viewed", async token =>
         {
             if (offset is < 0 or > 100000) throw new ArgumentException("Invalid page.");
-            var items = await (from s in db.Sites join c in db.Companies on s.CompanyId equals c.Id orderby c.Name, s.Name, s.Id
+            var items = await (from s in db.Sites join c in db.Companies on s.CompanyId equals c.Id where !db.RestrictDeviceAccess||db.Devices.Any(d=>d.SiteId==s.Id) orderby c.Name, s.Name, s.Id
                 select new { s.Id, s.CompanyId, CompanyName = c.Name, s.Name, s.TimeZoneId }).Skip(offset).Take(50).ToListAsync(token);
             return (new { offset, pageSize = 50, items }, actor);
         }, ct);

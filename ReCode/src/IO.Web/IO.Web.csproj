@@ -24,6 +24,7 @@
     <EmbeddedResource Include="Ui/device-groups.js" />
     <EmbeddedResource Include="Ui/Devices.html" />
     <EmbeddedResource Include="Ui/devices.js" />
+    <EmbeddedResource Include="Ui/device-access.js" />
     <EmbeddedResource Include="Ui/Reversals.html" />
     <EmbeddedResource Include="Ui/reversals.js" />
     <EmbeddedResource Include="Ui/Help.html" />

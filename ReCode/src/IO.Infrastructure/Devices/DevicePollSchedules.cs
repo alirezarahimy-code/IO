@@ -15,7 +15,7 @@ public sealed class DevicePollSchedules(IoDbContext db,PermissionTransaction tra
     public Task<Guid> CreateAsync(Guid actor,Input input,CancellationToken ct=default)=>transaction.ExecuteAsync(actor,Manage,"device-poll.created",async token=>
     {
         if(input is null||input.Id==Guid.Empty||input.DeviceId==Guid.Empty||input.ExpectedDeviceVersion is not{Length:8}||input.StartUtc.Offset!=TimeSpan.Zero||input.StartUtc.Ticks%TimeSpan.TicksPerSecond!=0||input.EverySeconds is <15 or >86400||input.WindowSeconds is <60 or >86400||input.LagSeconds is <0 or >86400||input.TimeoutSeconds is <1 or >600||input.InCode is <0 or >255||input.OutCode is <0 or >255||input.InCode==input.OutCode||input.OverlapSeconds<0||input.OverlapSeconds>input.WindowSeconds||input.Confirmation!=(input.AutoCommit?"ENABLE-AUTOMATIC-SDK-INGEST":"ENABLE-SCHEDULED-SDK-READ"))throw new ArgumentException("Explicit schedule cursor, bounded budgets, exact target and consent required.");
-        if(!await Authority(actor,input.AutoCommit,token))throw new UnauthorizedAccessException();
+        if(!await Authority(actor,input.AutoCommit,input.DeviceId,token))throw new UnauthorizedAccessException();
         await Locks(token);var old=await db.DevicePollSchedules.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==input.Id,token);
         if(old is not null){if(old.CreatedByUserId!=actor||old.DeviceId!=input.DeviceId||!old.ExpectedDeviceVersion.SequenceEqual(input.ExpectedDeviceVersion)||old.StartUtc!=input.StartUtc||old.EverySeconds!=input.EverySeconds||old.WindowSeconds!=input.WindowSeconds||old.LagSeconds!=input.LagSeconds||old.OverlapSeconds!=input.OverlapSeconds||old.TimeoutSeconds!=input.TimeoutSeconds||old.InCode!=input.InCode||old.OutCode!=input.OutCode||old.AutoCommit!=input.AutoCommit)throw new DomainConflictException("Changed schedule retry.");return(old.Id,old.Id);}
         var device=await db.Devices.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==input.DeviceId,token)??throw new ArgumentException("Unknown device.");
@@ -40,7 +40,7 @@ public sealed class DevicePollSchedules(IoDbContext db,PermissionTransaction tra
         if(!s.Version.SequenceEqual(version))throw new DomainConflictException("Stale schedule version.");
         if(enabled)
         {
-            if(actor!=s.CreatedByUserId||!await Authority(s.CreatedByUserId,s.AutoCommit,token))throw new UnauthorizedAccessException();
+            if(actor!=s.CreatedByUserId||!await Authority(s.CreatedByUserId,s.AutoCommit,s.DeviceId,token))throw new UnauthorizedAccessException();
             if(!await SameTarget(s,token))throw new DomainConflictException("Changed target requires a new schedule and explicit approval.");
             if(await db.DevicePollSchedules.AnyAsync(x=>x.DeviceId==s.DeviceId&&x.Id!=s.Id&&x.Enabled,token))throw new DomainConflictException("Another schedule is enabled.");
             if(await DeviceWriteSafety.UnreviewedAsync(db,s.DeviceId,token)||await DeviceWriteSafety.InFlightAsync(db,s.DeviceId,token))throw new DomainConflictException("Review native writes before resuming polling.");
@@ -56,7 +56,7 @@ public sealed class DevicePollSchedules(IoDbContext db,PermissionTransaction tra
     {
         await Locks(token);var now=clock.GetUtcNow();var s=await db.DevicePollSchedules.AsTracking().Where(x=>x.Enabled&&x.NextDueUtc<=now).OrderBy(x=>x.NextDueUtc).ThenBy(x=>x.Id).FirstOrDefaultAsync(token);
         if(s is null)return(new Step("idle"),service);
-        if(!await Authority(s.CreatedByUserId,s.AutoCommit,token)){await StopActive(s,"revoked",token);s.Enabled=false;s.LastOutcome="revoked";return(new Step("revoked",s.Id),s.Id);}
+        if(!await Authority(s.CreatedByUserId,s.AutoCommit,s.DeviceId,token)){await StopActive(s,"revoked",token);s.Enabled=false;s.LastOutcome="revoked";return(new Step("revoked",s.Id),s.Id);}
         if(!await SameTarget(s,token)){await StopActive(s,"device-changed",token);s.Enabled=false;s.LastOutcome="device-changed";return(new Step("device-changed",s.Id),s.Id);}
         if(await DeviceWriteSafety.UnreviewedAsync(db,s.DeviceId,token)){await StopActive(s,"paused",token);s.Enabled=false;s.LastOutcome="paused";return(new Step("paused",s.Id),s.Id);}
         if(s.ActiveRunId is Guid active)
@@ -99,7 +99,7 @@ public sealed class DevicePollSchedules(IoDbContext db,PermissionTransaction tra
         await db.SaveChangesAsync(token); // Persist real run before linking the cyclic active-run FK.
         s.ActiveRunId=id;s.NextDueUtc=now.AddSeconds(10);s.LastOutcome="queued";return(new Step("queued",s.Id,id,id),s.Id);
     },ct);
-    private async Task<bool> Authority(Guid actor,bool auto,CancellationToken ct)=>await transaction.HasPermissionAsync(actor,Manage,ct)&&await transaction.HasPermissionAsync(actor,DeviceAttendanceDownloads.Download,ct)&&(!auto||(await transaction.HasPermissionAsync(actor,DeviceAttendanceDownloads.Commit,ct)&&(await transaction.HasPermissionAsync(actor,"attendance.events.receive",ct)||await transaction.HasPermissionAsync(actor,AttendanceIngestion.Manage,ct))));
+    private async Task<bool> Authority(Guid actor,bool auto,Guid deviceId,CancellationToken ct)=>await transaction.HasDevicePermissionAsync(actor,Manage,deviceId,ct)&&await transaction.HasPermissionAsync(actor,DeviceAttendanceDownloads.Download,ct)&&(!auto||(await transaction.HasPermissionAsync(actor,DeviceAttendanceDownloads.Commit,ct)&&(await transaction.HasPermissionAsync(actor,"attendance.events.receive",ct)||await transaction.HasPermissionAsync(actor,AttendanceIngestion.Manage,ct))));
     private async Task StopActive(DevicePollScheduleRecord s,string outcome,CancellationToken ct)
     {
         if(s.ActiveRunId is not Guid id)return;var run=await db.DevicePollRuns.AsTracking().SingleAsync(x=>x.Id==id,ct);var job=await db.DeviceAttendanceDownloads.AsTracking().SingleAsync(x=>x.Id==run.DownloadId,ct);

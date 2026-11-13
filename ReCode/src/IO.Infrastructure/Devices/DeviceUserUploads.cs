@@ -87,7 +87,7 @@ public sealed class DeviceUserUploads(IoDbContext db,PermissionTransaction trans
         await db.SaveChangesAsync(token);
         var row=await db.DeviceUserUploads.AsTracking().Where(x=>x.State=="pending"&&!db.DeviceUserUploads.Any(r=>r.DeviceId==x.DeviceId&&r.State=="running")).OrderBy(x=>x.RequestedAtUtc).ThenBy(x=>x.Id).FirstOrDefaultAsync(token);if(row is null)return(null,service);
         var d=await db.Devices.AsNoTracking().SingleAsync(x=>x.Id==row.DeviceId,token);
-        if(!await transaction.HasPermissionAsync(row.RequestedByUserId,Upload,token)){row.State="revoked";row.FinishedAtUtc=now;return(null,row.Id);}
+        if(!await transaction.HasDevicePermissionAsync(row.RequestedByUserId,Upload,row.DeviceId,token)){row.State="revoked";row.FinishedAtUtc=now;return(null,row.Id);}
         var snapshot=await db.DeviceUserDownloads.AsNoTracking().SingleAsync(x=>x.Id==row.SnapshotId,token);var desired=JsonSerializer.Deserialize<ZkUser>(row.DesiredJson)!;
         if(!d.Enabled||!d.Version.SequenceEqual(row.ExpectedDeviceVersion)||!await Mapped(d.SourceId,snapshot.CompanyId,row.EmployeeId,row.PersonIdentifier,token)||!await db.Employees.AnyAsync(x=>x.Id==row.EmployeeId&&x.DisplayName==desired.Name,token)){row.State="device-changed";row.FinishedAtUtc=now;return(null,row.Id);}
         // Unknown recovery for the same person must not be bypassed by queued siblings.
@@ -100,7 +100,7 @@ public sealed class DeviceUserUploads(IoDbContext db,PermissionTransaction trans
     {
         await transaction.LockAsync("IO.DeviceConnections",token);var row=await Owned(service,claim.Id,claim.Token,token);var d=await db.Devices.AsNoTracking().SingleAsync(x=>x.Id==row.DeviceId,token);
         var format=await db.DeviceUserDownloads.Where(x=>x.Id==row.SnapshotId).Select(x=>x.ReadFormat).SingleAsync(token);
-        if(claim.DeviceId!=row.DeviceId||claim.Host!=d.Host||claim.Port!=d.Port||claim.TimeoutSeconds!=row.TimeoutSeconds||claim.Expected!=(row.ExpectedJson is null?null:JsonSerializer.Deserialize<ZkUser>(row.ExpectedJson))||claim.Desired!=JsonSerializer.Deserialize<ZkUser>(row.DesiredJson)||claim.WriteFormat!=format||!d.Enabled||!d.Version.SequenceEqual(row.ExpectedDeviceVersion)||!await transaction.HasPermissionAsync(row.RequestedByUserId,Upload,token))return(null,row.Id);
+        if(claim.DeviceId!=row.DeviceId||claim.Host!=d.Host||claim.Port!=d.Port||claim.TimeoutSeconds!=row.TimeoutSeconds||claim.Expected!=(row.ExpectedJson is null?null:JsonSerializer.Deserialize<ZkUser>(row.ExpectedJson))||claim.Desired!=JsonSerializer.Deserialize<ZkUser>(row.DesiredJson)||claim.WriteFormat!=format||!d.Enabled||!d.Version.SequenceEqual(row.ExpectedDeviceVersion)||!await transaction.HasDevicePermissionAsync(row.RequestedByUserId,Upload,row.DeviceId,token))return(null,row.Id);
         var snapshot=await db.DeviceUserDownloads.AsNoTracking().SingleAsync(x=>x.Id==row.SnapshotId,token);
         if(d.SourceId!=snapshot.SourceId||!await Mapped(d.SourceId,snapshot.CompanyId,row.EmployeeId,row.PersonIdentifier,token)||!await db.Employees.AnyAsync(x=>x.Id==row.EmployeeId&&x.CompanyId==snapshot.CompanyId&&x.DisplayName==claim.Desired.Name,token)||await DeviceWriteSafety.UnreviewedAsync(db,row.DeviceId,token))return(null,row.Id);
         var cipher=await db.DeviceSecrets.Where(x=>x.DeviceId==d.Id).Select(x=>x.ProtectedValue).SingleOrDefaultAsync(token);if(cipher is null)return(allowDefault?new DeviceCommunicationKey(0):null,row.Id);

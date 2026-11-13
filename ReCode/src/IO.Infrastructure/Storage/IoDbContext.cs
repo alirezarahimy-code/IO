@@ -5,6 +5,10 @@ namespace IO.Infrastructure.Storage;
 /// <summary>Initial SQL Server schema only; no automatic migration at application startup.</summary>
 public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbContext(options)
 {
+    // Set only by PermissionTransaction, never by browser parameters. EF binds
+    // these context-instance values per query (including dependent-row queries).
+    public bool RestrictDeviceAccess { get; internal set; }
+    public Guid[] PermittedDeviceIds { get; internal set; } = [];
     public DbSet<DeviceServiceHeartbeatRecord> DeviceServiceHeartbeats => Set<DeviceServiceHeartbeatRecord>();
     public DbSet<DeviceCommandRetryRecord> DeviceCommandRetries => Set<DeviceCommandRetryRecord>();
     public DbSet<DevicePollScheduleRecord> DevicePollSchedules => Set<DevicePollScheduleRecord>();
@@ -72,6 +76,22 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
 
     protected override void OnModelCreating(ModelBuilder model)
     {
+        model.Entity<DeviceRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||PermittedDeviceIds.Contains(x.Id));
+        model.Entity<DeviceSecretRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||PermittedDeviceIds.Contains(x.DeviceId));
+        model.Entity<DeviceConnectionRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||PermittedDeviceIds.Contains(x.DeviceId));
+        model.Entity<DeviceOperationRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||PermittedDeviceIds.Contains(x.DeviceId));
+        model.Entity<DeviceUserDownloadRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||PermittedDeviceIds.Contains(x.DeviceId));
+        model.Entity<DeviceUserUploadRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||PermittedDeviceIds.Contains(x.DeviceId));
+        model.Entity<DeviceAttendanceDownloadRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||PermittedDeviceIds.Contains(x.DeviceId));
+        model.Entity<DevicePollScheduleRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||PermittedDeviceIds.Contains(x.DeviceId));
+        model.Entity<DeviceFileImportRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||PermittedDeviceIds.Contains(x.DeviceId));
+        model.Entity<DeviceDownloadedUserRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||DeviceUserDownloads.Any(p=>p.Id==x.DownloadId));
+        model.Entity<DeviceAttendanceRowRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||DeviceAttendanceDownloads.Any(p=>p.Id==x.DownloadId));
+        model.Entity<DeviceFileImportLineRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||DeviceFileImports.Any(p=>p.Id==x.ImportId));
+        model.Entity<DevicePollRunRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||DevicePollSchedules.Any(p=>p.Id==x.ScheduleId));
+        model.Entity<DeviceCommandRetryRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||DeviceOperations.Any(p=>p.Id==x.PreviousOperationId)||DeviceAttendanceDownloads.Any(p=>p.Id==x.PreviousAttendanceDownloadId));
+        model.Entity<DeviceGroupRecord>().HasQueryFilter(x=>!RestrictDeviceAccess);
+
         model.Entity<DeviceFileImportRecord>(b =>
         {
             b.ToTable("DeviceFileImports",t=>

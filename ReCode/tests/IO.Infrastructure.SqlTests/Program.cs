@@ -331,7 +331,7 @@ try
             Check(!idDb.Database.HasPendingModelChanges(), "identity model matches migration snapshot");
             await idDb.Database.MigrateAsync();
             await idDb.Database.MigrateAsync();
-            Check((await idDb.Database.GetAppliedMigrationsAsync()).Count() == 1, "identity migration applied idempotently");
+            Check((await idDb.Database.GetAppliedMigrationsAsync()).Count() == 2, "identity migration applied idempotently");
             try
             {
                 await scope.ServiceProvider.GetRequiredService<InitialAdministrator>().CreateAsync("invalid-admin", "short");
@@ -418,7 +418,7 @@ try
             "identity rollback removes identity tables without dropping foundation");
         await migration.MigrateAsync();
         Check(await HasTable("AspNetUsers") && await HasTable("SecurityAudit") &&
-            (await identity.Database.GetAppliedMigrationsAsync()).Count() == 1,
+            (await identity.Database.GetAppliedMigrationsAsync()).Count() == 2,
             "identity migration reapplies and restores history");
     }
     // A separate fresh disposable DB is used to exercise the actual interactive

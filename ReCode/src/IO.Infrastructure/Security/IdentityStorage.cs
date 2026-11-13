@@ -20,11 +20,24 @@ public sealed class SecurityAuditRecord
 public sealed class LoginIdentityDbContext(DbContextOptions<LoginIdentityDbContext> options)
     : IdentityUserContext<LoginAccount, Guid>(options)
 {
+    public DbSet<DeviceOperatorPolicy> DeviceOperatorPolicies => Set<DeviceOperatorPolicy>();
+    public DbSet<DeviceOperatorGrant> DeviceOperatorGrants => Set<DeviceOperatorGrant>();
     public DbSet<SecurityAuditRecord> SecurityAudit => Set<SecurityAuditRecord>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        builder.Entity<DeviceOperatorPolicy>(b=>
+        {
+            b.ToTable("DeviceOperatorPolicies",t=>{t.HasTrigger("TR_DeviceOperatorPolicies_History");t.UseSqlOutputClause(false);t.HasCheckConstraint("CK_DeviceOperatorPolicies_Utc","DATEPART(TZOFFSET,[ChangedAtUtc])=0");});
+            b.HasKey(x=>x.UserId);b.Property(x=>x.UserId).ValueGeneratedNever();b.Property(x=>x.Version).IsRowVersion();
+        });
+        builder.Entity<DeviceOperatorGrant>(b=>
+        {
+            b.ToTable("DeviceOperatorGrants",t=>{t.HasTrigger("TR_DeviceOperatorGrants_History");t.UseSqlOutputClause(false);t.HasCheckConstraint("CK_DeviceOperatorGrants_Utc","DATEPART(TZOFFSET,[GrantedAtUtc])=0 AND DATEPART(TZOFFSET,[RevokedAtUtc])=0 AND ([RevokedAtUtc] IS NULL OR [RevokedAtUtc]>=[GrantedAtUtc])");});
+            b.HasKey(x=>x.Id);b.Property(x=>x.Id).ValueGeneratedNever();b.Property(x=>x.Version).IsRowVersion();
+            b.HasIndex(x=>new{x.UserId,x.DeviceId}).IsUnique().HasFilter("[RevokedAtUtc] IS NULL");
+        });
         builder.Entity<SecurityAuditRecord>(b =>
         {
             b.ToTable("SecurityAudit");

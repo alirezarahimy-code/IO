@@ -44,7 +44,7 @@ public static class WorkspaceCatalog
         new("/workspace/device-information", "مشخصات و ساعت دستگاه", "operator", "DeviceInformation.html", ["devices.info.read", "devices.clock.set", "devices.restart", "devices.network.ip.set", "devices.network.read"]),
         new("/workspace/device-connection", "تست و تاریخچهٔ ارتباط دستگاه", "operator", "DeviceConnection.html", ["devices.connection.read", "devices.connection.test"]),
         new("/workspace/device-groups", "گروه‌بندی درختی دستگاه‌ها", "operator", "DeviceGroups.html", ["devices.groups.read", "devices.groups.manage"]),
-        new("/workspace/devices", "مدیریت دستگاه‌های تردد", "operator", "Devices.html", ["devices.read", "devices.create", "devices.update", "devices.credentials.manage", "devices.groups.assign"]),
+        new("/workspace/devices", "مدیریت دستگاه‌های تردد", "operator", "Devices.html", ["devices.access.manage", "devices.read", "devices.create", "devices.update", "devices.credentials.manage", "devices.groups.assign"]),
         new("/workspace/sources", "برنامه‌ریزی | سامانهٔ حضور", "admin", "Scheduling.html", ["attendance.ingest", "attendance.sources.read", "attendance.sources.create"]),
         new("/workspace/raw-events", "تردد خام | سامانهٔ حضور", "admin", "RawEvents.html", ["attendance.ingest", "attendance.raw.read", "attendance.events.receive"]),
         new("/workspace/mappings", "نگاشت منبع | سامانهٔ حضور", "admin", "Mappings.html", ["attendance.ingest", "attendance.mappings.read", "attendance.mappings.manage"]),

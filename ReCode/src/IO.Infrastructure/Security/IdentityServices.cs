@@ -43,6 +43,7 @@ public static class IdentityServices
         services.AddScoped<IdentityAdministration>();
         services.AddScoped<PersonalCredentials>();
         services.AddDataProtection();
+        services.AddScoped<DeviceAccess>();
         services.AddScoped<DeviceRegistry>();
         services.AddScoped<DeviceGroups>();
         services.AddScoped<DeviceConnections>();

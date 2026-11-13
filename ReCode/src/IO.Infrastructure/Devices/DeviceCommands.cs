@@ -18,7 +18,7 @@ public sealed class DeviceCommands(IoDbContext db,PermissionTransaction transact
  {
   if(deviceId==Guid.Empty||offset is <0 or >100000)throw new ArgumentException("Invalid page.");
   var query=db.Database.SqlQuery<Row>($"SELECT * FROM dbo.DeviceCommandHistory");
-  var items=await query.Where(x=>deviceId==null||x.DeviceId==deviceId).OrderByDescending(x=>x.RequestedAtUtc).ThenBy(x=>x.Queue).ThenBy(x=>x.Id).Skip(offset).Take(50).ToListAsync(token);
+  var items=await query.Where(x=>(!db.RestrictDeviceAccess||db.PermittedDeviceIds.Contains(x.DeviceId))&&(deviceId==null||x.DeviceId==deviceId)).OrderByDescending(x=>x.RequestedAtUtc).ThenBy(x=>x.Queue).ThenBy(x=>x.Id).Skip(offset).Take(50).ToListAsync(token);
   // Queue + id is the history identity: client-selected UUIDs may legitimately
   // recur in different typed tables. Never attach another queue's retry evidence.
   var operationIds=items.Where(x=>x.Queue=="operation").Select(x=>x.Id).ToArray();

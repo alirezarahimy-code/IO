@@ -23,7 +23,7 @@ public sealed class DeviceConnectionCredential(IoDbContext db, PermissionTransac
             if (job is null || job.State != "running" || job.ClaimId != claim.Token || job.ServiceUserId != service || job.DeviceId != claim.DeviceId || job.ClaimedAtUtc < clock.GetUtcNow().AddMinutes(-2))
                 throw new DomainConflictException("Claim no longer active.");
             var device = await db.Devices.AsNoTracking().SingleAsync(x => x.Id == job.DeviceId, token);
-            if (claim.Profile!=device.Profile || claim.Host!=device.Host || claim.Port!=device.Port || claim.TimeoutSeconds!=job.TimeoutSeconds || !device.Enabled || !device.Version.SequenceEqual(job.ExpectedDeviceVersion) || !await transaction.HasPermissionAsync(job.RequestedByUserId, DeviceConnections.Test, token))
+            if (claim.Profile!=device.Profile || claim.Host!=device.Host || claim.Port!=device.Port || claim.TimeoutSeconds!=job.TimeoutSeconds || !device.Enabled || !device.Version.SequenceEqual(job.ExpectedDeviceVersion) || !await transaction.HasDevicePermissionAsync(job.RequestedByUserId,DeviceConnections.Test,job.DeviceId,token))
                 return (null, job.Id);
             var ciphertext = await db.DeviceSecrets.Where(x => x.DeviceId == job.DeviceId).Select(x => x.ProtectedValue).SingleOrDefaultAsync(token);
             if (ciphertext is null) return (allowDefaultCommunicationKey ? new DeviceCommunicationKey(0) : null, job.Id);

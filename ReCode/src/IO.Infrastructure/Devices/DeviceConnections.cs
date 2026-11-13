@@ -73,7 +73,7 @@ public sealed class DeviceConnections(IoDbContext db, PermissionTransaction tran
                 .OrderBy(x => x.RequestedAtUtc).ThenBy(x => x.Id).FirstOrDefaultAsync(token);
             if (next is null) return (null, service);
             var device = await db.Devices.AsNoTracking().SingleAsync(x => x.Id == next.DeviceId, token);
-            if (!await transaction.HasPermissionAsync(next.RequestedByUserId, Test, token))
+            if (!await transaction.HasDevicePermissionAsync(next.RequestedByUserId,Test,next.DeviceId,token))
             { next.State = "revoked"; next.FinishedAtUtc = now; return (null, next.Id); }
             if (!device.Enabled || !device.Version.SequenceEqual(next.ExpectedDeviceVersion))
             { next.State = "device-changed"; next.FinishedAtUtc = now; return (null, next.Id); }

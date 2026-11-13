@@ -146,10 +146,12 @@ public static class IoWebHost
         app.MapGet("/assets/index.js", () => Results.Content(Resource("IO.Web.Ui.index.js"), "text/javascript; charset=utf-8"));
         // The role panel is chosen by effective server-side permissions, never by
         // client claims; a flag here only reveals which tool sections may render.
-        app.MapGet("/workspace/capabilities", async (HttpContext context, IoDbContext db) =>
+        app.MapGet("/workspace/capabilities", async (HttpContext context, IoDbContext db, LoginIdentityDbContext identity) =>
         {
             if (!Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var actor)) return Results.Unauthorized();
             var permissions = await WorkspaceCatalog.EffectiveAsync(actor, db, context.RequestAborted);
+            var deviceAccessRestricted=await identity.DeviceOperatorPolicies.AsNoTracking().AnyAsync(x=>x.UserId==actor&&x.Restricted,context.RequestAborted);
+            if(deviceAccessRestricted)permissions.ExceptWith(new[]{"devices.create","devices.groups.read","devices.groups.manage","devices.groups.assign","devices.access.manage"});
             var pages = WorkspaceCatalog.Pages.Where(p => WorkspaceCatalog.CanView(p, permissions)).ToArray();
             var operatorRole = PermissionCatalog.Templates.Single(t => t.Key == "operator").Id;
             var isOperator = await (from user in db.Users join ur in db.UserRoles on user.Id equals ur.UserId
@@ -157,7 +159,7 @@ public static class IoWebHost
             return Results.Ok(new {
                 employee = pages.Any(p => p.Group == "employee"), manager = pages.Any(p => p.Group == "manager"),
                 admin = pages.Any(p => p.Group == "admin"), executive = pages.Any(p => p.Group == "executive"),
-                @operator = isOperator, permissions = permissions.Order(StringComparer.Ordinal),
+                @operator = isOperator, deviceAccessRestricted, permissions = permissions.Order(StringComparer.Ordinal),
                 pages = pages.Select(p => new { p.Route, p.Title, p.Group })
             });
         });
@@ -211,6 +213,7 @@ public static class IoWebHost
         app.MapGet("/workspace/device-groups", () => Results.Content(Resource("IO.Web.Ui.DeviceGroups.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/device-groups.js", () => Results.Content(Resource("IO.Web.Ui.device-groups.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/devices", () => Results.Content(Resource("IO.Web.Ui.Devices.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/device-access.js", () => Results.Content(Resource("IO.Web.Ui.device-access.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/assets/devices.js", () => Results.Content(Resource("IO.Web.Ui.devices.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/assets/account.js", () => Results.Content(Resource("IO.Web.Ui.account.js"), "text/javascript; charset=utf-8"));
         // Shell and assets are authenticated; all data operations additionally
@@ -436,6 +439,10 @@ public static class IoWebHost
             Admin(c,csrf,actor=>service.ResolveRestartAsync(actor,id,input.ExpectedVersion,input.InformationId,input.Confirmation,c.RequestAborted)));
         app.MapPost("/device-operations/{id:guid}/resolve-network", (Guid id,DeviceClockResolution input,HttpContext c,IAntiforgery csrf,DeviceOperations service) =>
             Admin(c,csrf,actor=>service.ResolveNetworkAsync(actor,id,input.ExpectedVersion,input.InformationId,input.Confirmation,c.RequestAborted)));
+        app.MapGet("/device-access/{userId:guid}", (Guid userId,HttpContext c,DeviceAccess service,int offset=0)=>AdminRead(c,actor=>service.ReadAsync(actor,userId,offset,c.RequestAborted)));
+        app.MapPost("/device-access/{userId:guid}/policy", (Guid userId,DeviceAccessPolicyInput input,HttpContext c,IAntiforgery csrf,DeviceAccess service)=>Admin(c,csrf,actor=>service.SetPolicyAsync(actor,userId,input.ExpectedVersion,input.Restricted,input.Confirmation,c.RequestAborted)));
+        app.MapPost("/device-access/grants", (DeviceAccessGrantInput input,HttpContext c,IAntiforgery csrf,DeviceAccess service)=>Admin(c,csrf,actor=>service.GrantAsync(actor,input.Id,input.UserId,input.DeviceId,c.RequestAborted)));
+        app.MapPost("/device-access/grants/{id:guid}/revoke", (Guid id,DeviceOperationVersion input,HttpContext c,IAntiforgery csrf,DeviceAccess service)=>Admin(c,csrf,actor=>service.RevokeAsync(actor,id,input.ExpectedVersion,c.RequestAborted)));
         app.MapGet("/device-connection", (HttpContext c, DeviceConnections service, Guid? deviceId, int offset = 0) =>
             AdminRead(c, actor => service.ListAsync(actor, deviceId, offset, c.RequestAborted)));
         app.MapPost("/device-connection", (DeviceConnectionInput input, HttpContext c, IAntiforgery csrf, DeviceConnections service) =>
@@ -828,3 +835,6 @@ public sealed record DevicePollToggle(byte[] ExpectedVersion,[property:System.Te
 public sealed record DeviceSettingsInput(Guid OperationId,Guid DeviceId,byte[] ExpectedDeviceVersion,int TimeoutSeconds,string Confirmation);
 
 public sealed record DeviceUserDownloadInput(Guid OperationId,Guid DeviceId,byte[] ExpectedDeviceVersion,int TimeoutSeconds,string ReadFormat=IO.DeviceContracts.ZkUserReadFormats.Ssr);
+
+public sealed record DeviceAccessPolicyInput(byte[]? ExpectedVersion,[property:System.Text.Json.Serialization.JsonRequired]bool Restricted,string Confirmation);
+public sealed record DeviceAccessGrantInput(Guid Id,Guid UserId,Guid DeviceId);

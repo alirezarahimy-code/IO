@@ -48,7 +48,7 @@ public sealed class DeviceAttendanceDownloads(IoDbContext db,PermissionTransacti
         await transaction.LockAsync("IO.DeviceConnections",token);var now=clock.GetUtcNow();
         foreach(var row in await db.DeviceAttendanceDownloads.AsTracking().Where(x=>x.State=="running"&&x.LeaseAtUtc!=null&&x.LeaseAtUtc.Value.AddSeconds(x.TimeoutSeconds+120)<now).ToListAsync(token)){row.State="interrupted";row.FinishedAtUtc=now;}
         var next=await db.DeviceAttendanceDownloads.AsTracking().Where(x=>x.State=="pending").OrderBy(x=>x.RequestedAtUtc).ThenBy(x=>x.Id).FirstOrDefaultAsync(token);if(next is null)return(null,service);
-        if(!await transaction.HasPermissionAsync(next.RequestedByUserId,Download,token)){next.State="revoked";next.FinishedAtUtc=now;return(null,next.Id);}
+        if(!await transaction.HasDevicePermissionAsync(next.RequestedByUserId,Download,next.DeviceId,token)){next.State="revoked";next.FinishedAtUtc=now;return(null,next.Id);}
         var d=await db.Devices.AsNoTracking().SingleAsync(x=>x.Id==next.DeviceId,token);
         if(!d.Enabled||!d.Version.SequenceEqual(next.ExpectedDeviceVersion)||!await SameTarget(next,token)){next.State="device-changed";next.FinishedAtUtc=now;return(null,next.Id);}
         next.State="running";next.ServiceUserId=service;next.ClaimId=Guid.NewGuid();next.LeaseAtUtc=now;
@@ -58,7 +58,7 @@ public sealed class DeviceAttendanceDownloads(IoDbContext db,PermissionTransacti
     {
         await transaction.LockAsync("IO.DeviceConnections",token);var item=await Owned(service,claim.Id,claim.Token,token);
         var d=await db.Devices.AsNoTracking().SingleAsync(x=>x.Id==item.DeviceId,token);
-        if(item.DeviceId!=claim.DeviceId||claim.Host!=d.Host||claim.Port!=d.Port||claim.TimeoutSeconds!=item.TimeoutSeconds||!await SameTarget(item,token)||!d.Enabled||!d.Version.SequenceEqual(item.ExpectedDeviceVersion)||!await transaction.HasPermissionAsync(item.RequestedByUserId,Download,token))return(null,item.Id);
+        if(item.DeviceId!=claim.DeviceId||claim.Host!=d.Host||claim.Port!=d.Port||claim.TimeoutSeconds!=item.TimeoutSeconds||!await SameTarget(item,token)||!d.Enabled||!d.Version.SequenceEqual(item.ExpectedDeviceVersion)||!await transaction.HasDevicePermissionAsync(item.RequestedByUserId,Download,item.DeviceId,token))return(null,item.Id);
         var ciphertext=await db.DeviceSecrets.Where(x=>x.DeviceId==item.DeviceId).Select(x=>x.ProtectedValue).SingleOrDefaultAsync(token);if(ciphertext is null)return(allowDefault?new DeviceCommunicationKey(0):null,item.Id);
         try{var text=protection.CreateProtector("IO.Devices.Credential.v1",item.DeviceId.ToString("N")).Unprotect(ciphertext);return(text.Length>0&&text.All(c=>c is >='0' and <='9')&&int.TryParse(text,NumberStyles.None,CultureInfo.InvariantCulture,out var key)?new DeviceCommunicationKey(key):null,item.Id);}catch(CryptographicException){return(null,item.Id);}
     },ct);
@@ -66,7 +66,7 @@ public sealed class DeviceAttendanceDownloads(IoDbContext db,PermissionTransacti
     {
         if(records is null||records.Count is <1 or >50||records.Any(x=>x?.IsBounded()!=true)||after<0)throw new ArgumentException("Invalid private SDK batch.");
         await transaction.LockAsync("IO.DeviceConnections",token);var job=await Owned(service,id,claim,token);
-        if(!await transaction.HasPermissionAsync(job.RequestedByUserId,Download,token))throw new UnauthorizedAccessException();
+        if(!await transaction.HasDevicePermissionAsync(job.RequestedByUserId,Download,job.DeviceId,token))throw new UnauthorizedAccessException();
         var payloads=records.Select(x=>x.CanonicalJson()).ToArray();
         if(after!=job.ReceivedCount)
         {
