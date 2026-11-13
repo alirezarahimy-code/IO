@@ -37,6 +37,8 @@
 4. worker پس از بررسی اختیار جاری، نسخه و مقصد، credential را فقط از مسیر claim قبلی می‌گیرد. مدل/فهرست نصب در IPC خصوصی ارسال و نتیجه در مرز child با همان مدل/مرجع/ترتیب index اعتبارسنجی می‌شود.
 5. تاریخچه، فیلدهای خام و نتیجهٔ مستقل هر شماره را با `textContent` نمایش می‌دهد. revoke داده‌های صفحه را پاک و دسترسی بعدی سرور را قطع می‌کند.
 
+انتشار worker و bridge باید هماهنگ و از همین قرارداد باشد؛ IPC خصوصی ناسازگار یا child قدیمی حق fallback ندارد و ممکن است fail-closed شود.
+
 مجوز و جدول یا migration جدیدی اضافه نشده است؛ همان تأیید نصب خواندن پیشرفته، scope و حق مستقل قبلی استفاده می‌شوند. نوشتن کد۴، IPv4 و restart به مجوزهای مستقل خود نیاز دارند.
 
 ## دادهٔ اصلی و سازگاری
@@ -64,3 +66,5 @@
 `Personnel.ZK.ZKDevice.GetSettings` خط۹۱۲، `GetSubnetMask` خط۹۳۱ و `GetGateway` خط۹۵۵ در همان بدنهٔ هش‌دار، دو فراخوانی ثابت `GetSysOption(machine,"NetMask",out value)` و `GetSysOption(machine,"GATEIPAddress",out value)` را نشان می‌دهند. این دو به `ZkAdditionalSettingsReader` و `ReportedSubnetMask/ReportedGateway` اضافه شدند؛ انتخاب نام option دلخواه از وب/IPC وجود ندارد. false/exception مستقل null می‌ماند، مقادیر معتبر bounded به‌صورت متن خام حفظ می‌شوند، حتی اگر آدرس قابل‌تفسیر نباشند. نه `SetSysOption` و نه gateway/mask setter فعال نشده و این متن‌ها وارد pin/credential/مقصد اتصال نمی‌شوند.
 
 سه تست مستقیم اضافه، یک assertion مستقل SQL و همان مسیر worker/نمایش Chromium، این داده‌ها را نیز بررسی می‌کنند؛ بنابراین شمارش تطبیق مستقیم مرجع از۳۳ به۳۶ می‌رسد. این خواندن، اثبات سلامت تنظیمات شبکه یا مدل واقعی نیست.
+
+[وضعیت دقیق SHA و CI این برش](s11-function-key-read-evidence.json)؛ شاهد دارای status صریح است و in_progress/cancelled به‌جای موفقیت شمرده نمی‌شود.

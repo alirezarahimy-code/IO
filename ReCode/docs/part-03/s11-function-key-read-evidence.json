@@ -1,0 +1,95 @@
+{
+  "scope": "Read-only exact-model installed function key allowlist and four fixed raw additional settings reports, including NetMask/GATEIPAddress. No key/network option writes, biometric policy, secure vendor PUSH or Part 3 completion.",
+  "implementedCode": "59343995f6c8578ad62ca827b41d1e9bafe9be45",
+  "verifiedCode": null,
+  "status": "integration-pending",
+  "runs": [
+    {
+      "conclusion": "",
+      "databaseId": 43509662396,
+      "headSha": "59343995f6c8578ad62ca827b41d1e9bafe9be45",
+      "status": "in_progress",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43509662396"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 43509662424,
+      "headSha": "59343995f6c8578ad62ca827b41d1e9bafe9be45",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43509662424"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 43509662272,
+      "headSha": "59343995f6c8578ad62ca827b41d1e9bafe9be45",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43509662272"
+    }
+  ],
+  "localChecks": {
+    "functionKeyContractAndRealChild": 22,
+    "referenceParity": 36,
+    "existingPortableNativeBoundary": 61,
+    "existingStatefulTcpLaboratory": 19,
+    "offlineDomFiles": 15,
+    "ciPolicyRegressions": 14,
+    "runtimeAndBridgeReleaseBuild": "passed",
+    "workerLocalBuild": "not run: local restore assets unavailable; solution build covered by successful Windows/Linux CI on implementedCode"
+  },
+  "integration": {
+    "expectedNamedPassLines": 855,
+    "countEnforcedBy": "ReCode/tools/phase03-report-tests.py",
+    "fullSuitePassed": false,
+    "newSqlChecks": 3,
+    "newActualHttpsWorkerChildTcpSqlCheck": 1,
+    "virtualWorkerChecksWhenSuccessful": 22,
+    "actualBrowser": "Reads worker-created model-bound function key results and raw network reports from actual authenticated SQL history; no fetch mocks.",
+    "freshPreflight": "Not repeated automatically; full suite already runs worker and polling SQL checks. Explicit full-with-preflight remains available."
+  },
+  "storage": {
+    "foundationMigrations": 43,
+    "identityMigrations": 2,
+    "foundationTables": 60,
+    "permissions": 123,
+    "pagesAndHelp": 52,
+    "newMigrationOrPermission": false,
+    "payload": "Optional typed fields inside existing immutable DeviceOperations.ResultJson; old snapshots remain valid."
+  },
+  "authority": {
+    "human": "devices.settings.read with current selected-device scope; known operator/admin roles in existing catalogue",
+    "service": "devices.operations.execute plus independent devices.settings.read.execute and installed settings opt-ins",
+    "keys": "FunctionKeyReadApproval null by default; exact live product/firmware, unique explicit installed indices, evidence reference; never inferred from device name. Eight is an application work budget, not model key count.",
+    "result": "Exact approval reference/ordered index/model binding in child boundary; native false/exception has Reported=false with null values, never initialized zero; all five raw outputs retained only on valid read.",
+    "network": "Four fixed raw reports; no option name supplied by web/IPC and no reported mask/gateway used as connection pin or routing authority.",
+    "bounds": "Settings-only stdout 32768 characters; other stdout/stderr remain 4096. Per-key raw text 128 characters; approved work at most eight keys; oversized/invalid values never truncated to fabricate evidence."
+  },
+  "provenance": {
+    "assembly": "T5V3.9.2/Personnel.DLL",
+    "assemblySha256": "185b084072a552e92ab0c8b0c2a03ca926b2aa362b5aada1ca8a39f998144be4",
+    "decompiledBody": "PersonnelZKDevice.decompiled.cs",
+    "bodySha256": "58e33195ab271660e2f48b81d80167b91c693cb7986b955ee14c94d1b58b7eb5",
+    "bodyLines": [
+      931,
+      955,
+      1015,
+      1022
+    ],
+    "interface": "zkemkeeper.IZKEM.SSR_GetShortkey",
+    "interfaceLine": 279,
+    "interfaceSha256": "49856b1ed0aa89838405cfcef3a46da2f6275a80425898cda3cc70964a5ab701",
+    "originalSourceAvailable": false,
+    "referenceFilesModified": false,
+    "legacyBinaryExecuted": false
+  },
+  "supersededRuns": {
+    "sha": "6e96a5eaa21455685b5e30e4f20c0bf2cf0b88c8",
+    "sql": 43509367211,
+    "platform": 43509367132,
+    "note": "Superseded by combined change; concurrency cancellation is not success evidence."
+  },
+  "softwareComplete": false,
+  "part3Complete": false,
+  "realSdkExecuted": false,
+  "hardwareVerified": false,
+  "remainingDecisionRegister": "model-and-policy-decisions.fa.md"
+}

@@ -70,7 +70,7 @@
       "method": "GetDeviceAdvancedOptions; SetRepeatTime; SetSleepTime; SetCardReg; Get/SetMifareSector; Get/SetOneToOne; Get/SetOneToN",
       "contract": "GetDeviceInfo and SetDeviceInfo(machine,code,value): 25 OneToOne, 23 OneToN, 8 RepeatTime, 4 SleepTime, 30 RegCard, 62 MifareSector. IZKEM static metadata GetDeviceInfo DispId 12, SetDeviceInfo DispId 13.",
       "bodyObserved": true,
-      "limit": "Read-only decompilation of the recorded binary, not original source. Six fixed GetDeviceInfo codes now have a default-off read-only executor with exact nullable Int32 values; no approved actual model, firmware, parameter range, unit, atomic snapshot or setting-side-effect evidence. No SetDeviceInfo executor; metadata is not native support proof."
+      "limit": "Six fixed nullable Int32 reads implemented. Only code4 idle minutes has a separately approved exact-model write path; no generic SetDeviceInfo. Other units/ranges/effects and actual model/firmware acceptance remain unverified."
     },
     {
       "type": "Personnel.ZK.ZKDevice",
@@ -84,7 +84,7 @@
       "method": "WriteUserIDsToList non-TFT branch",
       "contract": "GetAllUserInfo(machine, ref Int32 badge, ref BStr name, ref BStr password, ref Int32 privilege, ref bool enabled); DispId 47; GetStrCardNumber text. No numeric normalization of cards copied.",
       "bodyObserved": true,
-      "limit": "Independent default-SSR explicit legacy-int32-v1 read candidate now implemented; no legacy write or arbitrary fallback. Int32 cannot recover original badge leading zeros; passwords never leave native memory. Actual model/firmware/SDK acceptance remains unverified.",
+      "limit": "Explicit legacy-int32-v1 read and independently gated ordinary metadata write candidates implemented; no fallback. Int32 cannot recover badge leading zeros; passwords never leave native memory in read snapshots. Actual SDK/model acceptance remains.",
       "interfaceMetadata": "IZKEM.GetAllUserInfo DispId 47 is signature metadata only, not a method body."
     },
     {
@@ -94,9 +94,23 @@
       "bodyObserved": true,
       "interfaceMetadata": "IZKEM.SetUserInfo DispId41 is interface signature metadata only, not a body.",
       "limit": "Independent gated legacy-int32-v1 ordinary-write candidate implemented. No copied AccGroup, administrator conversion, name truncation, overflow narrowing, biometric/template/delete or activation code. Source/target password round-trip and real model/SDK behavior remain unverified."
+    },
+    {
+      "type": "Personnel.ZK.ZKDevice",
+      "method": "GetFunctionKey; GetSubnetMask; GetGateway",
+      "contract": "SSR_GetShortkey(index, ref function, ref stateCode, ref stateName, ref autoChange, ref autoChangeTime); GetSysOption(machine, \"NetMask\", out text); GetSysOption(machine, \"GATEIPAddress\", out text).",
+      "bodyObserved": true,
+      "bodySha256": "58e33195ab271660e2f48b81d80167b91c693cb7986b955ee14c94d1b58b7eb5",
+      "lines": [
+        1015,
+        1022,
+        931,
+        955
+      ],
+      "limit": "New read-only implementations and synthetic-session/process/DOM checks present; integration evidence is recorded separately. Key reads require exact installed product/firmware/index approval. No key or network option setter enabled; reported network text is not a routing target."
     }
   ],
-  "implementation": "Independent private STA COM bridge for serial probe, typed information/clock, explicitly selected SSR string or legacy Int32 user reads and SSR attendance reads, six fixed raw nullable Int32 advanced-setting reads and gated SSR and explicitly selected legacy Int32 ordinary attendance-only user writes; no copied Personnel business/licensing logic, SetDeviceInfo, access group setter, door command, admin escalation, RemoteEnroll, biometric/template/photo/delete API or automatic SDK registration. Actual SDK/model acceptance remains.",
+  "implementation": "Independent isolated COM bridge with typed serial-pinned information/clock/restart, explicit SSR/legacy user and attendance formats, confirmed ordinary metadata-only user writes, fixed raw advanced reads, exact-model idle code4 and bounded approved IPv4 transition. New optional exact-model function-key reads and fixed raw mask/gateway reads; no generic setter, access group/door/admin escalation, RemoteEnroll, biometric/template/photo/delete API or automatic SDK registration. Actual SDK/model acceptance remains.",
   "hardwareVerified": false,
   "part3Complete": false
 }

@@ -73,9 +73,7 @@
   ],
   "failedRunDisclosure": "Failures are not counted as successes. Windows failure cause was inferred from EOL-dependent verifier and subsequent successful correction; raw failure log unavailable.",
   "remainingSoftware": [
-    "Selected-device operator authorization scope, not global grants or metadata groups.",
-    "Native non-TFT attendance adapter and explicit supported-model coverage.",
-    "Additional model-specific settings and function-key contracts/adapters.",
+    "Additional model-specific setting writes and function-key write contracts/adapters; read status in separate supplement.",
     "Authenticated supported-model vendor PUSH including replay, bounds and recovery.",
     "RemoteEnroll/biometrics subject to approved model and privacy contract.",
     "Independent destructive reset/delete grants, evidence and unknown recovery."
@@ -91,10 +89,11 @@
   "currentMatrixCounts": {
     "software-verified": 14,
     "intentional-replacement": 9,
-    "partial-software": 12,
+    "partial-software": 13,
     "pending-sensitive": 6,
-    "pending-contract": 9,
+    "pending-contract": 8,
     "pending-secure-push": 3
   },
-  "legacyAttendanceSupplement": "s09-legacy-attendance-evidence.json"
+  "legacyAttendanceSupplement": "s09-legacy-attendance-evidence.json",
+  "functionKeyAndNetworkReadSupplement": "s11-function-key-read-evidence.json"
 }

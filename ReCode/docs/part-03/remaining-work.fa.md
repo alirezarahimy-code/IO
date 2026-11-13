@@ -42,3 +42,7 @@
 ## تطبیق سرتاسری جدید و اصلاح‌های ایمنی
 
 [گزارش تطبیق ۵۳ ردیفی](device-reference-parity.fa.md) با [موجودی هش‌دار](device-reference-inventory.json) و [crosswalk کامل](device-reference-crosswalk.csv) اضافه شد. [دامنهٔ دستگاه منتخب اپراتور](s04-device-operator-scope.fa.md) اکنون با سیاست و grant/revoke نسخه‌دار، اعمال در query/worker و آزمون SQL/Chromium ساخته شده است؛ grant عملیاتی سراسری با scope یکی نیست. [adapter تردد native non-TFT مرجع](s09-legacy-attendance.fa.md) اکنون ساخته و در قرارداد/SQL/HTTPS/Chromium/worker آزموده شده است؛ [زمان‌بندی با قالب ثابت SSR/non-TFT](s10-legacy-polling.fa.md) نیز به مسیر واقعی worker و SQL وصل و آزموده شده است؛ پذیرش واقعی مدل در انتها باقی است. USB فایل با اتصال مستقیم USB یکی نیست. خواندن ثابت IP گزارش‌شده و نسخهٔ خام الگوریتم اضافه شد؛ هیچ setter عمومی یا fallback نسخه۹ فعال نشد. محدودیت بین صف‌های polling و چهار نوشتن حساس/unknown و binding کامل credential اصلاح و regression اضافه شد. نتیجهٔ CI دقیق در [شاهد جدید](device-reference-parity-evidence.json) ثبت می‌شود؛ جدول بالا پذیرش سخت‌افزاری نمی‌شود.
+
+## ثبت تصمیم مشخص، نه توقف کلی
+
+[مدل، API و تصمیم لازم برای هر خانواده](model-and-policy-decisions.fa.md) اکنون شماره‌خط و قرارداد مشاهده‌شده را از دامنه/اثر نامعلوم و سیاست داده جدا می‌کند. [خواندن مصوب کلید عملکردی و گزارش mask/gateway](s11-function-key-read.fa.md) نیز پیاده شده و آزمون یکپارچگی آن روی SHA مستقل در دست بررسی است؛ نوشتن کلید و سایر تنظیمات، عملیات مخرب و PUSH امن با این کار completed نشده‌اند.

@@ -23,7 +23,7 @@
 | تداخل polling و unknown | IO صف‌های clock/restart/network/idle و user upload | polling فعال قبل از هر چهار نوشتن مانع است؛ native write pending/running/unknown ایجاد یا resume schedule را مسدود می‌کند؛ unknown ساعت/restart نیز مانند شبکه/idle مانع user write است. unknown user مانع clock/restart هم شد. خواندن recovery باز می‌ماند. |
 | دادهٔ ظرفیت نادرست | Personnel GetDeviceCapacity یک ref Int32 را با عدم بررسی نتیجه چند بار استفاده می‌کند | reader قابل‌آزمون با همان۹ code ثابت، null مستقل و حفظ صفر؛ سریال قبل/بعد کنترل می‌شود، snapshot بیگانه برای review پذیرفته نمی‌شود. نام vendor ثابت تولید نمی‌شود. |
 | GetAdvanced2 ناقص | T5 GetAdvanced2: IP/Algorithm/Sector؛ Personnel GetAlgorithmVersion fallback9 | دو خواندن ثابت ReportedIp و AlgorithmVersionRaw اضافه شد؛ sector همان62 است. خطا null است، نه نسخه۹ یا IP پیش‌فرض. نه setter عمومی و نه ادعای سازگاری بیومتریک. |
-| کلید عملکردی، نه رمز | T5 ReadKey/ChangeKey، Personnel FunctionKey و SSR_GetShortkey/SSR_SetShortkey | برداشت مبهم قدیمی در گزارش اولیه تصحیح شد؛ رمز ارتباط با function key یکی نیست. این قابلیت هنوز adapter/قرارداد مستقل ندارد و غیرفعال است. |
+| کلید عملکردی، نه رمز | T5 ReadKey/ChangeKey، Personnel FunctionKey و SSR_GetShortkey/SSR_SetShortkey | برداشت مبهم قدیمی در گزارش اولیه تصحیح شد؛ رمز ارتباط با function key یکی نیست. خواندن مصوب هر پنج خروجی با pin دقیق محصول/firmware و indexهای نصب اکنون ساخته شده؛ [وضعیت آزمون و قرارداد](s11-function-key-read.fa.md). نوشتن و حذف برنامهٔ AutoChange منتقل نشده است. |
 | دریافت تردد و ثبت جدا | T5 GetRecords/GetTimeRecords سپس Thread(SaveRecords) | صف SQL، اصل tuple، quarantine و commit پایدار جای پاسخ قبل از ثبت و خطاهای پنهان را گرفته‌اند؛ فیلتر بازه در سرور است و هم‌ارزی API بازه‌ای دستگاه ادعا نشده است. |
 | USB | T5 USBManagement.ReadRecords: ASCII، RecordReader و BulkInsert | فایل اصلی و parse/preview/commit مستقل و محدود IO حفظ شد. در این بدنهٔ کنترلر بررسی مستقیم lock دیده نشد؛ این به معنی نفی تمام وابستگی‌های لایه‌های پایین نیست. حذف کلی USB با استناد صرف به نام دانگل قابل توجیه نیست. |
 | PUSH | T5 iclock: SN lookup، Encrypt=0، zone ثابت210، OK حتی بدون پذیرش معتبر؛ getrequest بدون صف عملی | کد آسیب‌پذیر به‌عنوان PUSH امن منتقل نشد. احراز هویت/replay/bounds/model contract هنوز باید ساخته شود؛ polling PUSH نیست. |
@@ -36,11 +36,11 @@
 
 | وضعیت | تعداد ردیف |
 |---|---:|
-| بخشی ساخته؛ مانده دارد | 12 |
+| بخشی ساخته؛ مانده دارد | 13 |
 | پیاده‌شده؛ آزمون نرم‌افزاری | 14 |
 | جایگزین ایمن؛ نه هم‌ارزی عینی | 9 |
 | عملیات حساس هنوز ناتمام | 6 |
-| قرارداد/آداپتر ناتمام | 9 |
+| قرارداد/آداپتر ناتمام | 8 |
 | PUSH امن هنوز ناتمام | 3 |
 
 ### T5Web-binary
@@ -81,7 +81,7 @@
 | `DeviceOperationsController.SetSector#1` | 1072 | قرارداد/آداپتر ناتمام | قرارداد مدل دقیق، مقدار/واحد/اثر و readback/unknown و مجوز مستقل لازم؛ generic setter باز نشده است. |
 | `DeviceOperationsController.RemoteEnroll#1` | 1106 | عملیات حساس هنوز ناتمام | سیاست داده/بیومتریک یا حذف، قرارداد مدل، مجوز/تأیید مستقل، شاهد دریافت و recovery هنوز تکمیل نشده؛ restart مجوز اینها نیست. |
 | `DeviceOperationsController.ChangeKey#1` | 1140 | قرارداد/آداپتر ناتمام | قرارداد مدل دقیق، مقدار/واحد/اثر و readback/unknown و مجوز مستقل لازم؛ generic setter باز نشده است. |
-| `DeviceOperationsController.ReadKey#1` | 1173 | قرارداد/آداپتر ناتمام | قرارداد مدل دقیق، مقدار/واحد/اثر و readback/unknown و مجوز مستقل لازم؛ generic setter باز نشده است. |
+| `DeviceOperationsController.ReadKey#1` | 1173 | بخشی ساخته؛ مانده دارد | خواندن مصوب هر پنج خروجی با pin مدل و index نصب ساخته شد؛ وضعیت CI در s11-function-key-read-evidence.json. نوشتن و پذیرش دستگاه واقعی جدا باقی است. |
 | `DeviceOperationsController.Connect#1` | 1196 | جایگزین ایمن؛ نه هم‌ارزی عینی | Disconnect صف به معنی لغو عملیات dispatch‌شده نیست؛ پایداری/قطعی مدل واقعی باز. |
 | `DeviceOperationsController.Disconnect#1` | 1203 | جایگزین ایمن؛ نه هم‌ارزی عینی | Disconnect صف به معنی لغو عملیات dispatch‌شده نیست؛ پایداری/قطعی مدل واقعی باز. |
 | `DeviceOperationsController.GetRecords#1` | 1210 | بخشی ساخته؛ مانده دارد | SSR و non-TFT صریح با قالب ثابت در دریافت/زمان‌بندی و worker آزموده‌اند؛ ReadTimeGLogData بومی ادعا نشده، فیلتر سرورمحور و پذیرش دستگاه واقعی باز است. |
@@ -115,11 +115,11 @@
 
 این موارد با «نام تابع موجود است»، «تطبیق تمام شد» یا «CI سبز است» بسته نمی‌شوند:
 
-1. **دامنهٔ دستگاه منتخب برای اپراتور**: مدل grant/revoke و اعمال یکپارچه روی تمام درخواست‌ها، history، health، worker و retry؛ گروه metadata فعلی جای آن نیست.
-2. **قراردادهای تنظیمات باقی‌مانده**: آستانه1:1/1:N، duplicate interval، card mode، sector، الگوریتم، DLST و کلید عملکردی؛ مقدار/اثر/حریم خصوصی و read-back دقیق هر مدل، نه setter عمومی.
+1. **دامنهٔ دستگاه منتخب برای اپراتور** اکنون ساخته و در SQL/Chromium/worker آزموده شده؛ [شاهد مستقل](s04-device-operator-scope-evidence.json). گروه metadata جای آن نیست؛ پذیرش واقعی مدل همچنان جداست.
+2. **قراردادهای نوشتنی تنظیمات باقی‌مانده**: آستانه1:1/1:N، duplicate interval، card mode، sector، الگوریتم، DLST و نوشتن کلید عملکردی؛ مقدار/اثر/حریم خصوصی و read-back دقیق هر مدل، نه setter عمومی.
 3. **عملیات حساس**: حذف تردد/بازه/کاربر/الگو/مدیر و reset، هرکدام مجوز/تأیید/شاهد دریافت و unknown recovery مستقل؛ RemoteEnroll و جابه‌جایی دادهٔ بیومتریک فقط با سیاست دسترسی/رضایت/نگهداری و قرارداد مدل. دستور کلی «تکمیل» سیاست بیومتریک یا اجازهٔ کنترل درب محسوب نمی‌شود.
 4. **PUSH امن** برای مدل پشتیبان؛ SN ساده/Encrypt=0 قدیمی کافی نیست. مدل‌هایی که قرارداد امن ندارند باید صریح unsupported بمانند، نه endpoint ظاهراً موفق.
-5. **پوشش مدل/فرمت**: تردد native non-TFT هنوز adapter جدا ندارد، حتی اگر کاربران legacy خوانده/نوشته شوند؛ Serial/USB اتصال مستقیم یا پروتکل‌های دیگر با واردکردن فایل یکی نیستند. پشتیبانی Virdi/UNIS نیز مشروط و اثبات‌نشده باقی است.
+5. **پوشش مدل/فرمت**: تردد native non-TFT اکنون adapter صریح و زمان‌بندی قالب‌دار دارد؛ [شواهد انتقال](s09-legacy-attendance-evidence.json) و [polling](s10-legacy-polling-evidence.json). پذیرش مدل واقعی باقی است؛ Serial/USB اتصال مستقیم یا پروتکل‌های دیگر با واردکردن فایل یکی نیستند. پشتیبانی Virdi/UNIS نیز مشروط و اثبات‌نشده باقی است.
 6. **پذیرش عملیاتی**: نصب SDK واقعی در Windows، حداقل دو دستگاه با firmware مشخص، رفت‌وبرگشت کاربر/کارت، دانلود تکراری، قطعی قبل/بعد dispatch، recovery، clock/idle/IP/restart و فایل واقعی از UI/worker، نه صرف heartbeat یا simulator.
 
 ### بازتولید بررسی
@@ -146,3 +146,7 @@ validator هش دقیق Git blob منابع ثابت (و برابری worktree؛
 ### ادامهٔ S10 — polling با قالب ثابت
 
 کد `468e02a` و [شاهد CI مستقل](s10-legacy-polling-evidence.json): ۸۵۱ بررسی نام‌دار SQL، ۱۴ بررسی قرارداد زمان‌بندی legacy، ۲۱ بررسی محیط واقعی worker با دستگاه مجازی، و CI ویندوز/لینوکس سبز. اعداد و جدول snapshot اولیه در بالا تاریخی‌اند؛ دسته‌بندی مانده‌ها و عدم پذیرش سخت‌افزار تغییر نکرده است.
+
+### ثبت تصمیم‌های باقی‌مانده
+
+[جدول قرارداد و تصمیم مشخص هر خانواده](model-and-policy-decisions.fa.md) API و خط مرجع، ابهام دقیق واحد/اثر/داده، و شرط پیاده‌سازی امن را جدا می‌کند. دستور عمومی ادامه، مجوز حذف/بیومتریک نیست و pending یا غیرفعال‌بودن به معنی تکمیل قابلیت نیست.

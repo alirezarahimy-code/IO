@@ -137,3 +137,7 @@ UserWriteFormat پیش‌فرض ssr-v1 است. ارسال legacy به UserWriteF
 ## زمان بیکاری کد۴؛ approval دقیق و پیش‌فرض خاموش
 
 [ساختار نصب، مجوزها، اثر خواب/خاموشی و بازیابی](s11-idle-minutes.fa.md). ارتقای هماهنگ وب/worker/bridge و migration۴۱ لازم است؛ `AllowIdleMinutesWrite=false` پیش‌فرض و `IdleMinutesApproval` دقیق محصول/firmware، allowlist مقادیر، مرجع و `Effect=standby-or-power-off` اجباری است. علاوه بر اجرای عمومی، `devices.settings.idle.execute` مستقل لازم است؛ خواندن برای بازیابی حق جدا دارد. این تنظیم نه RemoteEnroll است نه اجازهٔ کنترل درب. flag تنها پس از شاهد معتبر همان مدل/firmware فعال شود.
+
+## خواندن اختیاری کلید عملکردی و گزارش خام شبکه
+
+[قرارداد نصب و نمایش کلید عملکردی، NetMask و GATEIPAddress](s11-function-key-read.fa.md): `FunctionKeyReadApproval` پیش‌فرض null است؛ تنها محصول/firmware و شماره‌کلیدهای صریحاً مصوب نصب پذیرفته می‌شوند. این فهرست رمز یا فرمان نوشتن نیست و از فرم وب ساخته نمی‌شود. گزارش mask/gateway مقصد مجاز اتصال نیست. worker و bridge هماهنگ منتشر شوند؛ مجوزهای مستقل settings.read/execute و scope قبلی حفظ می‌شوند.
