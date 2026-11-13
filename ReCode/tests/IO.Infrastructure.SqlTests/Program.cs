@@ -74,6 +74,7 @@ try
             await db.SaveChangesAsync();
         }
         await VirtualWorkerTests.RunAsync(connection,Check);
+        await LegacyPollScheduleTests.RunAsync(connection,Check);
         Console.WriteLine("PASS disposable virtual worker preflight complete");return 0;
     }
     if(args.Length!=0)throw new ArgumentException("Unknown disposable test mode.");
