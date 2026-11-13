@@ -13,6 +13,7 @@ if(!address?.startsWith('https://127.0.0.1:')||!user?.startsWith('virtual-operat
   await page.locator('#login-form input[name=userName]').fill(user);
   await page.locator('#login-form input[name=password]').fill('Synthetic!Password-2026');
   await page.locator('#login-form button').click();await page.waitForURL('**/workspace');
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400)errors.push(r.status()+' '+new URL(r.url()).pathname);});
   const completed=[];
   for(let run=0;run<2;run++){
    await page.goto(address+'/workspace/device-attendance?deviceId='+device+'&version='+encodeURIComponent(version));
@@ -29,7 +30,8 @@ if(!address?.startsWith('https://127.0.0.1:')||!user?.startsWith('virtual-operat
     if(body.state!=='succeeded')throw Error('Worker extraction terminal: '+body.state);return body.receivedCount===103;
    },id);
    await page.goto(address+'/workspace/device-attendance?downloadId='+id);
-   await page.locator('#snapshot').filter({hasText:'succeeded'}).waitFor();
+   try{await page.locator('#snapshot').filter({hasText:'succeeded'}).waitFor({timeout:15000});}
+   catch{throw Error('Device preview failed: '+JSON.stringify(await page.evaluate(()=>({url:location.pathname+location.search,notice:document.querySelector('#notice')?.textContent,snapshot:document.querySelector('#snapshot')?.textContent,previewHidden:document.querySelector('#preview')?.hidden})))+' script/errors='+JSON.stringify(errors));}
    for(let after=0;after<103;after+=50){
     const commit=page.locator('#commit-form');await commit.waitFor({state:'visible'});
     await commit.locator('input[name=confirmed]').check();await commit.locator('button').click();
