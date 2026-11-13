@@ -136,3 +136,7 @@
 ## تطبیق سرتاسری دستگاه با دو مرجع
 
 [گزارش تطبیق](device-reference-parity.fa.md) · [موجودی هش‌دار](device-reference-inventory.json) · [جدول۵۳ ردیفی](device-reference-crosswalk.csv) · [شاهد CI و مرز پذیرش](device-reference-parity-evidence.json). چهار کنترلر باینری T5Web اصلی و کنترلر/سرویس/transport/viewهای سورس تاریخی AriaAdmin به commit ثابت بررسی شدند؛ باینری سورس نیست و AriaAdmin با آریا کاربری/TWF یکی نیست. سه ایراد اصلی در binding کامل credential، تداخل صف‌های native write/polling و خواندن ظرفیت با ref مشترک اصلاح شدند؛ IP گزارش‌شده و الگوریتم خام نیز به GetAdvanced2 خواندنی بازگردانده شدند. دامنهٔ دستگاه منتخب اپراتور، تردد native non-TFT، PUSH امن، قراردادهای سایر تنظیمات و عملیات حساس هنوز مانده‌اند. تعداد۵۳ ردیف، تعداد قابلیت تکمیل‌شده نیست؛ `part3Complete=false`.
+
+## تأکید تصمیم کاربر: دستگاه مجازی اکنون، Windows واقعی در انتها
+
+[تفکیک تکمیل نرم‌افزار از پذیرش واقعی](software-and-lab-acceptance.fa.md) · [شاهد آزمایشگاه یکپارچه](virtual-worker-evidence.json). نبود COM محلی دیگر به‌عنوان مانع شروع برش نرم‌افزاری نوشته نمی‌شود. تست جدید از Chromium واقعی، HTTPS، SQL، worker اصلی و child واقعی تا دو دستگاه stateful عبور می‌کند؛ نه صرف پاسخ‌سازی کنترلر و نه ثبت دستی نتیجه در صف. همهٔ قراردادها یا قابلیت‌های مرجع هنوز با این تست تکمیل نمی‌شوند.

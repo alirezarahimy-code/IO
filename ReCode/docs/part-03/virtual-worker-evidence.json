@@ -1,0 +1,85 @@
+{
+  "scope": "S05-S12 live software laboratory acceptance using synthetic endpoints; NOT all Part3 functionality and NOT real Windows COM/vendor hardware acceptance.",
+  "verifiedCode": "76ec260350db74a5819fc23f81de4ddfde817cfa",
+  "runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 43480142271,
+      "headSha": "76ec260350db74a5819fc23f81de4ddfde817cfa",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43480142271"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 43480142238,
+      "headSha": "76ec260350db74a5819fc23f81de4ddfde817cfa",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43480142238"
+    }
+  ],
+  "checks": {
+    "integrationNamedPassLines": 798,
+    "integrationCountGuard": "ReCode/tools/phase03-report-tests.py",
+    "newDistinctVirtualWorkerChecks": 16,
+    "freshDatabasePreflight": true,
+    "fullSuiteRepeatsSameVirtualChecks": true,
+    "offlineStatefulTcpChecks": 19,
+    "portableBoundaryChecks": 61,
+    "referenceParityChecks": 33,
+    "permissions": 122,
+    "pagesAndHelp": 52,
+    "foundationMigrations": 41
+  },
+  "path": [
+    "Actual Chromium form and authenticated HTTPS/cookie/CSRF",
+    "Production permission and queue services with actual disposable SQL Server",
+    "DiagnosticWorker main four-slot queue, credential, append and completion code",
+    "Production native supervisors and actual isolated child processes",
+    "Two independently stateful loopback TCP devices using test-only private JSON relay",
+    "Original tuple batches, unknown outcomes, reviewed recovery, ingestion and dedup receipts in SQL"
+  ],
+  "notMocked": [
+    "Browser fetch, routes and responses",
+    "SQL claim, append or complete outcomes",
+    "Raw events or receipt identities",
+    "Current operator permission checks"
+  ],
+  "testOnlySeam": "Internal LaboratoryWorker subclass overrides OS availability only. InternalsVisibleTo is limited to SQL test assembly. Production configuration has no emulator/disable-platform-check switch. TCP relay rejects non-loopback. Native installation approval and credential binding still execute.",
+  "productionFix": "DiagnosticWorker passes installed IdleMinutesApproval only for settings.idle.set. Previously any configured idle approval made unrelated operation IPC invalid. Live clock/settings/restart tests execute with the idle approval installed, guarding this regression.",
+  "scenarios": [
+    "Bound encrypted credential and actual child serial verification",
+    "Independent snapshots from both device states",
+    "Two-device user-write batch with one lost acknowledgement after applied mutation",
+    "Retained unknown blocks a new mutation",
+    "Fresh worker read plus explicit human review does not replay user write",
+    "Explicit UTC clock change affects only selected device",
+    "Separately granted restart uses production executor and preserves clock/other device",
+    "Exact-model idle write with lost ACK retains unknown after one mutation",
+    "Fresh exact-model settings read and human review resolves without replay",
+    "Disconnect after fifty logs retains partial SQL evidence",
+    "Hung device times out while another worker slot succeeds",
+    "Fresh post-outage extraction does not erase partial data or auto-ingest",
+    "Actual browser forms commit three pages of each of two 103-tuple reads",
+    "206 receipts reuse exactly 103 immutable raw events including multiplicity",
+    "Restarted worker refuses a queued read after creator permission revoke",
+    "History read immediately denied after grant revocation"
+  ],
+  "testHarnessCorrections": [
+    "Initial test diagnostic route corrected to existing singular /device-connection.",
+    "Preview response read through result envelope.",
+    "Async waitForFunction predicate treated a Promise as truthy; changed to bounded polling of resolved actual browser fetches. Proven in installed playwright-core 1.56.1 frames.js predicate evaluation.",
+    "Element textContent property corrected in page cursor assertion."
+  ],
+  "priorFailuresAreNotSuccess": true,
+  "softwareComplete": false,
+  "part3Complete": false,
+  "hardwareVerified": false,
+  "realSdkExecuted": false,
+  "realWindowsAcceptance": "Deferred to the end by explicit user decision; NOT a prerequisite for further software implementation.",
+  "remainingSoftware": "Selected-device operator grants, non-TFT attendance, additional settings/function-key adapters, authenticated supported-model PUSH, sensitive reset/delete and RemoteEnroll/biometric contract work remain in the reference crosswalk.",
+  "documents": [
+    "software-and-lab-acceptance.fa.md",
+    "virtual-device-lab.fa.md",
+    "remaining-work.fa.md"
+  ]
+}
