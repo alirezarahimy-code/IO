@@ -86,5 +86,14 @@
   "realSdkExecuted": false,
   "referenceInventory": "device-reference-inventory.json",
   "crosswalk": "device-reference-crosswalk.csv",
-  "report": "device-reference-parity.fa.md"
+  "report": "device-reference-parity.fa.md",
+  "operatorScopeSupplement": "s04-device-operator-scope-evidence.json",
+  "currentMatrixCounts": {
+    "software-verified": 13,
+    "intentional-replacement": 8,
+    "partial-software": 14,
+    "pending-sensitive": 6,
+    "pending-contract": 9,
+    "pending-secure-push": 3
+  }
 }

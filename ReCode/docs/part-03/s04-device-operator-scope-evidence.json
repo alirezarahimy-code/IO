@@ -1,0 +1,56 @@
+{
+  "scope": "Selected-device operator authorization; software acceptance only. Part 3 S04-S12 is not complete.",
+  "verifiedCode": "6f4713054162bb770af0cafc1094d76751478734",
+  "runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 43487912731,
+      "headSha": "6f4713054162bb770af0cafc1094d76751478734",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43487912731"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 43487912747,
+      "headSha": "6f4713054162bb770af0cafc1094d76751478734",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43487912747"
+    }
+  ],
+  "productionCommit": "91ade4524de1cbfeb9c57f6469ce71a656f39599",
+  "checks": {
+    "integrationNamedPassLines": 820,
+    "enforcedBy": "ReCode/tools/phase03-report-tests.py",
+    "newSqlScopeAssertions": 21,
+    "newSqlVerifiedChromiumScopeHistoryAssertion": 1,
+    "freshVirtualPreflightChecks": 17,
+    "offlineScopeDomContract": "device-access-ui-check.cjs passed locally and in SQL CI",
+    "foundationMigrations": 41,
+    "identityMigrations": 2,
+    "permissions": 123,
+    "pagesAndHelp": 52
+  },
+  "rules": [
+    "Absent explicit restricted policy preserves existing global compatibility within independent operation rights.",
+    "Restricted with no active grants means no devices. Assignments never confer operation permissions.",
+    "Independent devices.access.manage requires an unrestricted actor; cannot administer own scope.",
+    "Versioned explicit global broadening; exact grant retry; retained revoked history cannot be resurrected.",
+    "EF context-instance filters cover device resources and dependent personal rows; raw command SQL is scoped before paging.",
+    "Worker checks original human current target authority at claim/credential/append and polling. No rollback of already-sent commands is promised.",
+    "Company-wide group administration and device creation are denied for restricted actors; organization and raw attendance permissions are not redefined."
+  ],
+  "tests": [
+    "ReCode/tests/IO.Infrastructure.SqlTests/DeviceAccessTests.cs",
+    "ReCode/tests/IO.Infrastructure.SqlTests/VirtualWorkerTests.cs",
+    "ReCode/tests/IO.Infrastructure.SqlTests/virtual-worker-browser.cjs",
+    "ReCode/tests/IO.Infrastructure.SqlTests/device-access-ui-check.cjs"
+  ],
+  "correctedFailedRun": {
+    "databaseId": 43487836488,
+    "reason": "Offline DOM fixture failed to explicitly select restricted=true after reading the default global policy; corrected in 6f47130. No weakening of server confirmation."
+  },
+  "hardwareVerified": false,
+  "realSdkExecuted": false,
+  "softwareComplete": false,
+  "part3Complete": false
+}

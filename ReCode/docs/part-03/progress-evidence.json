@@ -8,13 +8,13 @@
     "realDeviceExecution": "not performed",
     "testingSequence": "User explicitly requires virtual-device software completion now, copying reference behavior as appropriate, with real Windows SDK/multidevice acceptance deferred to the end. Lack of local hardware must not block further software implementation."
   },
-  "latestVerifiedCode": "76ec260350db74a5819fc23f81de4ddfde817cfa",
+  "latestVerifiedCode": "6f4713054162bb770af0cafc1094d76751478734",
   "checks": {
-    "integrationPassLines": 798,
+    "integrationPassLines": 820,
     "foundation": 48,
     "domain": 26,
     "portableNativeBoundaryAndFileParser": 61,
-    "permissions": 122,
+    "permissions": 123,
     "pagesAndHelp": 52,
     "foundationMigrations": 41,
     "foundationTables": 60,
@@ -53,7 +53,10 @@
     "safetyCrossQueueSqlChecks": 8,
     "credentialClaimBindingSqlChecks": 5,
     "statefulVirtualWorkerEndToEndChecks": 16,
-    "freshVirtualWorkerDatabasePreflight": true
+    "freshVirtualWorkerDatabasePreflight": true,
+    "identityMigrations": 2,
+    "selectedDeviceScopeSqlChecks": 21,
+    "selectedDeviceScopeChromiumSqlChecks": 1
   },
   "stages": {
     "S04": "accepted registry and metadata groups",
@@ -71,17 +74,17 @@
   "runs": [
     {
       "conclusion": "success",
-      "databaseId": 43480142271,
-      "headSha": "76ec260350db74a5819fc23f81de4ddfde817cfa",
+      "databaseId": 43487912731,
+      "headSha": "6f4713054162bb770af0cafc1094d76751478734",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43480142271"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43487912731"
     },
     {
       "conclusion": "success",
-      "databaseId": 43480142238,
-      "headSha": "76ec260350db74a5819fc23f81de4ddfde817cfa",
+      "databaseId": 43487912747,
+      "headSha": "6f4713054162bb770af0cafc1094d76751478734",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43480142238"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43487912747"
     }
   ],
   "remainingSoftware": [
@@ -89,7 +92,6 @@
     "S06/S11 approved-model additional advanced setting write contracts (beyond bounded IPv4 and exact-model code4 idle minutes) and further reads beyond six fixed GetDeviceInfo codes plus fixed GetDeviceIP/~ZKFPVersion reads, separate sensitive grants and confirmed audited execution. Six raw nullable Int32 reads are implemented; units/ranges/model compatibility are not inferred. Existing gated native writes are clock, ordinary attendance-only user exchange, explicitly approved restart, bounded IPv4 transition and exact-model code4 idle minutes. Gateway/mask/DHCP/MAC/port writes remain absent.",
     "S11 RemoteEnroll only after approved model contract and biometric consent/access/retention policy; no executable adapter enabled.",
     "S11 approved model-specific factory reset and attendance/user/admin deletion with independent destructive grants/confirmation and unknown recovery remain unimplemented. Standalone restart is implemented and software-verified; actual model acceptance remains. Physical-door control stays excluded.",
-    "Selected-device operator authorization scope, not global grants or metadata groups.",
     "Native non-TFT attendance adapter and explicit supported-model coverage."
   ],
   "realSdkExecuted": false,
@@ -125,5 +127,6 @@
   "deviceReferenceParityEvidence": "device-reference-parity-evidence.json",
   "virtualWorkerEvidence": "virtual-worker-evidence.json",
   "softwareAndLabAcceptance": "software-and-lab-acceptance.fa.md",
-  "softwareComplete": false
+  "softwareComplete": false,
+  "selectedDeviceScopeEvidence": "s04-device-operator-scope-evidence.json"
 }
