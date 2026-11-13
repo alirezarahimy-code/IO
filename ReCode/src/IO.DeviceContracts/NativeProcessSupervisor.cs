@@ -17,7 +17,7 @@ public static class NativeProcessSupervisor
     public static async Task<ZkOperationOutput> RunOperationAsync(string executable,string childAssembly,ZkOperationInput input,int timeoutSeconds,CancellationToken stoppingToken=default)
     {
         if(!input.IsValid())return new("unsupported");
-        var exchange=await ExchangeAsync(executable,childAssembly,System.Text.Json.JsonSerializer.Serialize(input),timeoutSeconds,stoppingToken);
+        var exchange=await ExchangeAsync(executable,childAssembly,System.Text.Json.JsonSerializer.Serialize(input),timeoutSeconds,stoppingToken,input.FunctionKeyReadApproval is null?4096:32768);
         if(exchange.State!="exited")return new((input.Operation=="device.restart"||input.Operation=="network.ip.set"||input.Operation=="settings.idle.set")?"unknown":exchange.State);
         try
         {
@@ -44,7 +44,7 @@ public static class NativeProcessSupervisor
     }
 
     private sealed record Exchange(string State,string Output="");
-    private static async Task<Exchange> ExchangeAsync(string executable,string childAssembly,string json,int timeoutSeconds,CancellationToken stoppingToken)
+    private static async Task<Exchange> ExchangeAsync(string executable,string childAssembly,string json,int timeoutSeconds,CancellationToken stoppingToken,int maxOutputChars=4096)
     {
         if (!Path.IsPathFullyQualified(executable) || !Path.IsPathFullyQualified(childAssembly) || !File.Exists(executable) || !File.Exists(childAssembly) ||
             json.Length > 8192 || timeoutSeconds is < 1 or > 60) return new("bridge-failed");
@@ -69,7 +69,7 @@ public static class NativeProcessSupervisor
                 await process.StandardInput.WriteAsync(json.AsMemory(), deadline.Token);
                 process.StandardInput.Close();
             }
-            async Task ReadOutput() => output = await ReadBounded(process.StandardOutput, deadline.Token);
+            async Task ReadOutput() => output = await ReadBounded(process.StandardOutput, deadline.Token,maxOutputChars);
             interaction = NativeInteraction.RunAsync(Send(), ReadOutput(), ReadBounded(process.StandardError, deadline.Token), process.WaitForExitAsync(deadline.Token));
             await interaction.WaitAsync(deadline.Token);
             var result = output?.Trim() ?? "";
@@ -87,13 +87,13 @@ public static class NativeProcessSupervisor
         }
     }
 
-    private static async Task<string> ReadBounded(StreamReader reader, CancellationToken ct)
+    private static async Task<string> ReadBounded(StreamReader reader, CancellationToken ct,int maxChars=4096)
     {
         var text = new StringBuilder(); var buffer = new char[512];
         int count;
         while ((count = await reader.ReadAsync(buffer.AsMemory(), ct)) > 0)
         {
-            if (text.Length + count > 4096) throw new InvalidDataException("Child output limit exceeded.");
+            if (text.Length + count > maxChars) throw new InvalidDataException("Child output limit exceeded.");
             text.Append(buffer, 0, count);
         }
         return text.ToString();

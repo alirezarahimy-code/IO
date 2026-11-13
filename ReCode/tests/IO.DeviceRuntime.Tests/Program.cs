@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using IO.DeviceContracts;
 
+if (args is ["--function-key-read-contracts"]) { await FunctionKeyReadTests.RunAsync(); return; }
+
 if (args is ["--attendance-read-contracts"]) { await AttendanceReadContractTests.RunAsync(); return; }
 
 if (args is ["--reference-parity"]) { ReferenceParityTests.Run(); return; }
@@ -95,6 +97,15 @@ if (args is not ["--verify"])
         {
             var settings=new ZkAdvancedSettings(ZkAdvancedSettings.Version,operation.Connection.ExpectedSerial,0,null,int.MinValue,int.MaxValue,2,-1);
             if(operation.Connection.ExpectedSerial=="settings-hang"){await Task.Delay(TimeSpan.FromMinutes(1));return;}
+            if(operation.FunctionKeyReadApproval is {} keyApproval)
+            {
+                if(operation.Connection.ExpectedSerial=="function-overflow"){Console.Write(new string('x',40000));return;}
+                settings=settings with{Product="function-product",Firmware="function-fw"};
+                settings=ZkFunctionKeyReader.Add(settings,keyApproval,new FunctionKeyReadTests.Session())!;
+                if(settings is null){Console.WriteLine(JsonSerializer.Serialize(new ZkOperationOutput("unsupported")));return;}
+                if(operation.Connection.ExpectedSerial=="function-missing")settings=settings with{FunctionKeys=null};
+                if(operation.Connection.ExpectedSerial=="function-large")settings=settings with{FunctionKeys=new(ZkFunctionKeySnapshot.Version,keyApproval.EvidenceReference,keyApproval.Indices.Select(i=>new ZkFunctionKeyValue(i,true,0,0,new string('ژ',128),0,new string('ژ',128))).ToArray())};
+            }
             if(operation.Connection.ExpectedSerial=="settings-wrong-pin")settings=settings with{Serial="different"};
             if(operation.Connection.ExpectedSerial=="settings-missing")Console.WriteLine("{\"State\":\"succeeded\",\"Settings\":{\"Contract\":\"zk-device-info-v1\",\"Serial\":\"settings-missing\"}}");
             else Console.WriteLine(JsonSerializer.Serialize(new ZkOperationOutput("succeeded",Settings:settings)));

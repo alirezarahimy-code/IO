@@ -76,6 +76,7 @@ internal static class Program
                 var settings=ZkAdvancedSettingsReader.Read(serial.Trim(),new AdvancedSettingsSession(instance,input.MachineNumber));
                 var descriptor=new IdleSettingSession(instance,input.MachineNumber);
                 settings=ZkAdditionalSettingsReader.Add(settings with{Product=descriptor.Product(),Firmware=descriptor.Firmware()},new AdditionalSettingsSession(instance,input.MachineNumber));
+                if(request?.FunctionKeyReadApproval is {} keyApproval){settings=ZkFunctionKeyReader.Add(settings,keyApproval,new FunctionKeySession(instance))!;if(settings is null)return new("unsupported");}
                 string after;if(!(bool)sdk.GetSerialNumber(input.MachineNumber,out after)||after?.Trim()!=input.ExpectedSerial)return new("identity-mismatch");
                 return new("succeeded",Settings:settings);
             }
@@ -113,6 +114,18 @@ internal static class Program
     private sealed class RestartSession(object instance,int machine):IZkRestartSession
     {
         public bool Restart()=> (bool)((dynamic)instance).RestartDevice(machine);
+    }
+
+    // SSR_GetShortkey has no machine parameter in the observed COM interface.
+    // This is the one isolated, connected and serial-pinned SDK instance.
+    private sealed class FunctionKeySession(object instance):IZkFunctionKeyReadSession
+    {
+        public ZkFunctionKeyValue? Read(int index)
+        {
+            int function=0,code=0,autoChange=0;string name="",times="";
+            return (bool)((dynamic)instance).SSR_GetShortkey(index,ref function,ref code,ref name,ref autoChange,ref times)
+                ?new(index,true,function,code,name,autoChange,times):null;
+        }
     }
 
     private sealed class AdditionalSettingsSession(object instance,int machine):IZkAdditionalSettingsSession

@@ -96,7 +96,7 @@ internal static class VirtualWorkerTests
         var host=Path.GetFullPath(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(),"..","..","..",OperatingSystem.IsWindows()?"dotnet.exe":"dotnet"));
         var relay=Path.Combine(AppContext.BaseDirectory,"virtual-relay","IO.DeviceRuntime.Tests.dll");
         if(!File.Exists(relay)||!File.Exists(Path.ChangeExtension(relay,"runtimeconfig.json")))throw new InvalidOperationException("Missing built virtual relay");
-        NativeEndpoint Pin(VirtualDeviceLab.Device d)=>new(d.Pin.DeviceId,d.Pin.Address,d.Pin.Port,1,d.Pin.ExpectedSerial,false,AllowClockSet:true,AllowUserRead:true,AttendanceOnlyUserWriteApproved:true,AllowAttendanceRead:true,AllowAdvancedSettingsRead:true,AllowRestart:true,AllowIdleMinutesWrite:true,IdleMinutesApproval:new("IO-virtual-not-ZK","virtual-fw-1",[20],"synthetic-idle-approval","standby-or-power-off"));
+        NativeEndpoint Pin(VirtualDeviceLab.Device d)=>new(d.Pin.DeviceId,d.Pin.Address,d.Pin.Port,1,d.Pin.ExpectedSerial,false,AllowClockSet:true,AllowUserRead:true,AttendanceOnlyUserWriteApproved:true,AllowAttendanceRead:true,AllowAdvancedSettingsRead:true,AllowRestart:true,AllowIdleMinutesWrite:true,IdleMinutesApproval:new("IO-virtual-not-ZK","virtual-fw-1",[20],"synthetic-idle-approval","standby-or-power-off"),FunctionKeyReadApproval:new("IO-virtual-not-ZK","virtual-fw-1",[0,3],"synthetic-key-read"));
         var configuration=new WorkerConfiguration(service,[],[Pin(a),Pin(b),Pin(legacy) with{AttendanceReadFormat=ZkAttendanceReadFormats.Legacy}],host,relay,true,true,true,true,true,true);
         if(await Q(db=>db.DevicePollSchedules.AnyAsync(x=>x.Enabled)))throw new InvalidOperationException("Virtual worker fixture requires all previous synthetic schedules paused");
         using var worker=new LaboratoryWorker(app.Services.GetRequiredService<IServiceScopeFactory>(),configuration);
@@ -140,6 +140,8 @@ internal static class VirtualWorkerTests
                 if(!await Q(db=>db.DeviceOperations.AnyAsync(x=>x.Id==id&&x.State=="succeeded")))throw new InvalidOperationException("Virtual settings read failed");return id;
             }
             var settingSnapshot=await Settings();ZkIdlePlan idlePlan;string idleHash;
+            var keyJson=await Q(db=>db.DeviceOperations.Where(x=>x.Id==settingSnapshot).Select(x=>x.ResultJson).SingleAsync());var keySettings=JsonSerializer.Deserialize<ZkAdvancedSettings>(keyJson!)!;
+            check(keySettings.FunctionKeys is {Items.Length:2}&&keySettings.FunctionKeys.Items[0] is {Reported:true,StateCode:4,AutoChange:2}&&keySettings.FunctionKeys.Items[1] is {Index:3,Reported:false}&&a.FunctionKeyReads==2&&b.FunctionKeyReads==0,"virtual-e2e exact-model installed key allowlist traverses HTTPS queue worker child TCP and typed SQL without guessing failed key zeroes or writing another device");
             using(var preview=await Post("/device-settings/idle-preview",new DeviceIdlePreview(a.Pin.DeviceId,av,settingSnapshot,20,"synthetic-idle-approval")))
             {preview.EnsureSuccessStatusCode();using var json=JsonDocument.Parse(await preview.Content.ReadAsStringAsync());var result=json.RootElement.GetProperty("result");idlePlan=result.GetProperty("plan").Deserialize<ZkIdlePlan>(new JsonSerializerOptions{PropertyNameCaseInsensitive=true})!;idleHash=result.GetProperty("previewHash").GetString()!;}
             var idleId=Guid.NewGuid();a.Fault="drop-operation-ack";

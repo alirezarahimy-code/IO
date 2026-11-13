@@ -73,6 +73,9 @@ jobs:
       - name: Test exact-model idle minutes and native isolation
         working-directory: ReCode
         run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --idle-contracts
+      - name: Test explicitly approved read-only function key contract
+        working-directory: ReCode
+        run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --function-key-read-contracts
       - name: Verify legacy device parity and closed dispatch
         working-directory: ReCode
         run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --reference-parity

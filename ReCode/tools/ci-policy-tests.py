@@ -120,12 +120,12 @@ echo "$mode" >> "$IO_TEST_CALLS"
 if [[ "$mode" == virtual ]]; then
   echo 'PASS disposable virtual worker preflight complete'
 else
-  python3 -c 'print("PASS synthetic policy fixture\\n" * 850, end=""); print("PASS disposable SQL Server integration checks")'
+  python3 -c 'print("PASS synthetic policy fixture\\n" * (int(__import__("os").environ["IO_TEST_PASS_LINES"]) - 1), end=""); print("PASS disposable SQL Server integration checks")'
 fi
 ''')
             host.chmod(0o755)
             calls, summary = tmp / "calls", tmp / "summary"
-            env = {**os.environ, "PATH": str(tmp) + os.pathsep + os.environ["PATH"], "RUNNER_TEMP": str(tmp), "GITHUB_STEP_SUMMARY": str(summary), "IO_CI_SQL_SUITE": suite, "IO_TEST_CALLS": str(calls), "IO_TEST_FAIL": fail}
+            env = {**os.environ, "PATH": str(tmp) + os.pathsep + os.environ["PATH"], "RUNNER_TEMP": str(tmp), "GITHUB_STEP_SUMMARY": str(summary), "IO_CI_SQL_SUITE": suite, "IO_TEST_CALLS": str(calls), "IO_TEST_FAIL": fail, "IO_TEST_PASS_LINES": re.search(r"len\(lines\) != (\d+)", (ROOT / "ReCode/tools/phase03-report-tests.py").read_text()).group(1)}
             result = subprocess.run(["bash", "-c", script], cwd=ROOT / "ReCode", env=env, capture_output=True, text=True)
             return result.returncode, calls.read_text().splitlines() if calls.exists() else [], summary.read_text() if summary.exists() else ""
 

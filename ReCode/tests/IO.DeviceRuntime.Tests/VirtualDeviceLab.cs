@@ -140,7 +140,7 @@ internal static class VirtualDeviceLab
         Console.WriteLine($"PASS {count} stateful legacy TCP write checks; private JSON laboratory protocol, not vendor SDK acceptance");
     }
 
-    internal sealed class Device : IAsyncDisposable, IZkUserWriteSession, IZkRestartSession, IZkIdleSettingSession
+    internal sealed class Device : IAsyncDisposable, IZkUserWriteSession, IZkRestartSession, IZkIdleSettingSession, IZkFunctionKeyReadSession
     {
         private readonly TcpListener listener = new(IPAddress.Loopback, 0);
         private readonly CancellationTokenSource shutdown = new();
@@ -158,6 +158,8 @@ internal static class VirtualDeviceLab
         public int IdleMutations { get; private set; }
         public string Product() => "IO-virtual-not-ZK";
         public string Firmware() => "virtual-fw-1";
+        public int FunctionKeyReads { get; private set; }
+        public ZkFunctionKeyValue? Read(int index){FunctionKeyReads++;return index==0?new(index,true,0,4,"virtual-key-not-ZK",2,"raw;virtual"):null;}
         public int? ReadIdleMinutes() => IdleMinutes;
         public bool SetIdleMinutes(int minutes) { IdleMinutes=minutes; IdleMutations++; return true; }
         public bool Restart() { Restarts++; return true; }
@@ -246,7 +248,11 @@ internal static class VirtualDeviceLab
                                 output = new("succeeded", new(Pin.ExpectedSerial, Product(), Firmware(), null, ClockLocal,
                                     logs.Count, null, users.Count, null, null, null, null, null, null, operation.AllowClockSet));
                             else if (operation.Operation == "settings.read")
-                                output = new("succeeded", Settings: new(ZkAdvancedSettings.Version, Pin.ExpectedSerial, 0, null, int.MinValue, IdleMinutes, 2, -1,Product(),Firmware()));
+                            {
+                                ZkAdvancedSettings? settings=new(ZkAdvancedSettings.Version, Pin.ExpectedSerial, 0, null, int.MinValue, IdleMinutes, 2, -1,Product(),Firmware());
+                                if(operation.FunctionKeyReadApproval is {} approval)settings=ZkFunctionKeyReader.Add(settings,approval,this);
+                                output=settings is null?new("unsupported"):new("succeeded",Settings:settings);
+                            }
                             else if (operation.Operation == "device.restart") output=ZkRestartExecutor.Execute(operation.AllowRestart,this);
                             else if (operation.Operation == "settings.idle.set") output=ZkIdleSettingExecutor.Execute(operation,this);
                             else if (operation.Operation == "clock.set") { ClockLocal = operation.ClockLocal!; output = new("succeeded"); }

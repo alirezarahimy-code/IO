@@ -23,7 +23,7 @@ if (targets.Any(t => t.DeviceId == Guid.Empty || !System.Net.IPAddress.TryParse(
 var native = builder.Configuration.GetSection("IO:DeviceWorker:NativeEndpoints").Get<NativeEndpoint[]>() ?? [];
 var dotnetPath = builder.Configuration["IO:DeviceWorker:BridgeDotnetPath"];
 var bridgePath = builder.Configuration["IO:DeviceWorker:BridgeAssemblyPath"];
-if (native.Any(t => (!new ZkProbeInput(t.DeviceId,t.Address,t.Port,t.MachineNumber,t.ExpectedSerial,0).IsValid()||!ZkUserReadFormats.IsKnown(t.UserReadFormat)||!ZkUserReadFormats.IsKnown(t.UserWriteFormat)||!ZkAttendanceReadFormats.IsKnown(t.AttendanceReadFormat))) ||
+if (native.Any(t => (!new ZkProbeInput(t.DeviceId,t.Address,t.Port,t.MachineNumber,t.ExpectedSerial,0).IsValid()||!ZkUserReadFormats.IsKnown(t.UserReadFormat)||!ZkUserReadFormats.IsKnown(t.UserWriteFormat)||!ZkAttendanceReadFormats.IsKnown(t.AttendanceReadFormat)||(t.FunctionKeyReadApproval is not null&&(!t.AllowAdvancedSettingsRead||!t.FunctionKeyReadApproval.IsValid())))) ||
     targets.Select(x=>x.DeviceId).Concat(native.Select(x=>x.DeviceId)).Distinct().Count() != targets.Length+native.Length)
     throw new InvalidOperationException("Invalid or ambiguous native endpoint pin.");
 if (native.Length > 0)
@@ -42,7 +42,7 @@ if(builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableHealthReports"))b
 builder.Services.AddHostedService<DiagnosticWorker>();
 await builder.Build().RunAsync();
 
-internal sealed record NativeEndpoint(Guid DeviceId, string Address, int Port, int MachineNumber, string ExpectedSerial, bool AllowDefaultCommunicationKey, bool AllowClockSet=false,bool AllowUserRead=false,bool AttendanceOnlyUserWriteApproved=false,bool AllowAttendanceRead=false,bool AllowAdvancedSettingsRead=false,string UserReadFormat=ZkUserReadFormats.Ssr,string UserWriteFormat=ZkUserReadFormats.Ssr,bool AllowRestart=false,bool AllowNetworkIpChange=false,bool AllowNetworkInspect=false,string[]? ApprovedNetworkAddresses=null,bool AllowIdleMinutesWrite=false,ZkIdleApproval? IdleMinutesApproval=null,string AttendanceReadFormat=ZkAttendanceReadFormats.Ssr);
+internal sealed record NativeEndpoint(Guid DeviceId, string Address, int Port, int MachineNumber, string ExpectedSerial, bool AllowDefaultCommunicationKey, bool AllowClockSet=false,bool AllowUserRead=false,bool AttendanceOnlyUserWriteApproved=false,bool AllowAttendanceRead=false,bool AllowAdvancedSettingsRead=false,string UserReadFormat=ZkUserReadFormats.Ssr,string UserWriteFormat=ZkUserReadFormats.Ssr,bool AllowRestart=false,bool AllowNetworkIpChange=false,bool AllowNetworkInspect=false,string[]? ApprovedNetworkAddresses=null,bool AllowIdleMinutesWrite=false,ZkIdleApproval? IdleMinutesApproval=null,string AttendanceReadFormat=ZkAttendanceReadFormats.Ssr,ZkFunctionKeyReadApproval? FunctionKeyReadApproval=null);
 internal sealed record WorkerConfiguration(Guid ServiceUserId, TcpConnectionDiagnostic.AllowedEndpoint[] AllowedEndpoints, NativeEndpoint[] NativeEndpoints, string? DotnetPath, string? BridgePath, bool EnableOperations,bool EnableUserDownloads,bool EnableUserUploads,bool EnableAttendanceDownloads,bool EnableSchedules,bool EnableSettingsReads);
 internal class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfiguration configuration) : BackgroundService
 {
@@ -192,7 +192,7 @@ internal class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfiguration
         var credential=await scope.ServiceProvider.GetRequiredService<DeviceOperations>().CredentialAsync(configuration.ServiceUserId,claim,native.AllowDefaultCommunicationKey,ct);
         if(credential is null)return new("credential-unavailable");
         return await NativeProcessSupervisor.RunOperationAsync(configuration.DotnetPath!,configuration.BridgePath!,
-            new(new(claim.DeviceId,target,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value),claim.Kind,claim.ClockLocal,native.AllowClockSet,native.AllowAdvancedSettingsRead,native.AllowRestart,claim.NetworkPlan,native.AllowNetworkIpChange,native.AllowNetworkInspect,claim.IdlePlan,native.AllowIdleMinutesWrite,claim.Kind=="settings.idle.set"?native.IdleMinutesApproval:null),claim.TimeoutSeconds,ct);
+            new(new(claim.DeviceId,target,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value),claim.Kind,claim.ClockLocal,native.AllowClockSet,native.AllowAdvancedSettingsRead,native.AllowRestart,claim.NetworkPlan,native.AllowNetworkIpChange,native.AllowNetworkInspect,claim.IdlePlan,native.AllowIdleMinutesWrite,claim.Kind=="settings.idle.set"?native.IdleMinutesApproval:null,claim.Kind=="settings.read"?native.FunctionKeyReadApproval:null),claim.TimeoutSeconds,ct);
     }
 
 }

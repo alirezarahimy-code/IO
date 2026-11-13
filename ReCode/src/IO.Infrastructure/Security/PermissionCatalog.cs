@@ -170,7 +170,7 @@ public static class PermissionCatalog
         new("devices.files.commit", "ثبت تأییدشدهٔ سطرهای آمادهٔ فایل دستگاه", "تأیید هر صفحه، نسخه و حق همراه attendance.events.receive لازم است؛ ناشناس/خراب/تکراری در قرنطینه می‌ماند."),
         new("devices.health.read", "سلامت صف و سرویس دستگاه", "مشاهدهٔ metadata صف، زمان‌بندی و heartbeat؛ نه اتصال زنده یا دادهٔ کاربران/تردد."),
         new("devices.service.report", "گزارش heartbeat سرویس دستگاه", "فقط گزارش instance خود با ساعت سرور؛ نه اجرای فرمان یا حق انسانی؛ بدون grant خودکار."),
-        new("devices.settings.read", "خواندن snapshot تنظیمات پیشرفته", "فقط GetDeviceInfo کدهای مصرح مرجع؛ raw Int32 و unavailable؛ نه واحد حدسی، نوشتن یا enroll."),
+        new("devices.settings.read", "خواندن snapshot تنظیمات پیشرفته", "GetDeviceInfo ثابت، مشاهدات ثابت IP/الگوریتم و کلیدهای عملکردی فقط با تأیید دقیق نصب؛ raw/unavailable، بدون نوشتن یا enroll."),
         new("devices.settings.read.execute", "اجرای خواندن تنظیمات در سرویس", "افزون بر devices.operations.execute و opt-in نصب/endpoint؛ نه مجوز نوشتن یا کنترل درب."),
         new("devices.commands.read", "تاریخچهٔ یکپارچهٔ فرمان‌های دستگاه", "فقط metadata واقعی صف SQL؛ بدون اصل کاربران/تردد یا مجوز نوشتن دستگاه."),
         new("devices.commands.retry", "تکرار صریح فرمان خواندنی", "فقط اطلاعات و استخراج خواندنی شکست‌خورده با lineage تغییرناپذیر؛ حق مستقل همان خواندن و history لازم است؛ نوشتن قابل retry نیست."),

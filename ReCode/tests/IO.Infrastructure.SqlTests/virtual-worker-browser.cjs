@@ -14,6 +14,10 @@ if(!address?.startsWith('https://127.0.0.1:')||!user?.startsWith('virtual-operat
   await page.locator('#login-form input[name=password]').fill('Synthetic!Password-2026');
   await page.locator('#login-form button').click();await page.waitForURL('**/workspace');
   const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400)errors.push(r.status()+' '+new URL(r.url()).pathname);});
+  await page.goto(address+'/workspace/device-settings?deviceId='+device);
+  await page.locator('[data-function-keys]').first().waitFor();
+  assert.match(await page.locator('#items').textContent(),/virtual-key-not-ZK/);
+  assert.match(await page.locator('#items').textContent(),/Index 3.*گزارش نشده/);
   const completed=[];
   for(let run=0;run<4;run++){
    const target=run<2?device:legacyDevice,pinnedVersion=run<2?version:legacyVersion;
