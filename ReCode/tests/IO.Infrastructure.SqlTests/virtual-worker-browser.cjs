@@ -24,11 +24,17 @@ if(!address?.startsWith('https://127.0.0.1:')||!user?.startsWith('virtual-operat
    const id=await form.locator('input[name=operationId]').inputValue();completed.push(id);
    await form.locator('button').click();await page.locator('#notice').filter({hasText:'SQL ثبت شد'}).waitFor();
    // Query the actual authenticated API for readiness; no mutation outside forms.
-   await page.waitForFunction(async id=>{
-    const r=await fetch('/device-attendance-downloads/'+id+'/rows?after=0');if(!r.ok)return false;
-    const body=await r.json();if(body.state==='pending'||body.state==='running')return false;
-    if(body.state!=='succeeded')throw Error('Worker extraction terminal: '+body.state);return body.receivedCount===103;
-   },id);
+   // waitForFunction's synchronous predicate sees a Promise as truthy before its
+   // false result is resolved. Poll completed browser fetches, not Promise objects.
+   const deadline=Date.now()+60000;let ready=false;
+   while(Date.now()<deadline){
+    const body=await page.evaluate(async id=>{const r=await fetch('/device-attendance-downloads/'+id+'/rows?after=0',{cache:'no-store'});if(!r.ok)throw Error('Readiness HTTP '+r.status);return r.json();},id);
+    if(body.state!=='pending'&&body.state!=='running'){
+     assert.equal(body.state,'succeeded');assert.equal(body.receivedCount,103);ready=true;break;
+    }
+    await page.waitForTimeout(100);
+   }
+   assert(ready,'Timed out waiting for actual worker extraction');
    await page.goto(address+'/workspace/device-attendance?downloadId='+id);
    try{await page.locator('#snapshot').filter({hasText:'succeeded'}).waitFor({timeout:15000});}
    catch{throw Error('Device preview failed: '+JSON.stringify(await page.evaluate(()=>({url:location.pathname+location.search,notice:document.querySelector('#notice')?.textContent,snapshot:document.querySelector('#snapshot')?.textContent,previewHidden:document.querySelector('#preview')?.hidden})))+' script/errors='+JSON.stringify(errors));}
