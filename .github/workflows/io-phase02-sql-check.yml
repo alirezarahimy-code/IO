@@ -273,6 +273,7 @@ jobs:
           export NODE_PATH="$RUNNER_TEMP/io-browser/node_modules"
           node ReCode/tests/IO.Infrastructure.SqlTests/reversal-ui-check.cjs
           node ReCode/tests/IO.Infrastructure.SqlTests/device-ui-check.cjs
+          node ReCode/tests/IO.Infrastructure.SqlTests/device-access-ui-check.cjs
           node ReCode/tests/IO.Infrastructure.SqlTests/device-groups-ui-check.cjs
           node ReCode/tests/IO.Infrastructure.SqlTests/device-connection-ui-check.cjs
           node ReCode/tests/IO.Infrastructure.SqlTests/device-information-ui-check.cjs
