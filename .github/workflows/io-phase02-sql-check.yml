@@ -342,6 +342,12 @@ jobs:
           export IO_BROWSER_TEST=yes
           export NODE_PATH="$RUNNER_TEMP/io-browser/node_modules"
           export IO_CHROME_BINARY="$(command -v google-chrome)"
+          if ! dotnet run --project tests/IO.Infrastructure.SqlTests/IO.Infrastructure.SqlTests.csproj --configuration Release --no-build -- --virtual-worker-only > "$RUNNER_TEMP/io-virtual-preflight.log" 2>&1; then
+            python3 tools/phase03-annotate-error.py "$RUNNER_TEMP/io-virtual-preflight.log" "Virtual worker preflight failure"
+            exit 1
+          fi
+          grep -q '^PASS disposable virtual worker preflight complete$' "$RUNNER_TEMP/io-virtual-preflight.log"
+          echo '::notice title=Virtual worker preflight::Fresh SQL HTTPS Chromium and real worker path passed'
           if ! dotnet run --project tests/IO.Infrastructure.SqlTests/IO.Infrastructure.SqlTests.csproj --configuration Release --no-build > "$RUNNER_TEMP/io-sql-tests.log" 2>&1; then
             python3 tools/phase03-annotate-error.py "$RUNNER_TEMP/io-sql-tests.log" "SQL integration failure"
             exit 1

@@ -61,6 +61,22 @@ string[] expectedTables = ["Organizations", "Companies", "Sites", "OrgUnits", "E
     "Calendars", "CalendarDays", "ShiftDefinitions", "WorkScheduleAssignments", "EmploymentProfiles", "EmployeeSiteAssignments", "SourceEmployeeMappings", "RawEventConflicts", "ObservedRuleVersions", "DailyCalculationRuns", "CorrectionPolicies", "CorrectionRequests", "CorrectionDecisions", "PeriodDrafts", "RawConflictNotes", "SourceMappingChanges", "CalculationInputRevision", "PeriodDiagnostics", "LeaveTypes", "LeaveLedgerEntries", "Delegations", "DelegationRevocations", "CorrectionSettings", "CorrectionDelegationGrants", "DelegatedCorrectionDecisions", "LeaveRequests", "LeaveDecisions", "Notifications", "CorrectionDecisionReversals", "LeaveDecisionReversals", "Devices", "DeviceSecrets", "DeviceGroups", "DeviceConnections", "DeviceOperations", "DeviceUserDownloads", "DeviceDownloadedUsers", "DeviceFileImports", "DeviceFileImportLines", "DeviceUserUploads", "DeviceAttendanceDownloads", "DeviceAttendanceRows", "DevicePollSchedules", "DevicePollRuns", "DeviceCommandRetries", "DeviceServiceHeartbeats"];
 try
 {
+    if(args is ["--virtual-worker-only"])
+    {
+        // Same disposable-server guard and fresh random database as the full suite.
+        // This preflight can fail fast without running unrelated migration/history tests.
+        var services=new ServiceCollection();services.AddLogging();services.AddIoIdentityStorage(connection);
+        await using var provider=services.BuildServiceProvider();await using(var scope=provider.CreateAsyncScope())
+        {
+            var db=scope.ServiceProvider.GetRequiredService<IoDbContext>();await db.Database.MigrateAsync();
+            await scope.ServiceProvider.GetRequiredService<LoginIdentityDbContext>().Database.MigrateAsync();
+            foreach(var permission in PermissionCatalog.All)db.Permissions.Add(new(){Id=Guid.NewGuid(),Code=permission.Code});
+            await db.SaveChangesAsync();
+        }
+        await VirtualWorkerTests.RunAsync(connection,Check);
+        Console.WriteLine("PASS disposable virtual worker preflight complete");return 0;
+    }
+    if(args.Length!=0)throw new ArgumentException("Unknown disposable test mode.");
     await using (var db = NewDb())
     {
         if(db.Database.HasPendingModelChanges())
