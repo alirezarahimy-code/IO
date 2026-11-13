@@ -151,7 +151,17 @@ internal static class VirtualWorkerTests
             await Send("/device-attendance-downloads",new DeviceAttendanceInput(log,a.Pin.DeviceId,av,10,"2026-11-08T00:00:00Z","2026-11-09T00:00:00Z",4,5));
             await Wait(()=>Q(db=>db.DeviceAttendanceDownloads.AnyAsync(x=>x.Id==log&&x.State!="pending"&&x.State!="running")),"partial logs");
             check(await Q(db=>db.DeviceAttendanceDownloads.AnyAsync(x=>x.Id==log&&x.State!="succeeded"&&x.ReceivedCount==50))&&await Q(db=>db.DeviceAttendanceRows.CountAsync(x=>x.DownloadId==log))==50,"virtual-e2e TCP outage after one batch retains fifty original SQL tuples without successful extraction or automatic ingestion");
-            a.Fault="none";
+            a.Fault="hang";
+            async Task<Guid> Logs(VirtualDeviceLab.Device d,byte[] version,int seconds)
+            {
+                var id=Guid.NewGuid();await Send("/device-attendance-downloads",new DeviceAttendanceInput(id,d.Pin.DeviceId,version,seconds,"2026-11-08T00:00:00Z","2026-11-09T00:00:00Z",4,5));return id;
+            }
+            var hung=await Logs(a,av,2);var healthy=await Logs(b,bv,10);
+            await Wait(()=>Q(async db=>await db.DeviceAttendanceDownloads.CountAsync(x=>(x.Id==hung||x.Id==healthy)&&x.State!="pending"&&x.State!="running")==2),"independent outage");
+            check(await Q(db=>db.DeviceAttendanceDownloads.AnyAsync(x=>x.Id==hung&&x.State=="timed-out"&&x.ReceivedCount==0))&&await Q(db=>db.DeviceAttendanceDownloads.AnyAsync(x=>x.Id==healthy&&x.State=="succeeded"&&x.ReceivedCount==103)),"virtual-e2e a hung remote child times out while another worker slot completes the healthy device without fabricated progress");
+            a.Fault="none";var recoveredLogs=await Logs(a,av,10);
+            await Wait(()=>Q(db=>db.DeviceAttendanceDownloads.AnyAsync(x=>x.Id==recoveredLogs&&x.State!="pending"&&x.State!="running")),"outage recovery");
+            check(await Q(db=>db.DeviceAttendanceDownloads.AnyAsync(x=>x.Id==recoveredLogs&&x.State=="succeeded"&&x.ReceivedCount==103))&&await Q(db=>db.DeviceAttendanceRows.CountAsync(x=>x.DownloadId==log))==50&&await Q(db=>db.RawAttendanceEvents.CountAsync(x=>x.SourceId==a.Pin.DeviceId))==0,"virtual-e2e a fresh worker read recovers after outage without erasing the partial attempt or silently ingesting its quarantined tuples");
             // Real browser forms submit to the same running HTTPS host while the worker
             // is live. No routes, fetch, responses, SQL receipts or outcomes are mocked.
             var browser=new ProcessStartInfo("node"){RedirectStandardOutput=true,RedirectStandardError=true,UseShellExecute=false};
