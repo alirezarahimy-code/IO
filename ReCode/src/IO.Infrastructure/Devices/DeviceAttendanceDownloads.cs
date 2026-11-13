@@ -118,7 +118,7 @@ public sealed class DeviceAttendanceDownloads(IoDbContext db,PermissionTransacti
             if(row.RawEventId is not null){already++;continue;}
             var raw=Raw(row);row.Status=await Status(job,raw,true,token);row.ReviewedByUserId=actor;row.ReviewedAtUtc=clock.GetUtcNow();
             if(row.Status!="ready"){quarantined++;continue;}
-            // SSR has no observed native record ID. This is an explicit canonical
+            // Neither observed format has a native record ID. This is an explicit canonical
             // tuple + multiplicity identity, NOT a claim of physical event identity.
             var external=ZkAttendanceReadFormats.ExternalPrefix(job.ReadFormat)+row.PayloadHash+":"+row.OccurrenceOrdinal.ToString(CultureInfo.InvariantCulture);
             var result=await ingestion.AppendInTransactionAsync(job.SourceId,external,raw.PersonIdentifier,raw.Interpret(Zone(job.TimeZoneId)).Utc,job.TimeZoneId,raw.CheckType==job.InCode?"in":"out",Encoding.UTF8.GetBytes(row.PayloadJson),token);
@@ -135,6 +135,9 @@ public sealed class DeviceAttendanceDownloads(IoDbContext db,PermissionTransacti
         var interpreted=raw.Interpret(Zone(job.TimeZoneId));if(interpreted.Status!="parsed")return interpreted.Status;
         if(interpreted.Utc<job.FromUtc||interpreted.Utc>=job.UntilUtcExclusive)return "outside-requested-range";
         if(raw.CheckType!=job.InCode&&raw.CheckType!=job.OutCode)return "unmapped-check-code";
+        // Different precision/native output contracts cannot establish physical
+        // event equivalence. Preserve the read but never silently ingest both.
+        if(await db.DeviceAttendanceRows.AnyAsync(x=>x.RawEventId!=null&&db.DeviceAttendanceDownloads.Any(j=>j.Id==x.DownloadId&&j.SourceId==job.SourceId&&j.ReadFormat!=job.ReadFormat),ct))return "format-history-review-required";
         var identity=Encoding.Unicode.GetBytes(raw.PersonIdentifier!);var at=interpreted.Utc!.Value;
         var count=await db.SourceEmployeeMappings.CountAsync(x=>x.SourceId==job.SourceId&&x.CompanyId==job.CompanyId&&EF.Property<byte[]>(x,"SourcePersonIdBytes")==identity&&EF.Property<int>(x,"SourcePersonIdByteLength")==identity.Length&&x.ValidFromUtc<=at&&(x.ValidUntilUtcExclusive==null||at<x.ValidUntilUtcExclusive),ct);
         return count==1?"ready":count==0?"unknown-employee":"mapping-conflict";

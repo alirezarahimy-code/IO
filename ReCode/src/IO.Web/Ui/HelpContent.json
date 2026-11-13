@@ -4294,6 +4294,7 @@
     ],
     "Example": "برای بازهٔ 2026-11-08T00:00:00Z تا 2026-11-09T00:00:00Z، رخداد پایان دقیق خارج بازه است؛ کد checkType ورود/خروج باید از مدل تأییدشده اعلام شود، نه فرض صفر/یک.",
     "Fields": [
+      {"Name":"readFormat","Label":"قرارداد دریافت","Description":"ssr-v1 یا legacy-int32-minute-v1؛ بدون fallback. قالب در intent/claim ثابت است؛ retry همان قالب را حفظ می‌کند. تعویض قالب منبع دارای raw قبلی نیازمند بررسی مستقل است و خودکار وارد raw نمی‌شود."},
       {
         "Name": "fromUtc/untilUtcExclusive",
         "Label": "بازهٔ UTC",
@@ -4307,7 +4308,7 @@
       {
         "Name": "raw",
         "Label": "اصل tuple SDK",
-        "Description": "شناسه، verify/check، اجزای تاریخ Gregorian و WorkCode عین مقادیر typed SDK محفوظ‌اند؛ wire bytes یا native event id در API مشاهده نشده."
+        "Description": "شناسه، verify/check و اجزای تاریخ Gregorian محفوظ‌اند؛ SSR ثانیه/WorkCode دارد. non-TFT دو خروجی machine مستقل را نگه می‌دارد؛ صفر ثانیه/WorkCode فقط نمایش دقت دقیقه/فیلد ناموجود است، نه مقدار گزارش‌شده. wire bytes یا native event id مشاهده نشده."
       },
       {
         "Name": "occurrenceOrdinal",
@@ -4327,7 +4328,7 @@
       "ثبت نیازمند devices.attendance.commit و attendance.events.receive یا بستهٔ legacy attendance.ingest است؛ extract/execute حق ثبت تردد نمی‌دهند."
     ],
     "Limitations": [
-      "فقط SSR و تقویم Gregorian مدل تأییدشده؛ worker پیش‌فرض EnableAttendanceDownloads/AllowAttendanceRead را خاموش نگه می‌دارد. نه clear/delete و نه DisableDevice فراخوانی می‌شود.",
+      "SSR یا non-TFT صریح با ReadFormat منطبق با AttendanceReadFormat نصب‌شده؛ non-TFT با قرارداد legacy-int32-minute-v1 فقط دقیقه، شناسهٔ Int32 و دو شمارهٔ دستگاه native دارد؛ ثانیه/WorkCode خروجی API نیستند. worker پیش‌فرض EnableAttendanceDownloads/AllowAttendanceRead را خاموش نگه می‌دارد. نه clear/delete و نه DisableDevice فراخوانی می‌شود.",
       "SDK مشاهده‌شده کل log را می‌خواند؛ بازه باعث کاهش حجم read دستگاه نمی‌شود. ۵۰ tuple در batch/صفحه و ۱–۶۰۰ ثانیه deadline، بودجهٔ پردازش‌اند نه سقف محصولی کاربران/دستگاه‌ها.",
       "canonical tuple + multiplicity شناسهٔ بومی نیست. پس از حذف/جایگزینی log یا رخداد فیزیکی کاملاً یکسان با همان tuple، هم‌ارزی فیزیکی تضمین نمی‌شود؛ تمام downloadها و رسیدهای coalescence باقی‌اند.",
       "شمارندهٔ پایدار snapshot اتمیک نیست؛ آزمون SDK/مدل/چند دستگاه/قطعی و پذیرش سخت‌افزار همچنان بازند. payroll/بایومتریک/کنترل فیزیکی خارج این عملیات‌اند."
