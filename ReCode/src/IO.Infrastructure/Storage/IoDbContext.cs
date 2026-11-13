@@ -191,7 +191,8 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
         {
             b.ToTable("DevicePollSchedules",t=>
             {
-                t.HasTrigger("TR_DevicePollSchedules_History");t.UseSqlOutputClause(false);
+                t.HasTrigger("TR_DevicePollSchedules_History");t.HasTrigger("TR_DevicePollSchedules_Format");t.UseSqlOutputClause(false);
+                t.HasCheckConstraint("CK_DevicePollSchedules_Format","[ReadFormat] COLLATE Latin1_General_100_BIN2 IN(N'ssr-v1',N'legacy-int32-minute-v1') AND DATALENGTH([ReadFormat])=CASE WHEN [ReadFormat]=N'ssr-v1' THEN 12 ELSE 44 END");
                 t.HasCheckConstraint("CK_DevicePollSchedules_Config","DATALENGTH([ExpectedDeviceVersion])=8 AND [EverySeconds] BETWEEN 15 AND 86400 AND [WindowSeconds] BETWEEN 60 AND 86400 AND [LagSeconds] BETWEEN 0 AND 86400 AND [TimeoutSeconds] BETWEEN 1 AND 600 AND [InCode] BETWEEN 0 AND 255 AND [OutCode] BETWEEN 0 AND 255 AND [InCode]<>[OutCode] AND [Failures]>=0 AND [CursorUtc]>=[StartUtc] AND ([Enabled]=1 OR [ActiveRunId] IS NULL)");
                 t.HasCheckConstraint("CK_DevicePollSchedules_Overlap","[OverlapSeconds]>=0 AND [OverlapSeconds]<=[WindowSeconds]");
                 t.HasCheckConstraint("CK_DevicePollSchedules_Utc","DATEPART(TZOFFSET,[CreatedAtUtc])=0 AND DATEPART(TZOFFSET,[StartUtc])=0 AND DATEPART(TZOFFSET,[CursorUtc])=0 AND DATEPART(TZOFFSET,[NextDueUtc])=0");
@@ -211,6 +212,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.Property(x=>x.WindowSeconds).HasColumnType("int");
             b.Property(x=>x.LagSeconds).HasColumnType("int");
             b.Property(x=>x.OverlapSeconds).ValueGeneratedOnAdd().HasColumnType("int").HasDefaultValue(0);
+            b.Property(x=>x.ReadFormat).HasMaxLength(32).IsRequired().HasDefaultValue("ssr-v1").HasColumnType("nvarchar(32)");
             b.Property(x=>x.TimeoutSeconds).HasColumnType("int");
             b.Property(x=>x.InCode).HasColumnType("int");
             b.Property(x=>x.OutCode).HasColumnType("int");
@@ -240,7 +242,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
         {
             b.ToTable("DevicePollRuns",t=>
             {
-                t.HasTrigger("TR_DevicePollRuns_History");t.UseSqlOutputClause(false);
+                t.HasTrigger("TR_DevicePollRuns_History");t.HasTrigger("TR_DevicePollRuns_Format");t.UseSqlOutputClause(false);
                 t.HasCheckConstraint("CK_DevicePollRuns_Data","[FromUtc]<[UntilUtcExclusive] AND [NextAfter]>=0 AND DATEPART(TZOFFSET,[CreatedAtUtc])=0 AND DATEPART(TZOFFSET,[FromUtc])=0 AND DATEPART(TZOFFSET,[UntilUtcExclusive])=0 AND DATEPART(TZOFFSET,[FinishedAtUtc])=0 AND (([Outcome] IN(N'queued',N'collecting',N'reviewing') AND [FinishedAtUtc] IS NULL) OR ([Outcome] NOT IN(N'queued',N'collecting',N'reviewing') AND [FinishedAtUtc] IS NOT NULL AND [FinishedAtUtc]>=[CreatedAtUtc]))");
             });
             b.HasKey(x=>x.Id);

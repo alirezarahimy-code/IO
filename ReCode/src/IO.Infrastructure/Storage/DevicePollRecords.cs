@@ -15,6 +15,7 @@ public sealed class DevicePollScheduleRecord
     public int WindowSeconds {get;set;}
     public int LagSeconds {get;set;}
     public int OverlapSeconds {get;set;}
+    public string ReadFormat {get;set;}=IO.DeviceContracts.ZkAttendanceReadFormats.Ssr;
     public int TimeoutSeconds {get;set;}
     public int InCode {get;set;}
     public int OutCode {get;set;}

@@ -53,9 +53,31 @@ if(!address?.startsWith('https://127.0.0.1:')||!user?.startsWith('virtual-operat
    }
   }
   assert.notEqual(completed[0],completed[1]);
+  // Approve real non-TFT polling through the actual schedule form. The live
+  // production worker ticks the schedule, reads the child and reviews raw pages.
+  page.on('dialog',dialog=>dialog.accept());
+  await page.goto(address+'/workspace/device-schedules?deviceId='+legacyDevice+'&version='+encodeURIComponent(legacyVersion));
+  const schedule=page.locator('#schedule-form');await schedule.waitFor({state:'visible'});
+  await schedule.locator('select[name=readFormat]').selectOption('legacy-int32-minute-v1');
+  await schedule.locator('input[name=startUtc]').fill('2026-11-08T08:00:00Z');
+  await schedule.locator('input[name=everySeconds]').fill('86400');await schedule.locator('input[name=windowSeconds]').fill('3600');
+  await schedule.locator('input[name=lagSeconds]').fill('0');await schedule.locator('input[name=overlapSeconds]').fill('1800');
+  await schedule.locator('input[name=timeoutSeconds]').fill('10');await schedule.locator('input[name=inCode]').fill('4');await schedule.locator('input[name=outCode]').fill('5');
+  await schedule.locator('input[name=autoCommit]').check();await schedule.locator('input[name=confirmed]').check();
+  const scheduleId=await schedule.locator('input[name=id]').inputValue();await schedule.locator('button').click();
+  await page.locator('#notice').filter({hasText:'SQL ثبت شد'}).waitFor();
+  const pollDeadline=Date.now()+90000;let acknowledged=false;
+  while(Date.now()<pollDeadline){
+   const body=await page.evaluate(async id=>{const r=await fetch('/device-poll-schedules/'+id+'/runs?offset=0',{cache:'no-store'});if(!r.ok)throw Error('Poll HTTP '+r.status);return r.json();},scheduleId);
+   if(body.items[0]?.outcome==='succeeded'){assert.equal(body.items[0].readFormat,'legacy-int32-minute-v1');assert.equal(body.items[0].nextAfter,103);assert.equal(body.items[0].receivedCount,103);acknowledged=true;break;}
+   await page.waitForTimeout(100);
+  }
+  assert(acknowledged,'Legacy polling did not complete acquisition and approved automatic review');
+  await page.locator('#refresh').click();const scheduleRow=page.locator('#schedules li').filter({hasText:scheduleId});
+  await scheduleRow.filter({hasText:'2026-11-08T09:00:00'}).waitFor();
+  await scheduleRow.getByRole('button',{name:'توقف مصوب'}).click();await scheduleRow.filter({hasText:'متوقف'}).waitFor();
   // Exercise actual operator-scope administration forms with the explicitly
   // granted human administrator, targeting the OTHER (worker) identity.
-  page.on('dialog',dialog=>dialog.accept());
   await page.goto(address+'/workspace/devices');await page.locator('#device-access').waitFor({state:'visible'});
   await page.locator('#scope-operator input[name=userId]').fill(scopeUser);await page.locator('#scope-operator button').click();
   await page.locator('#scope-policy').filter({hasText:scopeUser}).waitFor();

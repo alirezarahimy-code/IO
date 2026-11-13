@@ -53,5 +53,7 @@ internal static class LegacyAttendanceReadTests
   var retried=await Q(db=>db.DeviceAttendanceDownloads.AsNoTracking().SingleAsync(x=>x.Id==retry));check(retried.ReadFormat==ZkAttendanceReadFormats.Legacy&&await Q(db=>db.DeviceCommandRetries.AnyAsync(x=>x.Id==retry&&x.PreviousAttendanceDownloadId==partial)),"S09 explicit read retry carries immutable legacy format and lineage without defaulting the child to SSR");await Use<DeviceAttendanceDownloads,Guid>(s=>s.CancelAsync(actor,retry,retried.Version));
   bool down=false;try{await Q(async db=>{await db.GetService<IMigrator>().MigrateAsync("20261112200000_DeviceIdleSetting");return true;});}catch(SqlException e)when(e.Number==51029){down=true;}
   check(down&&await Q(db=>db.DeviceAttendanceDownloads.AnyAsync(x=>x.Id==id&&x.ReadFormat==ZkAttendanceReadFormats.Legacy)),"S09 legacy downgrade refuses loss of retained format provenance rather than silently relabelling it SSR");
+  // Newer empty schedule schemas may have been removed before the read-history guard.
+  await Q(async db=>{await db.GetService<IMigrator>().MigrateAsync();return true;});
  }
 }
