@@ -140,7 +140,7 @@ internal static class VirtualDeviceLab
         Console.WriteLine($"PASS {count} stateful legacy TCP write checks; private JSON laboratory protocol, not vendor SDK acceptance");
     }
 
-    private sealed class Device : IAsyncDisposable, IZkUserWriteSession
+    internal sealed class Device : IAsyncDisposable, IZkUserWriteSession
     {
         private readonly TcpListener listener = new(IPAddress.Loopback, 0);
         private readonly CancellationTokenSource shutdown = new();

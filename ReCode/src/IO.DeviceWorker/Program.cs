@@ -44,8 +44,11 @@ await builder.Build().RunAsync();
 
 internal sealed record NativeEndpoint(Guid DeviceId, string Address, int Port, int MachineNumber, string ExpectedSerial, bool AllowDefaultCommunicationKey, bool AllowClockSet=false,bool AllowUserRead=false,bool AttendanceOnlyUserWriteApproved=false,bool AllowAttendanceRead=false,bool AllowAdvancedSettingsRead=false,string UserReadFormat=ZkUserReadFormats.Ssr,string UserWriteFormat=ZkUserReadFormats.Ssr,bool AllowRestart=false,bool AllowNetworkIpChange=false,bool AllowNetworkInspect=false,string[]? ApprovedNetworkAddresses=null,bool AllowIdleMinutesWrite=false,ZkIdleApproval? IdleMinutesApproval=null);
 internal sealed record WorkerConfiguration(Guid ServiceUserId, TcpConnectionDiagnostic.AllowedEndpoint[] AllowedEndpoints, NativeEndpoint[] NativeEndpoints, string? DotnetPath, string? BridgePath, bool EnableOperations,bool EnableUserDownloads,bool EnableUserUploads,bool EnableAttendanceDownloads,bool EnableSchedules,bool EnableSettingsReads);
-internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfiguration configuration) : BackgroundService
+internal class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfiguration configuration) : BackgroundService
 {
+    // No configuration switch can enable COM on Linux. The internal test subclass
+    // exercises the identical queue/credential/process path with a test-only relay.
+    protected virtual bool NativePlatformSupported => OperatingSystem.IsWindows();
     protected override Task ExecuteAsync(CancellationToken stoppingToken) => Task.WhenAll(Enumerable.Range(0, 4).Select(_ => Loop(stoppingToken)));
 
     private async Task Loop(CancellationToken ct)
@@ -119,7 +122,7 @@ internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfig
         if (native is null) return await TcpConnectionDiagnostic.RunAsync(claim, configuration.AllowedEndpoints, ct);
         if (claim.Profile != "zk-standalone") return "unsupported";
         if (claim.Port!=native.Port || !System.Net.IPAddress.TryParse(claim.Host,out var address) || !System.Net.IPAddress.Parse(native.Address).Equals(address)) return "endpoint-denied";
-        if (!OperatingSystem.IsWindows()) return "unsupported";
+        if (!NativePlatformSupported) return "unsupported";
         await using var scope = scopes.CreateAsyncScope();
         var credential = await scope.ServiceProvider.GetRequiredService<DeviceConnectionCredential>().LoadAsync(configuration.ServiceUserId,claim,native.AllowDefaultCommunicationKey,ct);
         if (credential is null) return "credential-unavailable";
@@ -133,7 +136,7 @@ internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfig
         var native=configuration.NativeEndpoints.SingleOrDefault(x=>x.DeviceId==claim.DeviceId);
         // Installation approval is NOT a claim of model compatibility. No access-control
         // terminals are admitted; approval requires the isolated lab acceptance procedure.
-        if(native is null||!native.AttendanceOnlyUserWriteApproved||native.UserReadFormat!=claim.WriteFormat||native.UserWriteFormat!=claim.WriteFormat||!ZkUserReadFormats.IsKnown(claim.WriteFormat)||!OperatingSystem.IsWindows())return new("unsupported");
+        if(native is null||!native.AttendanceOnlyUserWriteApproved||native.UserReadFormat!=claim.WriteFormat||native.UserWriteFormat!=claim.WriteFormat||!ZkUserReadFormats.IsKnown(claim.WriteFormat)||!NativePlatformSupported)return new("unsupported");
         if(claim.Port!=native.Port||!System.Net.IPAddress.TryParse(claim.Host,out var address)||!System.Net.IPAddress.Parse(native.Address).Equals(address))return new("failed-before-write");
         DeviceCommunicationKey? credential;
         await using(var scope=scopes.CreateAsyncScope())credential=await scope.ServiceProvider.GetRequiredService<DeviceUserUploads>().CredentialAsync(configuration.ServiceUserId,claim,native.AllowDefaultCommunicationKey,ct);
@@ -144,7 +147,7 @@ internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfig
     private async Task<NativeAttendanceReadSupervisor.Result> DownloadAttendance(DeviceAttendanceDownloads.Claim claim,CancellationToken ct)
     {
         var native=configuration.NativeEndpoints.SingleOrDefault(x=>x.DeviceId==claim.DeviceId);
-        if(native is null||!native.AllowAttendanceRead||!OperatingSystem.IsWindows())return new("unsupported",0);
+        if(native is null||!native.AllowAttendanceRead||!NativePlatformSupported)return new("unsupported",0);
         if(claim.Port!=native.Port||!System.Net.IPAddress.TryParse(claim.Host,out var address)||!System.Net.IPAddress.Parse(native.Address).Equals(address))return new("endpoint-denied",0);
         DeviceCommunicationKey? credential;
         await using(var scope=scopes.CreateAsyncScope())credential=await scope.ServiceProvider.GetRequiredService<DeviceAttendanceDownloads>().CredentialAsync(configuration.ServiceUserId,claim,native.AllowDefaultCommunicationKey,ct);
@@ -159,7 +162,7 @@ internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfig
     private async Task<NativeUserReadSupervisor.Result> DownloadUsers(DeviceUserDownloads.Claim claim,CancellationToken ct)
     {
         var native=configuration.NativeEndpoints.SingleOrDefault(x=>x.DeviceId==claim.DeviceId);
-        if(native is null||!native.AllowUserRead||native.UserReadFormat!=claim.ReadFormat||!ZkUserReadFormats.IsKnown(native.UserReadFormat)||!OperatingSystem.IsWindows())return new("unsupported",0);
+        if(native is null||!native.AllowUserRead||native.UserReadFormat!=claim.ReadFormat||!ZkUserReadFormats.IsKnown(native.UserReadFormat)||!NativePlatformSupported)return new("unsupported",0);
         if(claim.Port!=native.Port||!System.Net.IPAddress.TryParse(claim.Host,out var address)||!System.Net.IPAddress.Parse(native.Address).Equals(address))return new("endpoint-denied",0);
         DeviceCommunicationKey? credential;
         await using(var scope=scopes.CreateAsyncScope())credential=await scope.ServiceProvider.GetRequiredService<DeviceUserDownloads>().CredentialAsync(configuration.ServiceUserId,claim,native.AllowDefaultCommunicationKey,ct);
@@ -176,7 +179,7 @@ internal sealed class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfig
         var native=configuration.NativeEndpoints.SingleOrDefault(x=>x.DeviceId==claim.DeviceId);
         if(native is null||claim.Profile!="zk-standalone")return new("unsupported");
         if(claim.Port!=native.Port||!System.Net.IPAddress.TryParse(claim.Host,out var address)||!System.Net.IPAddress.Parse(native.Address).Equals(address))return new("endpoint-denied");
-        if(!OperatingSystem.IsWindows()||(claim.Kind=="device.restart"&&!native.AllowRestart)||(claim.Kind=="clock.set"&&!native.AllowClockSet)||(claim.Kind=="settings.read"&&(!configuration.EnableSettingsReads||!native.AllowAdvancedSettingsRead)))return new("unsupported");
+        if(!NativePlatformSupported||(claim.Kind=="device.restart"&&!native.AllowRestart)||(claim.Kind=="clock.set"&&!native.AllowClockSet)||(claim.Kind=="settings.read"&&(!configuration.EnableSettingsReads||!native.AllowAdvancedSettingsRead)))return new("unsupported");
         if(claim.Kind=="settings.idle.set"&&(!native.AllowIdleMinutesWrite||claim.IdlePlan is not{} idle||idle.Serial!=native.ExpectedSerial||native.IdleMinutesApproval?.Allows(idle)!=true))return new("unsupported");
         var target=native.Address;
         if(claim.Kind is "network.ip.set" or "network.inspect")

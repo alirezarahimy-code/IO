@@ -440,6 +440,7 @@ try
     await DeviceNetworkTests.RunAsync(connection, Check);
     await DeviceIdleTests.RunAsync(connection, Check);
     await DeviceSafetyRegressionTests.RunAsync(connection, Check);
+    await VirtualWorkerTests.RunAsync(connection, Check);
     Console.WriteLine("PASS disposable SQL Server integration checks");
     return 0;
 }

@@ -3,8 +3,17 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../IO.DeviceRuntime.Tests/VirtualDeviceLab.cs" Link="VirtualDeviceLab.cs" />
+    <ProjectReference Include="../../src/IO.DeviceWorker/IO.DeviceWorker.csproj" />
+    <ProjectReference Include="../IO.DeviceRuntime.Tests/IO.DeviceRuntime.Tests.csproj" ReferenceOutputAssembly="false" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="../../src/IO.Infrastructure/IO.Infrastructure.csproj" />
     <ProjectReference Include="../../src/IO.Web/IO.Web.csproj" />
   </ItemGroup>
+  <Target Name="CopyVirtualRelay" AfterTargets="Build">
+    <ItemGroup>
+      <VirtualRelay Include="../IO.DeviceRuntime.Tests/bin/$(Configuration)/$(TargetFramework)/IO.DeviceRuntime.Tests.dll;../IO.DeviceRuntime.Tests/bin/$(Configuration)/$(TargetFramework)/IO.DeviceRuntime.Tests.runtimeconfig.json;../IO.DeviceRuntime.Tests/bin/$(Configuration)/$(TargetFramework)/IO.DeviceRuntime.Tests.deps.json;../IO.DeviceRuntime.Tests/bin/$(Configuration)/$(TargetFramework)/IO.DeviceContracts.dll" />
+    </ItemGroup>
+    <Copy SourceFiles="@(VirtualRelay)" DestinationFolder="$(OutDir)virtual-relay" />
+  </Target>
 </Project>
