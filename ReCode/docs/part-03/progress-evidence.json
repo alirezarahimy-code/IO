@@ -8,15 +8,15 @@
     "realDeviceExecution": "not performed",
     "testingSequence": "User explicitly requires virtual-device software completion now, copying reference behavior as appropriate, with real Windows SDK/multidevice acceptance deferred to the end. Lack of local hardware must not block further software implementation."
   },
-  "latestVerifiedCode": "f08cbb3fd06ac08d98ababd948ab7100ecb67bf4",
+  "latestVerifiedCode": "d3290fc5d3a3b8db2bc80d675fd4917062cc91c0",
   "checks": {
-    "integrationPassLines": 855,
+    "integrationPassLines": 878,
     "foundation": 48,
     "domain": 26,
     "portableNativeBoundaryAndFileParser": 61,
-    "permissions": 123,
+    "permissions": 125,
     "pagesAndHelp": 52,
-    "foundationMigrations": 43,
+    "foundationMigrations": 45,
     "foundationTables": 60,
     "s08ServiceChecks": 14,
     "s08HttpChecks": 5,
@@ -82,17 +82,24 @@
   "runs": [
     {
       "conclusion": "success",
-      "databaseId": 43510974928,
-      "headSha": "f08cbb3fd06ac08d98ababd948ab7100ecb67bf4",
+      "databaseId": 43513411066,
+      "headSha": "d3290fc5d3a3b8db2bc80d675fd4917062cc91c0",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43510974928"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43513411066"
     },
     {
       "conclusion": "success",
-      "databaseId": 43510974900,
-      "headSha": "f08cbb3fd06ac08d98ababd948ab7100ecb67bf4",
+      "databaseId": 43513411041,
+      "headSha": "d3290fc5d3a3b8db2bc80d675fd4917062cc91c0",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43510974900"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43513411041"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 43513411052,
+      "headSha": "d3290fc5d3a3b8db2bc80d675fd4917062cc91c0",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43513411052"
     }
   ],
   "remainingSoftware": [
@@ -140,14 +147,15 @@
   "legacyPollingEvidence": "s10-legacy-polling-evidence.json",
   "functionKeyReadEvidence": "s11-function-key-read-evidence.json",
   "modelAndPolicyDecisionRegister": "model-and-policy-decisions.fa.md",
-  "settingsPayloadBudgetFollowup": "f08364d: migration44 implemented; platform43512541829 and light43512541801 success, SQL43512541814 cancelled by superseding code push; not counted as verified.",
+  "settingsPayloadBudgetFollowup": "Verified as part of d3290fc full SQL878/platform/light success; f08364d own SQL run was cancelled and is not separately accepted.",
   "currentCodeFollowup": {
     "rawSettingsImplementedCode": "d3290fc5d3a3b8db2bc80d675fd4917062cc91c0",
-    "rawSettings": "five closed model-approved raw parameters; migration45; exact-SHA SQL/Windows/Linux pending",
+    "rawSettings": "d3290fc passed SQL878 and Windows/Linux/light; installed actual model contract still required. e202dde adds further HTTPS/worker lost-ACK/review coverage.",
     "keyAuthorization": "independent read/execute grants, live claim and history redaction implemented; pending exact-SHA CI",
     "expectedFullSuitePassLines": 886,
     "expectedFoundationMigrations": 45,
     "expectedPermissions": 127,
-    "part3Complete": false
+    "part3Complete": false,
+    "keyAuthorizationImplementedCode": "e202dde7f79de44ca71365ee173432ff3e439bf0"
   }
 }

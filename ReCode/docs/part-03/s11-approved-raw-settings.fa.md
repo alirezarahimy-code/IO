@@ -1,6 +1,6 @@
 # S11 — پنج پارامتر عددی با قرارداد دقیق نصب
 
-وضعیت: **پیاده‌سازی و آزمون محلی قرارداد/DOM؛ Windows/Linux کد d3290fc موفق؛ SQL این SHA و آزمون followup مجوز/مسیر واقعی جدید هنوز تأیید نشده‌اند. تکمیل بخش سوم نیست.**
+وضعیت: **پیاده‌سازی و آزمون محلی قرارداد/DOM؛ هستهٔ d3290fc با SQL۸۷۸ و Windows/Linux/light موفق؛ آزمون followup مجوز/مسیر واقعی جدید هنوز تأیید نشده است. تکمیل بخش سوم نیست.**
 
 ## منشأ، نه حدس واحد یا دامنه
 
@@ -30,7 +30,7 @@
 
 ## آزمون و مانده
 
-`RawSettingTests`: ۲۲ بررسی موفق محلی، از جمله child واقعی و deadline؛ session مصنوعی نه SDK. `device-raw-ui-check.cjs`: پیش‌نمایش/تأیید، replay دقیق پاسخ نامعلوم، safe text و پاکسازی revoke موفق. `DeviceRawSettingTests`: ۱۵ بررسی SQL/مجوز/revoke/credential/review/retention افزوده شده، اجرای CI لازم است. Windows/Linux و SQL کامل همان SHA شرط پذیرش نرم‌افزاری است. دستگاه واقعی و چنددستگاه/قطعی همچنان برای انتها باقی‌اند.
+`RawSettingTests`: ۲۲ بررسی موفق محلی، از جمله child واقعی و deadline؛ session مصنوعی نه SDK. `device-raw-ui-check.cjs`: پیش‌نمایش/تأیید، replay دقیق پاسخ نامعلوم، safe text و پاکسازی revoke موفق. `DeviceRawSettingTests`: ۱۵ بررسی SQL/مجوز/revoke/credential/review/retention افزوده شده، در d3290fc همراه suite کامل۸۷۸ موفق شد؛ [شاهد دقیق](s11-approved-raw-settings-evidence.json). Windows/Linux و SQL کامل همان SHA برای followup نیز شرط پذیرش نرم‌افزاری است. دستگاه واقعی و چنددستگاه/قطعی همچنان برای انتها باقی‌اند.
 
 ### تکمیل شاهد مسیر واقعی در برش بعدی
 

@@ -1,0 +1,40 @@
+{
+  "scope": "Five closed installed-model-approved raw parameters, not generic SDK writes or actual model acceptance",
+  "verifiedCode": "d3290fc5d3a3b8db2bc80d675fd4917062cc91c0",
+  "runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 43513411066,
+      "headSha": "d3290fc5d3a3b8db2bc80d675fd4917062cc91c0",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43513411066"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 43513411041,
+      "headSha": "d3290fc5d3a3b8db2bc80d675fd4917062cc91c0",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43513411041"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 43513411052,
+      "headSha": "d3290fc5d3a3b8db2bc80d675fd4917062cc91c0",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43513411052"
+    }
+  ],
+  "integrationNamedPassLines": 878,
+  "foundationMigrations": 45,
+  "permissions": 125,
+  "localContractChecks": 22,
+  "offlineDomFiles": 16,
+  "rawSqlChecks": 15,
+  "status": "software-verified-core-followup-pending",
+  "followup": "e202dde adds independent function key permissions plus two actual HTTPS/SQL/worker/child/private-TCP raw mutation lost ACK/review tests; exact-SHA full CI pending.",
+  "actualModelContract": "not supplied; production writes default off; exact product firmware values unit effect and evidence installation approval required",
+  "part3Complete": false,
+  "softwareComplete": false,
+  "realSdkExecuted": false,
+  "hardwareVerified": false
+}
