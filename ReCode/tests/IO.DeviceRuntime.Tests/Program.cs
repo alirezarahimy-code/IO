@@ -9,6 +9,8 @@ if (args is ["--attendance-read-contracts"]) { await AttendanceReadContractTests
 
 if (args is ["--reference-parity"]) { ReferenceParityTests.Run(); return; }
 
+if (args is ["--raw-setting-contracts"]) { await RawSettingTests.RunAsync(); return; }
+
 if (args is ["--idle-contracts"]) { await IdleTests.RunAsync(); return; }
 
 if (args is ["--network-contracts"]) { await NetworkTests.RunAsync(); return; }
@@ -86,6 +88,11 @@ if (args is not ["--verify"])
         {
             if(operation.Connection.ExpectedSerial=="network-hang"){await Task.Delay(TimeSpan.FromMinutes(1));return;}
             Console.WriteLine(JsonSerializer.Serialize(ZkNetworkExecutor.Execute(operation,new NetworkTests.Session(operation.Connection.Address))));return;
+        }
+        if(operation.Operation=="settings.raw.set")
+        {
+            if(operation.Connection.ExpectedSerial=="raw-hang"){await Task.Delay(TimeSpan.FromMinutes(1));return;}
+            Console.WriteLine(JsonSerializer.Serialize(ZkRawSettingExecutor.Execute(operation,new RawSettingTests.Session())));return;
         }
         if(operation.Operation=="settings.idle.set")
         {

@@ -21,6 +21,7 @@ var targets = builder.Configuration.GetSection("IO:DeviceWorker:AllowedEndpoints
 if (targets.Any(t => t.DeviceId == Guid.Empty || !System.Net.IPAddress.TryParse(t.Address, out _) || t.Port is < 1 or > 65535))
     throw new InvalidOperationException("Invalid pinned diagnostic endpoint.");
 var native = builder.Configuration.GetSection("IO:DeviceWorker:NativeEndpoints").Get<NativeEndpoint[]>() ?? [];
+if(native.Any(t=>t.RawSettingsApprovals is not null&&(!t.AllowRawSettingsWrite||!t.AllowAdvancedSettingsRead||t.RawSettingsApprovals.Length==0||t.RawSettingsApprovals.Any(a=>a is null||!a.IsValid())||t.RawSettingsApprovals.Select(a=>(a.Product,a.Firmware,a.Parameter,a.Unit,a.Effect,a.EvidenceReference)).Distinct().Count()!=t.RawSettingsApprovals.Length)))throw new InvalidOperationException("Invalid raw settings installation approval.");
 var dotnetPath = builder.Configuration["IO:DeviceWorker:BridgeDotnetPath"];
 var bridgePath = builder.Configuration["IO:DeviceWorker:BridgeAssemblyPath"];
 if (native.Any(t => (!new ZkProbeInput(t.DeviceId,t.Address,t.Port,t.MachineNumber,t.ExpectedSerial,0).IsValid()||!ZkUserReadFormats.IsKnown(t.UserReadFormat)||!ZkUserReadFormats.IsKnown(t.UserWriteFormat)||!ZkAttendanceReadFormats.IsKnown(t.AttendanceReadFormat)||(t.FunctionKeyReadApproval is not null&&(!t.AllowAdvancedSettingsRead||!t.FunctionKeyReadApproval.IsValid())))) ||
@@ -42,7 +43,7 @@ if(builder.Configuration.GetValue<bool>("IO:DeviceWorker:EnableHealthReports"))b
 builder.Services.AddHostedService<DiagnosticWorker>();
 await builder.Build().RunAsync();
 
-internal sealed record NativeEndpoint(Guid DeviceId, string Address, int Port, int MachineNumber, string ExpectedSerial, bool AllowDefaultCommunicationKey, bool AllowClockSet=false,bool AllowUserRead=false,bool AttendanceOnlyUserWriteApproved=false,bool AllowAttendanceRead=false,bool AllowAdvancedSettingsRead=false,string UserReadFormat=ZkUserReadFormats.Ssr,string UserWriteFormat=ZkUserReadFormats.Ssr,bool AllowRestart=false,bool AllowNetworkIpChange=false,bool AllowNetworkInspect=false,string[]? ApprovedNetworkAddresses=null,bool AllowIdleMinutesWrite=false,ZkIdleApproval? IdleMinutesApproval=null,string AttendanceReadFormat=ZkAttendanceReadFormats.Ssr,ZkFunctionKeyReadApproval? FunctionKeyReadApproval=null);
+internal sealed record NativeEndpoint(Guid DeviceId, string Address, int Port, int MachineNumber, string ExpectedSerial, bool AllowDefaultCommunicationKey, bool AllowClockSet=false,bool AllowUserRead=false,bool AttendanceOnlyUserWriteApproved=false,bool AllowAttendanceRead=false,bool AllowAdvancedSettingsRead=false,string UserReadFormat=ZkUserReadFormats.Ssr,string UserWriteFormat=ZkUserReadFormats.Ssr,bool AllowRestart=false,bool AllowNetworkIpChange=false,bool AllowNetworkInspect=false,string[]? ApprovedNetworkAddresses=null,bool AllowIdleMinutesWrite=false,ZkIdleApproval? IdleMinutesApproval=null,string AttendanceReadFormat=ZkAttendanceReadFormats.Ssr,ZkFunctionKeyReadApproval? FunctionKeyReadApproval=null,bool AllowRawSettingsWrite=false,ZkRawSettingApproval[]? RawSettingsApprovals=null);
 internal sealed record WorkerConfiguration(Guid ServiceUserId, TcpConnectionDiagnostic.AllowedEndpoint[] AllowedEndpoints, NativeEndpoint[] NativeEndpoints, string? DotnetPath, string? BridgePath, bool EnableOperations,bool EnableUserDownloads,bool EnableUserUploads,bool EnableAttendanceDownloads,bool EnableSchedules,bool EnableSettingsReads);
 internal class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfiguration configuration) : BackgroundService
 {
@@ -181,6 +182,12 @@ internal class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfiguration
         if(claim.Port!=native.Port||!System.Net.IPAddress.TryParse(claim.Host,out var address)||!System.Net.IPAddress.Parse(native.Address).Equals(address))return new("endpoint-denied");
         if(!NativePlatformSupported||(claim.Kind=="device.restart"&&!native.AllowRestart)||(claim.Kind=="clock.set"&&!native.AllowClockSet)||(claim.Kind=="settings.read"&&(!configuration.EnableSettingsReads||!native.AllowAdvancedSettingsRead)))return new("unsupported");
         if(claim.Kind=="settings.idle.set"&&(!native.AllowIdleMinutesWrite||claim.IdlePlan is not{} idle||idle.Serial!=native.ExpectedSerial||native.IdleMinutesApproval?.Allows(idle)!=true))return new("unsupported");
+        ZkRawSettingApproval? rawApproval=null;
+        if(claim.Kind=="settings.raw.set")
+        {
+            if(!native.AllowRawSettingsWrite||!native.AllowAdvancedSettingsRead||!configuration.EnableSettingsReads||claim.RawSettingPlan is not{} raw)return new("unsupported");
+            rawApproval=native.RawSettingsApprovals?.SingleOrDefault(a=>a.Allows(raw));if(rawApproval is null)return new("unsupported");
+        }
         var target=native.Address;
         if(claim.Kind is "network.ip.set" or "network.inspect")
         {
@@ -192,7 +199,7 @@ internal class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfiguration
         var credential=await scope.ServiceProvider.GetRequiredService<DeviceOperations>().CredentialAsync(configuration.ServiceUserId,claim,native.AllowDefaultCommunicationKey,ct);
         if(credential is null)return new("credential-unavailable");
         return await NativeProcessSupervisor.RunOperationAsync(configuration.DotnetPath!,configuration.BridgePath!,
-            new(new(claim.DeviceId,target,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value),claim.Kind,claim.ClockLocal,native.AllowClockSet,native.AllowAdvancedSettingsRead,native.AllowRestart,claim.NetworkPlan,native.AllowNetworkIpChange,native.AllowNetworkInspect,claim.IdlePlan,native.AllowIdleMinutesWrite,claim.Kind=="settings.idle.set"?native.IdleMinutesApproval:null,claim.Kind=="settings.read"?native.FunctionKeyReadApproval:null),claim.TimeoutSeconds,ct);
+            new(new(claim.DeviceId,target,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value),claim.Kind,claim.ClockLocal,native.AllowClockSet,native.AllowAdvancedSettingsRead,native.AllowRestart,claim.NetworkPlan,native.AllowNetworkIpChange,native.AllowNetworkInspect,claim.IdlePlan,native.AllowIdleMinutesWrite,claim.Kind=="settings.idle.set"?native.IdleMinutesApproval:null,claim.Kind=="settings.read"?native.FunctionKeyReadApproval:null,claim.RawSettingPlan,native.AllowRawSettingsWrite,rawApproval),claim.TimeoutSeconds,ct);
     }
 
 }

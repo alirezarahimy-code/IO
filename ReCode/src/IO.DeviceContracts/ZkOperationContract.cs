@@ -3,13 +3,14 @@ using System.Text.Json.Serialization;
 
 namespace IO.DeviceContracts;
 
-public sealed record ZkOperationInput(ZkProbeInput Connection, string Operation, string? ClockLocal, bool AllowClockSet,bool AllowAdvancedSettingsRead=false,bool AllowRestart=false,ZkNetworkPlan? NetworkPlan=null,bool AllowNetworkIpChange=false,bool AllowNetworkInspect=false,ZkIdlePlan? IdlePlan=null,bool AllowIdleMinutesWrite=false,ZkIdleApproval? IdleApproval=null,ZkFunctionKeyReadApproval? FunctionKeyReadApproval=null)
+public sealed record ZkOperationInput(ZkProbeInput Connection, string Operation, string? ClockLocal, bool AllowClockSet,bool AllowAdvancedSettingsRead=false,bool AllowRestart=false,ZkNetworkPlan? NetworkPlan=null,bool AllowNetworkIpChange=false,bool AllowNetworkInspect=false,ZkIdlePlan? IdlePlan=null,bool AllowIdleMinutesWrite=false,ZkIdleApproval? IdleApproval=null,ZkFunctionKeyReadApproval? FunctionKeyReadApproval=null,ZkRawSettingPlan? RawSettingPlan=null,bool AllowRawSettingsWrite=false,ZkRawSettingApproval? RawSettingApproval=null)
 {
     public bool IsValid() => Connection is not null && Connection.IsValid() &&
         (FunctionKeyReadApproval is null||(Operation=="settings.read"&&AllowAdvancedSettingsRead&&FunctionKeyReadApproval.IsValid()))&&
-        ((Operation=="settings.idle.set"&&NetworkPlan is null&&ClockLocal is null&&AllowIdleMinutesWrite&&IdlePlan?.IsValid()==true&&IdlePlan.Serial==Connection.ExpectedSerial&&IdleApproval?.Allows(IdlePlan)==true) ||
+        ((Operation=="settings.raw.set"&&RawSettingPlan?.IsValid()==true&&RawSettingPlan.Serial==Connection.ExpectedSerial&&AllowAdvancedSettingsRead&&AllowRawSettingsWrite&&RawSettingApproval?.Allows(RawSettingPlan)==true&&NetworkPlan is null&&IdlePlan is null&&IdleApproval is null&&ClockLocal is null) ||
+        (RawSettingPlan is null&&RawSettingApproval is null&&((Operation=="settings.idle.set"&&NetworkPlan is null&&ClockLocal is null&&AllowIdleMinutesWrite&&IdlePlan?.IsValid()==true&&IdlePlan.Serial==Connection.ExpectedSerial&&IdleApproval?.Allows(IdlePlan)==true) ||
         (IdlePlan is null&&IdleApproval is null&&((NetworkPlan is not null&&NetworkPlan.IsValidFor(Operation)&&ClockLocal is null&&Connection.Address==NetworkPlan.TargetAddress(Operation)&&Connection.ExpectedSerial==NetworkPlan.Serial&&(Operation=="network.ip.set"?AllowNetworkIpChange:AllowNetworkInspect)) ||
-        (NetworkPlan is null&&((Operation == "device.restart" && AllowRestart && ClockLocal is null) || (Operation == "information.read" && ClockLocal is null) || (Operation=="settings.read" && AllowAdvancedSettingsRead && ClockLocal is null) || (Operation == "clock.set" && AllowClockSet && ValidClock(ClockLocal)))))));
+        (NetworkPlan is null&&((Operation == "device.restart" && AllowRestart && ClockLocal is null) || (Operation == "information.read" && ClockLocal is null) || (Operation=="settings.read" && AllowAdvancedSettingsRead && ClockLocal is null) || (Operation == "clock.set" && AllowClockSet && ValidClock(ClockLocal)))))))));
     public static bool ValidClock(string? value) => value is not null && value.Length == 19 &&
         DateTime.TryParseExact(value,"yyyy-MM-dd HH:mm:ss",CultureInfo.InvariantCulture,DateTimeStyles.None,out var time) &&
         time.ToString("yyyy-MM-dd HH:mm:ss",CultureInfo.InvariantCulture)==value;
@@ -28,12 +29,13 @@ public sealed record ZkDeviceInformation(string Serial, string? Product, string?
             new[]{Records,RecordCapacity,Users,UserCapacity,Administrators,Fingers,FingerCapacity,Faces,FaceCapacity}.All(x=>x is null or >=0);
     }
 }
-public sealed record ZkOperationOutput(string State, ZkDeviceInformation? Information=null,ZkAdvancedSettings? Settings=null,ZkNetworkObservation? Network=null,ZkIdleObservation? Idle=null)
+public sealed record ZkOperationOutput(string State, ZkDeviceInformation? Information=null,ZkAdvancedSettings? Settings=null,ZkNetworkObservation? Network=null,ZkIdleObservation? Idle=null,ZkRawSettingObservation? RawSetting=null)
 {
-    public bool IsValidFor(ZkOperationInput input) => input.IsValid()&&(Idle is null||input.Operation=="settings.idle.set")&&(Network is null||input.Operation=="network.inspect")&&(State switch
+    public bool IsValidFor(ZkOperationInput input) => input.IsValid()&&(RawSetting is null||input.Operation=="settings.raw.set")&&(Idle is null||input.Operation=="settings.idle.set")&&(Network is null||input.Operation=="network.inspect")&&(State switch
     {
         "succeeded" => input.Operation switch
         {
+            "settings.raw.set" => Information is null&&Settings is null&&Network is null&&Idle is null&&RawSetting?.Matches(input.RawSettingPlan!)==true,
             "settings.idle.set" => Information is null&&Settings is null&&Network is null&&Idle is not null&&Idle.IsValid()&&Idle.Serial==input.IdlePlan!.Serial&&Idle.Product==input.IdlePlan.Product&&Idle.Firmware==input.IdlePlan.Firmware&&Idle.Minutes==input.IdlePlan.NewMinutes,
             "information.read" => Settings is null&&Information is not null&&Information.IsValid()&&Information.Serial==input.Connection.ExpectedSerial,
             "network.inspect" => Information is null&&Settings is null&&Network is not null&&Network.IsValid()&&Network.Serial==input.Connection.ExpectedSerial&&Network.ConnectedAddress==input.Connection.Address,
@@ -43,7 +45,7 @@ public sealed record ZkOperationOutput(string State, ZkDeviceInformation? Inform
             "clock.set" => input.AllowClockSet&&Information is null&&Settings is null,
             _=>false
         },
-        "unsupported" or "identity-mismatch" or "failed" or "unknown" => Information is null&&Settings is null&&Network is null&&Idle is null,
+        "unsupported" or "identity-mismatch" or "failed" or "unknown" => Information is null&&Settings is null&&Network is null&&Idle is null&&RawSetting is null,
         _ => false
     });
 }

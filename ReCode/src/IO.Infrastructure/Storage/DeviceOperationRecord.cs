@@ -11,6 +11,7 @@ public sealed class DeviceOperationRecord
     public int TimeoutSeconds { get; set; }
     public string TimeZoneId { get; set; } = null!;
     public DateTimeOffset? TargetUtc { get; set; }
+    public string? RawSettingPlanJson { get; set; }
     public string? IdlePlanJson { get; set; }
     public string? NetworkPlanJson { get; set; }
     public string State { get; set; } = "pending";

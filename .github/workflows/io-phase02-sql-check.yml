@@ -73,6 +73,9 @@ jobs:
       - name: Test exact-model idle minutes and native isolation
         working-directory: ReCode
         run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --idle-contracts
+      - name: Test approved closed raw settings and native isolation
+        working-directory: ReCode
+        run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --raw-setting-contracts
       - name: Test explicitly approved read-only function key contract
         working-directory: ReCode
         run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --function-key-read-contracts

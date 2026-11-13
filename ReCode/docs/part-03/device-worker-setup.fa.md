@@ -141,3 +141,7 @@ UserWriteFormat پیش‌فرض ssr-v1 است. ارسال legacy به UserWriteF
 ## خواندن اختیاری کلید عملکردی و گزارش خام شبکه
 
 [قرارداد نصب و نمایش کلید عملکردی، NetMask و GATEIPAddress](s11-function-key-read.fa.md): `FunctionKeyReadApproval` پیش‌فرض null است؛ تنها محصول/firmware و شماره‌کلیدهای صریحاً مصوب نصب پذیرفته می‌شوند. این فهرست رمز یا فرمان نوشتن نیست و از فرم وب ساخته نمی‌شود. گزارش mask/gateway مقصد مجاز اتصال نیست. worker و bridge هماهنگ منتشر شوند؛ مجوزهای مستقل settings.read/execute و scope قبلی حفظ می‌شوند.
+
+## پنج پارامتر عددی مدل مصوب
+
+قرارداد و همهٔ flagها/مجوزهای خاموش پیش‌فرض در [راهنمای تنظیمات عددی](s11-approved-raw-settings.fa.md) است. `RawSettingsApprovals` جای قرارداد سازنده یا پذیرش دستگاه واقعی نیست؛ worker و bridge باید هماهنگ منتشر شوند. هیچ نمونهٔ فعال بدون مدل/firmware مصوب توصیه نمی‌شود.

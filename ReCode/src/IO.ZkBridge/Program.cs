@@ -14,7 +14,7 @@ internal static class Program
         try
         {
             using var stdin=Console.OpenStandardInput();using var bytes=new MemoryStream();var buffer=new byte[1024];int count;
-            while((count=stdin.Read(buffer,0,buffer.Length))>0){if(bytes.Length+count>8192)return Result("invalid-input");bytes.Write(buffer,0,count);}
+            while((count=stdin.Read(buffer,0,buffer.Length))>0){if(bytes.Length+count>32768)return Result("invalid-input");bytes.Write(buffer,0,count);}
             var json=new UTF8Encoding(false,true).GetString(bytes.ToArray());using var document=JsonDocument.Parse(json);
             if(document.RootElement.TryGetProperty("ReadAttendance",out _))
             {
@@ -80,6 +80,7 @@ internal static class Program
                 string after;if(!(bool)sdk.GetSerialNumber(input.MachineNumber,out after)||after?.Trim()!=input.ExpectedSerial)return new("identity-mismatch");
                 return new("succeeded",Settings:settings);
             }
+            if(operation=="settings.raw.set")return ZkRawSettingExecutor.Execute(request!,new RawSettingSession(instance,input.MachineNumber));
             if(operation=="settings.idle.set")return ZkIdleSettingExecutor.Execute(request!,new IdleSettingSession(instance,input.MachineNumber));
             if(operation is "network.ip.set" or "network.inspect")return ZkNetworkExecutor.Execute(request!,new NetworkSession(instance,input.MachineNumber));
             if(operation=="device.restart")return ZkRestartExecutor.Execute(allowRestart,new RestartSession(instance,input.MachineNumber));
@@ -118,6 +119,14 @@ internal static class Program
 
     // SSR_GetShortkey has no machine parameter in the observed COM interface.
     // This is the one isolated, connected and serial-pinned SDK instance.
+    private sealed class RawSettingSession(object instance,int machine):IZkRawSettingSession
+    {
+        public string? Serial(){string value;return (bool)((dynamic)instance).GetSerialNumber(machine,out value)?value?.Trim():null;}
+        public string? Product(){string value;return (bool)((dynamic)instance).GetProductCode(machine,out value)?value:null;}
+        public string? Firmware(){string value;return (bool)((dynamic)instance).GetFirmwareVersion(machine,out value)?value:null;}
+        public int? Read(string parameter){int value=0;return (bool)((dynamic)instance).GetDeviceInfo(machine,ZkRawParameters.Code(parameter),ref value)?value:null;}
+        public bool Set(string parameter,int value)=>(bool)((dynamic)instance).SetDeviceInfo(machine,ZkRawParameters.Code(parameter),value);
+    }
     private sealed class FunctionKeySession(object instance):IZkFunctionKeyReadSession
     {
         public ZkFunctionKeyValue? Read(int index)

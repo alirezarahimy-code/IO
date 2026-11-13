@@ -12,14 +12,15 @@ namespace IO.Infrastructure.Devices;
 /// <summary>Closed typed operations: information, confirmed clock/restart/IP and exact-model idle minutes. No arbitrary SDK writes or enrollment.</summary>
 public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transaction,TimeProvider clock,IDataProtectionProvider protection)
 {
+    public const string SetRaw="devices.settings.raw.set",ExecuteRaw="devices.settings.raw.execute";
     public const string SetIdle="devices.settings.idle.set",ExecuteIdle="devices.settings.idle.execute",SetIp="devices.network.ip.set",InspectNetwork="devices.network.read",ExecuteNetworkWrite="devices.network.ip.execute",ExecuteNetworkRead="devices.network.read.execute",Restart="devices.restart",ExecuteRestart="devices.restart.execute",Read="devices.info.read",SetClock="devices.clock.set",Execute="devices.operations.execute",ReadSettings="devices.settings.read",ExecuteSettings="devices.settings.read.execute";
-    public sealed record Claim(Guid Id,Guid Token,Guid DeviceId,string Profile,string? Host,int? Port,string Kind,string? ClockLocal,int TimeoutSeconds,ZkNetworkPlan? NetworkPlan=null,ZkIdlePlan? IdlePlan=null);
+    public sealed record Claim(Guid Id,Guid Token,Guid DeviceId,string Profile,string? Host,int? Port,string Kind,string? ClockLocal,int TimeoutSeconds,ZkNetworkPlan? NetworkPlan=null,ZkIdlePlan? IdlePlan=null,ZkRawSettingPlan? RawSettingPlan=null);
     public sealed record View(Guid Id,Guid DeviceId,string Kind,string State,DateTimeOffset RequestedAtUtc,DateTimeOffset? FinishedAtUtc,
         DateTimeOffset? TargetUtc,string TimeZoneId,ZkDeviceInformation? Information,Guid? ResolutionInfoId,DateTimeOffset? ResolvedAtUtc,byte[] Version,ZkNetworkPlan? NetworkPlan=null,ZkNetworkObservation? Network=null,ZkIdlePlan? IdlePlan=null,ZkIdleObservation? Idle=null);
-    private static string Permission(string kind)=>kind switch{"settings.idle.set"=>SetIdle,"network.ip.set"=>SetIp,"network.inspect"=>InspectNetwork,"device.restart"=>Restart,"information.read"=>Read,"settings.read"=>ReadSettings,"clock.set"=>SetClock,_=>throw new ArgumentException("Unknown operation.")};
-    public Task<Guid> RequestAsync(Guid actor,Guid operationId,Guid deviceId,byte[] expectedDeviceVersion,string kind,int timeoutSeconds,DateTimeOffset? targetUtc,string? confirmation,CancellationToken ct=default,ZkNetworkPlan? networkPlan=null,ZkIdlePlan? idlePlan=null,string? idlePreviewHash=null)=>
-        transaction.ExecuteAsync(actor,Permission(kind),"device-operation.requested",token=>RequestInTransactionAsync(actor,operationId,deviceId,expectedDeviceVersion,kind,timeoutSeconds,targetUtc,confirmation,token,networkPlan,idlePlan,idlePreviewHash),ct);
-    internal async Task<(Guid Result,Guid Target)> RequestInTransactionAsync(Guid actor,Guid operationId,Guid deviceId,byte[] expectedDeviceVersion,string kind,int timeoutSeconds,DateTimeOffset? targetUtc,string? confirmation,CancellationToken token,ZkNetworkPlan? networkPlan=null,ZkIdlePlan? idlePlan=null,string? idlePreviewHash=null)
+    private static string Permission(string kind)=>kind switch{"settings.raw.set"=>SetRaw,"settings.idle.set"=>SetIdle,"network.ip.set"=>SetIp,"network.inspect"=>InspectNetwork,"device.restart"=>Restart,"information.read"=>Read,"settings.read"=>ReadSettings,"clock.set"=>SetClock,_=>throw new ArgumentException("Unknown operation.")};
+    public Task<Guid> RequestAsync(Guid actor,Guid operationId,Guid deviceId,byte[] expectedDeviceVersion,string kind,int timeoutSeconds,DateTimeOffset? targetUtc,string? confirmation,CancellationToken ct=default,ZkNetworkPlan? networkPlan=null,ZkIdlePlan? idlePlan=null,string? idlePreviewHash=null,ZkRawSettingPlan? rawSettingPlan=null,string? rawPreviewHash=null)=>
+        transaction.ExecuteAsync(actor,Permission(kind),"device-operation.requested",token=>RequestInTransactionAsync(actor,operationId,deviceId,expectedDeviceVersion,kind,timeoutSeconds,targetUtc,confirmation,token,networkPlan,idlePlan,idlePreviewHash,rawSettingPlan,rawPreviewHash),ct);
+    internal async Task<(Guid Result,Guid Target)> RequestInTransactionAsync(Guid actor,Guid operationId,Guid deviceId,byte[] expectedDeviceVersion,string kind,int timeoutSeconds,DateTimeOffset? targetUtc,string? confirmation,CancellationToken token,ZkNetworkPlan? networkPlan=null,ZkIdlePlan? idlePlan=null,string? idlePreviewHash=null,ZkRawSettingPlan? rawSettingPlan=null,string? rawPreviewHash=null)
     {
             if(!await transaction.HasPermissionAsync(actor,Permission(kind),token))throw new UnauthorizedAccessException();
             if(operationId==Guid.Empty||deviceId==Guid.Empty||expectedDeviceVersion is not{Length:8}||timeoutSeconds is <1 or >60||
@@ -39,11 +40,17 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
                 if(idlePlan?.IsValid()!=true||idlePreviewHash!=idlePlan.PreviewHash()||targetUtc is not null||confirmation!=ZkIdlePlan.Confirmation)throw new ArgumentException("Exact idle preview and effect confirmation required.");
             }
             else if(idlePlan is not null||idlePreviewHash is not null)throw new ArgumentException("Idle data cannot enter another typed operation.");
+            if(kind=="settings.raw.set")
+            {
+                if(!await transaction.HasPermissionAsync(actor,ReadSettings,token))throw new UnauthorizedAccessException();
+                if(rawSettingPlan?.IsValid()!=true||rawPreviewHash!=rawSettingPlan.PreviewHash()||targetUtc is not null||confirmation!=ZkRawSettingPlan.Confirmation)throw new ArgumentException("Exact approved raw setting preview required.");
+            }
+            else if(rawSettingPlan is not null||rawPreviewHash is not null)throw new ArgumentException("Raw setting plan cannot enter another operation.");
             await transaction.LockAsync("IO.DeviceConnections",token);
             var old=await db.DeviceOperations.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==operationId,token);
             if(old is not null)
             {
-                if(old.DeviceId!=deviceId||old.RequestedByUserId!=actor||old.Kind!=kind||old.TimeoutSeconds!=timeoutSeconds||old.TargetUtc!=targetUtc||ParsePlan(old.NetworkPlanJson)!=networkPlan||ParseIdle(old.IdlePlanJson)!=idlePlan||!old.ExpectedDeviceVersion.SequenceEqual(expectedDeviceVersion))throw new DomainConflictException("Changed operation retry.");
+                if(old.DeviceId!=deviceId||old.RequestedByUserId!=actor||old.Kind!=kind||old.TimeoutSeconds!=timeoutSeconds||old.TargetUtc!=targetUtc||ParseRaw(old.RawSettingPlanJson)!=rawSettingPlan||ParsePlan(old.NetworkPlanJson)!=networkPlan||ParseIdle(old.IdlePlanJson)!=idlePlan||!old.ExpectedDeviceVersion.SequenceEqual(expectedDeviceVersion))throw new DomainConflictException("Changed operation retry.");
                 return(old.Id,old.Id);
             }
         if(await db.DeviceAttendanceDownloads.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device has unfinished attendance extraction.");
@@ -52,7 +59,7 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
             if(!device.Enabled||!device.Version.SequenceEqual(expectedDeviceVersion))throw new DomainConflictException("Changed or disabled device.");
             if(device.Profile!="zk-standalone")throw new ArgumentException("No verified operation adapter for this profile.");
             if(await db.DeviceOperations.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token)||await db.DeviceConnections.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device already has queued or running work.");
-            if((kind=="clock.set"||kind=="device.restart"||kind=="network.ip.set"||kind=="settings.idle.set")&&await db.DeviceOperations.AnyAsync(x=>x.DeviceId==deviceId&&(x.Kind=="clock.set"||x.Kind=="device.restart"||x.Kind=="network.ip.set"||x.Kind=="settings.idle.set")&&x.State=="unknown"&&x.ResolvedAtUtc==null,token))throw new DomainConflictException("Read and explicitly reconcile the previous unknown device write first.");
+            if((kind=="clock.set"||kind=="device.restart"||kind=="network.ip.set"||kind=="settings.idle.set"||kind=="settings.raw.set")&&await db.DeviceOperations.AnyAsync(x=>x.DeviceId==deviceId&&(x.Kind=="clock.set"||x.Kind=="device.restart"||x.Kind=="network.ip.set"||x.Kind=="settings.idle.set"||x.Kind=="settings.raw.set")&&x.State=="unknown"&&x.ResolvedAtUtc==null,token))throw new DomainConflictException("Read and explicitly reconcile the previous unknown device write first.");
             if(DeviceWriteSafety.IsWrite(kind)&&(await db.DevicePollSchedules.AnyAsync(x=>x.DeviceId==deviceId&&x.Enabled,token)||await db.DeviceUserUploads.AnyAsync(x=>x.DeviceId==deviceId&&x.State=="unknown"&&x.ResolutionSnapshotId==null,token)))throw new DomainConflictException("Pause polling and review unknown user writes before another native write.");
             if(await db.DeviceUserDownloads.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device has an unfinished user download.");
             if(networkPlan is not null)
@@ -75,16 +82,21 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
                 if(approved!=idlePlan)throw new DomainConflictException("Idle preview snapshot or device descriptor changed.");
                 if(await db.DevicePollSchedules.AnyAsync(x=>x.DeviceId==deviceId&&x.Enabled,token)||await db.DeviceUserUploads.AnyAsync(x=>x.DeviceId==deviceId&&x.State=="unknown"&&x.ResolutionSnapshotId==null,token))throw new DomainConflictException("Pause schedules and review unknown user writes before idle changes.");
             }
+            if(rawSettingPlan is not null)
+            {
+                var approved=await BuildRawPlan(deviceId,expectedDeviceVersion,rawSettingPlan.SnapshotId,rawSettingPlan.Parameter,rawSettingPlan.NewValue,rawSettingPlan.Unit,rawSettingPlan.Effect,rawSettingPlan.ApprovalReference,token);
+                if(approved!=rawSettingPlan)throw new DomainConflictException("Raw setting snapshot or approved descriptor changed.");
+            }
             var zone=await db.Sites.Where(x=>x.Id==device.SiteId).Select(x=>x.TimeZoneId).SingleAsync(token);
             if(targetUtc is not null)_=LocalClock(targetUtc.Value,zone);
-            db.DeviceOperations.Add(new(){Id=operationId,DeviceId=deviceId,Kind=kind,RequestedByUserId=actor,RequestedAtUtc=clock.GetUtcNow(),ExpectedDeviceVersion=expectedDeviceVersion.ToArray(),TimeoutSeconds=timeoutSeconds,TimeZoneId=zone,TargetUtc=targetUtc,NetworkPlanJson=networkPlan is null?null:JsonSerializer.Serialize(networkPlan),IdlePlanJson=idlePlan is null?null:JsonSerializer.Serialize(idlePlan)});
+            db.DeviceOperations.Add(new(){Id=operationId,DeviceId=deviceId,Kind=kind,RequestedByUserId=actor,RequestedAtUtc=clock.GetUtcNow(),ExpectedDeviceVersion=expectedDeviceVersion.ToArray(),TimeoutSeconds=timeoutSeconds,TimeZoneId=zone,TargetUtc=targetUtc,NetworkPlanJson=networkPlan is null?null:JsonSerializer.Serialize(networkPlan),IdlePlanJson=idlePlan is null?null:JsonSerializer.Serialize(idlePlan),RawSettingPlanJson=rawSettingPlan is null?null:JsonSerializer.Serialize(rawSettingPlan)});
             return(operationId,operationId);
     }
 
     public Task<object> ListAsync(Guid actor,Guid? deviceId,int offset,CancellationToken ct=default)=>transaction.ExecuteAsync<object>(actor,Read,"device-operation.viewed",async token=>
     {
         if(deviceId==Guid.Empty||offset is <0 or >100000)throw new ArgumentException("Invalid page.");
-        var rows=await db.DeviceOperations.AsNoTracking().Where(x=>x.Kind!="settings.read"&&x.Kind!="settings.idle.set"&&(deviceId==null||x.DeviceId==deviceId)).OrderByDescending(x=>x.RequestedAtUtc).ThenBy(x=>x.Id).Skip(offset).Take(50).ToListAsync(token);
+        var rows=await db.DeviceOperations.AsNoTracking().Where(x=>x.Kind!="settings.read"&&x.Kind!="settings.idle.set"&&x.Kind!="settings.raw.set"&&(deviceId==null||x.DeviceId==deviceId)).OrderByDescending(x=>x.RequestedAtUtc).ThenBy(x=>x.Id).Skip(offset).Take(50).ToListAsync(token);
         var items=rows.Select(x=>new View(x.Id,x.DeviceId,x.Kind,x.State,x.RequestedAtUtc,x.FinishedAtUtc,x.TargetUtc,x.TimeZoneId,ParseInformation(x.ResultJson),x.ResolutionInfoId,x.ResolvedAtUtc,x.Version,ParsePlan(x.NetworkPlanJson),ParseNetwork(x.ResultJson))).ToArray();
         return(new{offset,pageSize=50,items},actor);
     },ct);
@@ -92,8 +104,8 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
     public Task<object> ListSettingsAsync(Guid actor,Guid? deviceId,int offset,CancellationToken ct=default)=>transaction.ExecuteAsync<object>(actor,ReadSettings,"device-settings.viewed",async token=>
     {
         if(deviceId==Guid.Empty||offset is <0 or >100000)throw new ArgumentException("Invalid page.");
-        var rows=await db.DeviceOperations.AsNoTracking().Where(x=>(x.Kind=="settings.read"||x.Kind=="settings.idle.set")&&(deviceId==null||x.DeviceId==deviceId)).OrderByDescending(x=>x.RequestedAtUtc).ThenBy(x=>x.Id).Skip(offset).Take(50).ToListAsync(token);
-        var items=rows.Select(x=>new{x.Id,x.DeviceId,x.Kind,x.State,x.RequestedAtUtc,x.FinishedAtUtc,x.ExpectedDeviceVersion,x.Version,settings=x.Kind=="settings.read"?ParseSettings(x.ResultJson):null,idlePlan=ParseIdle(x.IdlePlanJson),idle=ParseTyped<ZkIdleObservation>(x.ResultJson),x.ResolutionInfoId,x.ResolvedAtUtc}).ToArray();
+        var rows=await db.DeviceOperations.AsNoTracking().Where(x=>(x.Kind=="settings.read"||x.Kind=="settings.idle.set"||x.Kind=="settings.raw.set")&&(deviceId==null||x.DeviceId==deviceId)).OrderByDescending(x=>x.RequestedAtUtc).ThenBy(x=>x.Id).Skip(offset).Take(50).ToListAsync(token);
+        var items=rows.Select(x=>new{x.Id,x.DeviceId,x.Kind,x.State,x.RequestedAtUtc,x.FinishedAtUtc,x.ExpectedDeviceVersion,x.Version,settings=x.Kind=="settings.read"?ParseSettings(x.ResultJson):null,rawSettingPlan=ParseRaw(x.RawSettingPlanJson),rawSetting=ParseTyped<ZkRawSettingObservation>(x.ResultJson),idlePlan=ParseIdle(x.IdlePlanJson),idle=ParseTyped<ZkIdleObservation>(x.ResultJson),x.ResolutionInfoId,x.ResolvedAtUtc}).ToArray();
         return(new{offset,pageSize=50,items},actor);
     },ct);
 
@@ -117,18 +129,19 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
         var networkWrite=await transaction.HasPermissionAsync(service,ExecuteNetworkWrite,token);
         var networkRead=await transaction.HasPermissionAsync(service,ExecuteNetworkRead,token);
         var restart=await transaction.HasPermissionAsync(service,ExecuteRestart,token);
+        var raw=await transaction.HasPermissionAsync(service,ExecuteRaw,token);
         var settings=includeSettings&&await transaction.HasPermissionAsync(service,ExecuteSettings,token);
-        var expired=await db.DeviceOperations.AsTracking().Where(x=>(x.Kind!="settings.idle.set"||idle)&&(x.Kind!="network.ip.set"||networkWrite)&&(x.Kind!="network.inspect"||networkRead)&&(x.Kind!="device.restart"||restart)&&(x.Kind!="settings.read"||settings)&&x.State=="running"&&x.ClaimedAtUtc<now.AddMinutes(-2)).ToListAsync(token);
-        foreach(var item in expired){item.State=(item.Kind=="clock.set"||item.Kind=="device.restart"||item.Kind=="network.ip.set"||item.Kind=="settings.idle.set")?"unknown":"interrupted";item.FinishedAtUtc=now;}
-        var next=await db.DeviceOperations.AsTracking().Where(x=>(x.Kind!="settings.idle.set"||idle)&&(x.Kind!="network.ip.set"||networkWrite)&&(x.Kind!="network.inspect"||networkRead)&&(x.Kind!="device.restart"||restart)&&(x.Kind!="settings.read"||settings)&&x.State=="pending").OrderBy(x=>x.RequestedAtUtc).ThenBy(x=>x.Id).FirstOrDefaultAsync(token);
+        var expired=await db.DeviceOperations.AsTracking().Where(x=>(x.Kind!="settings.raw.set"||raw)&&(x.Kind!="settings.idle.set"||idle)&&(x.Kind!="network.ip.set"||networkWrite)&&(x.Kind!="network.inspect"||networkRead)&&(x.Kind!="device.restart"||restart)&&(x.Kind!="settings.read"||settings)&&x.State=="running"&&x.ClaimedAtUtc<now.AddMinutes(-2)).ToListAsync(token);
+        foreach(var item in expired){item.State=(item.Kind=="clock.set"||item.Kind=="device.restart"||item.Kind=="network.ip.set"||item.Kind=="settings.idle.set"||item.Kind=="settings.raw.set")?"unknown":"interrupted";item.FinishedAtUtc=now;}
+        var next=await db.DeviceOperations.AsTracking().Where(x=>(x.Kind!="settings.raw.set"||raw)&&(x.Kind!="settings.idle.set"||idle)&&(x.Kind!="network.ip.set"||networkWrite)&&(x.Kind!="network.inspect"||networkRead)&&(x.Kind!="device.restart"||restart)&&(x.Kind!="settings.read"||settings)&&x.State=="pending").OrderBy(x=>x.RequestedAtUtc).ThenBy(x=>x.Id).FirstOrDefaultAsync(token);
         if(next is null)return(null,service);
         var device=await db.Devices.AsNoTracking().SingleAsync(x=>x.Id==next.DeviceId,token);
-        if(!await transaction.HasDevicePermissionAsync(next.RequestedByUserId,Permission(next.Kind),next.DeviceId,token)||(next.Kind=="settings.idle.set"&&!await transaction.HasDevicePermissionAsync(next.RequestedByUserId,ReadSettings,next.DeviceId,token))){next.State="revoked";next.FinishedAtUtc=now;return(null,next.Id);}
+        if(!await transaction.HasDevicePermissionAsync(next.RequestedByUserId,Permission(next.Kind),next.DeviceId,token)||((next.Kind=="settings.idle.set"||next.Kind=="settings.raw.set")&&!await transaction.HasDevicePermissionAsync(next.RequestedByUserId,ReadSettings,next.DeviceId,token))){next.State="revoked";next.FinishedAtUtc=now;return(null,next.Id);}
         var zone=await db.Sites.Where(x=>x.Id==device.SiteId).Select(x=>x.TimeZoneId).SingleAsync(token);
         if(!device.Enabled||!device.Version.SequenceEqual(next.ExpectedDeviceVersion)||zone!=next.TimeZoneId){next.State="device-changed";next.FinishedAtUtc=now;return(null,next.Id);}
-        if((next.Kind=="clock.set"||next.Kind=="device.restart"||next.Kind=="network.ip.set"||next.Kind=="settings.idle.set")&&next.RequestedAtUtc<now.AddMinutes(-2)){next.State="expired";next.FinishedAtUtc=now;return(null,next.Id);}
+        if((next.Kind=="clock.set"||next.Kind=="device.restart"||next.Kind=="network.ip.set"||next.Kind=="settings.idle.set"||next.Kind=="settings.raw.set")&&next.RequestedAtUtc<now.AddMinutes(-2)){next.State="expired";next.FinishedAtUtc=now;return(null,next.Id);}
         next.ServiceUserId=service;next.ClaimId=Guid.NewGuid();next.ClaimedAtUtc=now;next.State="running";
-        return(new Claim(next.Id,next.ClaimId.Value,next.DeviceId,device.Profile,device.Host,device.Port,next.Kind,next.TargetUtc is null?null:LocalClock(next.TargetUtc.Value,next.TimeZoneId),next.TimeoutSeconds,ParsePlan(next.NetworkPlanJson),ParseIdle(next.IdlePlanJson)),next.Id);
+        return(new Claim(next.Id,next.ClaimId.Value,next.DeviceId,device.Profile,device.Host,device.Port,next.Kind,next.TargetUtc is null?null:LocalClock(next.TargetUtc.Value,next.TimeZoneId),next.TimeoutSeconds,ParsePlan(next.NetworkPlanJson),ParseIdle(next.IdlePlanJson),ParseRaw(next.RawSettingPlanJson)),next.Id);
     },ct);
 
     public Task<Guid> CompleteAsync(Guid service,Guid id,Guid claimId,ZkOperationOutput result,CancellationToken ct=default)=>transaction.ExecuteAsync(service,Execute,"device-operation.finished",async token=>
@@ -139,6 +152,7 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
         if(item.Kind=="network.inspect"&&!await transaction.HasPermissionAsync(service,ExecuteNetworkRead,token))throw new UnauthorizedAccessException();
         if(item.Kind=="device.restart"&&!await transaction.HasPermissionAsync(service,ExecuteRestart,token))throw new UnauthorizedAccessException();
         if(item.Kind=="settings.read"&&!await transaction.HasPermissionAsync(service,ExecuteSettings,token))throw new UnauthorizedAccessException();
+        if(item.Kind=="settings.raw.set"&&!await transaction.HasPermissionAsync(service,ExecuteRaw,token))throw new UnauthorizedAccessException();
         if(result is null)throw new ArgumentException("Result required.");
         if(!new[]{"succeeded","unsupported","identity-mismatch","failed","unknown","timed-out","interrupted","endpoint-denied","credential-unavailable","bridge-failed"}.Contains(result.State,StringComparer.Ordinal)||
             (result.Information is not null&&(item.Kind!="information.read"||result.State!="succeeded"||!result.Information.IsValid()))||
@@ -152,9 +166,12 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
         var idlePlan=ParseIdle(item.IdlePlanJson);
         if(result.Idle is not null&&(item.Kind!="settings.idle.set"||result.State!="succeeded"||!result.Idle.IsValid()||idlePlan is null||result.Idle.Serial!=idlePlan.Serial||result.Idle.Product!=idlePlan.Product||result.Idle.Firmware!=idlePlan.Firmware||result.Idle.Minutes!=idlePlan.NewMinutes))throw new ArgumentException("Invalid exact idle read-back.");
         if(item.Kind=="settings.idle.set"&&result.State=="succeeded"&&result.Idle is null)throw new ArgumentException("Idle success requires typed read-back.");
-        var payload=result.Idle is not null?JsonSerializer.Serialize(result.Idle):result.Network is not null?JsonSerializer.Serialize(result.Network):result.Settings is not null?JsonSerializer.Serialize(result.Settings):result.Information is null?null:JsonSerializer.Serialize(result.Information);
-        if(payload is not null&&payload.Length>(item.Kind=="settings.read"?32768:4000))throw new ArgumentException("Typed observation exceeds its retained SQL result budget.");
-        item.State=(item.Kind=="clock.set"||item.Kind=="device.restart"||item.Kind=="network.ip.set"||item.Kind=="settings.idle.set")&&result.State is "timed-out" or "interrupted" or "bridge-failed" or "unknown"?"unknown":result.State;
+        var rawPlan=ParseRaw(item.RawSettingPlanJson);
+        if(result.RawSetting is not null&&(item.Kind!="settings.raw.set"||result.State!="succeeded"||rawPlan is null||!result.RawSetting.Matches(rawPlan)))throw new ArgumentException("Unexpected raw setting observation.");
+        if(item.Kind=="settings.raw.set"&&result.State=="succeeded"&&result.RawSetting is null)throw new ArgumentException("Exact raw setting read-back required.");
+        var payload=result.RawSetting is not null?JsonSerializer.Serialize(result.RawSetting):result.Idle is not null?JsonSerializer.Serialize(result.Idle):result.Network is not null?JsonSerializer.Serialize(result.Network):result.Settings is not null?JsonSerializer.Serialize(result.Settings):result.Information is null?null:JsonSerializer.Serialize(result.Information);
+        if(payload is not null&&payload.Length>(item.Kind=="settings.read"?32768:item.Kind=="settings.raw.set"?8192:4000))throw new ArgumentException("Typed observation exceeds its retained SQL result budget.");
+        item.State=(item.Kind=="clock.set"||item.Kind=="device.restart"||item.Kind=="network.ip.set"||item.Kind=="settings.idle.set"||item.Kind=="settings.raw.set")&&result.State is "timed-out" or "interrupted" or "bridge-failed" or "unknown"?"unknown":result.State;
         item.FinishedAtUtc=clock.GetUtcNow();item.ResultJson=payload;
         return(id,id);
     },ct);
@@ -167,10 +184,11 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
         if(item.Kind=="network.inspect"&&!await transaction.HasPermissionAsync(service,ExecuteNetworkRead,token))throw new UnauthorizedAccessException();
         if(item.Kind=="device.restart"&&!await transaction.HasPermissionAsync(service,ExecuteRestart,token))throw new UnauthorizedAccessException();
         if(item.Kind=="settings.read"&&!await transaction.HasPermissionAsync(service,ExecuteSettings,token))throw new UnauthorizedAccessException();
+        if(item.Kind=="settings.raw.set"&&!await transaction.HasPermissionAsync(service,ExecuteRaw,token))throw new UnauthorizedAccessException();
         var device=await db.Devices.AsNoTracking().SingleAsync(x=>x.Id==item.DeviceId,token);
         var zone=await db.Sites.Where(x=>x.Id==device.SiteId).Select(x=>x.TimeZoneId).SingleAsync(token);
-        if(((item.Kind=="clock.set"||item.Kind=="device.restart"||item.Kind=="network.ip.set"||item.Kind=="settings.idle.set")&&item.RequestedAtUtc<clock.GetUtcNow().AddMinutes(-2))||item.DeviceId!=claim.DeviceId||claim.Profile!=device.Profile||claim.Host!=device.Host||claim.Port!=device.Port||claim.TimeoutSeconds!=item.TimeoutSeconds||claim.ClockLocal!=(item.TargetUtc is null?null:LocalClock(item.TargetUtc.Value,item.TimeZoneId))||item.Kind!=claim.Kind||ParsePlan(item.NetworkPlanJson)!=claim.NetworkPlan||ParseIdle(item.IdlePlanJson)!=claim.IdlePlan||!device.Enabled||!device.Version.SequenceEqual(item.ExpectedDeviceVersion)||zone!=item.TimeZoneId||!await transaction.HasDevicePermissionAsync(item.RequestedByUserId,Permission(item.Kind),item.DeviceId,token))return(null,item.Id);
-        if(item.Kind=="settings.idle.set"&&!await transaction.HasDevicePermissionAsync(item.RequestedByUserId,ReadSettings,item.DeviceId,token))return(null,item.Id);
+        if(((item.Kind=="clock.set"||item.Kind=="device.restart"||item.Kind=="network.ip.set"||item.Kind=="settings.idle.set"||item.Kind=="settings.raw.set")&&item.RequestedAtUtc<clock.GetUtcNow().AddMinutes(-2))||item.DeviceId!=claim.DeviceId||claim.Profile!=device.Profile||claim.Host!=device.Host||claim.Port!=device.Port||claim.TimeoutSeconds!=item.TimeoutSeconds||claim.ClockLocal!=(item.TargetUtc is null?null:LocalClock(item.TargetUtc.Value,item.TimeZoneId))||item.Kind!=claim.Kind||ParsePlan(item.NetworkPlanJson)!=claim.NetworkPlan||ParseIdle(item.IdlePlanJson)!=claim.IdlePlan||ParseRaw(item.RawSettingPlanJson)!=claim.RawSettingPlan||!device.Enabled||!device.Version.SequenceEqual(item.ExpectedDeviceVersion)||zone!=item.TimeZoneId||!await transaction.HasDevicePermissionAsync(item.RequestedByUserId,Permission(item.Kind),item.DeviceId,token))return(null,item.Id);
+        if((item.Kind=="settings.idle.set"||item.Kind=="settings.raw.set")&&!await transaction.HasDevicePermissionAsync(item.RequestedByUserId,ReadSettings,item.DeviceId,token))return(null,item.Id);
         if(DeviceWriteSafety.IsWrite(item.Kind)&&(await db.DevicePollSchedules.AnyAsync(x=>x.DeviceId==item.DeviceId&&x.Enabled,token)||await db.DeviceUserUploads.AnyAsync(x=>x.DeviceId==item.DeviceId&&x.State=="unknown"&&x.ResolutionSnapshotId==null,token)))return(null,item.Id);
         var ciphertext=await db.DeviceSecrets.Where(x=>x.DeviceId==item.DeviceId).Select(x=>x.ProtectedValue).SingleOrDefaultAsync(token);
         if(ciphertext is null)return(allowDefault?new DeviceCommunicationKey(0):null,item.Id);
@@ -205,6 +223,30 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
         if(info is null||info.DeviceId!=item.DeviceId||info.Kind!="network.inspect"||info.State!="succeeded"||info.RequestedAtUtc<=item.FinishedAtUtc||info.TimeZoneId!=item.TimeZoneId||zone!=item.TimeZoneId||!info.ExpectedDeviceVersion.SequenceEqual(item.ExpectedDeviceVersion)||!device.Version.SequenceEqual(item.ExpectedDeviceVersion)||inspected is null||inspected.ChangeId!=item.Id||inspected.OldAddress!=plan.OldAddress||inspected.NewAddress!=plan.NewAddress||inspected.Serial!=plan.Serial||observation is null||!observation.IsValid()||observation.Serial!=plan.Serial||observation.ConnectedAddress!=inspected.TargetAddress(info.Kind)||observation.DeviceIp!=observation.ConnectedAddress)throw new DomainConflictException("Fresh serial-pinned observation at an approved old or new IP is required.");
         item.ResolutionInfoId=info.Id;item.ResolvedByUserId=actor;item.ResolvedAtUtc=clock.GetUtcNow();return(id,id);
     },ct);
+    public Task<object> PreviewRawAsync(Guid actor,Guid deviceId,byte[] version,Guid snapshotId,string parameter,int value,string unit,string effect,string approvalReference,CancellationToken ct=default)=>transaction.ExecuteAsync<object>(actor,SetRaw,"device-setting.raw-previewed",async token=>
+    {
+        if(!await transaction.HasDevicePermissionAsync(actor,ReadSettings,deviceId,token))throw new UnauthorizedAccessException();
+        await transaction.LockAsync("IO.DeviceConnections",token);var plan=await BuildRawPlan(deviceId,version,snapshotId,parameter,value,unit,effect,approvalReference,token);
+        return(new{plan,previewHash=plan.PreviewHash(),installedModelApprovalNotProven=true},deviceId);
+    },ct);
+    private async Task<ZkRawSettingPlan> BuildRawPlan(Guid deviceId,byte[] version,Guid snapshotId,string parameter,int value,string unit,string effect,string approvalReference,CancellationToken ct)
+    {
+        if(deviceId==Guid.Empty||version is not{Length:8}||snapshotId==Guid.Empty||!ZkRawParameters.IsKnown(parameter))throw new ArgumentException("Explicit closed parameter and snapshot required.");
+        var device=await db.Devices.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==deviceId,ct);var source=await db.DeviceOperations.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==snapshotId,ct);var snapshot=ParseSettings(source?.ResultJson);
+        var zone=device is null?null:await db.Sites.Where(x=>x.Id==device.SiteId).Select(x=>x.TimeZoneId).SingleAsync(ct);
+        if(device is null||!device.Enabled||device.Profile!="zk-standalone"||!device.Version.SequenceEqual(version)||source is null||source.DeviceId!=deviceId||source.Kind!="settings.read"||source.State!="succeeded"||source.RequestedAtUtc<clock.GetUtcNow().AddMinutes(-5)||source.RequestedAtUtc>clock.GetUtcNow()||source.TimeZoneId!=zone||!source.ExpectedDeviceVersion.SequenceEqual(version)||snapshot?.IsValid()!=true||snapshot.Product is null||snapshot.Firmware is null||ZkRawParameters.Value(snapshot,parameter) is not{} old)throw new DomainConflictException("Fresh successful same-device model-bound raw snapshot required.");
+        var plan=new ZkRawSettingPlan(ZkRawSettingPlan.Version,snapshotId,snapshot.Serial,snapshot.Product,snapshot.Firmware,parameter,old,value,unit,effect,approvalReference);if(!plan.IsValid())throw new ArgumentException("Exact different raw values and explicit model-contract unit effect and reference required.");return plan;
+    }
+    public Task<Guid> ResolveRawAsync(Guid actor,Guid id,byte[] version,Guid snapshotId,string confirmation,CancellationToken ct=default)=>transaction.ExecuteAsync(actor,SetRaw,"device-operation.raw-reviewed",async token=>
+    {
+        if(confirmation!="REVIEWED-APPROVED-RAW-SETTING")throw new ArgumentException("Explicit raw observation review required.");
+        await transaction.LockAsync("IO.DeviceConnections",token);var item=await Load(id,version,token);if(item.Kind!="settings.raw.set"||item.State!="unknown"||item.ResolvedAtUtc is not null)throw new DomainConflictException("Unresolved raw setting write required.");
+        if(!await transaction.HasDevicePermissionAsync(actor,ReadSettings,item.DeviceId,token))throw new UnauthorizedAccessException();
+        var plan=ParseRaw(item.RawSettingPlanJson);var source=await db.DeviceOperations.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==snapshotId,token);var observed=ParseSettings(source?.ResultJson);var device=await db.Devices.AsNoTracking().SingleAsync(x=>x.Id==item.DeviceId,token);var zone=await db.Sites.Where(x=>x.Id==device.SiteId).Select(x=>x.TimeZoneId).SingleAsync(token);
+        if(plan?.IsValid()!=true||source is null||source.Kind!="settings.read"||source.State!="succeeded"||source.DeviceId!=item.DeviceId||source.RequestedAtUtc<=item.FinishedAtUtc||source.TimeZoneId!=item.TimeZoneId||zone!=item.TimeZoneId||!source.ExpectedDeviceVersion.SequenceEqual(item.ExpectedDeviceVersion)||!device.Version.SequenceEqual(item.ExpectedDeviceVersion)||observed?.IsValid()!=true||observed.Serial!=plan.Serial||observed.Product!=plan.Product||observed.Firmware!=plan.Firmware||ZkRawParameters.Value(observed,plan.Parameter) is not{} value||(value!=plan.ExpectedValue&&value!=plan.NewValue))throw new DomainConflictException("Fresh same-model old/new raw observation required; never retry an unknown write.");
+        item.ResolutionInfoId=source.Id;item.ResolvedByUserId=actor;item.ResolvedAtUtc=clock.GetUtcNow();return(id,id);
+    },ct);
+
     public Task<object> PreviewIdleAsync(Guid actor,Guid deviceId,byte[] version,Guid snapshotId,int minutes,string approvalReference,CancellationToken ct=default)=>transaction.ExecuteAsync<object>(actor,SetIdle,"device-setting.idle-previewed",async token=>
     {
         if(!await transaction.HasPermissionAsync(actor,ReadSettings,token))throw new UnauthorizedAccessException();
@@ -233,6 +275,7 @@ public sealed class DeviceOperations(IoDbContext db,PermissionTransaction transa
         if(info is null||info.DeviceId!=item.DeviceId||info.Kind!="settings.read"||info.State!="succeeded"||info.RequestedAtUtc<=item.FinishedAtUtc||info.TimeZoneId!=item.TimeZoneId||zone!=item.TimeZoneId||!info.ExpectedDeviceVersion.SequenceEqual(item.ExpectedDeviceVersion)||!device.Version.SequenceEqual(item.ExpectedDeviceVersion)||observed?.IsValid()!=true||observed.Serial!=plan.Serial||observed.Product!=plan.Product||observed.Firmware!=plan.Firmware||(observed.SleepTime!=plan.ExpectedMinutes&&observed.SleepTime!=plan.NewMinutes))throw new DomainConflictException("Fresh same-model old/new idle observation required; do not retry an unknown write.");
         item.ResolutionInfoId=info.Id;item.ResolvedByUserId=actor;item.ResolvedAtUtc=clock.GetUtcNow();return(id,id);
     },ct);
+    private static ZkRawSettingPlan? ParseRaw(string? json)=>ParseTyped<ZkRawSettingPlan>(json);
     private static ZkIdlePlan? ParseIdle(string? json)=>ParseTyped<ZkIdlePlan>(json);
     private static ZkNetworkPlan? ParsePlan(string? json)=>ParseTyped<ZkNetworkPlan>(json);
     private static ZkNetworkObservation? ParseNetwork(string? json)=>ParseTyped<ZkNetworkObservation>(json);

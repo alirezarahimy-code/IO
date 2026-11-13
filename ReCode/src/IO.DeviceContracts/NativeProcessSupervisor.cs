@@ -17,14 +17,14 @@ public static class NativeProcessSupervisor
     public static async Task<ZkOperationOutput> RunOperationAsync(string executable,string childAssembly,ZkOperationInput input,int timeoutSeconds,CancellationToken stoppingToken=default)
     {
         if(!input.IsValid())return new("unsupported");
-        var exchange=await ExchangeAsync(executable,childAssembly,System.Text.Json.JsonSerializer.Serialize(input),timeoutSeconds,stoppingToken,input.Operation=="settings.read"?32768:4096);
-        if(exchange.State!="exited")return new((input.Operation=="device.restart"||input.Operation=="network.ip.set"||input.Operation=="settings.idle.set")?"unknown":exchange.State);
+        var exchange=await ExchangeAsync(executable,childAssembly,System.Text.Json.JsonSerializer.Serialize(input),timeoutSeconds,stoppingToken,input.Operation=="settings.read"?32768:input.Operation=="settings.raw.set"?8192:4096,input.Operation=="settings.raw.set"?32768:8192);
+        if(exchange.State!="exited")return new((input.Operation=="device.restart"||input.Operation=="network.ip.set"||input.Operation=="settings.idle.set"||input.Operation=="settings.raw.set")?"unknown":exchange.State);
         try
         {
             var result=System.Text.Json.JsonSerializer.Deserialize<ZkOperationOutput>(exchange.Output,new System.Text.Json.JsonSerializerOptions{UnmappedMemberHandling=System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow});
-            return result is not null&&result.IsValidFor(input)?result:new((input.Operation=="device.restart"||input.Operation=="network.ip.set"||input.Operation=="settings.idle.set")?"unknown":"bridge-failed");
+            return result is not null&&result.IsValidFor(input)?result:new((input.Operation=="device.restart"||input.Operation=="network.ip.set"||input.Operation=="settings.idle.set"||input.Operation=="settings.raw.set")?"unknown":"bridge-failed");
         }
-        catch(System.Text.Json.JsonException){return new((input.Operation=="device.restart"||input.Operation=="network.ip.set"||input.Operation=="settings.idle.set")?"unknown":"bridge-failed");}
+        catch(System.Text.Json.JsonException){return new((input.Operation=="device.restart"||input.Operation=="network.ip.set"||input.Operation=="settings.idle.set"||input.Operation=="settings.raw.set")?"unknown":"bridge-failed");}
     }
 
     public static async Task<ZkUserWriteOutput> RunUserWriteAsync(string executable,string childAssembly,ZkUserWriteInput input,int timeoutSeconds,CancellationToken stoppingToken=default)
@@ -44,10 +44,10 @@ public static class NativeProcessSupervisor
     }
 
     private sealed record Exchange(string State,string Output="");
-    private static async Task<Exchange> ExchangeAsync(string executable,string childAssembly,string json,int timeoutSeconds,CancellationToken stoppingToken,int maxOutputChars=4096)
+    private static async Task<Exchange> ExchangeAsync(string executable,string childAssembly,string json,int timeoutSeconds,CancellationToken stoppingToken,int maxOutputChars=4096,int maxInputChars=8192)
     {
         if (!Path.IsPathFullyQualified(executable) || !Path.IsPathFullyQualified(childAssembly) || !File.Exists(executable) || !File.Exists(childAssembly) ||
-            json.Length > 8192 || timeoutSeconds is < 1 or > 60) return new("bridge-failed");
+            json.Length > maxInputChars || timeoutSeconds is < 1 or > 60) return new("bridge-failed");
         if (stoppingToken.IsCancellationRequested) return new("interrupted");
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
         deadline.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
