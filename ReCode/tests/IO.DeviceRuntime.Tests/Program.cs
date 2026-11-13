@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using IO.DeviceContracts;
 
+if (args is ["--attendance-read-contracts"]) { await AttendanceReadContractTests.RunAsync(); return; }
+
 if (args is ["--reference-parity"]) { ReferenceParityTests.Run(); return; }
 
 if (args is ["--idle-contracts"]) { await IdleTests.RunAsync(); return; }
@@ -41,10 +43,10 @@ if (args is not ["--verify"])
     {
         var attendance=JsonSerializer.Deserialize<ZkAttendanceReadInput>(text)!;var serial=attendance.Connection.ExpectedSerial;
         void Frame(ZkAttendanceFrame frame)=>Console.WriteLine(JsonSerializer.Serialize(frame));
-        Frame(new("start",Serial:serial=="logs-wrong-pin"?"wrong":serial));
+        Frame(new("start",Serial:serial=="logs-wrong-pin"?"wrong":serial,ReadFormat:serial=="logs-missing-format"?null:attendance.ReadFormat));
         if(serial=="logs-hang"){await Task.Delay(TimeSpan.FromMinutes(1));return;}
         var total=serial=="logs-ok"?103:1;
-        for(int i=0;i<total;i++)Frame(new("record",Record:new(i.ToString("D5"),int.MaxValue,4,2026,2,i==1?30:1,8,0,0,int.MinValue)));
+        for(int i=0;i<total;i++)Frame(new("record",Record:attendance.ReadFormat==ZkAttendanceReadFormats.Legacy?new(i.ToString(System.Globalization.CultureInfo.InvariantCulture),1,4,2026,2,1,8,0,0,0,1,2):new(i.ToString("D5"),int.MaxValue,4,2026,2,i==1?30:1,8,0,0,int.MinValue)));
         if(serial=="logs-extra")Console.WriteLine("{\"Type\":\"record\",\"Password\":\"forbidden\"}");
         if(serial!="logs-truncated")Frame(new("end",Count:serial=="logs-count-mismatch"?total+1:total,State:"succeeded"));return;
     }

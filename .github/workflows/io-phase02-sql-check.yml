@@ -39,6 +39,9 @@ jobs:
       - name: Test explicit SSR and legacy user read contracts
         working-directory: ReCode
         run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --user-read-contracts
+      - name: Test explicit legacy attendance contracts
+        working-directory: ReCode
+        run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --attendance-read-contracts
       - name: Test legacy user-write contracts and two stateful TCP endpoints
         working-directory: ReCode
         run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --legacy-user-writes

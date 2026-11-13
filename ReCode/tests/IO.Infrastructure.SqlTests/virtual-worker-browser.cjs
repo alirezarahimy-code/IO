@@ -3,7 +3,7 @@
 // stateful loopback laboratory. No route/fetch/outcome/receipt mocks.
 const assert=require('node:assert/strict');
 const {chromium}=require('playwright-core');
-const [address,user,device,version,scopeUser,scopeDevice]=process.argv.slice(2);
+const [address,user,device,version,scopeUser,scopeDevice,legacyDevice,legacyVersion]=process.argv.slice(2);
 if(!address?.startsWith('https://127.0.0.1:')||!user?.startsWith('virtual-operator-'))throw Error('Disposable virtual laboratory only');
 (async()=>{
  const browser=await chromium.launch({executablePath:process.env.IO_CHROME_BINARY,headless:true,args:['--no-sandbox']});
@@ -15,9 +15,11 @@ if(!address?.startsWith('https://127.0.0.1:')||!user?.startsWith('virtual-operat
   await page.locator('#login-form button').click();await page.waitForURL('**/workspace');
   const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400)errors.push(r.status()+' '+new URL(r.url()).pathname);});
   const completed=[];
-  for(let run=0;run<2;run++){
-   await page.goto(address+'/workspace/device-attendance?deviceId='+device+'&version='+encodeURIComponent(version));
+  for(let run=0;run<4;run++){
+   const target=run<2?device:legacyDevice,pinnedVersion=run<2?version:legacyVersion;
+   await page.goto(address+'/workspace/device-attendance?deviceId='+target+'&version='+encodeURIComponent(pinnedVersion));
    const form=page.locator('#extract-form');await form.waitFor({state:'visible'});
+   await form.locator('select[name=readFormat]').selectOption(run<2?'ssr-v1':'legacy-int32-minute-v1');
    await form.locator('input[name=fromUtc]').fill('2026-11-08T00:00:00Z');
    await form.locator('input[name=untilUtcExclusive]').fill('2026-11-09T00:00:00Z');
    await form.locator('input[name=inCode]').fill('4');await form.locator('input[name=outCode]').fill('5');
@@ -30,7 +32,7 @@ if(!address?.startsWith('https://127.0.0.1:')||!user?.startsWith('virtual-operat
    while(Date.now()<deadline){
     const body=await page.evaluate(async id=>{const r=await fetch('/device-attendance-downloads/'+id+'/rows?after=0',{cache:'no-store'});if(!r.ok)throw Error('Readiness HTTP '+r.status);return r.json();},id);
     if(body.state!=='pending'&&body.state!=='running'){
-     assert.equal(body.state,'succeeded');assert.equal(body.receivedCount,103);ready=true;break;
+     assert.equal(body.state,'succeeded');assert.equal(body.receivedCount,103);assert.equal(body.readFormat,run<2?'ssr-v1':'legacy-int32-minute-v1');ready=true;break;
     }
     await page.waitForTimeout(100);
    }

@@ -9,33 +9,33 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 namespace IO.Infrastructure.Devices;
 
-/// <summary>Read-only SSR log extraction; typed raw tuples retained before explicit range/mapping review.</summary>
+/// <summary>Explicit-format read-only log extraction; typed raw tuples retained before explicit range/mapping review.</summary>
 public sealed class DeviceAttendanceDownloads(IoDbContext db,PermissionTransaction transaction,TimeProvider clock,IDataProtectionProvider protection,IO.Infrastructure.Attendance.AttendanceIngestion ingestion)
 {
     public const string Read="devices.attendance.read",Download="devices.attendance.extract",Execute="devices.attendance.execute",Commit="devices.attendance.commit";
-    public sealed record Claim(Guid Id,Guid Token,Guid DeviceId,string? Host,int? Port,int TimeoutSeconds);
-    public Task<Guid> RequestAsync(Guid actor,Guid id,Guid deviceId,byte[] version,int seconds,DateTimeOffset fromUtc,DateTimeOffset untilUtcExclusive,int inCode,int outCode,CancellationToken ct=default)=>transaction.ExecuteAsync(actor,Download,"device-attendance.requested",token=>RequestInTransactionAsync(actor,id,deviceId,version,seconds,fromUtc,untilUtcExclusive,inCode,outCode,token),ct);
-    internal async Task<(Guid Result,Guid Target)> RequestInTransactionAsync(Guid actor,Guid id,Guid deviceId,byte[] version,int seconds,DateTimeOffset fromUtc,DateTimeOffset untilUtcExclusive,int inCode,int outCode,CancellationToken token)
+    public sealed record Claim(Guid Id,Guid Token,Guid DeviceId,string? Host,int? Port,int TimeoutSeconds,string ReadFormat=ZkAttendanceReadFormats.Ssr);
+    public Task<Guid> RequestAsync(Guid actor,Guid id,Guid deviceId,byte[] version,int seconds,DateTimeOffset fromUtc,DateTimeOffset untilUtcExclusive,int inCode,int outCode,CancellationToken ct=default,string readFormat=ZkAttendanceReadFormats.Ssr)=>transaction.ExecuteAsync(actor,Download,"device-attendance.requested",token=>RequestInTransactionAsync(actor,id,deviceId,version,seconds,fromUtc,untilUtcExclusive,inCode,outCode,token,readFormat),ct);
+    internal async Task<(Guid Result,Guid Target)> RequestInTransactionAsync(Guid actor,Guid id,Guid deviceId,byte[] version,int seconds,DateTimeOffset fromUtc,DateTimeOffset untilUtcExclusive,int inCode,int outCode,CancellationToken token,string readFormat=ZkAttendanceReadFormats.Ssr)
     {
         if(!await transaction.HasPermissionAsync(actor,Download,token))throw new UnauthorizedAccessException();
-        if(id==Guid.Empty||deviceId==Guid.Empty||version is not{Length:8}||seconds is <1 or >600||fromUtc.Offset!=TimeSpan.Zero||untilUtcExclusive.Offset!=TimeSpan.Zero||fromUtc>=untilUtcExclusive||fromUtc.Ticks%TimeSpan.TicksPerSecond!=0||untilUtcExclusive.Ticks%TimeSpan.TicksPerSecond!=0||inCode is <0 or >255||outCode is <0 or >255||inCode==outCode)throw new ArgumentException("Explicit id, device version and bounded deadline required.");
+        if(!ZkAttendanceReadFormats.IsKnown(readFormat)||id==Guid.Empty||deviceId==Guid.Empty||version is not{Length:8}||seconds is <1 or >600||fromUtc.Offset!=TimeSpan.Zero||untilUtcExclusive.Offset!=TimeSpan.Zero||fromUtc>=untilUtcExclusive||fromUtc.Ticks%TimeSpan.TicksPerSecond!=0||untilUtcExclusive.Ticks%TimeSpan.TicksPerSecond!=0||inCode is <0 or >255||outCode is <0 or >255||inCode==outCode)throw new ArgumentException("Explicit id, device version and bounded deadline required.");
         await transaction.LockAsync("IO.DeviceConnections",token);
         var old=await db.DeviceAttendanceDownloads.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==id,token);
-        if(old is not null){if(old.DeviceId!=deviceId||old.RequestedByUserId!=actor||old.TimeoutSeconds!=seconds||old.FromUtc!=fromUtc||old.UntilUtcExclusive!=untilUtcExclusive||old.InCode!=inCode||old.OutCode!=outCode||!old.ExpectedDeviceVersion.SequenceEqual(version))throw new DomainConflictException("Changed download retry.");return(id,id);}
+        if(old is not null){if(old.DeviceId!=deviceId||old.RequestedByUserId!=actor||old.TimeoutSeconds!=seconds||old.ReadFormat!=readFormat||old.FromUtc!=fromUtc||old.UntilUtcExclusive!=untilUtcExclusive||old.InCode!=inCode||old.OutCode!=outCode||!old.ExpectedDeviceVersion.SequenceEqual(version))throw new DomainConflictException("Changed download retry.");return(id,id);}
         if(await db.DeviceUserUploads.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device has unfinished user uploads.");
         if(await db.DeviceUserDownloads.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device has unfinished user downloads.");
         var d=await db.Devices.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==deviceId,token)??throw new ArgumentException("Unknown device.");
         if(!d.Enabled||!d.Version.SequenceEqual(version))throw new DomainConflictException("Device changed.");
-        if(d.Profile!="zk-standalone")throw new ArgumentException("Only explicitly approved SSR native endpoints are supported.");
+        if(d.Profile!="zk-standalone")throw new ArgumentException("Only explicitly approved native endpoints are supported.");
         if(await db.DeviceAttendanceDownloads.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token)||await db.DeviceOperations.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token)||await db.DeviceConnections.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device already has active work.");
         var site=await db.Sites.AsNoTracking().SingleAsync(x=>x.Id==d.SiteId,token);_=Zone(site.TimeZoneId);
-        db.DeviceAttendanceDownloads.Add(new(){Id=id,DeviceId=deviceId,SourceId=d.SourceId,CompanyId=site.CompanyId,SiteId=site.Id,TimeZoneId=site.TimeZoneId,FromUtc=fromUtc,UntilUtcExclusive=untilUtcExclusive,InCode=inCode,OutCode=outCode,RequestedByUserId=actor,RequestedAtUtc=clock.GetUtcNow(),ExpectedDeviceVersion=version.ToArray(),TimeoutSeconds=seconds});return(id,id);
+        db.DeviceAttendanceDownloads.Add(new(){Id=id,DeviceId=deviceId,SourceId=d.SourceId,CompanyId=site.CompanyId,SiteId=site.Id,TimeZoneId=site.TimeZoneId,FromUtc=fromUtc,UntilUtcExclusive=untilUtcExclusive,InCode=inCode,OutCode=outCode,RequestedByUserId=actor,RequestedAtUtc=clock.GetUtcNow(),ExpectedDeviceVersion=version.ToArray(),TimeoutSeconds=seconds,ReadFormat=readFormat});return(id,id);
     }
     public Task<object> ListAsync(Guid actor,Guid? deviceId,int offset,CancellationToken ct=default)=>transaction.ExecuteAsync<object>(actor,Read,"device-attendance.viewed",async token=>
     {
         if(deviceId==Guid.Empty||offset is <0 or >100000)throw new ArgumentException("Invalid page.");
         var items=await db.DeviceAttendanceDownloads.AsNoTracking().Where(x=>deviceId==null||x.DeviceId==deviceId).OrderByDescending(x=>x.RequestedAtUtc).ThenBy(x=>x.Id).Skip(offset).Take(50)
-            .Select(x=>new{x.Id,x.DeviceId,x.SourceId,x.CompanyId,x.State,x.ReceivedCount,x.FromUtc,x.UntilUtcExclusive,x.TimeZoneId,x.InCode,x.OutCode,x.LastReviewedAtUtc,x.RequestedAtUtc,x.FinishedAtUtc,x.ExpectedDeviceVersion,x.Version}).ToListAsync(token);
+            .Select(x=>new{x.Id,x.DeviceId,x.SourceId,x.CompanyId,x.State,x.ReadFormat,x.ReceivedCount,x.FromUtc,x.UntilUtcExclusive,x.TimeZoneId,x.InCode,x.OutCode,x.LastReviewedAtUtc,x.RequestedAtUtc,x.FinishedAtUtc,x.ExpectedDeviceVersion,x.Version}).ToListAsync(token);
         return(new{offset,pageSize=50,items},actor);
     },ct);
     public Task<Guid> CancelAsync(Guid actor,Guid id,byte[] version,CancellationToken ct=default)=>transaction.ExecuteAsync(actor,Download,"device-attendance.cancelled",async token=>
@@ -52,13 +52,13 @@ public sealed class DeviceAttendanceDownloads(IoDbContext db,PermissionTransacti
         var d=await db.Devices.AsNoTracking().SingleAsync(x=>x.Id==next.DeviceId,token);
         if(!d.Enabled||!d.Version.SequenceEqual(next.ExpectedDeviceVersion)||!await SameTarget(next,token)){next.State="device-changed";next.FinishedAtUtc=now;return(null,next.Id);}
         next.State="running";next.ServiceUserId=service;next.ClaimId=Guid.NewGuid();next.LeaseAtUtc=now;
-        return(new Claim(next.Id,next.ClaimId.Value,d.Id,d.Host,d.Port,next.TimeoutSeconds),next.Id);
+        return(new Claim(next.Id,next.ClaimId.Value,d.Id,d.Host,d.Port,next.TimeoutSeconds,next.ReadFormat),next.Id);
     },ct);
     public Task<DeviceCommunicationKey?> CredentialAsync(Guid service,Claim claim,bool allowDefault,CancellationToken ct=default)=>transaction.ExecuteAsync<DeviceCommunicationKey?>(service,Execute,"device-attendance.credential-used",async token=>
     {
         await transaction.LockAsync("IO.DeviceConnections",token);var item=await Owned(service,claim.Id,claim.Token,token);
         var d=await db.Devices.AsNoTracking().SingleAsync(x=>x.Id==item.DeviceId,token);
-        if(item.DeviceId!=claim.DeviceId||claim.Host!=d.Host||claim.Port!=d.Port||claim.TimeoutSeconds!=item.TimeoutSeconds||!await SameTarget(item,token)||!d.Enabled||!d.Version.SequenceEqual(item.ExpectedDeviceVersion)||!await transaction.HasDevicePermissionAsync(item.RequestedByUserId,Download,item.DeviceId,token))return(null,item.Id);
+        if(item.DeviceId!=claim.DeviceId||claim.Host!=d.Host||claim.Port!=d.Port||claim.TimeoutSeconds!=item.TimeoutSeconds||claim.ReadFormat!=item.ReadFormat||!await SameTarget(item,token)||!d.Enabled||!d.Version.SequenceEqual(item.ExpectedDeviceVersion)||!await transaction.HasDevicePermissionAsync(item.RequestedByUserId,Download,item.DeviceId,token))return(null,item.Id);
         var ciphertext=await db.DeviceSecrets.Where(x=>x.DeviceId==item.DeviceId).Select(x=>x.ProtectedValue).SingleOrDefaultAsync(token);if(ciphertext is null)return(allowDefault?new DeviceCommunicationKey(0):null,item.Id);
         try{var text=protection.CreateProtector("IO.Devices.Credential.v1",item.DeviceId.ToString("N")).Unprotect(ciphertext);return(text.Length>0&&text.All(c=>c is >='0' and <='9')&&int.TryParse(text,NumberStyles.None,CultureInfo.InvariantCulture,out var key)?new DeviceCommunicationKey(key):null,item.Id);}catch(CryptographicException){return(null,item.Id);}
     },ct);
@@ -67,6 +67,7 @@ public sealed class DeviceAttendanceDownloads(IoDbContext db,PermissionTransacti
         if(records is null||records.Count is <1 or >50||records.Any(x=>x?.IsBounded()!=true)||after<0)throw new ArgumentException("Invalid private SDK batch.");
         await transaction.LockAsync("IO.DeviceConnections",token);var job=await Owned(service,id,claim,token);
         if(!await transaction.HasDevicePermissionAsync(job.RequestedByUserId,Download,job.DeviceId,token))throw new UnauthorizedAccessException();
+        if(records.Any(x=>!ZkAttendanceReadFormats.Matches(x,job.ReadFormat)))throw new ArgumentException("SDK tuples must match the immutable requested format.");
         var payloads=records.Select(x=>x.CanonicalJson()).ToArray();
         if(after!=job.ReceivedCount)
         {
@@ -101,7 +102,7 @@ public sealed class DeviceAttendanceDownloads(IoDbContext db,PermissionTransacti
         if(after<0)throw new ArgumentException("Invalid cursor.");var job=await Load(id,token);var same=await SameTarget(job,token);
         var rows=await db.DeviceAttendanceRows.AsNoTracking().Where(x=>x.DownloadId==id&&x.Sequence>after).OrderBy(x=>x.Sequence).Take(50).ToListAsync(token);
         var items=new List<object>();foreach(var row in rows){var raw=Raw(row);var interpreted=raw.Interpret(Zone(job.TimeZoneId));items.Add(new{row.Sequence,raw,row.PayloadHash,row.OccurrenceOrdinal,status=row.RawEventId is not null?row.Status:await Status(job,raw,same,token),occurredAtUtc=interpreted.Utc,row.RawEventId,row.ConflictId});}
-        return(new{downloadId=id,job.State,job.SourceId,job.ReceivedCount,job.FromUtc,job.UntilUtcExclusive,job.TimeZoneId,job.Version,sameTarget=same,after,nextAfter=rows.LastOrDefault()?.Sequence??after,items},id);
+        return(new{downloadId=id,job.State,job.ReadFormat,job.SourceId,job.ReceivedCount,job.FromUtc,job.UntilUtcExclusive,job.TimeZoneId,job.Version,sameTarget=same,after,nextAfter=rows.LastOrDefault()?.Sequence??after,items},id);
     },ct);
     public Task<object> CommitPageAsync(Guid actor,Guid id,byte[] version,long after,string confirmation,CancellationToken ct=default)=>transaction.ExecuteAsync<object>(actor,Commit,"device-attendance.page-reviewed",token=>CommitPageInTransactionAsync(actor,id,version,after,confirmation,token),ct);
     internal async Task<(object Result,Guid Target)> CommitPageInTransactionAsync(Guid actor,Guid id,byte[] version,long after,string confirmation,CancellationToken token)
@@ -119,7 +120,7 @@ public sealed class DeviceAttendanceDownloads(IoDbContext db,PermissionTransacti
             if(row.Status!="ready"){quarantined++;continue;}
             // SSR has no observed native record ID. This is an explicit canonical
             // tuple + multiplicity identity, NOT a claim of physical event identity.
-            var external="zk-ssr-v1:"+row.PayloadHash+":"+row.OccurrenceOrdinal.ToString(CultureInfo.InvariantCulture);
+            var external=ZkAttendanceReadFormats.ExternalPrefix(job.ReadFormat)+row.PayloadHash+":"+row.OccurrenceOrdinal.ToString(CultureInfo.InvariantCulture);
             var result=await ingestion.AppendInTransactionAsync(job.SourceId,external,raw.PersonIdentifier,raw.Interpret(Zone(job.TimeZoneId)).Utc,job.TimeZoneId,raw.CheckType==job.InCode?"in":"out",Encoding.UTF8.GetBytes(row.PayloadJson),token);
             row.RawEventId=result.Result.EventId;row.ConflictId=result.Result.ConflictId;row.Status=row.ConflictId is not null?"ingestion-conflict":result.Result.Outcome==IO.Domain.Attendance.RawEventAppendResult.AlreadyRecorded?"already-recorded":"imported";
             if(row.ConflictId is not null)conflicts++;else if(row.Status=="already-recorded")already++;else added++;
@@ -130,6 +131,7 @@ public sealed class DeviceAttendanceDownloads(IoDbContext db,PermissionTransacti
     private async Task<string> Status(DeviceAttendanceDownloadRecord job,ZkAttendanceRaw raw,bool same,CancellationToken ct)
     {
         if(!same)return "target-changed";if(job.State!="succeeded")return "incomplete-extraction";
+        if(job.ReadFormat==ZkAttendanceReadFormats.Legacy&&raw.PersonIdentifier?.StartsWith('-')==true)return "invalid-legacy-identity";
         var interpreted=raw.Interpret(Zone(job.TimeZoneId));if(interpreted.Status!="parsed")return interpreted.Status;
         if(interpreted.Utc<job.FromUtc||interpreted.Utc>=job.UntilUtcExclusive)return "outside-requested-range";
         if(raw.CheckType!=job.InCode&&raw.CheckType!=job.OutCode)return "unmapped-check-code";

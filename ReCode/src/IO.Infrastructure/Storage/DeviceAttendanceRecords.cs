@@ -15,6 +15,7 @@ public sealed class DeviceAttendanceDownloadRecord
     public int InCode {get;set;}
     public int OutCode {get;set;}
     public int TimeoutSeconds {get;set;}
+    public string ReadFormat {get;set;}=IO.DeviceContracts.ZkAttendanceReadFormats.Ssr;
     public string State {get;set;}="pending";
     public Guid? ServiceUserId {get;set;}
     public Guid? ClaimId {get;set;}

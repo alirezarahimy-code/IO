@@ -31,12 +31,12 @@ public static class NativeAttendanceReadSupervisor
                 {
                     if(ended)throw new InvalidDataException();
                     var frame=JsonSerializer.Deserialize<ZkAttendanceFrame>(line,new JsonSerializerOptions{UnmappedMemberHandling=JsonUnmappedMemberHandling.Disallow})??throw new InvalidDataException();
-                    if(frame.Type=="start"&&!started&&frame.Serial==input.Connection.ExpectedSerial&&frame.Record is null&&frame.Count is null&&frame.State is null){started=true;continue;}
-                    if(frame.Type=="record"&&started&&frame.Serial is null&&frame.Count is null&&frame.State is null&&frame.Record?.IsBounded()==true)
+                    if(frame.Type=="start"&&!started&&frame.Serial==input.Connection.ExpectedSerial&&frame.Record is null&&frame.Count is null&&frame.State is null&&frame.ReadFormat==input.ReadFormat){started=true;continue;}
+                    if(frame.Type=="record"&&started&&frame.Serial is null&&frame.Count is null&&frame.State is null&&frame.ReadFormat is null&&frame.Record is {} record&&ZkAttendanceReadFormats.Matches(record,input.ReadFormat))
                     {
                         count=checked(count+1);batch.Add(frame.Record);if(batch.Count==50){await accept(batch.ToArray(),deadline.Token);batch.Clear();}continue;
                     }
-                    if(frame.Type=="end"&&frame.Record is null&&frame.Serial is null&&frame.Count==count&&
+                    if(frame.Type=="end"&&frame.Record is null&&frame.Serial is null&&frame.Count==count&&frame.ReadFormat is null&&
                         ((started&&frame.State is "succeeded" or "incomplete" or "failed")||(!started&&count==0&&frame.State is "unsupported" or "identity-mismatch" or "failed")))
                     {
                         if(batch.Count>0){await accept(batch.ToArray(),deadline.Token);batch.Clear();}state=frame.State!;ended=true;continue;

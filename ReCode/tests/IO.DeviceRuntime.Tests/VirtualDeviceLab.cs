@@ -206,8 +206,10 @@ internal static class VirtualDeviceLab
                     if (fault == "hang") { await Task.Delay(Timeout.Infinite, shutdown.Token); return; }
                     if (doc.RootElement.TryGetProperty("ReadAttendance", out _))
                     {
+                        var request=JsonSerializer.Deserialize<ZkAttendanceReadInput>(text)!;
                         ZkAttendanceRaw[] snapshot; lock (gate) snapshot = logs.ToArray();
-                        await Frame(new ZkAttendanceFrame("start", Serial: fault == "wrong-serial" ? "different" : Pin.ExpectedSerial));
+                        if(request.ReadFormat==ZkAttendanceReadFormats.Legacy)snapshot=snapshot.Select(x=>x with{PersonIdentifier=int.Parse(x.PersonIdentifier!,System.Globalization.CultureInfo.InvariantCulture).ToString(System.Globalization.CultureInfo.InvariantCulture),Second=0,WorkCode=0,LegacyTerminalNumber=1,LegacyEnrollmentMachineNumber=2}).ToArray();
+                        await Frame(new ZkAttendanceFrame("start", Serial: fault == "wrong-serial" ? "different" : Pin.ExpectedSerial,ReadFormat:request.ReadFormat));
                         // Fill more than an OS pipe buffer after the rejected header.
                         // A plain WhenAll would wait for the blocked relay until timeout.
                         if (fault == "wrong-serial")

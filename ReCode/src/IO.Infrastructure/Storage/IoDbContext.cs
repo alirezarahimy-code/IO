@@ -97,6 +97,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.ToTable("DeviceFileImports",t=>
             {
                 t.HasTrigger("TR_DeviceFileImports_History");t.UseSqlOutputClause(false);
+                t.HasCheckConstraint("CK_DeviceAttendanceDownloads_Format","[ReadFormat] COLLATE Latin1_General_100_BIN2 IN(N'ssr-v1',N'legacy-int32-minute-v1') AND DATALENGTH([ReadFormat])=CASE WHEN [ReadFormat]=N'ssr-v1' THEN 12 ELSE 44 END");
                 t.HasCheckConstraint("CK_DeviceFileImports_File","DATALENGTH([OriginalFile]) BETWEEN 1 AND 1048576 AND DATALENGTH([ExpectedDeviceVersion])=8 AND LEN([FileHash])=64 AND [LineCount] BETWEEN 1 AND 10000");
                 t.HasCheckConstraint("CK_DeviceFileImports_Interpretation","[Calendar] COLLATE Latin1_General_100_BIN2 IN(N'gregorian',N'persian') AND [MachineNumber]>0 AND [InCode] BETWEEN 0 AND 255 AND [OutCode] BETWEEN 0 AND 255 AND [InCode]<>[OutCode]");
                 t.HasCheckConstraint("CK_DeviceFileImports_Utc","DATEPART(TZOFFSET,[CreatedAtUtc])=0 AND DATEPART(TZOFFSET,[LastReviewedAtUtc])=0 AND ([LastReviewedAtUtc] IS NULL OR [LastReviewedAtUtc]>=[CreatedAtUtc])");
@@ -211,6 +212,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.Property(x=>x.WindowSeconds).HasColumnType("int");
             b.Property(x=>x.LagSeconds).HasColumnType("int");
             b.Property(x=>x.OverlapSeconds).ValueGeneratedOnAdd().HasColumnType("int").HasDefaultValue(0);
+            b.Property(x=>x.ReadFormat).HasMaxLength(32).IsRequired().HasDefaultValue("ssr-v1").HasColumnType("nvarchar(32)");
             b.Property(x=>x.TimeoutSeconds).HasColumnType("int");
             b.Property(x=>x.InCode).HasColumnType("int");
             b.Property(x=>x.OutCode).HasColumnType("int");

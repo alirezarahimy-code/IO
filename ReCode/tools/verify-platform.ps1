@@ -12,6 +12,7 @@ Run-Dotnet run --project tests/IO.Domain.Tests --configuration Release --no-buil
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --verify
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --virtual-lab
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --user-read-contracts
+Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --attendance-read-contracts
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --legacy-user-writes
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --restart-contracts
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --network-contracts

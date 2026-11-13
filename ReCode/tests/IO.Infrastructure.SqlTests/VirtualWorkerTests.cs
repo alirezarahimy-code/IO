@@ -31,6 +31,7 @@ internal static class VirtualWorkerTests
     {
         await using var a = new VirtualDeviceLab.Device("virtual-lab-SQL-A");
         await using var b = new VirtualDeviceLab.Device("virtual-lab-SQL-B");
+        await using var legacy = new VirtualDeviceLab.Device("virtual-lab-SQL-legacy");
         a.IdleMinutes=15;
         a.Write(new("00001","Virtual person","123",0,true),"synthetic-only");
         b.Write(new("00001","Virtual person","123",0,true),"synthetic-only");
@@ -65,12 +66,12 @@ internal static class VirtualWorkerTests
             await db.SaveChangesAsync();return true;
         });
         await Use<UserManager<LoginAccount>,bool>(async users=>{var result=await users.CreateAsync(new LoginAccount{Id=actor,UserName=name,LockoutEnabled=true},"Synthetic!Password-2026");return result.Succeeded?true:throw new InvalidOperationException("Virtual login fixture failed");});
-        foreach(var device in new[]{a,b})
+        foreach(var device in new[]{a,b,legacy})
         {
             await Use<DeviceRegistry,Guid>(s=>s.CreateAsync(actor,device.Pin.DeviceId,new(site,"VIRTUAL-"+device.Pin.ExpectedSerial,device.Pin.ExpectedSerial,"synthetic-not-ZK","zk-standalone",device.Pin.Address,device.Pin.Port,true)));
             var version=await Q(db=>db.Devices.Where(x=>x.Id==device.Pin.DeviceId).Select(x=>x.Version).SingleAsync());
             await Use<DeviceRegistry,Guid>(s=>s.SetCredentialAsync(actor,device.Pin.DeviceId,version,"123456"));
-            await Q(async db=>{db.SourceEmployeeMappings.Add(new(){Id=Guid.NewGuid(),SourceId=device.Pin.DeviceId,CompanyId=company,SourcePersonId="00001",EmployeeId=employee,ValidFromUtc=new(2026,1,1,0,0,0,TimeSpan.Zero)});await db.SaveChangesAsync();return true;});
+            await Q(async db=>{db.SourceEmployeeMappings.Add(new(){Id=Guid.NewGuid(),SourceId=device.Pin.DeviceId,CompanyId=company,SourcePersonId=device==legacy?"1":"00001",EmployeeId=employee,ValidFromUtc=new(2026,1,1,0,0,0,TimeSpan.Zero)});await db.SaveChangesAsync();return true;});
         }
         await app.StartAsync();
         var address=app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
@@ -85,7 +86,7 @@ internal static class VirtualWorkerTests
         async Task Send(string path,object body){using var response=await Post(path,body);if(!response.IsSuccessStatusCode)throw new InvalidOperationException("Virtual HTTP rejected "+path+": "+response.StatusCode);}
         await Send("/auth/login",new{UserName=name,Password="Synthetic!Password-2026"});
         async Task<byte[]> Version(Guid id)=>await Q(db=>db.Devices.Where(x=>x.Id==id).Select(x=>x.Version).SingleAsync());
-        var av=await Version(a.Pin.DeviceId);var bv=await Version(b.Pin.DeviceId);
+        var av=await Version(a.Pin.DeviceId);var bv=await Version(b.Pin.DeviceId);var lv=await Version(legacy.Pin.DeviceId);
         async Task Wait(Func<Task<bool>> ready,string label)
         {
             using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(90));
@@ -96,7 +97,7 @@ internal static class VirtualWorkerTests
         var relay=Path.Combine(AppContext.BaseDirectory,"virtual-relay","IO.DeviceRuntime.Tests.dll");
         if(!File.Exists(relay)||!File.Exists(Path.ChangeExtension(relay,"runtimeconfig.json")))throw new InvalidOperationException("Missing built virtual relay");
         NativeEndpoint Pin(VirtualDeviceLab.Device d)=>new(d.Pin.DeviceId,d.Pin.Address,d.Pin.Port,1,d.Pin.ExpectedSerial,false,AllowClockSet:true,AllowUserRead:true,AttendanceOnlyUserWriteApproved:true,AllowAttendanceRead:true,AllowAdvancedSettingsRead:true,AllowRestart:true,AllowIdleMinutesWrite:true,IdleMinutesApproval:new("IO-virtual-not-ZK","virtual-fw-1",[20],"synthetic-idle-approval","standby-or-power-off"));
-        var configuration=new WorkerConfiguration(service,[],[Pin(a),Pin(b)],host,relay,true,true,true,true,false,true);
+        var configuration=new WorkerConfiguration(service,[],[Pin(a),Pin(b),Pin(legacy) with{AttendanceReadFormat=ZkAttendanceReadFormats.Legacy}],host,relay,true,true,true,true,false,true);
         using var worker=new LaboratoryWorker(app.Services.GetRequiredService<IServiceScopeFactory>(),configuration);
         try
         {
@@ -162,11 +163,17 @@ internal static class VirtualWorkerTests
             a.Fault="none";var recoveredLogs=await Logs(a,av,10);
             await Wait(()=>Q(db=>db.DeviceAttendanceDownloads.AnyAsync(x=>x.Id==recoveredLogs&&x.State!="pending"&&x.State!="running")),"outage recovery");
             check(await Q(db=>db.DeviceAttendanceDownloads.AnyAsync(x=>x.Id==recoveredLogs&&x.State=="succeeded"&&x.ReceivedCount==103))&&await Q(db=>db.DeviceAttendanceRows.CountAsync(x=>x.DownloadId==log))==50&&await Q(db=>db.RawAttendanceEvents.CountAsync(x=>x.SourceId==a.Pin.DeviceId))==0,"virtual-e2e a fresh worker read recovers after outage without erasing the partial attempt or silently ingesting its quarantined tuples");
+            var mismatched=Guid.NewGuid();await Send("/device-attendance-downloads",new DeviceAttendanceInput(mismatched,legacy.Pin.DeviceId,lv,10,"2026-11-08T00:00:00Z","2026-11-09T00:00:00Z",4,5));
+            await Wait(()=>Q(db=>db.DeviceAttendanceDownloads.AnyAsync(x=>x.Id==mismatched&&x.State!="pending"&&x.State!="running")),"format gate");
+            check(await Q(db=>db.DeviceAttendanceDownloads.AnyAsync(x=>x.Id==mismatched&&x.State=="unsupported"&&x.ReceivedCount==0)),"virtual-e2e SSR request cannot dispatch to an installed legacy attendance endpoint or silently switch its contract");
+            legacy.Fault="truncate";var legacyPartial=Guid.NewGuid();await Send("/device-attendance-downloads",new DeviceAttendanceInput(legacyPartial,legacy.Pin.DeviceId,lv,10,"2026-11-08T00:00:00Z","2026-11-09T00:00:00Z",4,5,ZkAttendanceReadFormats.Legacy));
+            await Wait(()=>Q(db=>db.DeviceAttendanceDownloads.AnyAsync(x=>x.Id==legacyPartial&&x.State!="pending"&&x.State!="running")),"legacy partial");
+            check(await Q(db=>db.DeviceAttendanceDownloads.AnyAsync(x=>x.Id==legacyPartial&&x.State=="bridge-failed"&&x.ReceivedCount==50))&&await Q(db=>db.RawAttendanceEvents.CountAsync(x=>x.SourceId==legacy.Pin.DeviceId))==0,"virtual-e2e explicit legacy HTTPS request retains interrupted minute tuples through the real worker without ingesting incomplete evidence");legacy.Fault="none";
             // Real browser forms submit to the same running HTTPS host while the worker
             // is live. No routes, fetch, responses, SQL receipts or outcomes are mocked.
             var browser=new ProcessStartInfo("node"){RedirectStandardOutput=true,RedirectStandardError=true,UseShellExecute=false};
             browser.Environment.Remove("MSSQL_SA_PASSWORD");browser.ArgumentList.Add("tests/IO.Infrastructure.SqlTests/virtual-worker-browser.cjs");
-            foreach(var argument in new[]{address,name,b.Pin.DeviceId.ToString(),Convert.ToBase64String(bv),service.ToString(),a.Pin.DeviceId.ToString()})browser.ArgumentList.Add(argument);
+            foreach(var argument in new[]{address,name,b.Pin.DeviceId.ToString(),Convert.ToBase64String(bv),service.ToString(),a.Pin.DeviceId.ToString(),legacy.Pin.DeviceId.ToString(),Convert.ToBase64String(lv)})browser.ArgumentList.Add(argument);
             using(var process=Process.Start(browser)??throw new InvalidOperationException())
             {
                 var stdout=process.StandardOutput.ReadToEndAsync();var stderr=process.StandardError.ReadToEndAsync();using var timeout=new CancellationTokenSource(TimeSpan.FromSeconds(150));
@@ -176,6 +183,7 @@ internal static class VirtualWorkerTests
             }
             check(await Use<LoginIdentityDbContext,bool>(async db=>await db.DeviceOperatorPolicies.AnyAsync(x=>x.UserId==service&&x.Restricted)&&await db.DeviceOperatorGrants.CountAsync(x=>x.UserId==service)==2&&await db.DeviceOperatorGrants.CountAsync(x=>x.UserId==service&&x.RevokedAtUtc==null&&x.DeviceId==a.Pin.DeviceId)==1),"virtual-e2e real Chromium scope forms restrict the worker and retain explicit grant revoke and new-grant history through HTTPS SQL");
             check(await Q(db=>db.RawAttendanceEvents.CountAsync(x=>x.SourceId==b.Pin.DeviceId))==103&&await Q(db=>db.DeviceAttendanceRows.CountAsync(x=>db.DeviceAttendanceDownloads.Any(d=>d.Id==x.DownloadId&&d.DeviceId==b.Pin.DeviceId)&&x.RawEventId!=null))==206,"virtual-e2e repeated browser extraction retains 206 original receipts but only 103 immutable raw events including tuple multiplicity");
+            check(await Q(db=>db.RawAttendanceEvents.CountAsync(x=>x.SourceId==legacy.Pin.DeviceId&&x.ExternalEventId!.StartsWith("zk-legacy-int32-minute-v1:")))==103&&await Q(db=>db.DeviceAttendanceRows.CountAsync(x=>db.DeviceAttendanceDownloads.Any(d=>d.Id==x.DownloadId&&d.DeviceId==legacy.Pin.DeviceId)&&x.RawEventId!=null))==206,"virtual-e2e real Chromium legacy format selection recovers after outage and repeated minute-precision extraction retains 206 receipts with 103 raw multiplicity identities");
             // Stop before revocation to prove a queued intent cannot execute after its
             // original operator loses authority (not merely that new HTTP calls fail).
             await worker.StopAsync(CancellationToken.None);
