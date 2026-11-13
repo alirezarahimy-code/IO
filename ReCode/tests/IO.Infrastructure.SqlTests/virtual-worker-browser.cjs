@@ -3,8 +3,8 @@
 // stateful loopback laboratory. No route/fetch/outcome/receipt mocks.
 const assert=require('node:assert/strict');
 const {chromium}=require('playwright-core');
-const [address,user,device,version,scopeUser,scopeDevice,legacyDevice,legacyVersion]=process.argv.slice(2);
-if(!address?.startsWith('https://127.0.0.1:')||!user?.startsWith('virtual-operator-'))throw Error('Disposable virtual laboratory only');
+const [address,user,device,version,scopeUser,scopeDevice,legacyDevice,legacyVersion,settingsDevice]=process.argv.slice(2);
+if(!address?.startsWith('https://127.0.0.1:')||!user?.startsWith('virtual-operator-')||!settingsDevice?.match(/^[0-9a-f-]{36}$/i))throw Error('Disposable virtual laboratory only');
 (async()=>{
  const browser=await chromium.launch({executablePath:process.env.IO_CHROME_BINARY,headless:true,args:['--no-sandbox']});
  try{
@@ -14,7 +14,7 @@ if(!address?.startsWith('https://127.0.0.1:')||!user?.startsWith('virtual-operat
   await page.locator('#login-form input[name=password]').fill('Synthetic!Password-2026');
   await page.locator('#login-form button').click();await page.waitForURL('**/workspace');
   const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('response',r=>{if(r.status()>=400)errors.push(r.status()+' '+new URL(r.url()).pathname);});
-  await page.goto(address+'/workspace/device-settings?deviceId='+device);
+  await page.goto(address+'/workspace/device-settings?deviceId='+settingsDevice);
   await page.locator('[data-function-keys]').first().waitFor();
   assert.match(await page.locator('[data-network-report]').first().textContent(),/255.255.255.0/);
   assert.match(await page.locator('#items').textContent(),/virtual-key-not-ZK/);

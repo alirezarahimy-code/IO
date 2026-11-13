@@ -176,7 +176,7 @@ internal static class VirtualWorkerTests
             // is live. No routes, fetch, responses, SQL receipts or outcomes are mocked.
             var browser=new ProcessStartInfo("node"){RedirectStandardOutput=true,RedirectStandardError=true,UseShellExecute=false};
             browser.Environment.Remove("MSSQL_SA_PASSWORD");browser.ArgumentList.Add("tests/IO.Infrastructure.SqlTests/virtual-worker-browser.cjs");
-            foreach(var argument in new[]{address,name,b.Pin.DeviceId.ToString(),Convert.ToBase64String(bv),service.ToString(),a.Pin.DeviceId.ToString(),legacy.Pin.DeviceId.ToString(),Convert.ToBase64String(lv)})browser.ArgumentList.Add(argument);
+            foreach(var argument in new[]{address,name,b.Pin.DeviceId.ToString(),Convert.ToBase64String(bv),service.ToString(),a.Pin.DeviceId.ToString(),legacy.Pin.DeviceId.ToString(),Convert.ToBase64String(lv),a.Pin.DeviceId.ToString()})browser.ArgumentList.Add(argument);
             using(var process=Process.Start(browser)??throw new InvalidOperationException())
             {
                 var stdout=process.StandardOutput.ReadToEndAsync();var stderr=process.StandardError.ReadToEndAsync();using var timeout=new CancellationTokenSource(TimeSpan.FromSeconds(150));

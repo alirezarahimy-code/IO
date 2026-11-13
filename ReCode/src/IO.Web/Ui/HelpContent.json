@@ -4568,7 +4568,7 @@
       {
         "Name": "confirmed",
         "Label": "تأیید خواندن",
-        "Description": "READ-ADVANCED-SETTINGS؛ فقط همین شش کد، نه SetDeviceInfo یا enroll."
+        "Description": "READ-ADVANCED-SETTINGS؛ شش کد و چهار مشاهدهٔ اضافی ثابت، به‌علاوهٔ کلیدهای عملکردی صرفاً مصوب نصب؛ نه setter عمومی یا enroll."
       },
       {
         "Name": "OneToOne/OneToN",
