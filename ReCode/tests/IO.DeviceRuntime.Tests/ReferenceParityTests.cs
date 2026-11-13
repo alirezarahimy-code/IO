@@ -20,7 +20,7 @@ internal static class ReferenceParityTests
   session=new(){ThrowAfter=true};Check(ZkInformationReader.Read("fixture",false,session).State=="identity-mismatch","unavailable final identity is not successful recovery evidence");
   var snapshot=new ZkAdvancedSettings(ZkAdvancedSettings.Version,"fixture",1,2,3,4,5,6);
   var additional=new Additional();var settings=ZkAdditionalSettingsReader.Add(snapshot,additional);
-  Check(settings.IsValid()&&settings.ReportedIp=="10.20.30.40"&&settings.AlgorithmVersionRaw=="10"&&settings.SleepTime==4&&additional.Calls==2,"GetAdvanced2 reads only reported IP and raw fixed algorithm option without changing six raw fields");
+  Check(settings.IsValid()&&settings.ReportedIp=="10.20.30.40"&&settings.AlgorithmVersionRaw=="10"&&settings.SleepTime==4&&additional.Calls==4,"GetAdvanced2 and Personnel GetSettings read four fixed raw observations without changing six raw fields");
   additional=new(){FailIp=true};settings=ZkAdditionalSettingsReader.Add(snapshot,additional);
   Check(settings.ReportedIp==null&&settings.AlgorithmVersionRaw=="10","failed GetDeviceIP does not erase independent algorithm observation");
   additional=new(){Algorithm=null};settings=ZkAdditionalSettingsReader.Add(snapshot,additional);
@@ -29,6 +29,12 @@ internal static class ReferenceParityTests
   Check(settings.AlgorithmVersionRaw=="not-numeric"&&settings.IsValid(),"unknown algorithm text is preserved raw and never parsed into a supported biometric capability");
   additional=new(){Algorithm="\uD800"};settings=ZkAdditionalSettingsReader.Add(snapshot,additional);
   Check(settings.AlgorithmVersionRaw==null&&!(snapshot with{ReportedIp="bad\ntext"}).IsValid(),"malformed descriptor encoding and control characters cannot enter typed settings evidence");
+  additional=new(){Mask="not-an-IP-mask",Gateway="0.0.0.0"};settings=ZkAdditionalSettingsReader.Add(snapshot,additional);
+  Check(settings.ReportedSubnetMask=="not-an-IP-mask"&&settings.ReportedGateway=="0.0.0.0"&&settings.IsValid(),"NetMask and GATEIPAddress are opaque reports not routing targets or guessed numeric network settings");
+  additional=new(){FailMask=true,Gateway="10.20.30.1"};settings=ZkAdditionalSettingsReader.Add(snapshot,additional);
+  Check(settings.ReportedSubnetMask==null&&settings.ReportedGateway=="10.20.30.1"&&additional.Calls==4,"failed mask read does not erase independent gateway or reuse a preceding SDK out value");
+  additional=new(){Mask="bad\nmask",Gateway="\uD800"};settings=ZkAdditionalSettingsReader.Add(snapshot,additional);
+  Check(settings.ReportedSubnetMask==null&&settings.ReportedGateway==null&&!(snapshot with{ReportedSubnetMask=" x"}).IsValid()&&!(snapshot with{ReportedGateway=new string('x',101)}).IsValid(),"invalid or oversized network report strings stay unavailable without trimming parsing or fallback");
   var pin=new ZkProbeInput(Guid.NewGuid(),"10.20.30.40",4370,1,"fixture",0);
   foreach(var operation in new[]{"DeleteAllData","DeleteAllRecords","DeleteAdmins","RemoveTimeRecords","RemoteEnroll","ModifyUsers","Set1_1","Set1_N","SetAlgorithm","SetCardReg","SetDLST","SetRepeatTime","SetSector","ReadKey","ChangeKey","clear-punches","sync-users","factory.reset","settings.write","door.open"})
    Check(!new ZkOperationInput(pin,operation,null,true,true,true,AllowIdleMinutesWrite:true).IsValid(),"legacy action cannot escape closed dispatch: "+operation);
@@ -36,9 +42,11 @@ internal static class ReferenceParityTests
  }
  private sealed class Additional:IZkAdditionalSettingsSession
  {
-  public int Calls;public bool FailIp;public string? Algorithm="10";
+  public int Calls;public bool FailIp;public string? Algorithm="10",Mask="255.255.255.0",Gateway="10.20.30.1";public bool FailMask;
   public string? ReportedIp(){Calls++;if(FailIp)throw new IOException();return "10.20.30.40";}
   public string? AlgorithmVersionRaw(){Calls++;return Algorithm;}
+  public string? ReportedSubnetMask(){Calls++;if(FailMask)throw new IOException();return Mask;}
+  public string? ReportedGateway(){Calls++;return Gateway;}
  }
  private sealed class Session:IZkInformationSession
  {

@@ -37,6 +37,8 @@ internal static class FunctionKeyReadTests
   var largeApproval=approval with{Indices=Enumerable.Range(0,8).ToArray()};
   child=await NativeProcessSupervisor.RunOperationAsync(host,assembly,input with{Connection=pin with{ExpectedSerial="function-large"},FunctionKeyReadApproval=largeApproval},5);
   Check(child.State=="succeeded"&&child.Settings?.FunctionKeys?.Items.Length==8&&JsonSerializer.Serialize(child).Length>4096,"bounded larger settings-only response carries eight raw Unicode observations without the old four-kilobyte truncation");
+  child=await NativeProcessSupervisor.RunOperationAsync(host,assembly,input with{Connection=pin with{ExpectedSerial="settings-wide"},FunctionKeyReadApproval=null},5);
+  Check(child.State=="succeeded"&&child.Settings?.ReportedGateway?.Length==100&&JsonSerializer.Serialize(child).Length>4096,"fixed raw network descriptors also use bounded settings stdout without requiring or inventing key approval");
   child=await NativeProcessSupervisor.RunOperationAsync(host,assembly,input with{Connection=pin with{ExpectedSerial="function-missing"}},5);
   Check(child.State=="bridge-failed","missing requested key evidence from an old or malformed child is rejected");
   child=await NativeProcessSupervisor.RunOperationAsync(host,assembly,input with{Connection=pin with{ExpectedSerial="function-overflow"}},5);

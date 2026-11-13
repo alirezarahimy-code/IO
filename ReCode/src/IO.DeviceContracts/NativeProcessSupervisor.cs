@@ -17,7 +17,7 @@ public static class NativeProcessSupervisor
     public static async Task<ZkOperationOutput> RunOperationAsync(string executable,string childAssembly,ZkOperationInput input,int timeoutSeconds,CancellationToken stoppingToken=default)
     {
         if(!input.IsValid())return new("unsupported");
-        var exchange=await ExchangeAsync(executable,childAssembly,System.Text.Json.JsonSerializer.Serialize(input),timeoutSeconds,stoppingToken,input.FunctionKeyReadApproval is null?4096:32768);
+        var exchange=await ExchangeAsync(executable,childAssembly,System.Text.Json.JsonSerializer.Serialize(input),timeoutSeconds,stoppingToken,input.Operation=="settings.read"?32768:4096);
         if(exchange.State!="exited")return new((input.Operation=="device.restart"||input.Operation=="network.ip.set"||input.Operation=="settings.idle.set")?"unknown":exchange.State);
         try
         {

@@ -249,7 +249,7 @@ internal static class VirtualDeviceLab
                                     logs.Count, null, users.Count, null, null, null, null, null, null, operation.AllowClockSet));
                             else if (operation.Operation == "settings.read")
                             {
-                                ZkAdvancedSettings? settings=new(ZkAdvancedSettings.Version, Pin.ExpectedSerial, 0, null, int.MinValue, IdleMinutes, 2, -1,Product(),Firmware());
+                                ZkAdvancedSettings? settings=new(ZkAdvancedSettings.Version, Pin.ExpectedSerial, 0, null, int.MinValue, IdleMinutes, 2, -1,Product(),Firmware(),ReportedSubnetMask:"255.255.255.0",ReportedGateway:"0.0.0.0");
                                 if(operation.FunctionKeyReadApproval is {} approval)settings=ZkFunctionKeyReader.Add(settings,approval,this);
                                 output=settings is null?new("unsupported"):new("succeeded",Settings:settings);
                             }

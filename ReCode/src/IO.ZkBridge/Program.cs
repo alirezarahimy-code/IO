@@ -132,6 +132,8 @@ internal static class Program
     {
         public string? ReportedIp(){string value="";return (bool)((dynamic)instance).GetDeviceIP(machine,ref value)?value:null;}
         public string? AlgorithmVersionRaw(){string value;return (bool)((dynamic)instance).GetSysOption(machine,"~ZKFPVersion",out value)?value:null;}
+        public string? ReportedSubnetMask(){string value;return (bool)((dynamic)instance).GetSysOption(machine,"NetMask",out value)?value:null;}
+        public string? ReportedGateway(){string value;return (bool)((dynamic)instance).GetSysOption(machine,"GATEIPAddress",out value)?value:null;}
     }
 
     private sealed class AdvancedSettingsSession(object instance,int machine):IZkAdvancedSettingsReadSession

@@ -97,6 +97,7 @@ if (args is not ["--verify"])
         {
             var settings=new ZkAdvancedSettings(ZkAdvancedSettings.Version,operation.Connection.ExpectedSerial,0,null,int.MinValue,int.MaxValue,2,-1);
             if(operation.Connection.ExpectedSerial=="settings-hang"){await Task.Delay(TimeSpan.FromMinutes(1));return;}
+            if(operation.Connection.ExpectedSerial=="settings-wide")settings=settings with{Product=new string('ژ',120),Firmware=new string('ژ',120),ReportedIp=new string('ژ',100),AlgorithmVersionRaw=new string('ژ',100),ReportedSubnetMask=new string('ژ',100),ReportedGateway=new string('ژ',100)};
             if(operation.FunctionKeyReadApproval is {} keyApproval)
             {
                 if(operation.Connection.ExpectedSerial=="function-overflow"){Console.Write(new string('x',40000));return;}

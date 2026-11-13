@@ -47,14 +47,20 @@
 - false/exception، index اشتباه یا خروجی malformed: همان index با `Reported=false` و خروجی‌های null؛ خطا از عدم پشتیبانی تفکیک نشده و صفر ساخته نمی‌شود.
 - نام/زمان خام تا۱۲۸ کاراکتر بدون کنترل و با UTF-8 معتبر پذیرفته می‌شوند. رشتهٔ بلند/خراب کوتاه یا اصلاح حدسی نمی‌شود؛ آن مشاهده unavailable است. رشتهٔ خالی واقعاً گزارش‌شده مجاز است.
 - child قدیمی بدون دادهٔ کلیدیِ درخواست‌شده، مرجع/مدل/ترتیب index متفاوت یا دادهٔ unsolicited رد می‌شود. خطای timeout هرگز snapshot موفق نیست و نوشتنی retry نمی‌شود.
-- سقف stdout فقط برای settings.read دارای approval معتبر از۴۰۹۶ به۳۲۷۶۸ کاراکتر افزایش یافته تا دادهٔ bounded هشت کلید و escape یونیکد جا شود؛ stderr و سایر عملیات همان۴۰۹۶ می‌مانند. خروجی بیش از سقف همچنان fail-closed است.
+- سقف stdout برای settings.read معتبر از۴۰۹۶ به۳۲۷۶۸ کاراکتر افزایش یافته تا دادهٔ bounded هشت کلید و escape یونیکد جا شود؛ stderr و سایر عملیات همان۴۰۹۶ می‌مانند. خروجی بیش از سقف همچنان fail-closed است.
 - JSON همان ResultJson غیرقابل‌تغییر عملیات SQL را استفاده می‌کند؛ raw attendance و canonical/dedup تردد تغییر نکرده‌اند.
 
 ## آزمون و حدود ادعا
 
-- `FunctionKeyReadTests.cs`: ۲۱ بررسی مستقیم قرارداد، مدل/فهرست/خروجی اشتباه، مقدار خام/خالی/خراب، فرایند child واقعی، snapshot بزرگ یونیکد، missing/overflow و deadline؛ محلی موفق، بدون SDK.
+- `FunctionKeyReadTests.cs`: ۲۲ بررسی مستقیم قرارداد، مدل/فهرست/خروجی اشتباه، مقدار خام/خالی/خراب، فرایند child واقعی، snapshot بزرگ یونیکد با/بدون approval کلید، missing/overflow و deadline؛ محلی موفق، بدون SDK.
 - `device-settings-ui-check.cjs`: نمایش امن نام/مرجع حاوی HTML، صفر/منفی، AutoChange غیر boolean، unavailable و حفظ retry/CSRF/revoke؛ محلی موفق.
 - دو assertion جدید `DeviceAdvancedSettingsTests` برای منع unavailable جعلی و حفظ فهرست خام در تاریخچهٔ SQL؛ و یک assertion جدید آزمایشگاه worker با فهرست[۰،۳]، یک کلید موجود و دیگری unavailable. مرورگر واقعی نیز نمایش همان snapshot تولیدشده توسط worker را بررسی می‌کند.
-- برای تغییرات مشترک supervisor، تست‌های موجود مرز native(۶۱)، تطبیق مرجع(۳۳) و آزمایشگاه TCP(۱۹) محلی دوباره موفق شدند؛ build bridge/runtime موفق است.
+- برای تغییرات مشترک supervisor، تست‌های موجود مرز native(۶۱)، تطبیق مرجع(۳۶) و آزمایشگاه TCP(۱۹) محلی دوباره موفق شدند؛ build bridge/runtime موفق است.
 
-نتیجهٔ SQL/HTTPS/worker و CI ویندوز/لینوکس این برش باید روی SHA جدید جدا ثبت شود؛ تست محلی جای آن نیست. تعداد مورد انتظار مجموعهٔ کامل پس از سه assertion جدید۸۵۴ است، نه شاهد اجرای آن. اجرای SDK/دستگاه واقعی در پذیرش نهایی باقی می‌ماند. تغییر کلید، سایر تنظیمات، PUSH، RemoteEnroll و عملیات مخرب با این برش تکمیل نمی‌شوند.
+نتیجهٔ SQL/HTTPS/worker و CI ویندوز/لینوکس این برش باید روی SHA جدید جدا ثبت شود؛ تست محلی جای آن نیست. تعداد مورد انتظار مجموعهٔ کامل پس از چهار assertion جدید۸۵۵ است، نه شاهد اجرای آن. اجرای SDK/دستگاه واقعی در پذیرش نهایی باقی می‌ماند. تغییر کلید، سایر تنظیمات، PUSH، RemoteEnroll و عملیات مخرب با این برش تکمیل نمی‌شوند.
+
+## ادامهٔ خواندنی شبکه از همان مرجع
+
+`Personnel.ZK.ZKDevice.GetSettings` خط۹۱۲، `GetSubnetMask` خط۹۳۱ و `GetGateway` خط۹۵۵ در همان بدنهٔ هش‌دار، دو فراخوانی ثابت `GetSysOption(machine,"NetMask",out value)` و `GetSysOption(machine,"GATEIPAddress",out value)` را نشان می‌دهند. این دو به `ZkAdditionalSettingsReader` و `ReportedSubnetMask/ReportedGateway` اضافه شدند؛ انتخاب نام option دلخواه از وب/IPC وجود ندارد. false/exception مستقل null می‌ماند، مقادیر معتبر bounded به‌صورت متن خام حفظ می‌شوند، حتی اگر آدرس قابل‌تفسیر نباشند. نه `SetSysOption` و نه gateway/mask setter فعال نشده و این متن‌ها وارد pin/credential/مقصد اتصال نمی‌شوند.
+
+سه تست مستقیم اضافه، یک assertion مستقل SQL و همان مسیر worker/نمایش Chromium، این داده‌ها را نیز بررسی می‌کنند؛ بنابراین شمارش تطبیق مستقیم مرجع از۳۳ به۳۶ می‌رسد. این خواندن، اثبات سلامت تنظیمات شبکه یا مدل واقعی نیست.
