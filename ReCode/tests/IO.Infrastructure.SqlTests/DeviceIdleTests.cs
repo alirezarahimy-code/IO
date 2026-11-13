@@ -85,6 +85,8 @@ internal static class DeviceIdleTests
   clock.Advance(301);check(await Reject<DomainConflictException>(()=>Preview(fresh)),"S11 stale settings snapshots cannot create new idle previews");
   bool blocked=false;try{await Q(async db=>{await db.GetService<IMigrator>().MigrateAsync("20261112190000_DeviceNetworkIp");return true;});}catch(SqlException e)when(e.Number==51031){blocked=true;}
   check(blocked&&await State(id)=="unknown","S11 downgrade refuses to erase retained idle plans and recovery history");
+  // Restore newer empty schemas already removed before the retained-history guard.
+  await Q(async db=>{await db.GetService<IMigrator>().MigrateAsync();return true;});
  }
  private sealed class Clock:TimeProvider{private DateTimeOffset now=DateTimeOffset.UtcNow;public override DateTimeOffset GetUtcNow()=>now;public void Advance(int seconds)=>now=now.AddSeconds(seconds);}
 }

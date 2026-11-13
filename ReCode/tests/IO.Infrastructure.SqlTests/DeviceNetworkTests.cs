@@ -80,6 +80,8 @@ internal static class DeviceNetworkTests
   check(await State(lost)=="unknown"&&await Q(db=>db.DeviceOperations.AnyAsync(x=>x.Id==lost&&x.ResolutionInfoId==oldInspect)),"S06 explicit old-address observation can record unchanged reachable recovery without claiming a successful IP mutation");
   bool blocked=false;try{await Q(async db=>{await db.GetService<IMigrator>().MigrateAsync("20261112180000_DeviceRestart");return true;});}catch(SqlException e)when(e.Number==51030){blocked=true;}
   check(blocked&&await State(change)=="unknown","S06 downgrade refuses to discard retained network plans or recovery history");
+  // Restore newer empty schemas already removed before the retained-history guard.
+  await Q(async db=>{await db.GetService<IMigrator>().MigrateAsync();return true;});
  }
  private sealed class Clock:TimeProvider{private DateTimeOffset now=DateTimeOffset.UtcNow;public override DateTimeOffset GetUtcNow()=>now;public void Advance(int seconds)=>now=now.AddSeconds(seconds);}
 }
