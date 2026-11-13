@@ -47,6 +47,8 @@ internal static class VirtualWorkerTests
         async Task<T> Use<S,T>(Func<S,Task<T>> f) where S:notnull
         { await using var scope=app.Services.CreateAsyncScope();return await f(scope.ServiceProvider.GetRequiredService<S>()); }
         Task<T> Q<T>(Func<IoDbContext,Task<T>> f)=>Use<IoDbContext,T>(f);
+        // Prior guarded downgrade fixtures can have removed newer empty migrations.
+        await Q(async db=>{await db.Database.MigrateAsync();return true;});
         var actor=Guid.NewGuid();var service=Guid.NewGuid();var role=Guid.NewGuid();var workerRole=Guid.NewGuid();
         var org=Guid.NewGuid();var company=Guid.NewGuid();var site=Guid.NewGuid();var employee=Guid.NewGuid();
         var name="virtual-operator-"+actor.ToString("N");

@@ -73,8 +73,8 @@ try
             foreach(var permission in PermissionCatalog.All)db.Permissions.Add(new(){Id=Guid.NewGuid(),Code=permission.Code});
             await db.SaveChangesAsync();
         }
-        await VirtualWorkerTests.RunAsync(connection,Check);
         await LegacyPollScheduleTests.RunAsync(connection,Check);
+        await VirtualWorkerTests.RunAsync(connection,Check);
         Console.WriteLine("PASS disposable virtual worker preflight complete");return 0;
     }
     if(args.Length!=0)throw new ArgumentException("Unknown disposable test mode.");
@@ -458,10 +458,12 @@ try
     await DeviceIdleTests.RunAsync(connection, Check);
     await DeviceSafetyRegressionTests.RunAsync(connection, Check);
     await LegacyAttendanceReadTests.RunAsync(connection, Check);
-    await VirtualWorkerTests.RunAsync(connection, Check);
     await DeviceAccessTests.RunAsync(connection, Check);
     await LegacyPollScheduleTests.RunAsync(connection, Check);
     await DeviceSettingsPayloadTests.RunAsync(connection, Check);
+    // Native raw history correctly blocks DOWN45. Exercise older DOWN43/44
+    // guards first, then restore latest before the full real-worker raw scenario.
+    await VirtualWorkerTests.RunAsync(connection, Check);
     await DeviceRawSettingTests.RunAsync(connection, Check);
     Console.WriteLine("PASS disposable SQL Server integration checks");
     return 0;

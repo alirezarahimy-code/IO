@@ -35,3 +35,7 @@
 ### تکمیل شاهد مسیر واقعی در برش بعدی
 
 دو regression به VirtualWorkerTests افزوده شد: HTTPS مصدق → preview/hash → SQL → production worker/credential → child واقعی → endpoint مصنوعی TCP، lost ACK بعد از یک mutation و سپس snapshot/read-only و review بدون replay. این سناریو دو endpoint مستقل را کنترل می‌کند؛ پروتکل خصوصی تست است، نه ZK/SDK/سخت‌افزار. اجرای آن هنوز وابسته به CI کد followup است.
+
+### ترتیب regressionهای downgrade
+
+سناریوی raw واقعیِ worker اکنون بعد از تست guardهای قدیمی‌تر polling/payload اجرا می‌شود. با وجود تاریخچه raw، DOWN45 باید51034 بدهد و اجازه رسیدن به guard43/44 ندهد؛ تست قدیمی نباید با انتظار51032/51033 اشتباه شکست بخورد یا حفاظت جدید را دور بزند. پیش از worker آخرین migration دوباره اعمال می‌شود؛ هیچ داده‌ای برای عبور از guard حذف نمی‌شود. mode مستقل virtual-worker نیز ابتدا polling را تست می‌کند.
