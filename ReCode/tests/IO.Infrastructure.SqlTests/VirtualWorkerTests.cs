@@ -31,6 +31,7 @@ internal static class VirtualWorkerTests
     {
         await using var a = new VirtualDeviceLab.Device("virtual-lab-SQL-A");
         await using var b = new VirtualDeviceLab.Device("virtual-lab-SQL-B");
+        a.IdleMinutes=15;
         a.Write(new("00001","Virtual person","123",0,true),"synthetic-only");
         b.Write(new("00001","Virtual person","123",0,true),"synthetic-only");
         using var rsa = RSA.Create(2048);
@@ -48,8 +49,8 @@ internal static class VirtualWorkerTests
         var actor=Guid.NewGuid();var service=Guid.NewGuid();var role=Guid.NewGuid();var workerRole=Guid.NewGuid();
         var org=Guid.NewGuid();var company=Guid.NewGuid();var site=Guid.NewGuid();var employee=Guid.NewGuid();
         var name="virtual-operator-"+actor.ToString("N");
-        var humanRights=new[]{DeviceRegistry.Read,DeviceRegistry.Create,DeviceRegistry.Credentials,DeviceConnections.Read,DeviceConnections.Test,DeviceOperations.Read,DeviceOperations.SetClock,DeviceOperations.ReadSettings,DeviceUserDownloads.Read,DeviceUserDownloads.Download,DeviceUserUploads.Upload,DeviceAttendanceDownloads.Read,DeviceAttendanceDownloads.Download,DeviceAttendanceDownloads.Commit,"attendance.events.receive"};
-        var serviceRights=new[]{DeviceConnections.Execute,DeviceOperations.Execute,DeviceOperations.ExecuteSettings,DeviceUserDownloads.Execute,DeviceUserUploads.Execute,DeviceAttendanceDownloads.Execute};
+        var humanRights=new[]{DeviceRegistry.Read,DeviceRegistry.Create,DeviceRegistry.Credentials,DeviceConnections.Read,DeviceConnections.Test,DeviceOperations.Read,DeviceOperations.SetClock,DeviceOperations.ReadSettings,DeviceOperations.SetIdle,DeviceOperations.Restart,DeviceUserDownloads.Read,DeviceUserDownloads.Download,DeviceUserUploads.Upload,DeviceAttendanceDownloads.Read,DeviceAttendanceDownloads.Download,DeviceAttendanceDownloads.Commit,"attendance.events.receive"};
+        var serviceRights=new[]{DeviceConnections.Execute,DeviceOperations.Execute,DeviceOperations.ExecuteSettings,DeviceOperations.ExecuteIdle,DeviceOperations.ExecuteRestart,DeviceUserDownloads.Execute,DeviceUserUploads.Execute,DeviceAttendanceDownloads.Execute};
         await Q(async db=>
         {
             db.Organizations.Add(new(){Id=org,Name="Virtual worker org"});db.Companies.Add(new(){Id=company,OrganizationId=org,Name="Virtual worker company"});
@@ -94,7 +95,7 @@ internal static class VirtualWorkerTests
         var host=Path.GetFullPath(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(),"..","..","..",OperatingSystem.IsWindows()?"dotnet.exe":"dotnet"));
         var relay=Path.Combine(AppContext.BaseDirectory,"virtual-relay","IO.DeviceRuntime.Tests.dll");
         if(!File.Exists(relay)||!File.Exists(Path.ChangeExtension(relay,"runtimeconfig.json")))throw new InvalidOperationException("Missing built virtual relay");
-        NativeEndpoint Pin(VirtualDeviceLab.Device d)=>new(d.Pin.DeviceId,d.Pin.Address,d.Pin.Port,1,d.Pin.ExpectedSerial,false,AllowClockSet:true,AllowUserRead:true,AttendanceOnlyUserWriteApproved:true,AllowAttendanceRead:true,AllowAdvancedSettingsRead:true);
+        NativeEndpoint Pin(VirtualDeviceLab.Device d)=>new(d.Pin.DeviceId,d.Pin.Address,d.Pin.Port,1,d.Pin.ExpectedSerial,false,AllowClockSet:true,AllowUserRead:true,AttendanceOnlyUserWriteApproved:true,AllowAttendanceRead:true,AllowAdvancedSettingsRead:true,AllowRestart:true,AllowIdleMinutesWrite:true,IdleMinutesApproval:new("IO-virtual-not-ZK","virtual-fw-1",[20],"synthetic-idle-approval","standby-or-power-off"));
         var configuration=new WorkerConfiguration(service,[],[Pin(a),Pin(b)],host,relay,true,true,true,true,false,true);
         using var worker=new LaboratoryWorker(app.Services.GetRequiredService<IServiceScopeFactory>(),configuration);
         try
@@ -127,6 +128,25 @@ internal static class VirtualWorkerTests
             var clock=Guid.NewGuid();await Send("/device-operations",new DeviceOperationInput(clock,a.Pin.DeviceId,av,"clock.set",10,new(2026,11,8,12,34,56,TimeSpan.Zero),"SET-CLOCK"));
             await Wait(()=>Q(db=>db.DeviceOperations.AnyAsync(x=>x.Id==clock&&x.State!="pending"&&x.State!="running")),"clock");
             check(await Q(db=>db.DeviceOperations.AnyAsync(x=>x.Id==clock&&x.State=="succeeded"))&&a.ClockLocal=="2026-11-08 12:34:56"&&b.ClockLocal!="2026-11-08 12:34:56","virtual-e2e confirmed UTC clock intent changes only its selected remote device through the real worker");
+            var restartId=Guid.NewGuid();await Send("/device-operations",new DeviceOperationInput(restartId,b.Pin.DeviceId,bv,"device.restart",10,null,"RESTART-DEVICE"));
+            await Wait(()=>Q(db=>db.DeviceOperations.AnyAsync(x=>x.Id==restartId&&x.State!="pending"&&x.State!="running")),"restart");
+            check(await Q(db=>db.DeviceOperations.AnyAsync(x=>x.Id==restartId&&x.State=="succeeded"))&&b.Restarts==1&&a.Restarts==0&&b.ClockLocal=="2026-11-08 10:00:00","virtual-e2e independently granted restart uses the production executor without mutating another device or its clock");
+            async Task<Guid> Settings()
+            {
+                var id=Guid.NewGuid();await Send("/device-settings-snapshots",new DeviceSettingsInput(id,a.Pin.DeviceId,av,10,"READ-ADVANCED-SETTINGS"));
+                await Wait(()=>Q(db=>db.DeviceOperations.AnyAsync(x=>x.Id==id&&x.State!="pending"&&x.State!="running")),"settings");
+                if(!await Q(db=>db.DeviceOperations.AnyAsync(x=>x.Id==id&&x.State=="succeeded")))throw new InvalidOperationException("Virtual settings read failed");return id;
+            }
+            var settingSnapshot=await Settings();ZkIdlePlan idlePlan;string idleHash;
+            using(var preview=await Post("/device-settings/idle-preview",new DeviceIdlePreview(a.Pin.DeviceId,av,settingSnapshot,20,"synthetic-idle-approval")))
+            {preview.EnsureSuccessStatusCode();using var json=JsonDocument.Parse(await preview.Content.ReadAsStringAsync());var result=json.RootElement.GetProperty("result");idlePlan=result.GetProperty("plan").Deserialize<ZkIdlePlan>(new JsonSerializerOptions{PropertyNameCaseInsensitive=true})!;idleHash=result.GetProperty("previewHash").GetString()!;}
+            var idleId=Guid.NewGuid();a.Fault="drop-operation-ack";
+            await Send("/device-operations",new DeviceOperationInput(idleId,a.Pin.DeviceId,av,"settings.idle.set",10,null,ZkIdlePlan.Confirmation,IdlePlan:idlePlan,IdlePreviewHash:idleHash));
+            await Wait(()=>Q(db=>db.DeviceOperations.AnyAsync(x=>x.Id==idleId&&x.State!="pending"&&x.State!="running")),"idle write");
+            check(await Q(db=>db.DeviceOperations.AnyAsync(x=>x.Id==idleId&&x.State=="unknown"))&&a.IdleMinutes==20&&a.IdleMutations==1,"virtual-e2e exact-model approved idle mutation with lost acknowledgement retains SQL unknown after one actual virtual mutation");
+            a.Fault="none";var idleRecovery=await Settings();var idleVersion=await Q(db=>db.DeviceOperations.Where(x=>x.Id==idleId).Select(x=>x.Version).SingleAsync());
+            await Send("/device-operations/"+idleId+"/resolve-idle",new DeviceIdleResolution(idleVersion,idleRecovery,"REVIEWED-IDLE-MINUTES"));
+            check(await Q(db=>db.DeviceOperations.AnyAsync(x=>x.Id==idleId&&x.State=="unknown"&&x.ResolutionInfoId==idleRecovery))&&a.IdleMutations==1,"virtual-e2e fresh model-bound settings read and human review recover uncertain idle without rewriting evidence or replaying mutation");
             var log=Guid.NewGuid();a.Fault="truncate";
             await Send("/device-attendance-downloads",new DeviceAttendanceInput(log,a.Pin.DeviceId,av,10,"2026-11-08T00:00:00Z","2026-11-09T00:00:00Z",4,5));
             await Wait(()=>Q(db=>db.DeviceAttendanceDownloads.AnyAsync(x=>x.Id==log&&x.State!="pending"&&x.State!="running")),"partial logs");

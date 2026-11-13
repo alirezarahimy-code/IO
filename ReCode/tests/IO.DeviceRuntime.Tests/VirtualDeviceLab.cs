@@ -140,7 +140,7 @@ internal static class VirtualDeviceLab
         Console.WriteLine($"PASS {count} stateful legacy TCP write checks; private JSON laboratory protocol, not vendor SDK acceptance");
     }
 
-    internal sealed class Device : IAsyncDisposable, IZkUserWriteSession
+    internal sealed class Device : IAsyncDisposable, IZkUserWriteSession, IZkRestartSession, IZkIdleSettingSession
     {
         private readonly TcpListener listener = new(IPAddress.Loopback, 0);
         private readonly CancellationTokenSource shutdown = new();
@@ -153,6 +153,14 @@ internal static class VirtualDeviceLab
         public volatile string Fault = "none";
         public string ClockLocal { get; private set; } = "2026-11-08 10:00:00";
         public int Mutations { get; private set; }
+        public int Restarts { get; private set; }
+        public int IdleMinutes { get; set; } = int.MaxValue;
+        public int IdleMutations { get; private set; }
+        public string Product() => "IO-virtual-not-ZK";
+        public string Firmware() => "virtual-fw-1";
+        public int? ReadIdleMinutes() => IdleMinutes;
+        public bool SetIdleMinutes(int minutes) { IdleMinutes=minutes; IdleMutations++; return true; }
+        public bool Restart() { Restarts++; return true; }
         public Device(string serial)
         {
             // Synthetic test data only. Repeated identical tuples deliberately retain multiplicity.
@@ -233,13 +241,16 @@ internal static class VirtualDeviceLab
                         {
                             if (!operation.IsValid()) output = new("unsupported");
                             else if (operation.Operation == "information.read")
-                                output = new("succeeded", new(Pin.ExpectedSerial, "IO-virtual-not-ZK", null, null, ClockLocal,
+                                output = new("succeeded", new(Pin.ExpectedSerial, Product(), Firmware(), null, ClockLocal,
                                     logs.Count, null, users.Count, null, null, null, null, null, null, operation.AllowClockSet));
                             else if (operation.Operation == "settings.read")
-                                output = new("succeeded", Settings: new(ZkAdvancedSettings.Version, Pin.ExpectedSerial, 0, null, int.MinValue, int.MaxValue, 2, -1));
-                            else { ClockLocal = operation.ClockLocal!; output = new("succeeded"); }
+                                output = new("succeeded", Settings: new(ZkAdvancedSettings.Version, Pin.ExpectedSerial, 0, null, int.MinValue, IdleMinutes, 2, -1,Product(),Firmware()));
+                            else if (operation.Operation == "device.restart") output=ZkRestartExecutor.Execute(operation.AllowRestart,this);
+                            else if (operation.Operation == "settings.idle.set") output=ZkIdleSettingExecutor.Execute(operation,this);
+                            else if (operation.Operation == "clock.set") { ClockLocal = operation.ClockLocal!; output = new("succeeded"); }
+                            else output=new("unsupported");
                         }
-                        await Frame(output);
+                        if (fault != "drop-operation-ack") await Frame(output);
                     }
                     else await writer.WriteLineAsync("sdk-serial-matched");
                 }
