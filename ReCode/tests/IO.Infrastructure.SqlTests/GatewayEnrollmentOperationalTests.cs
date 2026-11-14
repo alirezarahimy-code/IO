@@ -66,6 +66,12 @@ internal static class GatewayEnrollmentOperationalTests
     var provision=new PushGatewayIngress.Provision(bindingId,gateway,push,service,pushVersion,"SYNTHETIC-SERIAL","key-1",Convert.ToBase64String(key));
     check(await Use<PushGatewayIngress,Guid>(s=>s.ProvisionAsync(actor,provision))==bindingId&&await Use<PushGatewayIngress,Guid>(s=>s.ProvisionAsync(actor,provision))==bindingId,"gateway provisioning and exact retry pin service principal device version and protected key");
     check(await Reject<DomainConflictException>(()=>Use<PushGatewayIngress,Guid>(s=>s.ProvisionAsync(actor,provision with{KeyVersion="changed"}))),"gateway provisioning rejects changed retries");
+    async Task<bool> SqlReject(string sql,int number)
+    {
+        try{await Q(async db=>{await db.Database.ExecuteSqlRawAsync(sql);return true;});return false;}
+        catch(SqlException e)when(e.Number==number){return true;}
+        catch(DbUpdateException e)when(e.InnerException is SqlException inner&&inner.Number==number){return true;}
+    }
     var stored=await Q(db=>db.PushGatewayBindings.AsNoTracking().SingleAsync(x=>x.Id==bindingId));
     check(stored.ProtectedKey!=provision.KeyBase64&&!stored.ToString().Contains(provision.KeyBase64,StringComparison.Ordinal),"gateway key is protected at rest and redacted from diagnostics");
     var binding=new PushGatewayBinding(gateway,push,push,"SYNTHETIC-SERIAL","key-1",TimeZoneInfo.Utc,key);
@@ -78,6 +84,12 @@ internal static class GatewayEnrollmentOperationalTests
     check(receipt.ReceiptId==retry.ReceiptId&&receipt.RetainedRows==2&&receipt.GatewayAuthenticated&&!receipt.DeviceIdentityVerified&&receipt.State=="gateway-retained-device-unverified","SQL-committed gateway receipt preserves repeated punches and stable retry without claiming device identity");
     check(await Q(db=>db.PushGatewayReceipts.CountAsync())==1&&await Q(db=>db.DevicePushJournal.CountAsync())==1&&await Q(db=>db.RawAttendanceEvents.CountAsync())==0,"gateway commits one journal and receipt atomically and never processes attendance");
     check(await Reject<DomainConflictException>(()=>Receive(Envelope(transfer,stamp:"different"))),"same transfer id cannot change Stamp interpretation even with a valid MAC");
+    check(await SqlReject("UPDATE dbo.PushGatewayBindings SET KeyVersion=N'tampered' WHERE Id='"+bindingId+"'",51037)&&await SqlReject("DELETE FROM dbo.PushGatewayReceipts WHERE Id='"+receipt.ReceiptId+"'",51037),"SQL guards independently prevent gateway binding mutation and receipt deletion");
+    await Q(async db=>{await db.Users.Where(x=>x.Id==service).ExecuteUpdateAsync(x=>x.SetProperty(p=>p.IsActive,false));return true;});
+    check(await Reject<UnauthorizedAccessException>(()=>Receive(Envelope(Guid.NewGuid()))),"gateway service-principal disable is rechecked transactionally for each signed transfer");
+    await Q(async db=>{await db.Users.Where(x=>x.Id==service).ExecuteUpdateAsync(x=>x.SetProperty(p=>p.IsActive,true));await db.Users.Where(x=>x.Id==actor).ExecuteUpdateAsync(x=>x.SetProperty(p=>p.IsActive,false));return true;});
+    check(await Reject<UnauthorizedAccessException>(()=>Receive(Envelope(Guid.NewGuid()))),"gateway provisioner authority revoke also blocks a still-valid key");
+    await Q(async db=>{await db.Users.Where(x=>x.Id==actor).ExecuteUpdateAsync(x=>x.SetProperty(p=>p.IsActive,true));return true;});
     var parallelId=Guid.NewGuid();var parallel=await Task.WhenAll(Receive(Envelope(parallelId)),Receive(Envelope(parallelId)));
     check(parallel[0].ReceiptId==parallel[1].ReceiptId&&await Q(db=>db.PushGatewayReceipts.CountAsync())==2,"concurrent delivery serializes to one durable receipt");
     // Failure after domain inserts must roll back both evidence and receipt and produce no successful result.
@@ -147,6 +159,7 @@ internal static class GatewayEnrollmentOperationalTests
     check(await Reject<DomainConflictException>(()=>Request(input with{Id=Guid.NewGuid()}))&&await Reject<DomainConflictException>(()=>Use<DeviceOperations,Guid>(s=>s.RequestAsync(actor,Guid.NewGuid(),native,nativeVersion,"clock.set",30,DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()),"SET-CLOCK"))),"unknown enrollment fences another enrollment and unrelated native writes; no automatic replay");
     var readJob=Guid.NewGuid();check(await Use<DeviceOperations,Guid>(s=>s.RequestAsync(actor,readJob,native,nativeVersion,"information.read",30,null,null))==readJob,"unknown enrollment permits nonwriting recovery observations");
     check(!PermissionCatalog.Templates.Any(x=>x.Permissions.Any(p=>p.StartsWith("devices.enrollment.",StringComparison.Ordinal))),"no default role silently acquires biometric authority");
+    check(await SqlReject("UPDATE dbo.RemoteEnrollments SET State=N'pending',ServiceUserId=NULL,ClaimId=NULL,ClaimedAtUtc=NULL,CancelRequestedAtUtc=NULL,FinishedAtUtc=NULL,ResultJson=NULL WHERE Id='"+claim.Id+"'",51038),"SQL terminal-history guard independently prevents unknown enrollment requeue");
     var rawAfter=await Q(db=>db.RawAttendanceEvents.CountAsync());check(rawAfter==0,"operational gateway/enrollment tests never fabricate processed attendance or store fingerprint bytes");
     }
     finally{try{Directory.Delete(ring,true);}catch(IOException){} }

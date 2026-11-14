@@ -42,10 +42,11 @@ modelBuilder.Entity<RemoteEnrollmentRecord>(b=>
             b.Property(x=>x.ResultJson).HasColumnType("nvarchar(4096)");
             b.Property(x=>x.Version).HasColumnType("rowversion");
         b.ToTable("RemoteEnrollments",t=>{t.HasTrigger("TR_RemoteEnrollments_History");t.UseSqlOutputClause(false);});
-        b.HasKey(x=>x.Id);b.Property(x=>x.Id).ValueGeneratedNever();b.Property(x=>x.Version).IsRowVersion();
+        b.HasKey(x=>x.Id);b.Property(x=>x.Id).ValueGeneratedNever();b.Property(x=>x.Version).IsRowVersion().IsRequired();
         b.Property(x=>x.ExpectedDeviceVersion).HasMaxLength(8).IsRequired();b.Property(x=>x.PersonIdentifier).HasMaxLength(100).IsRequired();
         b.Property(x=>x.ApprovalJson).HasMaxLength(8192).IsRequired();b.Property(x=>x.ResultJson).HasMaxLength(4096);b.Property(x=>x.State).HasMaxLength(40).IsRequired();
         b.HasIndex(x=>new{x.DeviceId,x.State});
+        b.HasIndex(x=>x.EmployeeId);b.HasIndex(x=>x.SourceId);b.HasIndex(x=>x.RequestedByUserId);b.HasIndex(x=>x.ServiceUserId);
         b.HasOne<DeviceRecord>().WithMany().HasForeignKey(x=>x.DeviceId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<EmployeeRecord>().WithMany().HasForeignKey(x=>x.EmployeeId).OnDelete(DeleteBehavior.Restrict);
         b.HasOne<EventSourceRecord>().WithMany().HasForeignKey(x=>x.SourceId).OnDelete(DeleteBehavior.Restrict);
@@ -74,7 +75,8 @@ modelBuilder.Entity<RemoteEnrollmentRecord>(b=>
             b.Property(x=>x.ExpectedDeviceVersion).HasMaxLength(8).IsRequired();
             b.Property(x=>x.Serial).HasMaxLength(100).IsRequired();b.Property(x=>x.TimeZoneId).HasMaxLength(100).IsRequired();
             b.Property(x=>x.KeyVersion).HasMaxLength(64).IsRequired();b.Property(x=>x.ProtectedKey).HasMaxLength(4000).IsRequired();
-            b.Property(x=>x.Version).IsRowVersion();
+            b.Property(x=>x.Version).IsRowVersion().IsRequired();
+            b.HasIndex(x=>x.DeviceId);b.HasIndex(x=>x.SourceId);b.HasIndex(x=>x.ServiceUserId);b.HasIndex(x=>x.CreatedByUserId);b.HasIndex(x=>x.RevokedByUserId);
             b.HasIndex(x=>new{x.GatewayId,x.DeviceId}).IsUnique().HasFilter("[RevokedAtUtc] IS NULL");
             b.HasOne<DeviceRecord>().WithMany().HasForeignKey(x=>x.DeviceId).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<EventSourceRecord>().WithMany().HasForeignKey(x=>x.SourceId).OnDelete(DeleteBehavior.Restrict);
@@ -93,7 +95,7 @@ modelBuilder.Entity<RemoteEnrollmentRecord>(b=>
             b.ToTable("PushGatewayReceipts",t=>{t.HasTrigger("TR_PushGatewayReceipts_Immutable");t.UseSqlOutputClause(false);});
             b.HasKey(x=>x.Id);b.Property(x=>x.Id).ValueGeneratedNever();
             b.Property(x=>x.RequestFingerprint).HasMaxLength(64).IsRequired();
-            b.HasIndex(x=>new{x.GatewayId,x.DeviceId,x.TransferId}).IsUnique();
+            b.HasIndex(x=>new{x.GatewayId,x.DeviceId,x.TransferId}).IsUnique();b.HasIndex(x=>x.BindingId);
             b.HasOne<PushGatewayBindingRecord>().WithMany().HasForeignKey(x=>x.BindingId).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<DevicePushJournalRecord>().WithMany().HasForeignKey(x=>x.Id).OnDelete(DeleteBehavior.Restrict);
         });
