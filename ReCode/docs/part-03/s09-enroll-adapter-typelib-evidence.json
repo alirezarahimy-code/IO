@@ -1,0 +1,128 @@
+{
+  "source": "SDK 6.3.1.45/zkemkeeper.dll",
+  "dllSha256": "33b5d535cffdd14dd123d22d8a069004add468c71a7c8411a906f641b7ef2399",
+  "resourceId": 1,
+  "languageId": 1033,
+  "typelibBytes": 58316,
+  "typelibSha256": "f7b8fba2f3d5352b9482a0f6394b916f998aac469ec08c0bd175f7b5c2fbd395",
+  "methods": [
+    {
+      "interface": "_IZKEMEvents",
+      "method": "OnEnrollFingerEx",
+      "dispid": 18,
+      "recordOffset": 26784,
+      "return": "VOID",
+      "parameters": [
+        {
+          "name": "EnrollNumber",
+          "type": "BSTR",
+          "flags": 1
+        },
+        {
+          "name": "FingerIndex",
+          "type": "LONG",
+          "flags": 1
+        },
+        {
+          "name": "ActionResult",
+          "type": "LONG",
+          "flags": 1
+        },
+        {
+          "name": "TemplateLength",
+          "type": "LONG",
+          "flags": 1
+        }
+      ],
+      "interfaceGuid": "cf83b580-5d32-4c65-b44e-bedc750cdfa8"
+    },
+    {
+      "interface": "IZKEM",
+      "method": "GetLastError",
+      "dispid": 18,
+      "recordOffset": 28524,
+      "return": "HRESULT",
+      "parameters": [
+        {
+          "name": "dwErrorCode",
+          "type": "PTR LONG",
+          "flags": 3
+        }
+      ],
+      "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+    },
+    {
+      "interface": "IZKEM",
+      "method": "RegEvent",
+      "dispid": 171,
+      "recordOffset": 40712,
+      "return": "HRESULT",
+      "parameters": [
+        {
+          "name": "dwMachineNumber",
+          "type": "LONG",
+          "flags": 1
+        },
+        {
+          "name": "EventMask",
+          "type": "LONG",
+          "flags": 1
+        },
+        {
+          "name": "pVal",
+          "type": "PTR VARIANT_BOOL",
+          "flags": 10
+        }
+      ],
+      "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+    },
+    {
+      "interface": "IZKEM",
+      "method": "GetUserTmpExStr",
+      "dispid": 236,
+      "recordOffset": 45212,
+      "return": "HRESULT",
+      "parameters": [
+        {
+          "name": "dwMachineNumber",
+          "type": "LONG",
+          "flags": 1
+        },
+        {
+          "name": "dwEnrollNumber",
+          "type": "BSTR",
+          "flags": 1
+        },
+        {
+          "name": "dwFingerIndex",
+          "type": "LONG",
+          "flags": 1
+        },
+        {
+          "name": "Flag",
+          "type": "PTR LONG",
+          "flags": 2
+        },
+        {
+          "name": "TmpData",
+          "type": "PTR BSTR",
+          "flags": 2
+        },
+        {
+          "name": "TmpLength",
+          "type": "PTR LONG",
+          "flags": 2
+        },
+        {
+          "name": "pVal",
+          "type": "PTR VARIANT_BOOL",
+          "flags": 10
+        }
+      ],
+      "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+    }
+  ],
+  "executedBinary": false,
+  "originalSourceAvailable": false,
+  "hardwareVerified": false
+}

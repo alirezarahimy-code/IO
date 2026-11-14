@@ -22,6 +22,7 @@ public sealed class DeviceAttendanceDownloads(IoDbContext db,PermissionTransacti
         await transaction.LockAsync("IO.DeviceConnections",token);
         var old=await db.DeviceAttendanceDownloads.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==id,token);
         if(old is not null){if(old.DeviceId!=deviceId||old.RequestedByUserId!=actor||old.TimeoutSeconds!=seconds||old.ReadFormat!=readFormat||old.FromUtc!=fromUtc||old.UntilUtcExclusive!=untilUtcExclusive||old.InCode!=inCode||old.OutCode!=outCode||!old.ExpectedDeviceVersion.SequenceEqual(version))throw new DomainConflictException("Changed download retry.");return(id,id);}
+        await EnrollmentFence.EnsureAsync(db,deviceId,false,token);
         if(await db.DeviceUserUploads.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device has unfinished user uploads.");
         if(await db.DeviceUserDownloads.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device has unfinished user downloads.");
         var d=await db.Devices.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==deviceId,token)??throw new ArgumentException("Unknown device.");

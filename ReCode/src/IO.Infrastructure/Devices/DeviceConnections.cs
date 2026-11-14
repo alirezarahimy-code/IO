@@ -25,6 +25,7 @@ public sealed class DeviceConnections(IoDbContext db, PermissionTransaction tran
                     throw new DomainConflictException("Changed connection test retry.");
                 return (old.Id, old.Id);
             }
+        await EnrollmentFence.EnsureAsync(db,deviceId,false,token);
         if(await db.DeviceAttendanceDownloads.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device has unfinished attendance extraction.");
         if(await db.DeviceUserUploads.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device has unfinished user uploads.");
             var device = await db.Devices.AsNoTracking().SingleOrDefaultAsync(d => d.Id == deviceId, token) ?? throw new ArgumentException("Unknown device.");

@@ -21,6 +21,8 @@ namespace IO.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+            RemoteEnrollmentModel.Configure(modelBuilder);
+            PushGatewayModel.Configure(modelBuilder);
         modelBuilder.Entity<DevicePushJournalRecord>(b=>
         {
             b.ToTable("DevicePushJournal",t=>

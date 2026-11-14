@@ -43,6 +43,20 @@ public static class NativeProcessSupervisor
         catch(System.Text.Json.JsonException){return new("unknown");}
     }
 
+    public static async Task<RemoteEnrollOutput> RunEnrollAsync(string executable,string childAssembly,RemoteEnrollInput input,int timeoutSeconds,CancellationToken ct=default)
+    {
+        if(!input.IsValid()||timeoutSeconds<input.SubjectWaitSeconds+5||timeoutSeconds>60)return new("unsupported");
+        if(ct.IsCancellationRequested)return new("cancelled-before-dispatch");
+        var exchange=await ExchangeAsync(executable,childAssembly,System.Text.Json.JsonSerializer.Serialize(input),timeoutSeconds,ct);
+        if(exchange.State!="exited")return new("unknown");
+        try
+        {
+            var result=System.Text.Json.JsonSerializer.Deserialize<RemoteEnrollOutput>(exchange.Output,new System.Text.Json.JsonSerializerOptions{UnmappedMemberHandling=System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow});
+            return result?.IsValidFor(input)==true?result:new("unknown");
+        }
+        catch(System.Text.Json.JsonException){return new("unknown");}
+    }
+
     private sealed record Exchange(string State,string Output="");
     private static async Task<Exchange> ExchangeAsync(string executable,string childAssembly,string json,int timeoutSeconds,CancellationToken stoppingToken,int maxOutputChars=4096,int maxInputChars=8192)
     {

@@ -3,7 +3,7 @@ namespace IO.DeviceContracts;
 /// <summary>Explicit installed-model/policy approval supplied by a FUTURE trusted deployment caller.
 /// Mere text references do not establish organizational authority. No real-device adapter is wired here.</summary>
 public sealed record RemoteEnrollApproval(string Serial,string Product,string Firmware,int FingerIndex,int SuccessActionCode,
-    string ModelEvidence,string AuthorizationReference,string RetentionAndDeletionPolicyReference,bool AllowEnrollment=false)
+    string ModelEvidence,string AuthorizationReference,string RetentionAndDeletionPolicyReference,bool AllowEnrollment=false,int? EmptySlotErrorCode=null,int EventMask=0)
 {
     public bool IsValid()=>AllowEnrollment&&FingerIndex is >=0 and <=9&&
         new[]{Serial,Product,Firmware,ModelEvidence,AuthorizationReference,RetentionAndDeletionPolicyReference}.All(x=>PushGatewayBinding.Text(x,200));

@@ -16,6 +16,12 @@ internal static class Program
             using var stdin=Console.OpenStandardInput();using var bytes=new MemoryStream();var buffer=new byte[1024];int count;
             while((count=stdin.Read(buffer,0,buffer.Length))>0){if(bytes.Length+count>32768)return Result("invalid-input");bytes.Write(buffer,0,count);}
             var json=new UTF8Encoding(false,true).GetString(bytes.ToArray());using var document=JsonDocument.Parse(json);
+            if(document.RootElement.TryGetProperty("Enroll",out _))
+            {
+                var request=JsonSerializer.Deserialize<RemoteEnrollInput>(json);
+                var enrollmentResult=request?.IsValid()==true&&OperatingSystem.IsWindows()?RemoteEnrollmentAdapter.Run(request):new RemoteEnrollOutput("unsupported");
+                Console.WriteLine(JsonSerializer.Serialize(enrollmentResult));return 0;
+            }
             if(document.RootElement.TryGetProperty("ReadAttendance",out _))
             {
                 var attendance=JsonSerializer.Deserialize<ZkAttendanceReadInput>(json);

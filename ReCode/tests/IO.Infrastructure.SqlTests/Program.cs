@@ -8,21 +8,20 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-// Destructive migration tests are restricted to the disposable CI runner and
-// its loopback-only SQL Server. No caller-provided server or database is used.
+// Windows LocalDB mode is restricted to this exact synthetic suite on a disposable hosted Windows runner.
+var windowsOperational=args is ["--gateway-enroll-operational"];
 if (Environment.GetEnvironmentVariable("GITHUB_ACTIONS") != "true" ||
     Environment.GetEnvironmentVariable("IO_SQL_DISPOSABLE_TEST") != "yes" ||
-    string.IsNullOrEmpty(Environment.GetEnvironmentVariable("MSSQL_SA_PASSWORD")))
+    (windowsOperational? !OperatingSystem.IsWindows()||Environment.GetEnvironmentVariable("IO_WINDOWS_LOCALDB")!="yes":
+        string.IsNullOrEmpty(Environment.GetEnvironmentVariable("MSSQL_SA_PASSWORD"))))
 {
-    Console.Error.WriteLine("BLOCKED: this test requires the disposable GitHub Actions SQL Server.");
-    return 2;
+    Console.Error.WriteLine("BLOCKED: disposable CI SQL environment required.");return 2;
 }
 var dbName = "IO_Phase03_" + Guid.NewGuid().ToString("N");
-var connection = new SqlConnectionStringBuilder
-{
-    DataSource = "127.0.0.1,1433", InitialCatalog = dbName,
-    UserID = "sa", Password = Environment.GetEnvironmentVariable("MSSQL_SA_PASSWORD")!,
-    Encrypt = true, TrustServerCertificate = true, ConnectTimeout = 10,
+var connection = windowsOperational?new SqlConnectionStringBuilder{
+    DataSource=@"(localdb)\MSSQLLocalDB",InitialCatalog=dbName,IntegratedSecurity=true,Encrypt=false,ConnectTimeout=30
+}.ConnectionString:new SqlConnectionStringBuilder{
+    DataSource="127.0.0.1,1433",InitialCatalog=dbName,UserID="sa",Password=Environment.GetEnvironmentVariable("MSSQL_SA_PASSWORD")!,Encrypt=true,TrustServerCertificate=true,ConnectTimeout=10
 }.ConnectionString;
 var options = new DbContextOptionsBuilder<IoDbContext>().UseSqlServer(connection).Options;
 IoDbContext NewDb() => new(options);
@@ -61,6 +60,11 @@ string[] expectedTables = ["Organizations", "Companies", "Sites", "OrgUnits", "E
     "Calendars", "CalendarDays", "ShiftDefinitions", "WorkScheduleAssignments", "EmploymentProfiles", "EmployeeSiteAssignments", "SourceEmployeeMappings", "RawEventConflicts", "ObservedRuleVersions", "DailyCalculationRuns", "CorrectionPolicies", "CorrectionRequests", "CorrectionDecisions", "PeriodDrafts", "RawConflictNotes", "SourceMappingChanges", "CalculationInputRevision", "PeriodDiagnostics", "LeaveTypes", "LeaveLedgerEntries", "Delegations", "DelegationRevocations", "CorrectionSettings", "CorrectionDelegationGrants", "DelegatedCorrectionDecisions", "LeaveRequests", "LeaveDecisions", "Notifications", "CorrectionDecisionReversals", "LeaveDecisionReversals", "Devices", "DeviceSecrets", "DeviceGroups", "DeviceConnections", "DeviceOperations", "DeviceUserDownloads", "DeviceDownloadedUsers", "DeviceFileImports", "DeviceFileImportLines", "DeviceUserUploads", "DeviceAttendanceDownloads", "DeviceAttendanceRows", "DevicePollSchedules", "DevicePollRuns", "DeviceCommandRetries", "DeviceServiceHeartbeats", "DevicePushJournal"];
 try
 {
+    if(windowsOperational)
+    {
+        await GatewayEnrollmentOperationalTests.RunAsync(connection,Check);
+        Console.WriteLine("PASS Windows LocalDB gateway/enrollment operational integration (synthetic; no native hardware)");return 0;
+    }
     if(args is ["--virtual-worker-only"])
     {
         // Same disposable-server guard and fresh random database as the full suite.

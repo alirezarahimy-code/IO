@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 import struct
 import sys
+import uuid
 
 ROOT = Path(__file__).resolve().parents[2]
 DLL = ROOT / 'SDK 6.3.1.45/zkemkeeper.dll'
@@ -15,7 +16,7 @@ EXPECTED_DLL = '33b5d535cffdd14dd123d22d8a069004add468c71a7c8411a906f641b7ef2399
 EXPECTED_TLB = 'f7b8fba2f3d5352b9482a0f6394b916f998aac469ec08c0bd175f7b5c2fbd395'
 
 
-def extract(path, selected_methods=('SetDaylight', 'GetDaylight')):
+def extract(path, selected_methods=('SetDaylight', 'GetDaylight'), include_interface_guid=False):
     pe = path.read_bytes()
     def word(p): return struct.unpack_from('<H', pe, p)[0]
     def dword(p): return struct.unpack_from('<I', pe, p)[0]
@@ -87,6 +88,8 @@ def extract(path, selected_methods=('SetDaylight', 'GetDaylight')):
                             'dispid': u(cursor+j*4), 'recordOffset': r, 'return': datatype(u(r+4)),
                             'parameters': [{'name': name(u(args+k*12+4)), 'type': datatype(u(args+k*12)),
                                             'flags': u(args+k*12+8)} for k in range(argc)]})
+            if include_interface_guid:
+                methods[-1]['interfaceGuid'] = str(uuid.UUID(bytes_le=b[segments[5][0]+u(p+44):segments[5][0]+u(p+44)+16]))
     return {'source': path.relative_to(ROOT).as_posix(), 'dllSha256': hashlib.sha256(pe).hexdigest(),
             'resourceId': ident, 'languageId': language, 'typelibBytes': len(b),
             'typelibSha256': hashlib.sha256(b).hexdigest(), 'methods': methods,

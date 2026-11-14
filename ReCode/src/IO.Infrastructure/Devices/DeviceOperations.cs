@@ -65,6 +65,7 @@ public sealed partial class DeviceOperations(IoDbContext db,PermissionTransactio
                 if(!SameProfile(ParseProfile(old.ProfilePlanJson),profilePlan)||old.ProfileInspectionOfId!=profileInspectionOfId||old.ProfileObserveRecovery!=profileObserveRecovery||old.DeviceId!=deviceId||old.RequestedByUserId!=actor||old.Kind!=kind||old.TimeoutSeconds!=timeoutSeconds||old.TargetUtc!=targetUtc||ParseKey(old.FunctionKeyPlanJson)!=functionKeyPlan||ParseRaw(old.RawSettingPlanJson)!=rawSettingPlan||ParsePlan(old.NetworkPlanJson)!=networkPlan||ParseIdle(old.IdlePlanJson)!=idlePlan||!old.ExpectedDeviceVersion.SequenceEqual(expectedDeviceVersion))throw new DomainConflictException("Changed operation retry.");
                 return(old.Id,old.Id);
             }
+        await EnrollmentFence.EnsureAsync(db,deviceId,DeviceWriteSafety.IsWrite(kind),token);
         if(await db.DeviceAttendanceDownloads.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device has unfinished attendance extraction.");
         if(await db.DeviceUserUploads.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device has unfinished user uploads.");
             var device=await db.Devices.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==deviceId,token)??throw new ArgumentException("Unknown device.");

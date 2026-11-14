@@ -35,3 +35,12 @@ jobs:
           dotnet-version: 10.0.x
       - name: Build, catalogue checks and portable publish
         run: ./tools/verify-platform.ps1
+      - name: Windows LocalDB authenticated gateway and enrollment integration
+        env:
+          IO_SQL_DISPOSABLE_TEST: 'yes'
+          IO_WINDOWS_LOCALDB: 'yes'
+        run: |
+          sqllocaldb start MSSQLLocalDB
+          if ($LASTEXITCODE -ne 0) { throw 'LocalDB startup failed' }
+          dotnet run --project tests/IO.Infrastructure.SqlTests --configuration Release --no-build -- --gateway-enroll-operational
+          if ($LASTEXITCODE -ne 0) { throw 'Windows gateway/enrollment SQL integration failed' }

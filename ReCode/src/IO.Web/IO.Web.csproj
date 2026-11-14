@@ -1,5 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <ItemGroup>
+    <EmbeddedResource Include="Ui/DeviceIngressEnrollment.html" />
+    <EmbeddedResource Include="Ui/device-ingress-enrollment.js" />
     <EmbeddedResource Include="Ui/DevicePushEvidence.html" />
     <EmbeddedResource Include="Ui/device-push-evidence.js" />
     <EmbeddedResource Include="Ui/DeviceFiles.html" />

@@ -9,6 +9,9 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
     // these context-instance values per query (including dependent-row queries).
     public bool RestrictDeviceAccess { get; internal set; }
     public Guid[] PermittedDeviceIds { get; internal set; } = [];
+    public DbSet<RemoteEnrollmentRecord> RemoteEnrollments => Set<RemoteEnrollmentRecord>();
+    public DbSet<PushGatewayBindingRecord> PushGatewayBindings => Set<PushGatewayBindingRecord>();
+    public DbSet<PushGatewayReceiptRecord> PushGatewayReceipts => Set<PushGatewayReceiptRecord>();
     public DbSet<DevicePushJournalRecord> DevicePushJournal => Set<DevicePushJournalRecord>();
     public DbSet<DeviceServiceHeartbeatRecord> DeviceServiceHeartbeats => Set<DeviceServiceHeartbeatRecord>();
     public DbSet<DeviceCommandRetryRecord> DeviceCommandRetries => Set<DeviceCommandRetryRecord>();
@@ -77,6 +80,11 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
 
     protected override void OnModelCreating(ModelBuilder model)
     {
+        RemoteEnrollmentModel.Configure(model);
+        model.Entity<RemoteEnrollmentRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||PermittedDeviceIds.Contains(x.DeviceId));
+        PushGatewayModel.Configure(model);
+        model.Entity<PushGatewayBindingRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||PermittedDeviceIds.Contains(x.DeviceId));
+        model.Entity<PushGatewayReceiptRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||PermittedDeviceIds.Contains(x.DeviceId));
         model.Entity<DevicePushJournalRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||PermittedDeviceIds.Contains(x.DeviceId));
         model.Entity<DeviceRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||PermittedDeviceIds.Contains(x.Id));
         model.Entity<DeviceSecretRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||PermittedDeviceIds.Contains(x.DeviceId));

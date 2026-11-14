@@ -138,6 +138,10 @@ public static class IoWebHost
             await next(context);
         });
         app.UseAuthorization();
+        app.MapGateway(builder.Configuration.GetValue<bool>("IO:PushGateway:EnableIngress"));
+        app.MapEnrollment();
+        app.MapGet("/workspace/device-ingress-enrollment",()=>Results.Content(Resource("IO.Web.Ui.DeviceIngressEnrollment.html"),"text/html; charset=utf-8"));
+        app.MapGet("/assets/device-ingress-enrollment.js",()=>Results.Content(Resource("IO.Web.Ui.device-ingress-enrollment.js"),"text/javascript; charset=utf-8"));
 
         app.MapGet("/panel", () => Results.Content(Resource("IO.Web.Ui.Panel.html"), "text/html; charset=utf-8")).AllowAnonymous();
         app.MapGet("/login", () => Results.Content(Resource("IO.Web.Ui.Login.html"), "text/html; charset=utf-8")).AllowAnonymous();
