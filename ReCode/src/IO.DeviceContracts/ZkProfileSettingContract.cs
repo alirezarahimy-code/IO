@@ -58,7 +58,7 @@ public sealed record ZkProfileEndpoint(string Address,int Port)
 public sealed record ZkProfilePlan(string Contract,Guid SnapshotId,string Serial,string Product,string Firmware,string TimeZoneId,ZkProfileValue Expected,ZkProfileValue Desired,string Effect,string ApprovalReference,ZkProfileEndpoint Original,ZkProfileEndpoint Recovery)
 {
     public const string Version="zk-approved-profile-v1",Confirmation="SET-EXACT-APPROVED-PROFILE",ReviewConfirmation="REVIEWED-EXACT-PROFILE";
-    public string Parameter=>Expected.Parameter;
+    public string Parameter=>Expected?.Parameter??string.Empty;
     public bool IsValid()=>Contract==Version&&SnapshotId!=Guid.Empty&&ZkIdlePlan.Text(Serial,100)&&ZkIdlePlan.Text(Product,120)&&ZkIdlePlan.Text(Firmware,120)&&ZkIdlePlan.Text(TimeZoneId,100)&&Expected?.IsValid()==true&&Desired?.IsValid()==true&&Expected.Parameter==Desired.Parameter&&Expected!=Desired&&ZkIdlePlan.Text(Effect,200)&&ZkIdlePlan.Text(ApprovalReference,200)&&Original?.IsValid()==true&&Recovery?.IsValid()==true&&
         (ZkProfileParameters.Network(Parameter)||Original==Recovery)&&
         (Parameter!="port"||(Original.Address==Recovery.Address&&Recovery.Port==int.Parse(Desired.Raw,CultureInfo.InvariantCulture)))&&

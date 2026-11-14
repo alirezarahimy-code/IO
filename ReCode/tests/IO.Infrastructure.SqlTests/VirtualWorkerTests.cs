@@ -199,8 +199,8 @@ internal static class VirtualWorkerTests
             foreach(var parameter in ZkProfileParameters.All)
             {
                 var source=await Settings();var desired=ProfileSettingTests.New(parameter);ZkProfilePlan plan;string hash;
-                using(var response=await Send("/device-settings/profile-preview",new DeviceProfilePreview(a.Pin.DeviceId,av,source,desired,"synthetic-effect","synthetic-profile-contract",new(a.Pin.Address,parameter=="port"?4371:a.Pin.Port))))
-                {var json=JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement;plan=json.GetProperty("plan").Deserialize<ZkProfilePlan>(new JsonSerializerOptions{PropertyNameCaseInsensitive=true})!;hash=json.GetProperty("previewHash").GetString()!;}
+                using(var response=await Post("/device-settings/profile-preview",new DeviceProfilePreview(a.Pin.DeviceId,av,source,desired,"synthetic-effect","synthetic-profile-contract",new(a.Pin.Address,parameter=="port"?4371:a.Pin.Port))))
+                {response.EnsureSuccessStatusCode();var json=JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement;plan=json.GetProperty("plan").Deserialize<ZkProfilePlan>(new JsonSerializerOptions{PropertyNameCaseInsensitive=true})!;hash=json.GetProperty("previewHash").GetString()!;}
                 a.Fault="drop-operation-ack";var id=Guid.NewGuid();
                 await Send("/device-operations",new DeviceOperationInput(id,a.Pin.DeviceId,av,"settings.profile.set",2,null,ZkProfilePlan.Confirmation,ProfilePlan:plan,ProfilePreviewHash:hash));
                 await Wait(()=>Q(db=>db.DeviceOperations.AnyAsync(x=>x.Id==id&&x.State=="unknown")),"profile lost ACK");
