@@ -193,6 +193,13 @@ internal static class GatewayEnrollmentOperationalTests
     var commit=new DevicePushCommit.CommitInput(review,preview.GetProperty("previewHash").GetString()!,DevicePushCommit.Confirmation);
     Task<Guid> Commit(DevicePushCommit.CommitInput i)=>Use<DevicePushCommit,Guid>(x=>x.CommitAsync(actor,i));
     check(await Reject<DomainConflictException>(()=>Commit(commit with{PreviewHash=new string('A',64)})),"changed or stale PUSH preview cannot promote a row");
+    await Q(async db=>{await db.Database.ExecuteSqlRawAsync("CREATE TRIGGER dbo.TR_SyntheticPushCommitAuditFail ON dbo.SecurityAudit AFTER INSERT AS BEGIN THROW 51039,'Synthetic review rollback',1; END");return true;});
+    check(await Reject<DbUpdateException>(()=>Commit(commit))&&await Q(db=>db.DevicePushCommits.CountAsync())==0&&await Q(db=>db.RawAttendanceEvents.CountAsync())==0,"reviewed PUSH audit failure rolls back both raw attendance and immutable acceptance");
+    await Q(async db=>{await db.Database.ExecuteSqlRawAsync("DROP TRIGGER dbo.TR_SyntheticPushCommitAuditFail");return true;});
+    var receivePermission=await Q(db=>db.Permissions.Where(x=>x.Code=="attendance.events.receive").Select(x=>x.Id).SingleAsync());
+    await Q(async db=>{await db.RolePermissions.Where(x=>x.RoleId==actorRole&&x.PermissionId==receivePermission).ExecuteDeleteAsync();return true;});
+    check(await Reject<UnauthorizedAccessException>(()=>Commit(commit)),"attendance receive authority is rechecked after PUSH preview and before commit");
+    await Q(async db=>{db.RolePermissions.Add(new(){RoleId=actorRole,PermissionId=receivePermission});await db.SaveChangesAsync();return true;});
     var rawId=await Commit(commit);
     check(await Commit(commit)==rawId&&await Q(db=>db.DevicePushCommits.CountAsync())==1&&await Q(db=>db.RawAttendanceEvents.CountAsync())==1,"exact reviewed-row retry returns immutable commitment without duplicating attendance");
     check(await Reject<DomainConflictException>(()=>Commit(commit with{Review=review with{EventType="out"}})),"accepted PUSH review cannot be changed on retry");
