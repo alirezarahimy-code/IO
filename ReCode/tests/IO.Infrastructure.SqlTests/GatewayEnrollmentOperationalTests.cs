@@ -14,6 +14,8 @@ using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -35,6 +37,14 @@ internal static class GatewayEnrollmentOperationalTests
     var actorRole=Guid.NewGuid();var serviceRole=Guid.NewGuid();var readerRole=Guid.NewGuid();
     await Q(async db=>
     {
+        if(db.Database.HasPendingModelChanges())
+        {
+            var snapshot=db.GetService<IMigrationsAssembly>().ModelSnapshot!.Model;
+            var initialized=db.GetService<IModelRuntimeInitializer>().Initialize(snapshot,designTime:true);
+            var current=db.GetService<Microsoft.EntityFrameworkCore.Metadata.IDesignTimeModel>().Model;
+            var differences=db.GetService<IMigrationsModelDiffer>().GetDifferences(initialized.GetRelationalModel(),current.GetRelationalModel());
+            throw new InvalidOperationException("Pending schema differences: "+string.Join(" | ",db.GetService<IMigrationsSqlGenerator>().Generate(differences,current).Select(x=>x.CommandText)));
+        }
         check(!db.Database.HasPendingModelChanges(),"operational migration snapshot equals production EF model");
         await db.Database.MigrateAsync();
         await using var scope=provider.CreateAsyncScope();await scope.ServiceProvider.GetRequiredService<LoginIdentityDbContext>().Database.MigrateAsync();
