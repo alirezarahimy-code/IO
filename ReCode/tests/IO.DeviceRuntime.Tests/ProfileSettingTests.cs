@@ -45,7 +45,19 @@ internal static class ProfileSettingTests
         var readInput=new ZkOperationInput(Input(daylight).Connection,"settings.read",null,false,true,ProfileReadApprovals:readings);
         Check(new ZkOperationOutput("succeeded",Settings:observed).IsValidFor(readInput)&&!new ZkOperationOutput("succeeded",Settings:observed).IsValidFor(readInput with{ProfileReadApprovals=null}),"unsolicited profile reads and approval omission cannot pass typed child boundary");
         multi=new(){Unavailable=true};observed=ZkProfileExecutor.AddReadings(snapshot,readings,multi)!;Check(observed.Profiles!.All(x=>!x.Reported&&x.Value is null),"unavailable native options stay unavailable without invented values");
+        var maximum=MaximumRead();var maximumChild=await NativeProcessSupervisor.RunOperationAsync(host,assembly,maximum.Input,5);
+        Check(maximum.Output.IsValidFor(maximum.Input)&&JsonSerializer.Serialize(maximum.Input).Length>8192&&JsonSerializer.Serialize(maximum.Output).Length<=32768&&maximumChild.IsValidFor(maximum.Input)&&JsonSerializer.Serialize(maximumChild.Settings)==JsonSerializer.Serialize(maximum.Output.Settings),"maximum Unicode seven profile approvals plus eight full keys and daylight cross real child without widening SQL result or truncating input");
         Console.WriteLine($"PASS {count} profile-setting contract and actual child checks; synthetic only, no hardware acceptance");
+    }
+    internal static (ZkOperationInput Input,ZkOperationOutput Output) MaximumRead()
+    {
+        static string U(int n)=>new('ژ',n);
+        var values=new[]{new ZkProfileValue("daylight","1","03010100","10010200",U(32),U(32),"1"),new("algorithm",U(32)),new("mask","255.255.255.255"),new("gateway","223.255.255.254"),new("dhcp","1"),new("mac","02:AA:AA:AA:AA:AA"),new("port","65535")};
+        var indices=Enumerable.Range(0,8).Select(i=>int.MaxValue-i).ToArray();
+        var keys=new ZkFunctionKeySnapshot(ZkFunctionKeySnapshot.Version,U(200),indices.Select(i=>new ZkFunctionKeyValue(i,true,int.MinValue,int.MinValue,U(128),int.MinValue,U(128))).ToArray());
+        var settings=new ZkAdvancedSettings(ZkAdvancedSettings.Version,U(100),int.MinValue,int.MinValue,int.MinValue,int.MinValue,int.MinValue,int.MinValue,U(120),U(120),U(100),U(100),keys,U(100),U(100),new(ZkDaylightSnapshot.Version,U(200),true,new(int.MinValue,U(128),U(128))),values.Select(x=>new ZkProfileReading(x.Parameter,U(200),true,x)).ToArray());
+        var input=new ZkOperationInput(new(Guid.NewGuid(),"10.20.30.40",4370,1,U(100),0),"settings.read",null,false,true,FunctionKeyReadApproval:new(U(120),U(120),indices,U(200)),DaylightReadApproval:new(U(120),U(120),U(200)),ProfileReadApprovals:values.Select(x=>new ZkProfileReadApproval(U(120),U(120),x.Parameter,U(200))).ToArray());
+        return(input,new("succeeded",Settings:settings));
     }
     internal sealed class Session(ZkProfilePlan plan):IZkProfileSession
     {

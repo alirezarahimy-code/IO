@@ -90,6 +90,8 @@ if (args is not ["--verify"])
     if(document.RootElement.TryGetProperty("Connection",out _))
     {
         var operation=JsonSerializer.Deserialize<ZkOperationInput>(text)!;
+        if(operation.Operation=="settings.read"&&operation.Connection.ExpectedSerial==new string('ژ',100))
+        {Console.WriteLine(JsonSerializer.Serialize(ProfileSettingTests.MaximumRead().Output));return;}
         if(operation.Operation is "settings.profile.set" or "settings.profile.inspect")
         {
             var p=operation.ProfilePlan!;var profileSession=new ProfileSettingTests.Session(p){Value=operation.Operation=="settings.profile.inspect"?p.Desired:p.Expected};

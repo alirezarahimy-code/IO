@@ -59,6 +59,15 @@ internal static class DeviceProfileSettingTests
   }
   check(!PermissionCatalog.Templates.Any(t=>t.Permissions.Any(x=>x.StartsWith("devices.profile.",StringComparison.Ordinal))),"profile SQL all seven independent human and service grants remain default ungranted");
   check(ZkProfileParameters.All.SelectMany(p=>new[]{ZkProfileParameters.WritePermission(p),ZkProfileParameters.ExecutePermission(p)}).Distinct().Count()==14,"profile SQL fourteen distinct exact permissions cannot collapse settings or service authority");
+  // Maximum coupled read: seven profile approvals/readings, eight full Unicode
+  // keys, daylight and all raw metadata. Preserve the existing SQL result ceiling.
+  await Grant(role,DeviceOperations.ReadFunctionKeys,true);await Grant(exec,DeviceOperations.ExecuteFunctionKeys,true);
+  var maximum=ProfileSettingTests.MaximumRead();var maximumId=Guid.NewGuid();
+  await Use<DeviceOperations,Guid>(s=>s.RequestAsync(actor,maximumId,device,version,"settings.read",10,null,"READ-ADVANCED-SETTINGS"));
+  var maximumClaim=await Claim()??throw new InvalidOperationException("Missing maximum combined source claim");await Finish(maximumClaim,maximum.Output);
+  var maximumJson=await Q(db=>db.DeviceOperations.Where(x=>x.Id==maximumId).Select(x=>x.ResultJson).SingleAsync());
+  check(maximumClaim.Id==maximumId&&maximumJson==JsonSerializer.Serialize(maximum.Output.Settings)&&maximumJson!.Length is >32000 and <=32768,"profile SQL maximum combined Unicode profile key daylight and metadata read round-trips byte-for-character under unchanged 65536-byte storage guard");
+  await Grant(role,DeviceOperations.ReadFunctionKeys,false);await Grant(exec,DeviceOperations.ExecuteFunctionKeys,false);
   var history=JsonSerializer.SerializeToElement(await Use<DeviceOperations,object>(s=>s.ListSettingsAsync(reader,device,0)),new JsonSerializerOptions{PropertyNamingPolicy=JsonNamingPolicy.CamelCase});
   check(history.GetProperty("items").EnumerateArray().Count(x=>x.GetProperty("kind").GetString()=="settings.profile.inspect")==7&&history.GetProperty("items").EnumerateArray().Count(x=>x.GetProperty("kind").GetString()=="settings.profile.set")==7,"profile SQL retained read-authorized history includes all seven immutable writes and separate recovery inspections");
   check(await Reject<SqlException>(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"DELETE dbo.DeviceOperations WHERE Id={ids[0]}")))&&await Reject<SqlException>(()=>Q(async db=>{await db.GetService<IMigrator>().MigrateAsync("20261113150000_DeviceFunctionKeyWrites");return true;})),"profile SQL retained full setting evidence blocks deletion and destructive downgrade");
