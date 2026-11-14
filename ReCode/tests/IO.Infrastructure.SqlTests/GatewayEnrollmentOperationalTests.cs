@@ -157,6 +157,22 @@ internal static class GatewayEnrollmentOperationalTests
                     using var malformed=await terminal.PostAsync("/iclock/cdata?SN="+binding.Serial+"&table=ATTLOG",new StringContent("bad-line"));check(malformed.StatusCode==HttpStatusCode.BadRequest&&Directory.GetFiles(collectorSpool,"*.ack-intent.json",SearchOption.AllDirectories).Length==1,"malformed ATTLOG remains evidence and never earns vendor ACK");
                     await collector.StopAsync();
                 }
+                var outageSpool=Path.Combine(spool,"outage");Directory.CreateDirectory(outageSpool);
+                var outageConfig=collectorConfig with{SpoolDirectory=outageSpool,Gateway=collectorConfig.Gateway with{KeyBase64=Convert.ToBase64String(new byte[32])}};
+                await using(var unavailable=IoPushCollectorHost.Build(outageConfig,true))
+                {
+                    await unavailable.StartAsync();var url=unavailable.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();using var terminal=new HttpClient{BaseAddress=new Uri(url)};
+                    using var denied=await terminal.PostAsync("/iclock/cdata?SN="+binding.Serial+"&table=ATTLOG",new ByteArrayContent(body));
+                    check(denied.StatusCode==HttpStatusCode.ServiceUnavailable&&Directory.GetFiles(outageSpool,"original.attlog",SearchOption.AllDirectories).Length==1&&Directory.GetFiles(outageSpool,"*.ack-intent.json",SearchOption.AllDirectories).Length==0,"failed authenticated handoff keeps original evidence and withholds native ACK");
+                    await unavailable.StopAsync();
+                }
+                var outageTransfer=Directory.GetFiles(outageSpool,"transfer.json",SearchOption.AllDirectories).Single();var outageId=JsonSerializer.Deserialize<GatewayCourierTransfer>(await File.ReadAllTextAsync(outageTransfer))!.TransferId;
+                await using(var recovered=IoPushCollectorHost.Build(collectorConfig with{SpoolDirectory=outageSpool},true))
+                {
+                    await recovered.StartAsync();using var wait=new CancellationTokenSource(TimeSpan.FromSeconds(15));while(!File.Exists(outageTransfer+".receipt.json"))await Task.Delay(100,wait.Token);
+                    check(await Q(db=>db.PushGatewayReceipts.CountAsync(x=>x.TransferId==outageId))==1&&Directory.GetFiles(outageSpool,"*.ack-intent.json",SearchOption.AllDirectories).Length==0,"collector restart redelivers stable transfer id without acknowledging a closed device connection");
+                    await recovered.StopAsync();
+                }
                 var firstReceipt=await File.ReadAllTextAsync(courierTransfer+".receipt.json");
                 check(await Courier()==0&&await File.ReadAllTextAsync(courierTransfer+".receipt.json")==firstReceipt&&await Q(db=>db.PushGatewayReceipts.CountAsync(x=>x.TransferId==courierId))==1,"real courier retry reuses the same transfer and SQL receipt without duplicate quarantine evidence");
             }
