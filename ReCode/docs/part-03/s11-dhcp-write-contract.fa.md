@@ -41,3 +41,7 @@ python3 ReCode/tools/audit-dhcp-firmware-reference.py
 ```
 
 ابزار فقط چهار Git blob ثابت را از GitHub می‌خواند، SHA1 ساختار Git و SHA256 و تمام excerptها را تطبیق می‌دهد و ساختار جدول/نام/دامنه/handler/ذخیره‌سازی را بررسی می‌کند؛ هیچ سورس دانلودشده را build یا اجرا نمی‌کند. برای بازتولید آفلاین، فایل‌های خام در پوشه‌ای با نام‌های `options.c`, `options.h`, `commu.c`, `commu.h` و گزینهٔ `--source-dir` قابل استفاده‌اند. Contents API ممکن است متن legacy را transcode کند؛ فقط raw blob با hash دقیق پذیرفته می‌شود. CI همین ممیزی را با دسترسی فقط‌خواندنی انجام می‌دهد.
+
+### اصلاح وابستگی تست مشترک
+
+`ProfileSettingTests.cs` از قبل در پروژهٔ SQL نیز لینک می‌شد. پس از افزودن بررسی mapper تولیدی، فایل `DhcpComProfileTests.cs` و همان `ZkComProfileSession.cs` نیز به پروژهٔ SQL لینک شدند تا build سراسری وابستگی ناقص نداشته باشد. اجرای CI میانی7823564 به علت همین وابستگی ناموفق بود و پذیرفته نیست. build محلی Runtime/Bridge و۱۲۹ بررسی موفق‌اند؛ build کامل SQL در محیط محلی به محدودیت NuGet/SSL برخورد می‌کند، بنابراین پذیرش کامل فقط از CI اصلاح‌شده ثبت می‌شود.
