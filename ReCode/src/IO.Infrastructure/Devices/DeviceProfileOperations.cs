@@ -9,7 +9,7 @@ public sealed partial class DeviceOperations
     private static bool ProfileKind(string kind)=>kind is "settings.profile.set" or "settings.profile.inspect";
     private static ZkProfilePlan? ParseProfile(string? json)=>ParseTyped<ZkProfilePlan>(json);
     private static bool SameProfile(ZkProfilePlan? a,ZkProfilePlan? b)=>a==b;
-    public Task<object> PreviewProfileAsync(Guid actor,Guid deviceId,byte[] version,Guid snapshotId,ZkProfileValue desired,string effect,string reference,ZkProfileEndpoint recovery,CancellationToken ct=default)=>transaction.ExecuteAsync<object>(actor,ZkProfileParameters.WritePermission(desired?.Parameter??string.Empty),"device-profile.previewed",async token=>
+    public Task<object> PreviewProfileAsync(Guid actor,Guid deviceId,byte[] version,Guid snapshotId,ZkProfileValue desired,string effect,string reference,ZkProfileEndpoint recovery,CancellationToken ct=default)=>transaction.ExecuteAsync<object>(actor,ZkProfileParameters.WritePermission((desired??throw new ArgumentException("Complete desired state required.")).Parameter),"device-profile.previewed",async token=>
     {
         if(!await transaction.HasDevicePermissionAsync(actor,ReadSettings,deviceId,token))throw new UnauthorizedAccessException();
         await transaction.LockAsync("IO.DeviceConnections",token);var plan=await BuildProfilePlan(deviceId,version,snapshotId,desired,effect,reference,recovery,token);
