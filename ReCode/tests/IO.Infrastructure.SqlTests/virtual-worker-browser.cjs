@@ -59,7 +59,7 @@ if(!address?.startsWith('https://127.0.0.1:')||!user?.startsWith('virtual-operat
   await awaitState(inspection,'succeeded');await page.locator('#profile-refresh').click();
   await parent.locator('input').fill(inspection);
   const reviewed=page.waitForResponse(r=>new URL(r.url()).pathname==='/device-operations/'+writeId+'/resolve-profile');
-  await parent.locator('[data-profile-review]').click();assert.equal((await reviewed).status(),200);
+  await parent.locator('[data-profile-review]').click();const reviewResponse=await reviewed;assert.equal(reviewResponse.status(),200,'profile review body: '+reviewResponse.request().postData()+' | notice: '+await page.locator('#profile-notice').textContent());
   await page.waitForFunction(async({id,device})=>{const r=await fetch('/device-settings-snapshots?deviceId='+device);return (await r.json()).items.some(x=>x.id===id&&x.state==='unknown'&&x.resolvedAtUtc);},{id:writeId,device:settingsDevice});
   assert.equal(errors.length,0,errors.join('; '));
   const completed=[];
