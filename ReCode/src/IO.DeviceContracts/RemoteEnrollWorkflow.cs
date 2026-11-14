@@ -70,7 +70,7 @@ public sealed class RemoteEnrollWorkflow
             if(state!="awaiting-subject"||completion.OperationId!=operationId||completion.PersonIdentifier!=person||completion.FingerIndex!=approval.FingerIndex)
                 return state;
             // The success action code belongs to the approved model, not a hardcoded generic vendor convention.
-            if(completion.ActionCode!=approval.SuccessActionCode||completion.TemplateLength<=0)return state="unknown";
+            if(completion.ActionCode!=approval.SuccessActionCode||completion.TemplateLength is <=0 or >1048576)return state="unknown";
             try
             {
                 // Recheck pinned identity and independently observe a newly present slot. No template export.

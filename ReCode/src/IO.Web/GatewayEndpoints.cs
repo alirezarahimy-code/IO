@@ -10,7 +10,7 @@ internal static class GatewayEndpoints
     internal static void MapGateway(this WebApplication app,bool enabled)
     {
         app.MapGet("/devices/gateway-bindings",(HttpContext c,PushGatewayIngress service)=>Read(c,actor=>service.ListAsync(actor,c.RequestAborted))).RequireAuthorization();
-        app.MapPost("/devices/gateway-bindings",(PushGatewayIngress.Provision input,HttpContext c,IAntiforgery csrf,PushGatewayIngress service)=>Admin(c,csrf,actor=>service.ProvisionAsync(actor,input,c.RequestAborted))).RequireAuthorization();
+        app.MapPost("/devices/gateway-bindings",(PushGatewayIngress.Provision input,HttpContext c,IAntiforgery csrf,PushGatewayIngress service)=>Admin(c,csrf,actor=>service.ProvisionAsync(actor,input,c.RequestAborted))).RequireAuthorization().WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(16384));
         app.MapPost("/devices/gateway-bindings/{id:guid}/revoke",(Guid id,GatewayVersion input,HttpContext c,IAntiforgery csrf,PushGatewayIngress service)=>Admin(c,csrf,actor=>service.RevokeAsync(actor,id,input.Version,c.RequestAborted))).RequireAuthorization();
         if(!enabled)return;
         // Deliberately no cookie authority/CSRF exemption on administrative routes. This separate machine route authenticates its exact body using HMAC.

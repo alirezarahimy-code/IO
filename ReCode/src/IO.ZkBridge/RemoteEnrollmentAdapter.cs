@@ -77,11 +77,12 @@ internal static class RemoteEnrollmentAdapter
             // The SDK has no presence-only method. Template material exists transiently inside this child only,
             // is neither emitted nor persisted, and is released with the isolated process. Managed strings cannot promise secure erasure.
             var found=(bool)sdk.GetUserTmpExStr(machine,person,finger,out flag,out data,out length);
-            data=null!;
-            if(found)return length>0?true:null;
+            var hasData=!string.IsNullOrEmpty(data);data=null!;
+            if(found)return length>0&&hasData?true:null;
+            if(length!=0||hasData)return null;
             int error=int.MinValue;sdk.GetLastError(ref error);
             // Absence is NEVER inferred from a generic false. Exact installed-model error semantics are deployment-approved.
-            return approval.EmptySlotErrorCode is{} absent&&absent!=0&&error==absent?false:null;
+            return approval.EmptySlotErrorCode is{} absent&&absent!=0&&absent!=int.MinValue&&error==absent?false:null;
         }
         public bool StartEnrollEx(string person,int fingerIndex,int flag)=>(bool)((dynamic)instance).StartEnrollEx(person,fingerIndex,flag);
         public bool CancelOperation()=>(bool)((dynamic)instance).CancelOperation();

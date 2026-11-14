@@ -12,7 +12,7 @@ internal static class RemoteEnrollmentModel
             b.Property(x=>x.RequestedAtUtc).HasColumnType("datetimeoffset");
             b.Property(x=>x.ExpectedDeviceVersion).HasColumnType("varbinary(8)");
             b.Property(x=>x.PersonIdentifier).HasColumnType("nvarchar(100)");
-            b.Property(x=>x.ApprovalJson).HasColumnType("nvarchar(8192)");
+            b.Property(x=>x.ApprovalJson).HasColumnType("nvarchar(max)");
             b.Property(x=>x.TimeoutSeconds).HasColumnType("int");
             b.Property(x=>x.State).HasColumnType("nvarchar(40)");
             b.Property(x=>x.ServiceUserId).HasColumnType("uniqueidentifier");
@@ -20,7 +20,7 @@ internal static class RemoteEnrollmentModel
             b.Property(x=>x.ClaimedAtUtc).HasColumnType("datetimeoffset");
             b.Property(x=>x.CancelRequestedAtUtc).HasColumnType("datetimeoffset");
             b.Property(x=>x.FinishedAtUtc).HasColumnType("datetimeoffset");
-            b.Property(x=>x.ResultJson).HasColumnType("nvarchar(4096)");
+            b.Property(x=>x.ResultJson).HasColumnType("nvarchar(max)");
             b.Property(x=>x.Version).HasColumnType("rowversion");
         b.ToTable("RemoteEnrollments",t=>{t.HasTrigger("TR_RemoteEnrollments_History");t.UseSqlOutputClause(false);});
         b.HasKey(x=>x.Id);b.Property(x=>x.Id).ValueGeneratedNever();b.Property(x=>x.Version).IsRowVersion().IsRequired();

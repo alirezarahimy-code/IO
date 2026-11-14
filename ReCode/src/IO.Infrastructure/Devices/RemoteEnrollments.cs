@@ -19,7 +19,7 @@ public sealed class RemoteEnrollments(IoDbContext db,PermissionTransaction tx,Ti
     {public override string ToString()=>"Enrollment intent [subject and policy redacted]";}
     public sealed record Claim(Guid Id,Guid Token,Guid DeviceId,string Host,int Port,string PersonIdentifier,RemoteEnrollApproval Approval,int TimeoutSeconds)
     {public override string ToString()=>"Enrollment claim [subject redacted]";}
-    private bool Approved(RemoteEnrollApproval approval)=>approval.IsValid()&&approval.EmptySlotErrorCode is not null and not 0&&approval.EventMask>0&&config.GetValue<bool>("IO:RemoteEnroll:EnableRequests")&&
+    private bool Approved(RemoteEnrollApproval approval)=>approval.IsValid()&&approval.EmptySlotErrorCode is not null and not 0 and not int.MinValue&&approval.EventMask>0&&config.GetValue<bool>("IO:RemoteEnroll:EnableRequests")&&
         (config.GetSection("IO:RemoteEnroll:Approvals").Get<RemoteEnrollApproval[]>()??[]).Count(x=>x==approval)==1;
     public Task<Guid> RequestAsync(Guid actor,Input input,CancellationToken ct=default)
     {

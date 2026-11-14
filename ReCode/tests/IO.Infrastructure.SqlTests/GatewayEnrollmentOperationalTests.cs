@@ -1,4 +1,5 @@
 using System.Net;
+using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -98,7 +99,7 @@ internal static class GatewayEnrollmentOperationalTests
     check(await Reject<DbUpdateException>(()=>Receive(Envelope(Guid.NewGuid())))&&await Q(db=>db.DevicePushJournal.CountAsync())==before&&await Q(db=>db.PushGatewayReceipts.CountAsync())==before,"security audit failure rolls back SQL evidence and receipt before any ACK");
     await Q(async db=>{await db.Database.ExecuteSqlRawAsync("DROP TRIGGER dbo.TR_SyntheticGatewayAuditFail");return true;});
 
-    using var rsa=RSA.Create(2048);var certificateRequest=new CertificateRequest("CN=localhost",rsa,HashAlgorithmName.SHA256,RSASignaturePadding.Pkcs1);using var certificate=certificateRequest.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1),DateTimeOffset.UtcNow.AddDays(1));
+    using var rsa=RSA.Create(2048);var certificateRequest=new CertificateRequest("CN=localhost",rsa,HashAlgorithmName.SHA256,RSASignaturePadding.Pkcs1);var san=new SubjectAlternativeNameBuilder();san.AddIpAddress(IPAddress.Loopback);san.AddDnsName("localhost");certificateRequest.CertificateExtensions.Add(san.Build());certificateRequest.CertificateExtensions.Add(new X509BasicConstraintsExtension(false,false,0,false));certificateRequest.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature|X509KeyUsageFlags.KeyEncipherment,false));using var certificate=certificateRequest.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1),DateTimeOffset.UtcNow.AddDays(1));
     async Task<WebApplicationHandle> Host(bool ingress)
     {
         var app=IoWebHost.Build([],builder=>{builder.Configuration.AddInMemoryCollection(new Dictionary<string,string?>{["IO:EnableExperimentalIdentity"]="true",["ConnectionStrings:IO"]=connection,["IO:DataProtection:KeyRingPath"]=ring,["IO:DataProtection:ApplicationName"]="IO.Gateway.Integration",["IO:PushGateway:EnableIngress"]=ingress.ToString()});builder.Logging.ClearProviders();builder.WebHost.ConfigureKestrel(k=>k.Listen(IPAddress.Loopback,0,l=>l.UseHttps(certificate)));});
@@ -110,6 +111,34 @@ internal static class GatewayEnrollmentOperationalTests
     {
         var httpId=Guid.NewGuid();using var request=Wire(Envelope(httpId));using var response=await host.Client.SendAsync(request);var httpReceipt=await response.Content.ReadFromJsonAsync<JsonElement>();
         check(response.StatusCode==HttpStatusCode.OK&&httpReceipt.GetProperty("state").GetString()=="gateway-retained-device-unverified"&&await Q(db=>db.PushGatewayReceipts.AnyAsync(x=>x.TransferId==httpId)),"actual HTTPS endpoint responds only with committed quarantine receipt");
+        // Only inside the disposable Windows CI guard: trust this one ephemeral loopback certificate for the real courier,
+        // then remove exactly this certificate. Production courier has no validation override or insecure flag.
+        using(var roots=new X509Store(StoreName.Root,StoreLocation.CurrentUser))
+        {
+            roots.Open(OpenFlags.ReadWrite);roots.Add(certificate);
+            var spool=Path.Combine(ring,"synthetic-spool");Directory.CreateDirectory(spool);
+            try
+            {
+                var courierId=Guid.NewGuid();var courierConfig=Path.Combine(spool,"gateway.json");var courierTransfer=Path.Combine(spool,"transfer.json");var bodyFile=Path.Combine(spool,"body.attlog");
+                await File.WriteAllBytesAsync(bodyFile,body);
+                await File.WriteAllTextAsync(courierConfig,JsonSerializer.Serialize(new{Server=host.Client.BaseAddress!.AbsoluteUri,BindingId=bindingId,GatewayId=gateway,DeviceId=push,SourceId=push,Serial=binding.Serial,TimeZoneId="UTC",KeyVersion="key-1",KeyBase64=Convert.ToBase64String(key)}));
+                await File.WriteAllTextAsync(courierTransfer,JsonSerializer.Serialize(new{TransferId=courierId,BodyFile=bodyFile,Stamp="courier-stamp"}));
+                var executable=Path.GetFullPath(Path.Combine(System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory(),"..","..","..","dotnet.exe"));
+                async Task<int> Courier()
+                {
+                    var start=new ProcessStartInfo(executable){UseShellExecute=false,RedirectStandardOutput=true,RedirectStandardError=true,WorkingDirectory=spool};start.ArgumentList.Add(Path.Combine(AppContext.BaseDirectory,"gateway-courier","IO.PushGateway.dll"));start.ArgumentList.Add(courierConfig);start.ArgumentList.Add(courierTransfer);
+                    using var child=Process.Start(start)!;var stdout=child.StandardOutput.ReadToEndAsync();var stderr=child.StandardError.ReadToEndAsync();using var timeout=new CancellationTokenSource(TimeSpan.FromSeconds(45));
+                    try{await child.WaitForExitAsync(timeout.Token);}catch{child.Kill(true);throw;}
+                    var log=await stdout+await stderr;
+                    check(!log.Contains(Convert.ToBase64String(key),StringComparison.Ordinal)&&!log.Contains("001\t",StringComparison.Ordinal),"real gateway courier logs no HMAC key or attendance body");
+                    return child.ExitCode;
+                }
+                check(await Courier()==0&&File.Exists(courierTransfer+".receipt.json")&&File.Exists(bodyFile)&&await Q(db=>db.PushGatewayReceipts.CountAsync(x=>x.TransferId==courierId))==1,"real courier validates trusted HTTPS endpoint and persists receipt without deleting spool");
+                var firstReceipt=await File.ReadAllTextAsync(courierTransfer+".receipt.json");
+                check(await Courier()==0&&await File.ReadAllTextAsync(courierTransfer+".receipt.json")==firstReceipt&&await Q(db=>db.PushGatewayReceipts.CountAsync(x=>x.TransferId==courierId))==1,"real courier retry reuses the same transfer and SQL receipt without duplicate quarantine evidence");
+            }
+            finally{roots.Remove(certificate);Directory.Delete(spool,true);}
+        }
         using var bad=Wire(Envelope(Guid.NewGuid()) with{Signature=new string('0',64)});using var rejected=await host.Client.SendAsync(bad);check(rejected.StatusCode==HttpStatusCode.Unauthorized,"actual HTTPS ingress rejects tampered MAC without session cookies");
         using var admin=await host.Client.PostAsJsonAsync("/devices/gateway-bindings",provision);check(admin.StatusCode==HttpStatusCode.Unauthorized,"gateway HMAC route does not grant anonymous binding administration");
         using var nativePost=await host.Client.PostAsync("/iclock/cdata",new StringContent("not-native-auth"));check(nativePost.StatusCode==HttpStatusCode.NotFound,"native unauthenticated iclock route remains absent");

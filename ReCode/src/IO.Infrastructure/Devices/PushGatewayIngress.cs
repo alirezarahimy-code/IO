@@ -16,7 +16,7 @@ public sealed class PushGatewayIngress(IoDbContext db,PermissionTransaction tx,I
     public Task<Guid> ProvisionAsync(Guid actor,Provision input,CancellationToken ct=default)
     {
         ArgumentNullException.ThrowIfNull(input);
-        if(input.Id==Guid.Empty||input.ServiceUserId==Guid.Empty||input.DeviceVersion is not{Length:8})throw new ArgumentException("Explicit binding, principal and device version required.");
+        if(input.Id==Guid.Empty||input.ServiceUserId==Guid.Empty||input.DeviceVersion is not{Length:8}||input.KeyBase64 is not{Length:44})throw new ArgumentException("Explicit binding, principal and device version required.");
         byte[] key;try{key=Convert.FromBase64String(input.KeyBase64);}catch(FormatException){throw new ArgumentException("Invalid gateway key.");}
         var version=(byte[])input.DeviceVersion.Clone();
         return Save();
