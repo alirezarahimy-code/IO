@@ -11,6 +11,10 @@ public sealed class DeviceOperationRecord
     public int TimeoutSeconds { get; set; }
     public string TimeZoneId { get; set; } = null!;
     public DateTimeOffset? TargetUtc { get; set; }
+    public string? ProfilePlanJson { get; set; }
+    public string? ProfileParameter { get; set; }
+    public Guid? ProfileInspectionOfId { get; set; }
+    public bool ProfileObserveRecovery { get; set; }
     public string? FunctionKeyPlanJson { get; set; }
     public string? RawSettingPlanJson { get; set; }
     public string? IdlePlanJson { get; set; }

@@ -78,9 +78,11 @@ internal static class Program
                 settings=ZkAdditionalSettingsReader.Add(settings with{Product=descriptor.Product(),Firmware=descriptor.Firmware()},new AdditionalSettingsSession(instance,input.MachineNumber));
                 if(request?.FunctionKeyReadApproval is {} keyApproval){settings=ZkFunctionKeyReader.Add(settings,keyApproval,new FunctionKeySession(instance))!;if(settings is null)return new("unsupported");}
                 if(request?.DaylightReadApproval is {} daylightApproval){settings=ZkDaylightReader.Add(settings,daylightApproval,new DaylightSession(instance,input.MachineNumber))!;if(settings is null)return new("unsupported");}
+                if(request?.ProfileReadApprovals is {} profileReads){settings=ZkProfileExecutor.AddReadings(settings,profileReads,new ProfileSession(instance,input.MachineNumber))!;if(settings is null)return new("unsupported");}
                 string after;if(!(bool)sdk.GetSerialNumber(input.MachineNumber,out after)||after?.Trim()!=input.ExpectedSerial)return new("identity-mismatch");
                 return new("succeeded",Settings:settings);
             }
+            if(operation is "settings.profile.set" or "settings.profile.inspect")return ZkProfileExecutor.Execute(request!,new ProfileSession(instance,input.MachineNumber));
             if(operation=="settings.key.set")return ZkFunctionKeyWriteExecutor.Execute(request!,new FunctionKeyWriteSession(instance,input.MachineNumber));
             if(operation=="settings.raw.set")return ZkRawSettingExecutor.Execute(request!,new RawSettingSession(instance,input.MachineNumber));
             if(operation=="settings.idle.set")return ZkIdleSettingExecutor.Execute(request!,new IdleSettingSession(instance,input.MachineNumber));
@@ -97,6 +99,32 @@ internal static class Program
         {
             if(instance is not null){try{if(connected)((dynamic)instance).Disconnect();}catch{}try{if(Marshal.IsComObject(instance))Marshal.FinalReleaseComObject(instance);}catch{}}
         }
+    }
+
+    private sealed class ProfileSession(object instance,int machine):IZkProfileSession
+    {
+        public string? Serial(){string value;return (bool)((dynamic)instance).GetSerialNumber(machine,out value)?value?.Trim():null;}
+        public string? Product()=>new IdleSettingSession(instance,machine).Product();
+        public string? Firmware()=>new IdleSettingSession(instance,machine).Firmware();
+        private string? Option(string key){string value;return (bool)((dynamic)instance).GetSysOption(machine,key,out value)?value:null;}
+        public ZkProfileValue? ReadProfile(string parameter)
+        {
+            if(parameter=="daylight")
+            {
+                int support=0;string begin="",end="";if(!(bool)((dynamic)instance).GetDaylight(machine,ref support,ref begin,ref end))return null;
+                return new(parameter,support.ToString(CultureInfo.InvariantCulture),begin,end,Option("DLSTMode"),Option("CurTimeMode"),Option("DaylightSavingTimeOn"));
+            }
+            if(parameter=="mac"){string value="";return (bool)((dynamic)instance).GetDeviceMAC(machine,ref value)?new(parameter,value):null;}
+            var raw=Option(ZkProfileParameters.Option(parameter));return raw is null?null:new(parameter,raw);
+        }
+        public bool SetProfile(ZkProfileValue value)
+        {
+            if(!value.IsValid())return false;
+            if(value.Parameter=="daylight")return (bool)((dynamic)instance).SetDaylight(machine,int.Parse(value.Raw,CultureInfo.InvariantCulture),value.Begin!,value.End!);
+            if(value.Parameter=="mac")return (bool)((dynamic)instance).SetDeviceMAC(machine,value.Raw);
+            return (bool)((dynamic)instance).SetSysOption(machine,ZkProfileParameters.Option(value.Parameter),value.Raw);
+        }
+        public void RefreshProfile()=>((dynamic)instance).RefreshData(machine);
     }
 
     private sealed class IdleSettingSession(object instance,int machine):IZkIdleSettingSession

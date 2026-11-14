@@ -21,6 +21,7 @@ Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --key-write-contracts
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --function-key-read-contracts
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --daylight-read-contracts
+Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --profile-setting-contracts
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --reference-parity
 Run-Dotnet run --project tests/IO.Foundation.Tests --configuration Release --no-build
 $publish = Join-Path ([System.IO.Path]::GetTempPath()) ('io-publish-' + [guid]::NewGuid().ToString('N'))

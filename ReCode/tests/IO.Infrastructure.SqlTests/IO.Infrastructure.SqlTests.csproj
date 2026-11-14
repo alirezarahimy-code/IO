@@ -4,6 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../IO.DeviceRuntime.Tests/VirtualDeviceLab.cs" Link="VirtualDeviceLab.cs" />
+    <Compile Include="../IO.DeviceRuntime.Tests/ProfileSettingTests.cs" Link="ProfileSettingTests.cs" />
     <ProjectReference Include="../../src/IO.DeviceWorker/IO.DeviceWorker.csproj" />
     <ProjectReference Include="../IO.DeviceRuntime.Tests/IO.DeviceRuntime.Tests.csproj" ReferenceOutputAssembly="false" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

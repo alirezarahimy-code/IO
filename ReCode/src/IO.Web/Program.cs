@@ -197,6 +197,7 @@ public static class IoWebHost
         app.MapGet("/workspace/device-health", () => Results.Content(Resource("IO.Web.Ui.DeviceHealth.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/device-health.js", () => Results.Content(Resource("IO.Web.Ui.device-health.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-settings", () => Results.Content(Resource("IO.Web.Ui.DeviceSettings.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/device-profiles.js", () => Results.Content(Resource("IO.Web.Ui.device-profiles.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/assets/device-settings.js", () => Results.Content(Resource("IO.Web.Ui.device-settings.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-commands", () => Results.Content(Resource("IO.Web.Ui.DeviceCommands.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/device-commands.js", () => Results.Content(Resource("IO.Web.Ui.device-commands.js"), "text/javascript; charset=utf-8"));
@@ -423,6 +424,8 @@ public static class IoWebHost
         app.MapGet("/device-user-downloads/{id:guid}/preview", (Guid id,HttpContext c,DeviceUserDownloads service,long after=0)=>AdminRead(c,actor=>service.PreviewAsync(actor,id,after,c.RequestAborted)));
         app.MapPost("/device-user-downloads", (DeviceUserDownloadInput input,HttpContext c,IAntiforgery csrf,DeviceUserDownloads service)=>Admin(c,csrf,actor=>service.RequestAsync(actor,input.OperationId,input.DeviceId,input.ExpectedDeviceVersion,input.TimeoutSeconds,c.RequestAborted,input.ReadFormat)));
         app.MapPost("/device-user-downloads/{id:guid}/cancel", (Guid id,DeviceOperationVersion input,HttpContext c,IAntiforgery csrf,DeviceUserDownloads service)=>Admin(c,csrf,actor=>service.CancelAsync(actor,id,input.ExpectedVersion,c.RequestAborted)));
+        app.MapPost("/device-settings/profile-preview", (DeviceProfilePreview input,HttpContext c,IAntiforgery csrf,DeviceOperations service)=>Admin(c,csrf,actor=>service.PreviewProfileAsync(actor,input.DeviceId,input.ExpectedDeviceVersion,input.SnapshotId,input.Desired,input.Effect,input.ApprovalReference,input.Recovery,c.RequestAborted)));
+        app.MapPost("/device-operations/{id:guid}/resolve-profile", (Guid id,DeviceIdleResolution input,HttpContext c,IAntiforgery csrf,DeviceOperations service)=>Admin(c,csrf,actor=>service.ResolveProfileAsync(actor,id,input.ExpectedVersion,input.SnapshotId,input.Confirmation,c.RequestAborted)));
         app.MapPost("/device-settings/key-preview", (DeviceKeyPreview input,HttpContext c,IAntiforgery csrf,DeviceOperations service)=>Admin(c,csrf,actor=>service.PreviewFunctionKeyAsync(actor,input.DeviceId,input.ExpectedDeviceVersion,input.SnapshotId,input.Desired,input.Effect,input.ApprovalReference,c.RequestAborted)));
         app.MapPost("/device-operations/{id:guid}/resolve-key", (Guid id,DeviceIdleResolution input,HttpContext c,IAntiforgery csrf,DeviceOperations service)=>Admin(c,csrf,actor=>service.ResolveFunctionKeyAsync(actor,id,input.ExpectedVersion,input.SnapshotId,input.Confirmation,c.RequestAborted)));
         app.MapPost("/device-settings/raw-preview", (DeviceRawSettingPreview input,HttpContext c,IAntiforgery csrf,DeviceOperations service)=>Admin(c,csrf,actor=>service.PreviewRawAsync(actor,input.DeviceId,input.ExpectedDeviceVersion,input.SnapshotId,input.Parameter,input.Value,input.Unit,input.Effect,input.ApprovalReference,c.RequestAborted)));
@@ -434,7 +437,7 @@ public static class IoWebHost
         app.MapGet("/device-operations", (HttpContext c, DeviceOperations service, Guid? deviceId, int offset=0) =>
             AdminRead(c,actor=>service.ListAsync(actor,deviceId,offset,c.RequestAborted)));
         app.MapPost("/device-operations", (DeviceOperationInput input,HttpContext c,IAntiforgery csrf,DeviceOperations service) =>
-            Admin(c,csrf,actor=>service.RequestAsync(actor,input.OperationId,input.DeviceId,input.ExpectedDeviceVersion,input.Kind,input.TimeoutSeconds,input.TargetUtc,input.Confirmation,c.RequestAborted,input.NetworkPlan,input.IdlePlan,input.IdlePreviewHash,input.RawSettingPlan,input.RawPreviewHash,input.FunctionKeyPlan,input.FunctionKeyPreviewHash)));
+            Admin(c,csrf,actor=>service.RequestAsync(actor,input.OperationId,input.DeviceId,input.ExpectedDeviceVersion,input.Kind,input.TimeoutSeconds,input.TargetUtc,input.Confirmation,c.RequestAborted,input.NetworkPlan,input.IdlePlan,input.IdlePreviewHash,input.RawSettingPlan,input.RawPreviewHash,input.FunctionKeyPlan,input.FunctionKeyPreviewHash,input.ProfilePlan,input.ProfilePreviewHash,input.ProfileInspectionOfId,input.ProfileObserveRecovery)));
         app.MapPost("/device-operations/{id:guid}/cancel", (Guid id,DeviceOperationVersion input,HttpContext c,IAntiforgery csrf,DeviceOperations service) =>
             Admin(c,csrf,actor=>service.CancelAsync(actor,id,input.ExpectedVersion,c.RequestAborted)));
         app.MapPost("/device-operations/{id:guid}/resolve-clock", (Guid id,DeviceClockResolution input,HttpContext c,IAntiforgery csrf,DeviceOperations service) =>
@@ -824,7 +827,7 @@ public sealed record DeviceKeyPreview(Guid DeviceId,byte[] ExpectedDeviceVersion
 public sealed record DeviceRawSettingPreview(Guid DeviceId,byte[] ExpectedDeviceVersion,Guid SnapshotId,string Parameter,int Value,string Unit,string Effect,string ApprovalReference);
 public sealed record DeviceIdlePreview(Guid DeviceId,byte[] ExpectedDeviceVersion,Guid SnapshotId,int Minutes,string ApprovalReference);
 public sealed record DeviceIdleResolution(byte[] ExpectedVersion,Guid SnapshotId,string Confirmation);
-public sealed record DeviceOperationInput(Guid OperationId,Guid DeviceId,byte[] ExpectedDeviceVersion,string Kind,int TimeoutSeconds,DateTimeOffset? TargetUtc,string? Confirmation,IO.DeviceContracts.ZkNetworkPlan? NetworkPlan=null,IO.DeviceContracts.ZkIdlePlan? IdlePlan=null,string? IdlePreviewHash=null,IO.DeviceContracts.ZkRawSettingPlan? RawSettingPlan=null,string? RawPreviewHash=null,IO.DeviceContracts.ZkFunctionKeyPlan? FunctionKeyPlan=null,string? FunctionKeyPreviewHash=null);
+public sealed record DeviceOperationInput(Guid OperationId,Guid DeviceId,byte[] ExpectedDeviceVersion,string Kind,int TimeoutSeconds,DateTimeOffset? TargetUtc,string? Confirmation,IO.DeviceContracts.ZkNetworkPlan? NetworkPlan=null,IO.DeviceContracts.ZkIdlePlan? IdlePlan=null,string? IdlePreviewHash=null,IO.DeviceContracts.ZkRawSettingPlan? RawSettingPlan=null,string? RawPreviewHash=null,IO.DeviceContracts.ZkFunctionKeyPlan? FunctionKeyPlan=null,string? FunctionKeyPreviewHash=null,IO.DeviceContracts.ZkProfilePlan? ProfilePlan=null,string? ProfilePreviewHash=null,Guid? ProfileInspectionOfId=null,bool ProfileObserveRecovery=false);
 public sealed record DeviceOperationVersion(byte[] ExpectedVersion);
 public sealed record DeviceClockResolution(byte[] ExpectedVersion,Guid InformationId,string Confirmation);
 
@@ -844,3 +847,5 @@ public sealed record DeviceUserDownloadInput(Guid OperationId,Guid DeviceId,byte
 
 public sealed record DeviceAccessPolicyInput(byte[]? ExpectedVersion,[property:System.Text.Json.Serialization.JsonRequired]bool Restricted,string Confirmation);
 public sealed record DeviceAccessGrantInput(Guid Id,Guid UserId,Guid DeviceId);
+
+public sealed record DeviceProfilePreview(Guid DeviceId,byte[] ExpectedDeviceVersion,Guid SnapshotId,IO.DeviceContracts.ZkProfileValue Desired,string Effect,string ApprovalReference,IO.DeviceContracts.ZkProfileEndpoint Recovery);

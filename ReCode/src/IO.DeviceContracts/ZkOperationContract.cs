@@ -3,11 +3,14 @@ using System.Text.Json.Serialization;
 
 namespace IO.DeviceContracts;
 
-public sealed record ZkOperationInput(ZkProbeInput Connection, string Operation, string? ClockLocal, bool AllowClockSet,bool AllowAdvancedSettingsRead=false,bool AllowRestart=false,ZkNetworkPlan? NetworkPlan=null,bool AllowNetworkIpChange=false,bool AllowNetworkInspect=false,ZkIdlePlan? IdlePlan=null,bool AllowIdleMinutesWrite=false,ZkIdleApproval? IdleApproval=null,ZkFunctionKeyReadApproval? FunctionKeyReadApproval=null,ZkRawSettingPlan? RawSettingPlan=null,bool AllowRawSettingsWrite=false,ZkRawSettingApproval? RawSettingApproval=null,ZkFunctionKeyPlan? FunctionKeyPlan=null,bool AllowFunctionKeyWrite=false,ZkFunctionKeyWriteApproval? FunctionKeyWriteApproval=null,ZkDaylightReadApproval? DaylightReadApproval=null)
+public sealed record ZkOperationInput(ZkProbeInput Connection, string Operation, string? ClockLocal, bool AllowClockSet,bool AllowAdvancedSettingsRead=false,bool AllowRestart=false,ZkNetworkPlan? NetworkPlan=null,bool AllowNetworkIpChange=false,bool AllowNetworkInspect=false,ZkIdlePlan? IdlePlan=null,bool AllowIdleMinutesWrite=false,ZkIdleApproval? IdleApproval=null,ZkFunctionKeyReadApproval? FunctionKeyReadApproval=null,ZkRawSettingPlan? RawSettingPlan=null,bool AllowRawSettingsWrite=false,ZkRawSettingApproval? RawSettingApproval=null,ZkFunctionKeyPlan? FunctionKeyPlan=null,bool AllowFunctionKeyWrite=false,ZkFunctionKeyWriteApproval? FunctionKeyWriteApproval=null,ZkDaylightReadApproval? DaylightReadApproval=null,ZkProfilePlan? ProfilePlan=null,bool AllowProfileWrite=false,ZkProfileWriteApproval? ProfileApproval=null,bool ProfileObserveRecovery=false,ZkProfileReadApproval[]? ProfileReadApprovals=null)
 {
     public bool IsValid()
     {
         if(Connection?.IsValid()!=true)return false;
+        if(ProfileReadApprovals is not null&&(Operation!="settings.read"||!AllowAdvancedSettingsRead||ProfileReadApprovals.Length is <1 or >7||ProfileReadApprovals.Any(x=>x is null||!x.IsValid())||ProfileReadApprovals.Select(x=>x.Parameter).Distinct().Count()!=ProfileReadApprovals.Length))return false;
+        if(Operation is "settings.profile.set" or "settings.profile.inspect")return AllowAdvancedSettingsRead&&ProfilePlan?.IsValid()==true&&ProfileApproval?.Allows(ProfilePlan)==true&&ProfilePlan.Serial==Connection.ExpectedSerial&&Connection.Address==(ProfileObserveRecovery?ProfilePlan.Recovery:ProfilePlan.Original).Address&&Connection.Port==(ProfileObserveRecovery?ProfilePlan.Recovery:ProfilePlan.Original).Port&&(Operation!="settings.profile.set"||(AllowProfileWrite&&!ProfileObserveRecovery))&&NetworkPlan is null&&IdlePlan is null&&IdleApproval is null&&RawSettingPlan is null&&RawSettingApproval is null&&FunctionKeyPlan is null&&FunctionKeyWriteApproval is null&&FunctionKeyReadApproval is null&&DaylightReadApproval is null&&ProfileReadApprovals is null&&ClockLocal is null;
+        if(ProfilePlan is not null||ProfileApproval is not null||ProfileObserveRecovery)return false;
         if(DaylightReadApproval is not null&&(Operation!="settings.read"||!AllowAdvancedSettingsRead||!DaylightReadApproval.IsValid()))return false;
         if(Operation=="settings.key.set")return AllowAdvancedSettingsRead&&AllowFunctionKeyWrite&&FunctionKeyPlan?.IsValid()==true&&FunctionKeyPlan.Serial==Connection.ExpectedSerial&&FunctionKeyWriteApproval?.Allows(FunctionKeyPlan)==true&&FunctionKeyReadApproval is null&&NetworkPlan is null&&IdlePlan is null&&IdleApproval is null&&RawSettingPlan is null&&RawSettingApproval is null&&ClockLocal is null;
         if(FunctionKeyPlan is not null||FunctionKeyWriteApproval is not null)return false;
@@ -37,25 +40,27 @@ public sealed record ZkDeviceInformation(string Serial, string? Product, string?
             new[]{Records,RecordCapacity,Users,UserCapacity,Administrators,Fingers,FingerCapacity,Faces,FaceCapacity}.All(x=>x is null or >=0);
     }
 }
-public sealed record ZkOperationOutput(string State, ZkDeviceInformation? Information=null,ZkAdvancedSettings? Settings=null,ZkNetworkObservation? Network=null,ZkIdleObservation? Idle=null,ZkRawSettingObservation? RawSetting=null,ZkFunctionKeyObservation? FunctionKey=null)
+public sealed record ZkOperationOutput(string State, ZkDeviceInformation? Information=null,ZkAdvancedSettings? Settings=null,ZkNetworkObservation? Network=null,ZkIdleObservation? Idle=null,ZkRawSettingObservation? RawSetting=null,ZkFunctionKeyObservation? FunctionKey=null,ZkProfileObservation? Profile=null)
 {
-    public bool IsValidFor(ZkOperationInput input) => input.IsValid()&&(FunctionKey is null||input.Operation=="settings.key.set")&&(RawSetting is null||input.Operation=="settings.raw.set")&&(Idle is null||input.Operation=="settings.idle.set")&&(Network is null||input.Operation=="network.inspect")&&(State switch
+    public bool IsValidFor(ZkOperationInput input) => input.IsValid()&&(Profile is null||input.Operation is "settings.profile.set" or "settings.profile.inspect")&&(FunctionKey is null||input.Operation=="settings.key.set")&&(RawSetting is null||input.Operation=="settings.raw.set")&&(Idle is null||input.Operation=="settings.idle.set")&&(Network is null||input.Operation=="network.inspect")&&(State switch
     {
         "succeeded" => input.Operation switch
         {
+            "settings.profile.set" or "settings.profile.inspect" => Information is null&&Settings is null&&Network is null&&Idle is null&&RawSetting is null&&FunctionKey is null&&Profile?.Matches(input.ProfilePlan!,input.Operation=="settings.profile.inspect",input.ProfileObserveRecovery)==true,
             "settings.key.set" => Information is null&&Settings is null&&Network is null&&Idle is null&&RawSetting is null&&FunctionKey?.Matches(input.FunctionKeyPlan!)==true,
             "settings.raw.set" => Information is null&&Settings is null&&Network is null&&Idle is null&&RawSetting?.Matches(input.RawSettingPlan!)==true,
             "settings.idle.set" => Information is null&&Settings is null&&Network is null&&Idle is not null&&Idle.IsValid()&&Idle.Serial==input.IdlePlan!.Serial&&Idle.Product==input.IdlePlan.Product&&Idle.Firmware==input.IdlePlan.Firmware&&Idle.Minutes==input.IdlePlan.NewMinutes,
             "information.read" => Settings is null&&Information is not null&&Information.IsValid()&&Information.Serial==input.Connection.ExpectedSerial,
             "network.inspect" => Information is null&&Settings is null&&Network is not null&&Network.IsValid()&&Network.Serial==input.Connection.ExpectedSerial&&Network.ConnectedAddress==input.Connection.Address,
             "settings.read" => input.AllowAdvancedSettingsRead&&Information is null&&Settings is not null&&Settings.IsValid()&&Settings.Serial==input.Connection.ExpectedSerial&&
+                (input.ProfileReadApprovals is null?Settings.Profiles is null:Settings.Profiles is not null&&Settings.Profiles.Length==input.ProfileReadApprovals.Length&&input.ProfileReadApprovals.Select((a,i)=>a.Allows(Settings.Product,Settings.Firmware)&&Settings.Profiles[i].Parameter==a.Parameter&&Settings.Profiles[i].ApprovalReference==a.EvidenceReference).All(x=>x))&&
                 (input.DaylightReadApproval is null?Settings.Daylight is null:input.DaylightReadApproval.Allows(Settings.Product,Settings.Firmware)&&Settings.Daylight?.Matches(input.DaylightReadApproval)==true)&&
                 (input.FunctionKeyReadApproval is null?Settings.FunctionKeys is null:input.FunctionKeyReadApproval.Allows(Settings.Product,Settings.Firmware)&&Settings.FunctionKeys?.Matches(input.FunctionKeyReadApproval)==true),
             "device.restart" => input.AllowRestart&&Information is null&&Settings is null,
             "clock.set" => input.AllowClockSet&&Information is null&&Settings is null,
             _=>false
         },
-        "unsupported" or "identity-mismatch" or "failed" or "unknown" => Information is null&&Settings is null&&Network is null&&Idle is null&&RawSetting is null&&FunctionKey is null,
+        "unsupported" or "identity-mismatch" or "failed" or "unknown" => Information is null&&Settings is null&&Network is null&&Idle is null&&RawSetting is null&&FunctionKey is null&&Profile is null,
         _ => false
     });
 }

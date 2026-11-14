@@ -17,14 +17,14 @@ public static class NativeProcessSupervisor
     public static async Task<ZkOperationOutput> RunOperationAsync(string executable,string childAssembly,ZkOperationInput input,int timeoutSeconds,CancellationToken stoppingToken=default)
     {
         if(!input.IsValid())return new("unsupported");
-        var exchange=await ExchangeAsync(executable,childAssembly,System.Text.Json.JsonSerializer.Serialize(input),timeoutSeconds,stoppingToken,input.Operation=="settings.read"?32768:(input.Operation=="settings.raw.set"||input.Operation=="settings.key.set")?8192:4096,(input.Operation=="settings.raw.set"||input.Operation=="settings.key.set")?32768:8192);
-        if(exchange.State!="exited")return new((input.Operation=="device.restart"||input.Operation=="network.ip.set"||input.Operation=="settings.idle.set"||input.Operation=="settings.raw.set"||input.Operation=="settings.key.set")?"unknown":exchange.State);
+        var exchange=await ExchangeAsync(executable,childAssembly,System.Text.Json.JsonSerializer.Serialize(input),timeoutSeconds,stoppingToken,input.Operation=="settings.read"?32768:(input.Operation=="settings.raw.set"||input.Operation=="settings.key.set"||input.Operation=="settings.profile.set"||input.Operation=="settings.profile.inspect")?8192:4096,(input.Operation=="settings.raw.set"||input.Operation=="settings.key.set"||input.Operation=="settings.profile.set"||input.Operation=="settings.profile.inspect")?32768:8192);
+        if(exchange.State!="exited")return new((input.Operation=="device.restart"||input.Operation=="network.ip.set"||input.Operation=="settings.idle.set"||input.Operation=="settings.raw.set"||input.Operation=="settings.key.set"||input.Operation=="settings.profile.set")?"unknown":exchange.State);
         try
         {
             var result=System.Text.Json.JsonSerializer.Deserialize<ZkOperationOutput>(exchange.Output,new System.Text.Json.JsonSerializerOptions{UnmappedMemberHandling=System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow});
-            return result is not null&&result.IsValidFor(input)?result:new((input.Operation=="device.restart"||input.Operation=="network.ip.set"||input.Operation=="settings.idle.set"||input.Operation=="settings.raw.set"||input.Operation=="settings.key.set")?"unknown":"bridge-failed");
+            return result is not null&&result.IsValidFor(input)?result:new((input.Operation=="device.restart"||input.Operation=="network.ip.set"||input.Operation=="settings.idle.set"||input.Operation=="settings.raw.set"||input.Operation=="settings.key.set"||input.Operation=="settings.profile.set")?"unknown":"bridge-failed");
         }
-        catch(System.Text.Json.JsonException){return new((input.Operation=="device.restart"||input.Operation=="network.ip.set"||input.Operation=="settings.idle.set"||input.Operation=="settings.raw.set"||input.Operation=="settings.key.set")?"unknown":"bridge-failed");}
+        catch(System.Text.Json.JsonException){return new((input.Operation=="device.restart"||input.Operation=="network.ip.set"||input.Operation=="settings.idle.set"||input.Operation=="settings.raw.set"||input.Operation=="settings.key.set"||input.Operation=="settings.profile.set")?"unknown":"bridge-failed");}
     }
 
     public static async Task<ZkUserWriteOutput> RunUserWriteAsync(string executable,string childAssembly,ZkUserWriteInput input,int timeoutSeconds,CancellationToken stoppingToken=default)

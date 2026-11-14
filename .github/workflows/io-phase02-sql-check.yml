@@ -85,6 +85,9 @@ jobs:
       - name: Test read-only daylight contracts and isolated child
         working-directory: ReCode
         run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --daylight-read-contracts
+      - name: Test seven closed profile settings and isolated recovery
+        working-directory: ReCode
+        run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --profile-setting-contracts
       - name: Verify legacy device parity and closed dispatch
         working-directory: ReCode
         run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --reference-parity

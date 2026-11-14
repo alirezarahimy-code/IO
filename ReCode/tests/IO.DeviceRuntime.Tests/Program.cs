@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using IO.DeviceContracts;
 
+if (args is ["--profile-setting-contracts"]) { await ProfileSettingTests.RunAsync(); return; }
+
 if (args is ["--daylight-read-contracts"]) { await DaylightReadTests.RunAsync(); return; }
 
 if (args is ["--function-key-read-contracts"]) { await FunctionKeyReadTests.RunAsync(); return; }
@@ -88,6 +90,11 @@ if (args is not ["--verify"])
     if(document.RootElement.TryGetProperty("Connection",out _))
     {
         var operation=JsonSerializer.Deserialize<ZkOperationInput>(text)!;
+        if(operation.Operation is "settings.profile.set" or "settings.profile.inspect")
+        {
+            var p=operation.ProfilePlan!;var profileSession=new ProfileSettingTests.Session(p){Value=operation.Operation=="settings.profile.inspect"?p.Desired:p.Expected};
+            Console.WriteLine(JsonSerializer.Serialize(ZkProfileExecutor.Execute(operation,profileSession)));return;
+        }
         if(operation.Operation is "network.ip.set" or "network.inspect")
         {
             if(operation.Connection.ExpectedSerial=="network-hang"){await Task.Delay(TimeSpan.FromMinutes(1));return;}

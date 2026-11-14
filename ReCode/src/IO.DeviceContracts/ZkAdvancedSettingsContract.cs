@@ -8,7 +8,7 @@ public sealed record ZkAdvancedSettings(
     [property:JsonRequired]string Contract,[property:JsonRequired]string Serial,
     [property:JsonRequired]int? OneToOne,[property:JsonRequired]int? OneToN,
     [property:JsonRequired]int? RepeatTime,[property:JsonRequired]int? SleepTime,
-    [property:JsonRequired]int? RegCard,[property:JsonRequired]int? MifareSector,string? Product=null,string? Firmware=null,string? ReportedIp=null,string? AlgorithmVersionRaw=null,ZkFunctionKeySnapshot? FunctionKeys=null,string? ReportedSubnetMask=null,string? ReportedGateway=null,ZkDaylightSnapshot? Daylight=null)
+    [property:JsonRequired]int? RegCard,[property:JsonRequired]int? MifareSector,string? Product=null,string? Firmware=null,string? ReportedIp=null,string? AlgorithmVersionRaw=null,ZkFunctionKeySnapshot? FunctionKeys=null,string? ReportedSubnetMask=null,string? ReportedGateway=null,ZkDaylightSnapshot? Daylight=null,ZkProfileReading[]? Profiles=null)
 {
     public const string Version="zk-device-info-v1";
     public bool IsValid()
@@ -19,6 +19,7 @@ public sealed record ZkAdvancedSettings(
         if((ReportedSubnetMask is not null&&!ZkIdlePlan.Text(ReportedSubnetMask,100))||(ReportedGateway is not null&&!ZkIdlePlan.Text(ReportedGateway,100)))return false;
         if(FunctionKeys is not null&&!FunctionKeys.IsValid())return false;
         if(Daylight is not null&&!Daylight.IsValid())return false;
+        if(Profiles is not null&&(Profiles.Length is <1 or >7||Profiles.Any(x=>x is null||!x.IsValid())||Profiles.Select(x=>x.Parameter).Distinct().Count()!=Profiles.Length))return false;
         try{_=new UTF8Encoding(false,true).GetByteCount(Serial);return true;}catch(EncoderFallbackException){return false;}
     }
 }
