@@ -103,7 +103,7 @@ if(!address?.startsWith('https://127.0.0.1:')||!user?.startsWith('virtual-operat
   assert.notEqual(completed[0],completed[1]);
   // Approve real non-TFT polling through the actual schedule form. The live
   // production worker ticks the schedule, reads the child and reviews raw pages.
-  page.on('dialog',dialog=>dialog.accept());
+  // The single dialog handler registered above also handles scope confirmations.
   await page.goto(address+'/workspace/device-schedules?deviceId='+legacyDevice+'&version='+encodeURIComponent(legacyVersion));
   const schedule=page.locator('#schedule-form');await schedule.waitFor({state:'visible'});
   await schedule.locator('select[name=readFormat]').selectOption('legacy-int32-minute-v1');
