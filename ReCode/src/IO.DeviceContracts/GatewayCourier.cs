@@ -25,7 +25,7 @@ public static class GatewayCourier
     var key=Convert.FromBase64String(config.KeyBase64);
     var binding=new PushGatewayBinding(config.GatewayId,config.DeviceId,config.SourceId,config.Serial,config.KeyVersion,TimeZoneInfo.FindSystemTimeZoneById(config.TimeZoneId),key);CryptographicOperations.ZeroMemory(key);
     using var stream=File.OpenRead(transfer.BodyFile);using var bytes=new MemoryStream();var buffer=new byte[8192];int count;
-    while((count=await stream.ReadAsync(buffer))>0){if(bytes.Length+count>ZkPushAttendanceCodec.MaximumBytes)throw new ArgumentException();bytes.Write(buffer,0,count);}
+    while((count=await stream.ReadAsync(buffer,ct))>0){if(bytes.Length+count>ZkPushAttendanceCodec.MaximumBytes)throw new ArgumentException();bytes.Write(buffer,0,count);}
     var body=bytes.ToArray();var batch=ZkPushAttendanceCodec.Decode(binding.Serial,transfer.Stamp,"ATTLOG",body,binding.Zone);
     var sent=DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
     using var handler=new HttpClientHandler{AllowAutoRedirect=false,UseCookies=false,AutomaticDecompression=DecompressionMethods.None};
@@ -37,7 +37,7 @@ public static class GatewayCourier
     request.Content=new ByteArrayContent(body);request.Content.Headers.ContentType=new("application/octet-stream");
     using var response=await client.SendAsync(request,HttpCompletionOption.ResponseHeadersRead,ct);
     if(response.StatusCode!=HttpStatusCode.OK)throw new InvalidOperationException();
-    await using var content=await response.Content.ReadAsStreamAsync();using var receiptBytes=new MemoryStream();
+    await using var content=await response.Content.ReadAsStreamAsync(ct);using var receiptBytes=new MemoryStream();
     while((count=await content.ReadAsync(buffer,ct))>0){if(receiptBytes.Length+count>4096)throw new InvalidOperationException();receiptBytes.Write(buffer,0,count);}
     var receipt=JsonSerializer.Deserialize<GatewayCourierReceipt>(receiptBytes.ToArray(),options);
     if(receipt is null||receipt.ReceiptId==Guid.Empty||receipt.TransferId!=transfer.TransferId||receipt.PayloadHash!=batch.PayloadHash||receipt.RetainedRows!=batch.Rows.Count||!receipt.GatewayAuthenticated||receipt.DeviceIdentityVerified||receipt.State!="gateway-retained-device-unverified")throw new InvalidOperationException();

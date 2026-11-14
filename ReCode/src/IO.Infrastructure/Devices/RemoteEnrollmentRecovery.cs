@@ -36,6 +36,12 @@ public sealed class RemoteEnrollmentRecovery(IoDbContext db,PermissionTransactio
   return tx.ExecuteAsync(actor,Propose,"device-enrollment.recovery-proposed",async token=>
   {
    await tx.LockAsync("IO.DeviceRegistry",token);await tx.LockAsync("IO.DeviceConnections",token);
+   var existing=await db.RemoteEnrollmentRecoveries.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==input.Id,token);
+   if(existing is not null)
+   {
+    if(existing.ProposedByUserId!=actor||existing.EnrollmentId!=input.EnrollmentId||!existing.DeviceVersion.SequenceEqual(input.DeviceVersion)||existing.ApprovalJson!=JsonSerializer.Serialize(input.Approval)||existing.PhysicalResetAtUtc!=input.PhysicalResetAtUtc||existing.ProcessStoppedEvidence!=input.ProcessStoppedEvidence||existing.PhysicalResetEvidence!=input.PhysicalResetEvidence||existing.SlotObservationEvidence!=input.SlotObservationEvidence||existing.ObservedSlot!=input.ObservedSlot)throw new DomainConflictException("Changed physical recovery retry.");
+    return(existing.Id,existing.EnrollmentId);
+   }
    await Target(input.EnrollmentId,input.DeviceVersion,input.Approval,input.PhysicalResetAtUtc,token);
    db.RemoteEnrollmentRecoveries.Add(new(){Id=input.Id,EnrollmentId=input.EnrollmentId,DeviceId=(await db.RemoteEnrollments.SingleAsync(x=>x.Id==input.EnrollmentId,token)).DeviceId,ProposedByUserId=actor,ProposedAtUtc=clock.GetUtcNow(),PhysicalResetAtUtc=input.PhysicalResetAtUtc,DeviceVersion=input.DeviceVersion,ApprovalJson=JsonSerializer.Serialize(input.Approval),ProcessStoppedEvidence=input.ProcessStoppedEvidence,PhysicalResetEvidence=input.PhysicalResetEvidence,SlotObservationEvidence=input.SlotObservationEvidence,ObservedSlot=input.ObservedSlot});
    return(input.Id,input.EnrollmentId);

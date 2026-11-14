@@ -30,8 +30,9 @@ public static class IoPushCollectorHost
             throw new InvalidOperationException("Explicit isolated LAN pins, model/ACK approval and bounded existing spool required; collector is default-off.");
         if(config.OptionsResponse is null||config.OptionsResponse.Length>2048||config.OptionsResponse.Contains('\r')||!config.OptionsResponse.Split('\n',StringSplitOptions.RemoveEmptyEntries).All(line=>
             System.Text.RegularExpressions.Regex.IsMatch(line,@"\A(ATTLOGStamp|OPERLOGStamp|ATTPHOTOStamp|ErrorDelay|Delay|TransTimes|TransInterval|TransFlag|TimeZone|Realtime|Encrypt|ServerVer|PushProtVer)=[\x20-\x7E]{1,100}\z"))||
-            config.OptionsResponse.Split('\n').Distinct().Count()!=config.OptionsResponse.Split('\n').Length||!config.OptionsResponse.Split('\n').Contains("Encrypt=0"))
+            config.OptionsResponse.Split('\n',StringSplitOptions.RemoveEmptyEntries).Select(x=>x.Split('=')[0]).Distinct(StringComparer.Ordinal).Count()!=config.OptionsResponse.Split('\n',StringSplitOptions.RemoveEmptyEntries).Length||!config.OptionsResponse.Split('\n').Contains("Encrypt=0"))
             throw new InvalidOperationException("An installed-approved, bounded classic plaintext options snapshot including Encrypt=0 is required.");
+        if(config.Gateway is null||config.Gateway.BindingId==Guid.Empty||!Uri.TryCreate(config.Gateway.Server,UriKind.Absolute,out var server)||server.Scheme!="https"||server.AbsolutePath!="/"||server.UserInfo.Length>0||server.Query.Length>0||server.Fragment.Length>0)throw new InvalidOperationException("Pinned valid HTTPS gateway origin required.");
         var key=Convert.FromBase64String(config.Gateway.KeyBase64);
         _=new PushGatewayBinding(config.Gateway.GatewayId,config.Gateway.DeviceId,config.Gateway.SourceId,config.Gateway.Serial,config.Gateway.KeyVersion,TimeZoneInfo.FindSystemTimeZoneById(config.Gateway.TimeZoneId),key);
         System.Security.Cryptography.CryptographicOperations.ZeroMemory(key);
@@ -77,6 +78,7 @@ public static class IoPushCollectorHost
     internal sealed class CollectorSpool(NativePushCollectorConfiguration config)
     {
         internal SemaphoreSlim Gate {get;}=new(1,1);
+        private int retryCursor;
         internal bool HasCapacity()
         {
             var dirs=Directory.EnumerateDirectories(config.SpoolDirectory).Take(config.MaximumSpoolEntries+1).ToArray();
@@ -97,8 +99,11 @@ public static class IoPushCollectorHost
             if(!await Gate.WaitAsync(0,ct))return;
             try
             {
-                foreach(var dir in Directory.EnumerateDirectories(config.SpoolDirectory).Take(config.MaximumSpoolEntries))
+                var entries=Directory.EnumerateDirectories(config.SpoolDirectory).OrderBy(x=>x,StringComparer.Ordinal).Take(config.MaximumSpoolEntries).ToArray();
+                for(var visited=0;visited<entries.Length;visited++)
+
                 {
+                    if(retryCursor>=entries.Length)retryCursor=0;var dir=entries[retryCursor++];
                     var path=Path.Combine(dir,"transfer.json");if(!File.Exists(path)||File.Exists(path+".receipt.json"))continue;
                     if(new FileInfo(path).Length>16384)continue;
                     var transfer=JsonSerializer.Deserialize<GatewayCourierTransfer>(await File.ReadAllTextAsync(path,ct));

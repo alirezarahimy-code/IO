@@ -44,7 +44,7 @@ public sealed class DevicePushCommit(IoDbContext db,PermissionTransaction tx,Att
         if(mappings.Count!=1)throw new DomainConflictException("One exact current mapping at event time is required.");
         var mapping=mappings[0];
         if(!await db.Employees.AnyAsync(x=>x.Id==mapping.EmployeeId&&x.CompanyId==journal.CompanyId,ct))throw new DomainConflictException("Mapping company changed.");
-        var hash=Hash(new{input=i,journal.Id,journal.PayloadHash,journal.SourceId,journal.SiteId,journal.CompanyId,journal.TimeZoneId,line,mapping.Id,mapping.EmployeeId,mapping.Version,mapping.ValidFromUtc,mapping.ValidUntilUtcExclusive});
+        var hash=Hash(new{input=i,journalId=journal.Id,journal.PayloadHash,journal.SourceId,journal.SiteId,journal.CompanyId,journal.TimeZoneId,line,mappingId=mapping.Id,mapping.EmployeeId,mapping.Version,mapping.ValidFromUtc,mapping.ValidUntilUtcExclusive});
         return new(journal,line,mapping,hash);
     }
     public Task<object> PreviewAsync(Guid actor,Input input,CancellationToken ct=default)
