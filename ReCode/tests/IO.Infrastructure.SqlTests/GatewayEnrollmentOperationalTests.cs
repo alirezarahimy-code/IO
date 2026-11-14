@@ -117,9 +117,13 @@ internal static class GatewayEnrollmentOperationalTests
         check(response.StatusCode==HttpStatusCode.OK&&httpReceipt.GetProperty("state").GetString()=="gateway-retained-device-unverified"&&await Q(db=>db.PushGatewayReceipts.AnyAsync(x=>x.TransferId==httpId)),"actual HTTPS endpoint responds only with committed quarantine receipt");
         // Only inside the disposable Windows CI guard: trust this one ephemeral loopback certificate for the real courier,
         // then remove exactly this certificate. Production courier has no validation override or insecure flag.
-        using(var roots=new X509Store(StoreName.Root,StoreLocation.CurrentUser))
+        using(var roots=new X509Store(StoreName.Root,StoreLocation.LocalMachine))
         {
+            // Hosted Windows runner is disposable and elevated. CurrentUser Root can display a trust-confirmation
+            // dialog and hang noninteractive CI; LocalMachine Root is an explicit administrative fixture only.
+            Console.WriteLine("::notice title=Windows HTTPS fixture::Installing one temporary synthetic loopback trust anchor on disposable runner.");
             roots.Open(OpenFlags.ReadWrite);roots.Add(certificate);
+            Console.WriteLine("::notice title=Windows HTTPS fixture::Temporary synthetic trust anchor installed; exercising production courier TLS validation.");
             var spool=Path.Combine(ring,"synthetic-spool");Directory.CreateDirectory(spool);
             try
             {
@@ -141,7 +145,7 @@ internal static class GatewayEnrollmentOperationalTests
                 var firstReceipt=await File.ReadAllTextAsync(courierTransfer+".receipt.json");
                 check(await Courier()==0&&await File.ReadAllTextAsync(courierTransfer+".receipt.json")==firstReceipt&&await Q(db=>db.PushGatewayReceipts.CountAsync(x=>x.TransferId==courierId))==1,"real courier retry reuses the same transfer and SQL receipt without duplicate quarantine evidence");
             }
-            finally{roots.Remove(certificate);Directory.Delete(spool,true);}
+            finally{roots.Remove(certificate);Directory.Delete(spool,true);Console.WriteLine("::notice title=Windows HTTPS fixture::Temporary synthetic trust anchor removed.");}
         }
         using var bad=Wire(Envelope(Guid.NewGuid()) with{Signature=new string('0',64)});using var rejected=await host.Client.SendAsync(bad);check(rejected.StatusCode==HttpStatusCode.Unauthorized,"actual HTTPS ingress rejects tampered MAC without session cookies");
         using var admin=await host.Client.PostAsJsonAsync("/devices/gateway-bindings",provision);check(admin.StatusCode==HttpStatusCode.Unauthorized,"gateway HMAC route does not grant anonymous binding administration");

@@ -36,6 +36,7 @@ jobs:
       - name: Build, catalogue checks and portable publish
         run: ./tools/verify-platform.ps1
       - name: Windows LocalDB authenticated gateway and enrollment integration
+        timeout-minutes: 4
         env:
           IO_SQL_DISPOSABLE_TEST: 'yes'
           IO_WINDOWS_LOCALDB: 'yes'
