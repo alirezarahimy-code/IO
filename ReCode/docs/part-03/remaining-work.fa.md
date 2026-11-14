@@ -72,3 +72,7 @@
 ### بازبینی خواندنی R08 پذیرفته شد
 
 [ابزار فارسی شواهد تأییدنشدهٔ PUSH](s10-push-review-contract.fa.md) با مجوز/دامنهٔ مستقل، APIهای فقط GET، snapshot UTC ثابت و preview نگاشت/قرنطینه روی `adcb551` پذیرفته شد: SQL/HTTPS۱۰۳۱ و Windows/Linux موفق،۱۹ فایل DOM و۱۹ policy موفق. بدون دریافت مستقیم vendor، بدون ثبت تردد و بدون ACK؛ R08 باز است.
+
+### اتصال جدید R08/R09 روی Windows پذیرفته شد؛ هنوز اعلام تکمیل بی‌قید نیست
+
+برش `248cbcd` با۳۹ بررسی یکپارچهٔ Windows LocalDB/HTTPS/courier/صف/worker و۴۷ قرارداد/child و light موفق، مسیرهای واقعی نرم‌افزار را وصل کرد. [راهنمای عملیاتی](gateway-enrollment-operations.fa.md) و [شاهد](gateway-enrollment-operational-evidence.json). هویت gateway با هویت دستگاه یکی نیست: receiver بومی محل و پردازش/ACK هنوز ساخته نشده‌اند. enrollment واقعی default-off است؛ policy/مدل و بازیابی unknown هنوز لازم‌اند و COM واقعی آزمایش نشده است. R08/R09 بسته نشده‌اند؛۹ فنی + H01 باقی است. هیچ تست Linux یا اجرای مجدد suite کامل SQL در این برش انجام نشد.

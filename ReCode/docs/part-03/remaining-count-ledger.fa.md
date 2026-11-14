@@ -10,8 +10,8 @@
 
 | شناسهٔ ثابت | مورد باز | نوع مانده |
 |---|---|---|
-| P3-R08 | vendor PUSH امن | قرارداد هویت/replay/ACK/recovery همان پروتکل و پیاده‌سازی؛ polling جای آن نیست |
-| P3-R09 | RemoteEnroll | قرارداد مدل/آغاز/تکمیل و سیاست مجاز بیومتریک، سپس پیاده‌سازی |
+| P3-R08 | PUSH امن با جهت gateway منتخب | HMAC/SQL/HTTPS/courier فایل پذیرفته‌اند؛ collector بومی محل، processing/ACK و مرز اعتماد دستگاه/بازیابی هنوز بازند |
+| P3-R09 | RemoteEnroll | مسیر SQL/API/UI/worker/COM پیش‌فرض خاموش و آزمون مصنوعی یکپارچه پذیرفته‌اند؛ سیاست/مدل واقعی و بازیابی unknown هنوز بازند |
 | P3-R10 | تبادل اثرانگشت/چهره/عکس | سیاست دسترسی/رضایت/نگهداری و فرمت مدل، سپس پیاده‌سازی؛ ارسال عادی کاربر ساخته شده |
 | P3-R11 | حذف همهٔ ترددها | سیاست/مجوز حذف، دریافت durable و قرارداد بازیابی، سپس پیاده‌سازی |
 | P3-R12 | حذف تردد در بازه | سیاست/مجوز حذف، مرز زمانی و قرارداد بازیابی، سپس پیاده‌سازی |
@@ -93,3 +93,11 @@ R16 قابلیت اثبات‌شدهٔ مدل نامعلوم نیستند و ا�
 با واگذاری انتخاب به عامل، جهت gateway احرازشده (مرزی جدا از native authentication) و RemoteEnroll صرفاً مصنوعی تا تعیین policy انتخاب شدند. [کد و حدود دقیق](s10-gateway-and-s09-enroll-contracts.fa.md): HMAC/binding/commit boundary و lifecycle یک‌dispatch با اثبات حضور و unknown/cancel؛ شاهد امضای۳ متد از۲ DLL. این‌ها هنوز production store/receiver یا RemoteEnroll صف/bridge/API نیستند؛ policy واقعی تصویب نشده است. هیچ ردیف بسته نمی‌شود؛۹ فنی + H01 ثابت است.
 
 تأیید برش مستقل روی `5dae6ad`:۴۲ قرارداد مصنوعی Windows،۲۱ policy و auditor دو TypeLib موفق؛ [شاهد](s10-gateway-s09-enroll-software-evidence.json). این نتیجه به معنی تکمیل عملیاتی PUSH/RemoteEnroll نیست؛ store/receiver و مسیر یکپارچهٔ enrollment و policy واقعی باقی‌اند. هیچ کاهش شمارنده‌ای انجام نشد.
+
+### R08/R09 — اتصال نرم‌افزاری عملیاتی، با حدود پذیرش روشن
+
+کد `248cbcdf45f40ea9c7d4b2527be7af1b7cdf3843` روی [Windows/LocalDB43640642835](https://github.com/alirezarahimy-code/IO/actions/runs/43640642835) و [light43640642847](https://github.com/alirezarahimy-code/IO/actions/runs/43640642847) success شد. **۳۹ بررسی SQL/HTTPS/courier واقعی/صف و worker با child مصنوعی،۴۷ قرارداد/مرز process،۲۰ فایل DOM و۲۱ policy**. این برش واقعاً SQL commit store، provisioning/revocation، machine ingress پیش‌فرض خاموش، courier با TLS عادی، صف/API/UI و worker و adapter STA enrollment را وصل می‌کند؛ دیگر صرفاً interface و double مستقل نیست. migrationهای۴۹ و۵۰ اضافه شدند.
+
+[راهنمای نصب و محدودیت‌ها](gateway-enrollment-operations.fa.md)، [شاهد exact-SHA](gateway-enrollment-operational-evidence.json). fixture خصوصی TLS فقط روی runner موقت Windows است و گواهی trust آزمایشی را پاک می‌کند؛ courier گزینهٔ insecure ندارد. Linux یا suite کامل تاریخی SQL دوباره اجرا نشده‌اند؛ SQL۱۰۳۱ رویadcb551 شاهد تاریخی می‌ماند.
+
+**کاهش شمارنده انجام نشد:۹ فنی + H01.** courier ورودی فایل spool می‌گیرد، نه native listener؛ journal/receipt نه ثبت تردد است و نه vendor OK:n. ثبت واقعی اثرانگشت نیز به policy و همان مدل مصوب نیاز دارد؛ default-off حفظ شده است. unknown عمداً نوشتن‌های بعدی را می‌بندد و API بازکردن حدسی/پاک‌کردن آن ساخته نشده است. COM و firmware واقعی، capture فرد واقعی و بازیابی حضوری آزمایش نشده‌اند. موفقیت۳۹ تست جدید مجوز حذف این مانع‌ها یا اعلام «هر دو روی دستگاه واقعی تمام شدند» نیست.

@@ -656,7 +656,31 @@
       }
     ],
     "syntheticContractChecks": 42,
-    "evidence": "s10-gateway-s09-enroll-software-evidence.json"
+    "evidence": "s10-gateway-s09-enroll-software-evidence.json",
+    "historicalPortableScopeSupersededBy": "gatewayEnrollmentOperationalFollowup"
   },
-  "latestVerifiedPortableCode": "5dae6addd8c74e4b4081d66beae9c2559c572193"
+  "latestVerifiedPortableCode": "5dae6addd8c74e4b4081d66beae9c2559c572193",
+  "gatewayEnrollmentOperationalFollowup": {
+    "status": "windows-integrated-software-accepted-with-explicit-native-and-policy-gaps",
+    "code": "248cbcdf45f40ea9c7d4b2527be7af1b7cdf3843",
+    "runs": [
+      43640642835,
+      43640642847
+    ],
+    "portableSyntheticChecks": 47,
+    "windowsLocalDbSqlHttpsQueueCourierWorkerChecks": 39,
+    "linuxTestsExecuted": false,
+    "productionGatewayStoreImplemented": true,
+    "httpIngressImplemented": true,
+    "remoteEnrollWorkerBridgeImplemented": true,
+    "realBiometricPolicyApproved": false,
+    "nativePushCollectorImplemented": false,
+    "nativeProcessedAttendanceAndAckImplemented": false,
+    "unknownEnrollmentUnlockApiImplemented": false,
+    "hardwareVerified": false,
+    "ledgerRowsClosed": [],
+    "evidence": "gateway-enrollment-operational-evidence.json",
+    "guide": "gateway-enrollment-operations.fa.md"
+  },
+  "latestVerifiedWindowsIntegratedCode": "248cbcdf45f40ea9c7d4b2527be7af1b7cdf3843"
 }

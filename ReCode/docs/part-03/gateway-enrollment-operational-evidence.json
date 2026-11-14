@@ -1,0 +1,162 @@
+{
+  "scope": "Integrated Windows software acceptance with synthetic attendance and enrollment only; not native PUSH receiver/processing/ACK or real biometric authorization",
+  "code": "248cbcdf45f40ea9c7d4b2527be7af1b7cdf3843",
+  "runs": [
+    {
+      "databaseId": 43640642835,
+      "headSha": "248cbcdf45f40ea9c7d4b2527be7af1b7cdf3843",
+      "conclusion": "success",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43640642835",
+      "runnerLabels": [
+        "windows-2022"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build, catalogue checks and portable publish",
+          "conclusion": "success"
+        },
+        {
+          "name": "Windows LocalDB authenticated gateway and enrollment integration",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "databaseId": 43640642847,
+      "headSha": "248cbcdf45f40ea9c7d4b2527be7af1b7cdf3843",
+      "conclusion": "success",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43640642847",
+      "runnerLabels": [
+        "windows-2022"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "conclusion": "success"
+        },
+        {
+          "name": "Select lightweight scope over the entire push",
+          "conclusion": "success"
+        },
+        {
+          "name": "Prepare workflow policy test dependency",
+          "conclusion": "success"
+        },
+        {
+          "name": "Test CI routing and retained safety gates",
+          "conclusion": "success"
+        },
+        {
+          "name": "Validate reference evidence and capability inventory",
+          "conclusion": "success"
+        },
+        {
+          "name": "Prepare offline native instruction emulator",
+          "conclusion": "success"
+        },
+        {
+          "name": "Verify hash-pinned network setter dispatch with trapped transport",
+          "conclusion": "success"
+        },
+        {
+          "name": "Audit pinned DHCP firmware source reference without execution",
+          "conclusion": "success"
+        },
+        {
+          "name": "Prepare offline DOM dependencies",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check JavaScript syntax and offline DOM contracts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check standalone page preview in Chromium",
+          "conclusion": "success"
+        },
+        {
+          "name": "Record actual coverage",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "portableGatewayEnrollmentChecks": 47,
+  "windowsLocalDbOperationalChecks": 39,
+  "platform": "windows-2022",
+  "database": "disposable SQL Server LocalDB integrated security; random database; no caller-provided SQL server",
+  "windowsTlsFixture": "Synthetic loopback certificate with persisted Schannel key; one temporary trust anchor in disposable elevated runner LocalMachine Root, removed in finally; production courier has normal TLS verification and no insecure override",
+  "newLinuxTestsExecuted": false,
+  "fullHistoricalSqlSuiteRerun": false,
+  "historicalFullSql": {
+    "code": "adcb551a6c65148358b12f910a93580907e0b229",
+    "runId": 43629451568,
+    "checks": 1031
+  },
+  "implemented": {
+    "protectedAndRevocableGatewayBindings": true,
+    "atomicSqlGatewayCommitStore": true,
+    "defaultOffHttpsIngress": true,
+    "fileSpoolCourierWithTlsAndDurableReceipt": true,
+    "remoteEnrollmentSqlQueue": true,
+    "remoteEnrollmentApiAndUi": true,
+    "exclusiveDeviceQueueFence": true,
+    "remoteEnrollmentWorkerAndIsolatedStaAdapter": true,
+    "hardProcessDeadlineAndUnknownBarrier": true
+  },
+  "notImplementedOrNotAccepted": {
+    "nativeDeviceAuthentication": true,
+    "onsiteNativePushCollector": true,
+    "nativePushProcessedAttendanceAndVendorAck": true,
+    "realBiometricPolicyAndInstalledModelApproval": true,
+    "realComEnrollmentExecution": true,
+    "unknownEnrollmentUnlockRecoveryApi": true,
+    "hardwareAcceptance": true
+  },
+  "biometricBytesStoredInSql": false,
+  "biometricBytesExportedToWorkerOrWeb": false,
+  "presenceProbeMayMaterializeTemplateTransientlyInsideChild": true,
+  "nativeCallbackHasOperationGuid": false,
+  "ledgerRowsClosed": [],
+  "technicalRowsStillOpen": 9,
+  "hardwareRowStillOpen": "H01",
+  "guide": "gateway-enrollment-operations.fa.md",
+  "lightweightPolicyTestMethods": 21,
+  "offlineDomCheckFiles": 20
+}

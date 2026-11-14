@@ -1,6 +1,6 @@
 # راه‌اندازی Gateway و RemoteEnroll — حدود واقعی مسیر جدید
 
-این برش دیگر فقط قرارداد قابل‌حمل نیست: Web، SQL، courier، صف، worker و adapter ایزوله اضافه شده‌اند. **اما «مسیر نرم‌افزاری قابل نصب» با «راه‌اندازی عملیاتی روی دستگاه واقعی» یکسان نیست.** نتیجهٔ CI و حدود باقیمانده باید از فایل شاهد این برش خوانده شوند.
+این برش دیگر فقط قرارداد قابل‌حمل نیست: Web، SQL، courier، صف، worker و adapter ایزوله اضافه شده‌اند. **اما «مسیر نرم‌افزاری قابل نصب» با «راه‌اندازی عملیاتی روی دستگاه واقعی» یکسان نیست.** پذیرش نرم‌افزاری روی `248cbcd` ثبت شد: [Windows/LocalDB](https://github.com/alirezarahimy-code/IO/actions/runs/43640642835) با۳۹ بررسی SQL/HTTPS/courier/صف/worker و۴۷ قرارداد/child مصنوعی؛ [light Windows](https://github.com/alirezarahimy-code/IO/actions/runs/43640642847) نیز موفق است. [شاهد ساختاریافته](gateway-enrollment-operational-evidence.json) حدود باقی‌مانده را جدا ثبت می‌کند. این اجرای LocalDB جای اجرای کامل تاریخی SQL۱۰۳۱ نیست.
 
 ## ۱. پیش‌شرط مشترک
 
@@ -54,7 +54,7 @@ courier گواهی TLS عادی را اعتبارسنجی می‌کند، redire
 
 - حق درخواست/لغو: `devices.enrollment.request`؛ خواندن شناسهٔ فرد و وضعیت: `devices.enrollment.read`؛ حساب سرویس: `devices.enrollment.execute`. هیچ قالب نقش پیش‌فرض این سه حق را نمی‌گیرد.
 - در تنظیمات قابل‌اعتماد سرور **و** worker، `IO:RemoteEnroll:EnableRequests=true` و آرایهٔ `IO:RemoteEnroll:Approvals` با approval دقیق لازم است. worker علاوه بر این، در endpoint pin شدهٔ `IO:DeviceWorker:NativeEndpoints`، آرایهٔ `EnrollmentApprovals` مطابق همان approval را لازم دارد.
-- approval شامل `Serial`, `Product`, `Firmware`, `FingerIndex` (۰ تا۹)، `SuccessActionCode`, `EmptySlotErrorCode` غیرصفر، `EventMask` مثبت، `ModelEvidence`, `AuthorizationReference`, `RetentionAndDeletionPolicyReference`, `AllowEnrollment=true` است. مقادیر success/absence/event mask از مدل نصب تعیین می‌شوند؛ اعداد آزمایش مصنوعی توصیهٔ vendor نیستند.
+- approval شامل `Serial`, `Product`, `Firmware`, `FingerIndex` (۰ تا۹)، `SuccessActionCode`, `EmptySlotErrorCode` غیرصفر و متفاوت از sentinel نامعلوم `Int32.MinValue`، `EventMask` مثبت، `ModelEvidence`, `AuthorizationReference`, `RetentionAndDeletionPolicyReference`, `AllowEnrollment=true` است. مقادیر success/absence/event mask از مدل نصب تعیین می‌شوند؛ اعداد آزمایش مصنوعی توصیهٔ vendor نیستند.
 - endpoint، comm key، مسیر مطلق dotnet و bridge و key-ring از همان پیکربندی امن موجود worker می‌آیند. Web هیچ credential یا مسیر اجرایی از فرم دریافت نمی‌کند. COM فقط در child جدید Windows/STA ایجاد می‌شود؛ نه در Web.
 - درخواست به دستگاه enabled/standalone و نسخهٔ فعلی و نگاشت دقیق و معتبر همان SourcePersonId به کارمند نیاز دارد. صفر ابتدایی شناسه حفظ می‌شود. confirmation برابر `ENROLL-NEW-FINGER-NO-OVERWRITE` است. deadline کل۱۰تا۶۰ثانیه، انتظار فرد حداکثر۴۵ثانیه و کمتر از deadline process است.
 
@@ -76,3 +76,7 @@ bridge هویت کامل را می‌خواند و حضور اسلات را بر
 ## ۴. معنای پذیرش این برش
 
 CI جدید می‌تواند schema واقعی SQL Server/LocalDB، HTTPS واقعی، rollback audit، retry و revocation و صف/worker با child مصنوعی را بررسی کند. COM واقعی، firmware، اثر روی انگشت واقعی، native PUSH receiver/processing/ACK، سیاست واقعی زیست‌سنجی و بازیابی حضوری را ثابت نمی‌کند. تا این مرزها حل نشده‌اند، عبارت «هر دو روی دستگاه واقعی کاملاً عملیاتی شدند» یا کاهش بی‌قید شمارنده درست نیست.
+
+### حدود fixture گواهی Windows
+
+تست courier از خود executable تولیدی و اعتبارسنجی معمول TLS استفاده می‌کند. فقط روی runner موقت و elevated Windows، یک گواهی loopback مصنوعی با private key سازگار با Schannel ساخته و موقتاً به `LocalMachine Root` افزوده می‌شود؛ همان گواهی در finally برداشته می‌شود. CurrentUser Root ممکن است پنجرهٔ تأیید غیرتعاملی را معطل کند و برای این fixture استفاده نمی‌شود. هیچ گزینهٔ insecure یا callback پذیرش گواهی نامعتبر به courier تولیدی افزوده نشده است. این fixture دستور نصب گواهی آزمایشی روی سرور واقعی نیست. مرحلهٔ LocalDB سقف۴دقیقه دارد.
