@@ -45,9 +45,16 @@ jobs:
         run: python ReCode/tools/ci-policy-tests.py
       - name: Validate reference evidence and capability inventory
         run: |
-          python ReCode/tools/device-reference-audit.py
-          python ReCode/tools/inspect-zkem-daylight-typelib.py --verify
-          python ReCode/tools/validate-capability-audit.py
+          verify_reference() {
+            if ! python "$@" > "$RUNNER_TEMP/io-reference-check.log" 2>&1; then
+              python ReCode/tools/phase03-annotate-error.py "$RUNNER_TEMP/io-reference-check.log" 'Windows reference audit failure'
+              exit 1
+            fi
+            cat "$RUNNER_TEMP/io-reference-check.log"
+          }
+          verify_reference ReCode/tools/device-reference-audit.py
+          verify_reference ReCode/tools/inspect-zkem-daylight-typelib.py --verify
+          verify_reference ReCode/tools/validate-capability-audit.py
       - name: Prepare offline native instruction emulator
         run: python -m pip install --disable-pip-version-check pefile==2024.8.26 unicorn==2.1.4
       - name: Verify hash-pinned network setter dispatch with trapped transport

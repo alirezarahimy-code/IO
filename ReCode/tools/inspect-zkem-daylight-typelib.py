@@ -87,7 +87,7 @@ def extract(path):
                             'dispid': u(cursor+j*4), 'recordOffset': r, 'return': datatype(u(r+4)),
                             'parameters': [{'name': name(u(args+k*12+4)), 'type': datatype(u(args+k*12)),
                                             'flags': u(args+k*12+8)} for k in range(argc)]})
-    return {'source': str(path.relative_to(ROOT)), 'dllSha256': hashlib.sha256(pe).hexdigest(),
+    return {'source': path.relative_to(ROOT).as_posix(), 'dllSha256': hashlib.sha256(pe).hexdigest(),
             'resourceId': ident, 'languageId': language, 'typelibBytes': len(b),
             'typelibSha256': hashlib.sha256(b).hexdigest(), 'methods': methods,
             'executedBinary': False, 'originalSourceAvailable': False, 'hardwareVerified': False}
