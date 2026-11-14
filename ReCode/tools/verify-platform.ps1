@@ -18,6 +18,7 @@ Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --network-contracts
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --idle-contracts
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --raw-setting-contracts
+Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --key-write-contracts
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --function-key-read-contracts
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --reference-parity
 Run-Dotnet run --project tests/IO.Foundation.Tests --configuration Release --no-build

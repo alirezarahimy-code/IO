@@ -145,3 +145,7 @@ UserWriteFormat پیش‌فرض ssr-v1 است. ارسال legacy به UserWriteF
 ## پنج پارامتر عددی مدل مصوب
 
 قرارداد و همهٔ flagها/مجوزهای خاموش پیش‌فرض در [راهنمای تنظیمات عددی](s11-approved-raw-settings.fa.md) است. `RawSettingsApprovals` جای قرارداد سازنده یا پذیرش دستگاه واقعی نیست؛ worker و bridge باید هماهنگ منتشر شوند. هیچ نمونهٔ فعال بدون مدل/firmware مصوب توصیه نمی‌شود.
+
+## نوشتن کلید عملکردی با حفظ برنامهٔ کامل
+
+[قرارداد نصب و حقوق مستقل](s11-function-key-write.fa.md): AllowFunctionKeyWrite پیش‌فرض false، FunctionKeyWriteApprovals شامل دو tuple کامل مصوب همان مدل/firmware/index/اثر/مرجع و AttendanceOnly دارای شاهد معتبر نصب است. AutoChange/AutoChangeTime هرگز مانند مرجع ضمنی صفر نمی‌شوند. migration46 و انتشار هماهنگ worker/bridge لازم است؛ نتیجه CI این برش هنوز باید روی SHA خودش ثبت شود.

@@ -89,9 +89,9 @@
   "currentMatrixCounts": {
     "software-verified": 20,
     "intentional-replacement": 9,
-    "partial-software": 12,
+    "partial-software": 13,
     "pending-sensitive": 6,
-    "pending-contract": 3,
+    "pending-contract": 2,
     "pending-secure-push": 3
   },
   "legacyAttendanceSupplement": "s09-legacy-attendance-evidence.json",
@@ -121,5 +121,6 @@
       "status": "completed",
       "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43515064866"
     }
-  ]
+  ],
+  "functionKeyWriteSupplement": "s11-function-key-write.fa.md"
 }

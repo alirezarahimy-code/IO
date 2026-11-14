@@ -140,7 +140,7 @@ internal static class VirtualDeviceLab
         Console.WriteLine($"PASS {count} stateful legacy TCP write checks; private JSON laboratory protocol, not vendor SDK acceptance");
     }
 
-    internal sealed class Device : IAsyncDisposable, IZkUserWriteSession, IZkRestartSession, IZkIdleSettingSession, IZkFunctionKeyReadSession, IZkRawSettingSession
+    internal sealed class Device : IAsyncDisposable, IZkUserWriteSession, IZkRestartSession, IZkIdleSettingSession, IZkFunctionKeyReadSession, IZkRawSettingSession, IZkFunctionKeyWriteSession
     {
         private readonly TcpListener listener = new(IPAddress.Loopback, 0);
         private readonly CancellationTokenSource shutdown = new();
@@ -165,7 +165,10 @@ internal static class VirtualDeviceLab
         public string Product() => "IO-virtual-not-ZK";
         public string Firmware() => "virtual-fw-1";
         public int FunctionKeyReads { get; private set; }
-        public ZkFunctionKeyValue? Read(int index){FunctionKeyReads++;return index==0?new(index,true,0,4,"virtual-key-not-ZK",2,"raw;virtual"):null;}
+        public ZkFunctionKeyValue KeyValue {get;private set;}=new(0,true,0,4,"virtual-key-not-ZK",2,"raw;virtual");
+        public int KeyMutations {get;private set;}
+        public bool Set(ZkFunctionKeyValue value){KeyValue=value;KeyMutations++;return true;}
+        public ZkFunctionKeyValue? Read(int index){FunctionKeyReads++;return index==0?KeyValue:null;}
         public int? ReadIdleMinutes() => IdleMinutes;
         public bool SetIdleMinutes(int minutes) { IdleMinutes=minutes; IdleMutations++; return true; }
         public bool Restart() { Restarts++; return true; }
@@ -260,6 +263,7 @@ internal static class VirtualDeviceLab
                                 output=settings is null?new("unsupported"):new("succeeded",Settings:settings);
                             }
                             else if (operation.Operation == "device.restart") output=ZkRestartExecutor.Execute(operation.AllowRestart,this);
+                            else if (operation.Operation == "settings.key.set") output=ZkFunctionKeyWriteExecutor.Execute(operation,this);
                             else if (operation.Operation == "settings.raw.set") output=ZkRawSettingExecutor.Execute(operation,this);
                             else if (operation.Operation == "settings.idle.set") output=ZkIdleSettingExecutor.Execute(operation,this);
                             else if (operation.Operation == "clock.set") { ClockLocal = operation.ClockLocal!; output = new("succeeded"); }

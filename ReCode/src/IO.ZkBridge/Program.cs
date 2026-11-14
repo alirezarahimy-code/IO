@@ -80,6 +80,7 @@ internal static class Program
                 string after;if(!(bool)sdk.GetSerialNumber(input.MachineNumber,out after)||after?.Trim()!=input.ExpectedSerial)return new("identity-mismatch");
                 return new("succeeded",Settings:settings);
             }
+            if(operation=="settings.key.set")return ZkFunctionKeyWriteExecutor.Execute(request!,new FunctionKeyWriteSession(instance,input.MachineNumber));
             if(operation=="settings.raw.set")return ZkRawSettingExecutor.Execute(request!,new RawSettingSession(instance,input.MachineNumber));
             if(operation=="settings.idle.set")return ZkIdleSettingExecutor.Execute(request!,new IdleSettingSession(instance,input.MachineNumber));
             if(operation is "network.ip.set" or "network.inspect")return ZkNetworkExecutor.Execute(request!,new NetworkSession(instance,input.MachineNumber));
@@ -119,6 +120,14 @@ internal static class Program
 
     // SSR_GetShortkey has no machine parameter in the observed COM interface.
     // This is the one isolated, connected and serial-pinned SDK instance.
+    private sealed class FunctionKeyWriteSession(object instance,int machine):IZkFunctionKeyWriteSession
+    {
+        public string? Serial(){string value;return (bool)((dynamic)instance).GetSerialNumber(machine,out value)?value?.Trim():null;}
+        public string? Product(){string value;return (bool)((dynamic)instance).GetProductCode(machine,out value)?value:null;}
+        public string? Firmware(){string value;return (bool)((dynamic)instance).GetFirmwareVersion(machine,out value)?value:null;}
+        public ZkFunctionKeyValue? Read(int index)=>new FunctionKeySession(instance).Read(index);
+        public bool Set(ZkFunctionKeyValue value)=>(bool)((dynamic)instance).SSR_SetShortkey(value.Index,value.Function!.Value,value.StateCode!.Value,value.StateName!,value.AutoChange!.Value,value.AutoChangeTime!);
+    }
     private sealed class RawSettingSession(object instance,int machine):IZkRawSettingSession
     {
         public string? Serial(){string value;return (bool)((dynamic)instance).GetSerialNumber(machine,out value)?value?.Trim():null;}

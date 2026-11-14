@@ -76,6 +76,9 @@ jobs:
       - name: Test approved closed raw settings and native isolation
         working-directory: ReCode
         run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --raw-setting-contracts
+      - name: Test complete approved function key writes
+        working-directory: ReCode
+        run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --key-write-contracts
       - name: Test explicitly approved read-only function key contract
         working-directory: ReCode
         run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --function-key-read-contracts

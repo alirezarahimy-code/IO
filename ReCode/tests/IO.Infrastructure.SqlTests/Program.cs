@@ -93,7 +93,7 @@ try
         Check(!db.Database.HasPendingModelChanges(), "model matches migration snapshot");
         await db.Database.MigrateAsync();
         await db.Database.MigrateAsync();
-        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 45, "foundation and forty-four later migrations applied idempotently");
+        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 46, "foundation and forty-five later migrations applied idempotently");
         var created = 0;
         foreach (var table in expectedTables) if (await HasTable(table)) created++;
         Check(created == expectedTables.Length, "all 60 foundation and later tables created");
@@ -317,7 +317,7 @@ try
         var recreated = 0;
         foreach (var table in expectedTables) if (await HasTable(table)) recreated++;
         Check(recreated == expectedTables.Length, "migrations recreated all 60 foundation and later tables");
-        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 45, "migration history restored");
+        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 46, "migration history restored");
     }
     // Independent Identity schema and bootstrap: the foundation DB was just
     // recreated empty above. Never run this against non-disposable data.
@@ -463,8 +463,9 @@ try
     await DeviceSettingsPayloadTests.RunAsync(connection, Check);
     // Native raw history correctly blocks DOWN45. Exercise older DOWN43/44
     // guards first, then restore latest before the full real-worker raw scenario.
-    await VirtualWorkerTests.RunAsync(connection, Check);
     await DeviceRawSettingTests.RunAsync(connection, Check);
+    await VirtualWorkerTests.RunAsync(connection, Check);
+    await DeviceFunctionKeyWriteTests.RunAsync(connection, Check);
     Console.WriteLine("PASS disposable SQL Server integration checks");
     return 0;
 }

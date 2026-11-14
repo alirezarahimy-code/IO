@@ -4553,7 +4553,11 @@
       "برای پنج پارامتر بسته، devices.settings.raw.set همراه settings.read و مجوز مستقل سرویس devices.settings.raw.execute لازم است؛ هیچ قالب نقشی خودکار این حقوق را نمی‌گیرد.",
       "snapshot موفق تازه را انتخاب کنید؛ parameter، مقدار raw، واحد، اثر و مرجع قرارداد مدل را وارد و پیش‌نمایش بگیرید. هیچ واحد یا بازه مدل از نام یا Int32 استنتاج نمی‌شود. AllowRawSettingsWrite و RawSettingsApprovals نصب باید دقیقاً مدل/firmware/پارامتر/واحد/اثر/مرجع و هر دو مقدار قدیم و جدید را تأیید کنند.",
       "تأیید SET-EXACT-MODEL-APPROVED-RAW-SETTING فقط همان plan/hash را صف می‌کند؛ موفقیت تنها پس از یک dispatch و read-back دقیق است. false یا exception پس از dispatch نتیجه unknown دارد. برای بازبینی، snapshot موفق بعد از unknown و REVIEWED-APPROVED-RAW-SETTING لازم است؛ retry نوشتن وجود ندارد.",
-      "کلیدهای عملکردی علاوه بر settings.read به devices.settings.keys.read برای انسان و devices.settings.keys.execute برای سرویس نیاز دارند؛ هیچ قالب نقشی آن‌ها را خودکار نمی‌گیرد. حق موجود نصب کافی نیست. claim فقط با هر دو حق فعال اجازهٔ خواندن کلید دارد؛ revoke قبل از dispatch credential را قطع می‌کند و تاریخچهٔ settings-only کلیدها و مرجعشان را نشان نمی‌دهد."
+      "کلیدهای عملکردی علاوه بر settings.read به devices.settings.keys.read برای انسان و devices.settings.keys.execute برای سرویس نیاز دارند؛ هیچ قالب نقشی آن‌ها را خودکار نمی‌گیرد. حق موجود نصب کافی نیست. claim فقط با هر دو حق فعال اجازهٔ خواندن کلید دارد؛ revoke قبل از dispatch credential را قطع می‌کند و تاریخچهٔ settings-only کلیدها و مرجعشان را نشان نمی‌دهد.",
+      "برای نوشتن کلید، حق انسانی devices.settings.keys.set همراه settings.read و keys.read و حق سرویس keys.write.execute همراه keys.execute و operations.execute لازم است؛ قالب‌های نقش آن‌ها را خودکار نمی‌گیرند.",
+      "کلید گزارش‌شدهٔ snapshot تازه را انتخاب کنید؛ هر پنج فیلد Function/StateCode/StateName/AutoChange/AutoChangeTime قدیم در فرم حفظ می‌شوند. مقدار جدید، اثر و مرجع دقیق قرارداد نصب را وارد و پیش‌نمایش بدون نوشتن بسازید؛ raw نام و schedule trim یا خودکار صفر نمی‌شوند.",
+      "worker باید AllowFunctionKeyWrite و FunctionKeyWriteApprovals دقیق داشته باشد؛ هر دو tuple کامل قدیم/جدید برای همان محصول/firmware/index باید صریح مصوب و AttendanceOnly با شاهد معتبر نصب true باشد. وب این policy را فعال نمی‌کند و هیچ عددی از نام تابع به‌عنوان تردد یا مجوز درب حدس زده نمی‌شود.",
+      "تأیید SET-EXACT-APPROVED-FUNCTION-KEY همان plan/hash را ثبت می‌کند. unknown خودکار تکرار نمی‌شود؛ snapshot موفق بعدی با tuple کامل قدیم یا جدید و REVIEWED-APPROVED-FUNCTION-KEY برای بازبینی لازم است. نتیجه unknown به success تبدیل نمی‌شود."
     ],
     "Example": "کد 8 با مقدار -1 همان -1 گزارش می‌شود؛ کد 23 با فراخوانی ناموفق «گزارش نشده» است، نه صفر. از این داده به‌تنهایی تغییر پارامتر مجاز نتیجه نگیرید.",
     "Fields": [
@@ -4602,7 +4606,10 @@
       "درخواست snapshot خواندنی",
       "لغو پیش از اجرا",
       "بازخوانی مجوز/تاریخچه",
-      "فیلتر و صفحه‌بندی"
+      "فیلتر و صفحه‌بندی",
+      "پیش‌نمایش کامل کلید بدون نوشتن",
+      "ثبت کلید مصوب با tuple کامل و بدون reset ضمنی برنامه",
+      "بازبینی unknown کلید با snapshot بعدی"
     ],
     "Errors": [
       "۴۰۳: حق مستقل تنظیمات لازم است؛ اطلاعات عادی، clock یا حق قدیمی settings جای آن نیست.",
@@ -4613,7 +4620,7 @@
     "Limitations": [
       "EnableOperations و EnableSettingsReads و AllowAdvancedSettingsRead روی endpoint لازم است؛ دو مورد جدید پیش‌فرض false. سرویس افزون بر devices.operations.execute حق devices.settings.read.execute لازم دارد.",
       "snapshot شش فراخوانی مستقل است، نه وضعیت اتمیک یا ادعای پشتیبانی کامل مدل. Serial قبل/بعد بررسی می‌شود و رمز هرگز snapshot نمی‌شود.",
-      "نوشتن این صفحه کد۴ یا پنج پارامتر بسته با تأیید دقیق نصب مدل است؛ کد دلخواه SDK مجاز نیست. تغییر IPv4 و restart صفحات/مجوزهای مستقل دارند؛ reset، clear/delete، درب، RemoteEnroll و نوشتن کلید عملکردی اینجا فعال نیستند. سیاست بیومتریک هنوز مصوب نشده است.",
+      "نوشتن این صفحه کد۴ یا پنج پارامتر بسته با تأیید دقیق نصب مدل است؛ کد دلخواه SDK مجاز نیست. تغییر IPv4 و restart صفحات/مجوزهای مستقل دارند؛ reset، clear/delete، درب، RemoteEnroll اینجا فعال نیستند؛ نوشتن کلید فقط با قرارداد بسته و attendance-only نصب و حقوق مستقل انجام می‌شود. سیاست بیومتریک هنوز مصوب نشده است.",
       "اطلاعات عادی settings payload را نشان نمی‌دهد؛ history metadata فرمان‌ها همچنان حق جدا دارد. retry عمومی خواندن تنظیمات با commands.read/retry، settings.read جاری و تأیید اضافی مجاز است؛ gateهای سرویس/نصب همچنان لازم‌اند.",
       "SDK Windows/مدل/firmware، نصب واقعی و پذیرش چنددستگاه همچنان آزموده نشده‌اند؛ null دادهٔ موفقیت یا صفر ساختگی نیست.",
       "بازهٔ برنامه تضمین سازگاری مدل یا پذیرش سخت‌افزار نیست. پیش‌فرض نصب خاموش؛ هیچ تنظیم دلخواه، RefreshData، Restart یا فرمان درب در این مسیر انجام نمی‌شود.",
