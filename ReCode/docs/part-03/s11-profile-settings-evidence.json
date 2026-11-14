@@ -1,0 +1,73 @@
+{
+  "verifiedCode": "6e8f9d95888ea6e0b7558aa3ccbf51f26d25b2a5",
+  "scope": "P3-R01-R07; not Part3 completion or hardware acceptance",
+  "status": "five-software-ledger-rows-closed",
+  "closedIds": [
+    "P3-R01",
+    "P3-R02",
+    "P3-R03",
+    "P3-R04",
+    "P3-R06"
+  ],
+  "openIds": [
+    "P3-R05",
+    "P3-R07"
+  ],
+  "baselineOpenTechnical": 16,
+  "currentOpenTechnical": 11,
+  "hardwarePackage": "P3-H01 remains open and separate",
+  "runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 43611624749,
+      "headSha": "6e8f9d95888ea6e0b7558aa3ccbf51f26d25b2a5",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43611624749"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 43611624708,
+      "headSha": "6e8f9d95888ea6e0b7558aa3ccbf51f26d25b2a5",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43611624708"
+    }
+  ],
+  "checks": {
+    "fullIntegrationPassLines": 991,
+    "portableProfileContractsAndActualChild": 100,
+    "profileSqlChecks": 62,
+    "addedHttpsSqlWorkerTcpScenarios": 14,
+    "offlineDomFiles": 18,
+    "permissions": 143,
+    "profilePermissions": 14,
+    "foundationMigrations": 47,
+    "identityMigrations": 2
+  },
+  "sourceFiles": [
+    "src/IO.DeviceContracts/ZkProfileSettingContract.cs",
+    "src/IO.Infrastructure/Devices/DeviceProfileOperations.cs",
+    "src/IO.Infrastructure/Migrations/20261114100000_DeviceProfileSettings.cs",
+    "src/IO.DeviceWorker/Program.cs",
+    "src/IO.ZkBridge/Program.cs",
+    "src/IO.Web/Ui/device-profiles.js"
+  ],
+  "safety": [
+    "Exact source snapshot/model/firmware/site-zone/device-version and complete old/new states",
+    "Fourteen independent human/service rights; no default template grants; current authorization checked before credential dispatch",
+    "Single native dispatch; no scan/reboot/disable/fallback/automatic metadata change or blind retry",
+    "Every network write remains unknown after dispatch; independent pinned original/recovery inspection is read-only",
+    "Review requires later completed exact old/new inspection and keeps unknown evidence immutable",
+    "Algorithm requires exact installed template-preservation evidence; no biometric transfer/delete authorized",
+    "Maximum Unicode all-seven approvals plus8keys/daylight fits32KB stdin and unchanged bounded stdout/SQL result; exact SQL roundtrip verified"
+  ],
+  "limitations": [
+    "DHCP/TCPPort candidate option mappings still lack sufficient writable-COM model evidence",
+    "Installed approvals are requirements, not proof of hardware compatibility",
+    "Private TCP stateful fixture and compiled bridge are not actual COM/device execution",
+    "Real Windows SDK/ACL/multiple-device outages/exchange/settings acceptance remains in H01"
+  ],
+  "hardwareVerified": false,
+  "realSdkExecuted": false,
+  "part3Complete": false,
+  "sourcePathsRelativeTo": "ReCode"
+}

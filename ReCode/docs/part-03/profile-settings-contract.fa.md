@@ -42,9 +42,13 @@ DLST فقط `SetDaylight` را صدا می‌زند؛ اثر native تغییر M
 
 ## شواهد نرم‌افزاری
 
-- `ProfileSettingTests`: ۹۹ بررسی قابل‌حمل، شامل هر هفت dispatch، preflight، اثر جانبی، false ACK/exception، readback، inspection و child واقعی با session ساختگی.
+- `ProfileSettingTests`: ۱۰۰ بررسی قابل‌حمل، شامل هر هفت dispatch، preflight، اثر جانبی، false ACK/exception، readback، inspection و child واقعی با session ساختگی.
 - `device-profiles-ui-check.cjs`: هفت جریان DOM، منبع SQL، preview، تأیید checkbox، replay همان UUID پس از پاسخ نامعلوم، متن امن و پاک‌سازی پس از revoke؛ fetch mock است، SQL نیست.
 - `DeviceProfileSettingTests`: آزمون یکپارچه SQL برای هر هفت پارامتر، مجوز مستقل، لغو زنده، trigger immutable، نتیجه و بازبینی. تا CI موفق دقیق SHA، پذیرفته محسوب نمی‌شود.
 - `VirtualWorkerTests`: مسیر HTTPS/SQL/worker/child/TCP خصوصی stateful و ACK ازدست‌رفته؛ تغییر option در fixture جابه‌جایی شبکهٔ واقعی نیست و جای SDK نیست.
 
 وضعیت اجرایی و SHA/CI در گزارش پیشرفت ثبت می‌شود؛ SDK ویندوز/دستگاه واقعی طبق تصمیم قبلی در انتها، و خلأ شاهد COM دو گزینه DHCP/TCPPort جداگانه باز است.
+
+## پذیرش نرم‌افزار ثبت‌شده
+
+`6e8f9d9`: SQL۹۹۱ و Windows/Linux همان SHA موفق؛ [شاهد دقیق](s11-profile-settings-evidence.json). پنج شناسه R01/R02/R03/R04/R06 بستهٔ نرم‌افزاری شدند، نه هفت. R05/R07 هنوز شاهد کافی writable COM ندارند؛ H01 واقعی باز است. حداکثر ورودی Unicode ترکیب همه خواندن‌ها اکنون با stdin محدود32KB عبور می‌کند؛ سقف خروجی settings و نتیجهٔ SQL افزایش نیافته و round-trip دقیق آزموده شده است.

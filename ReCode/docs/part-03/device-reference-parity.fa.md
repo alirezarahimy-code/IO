@@ -67,7 +67,7 @@
 | `DeviceOperationsController.DeleteAllRecords#1` | 590 | عملیات حساس هنوز ناتمام | سیاست داده/بیومتریک یا حذف، قرارداد مدل، مجوز/تأیید مستقل، شاهد دریافت و recovery هنوز تکمیل نشده؛ restart مجوز اینها نیست. |
 | `DeviceOperationsController.TimeSync#1` | 624 | جایگزین ایمن؛ نه هم‌ارزی عینی | هم‌ارزی خودکار TimeSync قدیمی ادعا نمی‌شود؛ آزمون drift/zone مدل واقعی باز. |
 | `DeviceOperationsController.SyncTimeData#1` | 658 | جایگزین ایمن؛ نه هم‌ارزی عینی | هم‌ارزی خودکار TimeSync قدیمی ادعا نمی‌شود؛ آزمون drift/zone مدل واقعی باز. |
-| `DeviceOperationsController.SetDLST#1` | 697 | قرارداد/آداپتر ناتمام | نوشتن همچنان قرارداد encoding/Support/zone/mode/اثر دقیق مدل، preview و مجوز مستقل و readback/unknown می‌خواهد؛ getter دیگر مفقود نیست. s11-daylight-read.fa.md. |
+| `DeviceOperationsController.SetDLST#1` | 697 | پیاده‌شده؛ آزمون نرم‌افزاری | قرارداد کامل سالانه/zone/mode و منبع/hash، مجوز مستقل و readback/unknown/inspection روی6e8f9d9 پذیرفته شد؛ H01 واقعی باز است. s11-profile-settings-evidence.json. |
 | `DeviceOperationsController.RemoveTimeRecords#1` | 738 | عملیات حساس هنوز ناتمام | سیاست داده/بیومتریک یا حذف، قرارداد مدل، مجوز/تأیید مستقل، شاهد دریافت و recovery هنوز تکمیل نشده؛ restart مجوز اینها نیست. |
 | `DeviceOperationsController.GetAdvanced#1` | 779 | پیاده‌شده؛ آزمون نرم‌افزاری | unit/range سایر کدها و firmwareها تأیید نشده؛ این snapshot اجازه نوشتن نیست. |
 | `DeviceOperationsController.Set1_1#1` | 802 | پیاده‌شده؛ آزمون نرم‌افزاری | قرارداد واقعی نصب همان مدل/firmware/واحد/اثر/مقادیر و پذیرش سخت‌افزار هنوز لازم است؛ generic setter یا ادعای پشتیبانی تمام مدل‌ها وجود ندارد. |
@@ -76,8 +76,8 @@
 | `DeviceOperationsController.SetSleepTime#1` | 904 | پیاده‌شده؛ آزمون نرم‌افزاری | zero/disabled و سازگاری عمومی ادعا نمی‌شود؛ پذیرش مدل واقعی باز. |
 | `DeviceOperationsController.SetCardReg#1` | 938 | پیاده‌شده؛ آزمون نرم‌افزاری | قرارداد واقعی نصب همان مدل/firmware/واحد/اثر/مقادیر و پذیرش سخت‌افزار هنوز لازم است؛ generic setter یا ادعای پشتیبانی تمام مدل‌ها وجود ندارد. |
 | `DeviceOperationsController.GetAdvanced2#1` | 972 | پیاده‌شده؛ آزمون نرم‌افزاری | IP گزارش‌شده اثبات دسترسی مقصد و algorithm raw تأیید قابلیت بیومتریک نیست. |
-| `DeviceOperationsController.SetIP#1` | 1004 | پیاده‌شده؛ آزمون نرم‌افزاری | gateway/mask/DHCP/MAC/port و پذیرش مدل واقعی باز. |
-| `DeviceOperationsController.SetAlgorithm#1` | 1038 | قرارداد/آداپتر ناتمام | قرارداد مدل دقیق، مقدار/واحد/اثر و readback/unknown و مجوز مستقل لازم؛ generic setter باز نشده است. |
+| `DeviceOperationsController.SetIP#1` | 1004 | پیاده‌شده؛ آزمون نرم‌افزاری | mask/gateway/MAC مسیر بستهٔ مستقل مصوب دارند؛ شاهد writable COM برای DHCP/TCPPort و H01 واقعی باز است. |
+| `DeviceOperationsController.SetAlgorithm#1` | 1038 | پیاده‌شده؛ آزمون نرم‌افزاری | حالت/اثر دقیق نصب، شرط حفظ template، منبع/hash و مجوز مستقل با readback/unknown پذیرفته شد؛ نه تبدیل/حذف بیومتریک یا generic setter. |
 | `DeviceOperationsController.SetSector#1` | 1072 | پیاده‌شده؛ آزمون نرم‌افزاری | قرارداد واقعی نصب همان مدل/firmware/واحد/اثر/مقادیر و پذیرش سخت‌افزار هنوز لازم است؛ generic setter یا ادعای پشتیبانی تمام مدل‌ها وجود ندارد. |
 | `DeviceOperationsController.RemoteEnroll#1` | 1106 | عملیات حساس هنوز ناتمام | سیاست داده/بیومتریک یا حذف، قرارداد مدل، مجوز/تأیید مستقل، شاهد دریافت و recovery هنوز تکمیل نشده؛ restart مجوز اینها نیست. |
 | `DeviceOperationsController.ChangeKey#1` | 1140 | بخشی ساخته؛ مانده دارد | قرارداد واقعی مدل/firmware/index/حالت‌های attendance-only/اثر و پذیرش واقعی لازم است؛ reset ضمنی برنامهٔ مرجع کپی نمی‌شود. |
@@ -116,7 +116,7 @@
 این موارد با «نام تابع موجود است»، «تطبیق تمام شد» یا «CI سبز است» بسته نمی‌شوند:
 
 1. **دامنهٔ دستگاه منتخب برای اپراتور** اکنون ساخته و در SQL/Chromium/worker آزموده شده؛ [شاهد مستقل](s04-device-operator-scope-evidence.json). گروه metadata جای آن نیست؛ پذیرش واقعی مدل همچنان جداست.
-2. **قراردادهای نوشتنی تنظیمات باقی‌مانده**: پنج پارامتر عددی اکنون مسیر بستهٔ مصوب و آزموده دارند؛ برای نصب واقعی سند مدل/firmware/مقادیر/واحد/اثر لازم است. الگوریتم و نوشتن DLST هنوز adapter/قرارداد مستقل می‌خواهند؛ نوشتن کامل کلید با حفظ برنامه اکنون ساخته و روی97cac12 آزموده شده است؛ مقدار/اثر/حریم خصوصی و read-back دقیق هر مدل، نه setter عمومی.
+2. **قراردادهای نوشتنی تنظیمات باقی‌مانده**: پنج پارامتر عددی اکنون مسیر بستهٔ مصوب و آزموده دارند؛ برای نصب واقعی سند مدل/firmware/مقادیر/واحد/اثر لازم است. الگوریتم و نوشتن DLST اکنون مسیر کامل مستقل مصوب و آزموده روی6e8f9d9 دارند؛ نوشتن کامل کلید با حفظ برنامه اکنون ساخته و روی97cac12 آزموده شده است؛ مقدار/اثر/حریم خصوصی و read-back دقیق هر مدل، نه setter عمومی.
 3. **عملیات حساس**: حذف تردد/بازه/کاربر/الگو/مدیر و reset، هرکدام مجوز/تأیید/شاهد دریافت و unknown recovery مستقل؛ RemoteEnroll و جابه‌جایی دادهٔ بیومتریک فقط با سیاست دسترسی/رضایت/نگهداری و قرارداد مدل. دستور کلی «تکمیل» سیاست بیومتریک یا اجازهٔ کنترل درب محسوب نمی‌شود.
 4. **PUSH امن** برای مدل پشتیبان؛ SN ساده/Encrypt=0 قدیمی کافی نیست. مدل‌هایی که قرارداد امن ندارند باید صریحاً با وضعیت پشتیبانی اثبات‌نشده/غیرفعال بمانند؛ unsupported فقط با شاهد همان مدل، نه endpoint ظاهراً موفق.
 5. **پوشش مدل/فرمت**: تردد native non-TFT اکنون adapter صریح و زمان‌بندی قالب‌دار دارد؛ [شواهد انتقال](s09-legacy-attendance-evidence.json) و [polling](s10-legacy-polling-evidence.json). پذیرش مدل واقعی باقی است؛ Serial/USB اتصال مستقیم یا پروتکل‌های دیگر با واردکردن فایل یکی نیستند. پشتیبانی Virdi/UNIS نیز مشروط و اثبات‌نشده باقی است.
@@ -163,4 +163,8 @@ validator هش دقیق Git blob منابع ثابت (و برابری worktree؛
 
 ## خواندن خام DLST با شاهد TypeLib
 
-[GetDaylight مصوب نصب](s11-daylight-read.fa.md) به worker/bridge/SQL/UI اضافه شده است؛ وضعیت CI خواندن در progress-evidence ثبت می‌شود. این مسیر خواندنی، action نوشتنی SetDLST را تکمیل نمی‌کند و جدول action باید نیاز قرارداد نوشتن را همچنان حفظ کند.
+[GetDaylight مصوب نصب](s11-daylight-read.fa.md) به worker/bridge/SQL/UI اضافه شده است؛ وضعیت CI خواندن در progress-evidence ثبت می‌شود. آن برش خواندنی به‌تنهایی action نوشتنی را کامل نکرد؛ اکنون برش مستقل نوشتن روی6e8f9d9 با SQL991 و Windows/Linux پذیرفته و جدول بالا به‌روز شده است.
+
+## برش نوشتن هفت تنظیم
+
+[شاهد6e8f9d9](s11-profile-settings-evidence.json): پنج ردیف نرم‌افزاری بسته و شمارنده۱۶→۱۱ شد؛ DHCP/TCPPort با وجود مسیر/تست، هنوز شاهد کافی writable COM ندارند. H01/مدل واقعی باز است.
