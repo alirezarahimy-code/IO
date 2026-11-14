@@ -53,7 +53,9 @@ internal static class VirtualWorkerTests
         var org=Guid.NewGuid();var company=Guid.NewGuid();var site=Guid.NewGuid();var employee=Guid.NewGuid();
         var name="virtual-operator-"+actor.ToString("N");
         var humanRights=new[]{DevicePollSchedules.Read,DevicePollSchedules.Manage,DeviceAccess.Manage,DeviceRegistry.Read,DeviceRegistry.Create,DeviceRegistry.Credentials,DeviceConnections.Read,DeviceConnections.Test,DeviceOperations.Read,DeviceOperations.SetClock,DeviceOperations.ReadFunctionKeys,DeviceOperations.ReadSettings,DeviceOperations.SetFunctionKey,DeviceOperations.SetRaw,DeviceOperations.SetIdle,DeviceOperations.Restart,DeviceUserDownloads.Read,DeviceUserDownloads.Download,DeviceUserUploads.Upload,DeviceAttendanceDownloads.Read,DeviceAttendanceDownloads.Download,DeviceAttendanceDownloads.Commit,"attendance.events.receive"};
+        humanRights=humanRights.Concat(ZkProfileParameters.All.Select(ZkProfileParameters.WritePermission)).ToArray();
         var serviceRights=new[]{DevicePollSchedules.Execute,DeviceConnections.Execute,DeviceOperations.Execute,DeviceOperations.ExecuteFunctionKeys,DeviceOperations.ExecuteSettings,DeviceOperations.ExecuteFunctionKeyWrite,DeviceOperations.ExecuteRaw,DeviceOperations.ExecuteIdle,DeviceOperations.ExecuteRestart,DeviceUserDownloads.Execute,DeviceUserUploads.Execute,DeviceAttendanceDownloads.Execute};
+        serviceRights=serviceRights.Concat(ZkProfileParameters.All.Select(ZkProfileParameters.ExecutePermission)).ToArray();
         await Q(async db=>
         {
             db.Organizations.Add(new(){Id=org,Name="Virtual worker org"});db.Companies.Add(new(){Id=company,OrganizationId=org,Name="Virtual worker company"});
@@ -98,7 +100,7 @@ internal static class VirtualWorkerTests
         var host=Path.GetFullPath(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(),"..","..","..",OperatingSystem.IsWindows()?"dotnet.exe":"dotnet"));
         var relay=Path.Combine(AppContext.BaseDirectory,"virtual-relay","IO.DeviceRuntime.Tests.dll");
         if(!File.Exists(relay)||!File.Exists(Path.ChangeExtension(relay,"runtimeconfig.json")))throw new InvalidOperationException("Missing built virtual relay");
-        NativeEndpoint Pin(VirtualDeviceLab.Device d)=>new(d.Pin.DeviceId,d.Pin.Address,d.Pin.Port,1,d.Pin.ExpectedSerial,false,AllowClockSet:true,AllowUserRead:true,AttendanceOnlyUserWriteApproved:true,AllowAttendanceRead:true,AllowAdvancedSettingsRead:true,AllowRestart:true,AllowIdleMinutesWrite:true,IdleMinutesApproval:new("IO-virtual-not-ZK","virtual-fw-1",[20],"synthetic-idle-approval","standby-or-power-off"),FunctionKeyReadApproval:new("IO-virtual-not-ZK","virtual-fw-1",[0,3],"synthetic-key-read"),AllowRawSettingsWrite:true,RawSettingsApprovals:[new("IO-virtual-not-ZK","virtual-fw-1","one-to-one",[0,1],"synthetic-unit","synthetic-effect","synthetic-raw-contract")],AllowFunctionKeyWrite:true,DaylightReadApproval:new("IO-virtual-not-ZK","virtual-fw-1","synthetic-daylight-read"),FunctionKeyWriteApprovals:[new("IO-virtual-not-ZK","virtual-fw-1",[d.KeyValue,d.KeyValue with{StateCode=5,StateName="virtual-new-label"}],"synthetic-key-effect","synthetic-key-write-contract",AttendanceOnly:true)]);
+        NativeEndpoint Pin(VirtualDeviceLab.Device d)=>new(d.Pin.DeviceId,d.Pin.Address,d.Pin.Port,1,d.Pin.ExpectedSerial,false,AllowClockSet:true,AllowUserRead:true,AttendanceOnlyUserWriteApproved:true,AllowAttendanceRead:true,AllowAdvancedSettingsRead:true,AllowRestart:true,AllowIdleMinutesWrite:true,IdleMinutesApproval:new("IO-virtual-not-ZK","virtual-fw-1",[20],"synthetic-idle-approval","standby-or-power-off"),FunctionKeyReadApproval:new("IO-virtual-not-ZK","virtual-fw-1",[0,3],"synthetic-key-read"),AllowRawSettingsWrite:true,RawSettingsApprovals:[new("IO-virtual-not-ZK","virtual-fw-1","one-to-one",[0,1],"synthetic-unit","synthetic-effect","synthetic-raw-contract")],AllowFunctionKeyWrite:true,DaylightReadApproval:new("IO-virtual-not-ZK","virtual-fw-1","synthetic-daylight-read"),AllowProfileWrite:true,ProfileReadApprovals:ZkProfileParameters.All.Select(p=>new ZkProfileReadApproval(d.Product(),d.Firmware(),p,"synthetic-profile-read")).ToArray(),ProfileWriteApprovals:ZkProfileParameters.All.Select(p=>ProfileSettingTests.Approval(ProfileSettingTests.Plan(p) with{Serial=d.Serial(),Product=d.Product(),Firmware=d.Firmware(),Original=new(d.Pin.Address,d.Pin.Port),Recovery=new(d.Pin.Address,p=="port"?4371:d.Pin.Port)})).ToArray(),FunctionKeyWriteApprovals:[new("IO-virtual-not-ZK","virtual-fw-1",[d.KeyValue,d.KeyValue with{StateCode=5,StateName="virtual-new-label"}],"synthetic-key-effect","synthetic-key-write-contract",AttendanceOnly:true)]);
         var configuration=new WorkerConfiguration(service,[],[Pin(a),Pin(b),Pin(legacy) with{AttendanceReadFormat=ZkAttendanceReadFormats.Legacy}],host,relay,true,true,true,true,true,true);
         if(await Q(db=>db.DevicePollSchedules.AnyAsync(x=>x.Enabled)))throw new InvalidOperationException("Virtual worker fixture requires all previous synthetic schedules paused");
         using var worker=new LaboratoryWorker(app.Services.GetRequiredService<IServiceScopeFactory>(),configuration);
@@ -192,6 +194,24 @@ internal static class VirtualWorkerTests
             a.Fault="none";var keyRecovery=await Settings();var keyVersion=await Q(db=>db.DeviceOperations.Where(x=>x.Id==keyId).Select(x=>x.Version).SingleAsync());
             await Send("/device-operations/"+keyId+"/resolve-key",new DeviceIdleResolution(keyVersion,keyRecovery,"REVIEWED-APPROVED-FUNCTION-KEY"));
             check(await Q(db=>db.DeviceOperations.AnyAsync(x=>x.Id==keyId&&x.State=="unknown"&&x.ResolutionInfoId==keyRecovery))&&a.KeyMutations==1,"virtual-e2e exact later complete key tuple and explicit HTTP review retain unknown without resetting schedule or repeating a native mutation");
+            // Actual HTTPS -> SQL -> worker -> isolated relay -> persistent TCP fixture.
+            // The relay is not a vendor protocol; network options alter synthetic state only.
+            foreach(var parameter in ZkProfileParameters.All)
+            {
+                var source=await Settings();var desired=ProfileSettingTests.New(parameter);ZkProfilePlan plan;string hash;
+                using(var response=await Send("/device-settings/profile-preview",new DeviceProfilePreview(a.Pin.DeviceId,av,source,desired,"synthetic-effect","synthetic-profile-contract",new(a.Pin.Address,parameter=="port"?4371:a.Pin.Port))))
+                {var json=JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement;plan=json.GetProperty("plan").Deserialize<ZkProfilePlan>(new JsonSerializerOptions{PropertyNameCaseInsensitive=true})!;hash=json.GetProperty("previewHash").GetString()!;}
+                a.Fault="drop-operation-ack";var id=Guid.NewGuid();
+                await Send("/device-operations",new DeviceOperationInput(id,a.Pin.DeviceId,av,"settings.profile.set",2,null,ZkProfilePlan.Confirmation,ProfilePlan:plan,ProfilePreviewHash:hash));
+                await Wait(()=>Q(db=>db.DeviceOperations.AnyAsync(x=>x.Id==id&&x.State=="unknown")),"profile lost ACK");
+                check(a.ProfileValues[parameter]==desired&&a.ProfileMutations==Array.IndexOf(ZkProfileParameters.All,parameter)+1,"virtual-e2e profile "+parameter+" persists exactly one synthetic mutation after lost TCP ACK while SQL remains unknown");
+                a.Fault="none";var inspection=Guid.NewGuid();
+                await Send("/device-operations",new DeviceOperationInput(inspection,a.Pin.DeviceId,av,"settings.profile.inspect",10,null,"INSPECT-EXACT-PROFILE",ProfilePlan:plan,ProfilePreviewHash:hash,ProfileInspectionOfId:id));
+                await Wait(()=>Q(db=>db.DeviceOperations.AnyAsync(x=>x.Id==inspection&&x.State=="succeeded")),"profile independent read");
+                var v=await Q(db=>db.DeviceOperations.Where(x=>x.Id==id).Select(x=>x.Version).SingleAsync());
+                await Send("/device-operations/"+id+"/resolve-profile",new DeviceIdleResolution(v,inspection,ZkProfilePlan.ReviewConfirmation));
+                check(await Q(db=>db.DeviceOperations.AnyAsync(x=>x.Id==id&&x.State=="unknown"&&x.ResolutionInfoId==inspection))&&a.ProfileMutations==Array.IndexOf(ZkProfileParameters.All,parameter)+1,"virtual-e2e profile "+parameter+" fresh child observes complete old/new and explicit HTTP review releases uncertainty without replay");
+            }
             var log=Guid.NewGuid();a.Fault="truncate";
             await Send("/device-attendance-downloads",new DeviceAttendanceInput(log,a.Pin.DeviceId,av,10,"2026-11-08T00:00:00Z","2026-11-09T00:00:00Z",4,5));
             await Wait(()=>Q(db=>db.DeviceAttendanceDownloads.AnyAsync(x=>x.Id==log&&x.State!="pending"&&x.State!="running")),"partial logs");

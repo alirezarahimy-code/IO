@@ -140,7 +140,7 @@ internal static class VirtualDeviceLab
         Console.WriteLine($"PASS {count} stateful legacy TCP write checks; private JSON laboratory protocol, not vendor SDK acceptance");
     }
 
-    internal sealed class Device : IAsyncDisposable, IZkUserWriteSession, IZkRestartSession, IZkIdleSettingSession, IZkFunctionKeyReadSession, IZkRawSettingSession, IZkFunctionKeyWriteSession, IZkDaylightReadSession
+    internal sealed class Device : IAsyncDisposable, IZkUserWriteSession, IZkRestartSession, IZkIdleSettingSession, IZkFunctionKeyReadSession, IZkRawSettingSession, IZkFunctionKeyWriteSession, IZkDaylightReadSession, IZkProfileSession
     {
         private readonly TcpListener listener = new(IPAddress.Loopback, 0);
         private readonly CancellationTokenSource shutdown = new();
@@ -158,6 +158,11 @@ internal static class VirtualDeviceLab
         public int IdleMutations { get; private set; }
         public int RawValue { get; private set; }
         public int RawMutations { get; private set; }
+        public int ProfileMutations {get;private set;}
+        public Dictionary<string,ZkProfileValue> ProfileValues {get;}=ZkProfileParameters.All.ToDictionary(p=>p,p=>p=="port"?new ZkProfileValue(p,"4370"):ProfileSettingTests.Old(p));
+        public ZkProfileValue? ReadProfile(string parameter)=>ProfileValues.GetValueOrDefault(parameter);
+        public bool SetProfile(ZkProfileValue value){if(!value.IsValid())return false;ProfileValues[value.Parameter]=value;ProfileMutations++;return true;}
+        public void RefreshProfile(){}
         public string Serial()=>Pin.ExpectedSerial;
         public int? Read(string parameter)=>parameter=="one-to-one"?RawValue:null;
         public bool Set(string parameter,int value){if(parameter!="one-to-one")return false;RawValue=value;RawMutations++;return true;}
@@ -262,11 +267,13 @@ internal static class VirtualDeviceLab
                             else if (operation.Operation == "settings.read")
                             {
                                 ZkAdvancedSettings? settings=new(ZkAdvancedSettings.Version, Pin.ExpectedSerial, RawValue, null, int.MinValue, IdleMinutes, 2, -1,Product(),Firmware(),ReportedSubnetMask:"255.255.255.0",ReportedGateway:"0.0.0.0");
-                                if(operation.FunctionKeyReadApproval is {} approval)settings=ZkFunctionKeyReader.Add(settings,approval,this);
+                                if(operation.ProfileReadApprovals is {} profileReads)settings=ZkProfileExecutor.AddReadings(settings,profileReads,this);
+                                if(settings is not null&&operation.FunctionKeyReadApproval is {} approval)settings=ZkFunctionKeyReader.Add(settings,approval,this);
                                 if(settings is not null&&operation.DaylightReadApproval is {} daylightApproval)settings=ZkDaylightReader.Add(settings,daylightApproval,this);
                                 output=settings is null?new("unsupported"):new("succeeded",Settings:settings);
                             }
                             else if (operation.Operation == "device.restart") output=ZkRestartExecutor.Execute(operation.AllowRestart,this);
+                            else if(operation.Operation is "settings.profile.set" or "settings.profile.inspect") output=ZkProfileExecutor.Execute(operation,this);
                             else if (operation.Operation == "settings.key.set") output=ZkFunctionKeyWriteExecutor.Execute(operation,this);
                             else if (operation.Operation == "settings.raw.set") output=ZkRawSettingExecutor.Execute(operation,this);
                             else if (operation.Operation == "settings.idle.set") output=ZkIdleSettingExecutor.Execute(operation,this);

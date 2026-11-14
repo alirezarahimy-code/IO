@@ -1,0 +1,21 @@
+'use strict';
+const fs=require('node:fs'),assert=require('node:assert/strict'),{JSDOM}=require('jsdom'),root=__dirname+'/../../src/IO.Web/Ui/';
+async function wait(test){for(let n=0;n<250;n++){if(test())return;await new Promise(r=>setTimeout(r,10));}throw Error('Profile DOM timeout');}
+(async()=>{
+ for(const parameter of ['daylight','algorithm','mask','gateway','dhcp','mac','port']){
+  const dom=new JSDOM(fs.readFileSync(root+'DeviceSettings.html','utf8'),{url:'https://io.example/workspace/device-settings',runScripts:'outside-only'}),w=dom.window,d=w.document;let grant=true,uncertain=true;const posts=[];
+  const id='eef7ddea-a334-4fa0-9ef4-167d5b98f3cb',deviceId='5972ddba-92cf-41be-b567-8085e451286d',version='AQIDBAUGBwg=';
+  const old={parameter,raw:'0',...(parameter==='daylight'?{begin:'03010100',end:'10010200',mode:'1',currentMode:'2',enabled:'0'}:{})};let plan;
+  w.fetch=async(path,options={})=>{let data;if(path==='/workspace/capabilities')data={permissions:grant?['devices.settings.read','devices.profile.'+parameter+'.set']:[]};else if(path==='/auth/csrf')data={token:'csrf'};else if(!grant)return{ok:false,status:403};else if(options.method==='POST'){
+   assert.equal(options.headers['X-CSRF-TOKEN'],'csrf');const body=JSON.parse(options.body);posts.push({path,body});if(path==='/device-settings/profile-preview'){plan={expected:old,desired:body.desired,approvalReference:body.approvalReference,parameter};data={plan,previewHash:'bound-preview-hash'};}else if(path==='/device-operations'&&uncertain){uncertain=false;throw new w.TypeError('lost response');}else data={result:id};
+  }else data={items:[{id,deviceId,expectedDeviceVersion:version,kind:'settings.read',state:'succeeded',settings:{profiles:[{parameter,approvalReference:'<img src=x>',reported:true,value:old}]}}]};return{ok:true,status:200,json:async()=>data};};
+  w.confirm=()=>true;w.eval(fs.readFileSync(root+'device-profiles.js','utf8'));const f=d.getElementById('profile-form'),note=d.getElementById('profile-notice');await wait(()=>!d.getElementById('profile-section').hidden&&d.querySelector('[data-profile-source]')&&!d.getElementById('profile-refresh').disabled);
+  assert.equal(d.querySelector('#profile-items img'),null);d.querySelector('[data-profile-source]').click();assert.equal(f.elements.parameter.value,parameter);assert.equal(f.elements.snapshotId.value,id);assert.equal(f.elements.expectedDeviceVersion.value,version);
+  f.elements.raw.value='1';f.elements.effect.value='synthetic-effect';f.elements.approvalReference.value='synthetic-approval';f.elements.recoveryAddress.value='10.20.30.40';f.elements.recoveryPort.value='4370';f.dispatchEvent(new w.Event('input',{bubbles:true}));d.getElementById('profile-preview').click();await wait(()=>d.getElementById('profile-plan').textContent.includes('synthetic-approval')&&!d.getElementById('profile-refresh').disabled);
+  f.elements.confirmed.checked=true;f.elements.confirmed.dispatchEvent(new w.Event('input',{bubbles:true}));f.elements.confirmed.dispatchEvent(new w.Event('change',{bubbles:true}));assert(d.getElementById('profile-plan').textContent.includes('synthetic-approval'));
+  f.dispatchEvent(new w.Event('submit',{cancelable:true,bubbles:true}));await wait(()=>note.textContent.includes('پاسخ نامعلوم')&&!d.getElementById('profile-submit').disabled);
+  const first=posts.at(-1);assert.equal(first.body.kind,'settings.profile.set');assert.equal(first.body.profilePreviewHash,'bound-preview-hash');assert.equal(first.body.confirmation,'SET-EXACT-APPROVED-PROFILE');assert.deepEqual(first.body.profilePlan,plan);
+  f.dispatchEvent(new w.Event('submit',{cancelable:true,bubbles:true}));await wait(()=>note.textContent.includes('SQL ثبت شد')&&!d.getElementById('profile-refresh').disabled);assert.deepEqual(posts.at(-1),first);assert.equal(f.elements.confirmed.checked,false);
+  grant=false;w.dispatchEvent(new w.Event('focus'));await wait(()=>d.getElementById('profile-section').hidden);assert.equal(d.getElementById('profile-items').textContent,'');assert.equal(f.elements.deviceId.value,'');dom.window.close();console.log('PASS profile DOM '+parameter+' exact source preview consent stable unknown replay and revoke clearing');
+ }
+})().catch(e=>{console.error(e);process.exit(1);});
