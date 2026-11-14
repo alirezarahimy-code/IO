@@ -25,7 +25,7 @@
 | P3-R02 | `algorithm` | `GetSysOption`/`SetSysOption`, `~ZKFPVersion`؛ مرجع PersonnelZKDevice | حفظ template و اثر مدل واقعی |
 | P3-R03 | `mask` | `NetMask`؛ setter مرجع PersonnelZKDevice | اثر روی اتصال و مدل واقعی |
 | P3-R04 | `gateway` | `GATEIPAddress`؛ setter مرجع PersonnelZKDevice | اثر روی اتصال و مدل واقعی |
-| P3-R05 | `dhcp` | `DHCP` کاندید، مدل‌مقید | شاهد کافی برای write از COM نداریم؛ رشته/USB config اثبات نیست |
+| P3-R05 | `dhcp` | `DHCP=0/1`؛ نگاشت شناخته‌شده در مرجع firmware و command12، mapper تولیدی آزموده | نرم‌افزار source-backed؛ COM/firmware نصب و lease/اعمال شبکه در H01، نه اثبات از readback فایل |
 | P3-R06 | `mac` | `GetDeviceMAC`/`SetDeviceMAC` و `RefreshData` | رفتار مدل واقعی و بازیابی شبکه |
 | P3-R07 | `port` | `TCPPort`؛ مسیر write صریح SDK6 و dispatch دو SDK با۳۱ probe؛ نه `CommPort` سریال | نرم‌افزار پذیرفته؛ اثر/پشتیبانی مدل واقعی و بازیابی در H01 |
 
@@ -42,15 +42,17 @@ DLST فقط `SetDaylight` را صدا می‌زند؛ اثر native تغییر M
 
 ## شواهد نرم‌افزاری
 
-- `ProfileSettingTests`: ۱۰۰ بررسی قابل‌حمل، شامل هر هفت dispatch، preflight، اثر جانبی، false ACK/exception، readback، inspection و child واقعی با session ساختگی.
+- `ProfileSettingTests`: ۱۲۹ بررسی قابل‌حمل (شامل۲۹ بررسی همان mapper تولیدی برای DHCP)، شامل هر هفت dispatch، preflight، اثر جانبی، false ACK/exception، readback، inspection و child واقعی با session ساختگی.
 - `device-profiles-ui-check.cjs`: هفت جریان DOM، منبع SQL، preview، تأیید checkbox، replay همان UUID پس از پاسخ نامعلوم، متن امن و پاک‌سازی پس از revoke؛ fetch mock است، SQL نیست.
 - `DeviceProfileSettingTests`: آزمون یکپارچه SQL برای هر هفت پارامتر، مجوز مستقل، لغو زنده، trigger immutable، نتیجه و بازبینی. تا CI موفق دقیق SHA، پذیرفته محسوب نمی‌شود.
 - `VirtualWorkerTests`: مسیر HTTPS/SQL/worker/child/TCP خصوصی stateful و ACK ازدست‌رفته؛ تغییر option در fixture جابه‌جایی شبکهٔ واقعی نیست و جای SDK نیست.
 
-وضعیت اجرایی و SHA/CI در گزارش پیشرفت ثبت می‌شود؛ SDK ویندوز/دستگاه واقعی طبق تصمیم قبلی در انتها، و خلأ شاهد writable-COM مدل برای DHCP باز است؛ شاهد write باینری port اکنون تثبیت شد، پذیرش واقعی مدل آن در H01 است.
+وضعیت اجرایی و SHA/CI در گزارش پیشرفت ثبت می‌شود؛ SDK ویندوز/دستگاه واقعی طبق تصمیم قبلی در انتها، و قرارداد source-backed نرم‌افزاری هر هفت تثبیت شده؛ writable-COM/رفتار واقعی همان مدل و lease/اعمال DHCP در H01 باز است.
 
 ## پذیرش نرم‌افزار نخست — وضعیت تاریخی 6e8f9d9
 
 `6e8f9d9`: SQL۹۹۱ و Windows/Linux همان SHA موفق؛ [شاهد دقیق](s11-profile-settings-evidence.json). پنج شناسه R01/R02/R03/R04/R06 بستهٔ نرم‌افزاری شدند، نه هفت. R05/R07 هنوز شاهد کافی writable COM ندارند؛ H01 واقعی باز است. حداکثر ورودی Unicode ترکیب همه خواندن‌ها اکنون با stdin محدود32KB عبور می‌کند؛ سقف خروجی settings و نتیجهٔ SQL افزایش نیافته و round-trip دقیق آزموده شده است.
 
-**پذیرش تکمیلی85347c2:** SQL۹۹۱/Windows/Linux/light موفق؛ [۳۱ probe مرز SDK](s11-network-native-dispatch.fa.md) ابهام write باینری TCPPort را برطرف کرد. اکنون شش ردیف نرم‌افزاری بسته و فقط R05 از این هفت باز است؛ بند پنج‌ردیفی بالا وضعیت تاریخی6e8f9d9 است. نمونهٔ writer عمومی DHCP نیز [ثبت شد](s11-dhcp-public-reference-evidence.json)، نه اثبات firmware یا مجوز write بدون قرارداد نصب.
+**پذیرش تکمیلی85347c2:** SQL۹۹۱/Windows/Linux/light موفق؛ [۳۱ probe مرز SDK](s11-network-native-dispatch.fa.md) ابهام write باینری TCPPort را برطرف کرد. در این نسخه شش ردیف نرم‌افزاری بسته و فقط R05 از این هفت باز بود؛ بند پنج‌ردیفی بالا وضعیت تاریخی6e8f9d9 است. نمونهٔ writer عمومی DHCP نیز [ثبت شد](s11-dhcp-public-reference-evidence.json)، نه اثبات firmware یا مجوز write بدون قرارداد نصب.
+
+**پذیرش تکمیلی5e1f332:** [قرارداد DHCP](s11-dhcp-write-contract.fa.md)، چهار blob مرجع firmware،۲۹ بررسی mapper تولیدی (جمع۱۲۹)، SQL۹۹۱ و Windows/Linux/light موفق‌اند. هر هفت ردیف نرم‌افزاری بسته و شمارنده۹ است؛ وضعیت‌های پنج/شش‌ردیفی بالا تاریخی‌اند. هیچ refresh/reboot ضمنی برای DHCP اضافه نشد؛ مقدار ذخیره‌شده اثبات lease/آدرس مؤثر نیست. H01 برای همه باز است.

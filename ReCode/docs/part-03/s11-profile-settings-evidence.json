@@ -1,47 +1,46 @@
 {
-  "verifiedCode": "85347c2d3876fb34844fc4ec78f8d30366dc3ae7",
+  "verifiedCode": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
   "scope": "P3-R01-R07; not Part3 completion or hardware acceptance",
-  "status": "six-software-ledger-rows-closed",
+  "status": "seven-source-backed-software-ledger-rows-closed",
   "closedIds": [
     "P3-R01",
     "P3-R02",
     "P3-R03",
     "P3-R04",
+    "P3-R05",
     "P3-R06",
     "P3-R07"
   ],
-  "openIds": [
-    "P3-R05"
-  ],
+  "openIds": [],
   "baselineOpenTechnical": 16,
-  "currentOpenTechnical": 10,
+  "currentOpenTechnical": 9,
   "hardwarePackage": "P3-H01 remains open and separate",
   "runs": [
     {
       "conclusion": "success",
-      "databaseId": 43618440584,
-      "headSha": "85347c2d3876fb34844fc4ec78f8d30366dc3ae7",
+      "databaseId": 43621817180,
+      "headSha": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43618440584"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43621817180"
     },
     {
       "conclusion": "success",
-      "databaseId": 43618440580,
-      "headSha": "85347c2d3876fb34844fc4ec78f8d30366dc3ae7",
+      "databaseId": 43621817209,
+      "headSha": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43618440580"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43621817209"
     },
     {
       "conclusion": "success",
-      "databaseId": 43618440620,
-      "headSha": "85347c2d3876fb34844fc4ec78f8d30366dc3ae7",
+      "databaseId": 43621817192,
+      "headSha": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43618440620"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43621817192"
     }
   ],
   "checks": {
     "fullIntegrationPassLines": 991,
-    "portableProfileContractsAndActualChild": 100,
+    "portableProfileContractsAndActualChild": 129,
     "profileSqlChecks": 62,
     "addedHttpsSqlWorkerTcpScenarios": 14,
     "offlineDomFiles": 18,
@@ -49,7 +48,9 @@
     "profilePermissions": 14,
     "foundationMigrations": 47,
     "identityMigrations": 2,
-    "offlineNativeNetworkDispatchProbes": 31
+    "offlineNativeNetworkDispatchProbes": 31,
+    "productionDhcpMapperChecks": 29,
+    "pinnedDhcpFirmwareSourceBlobs": 4
   },
   "sourceFiles": [
     "src/IO.DeviceContracts/ZkProfileSettingContract.cs",
@@ -57,7 +58,8 @@
     "src/IO.Infrastructure/Migrations/20261114100000_DeviceProfileSettings.cs",
     "src/IO.DeviceWorker/Program.cs",
     "src/IO.ZkBridge/Program.cs",
-    "src/IO.Web/Ui/device-profiles.js"
+    "src/IO.Web/Ui/device-profiles.js",
+    "src/IO.ZkBridge/ZkComProfileSession.cs"
   ],
   "safety": [
     "Exact source snapshot/model/firmware/site-zone/device-version and complete old/new states",
@@ -69,7 +71,7 @@
     "Maximum Unicode all-seven approvals plus8keys/daylight fits32KB stdin and unchanged bounded stdout/SQL result; exact SQL roundtrip verified"
   ],
   "limitations": [
-    "DHCP candidate mapping has a public third-party UDP writer and native generic forwarding evidence but no sufficient target-firmware writable-COM support evidence; R05 remains open. TCPPort software contract accepted, real model acceptance is still H01.",
+    "All seven SOFTWARE mappings have reference support. DHCP recognition/persistence is evidenced by a historical public vendor-attributed source, not an authenticated vendor release. Target-firmware COM support/effective lease/application and network recovery are NOT verified and stay in H01; neither generic forwarding nor persisted option readback proves effective DHCP.",
     "Installed approvals are requirements, not proof of hardware compatibility",
     "Private TCP stateful fixture and compiled bridge are not actual COM/device execution",
     "Real Windows SDK/ACL/multiple-device outages/exchange/settings acceptance remains in H01"
@@ -92,5 +94,47 @@
     "kind": "hash-pinned-x86-emulation-with-trapped-transport",
     "realComExecuted": false
   },
-  "dhcpPublicSource": "s11-dhcp-public-reference-evidence.json"
+  "dhcpPublicSource": "s11-dhcp-public-reference-evidence.json",
+  "dhcpSoftwareFollowup": {
+    "code": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
+    "status": "accepted-source-backed-software-only",
+    "runs": [
+      {
+        "conclusion": "success",
+        "databaseId": 43621817180,
+        "headSha": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
+        "status": "completed",
+        "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43621817180"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 43621817209,
+        "headSha": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
+        "status": "completed",
+        "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43621817209"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 43621817192,
+        "headSha": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
+        "status": "completed",
+        "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43621817192"
+      }
+    ],
+    "closedId": "P3-R05",
+    "technicalOpenBefore": 10,
+    "technicalOpenAfter": 9,
+    "firmwareReference": "s11-dhcp-firmware-reference-evidence.json",
+    "contract": "s11-dhcp-write-contract.fa.md",
+    "productionMapperChecks": 29,
+    "targetFirmwareVerified": false,
+    "realComExecuted": false,
+    "part3Complete": false,
+    "notAcceptedCompileFailure": {
+      "code": "7823564893877f6b33fe71cee5b1203a166779a5",
+      "sqlRun": 43621619010,
+      "platformRun": 43621619029,
+      "reason": "Shared SQL fixture was missing linked mapper test dependencies; corrected before acceptance."
+    }
+  }
 }
