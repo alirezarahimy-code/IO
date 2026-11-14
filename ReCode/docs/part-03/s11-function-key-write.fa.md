@@ -1,6 +1,6 @@
 # S11 — نوشتن کامل کلید عملکردی با قرارداد نصب
 
-وضعیت این برش: **کد و آزمون محلی قرارداد/DOM ساخته شده؛ SQL کامل و Windows/Linux همین SHA هنوز لازم است. بخش۳ کامل نیست.**
+وضعیت این برش: **پذیرش نرم‌افزاری روی97cac12: SQL کامل و Windows/Linux/light موفق. بخش۳ کامل نیست.**
 
 ## منشأ و تفاوت آگاهانه
 
@@ -47,7 +47,7 @@ migration46 `DeviceFunctionKeyWrites`: plan/result این نوع حداکثر۱�
 - `device-key-write-ui-check.cjs`: preview، حفظ raw whitespace/schedule، explicit consent، replay همان intent نامعلوم، CSRF، safe text، review و revoke موفق.
 - `DeviceFunctionKeyWriteTests`:۲۰ بررسی SQL/حقوق/credential/revoke/tuple/readback/history/downgrade افزوده شده.
 - `VirtualWorkerTests`:۲ سناریوی HTTPS/SQL/production-worker/child/TCP برای lost ACK بعد از یک mutation با schedule محفوظ و سپس recovery/review بدون replay افزوده شده. TCP خصوصی آزمایشگاهی است، نه پروتکل ZK یا COM.
-- انتظار suite کامل:۹۱۰ PASS،۴۶ migration و۱۲۹ permission. تا CI همان SHA موفق نشود این تعداد ادعای نتیجه نیست.
+- suite کامل روی97cac12 با guard شمار دقیق۹۱۰ PASS موفق شد؛۴۶ migration و۱۲۹ permission. [SQL](https://github.com/alirezarahimy-code/IO/actions/runs/43583286620)، [Windows/Linux](https://github.com/alirezarahimy-code/IO/actions/runs/43583286608)، [light](https://github.com/alirezarahimy-code/IO/actions/runs/43583286621).
 
 SDK/مدل و چنددستگاه واقعی طبق دستور کاربر برای انتها باقی‌اند. الگوریتم، DLST و شبکهٔ باقی‌مانده، PUSH امن، حذف و سیاست بیومتریک با این برش بسته نمی‌شوند.
 

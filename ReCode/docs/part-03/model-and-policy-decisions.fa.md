@@ -40,6 +40,8 @@
 
 پس از هر برش، وضعیت و شواهد باید به‌روز شوند. `softwareComplete/part3Complete/realSdkExecuted/hardwareVerified` تا احراز مستقل معیارهایشان false می‌مانند؛ این سند مجوز true کردن آن‌ها نیست.
 
-## مانع مشخص read-back در DLST؛ نه unsupported حدسی
+## DLST: getter پیدا و مسیر خواندن ساخته شد؛ قرارداد نوشتن هنوز باز است
 
 در بدنهٔ ثابت `PersonnelZKDevice.decompiled.cs` خطوط۱۰۹۴–۱۱۰۲ فقط `SetDaylight(machine,1,MMddHHmm,MMddHHmm)` دیده می‌شود؛ سال و timezone در رشته ارسال نمی‌شوند. در کل رابط decompile‌شدهٔ `IZKEM` با SHA256 `49856b1ed0aa89838405cfcef3a46da2f6275a80425898cda3cc70964a5ab701` تنها رخداد نام Daylight همان setter خط۲۳۵/DispId178 است؛ getter هم‌نام در همین رابط مشاهده نشد. این نبودِ شاهد، نبود همهٔ APIهای همهٔ مدل‌ها را ثابت نمی‌کند. پیش از ساخت نوشتن قابل‌پذیرش، روش معتبر خواندن وضعیت قدیم/جدید و بازیابی، معنای Support=1، دامنهٔ تاریخ سالانه و zone همان مدل باید مشخص شود؛ ACK setter به‌تنهایی موفقیت تنظیم نیست. هیچ نام GetSysOption برای read-back حدس زده نمی‌شود.
+
+**اصلاح با شاهد تازه:** embedded TypeLib در `SDK 6.3.1.45/zkemkeeper.dll`، `GetDaylight` با DispId179 و سه خروجی by-ref را ثابت کرد؛ امضا و hashهای قابل بازتولید و پیاده‌سازی خواندن خام در [s11-daylight-read.fa.md](s11-daylight-read.fa.md) است. بنابراین «getter پیدا نشده» دیگر مانع فعلی نیست. مسیر خواندن مدل‌محور ساخته شده، ولی قالب نوشتن سالانه/zone/Support/اثر و read-back واقعی همان مدل همچنان نیاز به قرارداد دارند. این شاهد باینری سورس اصلی یا اجرای سخت‌افزار نیست.

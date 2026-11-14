@@ -140,7 +140,7 @@ internal static class VirtualDeviceLab
         Console.WriteLine($"PASS {count} stateful legacy TCP write checks; private JSON laboratory protocol, not vendor SDK acceptance");
     }
 
-    internal sealed class Device : IAsyncDisposable, IZkUserWriteSession, IZkRestartSession, IZkIdleSettingSession, IZkFunctionKeyReadSession, IZkRawSettingSession, IZkFunctionKeyWriteSession
+    internal sealed class Device : IAsyncDisposable, IZkUserWriteSession, IZkRestartSession, IZkIdleSettingSession, IZkFunctionKeyReadSession, IZkRawSettingSession, IZkFunctionKeyWriteSession, IZkDaylightReadSession
     {
         private readonly TcpListener listener = new(IPAddress.Loopback, 0);
         private readonly CancellationTokenSource shutdown = new();
@@ -165,6 +165,9 @@ internal static class VirtualDeviceLab
         public string Product() => "IO-virtual-not-ZK";
         public string Firmware() => "virtual-fw-1";
         public int FunctionKeyReads { get; private set; }
+        public int DaylightReads {get;private set;}
+        public ZkDaylightValue? DaylightValue {get;set;}=new(2," raw;begin ","raw;end");
+        public ZkDaylightValue? ReadDaylight(){DaylightReads++;return DaylightValue;}
         public ZkFunctionKeyValue KeyValue {get;private set;}=new(0,true,0,4,"virtual-key-not-ZK",2,"raw;virtual");
         public int KeyMutations {get;private set;}
         public bool Set(ZkFunctionKeyValue value){KeyValue=value;KeyMutations++;return true;}
@@ -260,6 +263,7 @@ internal static class VirtualDeviceLab
                             {
                                 ZkAdvancedSettings? settings=new(ZkAdvancedSettings.Version, Pin.ExpectedSerial, RawValue, null, int.MinValue, IdleMinutes, 2, -1,Product(),Firmware(),ReportedSubnetMask:"255.255.255.0",ReportedGateway:"0.0.0.0");
                                 if(operation.FunctionKeyReadApproval is {} approval)settings=ZkFunctionKeyReader.Add(settings,approval,this);
+                                if(settings is not null&&operation.DaylightReadApproval is {} daylightApproval)settings=ZkDaylightReader.Add(settings,daylightApproval,this);
                                 output=settings is null?new("unsupported"):new("succeeded",Settings:settings);
                             }
                             else if (operation.Operation == "device.restart") output=ZkRestartExecutor.Execute(operation.AllowRestart,this);

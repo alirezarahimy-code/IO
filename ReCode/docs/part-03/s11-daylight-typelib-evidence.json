@@ -1,0 +1,81 @@
+{
+  "source": "SDK 6.3.1.45/zkemkeeper.dll",
+  "dllSha256": "33b5d535cffdd14dd123d22d8a069004add468c71a7c8411a906f641b7ef2399",
+  "resourceId": 1,
+  "languageId": 1033,
+  "typelibBytes": 58316,
+  "typelibSha256": "f7b8fba2f3d5352b9482a0f6394b916f998aac469ec08c0bd175f7b5c2fbd395",
+  "methods": [
+    {
+      "interface": "IZKEM",
+      "method": "SetDaylight",
+      "dispid": 178,
+      "recordOffset": 41188,
+      "return": "HRESULT",
+      "parameters": [
+        {
+          "name": "dwMachineNumber",
+          "type": "LONG",
+          "flags": 1
+        },
+        {
+          "name": "Support",
+          "type": "LONG",
+          "flags": 1
+        },
+        {
+          "name": "BeginTime",
+          "type": "BSTR",
+          "flags": 1
+        },
+        {
+          "name": "EndTime",
+          "type": "BSTR",
+          "flags": 1
+        },
+        {
+          "name": "pVal",
+          "type": "PTR VARIANT_BOOL",
+          "flags": 10
+        }
+      ]
+    },
+    {
+      "interface": "IZKEM",
+      "method": "GetDaylight",
+      "dispid": 179,
+      "recordOffset": 41280,
+      "return": "HRESULT",
+      "parameters": [
+        {
+          "name": "dwMachineNumber",
+          "type": "LONG",
+          "flags": 1
+        },
+        {
+          "name": "Support",
+          "type": "PTR LONG",
+          "flags": 3
+        },
+        {
+          "name": "BeginTime",
+          "type": "PTR BSTR",
+          "flags": 3
+        },
+        {
+          "name": "EndTime",
+          "type": "PTR BSTR",
+          "flags": 3
+        },
+        {
+          "name": "pVal",
+          "type": "PTR VARIANT_BOOL",
+          "flags": 10
+        }
+      ]
+    }
+  ],
+  "executedBinary": false,
+  "originalSourceAvailable": false,
+  "hardwareVerified": false
+}

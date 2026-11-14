@@ -3,11 +3,12 @@ using System.Text.Json.Serialization;
 
 namespace IO.DeviceContracts;
 
-public sealed record ZkOperationInput(ZkProbeInput Connection, string Operation, string? ClockLocal, bool AllowClockSet,bool AllowAdvancedSettingsRead=false,bool AllowRestart=false,ZkNetworkPlan? NetworkPlan=null,bool AllowNetworkIpChange=false,bool AllowNetworkInspect=false,ZkIdlePlan? IdlePlan=null,bool AllowIdleMinutesWrite=false,ZkIdleApproval? IdleApproval=null,ZkFunctionKeyReadApproval? FunctionKeyReadApproval=null,ZkRawSettingPlan? RawSettingPlan=null,bool AllowRawSettingsWrite=false,ZkRawSettingApproval? RawSettingApproval=null,ZkFunctionKeyPlan? FunctionKeyPlan=null,bool AllowFunctionKeyWrite=false,ZkFunctionKeyWriteApproval? FunctionKeyWriteApproval=null)
+public sealed record ZkOperationInput(ZkProbeInput Connection, string Operation, string? ClockLocal, bool AllowClockSet,bool AllowAdvancedSettingsRead=false,bool AllowRestart=false,ZkNetworkPlan? NetworkPlan=null,bool AllowNetworkIpChange=false,bool AllowNetworkInspect=false,ZkIdlePlan? IdlePlan=null,bool AllowIdleMinutesWrite=false,ZkIdleApproval? IdleApproval=null,ZkFunctionKeyReadApproval? FunctionKeyReadApproval=null,ZkRawSettingPlan? RawSettingPlan=null,bool AllowRawSettingsWrite=false,ZkRawSettingApproval? RawSettingApproval=null,ZkFunctionKeyPlan? FunctionKeyPlan=null,bool AllowFunctionKeyWrite=false,ZkFunctionKeyWriteApproval? FunctionKeyWriteApproval=null,ZkDaylightReadApproval? DaylightReadApproval=null)
 {
     public bool IsValid()
     {
         if(Connection?.IsValid()!=true)return false;
+        if(DaylightReadApproval is not null&&(Operation!="settings.read"||!AllowAdvancedSettingsRead||!DaylightReadApproval.IsValid()))return false;
         if(Operation=="settings.key.set")return AllowAdvancedSettingsRead&&AllowFunctionKeyWrite&&FunctionKeyPlan?.IsValid()==true&&FunctionKeyPlan.Serial==Connection.ExpectedSerial&&FunctionKeyWriteApproval?.Allows(FunctionKeyPlan)==true&&FunctionKeyReadApproval is null&&NetworkPlan is null&&IdlePlan is null&&IdleApproval is null&&RawSettingPlan is null&&RawSettingApproval is null&&ClockLocal is null;
         if(FunctionKeyPlan is not null||FunctionKeyWriteApproval is not null)return false;
         if(FunctionKeyReadApproval is not null&&(Operation!="settings.read"||!AllowAdvancedSettingsRead||!FunctionKeyReadApproval.IsValid()))return false;
@@ -48,6 +49,7 @@ public sealed record ZkOperationOutput(string State, ZkDeviceInformation? Inform
             "information.read" => Settings is null&&Information is not null&&Information.IsValid()&&Information.Serial==input.Connection.ExpectedSerial,
             "network.inspect" => Information is null&&Settings is null&&Network is not null&&Network.IsValid()&&Network.Serial==input.Connection.ExpectedSerial&&Network.ConnectedAddress==input.Connection.Address,
             "settings.read" => input.AllowAdvancedSettingsRead&&Information is null&&Settings is not null&&Settings.IsValid()&&Settings.Serial==input.Connection.ExpectedSerial&&
+                (input.DaylightReadApproval is null?Settings.Daylight is null:input.DaylightReadApproval.Allows(Settings.Product,Settings.Firmware)&&Settings.Daylight?.Matches(input.DaylightReadApproval)==true)&&
                 (input.FunctionKeyReadApproval is null?Settings.FunctionKeys is null:input.FunctionKeyReadApproval.Allows(Settings.Product,Settings.Firmware)&&Settings.FunctionKeys?.Matches(input.FunctionKeyReadApproval)==true),
             "device.restart" => input.AllowRestart&&Information is null&&Settings is null,
             "clock.set" => input.AllowClockSet&&Information is null&&Settings is null,

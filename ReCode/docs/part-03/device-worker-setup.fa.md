@@ -149,3 +149,7 @@ UserWriteFormat پیش‌فرض ssr-v1 است. ارسال legacy به UserWriteF
 ## نوشتن کلید عملکردی با حفظ برنامهٔ کامل
 
 [قرارداد نصب و حقوق مستقل](s11-function-key-write.fa.md): AllowFunctionKeyWrite پیش‌فرض false، FunctionKeyWriteApprovals شامل دو tuple کامل مصوب همان مدل/firmware/index/اثر/مرجع و AttendanceOnly دارای شاهد معتبر نصب است. AutoChange/AutoChangeTime هرگز مانند مرجع ضمنی صفر نمی‌شوند. migration46 و انتشار هماهنگ worker/bridge لازم است؛ نتیجه CI این برش هنوز باید روی SHA خودش ثبت شود.
+
+## خواندن خام DLST
+
+[قرارداد و نصب خواندن GetDaylight](s11-daylight-read.fa.md): `DaylightReadApproval=null` پیش‌فرض و مدل/firmware/مرجع دقیق نصب لازم است. دادهٔ خام زیر `devices.settings.read` انسان و `devices.operations.execute` + `devices.settings.read.execute` سرویس و scope جاری می‌آید. worker و bridge هم‌نسخه باشند. این approval فقط برای settings.read است؛ SetDaylight یا تغییر ساعت فعال نمی‌شود.

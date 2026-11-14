@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using IO.DeviceContracts;
 
+if (args is ["--daylight-read-contracts"]) { await DaylightReadTests.RunAsync(); return; }
+
 if (args is ["--function-key-read-contracts"]) { await FunctionKeyReadTests.RunAsync(); return; }
 
 if (args is ["--attendance-read-contracts"]) { await AttendanceReadContractTests.RunAsync(); return; }
@@ -122,6 +124,13 @@ if (args is not ["--verify"])
                 if(settings is null){Console.WriteLine(JsonSerializer.Serialize(new ZkOperationOutput("unsupported")));return;}
                 if(operation.Connection.ExpectedSerial=="function-missing")settings=settings with{FunctionKeys=null};
                 if(operation.Connection.ExpectedSerial=="function-large")settings=settings with{FunctionKeys=new(ZkFunctionKeySnapshot.Version,keyApproval.EvidenceReference,keyApproval.Indices.Select(i=>new ZkFunctionKeyValue(i,true,0,0,new string('ژ',128),0,new string('ژ',128))).ToArray())};
+            }
+            if(operation.DaylightReadApproval is {} daylightApproval)
+            {
+                settings=settings with{Product="daylight-product",Firmware="daylight-fw"};
+                settings=ZkDaylightReader.Add(settings,daylightApproval,new DaylightReadTests.Session())!;
+                if(settings is null){Console.WriteLine(JsonSerializer.Serialize(new ZkOperationOutput("unsupported")));return;}
+                if(operation.Connection.ExpectedSerial=="daylight-missing")settings=settings with{Daylight=null};
             }
             if(operation.Connection.ExpectedSerial=="settings-wrong-pin")settings=settings with{Serial="different"};
             if(operation.Connection.ExpectedSerial=="settings-missing")Console.WriteLine("{\"State\":\"succeeded\",\"Settings\":{\"Contract\":\"zk-device-info-v1\",\"Serial\":\"settings-missing\"}}");

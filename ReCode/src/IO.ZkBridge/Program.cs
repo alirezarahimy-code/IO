@@ -77,6 +77,7 @@ internal static class Program
                 var descriptor=new IdleSettingSession(instance,input.MachineNumber);
                 settings=ZkAdditionalSettingsReader.Add(settings with{Product=descriptor.Product(),Firmware=descriptor.Firmware()},new AdditionalSettingsSession(instance,input.MachineNumber));
                 if(request?.FunctionKeyReadApproval is {} keyApproval){settings=ZkFunctionKeyReader.Add(settings,keyApproval,new FunctionKeySession(instance))!;if(settings is null)return new("unsupported");}
+                if(request?.DaylightReadApproval is {} daylightApproval){settings=ZkDaylightReader.Add(settings,daylightApproval,new DaylightSession(instance,input.MachineNumber))!;if(settings is null)return new("unsupported");}
                 string after;if(!(bool)sdk.GetSerialNumber(input.MachineNumber,out after)||after?.Trim()!=input.ExpectedSerial)return new("identity-mismatch");
                 return new("succeeded",Settings:settings);
             }
@@ -136,6 +137,16 @@ internal static class Program
         public int? Read(string parameter){int value=0;return (bool)((dynamic)instance).GetDeviceInfo(machine,ZkRawParameters.Code(parameter),ref value)?value:null;}
         public bool Set(string parameter,int value)=>(bool)((dynamic)instance).SetDeviceInfo(machine,ZkRawParameters.Code(parameter),value);
     }
+    // SDK 6.3.1.45 embedded IZKEM typelib: GetDaylight DispId179, three [in,out] pointers.
+    private sealed class DaylightSession(object instance,int machine):IZkDaylightReadSession
+    {
+        public ZkDaylightValue? ReadDaylight()
+        {
+            int support=0;string begin="",end="";
+            return (bool)((dynamic)instance).GetDaylight(machine,ref support,ref begin,ref end)?new(support,begin,end):null;
+        }
+    }
+
     private sealed class FunctionKeySession(object instance):IZkFunctionKeyReadSession
     {
         public ZkFunctionKeyValue? Read(int index)

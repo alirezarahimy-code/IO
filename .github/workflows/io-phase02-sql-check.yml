@@ -82,6 +82,9 @@ jobs:
       - name: Test explicitly approved read-only function key contract
         working-directory: ReCode
         run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --function-key-read-contracts
+      - name: Test read-only daylight contracts and isolated child
+        working-directory: ReCode
+        run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --daylight-read-contracts
       - name: Verify legacy device parity and closed dispatch
         working-directory: ReCode
         run: dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --reference-parity
@@ -252,7 +255,9 @@ jobs:
         working-directory: ReCode
         run: python3 tools/validate-capability-audit.py
       - name: Verify complete legacy device action crosswalk
-        run: python3 ReCode/tools/device-reference-audit.py
+        run: |
+          python3 ReCode/tools/device-reference-audit.py
+          python3 ReCode/tools/inspect-zkem-daylight-typelib.py --verify
       - name: Generate migration scripts offline
         working-directory: ReCode
         shell: bash

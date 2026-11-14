@@ -38,6 +38,7 @@ jobs:
       - name: Validate reference evidence and capability inventory
         run: |
           python3 ReCode/tools/device-reference-audit.py
+          python3 ReCode/tools/inspect-zkem-daylight-typelib.py --verify
           python3 ReCode/tools/validate-capability-audit.py
       - name: Prepare offline DOM dependencies
         if: steps.scope.outputs.ui == 'true' || steps.scope.outputs.preview == 'true'
