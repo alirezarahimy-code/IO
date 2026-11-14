@@ -68,6 +68,17 @@ class Routing(unittest.TestCase):
                 self.assertFalse(triggered(workflow, [path]), path)
             self.assertTrue(triggered(LIGHT, [path]), path)
 
+    def test_native_dispatch_proof_is_reproduced_without_hardware(self):
+        self.assertTrue(triggered(LIGHT, ['ReCode/tools/inspect-zkem-network-dispatch.py']))
+        steps = LIGHT['jobs']['light']['steps']
+        probe = next(s for s in steps if s.get('name') ==
+                     'Verify hash-pinned network setter dispatch with trapped transport')
+        self.assertEqual(probe['run'], 'python3 ReCode/tools/inspect-zkem-network-dispatch.py --verify')
+        self.assertNotIn('if', probe)
+        dependency = next(s for s in steps if s.get('name') ==
+                          'Prepare offline native instruction emulator')
+        self.assertIn('pefile==2024.8.26 unicorn==2.1.4', dependency['run'])
+
     def test_sensitive_or_unknown_changes_still_run_full(self):
         for path in ["ReCode/src/IO.Infrastructure/Migrations/new.cs", "ReCode/src/IO.Infrastructure/Security/DeviceAccess.cs", "ReCode/src/IO.Web/Program.cs", "ReCode/src/IO.DeviceWorker/Program.cs", "ReCode/src/IO.Web/Ui/HelpContent.json", "ReCode/tests/IO.Infrastructure.SqlTests/VirtualWorkerTests.cs", "ReCode/tools/verify-platform.ps1", "ReCode/global.json", "ReCode/Directory.Build.props", "ReCode/src/IO.Web/IO.Web.csproj", ".github/workflows/io-cross-platform.yml", "future/unclassified.file"]:
             for workflow in [SQL, PLATFORM]:

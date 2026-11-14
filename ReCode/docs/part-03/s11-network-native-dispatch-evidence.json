@@ -1,0 +1,465 @@
+{
+  "kind": "offline-x86-emulation-with-trapped-transport",
+  "realComExecuted": false,
+  "firmwareVerified": false,
+  "caveat": "Generic option forwarding does not prove DHCP support on firmware",
+  "fixtures": [
+    {
+      "path": "SDK 6.3.1.45/zkemsdk.dll",
+      "sha256": "890596687008389d88eabb15ae0d02b9b24cc19b6caf861f84dfd13c515cec91",
+      "probes": [
+        {
+          "method": "Z_SetSysOption",
+          "name": "TCPPort",
+          "value": "4371",
+          "syntheticAck": 2000,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 1,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "544350506f72743d3433373100"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "TCPPort",
+          "value": "4371",
+          "syntheticAck": 2001,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 4294967294,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "544350506f72743d3433373100"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "TCPPort",
+          "value": "4371",
+          "syntheticAck": 0,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 4294967294,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "544350506f72743d3433373100"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "DHCP",
+          "value": "0",
+          "syntheticAck": 2000,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 1,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "444843503d3000"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "DHCP",
+          "value": "0",
+          "syntheticAck": 2001,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 4294967294,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "444843503d3000"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "DHCP",
+          "value": "0",
+          "syntheticAck": 0,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 4294967294,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "444843503d3000"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "DHCP",
+          "value": "1",
+          "syntheticAck": 2000,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 1,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "444843503d3100"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "DHCP",
+          "value": "1",
+          "syntheticAck": 2001,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 4294967294,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "444843503d3100"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "DHCP",
+          "value": "1",
+          "syntheticAck": 0,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 4294967294,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "444843503d3100"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "TCPPort",
+          "value": "1",
+          "syntheticAck": 2000,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 1,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "544350506f72743d3100"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "TCPPort",
+          "value": "65535",
+          "syntheticAck": 2000,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 1,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "544350506f72743d363535333500"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "IO_UNSUPPORTED_PROBE",
+          "value": "1",
+          "syntheticAck": 2000,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 1,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "494f5f554e535550504f525445445f50524f42453d3100"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "",
+          "value": "1",
+          "syntheticAck": 2000,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 4,
+          "sends": []
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "TCPPort",
+          "value": "4371",
+          "syntheticAck": 2000,
+          "nullContext": true,
+          "infoCode": null,
+          "returnUnsigned": 4294967295,
+          "sends": []
+        },
+        {
+          "method": "Z_SetDeviceInfo",
+          "name": "TCPPort",
+          "value": "4371",
+          "syntheticAck": 2000,
+          "nullContext": false,
+          "infoCode": 70,
+          "returnUnsigned": 1,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "544350506f72743d3433373100"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetDeviceInfo",
+          "name": "TCPPort",
+          "value": "4371",
+          "syntheticAck": 2001,
+          "nullContext": false,
+          "infoCode": 70,
+          "returnUnsigned": 4294967294,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "544350506f72743d3433373100"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetDeviceInfo",
+          "name": "ControlMinute",
+          "value": "4371",
+          "syntheticAck": 2000,
+          "nullContext": false,
+          "infoCode": 69,
+          "returnUnsigned": 1,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "436f6e74726f6c4d696e7574653d3433373100"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": "NewPack Dlls 10.06.1398/zkemsdk.dll",
+      "sha256": "52879682f7c7e5cb78bcae5ad9c9f8b4fe1c51f4df3688b10836d62a80f29384",
+      "probes": [
+        {
+          "method": "Z_SetSysOption",
+          "name": "TCPPort",
+          "value": "4371",
+          "syntheticAck": 2000,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 1,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "544350506f72743d3433373100"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "TCPPort",
+          "value": "4371",
+          "syntheticAck": 2001,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 4294967294,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "544350506f72743d3433373100"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "TCPPort",
+          "value": "4371",
+          "syntheticAck": 0,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 4294967294,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "544350506f72743d3433373100"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "DHCP",
+          "value": "0",
+          "syntheticAck": 2000,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 1,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "444843503d3000"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "DHCP",
+          "value": "0",
+          "syntheticAck": 2001,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 4294967294,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "444843503d3000"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "DHCP",
+          "value": "0",
+          "syntheticAck": 0,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 4294967294,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "444843503d3000"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "DHCP",
+          "value": "1",
+          "syntheticAck": 2000,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 1,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "444843503d3100"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "DHCP",
+          "value": "1",
+          "syntheticAck": 2001,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 4294967294,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "444843503d3100"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "DHCP",
+          "value": "1",
+          "syntheticAck": 0,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 4294967294,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "444843503d3100"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "TCPPort",
+          "value": "1",
+          "syntheticAck": 2000,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 1,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "544350506f72743d3100"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "TCPPort",
+          "value": "65535",
+          "syntheticAck": 2000,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 1,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "544350506f72743d363535333500"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "IO_UNSUPPORTED_PROBE",
+          "value": "1",
+          "syntheticAck": 2000,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 1,
+          "sends": [
+            {
+              "command": 12,
+              "payloadHex": "494f5f554e535550504f525445445f50524f42453d3100"
+            }
+          ]
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "",
+          "value": "1",
+          "syntheticAck": 2000,
+          "nullContext": false,
+          "infoCode": null,
+          "returnUnsigned": 4,
+          "sends": []
+        },
+        {
+          "method": "Z_SetSysOption",
+          "name": "TCPPort",
+          "value": "4371",
+          "syntheticAck": 2000,
+          "nullContext": true,
+          "infoCode": null,
+          "returnUnsigned": 4294967295,
+          "sends": []
+        }
+      ]
+    }
+  ]
+}
