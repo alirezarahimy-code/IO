@@ -31,7 +31,7 @@ NativeEndpoint: `AllowFunctionKeyWrite=false` و `FunctionKeyWriteApprovals=null
 Product, Firmware, ApprovedStates, Effect, EvidenceReference, AttendanceOnly
 ```
 
-`ApprovedStates` شامل۲ تا۱۶ tuple کامل، یکتا و مربوط به یک index است؛ هم حالت قدیم هم جدید باید عیناً در فهرست باشند. `AttendanceOnly=true` فقط پس از شاهد معتبر تیم نصب برای اینکه این حالت‌های دقیق کلید در این مدل/firmware صرفاً عملکرد تردد هستند و درب/گیت یا ثبت بیومتریک را اجرا نمی‌کنند قابل تأیید است. مقدار پیش‌فرض false است؛ هیچ کد عددی عمومی به‌عنوان «قطعاً تردد» حدس زده نمی‌شود. این flag به‌تنهایی گواه دستگاه واقعی نیست و از وب قابل فعال‌کردن نیست. بدون قرارداد و شاهد نصب، هیچ نمونهٔ فعال تولید پیشنهاد نمی‌شود.
+`ApprovedStates` شامل۲ تا۸ tuple کامل، یکتا و مربوط به یک index است؛ هم حالت قدیم هم جدید باید عیناً در فهرست باشند. `AttendanceOnly=true` فقط پس از شاهد معتبر تیم نصب برای اینکه این حالت‌های دقیق کلید در این مدل/firmware صرفاً عملکرد تردد هستند و درب/گیت یا ثبت بیومتریک را اجرا نمی‌کنند قابل تأیید است. مقدار پیش‌فرض false است؛ هیچ کد عددی عمومی به‌عنوان «قطعاً تردد» حدس زده نمی‌شود. این flag به‌تنهایی گواه دستگاه واقعی نیست و از وب قابل فعال‌کردن نیست. بدون قرارداد و شاهد نصب، هیچ نمونهٔ فعال تولید پیشنهاد نمی‌شود.
 
 ## یک dispatch و نتیجهٔ نامعلوم
 
@@ -43,10 +43,12 @@ review با `REVIEWED-APPROVED-FUNCTION-KEY` و snapshot موفق **بعد** ا�
 
 migration46 `DeviceFunctionKeyWrites`: plan/result این نوع حداکثر۱۶۳۸۴ بایت، سایر bounds قبلی محفوظ. CHECK/triggerهای مستقل source snapshot، exact tuple شامل schedule، immutable identity و retention را حفاظت می‌کنند. DOWN با تاریخچهٔ key خطای51035 می‌دهد؛ داده برای عبور از guard حذف نمی‌شود. تست guardهای قدیمی polling/payload/raw قبل از ایجاد تاریخچهٔ key اجرا و آخرین migration پیش از worker برگردانده می‌شود.
 
-- `FunctionKeyWriteTests`:۲۲ بررسی محلی موفق، شامل session مصنوعی، child واقعی و deadline؛ اجرای SDK نیست.
+- `FunctionKeyWriteTests`:۲۳ بررسی محلی موفق، شامل session مصنوعی، child واقعی و deadline؛ اجرای SDK نیست.
 - `device-key-write-ui-check.cjs`: preview، حفظ raw whitespace/schedule، explicit consent، replay همان intent نامعلوم، CSRF، safe text، review و revoke موفق.
-- `DeviceFunctionKeyWriteTests`:۱۶ بررسی SQL/حقوق/credential/revoke/tuple/readback/history/downgrade افزوده شده.
+- `DeviceFunctionKeyWriteTests`:۲۰ بررسی SQL/حقوق/credential/revoke/tuple/readback/history/downgrade افزوده شده.
 - `VirtualWorkerTests`:۲ سناریوی HTTPS/SQL/production-worker/child/TCP برای lost ACK بعد از یک mutation با schedule محفوظ و سپس recovery/review بدون replay افزوده شده. TCP خصوصی آزمایشگاهی است، نه پروتکل ZK یا COM.
-- انتظار suite کامل:۹۰۶ PASS،۴۶ migration و۱۲۹ permission. تا CI همان SHA موفق نشود این تعداد ادعای نتیجه نیست.
+- انتظار suite کامل:۹۱۰ PASS،۴۶ migration و۱۲۹ permission. تا CI همان SHA موفق نشود این تعداد ادعای نتیجه نیست.
 
 SDK/مدل و چنددستگاه واقعی طبق دستور کاربر برای انتها باقی‌اند. الگوریتم، DLST و شبکهٔ باقی‌مانده، PUSH امن، حذف و سیاست بیومتریک با این برش بسته نمی‌شوند.
+
+سقف هشت state بودجهٔ هر approval/IPC است، نه تعداد کلید یا ظرفیت مدل/دستگاه. ترکیب حداکثر متن‌های Unicode و هشت state در child واقعی آزموده شد؛ input محدود۳۲۷۶۸ و output۸۱۹۲ کاراکتر، بدون trim/truncation. رد مجوز خواندن انسان و سرویس، redaction هر دو plan/observation و رد review با schedule متفاوت نیز regressionهای مستقل دارند.

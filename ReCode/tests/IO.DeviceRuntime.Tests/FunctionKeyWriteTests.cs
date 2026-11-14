@@ -25,6 +25,11 @@ internal static class FunctionKeyWriteTests
   Check(!new ZkOperationOutput("succeeded").IsValidFor(input)&&!(result with{FunctionKey=result.FunctionKey! with{Key=New with{AutoChange=0}}}).IsValidFor(input)&&!(result with{State="unknown"}).IsValidFor(input),"bare ACK partial schedule and mixed unknown evidence rejected");
   var host=Path.GetFullPath(Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(),"..","..","..",OperatingSystem.IsWindows()?"dotnet.exe":"dotnet"));var assembly=typeof(FunctionKeyWriteTests).Assembly.Location;
   Check((await NativeProcessSupervisor.RunOperationAsync(host,assembly,input,5)).IsValidFor(input),"real isolated child round-trips all tuple fields without vendor SDK");
+  var largeOld=Old with{StateName=new string('ژ',128),AutoChangeTime=new string('ژ',128)};var states=Enumerable.Range(0,8).Select(i=>largeOld with{StateCode=i}).ToArray();
+  var largePlan=plan with{Serial="key-long",Product=new string('ژ',120),Firmware=new string('ژ',120),Expected=states[0],Desired=states[1],Effect=new string('ژ',200),ApprovalReference=new string('ژ',200)};
+  var largeApproval=new ZkFunctionKeyWriteApproval(largePlan.Product,largePlan.Firmware,states,largePlan.Effect,largePlan.ApprovalReference,true);
+  var largeInput=input with{Connection=pin with{ExpectedSerial=largePlan.Serial},FunctionKeyPlan=largePlan,FunctionKeyWriteApproval=largeApproval};var size=System.Text.Json.JsonSerializer.Serialize(largeInput).Length;
+  Check(size>8192&&size<=32768&&! (largeApproval with{ApprovedStates=states.Append(largeOld with{StateCode=8}).ToArray()}).IsValid()&&(await NativeProcessSupervisor.RunOperationAsync(host,assembly,largeInput,5)).IsValidFor(largeInput),"maximum Unicode tuples and eight installed states fit explicit private IPC budget without truncation");
   Check((await NativeProcessSupervisor.RunOperationAsync(host,assembly,input with{Connection=pin with{ExpectedSerial="key-hang"},FunctionKeyPlan=plan with{Serial="key-hang"}},1)).State=="unknown","external deadline kills hung child without declaring safe retry");
   Console.WriteLine($"PASS {count} function key write contract checks; synthetic only not model SDK or hardware acceptance");
  }

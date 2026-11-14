@@ -182,13 +182,14 @@
   "functionKeyWriteFollowup": {
     "status": "implemented-pending-exact-SHA-CI",
     "guide": "s11-function-key-write.fa.md",
-    "expectedSqlPassLines": 906,
+    "expectedSqlPassLines": 910,
     "expectedFoundationMigrations": 46,
     "expectedPermissions": 129,
-    "localKeyContractChecks": 22,
+    "localKeyContractChecks": 23,
     "offlineDomFiles": 17,
-    "newSqlChecks": 16,
+    "newSqlChecks": 20,
     "newRealWorkerScenarios": 2,
-    "part3Complete": false
+    "part3Complete": false,
+    "approvalStateBudget": 8
   }
 }

@@ -14,7 +14,7 @@ public sealed record ZkFunctionKeyPlan(string Contract,Guid SnapshotId,string Se
 /// No inferred function/state ranges, schedule syntax, time units or automatic clearing.</summary>
 public sealed record ZkFunctionKeyWriteApproval(string Product,string Firmware,ZkFunctionKeyValue[] ApprovedStates,string Effect,string EvidenceReference,bool AttendanceOnly=false)
 {
- public bool IsValid()=>AttendanceOnly&&ZkIdlePlan.Text(Product,120)&&ZkIdlePlan.Text(Firmware,120)&&ZkIdlePlan.Text(Effect,200)&&ZkIdlePlan.Text(EvidenceReference,200)&&ApprovedStates is {Length:>=2 and <=16}&&ApprovedStates.All(x=>x is {Reported:true}&&x.IsValid())&&ApprovedStates.Select(x=>x.Index).Distinct().Count()==1&&ApprovedStates.Distinct().Count()==ApprovedStates.Length;
+ public bool IsValid()=>AttendanceOnly&&ZkIdlePlan.Text(Product,120)&&ZkIdlePlan.Text(Firmware,120)&&ZkIdlePlan.Text(Effect,200)&&ZkIdlePlan.Text(EvidenceReference,200)&&ApprovedStates is {Length:>=2 and <=8}&&ApprovedStates.All(x=>x is {Reported:true}&&x.IsValid())&&ApprovedStates.Select(x=>x.Index).Distinct().Count()==1&&ApprovedStates.Distinct().Count()==ApprovedStates.Length;
  public bool Allows(ZkFunctionKeyPlan plan)=>IsValid()&&plan.IsValid()&&Product==plan.Product&&Firmware==plan.Firmware&&Effect==plan.Effect&&EvidenceReference==plan.ApprovalReference&&ApprovedStates.Contains(plan.Expected)&&ApprovedStates.Contains(plan.Desired);
 }
 public sealed record ZkFunctionKeyObservation([property:JsonRequired]string Serial,[property:JsonRequired]string Product,[property:JsonRequired]string Firmware,[property:JsonRequired]ZkFunctionKeyValue Key,[property:JsonRequired]string Effect,[property:JsonRequired]string ApprovalReference)

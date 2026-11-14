@@ -94,7 +94,8 @@ if (args is not ["--verify"])
         if(operation.Operation=="settings.key.set")
         {
             if(operation.Connection.ExpectedSerial=="key-hang"){await Task.Delay(TimeSpan.FromMinutes(1));return;}
-            Console.WriteLine(JsonSerializer.Serialize(ZkFunctionKeyWriteExecutor.Execute(operation,new FunctionKeyWriteTests.Session())));return;
+            var keySession=operation.Connection.ExpectedSerial=="key-long"?new FunctionKeyWriteTests.Session{SerialValue="key-long",ProductValue=operation.FunctionKeyPlan!.Product,FirmwareValue=operation.FunctionKeyPlan.Firmware,Value=operation.FunctionKeyPlan.Expected}:new FunctionKeyWriteTests.Session();
+            Console.WriteLine(JsonSerializer.Serialize(ZkFunctionKeyWriteExecutor.Execute(operation,keySession)));return;
         }
         if(operation.Operation=="settings.raw.set")
         {

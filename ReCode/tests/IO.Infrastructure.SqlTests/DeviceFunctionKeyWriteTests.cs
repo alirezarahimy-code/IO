@@ -33,9 +33,9 @@ internal static class DeviceFunctionKeyWriteTests
   Task<Guid> Finish(DeviceOperations.Claim c,ZkOperationOutput result)=>Use<DeviceOperations,Guid>(s=>s.CompleteAsync(worker,c.Id,c.Token,result));
   Task<int> Revoke(Guid r,string code)=>Q(db=>db.RolePermissions.Where(x=>x.RoleId==r&&db.Permissions.Any(p=>p.Id==x.PermissionId&&p.Code==code)).ExecuteDeleteAsync());
   async Task Grant(Guid r,string code){await Q(async db=>{var p=await db.Permissions.SingleOrDefaultAsync(x=>x.Code==code);if(p is null){p=new(){Id=Guid.NewGuid(),Code=code};db.Permissions.Add(p);}db.RolePermissions.Add(new(){RoleId=r,PermissionId=p.Id});await db.SaveChangesAsync();return true;});}
-  async Task<Guid> Snapshot(int? minutes=5,string? product="product-A",string? firmware="firmware-1"){
+  async Task<Guid> Snapshot(int? minutes=5,string? product="product-A",string? firmware="firmware-1",ZkFunctionKeyValue? key=null){
    var id=Guid.NewGuid();await Use<DeviceOperations,Guid>(s=>s.RequestAsync(actor,id,device,version,"settings.read",5,null,"READ-ADVANCED-SETTINGS"));var c=await Claim()??throw new InvalidOperationException("No settings claim");if(c.Id!=id)throw new InvalidOperationException("Foreign claim");
-   await Finish(c,new("succeeded",Settings:new(ZkAdvancedSettings.Version,"key-fixture",5,23,-1,minutes,30,62,product,firmware,FunctionKeys:new(ZkFunctionKeySnapshot.Version,"lab-key-read",[OldKey]))));return id;
+   await Finish(c,new("succeeded",Settings:new(ZkAdvancedSettings.Version,"key-fixture",5,23,-1,minutes,30,62,product,firmware,FunctionKeys:new(ZkFunctionKeySnapshot.Version,"lab-key-read",[key??OldKey]))));return id;
   }
   ZkFunctionKeyPlan Plan(Guid snapshot)=>new(ZkFunctionKeyPlan.Version,snapshot,"key-fixture","product-A","firmware-1",OldKey,NewKey,"documented-effect","lab-contract");
   Task<Guid> Request(Guid id,ZkFunctionKeyPlan p,string? hash=null,Guid? user=null)=>Use<DeviceOperations,Guid>(s=>s.RequestAsync(user??actor,id,device,version,"settings.key.set",5,null,ZkFunctionKeyPlan.Confirmation,functionKeyPlan:p,functionKeyPreviewHash:hash??p.PreviewHash()));
@@ -54,15 +54,23 @@ internal static class DeviceFunctionKeyWriteTests
   check(await Reject<UnauthorizedAccessException>(()=>Finish(claim,new("unknown")))&&await Reject<UnauthorizedAccessException>(()=>Use<DeviceOperations,DeviceCommunicationKey?>(s=>s.CredentialAsync(worker,claim,true))),"S11 key worker grant revocation immediately denies completion and credential access");await Grant(exec,DeviceOperations.ExecuteFunctionKeyWrite);
   check(await Reject<ArgumentException>(()=>Finish(claim,new("succeeded")))&&await Reject<ArgumentException>(()=>Finish(claim,new("succeeded",FunctionKey:new(plan.Serial,plan.Product,plan.Firmware,plan.Desired with{AutoChange=0},plan.Effect,plan.ApprovalReference)))),"S11 key completion refuses bare ACK and wrong post-write AutoChange field");
   check(await Reject<SqlException>(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.DeviceOperations SET FunctionKeyPlanJson=REPLACE(FunctionKeyPlanJson,N'firmware-1',N'firmware-2') WHERE Id={id}"))),"S11 SQL rejects key plan mutation before completion independently of API checks");
+  await Revoke(role,DeviceOperations.ReadFunctionKeys);
+  check(await Use<DeviceOperations,DeviceCommunicationKey?>(s=>s.CredentialAsync(worker,claim,true))==null&&await Reject<UnauthorizedAccessException>(()=>Preview(snapshot))&&await Reject<UnauthorizedAccessException>(()=>Request(Guid.NewGuid(),plan)),"S11 revoking human key-read permission denies existing key credential and new preview or intent despite retained write right");await Grant(role,DeviceOperations.ReadFunctionKeys);
+  await Revoke(exec,DeviceOperations.ExecuteFunctionKeys);
+  check(await Reject<UnauthorizedAccessException>(()=>Use<DeviceOperations,DeviceCommunicationKey?>(s=>s.CredentialAsync(worker,claim,true)))&&await Reject<UnauthorizedAccessException>(()=>Finish(claim,new("unknown"))),"S11 service key-read revocation independently denies key write credential and completion despite retained key-write execution right");await Grant(exec,DeviceOperations.ExecuteFunctionKeys);
   var wrongJson=JsonSerializer.Serialize(new ZkFunctionKeyObservation(plan.Serial,plan.Product,plan.Firmware,plan.Desired with{AutoChangeTime="reset"},plan.Effect,plan.ApprovalReference));
   check(await Reject<SqlException>(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.DeviceOperations SET State=N'succeeded',FinishedAtUtc=SYSDATETIMEOFFSET(),ResultJson={wrongJson} WHERE Id={id}")))&&await State(id)=="running","S11 SQL independently refuses a key success with altered AutoChangeTime and rolls back terminal transition");
   await Finish(claim,new("unknown"));
   check(await Reject<DomainConflictException>(()=>Request(Guid.NewGuid(),plan)),"S11 unreviewed key unknown blocks another device mutation instead of blind retry");
+  var drift=await Snapshot(key:OldKey with{AutoChangeTime="unapproved-drift"});
+  check(await Reject<DomainConflictException>(()=>Use<DeviceOperations,Guid>(async s=>await s.ResolveFunctionKeyAsync(actor,id,await V(id),drift,"REVIEWED-APPROVED-FUNCTION-KEY"))),"S11 unknown key review refuses a later same-index tuple with different schedule rather than matching only state code");
   var observed=await Snapshot();await Use<DeviceOperations,Guid>(async s=>await s.ResolveFunctionKeyAsync(actor,id,await V(id),observed,"REVIEWED-APPROVED-FUNCTION-KEY"));
   check(await State(id)=="unknown"&&await Q(db=>db.DeviceOperations.AnyAsync(x=>x.Id==id&&x.ResolutionInfoId==observed&&x.ResolvedAtUtc!=null)),"S11 later exact same-model old-value snapshot permits explicit review without converting unknown to success");
   var ok=Guid.NewGuid();await Request(ok,Plan(observed));var next=await Claim()??throw new InvalidOperationException("No next key claim");
   await Finish(next,new("succeeded",FunctionKey:new(plan.Serial,plan.Product,plan.Firmware,plan.Desired,plan.Effect,plan.ApprovalReference)));
   check(await State(ok)=="succeeded"&&await Q(db=>db.DeviceOperations.AnyAsync(x=>x.Id==ok&&x.ResultJson!=null)),"S11 key successful typed observation retained only after exact readback");
+  var history=JsonSerializer.SerializeToElement(await Use<DeviceOperations,object>(s=>s.ListSettingsAsync(reader,device,0)),new JsonSerializerOptions{PropertyNamingPolicy=JsonNamingPolicy.CamelCase});var hidden=history.GetProperty("items").EnumerateArray().Single(x=>x.GetProperty("id").GetGuid()==ok);
+  check(hidden.GetProperty("functionKeyPlan").ValueKind==JsonValueKind.Null&&hidden.GetProperty("functionKey").ValueKind==JsonValueKind.Null,"S11 settings-only history redacts both complete key plan and write observation without deleting SQL history");
   check(await Reject<SqlException>(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"DELETE dbo.DeviceOperations WHERE Id={ok}"))),"S11 SQL retains key history and refuses deletion");
   check(await Reject<SqlException>(()=>Q(async db=>{await db.GetService<IMigrator>().MigrateAsync("20261113140000_DeviceApprovedRawSettings");return true;})),"S11 downgrade refuses deletion of retained key-setting request and observation history");
  }
