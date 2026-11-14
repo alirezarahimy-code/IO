@@ -38,7 +38,14 @@ if(!address?.startsWith('https://127.0.0.1:')||!user?.startsWith('virtual-operat
   await page.locator('#profile-submit').click();
   const writeId=(await (await queued).json()).result;
   async function awaitState(id,state){await page.waitForFunction(async({id,state,device})=>{const r=await fetch('/device-settings-snapshots?deviceId='+device);if(!r.ok)return false;return (await r.json()).items.some(x=>x.id===id&&x.state===state);},{id,state,device:settingsDevice});}
-  await awaitState(writeId,'unknown');await page.locator('#profile-refresh').click();
+  await awaitState(writeId,'unknown');
+  // Queue creation may still have a pending-state reload in flight. Synchronize
+  // against the rendered UI, not only the independent server poll; refresh is
+  // read-only and no write/inspection is ever retried by this wait.
+  await page.waitForFunction(id=>{
+   if(document.querySelector('[data-profile-operation="'+id+'"] [data-profile-inspect="false"]'))return true;
+   const refresh=document.getElementById('profile-refresh');if(!refresh.disabled)refresh.click();return false;
+  },writeId,{polling:500});
   const parent=page.locator('[data-profile-operation="'+writeId+'"]');
   let inspection;
   try{
