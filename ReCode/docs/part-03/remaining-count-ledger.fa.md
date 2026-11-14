@@ -87,3 +87,7 @@ R16 قابلیت اثبات‌شدهٔ مدل نامعلوم نیستند و ا�
 ### تغییر سیاست تست به درخواست کاربر
 
 [CI خودکار فقط Windows](ci-windows-only.fa.md): matrix لینوکس حذف و light به Windows منتقل شد؛ SQL لینوکسی خودکار متوقف و اجرای دستی آن نیازمند opt-in پیش‌فرض false است. SQL۱۰۳۱ روی adcb551 شاهد تاریخی باقی می‌ماند، نه تست تازه. این صرفه‌جویی پوشش جدید Linux/SQL را ادعا نمی‌کند و شمار۹ فنی + H01 را تغییر نمی‌دهد.
+
+### R08/R09 — پیشنهاد انتخاب‌شده و برش مستقل جدید
+
+با واگذاری انتخاب به عامل، جهت gateway احرازشده (مرزی جدا از native authentication) و RemoteEnroll صرفاً مصنوعی تا تعیین policy انتخاب شدند. [کد و حدود دقیق](s10-gateway-and-s09-enroll-contracts.fa.md): HMAC/binding/commit boundary و lifecycle یک‌dispatch با اثبات حضور و unknown/cancel؛ شاهد امضای۳ متد از۲ DLL. این‌ها هنوز production store/receiver یا RemoteEnroll صف/bridge/API نیستند؛ policy واقعی تصویب نشده است. هیچ ردیف بسته نمی‌شود؛۹ فنی + H01 ثابت است.

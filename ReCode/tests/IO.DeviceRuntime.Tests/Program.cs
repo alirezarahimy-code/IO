@@ -3,6 +3,17 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using IO.DeviceContracts;
 
+if (args is ["--gateway-enroll-contracts"])
+{
+    try { await GatewayEnrollmentTests.RunAsync(); }
+    catch(Exception error)
+    {
+        Console.Error.WriteLine("::error title=Synthetic gateway/enrollment contract failure::"+error.ToString().Replace("%","%25").Replace("\r","%0D").Replace("\n","%0A"));
+        Environment.ExitCode=1;
+    }
+    return;
+}
+
 if (args is ["--push-codec-contracts"]) { ZkPushCodecTests.Run(); return; }
 
 if (args is ["--profile-setting-contracts"]) { await ProfileSettingTests.RunAsync(); return; }

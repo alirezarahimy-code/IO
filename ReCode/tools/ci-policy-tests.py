@@ -58,6 +58,17 @@ def triggered(workflow, paths):
 
 
 class Routing(unittest.TestCase):
+    def test_gateway_and_remote_enroll_contracts_cannot_implicitly_enable_native_or_linux_execution(self):
+        verifier = (ROOT / "ReCode/tools/verify-platform.ps1").read_text()
+        self.assertIn("--gateway-enroll-contracts", verifier)
+        self.assertIn("GatewayEnrollmentTests.RunAsync()", (ROOT / "ReCode/tests/IO.DeviceRuntime.Tests/Program.cs").read_text())
+        self.assertIn("audit-remote-enroll-typelib.py", (WORKFLOWS / "io-lightweight.yml").read_text())
+        program = (ROOT / "ReCode/src/IO.Web/Program.cs").read_text()
+        self.assertNotIn('app.MapPost("/gateway/', program)
+        self.assertNotIn('app.MapPost("/iclock', program)
+        self.assertNotIn('StartEnrollEx', (ROOT / "ReCode/src/IO.ZkBridge/Program.cs").read_text())
+        self.assertFalse(triggered(SQL, ["ReCode/src/IO.DeviceContracts/RemoteEnrollWorkflow.cs"]))
+
     def test_automatic_jobs_are_windows_only_and_sql_linux_requires_explicit_opt_in(self):
         self.assertEqual(PLATFORM["jobs"]["platform"]["runs-on"], "windows-2022")
         self.assertNotIn("strategy", PLATFORM["jobs"]["platform"])

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Read-only evidence extractor for the bundled PE/MSFT typelib. Never loads/executes COM.
-Only the two daylight methods are reported; this is not a general typelib decompiler.
+Only explicitly selected methods are reported; this is not a general typelib decompiler.
 PE resource, MSFT segment/function layouts are decoded as data using stdlib only.
 """
 import hashlib
@@ -15,7 +15,7 @@ EXPECTED_DLL = '33b5d535cffdd14dd123d22d8a069004add468c71a7c8411a906f641b7ef2399
 EXPECTED_TLB = 'f7b8fba2f3d5352b9482a0f6394b916f998aac469ec08c0bd175f7b5c2fbd395'
 
 
-def extract(path):
+def extract(path, selected_methods=('SetDaylight', 'GetDaylight')):
     pe = path.read_bytes()
     def word(p): return struct.unpack_from('<H', pe, p)[0]
     def dword(p): return struct.unpack_from('<I', pe, p)[0]
@@ -62,7 +62,7 @@ def extract(path):
         return b[p+12:p+12+(u(p+8) & 255)].decode('cp1252')
     def datatype(value):
         if value & 0x80000000:
-            return {3: 'LONG', 8: 'BSTR', 11: 'VARIANT_BOOL', 25: 'HRESULT'}[value & 4095]
+            return {0: 'EMPTY', 2: 'SHORT', 3: 'LONG', 8: 'BSTR', 11: 'VARIANT_BOOL', 24: 'VOID', 25: 'HRESULT'}[value & 4095]
         p = segments[9][0]+value
         assert h(p) & 4095 == 26, 'Expected pointer typedesc'
         return 'PTR '+datatype(u(p+4))
@@ -78,7 +78,7 @@ def extract(path):
             cursor += h(cursor)
         for j, r in enumerate(records):
             method = name(u(cursor+count*4+j*4))
-            if method not in ('SetDaylight', 'GetDaylight'):
+            if method not in selected_methods:
                 continue
             size, argc, flags = h(r), h(r+20), u(r+16)
             extra = size//4-6-argc*(4 if flags & 4096 else 3)

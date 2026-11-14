@@ -616,5 +616,25 @@
     ],
     "evidence": "ci-windows-only-evidence.json"
   },
-  "latestVerifiedCiCode": "e94e0b9d36dcc15046e641f55c1d73b0d047479f"
+  "latestVerifiedCiCode": "e94e0b9d36dcc15046e641f55c1d73b0d047479f",
+  "gatewayEnrollFollowup": {
+    "status": "portable-components-implemented-awaiting-Windows-CI",
+    "guide": "s10-gateway-and-s09-enroll-contracts.fa.md",
+    "selectedPushDirection": "authenticated-onsite-gateway-distinct-from-native-device-authentication",
+    "selectedEnrollmentScope": "synthetic-lifecycle-only-real-enrollment-disabled-until-authorized-model-and-biometric-policy",
+    "runtimeTestFlag": "--gateway-enroll-contracts",
+    "localCompileWarnings": 0,
+    "localCompileErrors": 0,
+    "linuxTestsExecuted": false,
+    "newSqlTestsExecuted": false,
+    "localPolicyChecks": 21,
+    "nativeTypelibSources": 2,
+    "productionGatewayStoreImplemented": false,
+    "httpIngressImplemented": false,
+    "remoteEnrollWorkerBridgeImplemented": false,
+    "realBiometricPolicyApproved": false,
+    "nativeDeviceAuthenticationImplemented": false,
+    "ledgerRowsClosed": [],
+    "hardwareVerified": false
+  }
 }
