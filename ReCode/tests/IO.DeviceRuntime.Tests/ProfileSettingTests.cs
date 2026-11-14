@@ -16,7 +16,7 @@ internal static class ProfileSettingTests
         foreach(var parameter in ZkProfileParameters.All)
         {
             var p=Plan(parameter);var input=Input(p);var session=new Session(p);
-            Check(p.IsValid()&&input.IsValid()&&Approval(p).Allows(p),parameter+" exact complete approved states endpoint and zone validate");
+            Check(p.IsValid()&&input.IsValid()&&Approval(p).Allows(p)&&JsonSerializer.Deserialize<ZkProfilePlan>(JsonSerializer.Serialize(p),new JsonSerializerOptions{UnmappedMemberHandling=System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow})==p,parameter+" exact complete approved states endpoint and zone validate");
             Check(!(input with{AllowProfileWrite=false}).IsValid()&&!(input with{ProfileApproval=Approval(p) with{EffectsReviewed=false}}).IsValid(),parameter+" default-off flag and unreviewed effects cannot dispatch");
             Check(!Approval(p).Allows(p with{TimeZoneId="other"})&&!Approval(p).Allows(p with{ApprovalReference="other"})&&!Approval(p).Allows(p with{Effect="other"}),parameter+" installed zone reference and effect cannot be substituted");
             var result=ZkProfileExecutor.Execute(input,session);

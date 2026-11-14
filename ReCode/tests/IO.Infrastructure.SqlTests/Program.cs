@@ -464,9 +464,9 @@ try
     // Native raw history correctly blocks DOWN45. Exercise older DOWN43/44
     // guards first, then restore latest before the full real-worker raw scenario.
     await DeviceRawSettingTests.RunAsync(connection, Check);
+    await DeviceProfileSettingTests.RunAsync(connection, Check);
     await VirtualWorkerTests.RunAsync(connection, Check);
     await DeviceFunctionKeyWriteTests.RunAsync(connection, Check);
-await DeviceProfileSettingTests.RunAsync(connection, Check);
     Console.WriteLine("PASS disposable SQL Server integration checks");
     return 0;
 }

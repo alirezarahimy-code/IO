@@ -45,7 +45,10 @@ if(!address?.startsWith('https://127.0.0.1:')||!user?.startsWith('virtual-operat
    await parent.locator('[data-profile-inspect="false"]').waitFor();
    const [reading]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname==='/device-operations'&&r.request().method()==='POST'),parent.locator('[data-profile-inspect="false"]').click()]);
    assert.equal(reading.status(),200);inspection=(await reading.json()).result;
-  }catch(error){throw Error(String(error)+' | profile notice: '+await page.locator('#profile-notice').textContent()+' | retained rows: '+await page.locator('#profile-items').textContent()+' | browser errors: '+errors.join('; '));}
+  }catch(error){
+   const server=await page.evaluate(async({id,device})=>{const r=await fetch('/device-settings-snapshots?deviceId='+device);const data=await r.json();return {status:r.status,item:data.items.find(x=>x.id===id),ids:data.items.map(x=>[x.id,x.kind,x.state])};},{id:writeId,device:settingsDevice});
+   throw Error(String(error)+' | profile notice: '+await page.locator('#profile-notice').textContent()+' | parent matches: '+await parent.count()+' | parent HTML: '+((await parent.count())?await parent.innerHTML():'none')+' | exact SQL history: '+JSON.stringify(server)+' | browser errors: '+errors.join('; '));
+  }
   await awaitState(inspection,'succeeded');await page.locator('#profile-refresh').click();
   await parent.locator('input').fill(inspection);
   const reviewed=page.waitForResponse(r=>new URL(r.url()).pathname==='/device-operations/'+writeId+'/resolve-profile');
