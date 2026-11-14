@@ -37,7 +37,18 @@ if(!address?.startsWith('https://127.0.0.1:')||!user?.startsWith('virtual-operat
   const queued=page.waitForResponse(r=>new URL(r.url()).pathname==='/device-operations'&&r.request().method()==='POST');
   await page.locator('#profile-submit').click();
   const writeId=(await (await queued).json()).result;
-  async function awaitState(id,state){await page.waitForFunction(async({id,state,device})=>{const r=await fetch('/device-settings-snapshots?deviceId='+device);if(!r.ok)return false;return (await r.json()).items.some(x=>x.id===id&&x.state===state);},{id,state,device:settingsDevice});}
+  async function awaitState(id,state,reviewed=false){
+   const deadline=Date.now()+60000;let last;
+   do{
+    // Await the authenticated HTTP receipt in Node. An async DOM predicate can
+    // yield a truthy Promise before its SQL-state test has completed.
+    const response=await page.request.get(address+'/device-settings-snapshots?deviceId='+settingsDevice);
+    assert.equal(response.status(),200);last=(await response.json()).items.find(x=>x.id===id);
+    if(last?.state===state&&(!reviewed||last.resolvedAtUtc))return last;
+    await new Promise(resolve=>setTimeout(resolve,100));
+   }while(Date.now()<deadline);
+   throw Error('Profile SQL state deadline: '+JSON.stringify({id,state,reviewed,last}));
+  }
   await awaitState(writeId,'unknown');
   // Queue creation may still have a pending-state reload in flight. Synchronize
   // against the rendered UI, not only the independent server poll; refresh is
@@ -62,7 +73,7 @@ if(!address?.startsWith('https://127.0.0.1:')||!user?.startsWith('virtual-operat
   await parent.locator('[data-profile-review]').click();const reviewResponse=await reviewed;
   const reviewEvidence=reviewResponse.status()===200?null:await page.evaluate(async({id,inspection,device})=>{const r=await fetch('/device-settings-snapshots?deviceId='+device);const data=await r.json();return data.items.filter(x=>x.id===id||x.id===inspection);},{id:writeId,inspection,device:settingsDevice});
   assert.equal(reviewResponse.status(),200,'profile review path: '+reviewResponse.request().url()+' | body: '+reviewResponse.request().postData()+' | parent and inspection: '+JSON.stringify(reviewEvidence)+' | notice: '+await page.locator('#profile-notice').textContent());
-  await page.waitForFunction(async({id,device})=>{const r=await fetch('/device-settings-snapshots?deviceId='+device);return (await r.json()).items.some(x=>x.id===id&&x.state==='unknown'&&x.resolvedAtUtc);},{id:writeId,device:settingsDevice});
+  await awaitState(writeId,'unknown',true);
   assert.equal(errors.length,0,errors.join('; '));
   const completed=[];
   for(let run=0;run<4;run++){
