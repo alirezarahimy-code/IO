@@ -9,6 +9,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
     // these context-instance values per query (including dependent-row queries).
     public bool RestrictDeviceAccess { get; internal set; }
     public Guid[] PermittedDeviceIds { get; internal set; } = [];
+    public DbSet<DevicePushJournalRecord> DevicePushJournal => Set<DevicePushJournalRecord>();
     public DbSet<DeviceServiceHeartbeatRecord> DeviceServiceHeartbeats => Set<DeviceServiceHeartbeatRecord>();
     public DbSet<DeviceCommandRetryRecord> DeviceCommandRetries => Set<DeviceCommandRetryRecord>();
     public DbSet<DevicePollScheduleRecord> DevicePollSchedules => Set<DevicePollScheduleRecord>();
@@ -76,6 +77,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
 
     protected override void OnModelCreating(ModelBuilder model)
     {
+        model.Entity<DevicePushJournalRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||PermittedDeviceIds.Contains(x.DeviceId));
         model.Entity<DeviceRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||PermittedDeviceIds.Contains(x.Id));
         model.Entity<DeviceSecretRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||PermittedDeviceIds.Contains(x.DeviceId));
         model.Entity<DeviceConnectionRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||PermittedDeviceIds.Contains(x.DeviceId));
@@ -91,6 +93,47 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
         model.Entity<DevicePollRunRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||DevicePollSchedules.Any(p=>p.Id==x.ScheduleId));
         model.Entity<DeviceCommandRetryRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||DeviceOperations.Any(p=>p.Id==x.PreviousOperationId)||DeviceAttendanceDownloads.Any(p=>p.Id==x.PreviousAttendanceDownloadId));
         model.Entity<DeviceGroupRecord>().HasQueryFilter(x=>!RestrictDeviceAccess);
+
+        model.Entity<DevicePushJournalRecord>(b=>
+        {
+            b.ToTable("DevicePushJournal",t=>
+            {
+                t.HasTrigger("TR_DevicePushJournal_Immutable");t.UseSqlOutputClause(false);
+                t.HasCheckConstraint("CK_DevicePushJournal_Bounds","DATALENGTH([OriginalBody]) BETWEEN 1 AND 1048576 AND DATALENGTH([ExpectedDeviceVersion])=8 AND [RowCount] BETWEEN 1 AND 10000 AND [ParsedCount] BETWEEN 0 AND [RowCount]");
+                t.HasCheckConstraint("CK_DevicePushJournal_Hash","DATALENGTH([PayloadHash])=128 AND [PayloadHash] COLLATE Latin1_General_100_BIN2=CONVERT(nvarchar(64),HASHBYTES('SHA2_256',[OriginalBody]),2) COLLATE Latin1_General_100_BIN2");
+                t.HasCheckConstraint("CK_DevicePushJournal_Contract","[Contract] COLLATE Latin1_General_100_BIN2=N'zk-attendance-push-20200325-attlog-seven-utf8-v1' AND DATALENGTH([Contract])=96 AND DATALENGTH([Serial]) BETWEEN 2 AND 200 AND DATALENGTH([TimeZoneId]) BETWEEN 2 AND 200 AND ISJSON([RowsJson])=1");
+                t.HasCheckConstraint("CK_DevicePushJournal_Utc","DATEPART(TZOFFSET,[RetainedAtUtc])=0");
+            });
+            b.HasKey(x=>x.Id);b.Property(x=>x.Id).ValueGeneratedNever();
+            b.Property(x=>x.Id).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.DeviceId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.SourceId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.SiteId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.CompanyId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.RetainedByUserId).HasColumnType("uniqueidentifier");
+            b.Property(x=>x.RetainedAtUtc).HasColumnType("datetimeoffset");
+            b.Property(x=>x.ExpectedDeviceVersion).HasMaxLength(8).IsRequired().HasColumnType("varbinary(8)");
+            b.Property(x=>x.OriginalBody).IsRequired().HasColumnType("varbinary(max)");
+            b.Property(x=>x.Serial).HasMaxLength(100).IsRequired().HasColumnType("nvarchar(100)");
+            b.Property(x=>x.Stamp).HasMaxLength(200).HasColumnType("nvarchar(200)");
+            b.Property(x=>x.Contract).HasMaxLength(64).IsRequired().HasColumnType("nvarchar(64)");
+            b.Property(x=>x.TimeZoneId).HasMaxLength(100).IsRequired().HasColumnType("nvarchar(100)");
+            b.Property(x=>x.PayloadHash).HasMaxLength(64).IsRequired().HasColumnType("nvarchar(64)");
+            b.Property(x=>x.RowsJson).IsRequired().HasColumnType("nvarchar(max)");
+            b.Property(x=>x.RowCount).HasColumnType("int");
+            b.Property(x=>x.ParsedCount).HasColumnType("int");
+            b.HasIndex(x=>x.DeviceId);
+            b.HasOne<DeviceRecord>().WithMany().HasForeignKey(x=>x.DeviceId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.SourceId);
+            b.HasOne<EventSourceRecord>().WithMany().HasForeignKey(x=>x.SourceId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.SiteId);
+            b.HasOne<SiteRecord>().WithMany().HasForeignKey(x=>x.SiteId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.CompanyId);
+            b.HasOne<CompanyRecord>().WithMany().HasForeignKey(x=>x.CompanyId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>x.RetainedByUserId);
+            b.HasOne<UserRecord>().WithMany().HasForeignKey(x=>x.RetainedByUserId).OnDelete(DeleteBehavior.Restrict);
+            b.HasIndex(x=>new{x.DeviceId,x.PayloadHash});
+        });
 
         model.Entity<DeviceFileImportRecord>(b =>
         {

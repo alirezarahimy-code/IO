@@ -90,6 +90,16 @@ class Routing(unittest.TestCase):
             for workflow in [SQL, PLATFORM]:
                 self.assertTrue(triggered(workflow, [path]))
 
+    def test_push_journal_migration_and_transaction_tests_are_mandatory(self):
+        step = next(s for s in SQL["jobs"]["verify"]["steps"] if s.get("name") ==
+                    "Require versioned PUSH evidence journal migration")
+        self.assertIn("20261114110000_DevicePushJournal.cs", step["run"])
+        self.assertNotIn("if", step)
+        self.assertIn("await DevicePushJournalTests.RunAsync(connection, Check);",
+                      (ROOT / "ReCode/tests/IO.Infrastructure.SqlTests/Program.cs").read_text())
+        for workflow in [SQL, PLATFORM]:
+            self.assertTrue(triggered(workflow, ["ReCode/src/IO.Infrastructure/Devices/DevicePushJournal.cs"]))
+
     def test_push_codec_runs_on_sql_and_both_platforms_without_claiming_ingress(self):
         step = next(s for s in SQL['jobs']['verify']['steps'] if s.get('name') ==
                     'Test explicit PUSH ATTLOG codec without claiming authentication or durable SQL receipt')

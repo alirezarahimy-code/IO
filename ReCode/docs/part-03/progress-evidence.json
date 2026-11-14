@@ -487,5 +487,21 @@
         "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43625122273"
       }
     ]
+  },
+  "pushJournalFollowup": {
+    "status": "implemented-awaiting-exact-SHA-CI",
+    "scope": "operator evidence retention only; not authenticated device receiver or vendor ACK",
+    "migration": "20261114110000_DevicePushJournal",
+    "newSqlChecks": 24,
+    "expectedFullSqlChecks": 1015,
+    "policyChecks": 18,
+    "localInfrastructureBuild": "blocked-NU1301-NuGet-TLS-EOF",
+    "guide": "s10-push-journal-contract.fa.md",
+    "authenticationImplemented": false,
+    "httpIngressImplemented": false,
+    "attendanceProcessingImplemented": false,
+    "vendorAckImplemented": false,
+    "ledgerRowClosed": false,
+    "hardwareVerified": false
   }
 }
