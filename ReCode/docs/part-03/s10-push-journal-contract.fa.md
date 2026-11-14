@@ -32,3 +32,7 @@
 انتظار reporter کامل از۹۹۱ به۱۰۱۵ به دلیل همین۲۴ بررسی تغییر کرده است؛ این عدد تا موفقیت CI دقیق همان commit شاهد اجرای موفق نیست. محلی NuGet با `NU1301` و EOF دسترسی build زیرساخت را مسدود کرده؛ نتیجهٔ CI باید مستقل بررسی شود. ۱۸ بررسی policy و auditهای reference/capability محلی موفق‌اند.
 
 **R08 باز است؛ جمع همچنان۹ فنی R08–R16 + H01 جداست.** مرجع codec قبلی: [قرارداد ATTLOG](s10-push-attlog-contract.fa.md). هیچ پذیرش سخت‌افزاری یا تکمیل PUSH امن ادعا نمی‌شود.
+
+## نتیجهٔ پذیرش محدود
+
+نسخهٔ اصلاح‌شدهٔ `b1bfee744b8f47bade410ed5f1d12ec8ed7b8b8c` در [SQL کامل۱۰۱۵](https://github.com/alirezarahimy-code/IO/actions/runs/43627819978) و [Windows/Linux](https://github.com/alirezarahimy-code/IO/actions/runs/43627819957) success شد. step کامل SQL موفق است و reporter اجباری همان نسخه،۱۰۱۵ خط PASS و marker نهایی را الزام می‌کند؛۲۴ بررسی جدید بدون شرط پیش از marker اجرا می‌شوند. API فقط۸ chunk ابتدایی از۳۵ notice را نشان داد، بنابراین مشاهدهٔ مستقل تک‌تک annotationهای R08 ادعا نمی‌شود. خطاهای دورهای قبلی—scope متغیر تست و نام رزروشدهٔ SQL `ROWCOUNT`—اصلاح شدند و شاهد پذیرش محسوب نمی‌شوند. [شاهد ماشین‌خوان](s10-push-journal-evidence.json). محدودیت build محلی با build و اجرای واقعی remote جبران شده؛ محدودیت احراز هویت/receiver/پردازش/ACK یا سخت‌افزار رفع نشده است.

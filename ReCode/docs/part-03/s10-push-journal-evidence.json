@@ -1,0 +1,55 @@
+{
+  "verifiedCode": "b1bfee744b8f47bade410ed5f1d12ec8ed7b8b8c",
+  "scope": "independent operator evidence retention; not authenticated receiver, attendance processing, or vendor ACK",
+  "runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 43627819978,
+      "headSha": "b1bfee744b8f47bade410ed5f1d12ec8ed7b8b8c",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43627819978"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 43627819957,
+      "headSha": "b1bfee744b8f47bade410ed5f1d12ec8ed7b8b8c",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43627819957"
+    }
+  ],
+  "checks": {
+    "newJournalSql": 24,
+    "fullSqlIntegrationPassLines": 1015,
+    "ciPolicyLocal": 18,
+    "portablePushCodec": 47,
+    "foundationMigrations": 48,
+    "foundationTables": 61,
+    "permissionCodes": 145
+  },
+  "verification": "Successful full SQL step on exact SHA; its mandatory reporter enforces1015 total PASS lines and final completion marker. The24 new unconditional checks run before that marker. API exposes only the first8 of35 SQL notice chunks; individual R08 annotations were not independently retrieved. Windows/Linux also successful on exact SHA.",
+  "localInfrastructureBuild": "blocked by NuGet TLS/NU1301, superseded for software build evidence by exact remote build and SQL success",
+  "earlierFailedRuns": [
+    {
+      "sha": "7a966878fdfb7a17072761214a9b602d9e725b69",
+      "sqlRun": 43627328471,
+      "platformRun": 43627328665,
+      "reason": "C# local variable scope in new test; fixed, not accepted"
+    },
+    {
+      "sha": "f147a58ad312019349b539867319e3d49d82d15f",
+      "sqlRun": 43627493623,
+      "reason": "SQL ROWCOUNT identifier needed brackets; fixed, not accepted"
+    }
+  ],
+  "ledgerRowClosed": false,
+  "technicalOpenCount": 9,
+  "hardwareAcceptanceSeparate": "P3-H01",
+  "authenticationImplemented": false,
+  "httpIngressImplemented": false,
+  "attendanceProcessingImplemented": false,
+  "vendorAckImplemented": false,
+  "part3Complete": false,
+  "hardwareVerified": false,
+  "guide": "s10-push-journal-contract.fa.md",
+  "defaultRoleGrants": false
+}

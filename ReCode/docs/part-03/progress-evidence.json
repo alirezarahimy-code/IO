@@ -8,16 +8,16 @@
     "realDeviceExecution": "not performed",
     "testingSequence": "User explicitly requires virtual-device software completion now, copying reference behavior as appropriate, with real Windows SDK/multidevice acceptance deferred to the end. Lack of local hardware must not block further software implementation."
   },
-  "latestVerifiedCode": "6d11f0f47b4392a2c4f1c79f7ead3af35056379d",
+  "latestVerifiedCode": "b1bfee744b8f47bade410ed5f1d12ec8ed7b8b8c",
   "checks": {
-    "integrationPassLines": 991,
+    "integrationPassLines": 1015,
     "foundation": 48,
     "domain": 26,
     "portableNativeBoundaryAndFileParser": 61,
-    "permissions": 143,
+    "permissions": 145,
     "pagesAndHelp": 52,
-    "foundationMigrations": 47,
-    "foundationTables": 60,
+    "foundationMigrations": 48,
+    "foundationTables": 61,
     "s08ServiceChecks": 14,
     "s08HttpChecks": 5,
     "s09ServiceChecks": 18,
@@ -76,7 +76,9 @@
     "offlineNativeNetworkDispatchProbes": 31,
     "productionDhcpMapperChecks": 29,
     "pinnedDhcpFirmwareSourceBlobs": 4,
-    "portablePushWireCodecChecks": 47
+    "portablePushWireCodecChecks": 47,
+    "pushJournalSqlChecks": 24,
+    "ciPolicyChecks": 18
   },
   "stages": {
     "S04": "accepted registry and metadata groups; explicit versioned selected-device operator scope now software-verified in SQL and Chromium, with current human target authority enforced in worker dispatch/polling",
@@ -94,24 +96,17 @@
   "runs": [
     {
       "conclusion": "success",
-      "databaseId": 43625122266,
-      "headSha": "6d11f0f47b4392a2c4f1c79f7ead3af35056379d",
+      "databaseId": 43627819978,
+      "headSha": "b1bfee744b8f47bade410ed5f1d12ec8ed7b8b8c",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43625122266"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43627819978"
     },
     {
       "conclusion": "success",
-      "databaseId": 43625122261,
-      "headSha": "6d11f0f47b4392a2c4f1c79f7ead3af35056379d",
+      "databaseId": 43627819957,
+      "headSha": "b1bfee744b8f47bade410ed5f1d12ec8ed7b8b8c",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43625122261"
-    },
-    {
-      "conclusion": "success",
-      "databaseId": 43625122273,
-      "headSha": "6d11f0f47b4392a2c4f1c79f7ead3af35056379d",
-      "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43625122273"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43627819957"
     }
   ],
   "remainingSoftware": [
@@ -351,7 +346,7 @@
       }
     ]
   },
-  "nextExactAction": "P3-R08 first: select vendor-native cryptographic provider with a complete authenticated commissioning/session contract, or explicitly approve a protected onsite edge gateway as a DIFFERENT trust boundary. Then implement immutable SQL journal/receipts and scoped read/manage/receive/commit API+UI and transactional ACK tests. Codec alone does not close R08; nine technical rows plus H01 remain. No general SN/CRC32/Stamp authentication or auto-registration endpoint is authorized.",
+  "nextExactAction": "R08 remains first: establish the vendor-native authenticated commissioning/session contract with its crypto provider, or obtain explicit approval for a DIFFERENT authenticated onsite gateway trust boundary. Independent operator SQL evidence retention is now tested, not a device receiver. Next build scoped review/processing receipts and mapping/quarantine with atomic processed-before-vendor-ACK semantics; do not reuse retention receipts as processed ACKs. Public ingress remains absent. R09–R16 stay in order; nine technical rows plus separate H01 remain.",
   "profileSettingsFollowup": {
     "code": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
     "accepted": true,
@@ -489,7 +484,7 @@
     ]
   },
   "pushJournalFollowup": {
-    "status": "implemented-awaiting-exact-SHA-CI",
+    "status": "operator-retention-only-software-verified-exact-SHA",
     "scope": "operator evidence retention only; not authenticated device receiver or vendor ACK",
     "migration": "20261114110000_DevicePushJournal",
     "newSqlChecks": 24,
@@ -502,6 +497,25 @@
     "attendanceProcessingImplemented": false,
     "vendorAckImplemented": false,
     "ledgerRowClosed": false,
-    "hardwareVerified": false
+    "hardwareVerified": false,
+    "code": "b1bfee744b8f47bade410ed5f1d12ec8ed7b8b8c",
+    "runs": [
+      {
+        "conclusion": "success",
+        "databaseId": 43627819978,
+        "headSha": "b1bfee744b8f47bade410ed5f1d12ec8ed7b8b8c",
+        "status": "completed",
+        "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43627819978"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 43627819957,
+        "headSha": "b1bfee744b8f47bade410ed5f1d12ec8ed7b8b8c",
+        "status": "completed",
+        "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43627819957"
+      }
+    ],
+    "verifiedFullSqlChecks": 1015,
+    "evidence": "s10-push-journal-evidence.json"
   }
 }

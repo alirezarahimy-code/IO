@@ -64,3 +64,7 @@
 ## R08 — آغاز مرتب مانده‌های۹گانه
 
 [codec هفت‌ستونی PUSH](s10-push-attlog-contract.fa.md) با۴۷ بررسی و CI کامل6d11f0f پذیرفته شد؛ فقط زیرکار wire است، نه PUSH امن. هویت cryptographic، SQL journal/receipt، endpoint محدود و UI/permission مستقل هنوز ساخته نشده‌اند؛ R08 و جمع۹ فنی باز می‌مانند. انتخاب vendor-native به قرارداد کامل SDK نیاز دارد؛ edge احرازشده مرز اعتماد متفاوتی است و بدون تصمیم صریح جایگزین نمی‌شود.
+
+### ادامهٔ مستقل R08 پذیرفته شد
+
+[نگهداری شواهد SQL و رسید پس از commit](s10-push-journal-contract.fa.md) روی `b1bfee7` با۲۴ بررسی جدید و SQL کامل۱۰۱۵ و Windows/Linux موفق است. این کار بدون بازکردن endpoint و بدون تصمیم خودسرانه برای gateway انجام شد؛ نه device authentication و نه processed ACK است. R08 هنوز باز و ترتیب R09–R16 محفوظ است.
