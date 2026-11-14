@@ -8,14 +8,14 @@
     "realDeviceExecution": "not performed",
     "testingSequence": "User explicitly requires virtual-device software completion now, copying reference behavior as appropriate, with real Windows SDK/multidevice acceptance deferred to the end. Lack of local hardware must not block further software implementation."
   },
-  "latestVerifiedCode": "b1bfee744b8f47bade410ed5f1d12ec8ed7b8b8c",
+  "latestVerifiedCode": "adcb551a6c65148358b12f910a93580907e0b229",
   "checks": {
-    "integrationPassLines": 1015,
+    "integrationPassLines": 1031,
     "foundation": 48,
     "domain": 26,
     "portableNativeBoundaryAndFileParser": 61,
     "permissions": 145,
-    "pagesAndHelp": 52,
+    "pagesAndHelp": 53,
     "foundationMigrations": 48,
     "foundationTables": 61,
     "s08ServiceChecks": 14,
@@ -66,7 +66,7 @@
     "portableFunctionKeyReadChecks": 22,
     "additionalSettingsPayloadSqlChecks": 3,
     "portableRawSettingContractChecks": 23,
-    "offlineDomFiles": 18,
+    "offlineDomFiles": 19,
     "freshPreflightDisclosure": "Not repeated on latest SHA: full suite includes40 actual HTTPS/SQL/worker/child scenarios including the Chromium profile form. Explicit full-with-preflight mode remains available; simulator is not SDK/model acceptance.",
     "portableFunctionKeyWrite": 23,
     "portableDaylightRead": 21,
@@ -78,7 +78,8 @@
     "pinnedDhcpFirmwareSourceBlobs": 4,
     "portablePushWireCodecChecks": 47,
     "pushJournalSqlChecks": 24,
-    "ciPolicyChecks": 18
+    "ciPolicyChecks": 19,
+    "pushReviewSqlHttpsChecks": 16
   },
   "stages": {
     "S04": "accepted registry and metadata groups; explicit versioned selected-device operator scope now software-verified in SQL and Chromium, with current human target authority enforced in worker dispatch/polling",
@@ -96,17 +97,17 @@
   "runs": [
     {
       "conclusion": "success",
-      "databaseId": 43627819978,
-      "headSha": "b1bfee744b8f47bade410ed5f1d12ec8ed7b8b8c",
+      "databaseId": 43629451568,
+      "headSha": "adcb551a6c65148358b12f910a93580907e0b229",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43627819978"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43629451568"
     },
     {
       "conclusion": "success",
-      "databaseId": 43627819957,
-      "headSha": "b1bfee744b8f47bade410ed5f1d12ec8ed7b8b8c",
+      "databaseId": 43629451517,
+      "headSha": "adcb551a6c65148358b12f910a93580907e0b229",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43627819957"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43629451517"
     }
   ],
   "remainingSoftware": [
@@ -346,7 +347,7 @@
       }
     ]
   },
-  "nextExactAction": "R08 remains first: establish the vendor-native authenticated commissioning/session contract with its crypto provider, or obtain explicit approval for a DIFFERENT authenticated onsite gateway trust boundary. Independent operator SQL evidence retention is now tested, not a device receiver. Next build scoped review/processing receipts and mapping/quarantine with atomic processed-before-vendor-ACK semantics; do not reuse retention receipts as processed ACKs. Public ingress remains absent. R09–R16 stay in order; nine technical rows plus separate H01 remain.",
+  "nextExactAction": "R08 remains first and open: independent operator codec, immutable SQL retention, scoped read-only review APIs/UI and mapping/quarantine preview are tested. Establish vendor-native authenticated commissioning/session contract with crypto provider, or obtain explicit approval for a DIFFERENT onsite gateway trust boundary. Then implement authorized processing with approved code mapping and immutable per-row processing receipts; no vendor ACK from retention/review alone. Native receiver/transfer identity/replay/atomic processed-before-ACK remain absent. R09–R16 keep their order; nine technical rows plus separate H01 remain.",
   "profileSettingsFollowup": {
     "code": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
     "accepted": true,
@@ -519,7 +520,7 @@
     "evidence": "s10-push-journal-evidence.json"
   },
   "pushReviewFollowup": {
-    "status": "implemented-awaiting-exact-SHA-CI",
+    "status": "read-only-review-software-verified-exact-SHA",
     "scope": "session-authenticated read-only operator review; not authenticated device ingress or processing receipts",
     "guide": "s10-push-review-contract.fa.md",
     "newSqlHttpsChecks": 16,
@@ -532,6 +533,33 @@
     "attendanceWritesImplemented": false,
     "vendorAckImplemented": false,
     "ledgerRowClosed": false,
-    "hardwareVerified": false
+    "hardwareVerified": false,
+    "code": "adcb551a6c65148358b12f910a93580907e0b229",
+    "runs": [
+      {
+        "conclusion": "success",
+        "databaseId": 43629451568,
+        "headSha": "adcb551a6c65148358b12f910a93580907e0b229",
+        "status": "completed",
+        "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43629451568"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 43629451517,
+        "headSha": "adcb551a6c65148358b12f910a93580907e0b229",
+        "status": "completed",
+        "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43629451517"
+      }
+    ],
+    "verifiedFullSqlChecks": 1031,
+    "lightUiRun": {
+      "conclusion": "success",
+      "databaseId": 43629426814,
+      "headSha": "1118964da559eac27e20d031280fe156b65c6a01",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43629426814"
+    },
+    "lightUiAssetsMatchVerifiedCode": true,
+    "evidence": "s10-push-review-evidence.json"
   }
 }

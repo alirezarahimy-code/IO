@@ -1,0 +1,53 @@
+{
+  "verifiedCode": "adcb551a6c65148358b12f910a93580907e0b229",
+  "scope": "session-authenticated read-only operator evidence review, not vendor-native authentication or processing/ACK",
+  "runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 43629451568,
+      "headSha": "adcb551a6c65148358b12f910a93580907e0b229",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43629451568"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 43629451517,
+      "headSha": "adcb551a6c65148358b12f910a93580907e0b229",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43629451517"
+    }
+  ],
+  "lightUiRun": {
+    "conclusion": "success",
+    "databaseId": 43629426814,
+    "headSha": "1118964da559eac27e20d031280fe156b65c6a01",
+    "status": "completed",
+    "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43629426814"
+  },
+  "lightUiAssetsMatchVerifiedCode": true,
+  "lightShaDisclosure": "Light ran on1118964; the only later change was a C# test fixture variable rename. UI assets, new DOM contract, and CI policy script are byte-identical at the verified code SHA. SQL and Windows/Linux ran on the exact verified SHA.",
+  "checks": {
+    "newSqlHttps": 16,
+    "fullSqlIntegrationPassLines": 1031,
+    "offlineDomFiles": 19,
+    "ciPolicy": 19,
+    "pagesAndHelp": 53,
+    "foundationMigrations": 48,
+    "foundationTables": 61,
+    "permissionCodes": 145
+  },
+  "verification": "Exact-SHA successful full SQL step whose mandatory reporter requires1031 PASS lines and the final completion marker; sixteen unconditional new review checks run before completion. No claim to have independently retrieved individual late SQL notice chunks through the annotation API.",
+  "localInfrastructureBuild": "NuGet NU1301/TLS EOF blocked local build; remote exact-SHA build/platform and SQL success provide software verification",
+  "publicDeviceIngressImplemented": false,
+  "nativeDeviceAuthenticationImplemented": false,
+  "attendanceProcessingImplemented": false,
+  "vendorAckImplemented": false,
+  "readOnlyReviewImplemented": true,
+  "deviceScopedReadChecks": true,
+  "ledgerRowClosed": false,
+  "technicalOpenCount": 9,
+  "hardwareAcceptanceSeparate": "P3-H01",
+  "hardwareVerified": false,
+  "part3Complete": false,
+  "guide": "s10-push-review-contract.fa.md"
+}

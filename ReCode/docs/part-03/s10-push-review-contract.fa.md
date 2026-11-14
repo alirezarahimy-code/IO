@@ -35,3 +35,7 @@
 reporter کامل اکنون۱۰۳۱ خط PASS می‌خواهد (۱۰۱۵ قبلی +۱۶ جدید). ۱۹ فایل آزمون DOM آفلاین و۱۹ بررسی CI policy محلی موفق‌اند؛ این‌ها آزمون SDK/سخت‌افزار نیستند. build محلی زیرساخت با NuGet `NU1301`/TLS EOF مسدود است و پذیرش build/SQL نیازمند CI دقیق همان commit است. در زمان نوشتن این بخش، نتیجهٔ جدید CI هنوز ثبت نشده است.
 
 **R08 باز است؛۹ مورد فنی R08–R16 + H01 جدا باقی‌اند.** احراز هویت و commissioning معتبر، قرارداد retry انتقال vendor، نگاشت مصوب کدها، رسید پردازش اتمیک و durable-before-ACK هنوز مانده‌اند. این ابزار خواندنی به‌تنهایی ردیف R08 را نمی‌بندد.
+
+## پذیرش محدود نهایی این برش
+
+روی `adcb551a6c65148358b12f910a93580907e0b229`، [SQL/HTTPS کامل۱۰۳۱](https://github.com/alirezarahimy-code/IO/actions/runs/43629451568) و [Windows/Linux](https://github.com/alirezarahimy-code/IO/actions/runs/43629451517) موفق شدند. reporter اجباری۱۰۳۱ خط PASS و marker نهایی را الزام می‌کند؛۱۶ بررسی جدید به صورت بدون شرط در suite کامل هستند. [Light/UI](https://github.com/alirezarahimy-code/IO/actions/runs/43629426814) روی `1118964` موفق است؛ assets UI، آزمون DOM جدید و policy script با نسخهٔ پذیرفته‌شده برابرند و تنها تغییر بعدی، تغییر نام متغیر fixture C# برای جلوگیری از shadowing است. [شاهد ماشین‌خوان](s10-push-review-evidence.json). این پذیرش نرم‌افزارِ بازبینی خواندنی است، نه دریافت امن دستگاه یا اتمام R08.

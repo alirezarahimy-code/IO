@@ -68,3 +68,7 @@
 ### ادامهٔ مستقل R08 پذیرفته شد
 
 [نگهداری شواهد SQL و رسید پس از commit](s10-push-journal-contract.fa.md) روی `b1bfee7` با۲۴ بررسی جدید و SQL کامل۱۰۱۵ و Windows/Linux موفق است. این کار بدون بازکردن endpoint و بدون تصمیم خودسرانه برای gateway انجام شد؛ نه device authentication و نه processed ACK است. R08 هنوز باز و ترتیب R09–R16 محفوظ است.
+
+### بازبینی خواندنی R08 پذیرفته شد
+
+[ابزار فارسی شواهد تأییدنشدهٔ PUSH](s10-push-review-contract.fa.md) با مجوز/دامنهٔ مستقل، APIهای فقط GET، snapshot UTC ثابت و preview نگاشت/قرنطینه روی `adcb551` پذیرفته شد: SQL/HTTPS۱۰۳۱ و Windows/Linux موفق،۱۹ فایل DOM و۱۹ policy موفق. بدون دریافت مستقیم vendor، بدون ثبت تردد و بدون ACK؛ R08 باز است.
