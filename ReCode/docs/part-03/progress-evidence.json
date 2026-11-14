@@ -8,7 +8,7 @@
     "realDeviceExecution": "not performed",
     "testingSequence": "User explicitly requires virtual-device software completion now, copying reference behavior as appropriate, with real Windows SDK/multidevice acceptance deferred to the end. Lack of local hardware must not block further software implementation."
   },
-  "latestVerifiedCode": "adcb551a6c65148358b12f910a93580907e0b229",
+  "latestVerifiedCode": "cffed8264635f00bcb460c78e9960afa1f5b462b",
   "checks": {
     "integrationPassLines": 1031,
     "foundation": 48,
@@ -113,9 +113,9 @@
     }
   ],
   "remainingSoftware": [
-    "S10 authenticated supported-model vendor PUSH with cryptographic device authentication/replay/size-rate/congestion/recovery security contract. Polling is not PUSH.",
-    "S11 RemoteEnroll only after approved model contract and biometric consent/access/retention policy; no executable adapter enabled.",
-    "S11 approved model-specific factory reset and attendance/user/admin deletion with independent destructive grants/confirmation and unknown recovery remain unimplemented. Standalone restart is implemented and software-verified; actual model acceptance remains. Physical-door control stays excluded."
+    "P3-R10 fingerprint/face/photo exchange with explicit per-model formats, consent/legal basis, access and retention/deletion policy; no real biometric enabling without approval.",
+    "P3-R11–R15 independently authorized destructive attendance/range/user/template/admin/all-data operations and explicit factory-reset disposition; no implied permission from enrollment recovery.",
+    "P3-R16 direct USB/serial support disposition; file parser is not direct connectivity."
   ],
   "realSdkExecuted": false,
   "windowsServiceInstalled": false,
@@ -349,7 +349,7 @@
       }
     ]
   },
-  "nextExactAction": "R08/R09 remain OPEN: the user delegated recommendations, selecting the proposed authenticated-onsite-gateway direction distinct from native-device auth, and synthetic/default-off enrollment while biometric policy is unknown. Portable HMAC/commit-boundary and enrollment lifecycle have42 synthetic Windows checks. Next implement a production transactional gateway store, secure key provisioning/HTTPS and onsite sender with explicit trust boundary, then integration proof; R09 additionally needs authorized model/biometric policy and SQL/permissions/UI/worker/bridge plus exclusive child callback correlation and hard deadlines. No real enrollment is authorized by generic continuation. Do not treat a fake commit store as SQL replay protection, or callback metadata as real model acceptance. Automatic Linux and SQL remain off by user request; nine technical rows plus H01 remain.",
+  "nextExactAction": "Continue in order at P3-R10 biometric fingerprint/face/photo exchange. P3-R08/P3-R09 selected software paths accepted on Windows; installed-model/physical-reset/biometric authorization remain explicit default-off deployment prerequisites in H01. Do not replay unknown or infer native authentication from gateway/IP/SN. Seven software rows R10–R16 remain; part3Complete=false. No Linux tests or full historical SQL rerun authorized.",
   "profileSettingsFollowup": {
     "code": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
     "accepted": true,
@@ -659,7 +659,7 @@
     "evidence": "s10-gateway-s09-enroll-software-evidence.json",
     "historicalPortableScopeSupersededBy": "gatewayEnrollmentOperationalFollowup"
   },
-  "latestVerifiedPortableCode": "5dae6addd8c74e4b4081d66beae9c2559c572193",
+  "latestVerifiedPortableCode": "cffed8264635f00bcb460c78e9960afa1f5b462b",
   "gatewayEnrollmentOperationalFollowup": {
     "status": "windows-integrated-software-accepted-with-explicit-native-and-policy-gaps",
     "code": "248cbcdf45f40ea9c7d4b2527be7af1b7cdf3843",
@@ -680,7 +680,42 @@
     "hardwareVerified": false,
     "ledgerRowsClosed": [],
     "evidence": "gateway-enrollment-operational-evidence.json",
-    "guide": "gateway-enrollment-operations.fa.md"
+    "guide": "gateway-enrollment-operations.fa.md",
+    "historicalScopeSupersededBy": "nativePushReviewedRecoveryFollowup"
   },
-  "latestVerifiedWindowsIntegratedCode": "248cbcdf45f40ea9c7d4b2527be7af1b7cdf3843"
+  "latestVerifiedWindowsIntegratedCode": "cffed8264635f00bcb460c78e9960afa1f5b462b",
+  "nativePushReviewedRecoveryFollowup": {
+    "scope": "Software acceptance of selected isolated-LAN authenticated-gateway PUSH and default-off RemoteEnroll with assisted two-person physical recovery. Not native device authentication or installed hardware acceptance.",
+    "code": "cffed8264635f00bcb460c78e9960afa1f5b462b",
+    "integratedWindowsLocalDbChecks": 63,
+    "portableGatewayEnrollmentChecks": 47,
+    "nativeCollectorImplemented": true,
+    "durableQuarantineAckImplemented": true,
+    "reviewedRawAttendanceCommitImplemented": true,
+    "unknownRecoveryImplemented": "two-person human-attested physical recovery; original unknown and null completion retained",
+    "physicalResetAndSlotObservationAutomaticallyVerified": false,
+    "nativeDeviceAuthenticationImplemented": false,
+    "hardwareVerified": false,
+    "part3Complete": false,
+    "linuxTestsExecuted": false,
+    "softwareLedgerRowsAccepted": [
+      "P3-R08",
+      "P3-R09"
+    ],
+    "remainingSoftwareLedgerRows": [
+      "P3-R10",
+      "P3-R11",
+      "P3-R12",
+      "P3-R13",
+      "P3-R14",
+      "P3-R15",
+      "P3-R16"
+    ],
+    "evidence": "native-push-reviewed-recovery-evidence.json",
+    "guide": "native-push-reviewed-recovery.fa.md",
+    "runs": [
+      43643001807,
+      43642684493
+    ]
+  }
 }

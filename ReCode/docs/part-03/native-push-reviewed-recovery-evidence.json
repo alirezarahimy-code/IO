@@ -1,0 +1,247 @@
+{
+  "scope": "Software acceptance of selected isolated-LAN authenticated-gateway PUSH and default-off RemoteEnroll with assisted two-person physical recovery. Not native device authentication or installed hardware acceptance.",
+  "code": "cffed8264635f00bcb460c78e9960afa1f5b462b",
+  "runs": [
+    {
+      "id": 43643001807,
+      "headSha": "cffed8264635f00bcb460c78e9960afa1f5b462b",
+      "conclusion": "success",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43643001807",
+      "jobs": [
+        {
+          "id": 132594483467,
+          "labels": [
+            "windows-2022"
+          ],
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "conclusion": "success"
+            },
+            {
+              "name": "Build, catalogue checks and portable publish",
+              "conclusion": "success"
+            },
+            {
+              "name": "Windows LocalDB authenticated gateway and enrollment integration",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 43642684493,
+      "headSha": "794be8f780f04c295ed3298ee95ef817ef6dbd96",
+      "conclusion": "success",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43642684493",
+      "jobs": [
+        {
+          "id": 132593520313,
+          "labels": [
+            "windows-2022"
+          ],
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "conclusion": "success"
+            },
+            {
+              "name": "Select lightweight scope over the entire push",
+              "conclusion": "success"
+            },
+            {
+              "name": "Prepare workflow policy test dependency",
+              "conclusion": "success"
+            },
+            {
+              "name": "Test CI routing and retained safety gates",
+              "conclusion": "success"
+            },
+            {
+              "name": "Validate reference evidence and capability inventory",
+              "conclusion": "success"
+            },
+            {
+              "name": "Prepare offline native instruction emulator",
+              "conclusion": "success"
+            },
+            {
+              "name": "Verify hash-pinned network setter dispatch with trapped transport",
+              "conclusion": "success"
+            },
+            {
+              "name": "Audit pinned DHCP firmware source reference without execution",
+              "conclusion": "success"
+            },
+            {
+              "name": "Prepare offline DOM dependencies",
+              "conclusion": "success"
+            },
+            {
+              "name": "Check JavaScript syntax and offline DOM contracts",
+              "conclusion": "success"
+            },
+            {
+              "name": "Check standalone page preview in Chromium",
+              "conclusion": "skipped"
+            },
+            {
+              "name": "Record actual coverage",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "uiRelevantFilesByteIdenticalToCode": true,
+  "uiComparedPaths": [
+    "ReCode/src/IO.Web/Ui",
+    "ReCode/tests/IO.Infrastructure.SqlTests/device-ingress-enrollment-ui-check.cjs",
+    "ReCode/tools/check-ui-dom.sh"
+  ],
+  "integratedWindowsLocalDbChecks": 63,
+  "portableGatewayEnrollmentChecks": 47,
+  "domFiles": 20,
+  "policyMethods": 21,
+  "nativeCollectorImplemented": true,
+  "durableQuarantineAckImplemented": true,
+  "reviewedRawAttendanceCommitImplemented": true,
+  "unknownRecoveryImplemented": "two-person human-attested physical recovery; original unknown and null completion retained",
+  "physicalResetAndSlotObservationAutomaticallyVerified": false,
+  "nativeDeviceAuthenticationImplemented": false,
+  "realComExecuted": false,
+  "realBiometricPolicyApproved": false,
+  "hardwareVerified": false,
+  "part3Complete": false,
+  "linuxTestsExecuted": false,
+  "fullHistoricalSql1031Rerun": false,
+  "migrations": 51,
+  "domainTables": 66,
+  "softwareLedgerRowsAccepted": [
+    "P3-R08",
+    "P3-R09"
+  ],
+  "remainingSoftwareLedgerRows": [
+    "P3-R10",
+    "P3-R11",
+    "P3-R12",
+    "P3-R13",
+    "P3-R14",
+    "P3-R15",
+    "P3-R16"
+  ],
+  "hardwarePackage": "P3-H01",
+  "guide": "native-push-reviewed-recovery.fa.md",
+  "annotations": [
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/alirezarahimy-code/IO/blob/cffed8264635f00bcb460c78e9960afa1f5b462b/.github",
+      "start_line": 80,
+      "start_column": null,
+      "end_line": 80,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Windows gateway enrollment integration",
+      "message": "63 SQL HTTPS queue and synthetic-process checks passed on Windows LocalDB; no COM hardware or real biometric authorization.",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/alirezarahimy-code/IO/blob/cffed8264635f00bcb460c78e9960afa1f5b462b/.github",
+      "start_line": 43,
+      "start_column": null,
+      "end_line": 43,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Windows HTTPS fixture",
+      "message": "Temporary synthetic trust anchor removed.",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/alirezarahimy-code/IO/blob/cffed8264635f00bcb460c78e9960afa1f5b462b/.github",
+      "start_line": 30,
+      "start_column": null,
+      "end_line": 30,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Windows HTTPS fixture",
+      "message": "Temporary synthetic trust anchor installed; exercising production courier TLS validation.",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/alirezarahimy-code/IO/blob/cffed8264635f00bcb460c78e9960afa1f5b462b/.github",
+      "start_line": 29,
+      "start_column": null,
+      "end_line": 29,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Windows HTTPS fixture",
+      "message": "Installing one temporary synthetic loopback trust anchor on disposable runner.",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/alirezarahimy-code/IO/blob/cffed8264635f00bcb460c78e9960afa1f5b462b/.github",
+      "start_line": 683,
+      "start_column": null,
+      "end_line": 683,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Synthetic gateway and enrollment checks",
+      "message": "47 checks passed; gateway protocol and enrollment lifecycle and synthetic child supervisor only, no HTTP SQL COM native-device authentication or real biometrics.",
+      "raw_details": ""
+    }
+  ],
+  "preAcceptanceFailures": [
+    {
+      "run": 43642354975,
+      "reason": "Duplicate anonymous projection property names; fixed before acceptance"
+    },
+    {
+      "run": 43642512199,
+      "reason": "Preview form read after busy controls disabled it; fixed and UI passed on 794be8f"
+    },
+    {
+      "run": 43642663330,
+      "reason": "SQL RowCount identifier required quoting; fixed before acceptance"
+    }
+  ]
+}

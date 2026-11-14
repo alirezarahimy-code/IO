@@ -14,6 +14,10 @@
 | S11 | history پنج صف، retry خواندنی با lineage؛ settings.read با حق و تأیید دوم؛ زمان بیکاری کد۴ با preview/hash، approval دقیق محصول/firmware/مقدار و unknown review؛ برش جدید device.restart با حقوق مستقل/unknown review و بدون replay نوشتن (CI موفق؛۱۷ SQL،۳ HTTPS و۱۱ قرارداد/فرایند) | RemoteEnroll با قرارداد مدل و سیاست بیومتریک، و تکمیل پذیرش واقعی restart و تعیین‌تکلیف/پیاده‌سازی مصوب reset/delete تردد/کاربر/مدیر با حقوق و تأییدهای مستقل و unknown recovery؛ هیچ‌کدام از دکمهٔ retry خواندن قابل اجرا نیستند |
 | S12 | فایل UTF-8 پنج‌ستونی Personnel، حفظ bytes، preview/قرنطینه/commit، نصب lifecycle واقعی دو OS در CI و health SQL | نصب عملیاتی آزمایشگاه/کلید/ACL/SDK و ماتریس واقعی مدل‌ها؛ سناریوی واقعی چنددستگاه/قطعی/دریافت تکراری/تبادل/تنظیمات، نمونهٔ واقعی فایل مدل‌های هدف و فساد فایل؛ simulator کافی نیست |
 
+## وضعیت جاری R08/R09 و ادامه از R10
+
+مسیر نرم‌افزاری gateway منتخب و RemoteEnroll پیش‌فرض خاموش، شامل collector/ACK بادوام، پذیرش صریح raw و بازیابی فیزیکی دو نفره تکمیل و روی `cffed82` در Windows با۶۳ بررسی یکپارچه و۴۷ قرارداد پذیرفته شد. [راهنما](native-push-reviewed-recovery.fa.md)، [شاهد](native-push-reviewed-recovery-evidence.json)، [شمارندهٔ به‌روز:۷ فنی + H01](remaining-count-ledger.fa.md). مدل/سیاست/دستگاه واقعی هنوز پیش‌شرط استقرار است؛ متن‌های قدیمی زیر که collector یا unknown recovery را «ساخته‌نشده» می‌نامند تاریخی‌اند. ادامه از R10 است؛ part3Complete=false.
+
 ## پیش‌نیاز بستن مانده‌های مدل‌محور
 
 1. product/model/firmware واقعی و معماری/نسخهٔ SDK مجاز؛ snapshot اطلاعات واقعی هر دستگاه از مسیر موجود، بدون ارسال رمز یا فایل credential در گفتگو.

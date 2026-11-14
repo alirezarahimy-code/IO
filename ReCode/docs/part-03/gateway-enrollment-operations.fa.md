@@ -1,5 +1,7 @@
 # راه‌اندازی Gateway و RemoteEnroll — حدود واقعی مسیر جدید
 
+> این سند شاهد تاریخی برش `248cbcd` است. collector، پذیرش صریح تردد و بازیابی دو نفره در [افزودهٔ جدید](native-push-reviewed-recovery.fa.md) و [شواهد جدید](native-push-reviewed-recovery-evidence.json) تکمیل و روی Windows پذیرفته شده‌اند؛ جملات «هنوز ساخته نشده» در این سند مربوط به همان برش تاریخی‌اند.
+
 این برش دیگر فقط قرارداد قابل‌حمل نیست: Web، SQL، courier، صف، worker و adapter ایزوله اضافه شده‌اند. **اما «مسیر نرم‌افزاری قابل نصب» با «راه‌اندازی عملیاتی روی دستگاه واقعی» یکسان نیست.** پذیرش نرم‌افزاری روی `248cbcd` ثبت شد: [Windows/LocalDB](https://github.com/alirezarahimy-code/IO/actions/runs/43640642835) با۳۹ بررسی SQL/HTTPS/courier/صف/worker و۴۷ قرارداد/child مصنوعی؛ [light Windows](https://github.com/alirezarahimy-code/IO/actions/runs/43640642847) نیز موفق است. [شاهد ساختاریافته](gateway-enrollment-operational-evidence.json) حدود باقی‌مانده را جدا ثبت می‌کند. این اجرای LocalDB جای اجرای کامل تاریخی SQL۱۰۳۱ نیست.
 
 ## ۱. پیش‌شرط مشترک
