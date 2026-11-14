@@ -90,6 +90,18 @@ class Routing(unittest.TestCase):
             for workflow in [SQL, PLATFORM]:
                 self.assertTrue(triggered(workflow, [path]))
 
+    def test_push_review_is_read_only_and_runs_full_service_http_and_dom_contracts(self):
+        program = (ROOT / "ReCode/src/IO.Web/Program.cs").read_text()
+        self.assertIn('app.MapGet("/device-push-evidence",', program)
+        self.assertNotIn('app.MapPost("/device-push-evidence', program)
+        self.assertNotIn('app.MapPost("/iclock', program)
+        self.assertIn("await DevicePushReviewTests.RunAsync(connection, Check);",
+                      (ROOT / "ReCode/tests/IO.Infrastructure.SqlTests/Program.cs").read_text())
+        self.assertTrue((ROOT / "ReCode/tests/IO.Infrastructure.SqlTests/device-push-evidence-ui-check.cjs").exists())
+        for workflow in [SQL, PLATFORM]:
+            self.assertTrue(triggered(workflow, ["ReCode/src/IO.Infrastructure/Devices/DevicePushReview.cs"]))
+        self.assertTrue(triggered(LIGHT, ["ReCode/tests/IO.Infrastructure.SqlTests/device-push-evidence-ui-check.cjs"]))
+
     def test_push_journal_migration_and_transaction_tests_are_mandatory(self):
         step = next(s for s in SQL["jobs"]["verify"]["steps"] if s.get("name") ==
                     "Require versioned PUSH evidence journal migration")

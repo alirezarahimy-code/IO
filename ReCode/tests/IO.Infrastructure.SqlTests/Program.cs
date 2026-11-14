@@ -469,6 +469,7 @@ try
     await DeviceFunctionKeyWriteTests.RunAsync(connection, Check);
     // Retained PUSH evidence intentionally blocks earlier DOWN migrations. Run after older guard tests.
     await DevicePushJournalTests.RunAsync(connection, Check);
+    await DevicePushReviewTests.RunAsync(connection, Check);
     Console.WriteLine("PASS disposable SQL Server integration checks");
     return 0;
 }

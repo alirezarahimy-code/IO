@@ -190,6 +190,8 @@ public static class IoWebHost
                 permissions = page.AnyPermissions });
         }).AllowAnonymous();
         app.MapGet("/workspace/account", () => Results.Content(Resource("IO.Web.Ui.Account.html"), "text/html; charset=utf-8"));
+        app.MapGet("/workspace/device-push-evidence", () => Results.Content(Resource("IO.Web.Ui.DevicePushEvidence.html"), "text/html; charset=utf-8"));
+        app.MapGet("/assets/device-push-evidence.js", () => Results.Content(Resource("IO.Web.Ui.device-push-evidence.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-files", () => Results.Content(Resource("IO.Web.Ui.DeviceFiles.html"), "text/html; charset=utf-8"));
         app.MapGet("/assets/device-files.js", () => Results.Content(Resource("IO.Web.Ui.device-files.js"), "text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-user-uploads", () => Results.Content(Resource("IO.Web.Ui.DeviceUserUploads.html"), "text/html; charset=utf-8"));
@@ -398,6 +400,9 @@ public static class IoWebHost
             Admin(c,csrf,actor => service.AssignAsync(actor,input.OperationId,input.DelegateUserId,input.ValidFrom,input.ValidUntilExclusive,c.RequestAborted)));
         app.MapPost("/delegations/{id:guid}/revoke", (Guid id,DelegationRevokeInput input,HttpContext c,IAntiforgery csrf,DelegationRegistry service) =>
             Admin(c,csrf,actor => service.RevokeAsync(actor,id,input.Reason,c.RequestAborted)));
+        app.MapGet("/device-push-evidence", (HttpContext c,DevicePushReview service,Guid? deviceId,int offset=0)=>AdminRead(c,actor=>service.ListAsync(actor,deviceId,offset,c.RequestAborted)));
+        app.MapGet("/device-push-evidence/{id:guid}/rows", (Guid id,HttpContext c,DevicePushReview service,int after=0)=>AdminRead(c,actor=>service.RowsAsync(actor,id,after,c.RequestAborted)));
+        app.MapGet("/device-push-evidence/{id:guid}/original", (Guid id,HttpContext c,DevicePushReview service)=>AdminRead(c,actor=>service.OriginalAsync(actor,id,c.RequestAborted)));
         app.MapGet("/device-file-imports", (HttpContext c,DeviceFileImports service,Guid? deviceId,int offset=0)=>AdminRead(c,actor=>service.ListAsync(actor,deviceId,offset,c.RequestAborted)));
         app.MapGet("/device-file-imports/{id:guid}/rows", (Guid id,HttpContext c,DeviceFileImports service,int after=0)=>AdminRead(c,actor=>service.RowsAsync(actor,id,after,c.RequestAborted)));
         app.MapGet("/device-file-imports/{id:guid}/original", (Guid id,HttpContext c,DeviceFileImports service)=>AdminRead(c,actor=>service.OriginalAsync(actor,id,c.RequestAborted)));

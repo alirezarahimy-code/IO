@@ -1,0 +1,13 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>بازبینی شواهد تأییدنشدهٔ PUSH</title><link rel="stylesheet" href="/assets/theme.css"><script defer src="/assets/theme.js"></script><script defer src="/assets/device-push-evidence.js"></script></head><body><main>
+<nav><a href="/workspace">پنل من</a> · <a href="/workspace/devices">موجودی دستگاه‌ها</a> · <a href="/workspace/help/device-push-evidence">راهنما</a></nav>
+<h1>شواهد تأییدنشدهٔ PUSH — فقط بازبینی</h1>
+<p>این صفحه دریافت مستقیم دستگاه نیست. Serial ادعاشده و Stamp اثبات هویت یا شناسهٔ رویداد نیستند. وجود نگاشت شخص، مجوز ثبت تردد یا پاسخ OK به دستگاه نمی‌دهد. هیچ سطر این صفحه خودکار وارد تردد یا محاسبات حقوق نمی‌شود.</p>
+<p id="notice" role="status" aria-live="polite"></p><button id="refresh" type="button">بازخوانی مجوز و شواهد</button>
+<section id="review" hidden><form id="filter-form"><label>UUID دستگاه (خالی: همهٔ دستگاه‌های مجاز) <input name="deviceId" maxlength="36" dir="ltr"></label><button>اعمال فیلتر</button></form>
+<h2>پیام‌های محفوظ در SQL؛ هر صفحه حداکثر ۵۰ پیام</h2><ol id="evidence"></ol><button id="previous" type="button">صفحهٔ قبل پیام‌ها</button><button id="next" type="button">صفحهٔ بعد پیام‌ها</button>
+<section id="detail" hidden><h2>تفسیر محفوظ سطرها؛ هر صفحه حداکثر ۵۰ سطر</h2><p id="snapshot"></p>
+<p>زمان UTC از snapshot اولیه خوانده می‌شود، نه بازتفسیر با قواعد منطقهٔ زمانی امروز. نگاشت‌ها وضعیت فعلی در زمان وقوع تردد هستند و ممکن است با بازخوانی تغییر کنند. تکرارهای یکسان حفظ شده‌اند؛ کدهای PunchState/VerifyMode/WorkCode خام‌اند و ورود/خروج از آن‌ها حدس زده نمی‌شود. حتی با نگاشت دقیق، هویت دستگاه تأیید نشده و سطر در قرنطینه است.</p>
+<table><thead><tr><th>سطر / رتبهٔ تکرار</th><th>شناسهٔ شخص</th><th>زمان محلی / UTC</th><th>Punch / Verify / Work</th><th>وضعیت wire</th><th>نگاشت فعلی</th><th>علت قرنطینه</th></tr></thead><tbody id="rows"></tbody></table>
+<button id="previous-rows" type="button">صفحهٔ قبل سطرها</button><button id="next-rows" type="button">صفحهٔ بعد سطرها</button><button id="original" type="button">دریافت اصل پیام تأییدنشده</button>
+</section></section><p>حق مستقل devices.push.read و دامنهٔ دستگاه در هر درخواست روی سرور کنترل می‌شوند. ثبت شواهد هنوز سرویس داخلی جداست؛ این صفحه فقط خواندنی است، ACK تولید نمی‌کند و به معنی تکمیل R08 یا پذیرش سخت‌افزار نیست.</p>
+</main></body></html>

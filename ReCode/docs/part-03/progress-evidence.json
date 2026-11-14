@@ -517,5 +517,21 @@
     ],
     "verifiedFullSqlChecks": 1015,
     "evidence": "s10-push-journal-evidence.json"
+  },
+  "pushReviewFollowup": {
+    "status": "implemented-awaiting-exact-SHA-CI",
+    "scope": "session-authenticated read-only operator review; not authenticated device ingress or processing receipts",
+    "guide": "s10-push-review-contract.fa.md",
+    "newSqlHttpsChecks": 16,
+    "expectedFullSqlChecks": 1031,
+    "localCiPolicyChecks": 19,
+    "localOfflineDomFiles": 19,
+    "pageHelpCount": 53,
+    "authenticationOfDeviceImplemented": false,
+    "vendorIngressImplemented": false,
+    "attendanceWritesImplemented": false,
+    "vendorAckImplemented": false,
+    "ledgerRowClosed": false,
+    "hardwareVerified": false
   }
 }
