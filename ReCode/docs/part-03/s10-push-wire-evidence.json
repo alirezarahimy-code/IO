@@ -1,0 +1,44 @@
+{
+  "verifiedCode": "6d11f0f47b4392a2c4f1c79f7ead3af35056379d",
+  "scope": "R08 wire codec only; not authenticated receiver or technical-row closure",
+  "runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 43625122266,
+      "headSha": "6d11f0f47b4392a2c4f1c79f7ead3af35056379d",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43625122266"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 43625122261,
+      "headSha": "6d11f0f47b4392a2c4f1c79f7ead3af35056379d",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43625122261"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 43625122273,
+      "headSha": "6d11f0f47b4392a2c4f1c79f7ead3af35056379d",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43625122273"
+    }
+  ],
+  "checks": {
+    "pushCodecPortable": 47,
+    "fullSqlIntegration": 991,
+    "profilePortable": 129,
+    "ciPolicy": 17
+  },
+  "ledgerRowClosed": false,
+  "technicalOpenCount": 9,
+  "hardwareAcceptanceSeparate": "P3-H01",
+  "authenticationImplemented": false,
+  "sqlJournalImplemented": false,
+  "httpEndpointImplemented": false,
+  "formatterPerformsCommit": false,
+  "hardwareVerified": false,
+  "part3Complete": false,
+  "guide": "s10-push-attlog-contract.fa.md",
+  "sourceEvidence": "s10-push-protocol-reference-evidence.json"
+}

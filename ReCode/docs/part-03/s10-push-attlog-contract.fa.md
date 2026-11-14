@@ -41,3 +41,7 @@
 5. آزمون یکپارچه HTTPS/SQL، قطع پیش/پس commit، ACK ازدست‌رفته، retry و چنددستگاه؛ سپس پذیرش سخت‌افزاری H01 در انتها.
 
 پس «قرارداد wire ساخته شد» با «PUSH امن تکمیل شد» تفاوت دارد. سیاست بیومتریک/رضایت/نگهداری و حذف در R09–R15 نیز باید مستقل و صریح باشند؛ دستور کلی تکمیل این موارد، دادهٔ خام یا عملیات مخرب را خودکار مجاز نمی‌کند.
+
+## پذیرش محدود همین برش
+
+روی `6d11f0f`، [Windows/Linux](https://github.com/alirezarahimy-code/IO/actions/runs/43625122261)، [SQL۹۹۱](https://github.com/alirezarahimy-code/IO/actions/runs/43625122266) و [light](https://github.com/alirezarahimy-code/IO/actions/runs/43625122273) همگی success شدند.۴۷ بررسی codec جدا از991 SQL و129 profile هستند. [شاهد محدود](s10-push-wire-evidence.json) صریحاً authentication/endpoint/SQL journal و بستن R08 را false نگه می‌دارد. شمارنده همچنان۹ فنی + H01 است.

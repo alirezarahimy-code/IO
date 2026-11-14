@@ -60,3 +60,7 @@
 ## شمارندهٔ فعلی پس از برش profile
 
 [ledger ثابت](remaining-count-ledger.fa.md): **۹ مورد فنی + H01**؛ هر هفت ردیف DLST/الگوریتم/mask/gateway/DHCP/MAC/port با مسیر و قرارداد نرم‌افزاری و CI پذیرفته‌اند؛ [شاهد تکمیلی5e1f332](s11-dhcp-write-contract.fa.md). PUSH، عملیات حساس و اتصال مستقیم طبق شناسه‌های همان ledger بازند. [شاهد نرم‌افزار](s11-profile-settings-evidence.json) جای مدل/SDK واقعی نیست.
+
+## R08 — آغاز مرتب مانده‌های۹گانه
+
+[codec هفت‌ستونی PUSH](s10-push-attlog-contract.fa.md) با۴۷ بررسی و CI کامل6d11f0f پذیرفته شد؛ فقط زیرکار wire است، نه PUSH امن. هویت cryptographic، SQL journal/receipt، endpoint محدود و UI/permission مستقل هنوز ساخته نشده‌اند؛ R08 و جمع۹ فنی باز می‌مانند. انتخاب vendor-native به قرارداد کامل SDK نیاز دارد؛ edge احرازشده مرز اعتماد متفاوتی است و بدون تصمیم صریح جایگزین نمی‌شود.

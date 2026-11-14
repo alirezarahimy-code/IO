@@ -8,7 +8,7 @@
     "realDeviceExecution": "not performed",
     "testingSequence": "User explicitly requires virtual-device software completion now, copying reference behavior as appropriate, with real Windows SDK/multidevice acceptance deferred to the end. Lack of local hardware must not block further software implementation."
   },
-  "latestVerifiedCode": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
+  "latestVerifiedCode": "6d11f0f47b4392a2c4f1c79f7ead3af35056379d",
   "checks": {
     "integrationPassLines": 991,
     "foundation": 48,
@@ -75,7 +75,8 @@
     "profileSettingRealWorkerScenarios": 14,
     "offlineNativeNetworkDispatchProbes": 31,
     "productionDhcpMapperChecks": 29,
-    "pinnedDhcpFirmwareSourceBlobs": 4
+    "pinnedDhcpFirmwareSourceBlobs": 4,
+    "portablePushWireCodecChecks": 47
   },
   "stages": {
     "S04": "accepted registry and metadata groups; explicit versioned selected-device operator scope now software-verified in SQL and Chromium, with current human target authority enforced in worker dispatch/polling",
@@ -93,24 +94,24 @@
   "runs": [
     {
       "conclusion": "success",
-      "databaseId": 43621817180,
-      "headSha": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
+      "databaseId": 43625122266,
+      "headSha": "6d11f0f47b4392a2c4f1c79f7ead3af35056379d",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43621817180"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43625122266"
     },
     {
       "conclusion": "success",
-      "databaseId": 43621817209,
-      "headSha": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
+      "databaseId": 43625122261,
+      "headSha": "6d11f0f47b4392a2c4f1c79f7ead3af35056379d",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43621817209"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43625122261"
     },
     {
       "conclusion": "success",
-      "databaseId": 43621817192,
-      "headSha": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
+      "databaseId": 43625122273,
+      "headSha": "6d11f0f47b4392a2c4f1c79f7ead3af35056379d",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43621817192"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43625122273"
     }
   ],
   "remainingSoftware": [
@@ -350,7 +351,7 @@
       }
     ]
   },
-  "nextExactAction": "All seven requested profile software contracts are now source-backed and accepted. Continue fixed remaining R08-R16 with their independent support/security/policy decisions; no destructive/biometric operation is authorized by this instruction. Exact installed model/firmware support, real COM, DHCP effective lease/address and multidevice outage/recovery remain H01 at the end.",
+  "nextExactAction": "P3-R08 first: select vendor-native cryptographic provider with a complete authenticated commissioning/session contract, or explicitly approve a protected onsite edge gateway as a DIFFERENT trust boundary. Then implement immutable SQL journal/receipts and scoped read/manage/receive/commit API+UI and transactional ACK tests. Codec alone does not close R08; nine technical rows plus H01 remain. No general SN/CRC32/Stamp authentication or auto-registration endpoint is authorized.",
   "profileSettingsFollowup": {
     "code": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
     "accepted": true,
@@ -449,7 +450,7 @@
     }
   },
   "pushWireFollowup": {
-    "status": "local-codec-tested-CI-not-yet-accepted",
+    "status": "codec-only-software-verified-exact-SHA",
     "ledgerId": "P3-R08",
     "technicalOpenCount": 9,
     "newPortableCodecChecks": 47,
@@ -461,6 +462,30 @@
     "ledgerRowClosed": false,
     "part3Complete": false,
     "hardwareVerified": false,
-    "nextExactAction": "Resolve vendor cryptographic session library/algorithm availability versus explicitly approved authenticated edge trust boundary; then implement SQL immutable journal/receipt and scoped UI before opening any device HTTP ingress. The codec formatter does not prove a commit."
+    "nextExactAction": "Resolve vendor cryptographic session library/algorithm availability versus explicitly approved authenticated edge trust boundary; then implement SQL immutable journal/receipt and scoped UI before opening any device HTTP ingress. The codec formatter does not prove a commit.",
+    "code": "6d11f0f47b4392a2c4f1c79f7ead3af35056379d",
+    "runs": [
+      {
+        "conclusion": "success",
+        "databaseId": 43625122266,
+        "headSha": "6d11f0f47b4392a2c4f1c79f7ead3af35056379d",
+        "status": "completed",
+        "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43625122266"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 43625122261,
+        "headSha": "6d11f0f47b4392a2c4f1c79f7ead3af35056379d",
+        "status": "completed",
+        "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43625122261"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 43625122273,
+        "headSha": "6d11f0f47b4392a2c4f1c79f7ead3af35056379d",
+        "status": "completed",
+        "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43625122273"
+      }
+    ]
   }
 }
