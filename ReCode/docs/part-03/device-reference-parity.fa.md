@@ -76,7 +76,7 @@
 | `DeviceOperationsController.SetSleepTime#1` | 904 | پیاده‌شده؛ آزمون نرم‌افزاری | zero/disabled و سازگاری عمومی ادعا نمی‌شود؛ پذیرش مدل واقعی باز. |
 | `DeviceOperationsController.SetCardReg#1` | 938 | پیاده‌شده؛ آزمون نرم‌افزاری | قرارداد واقعی نصب همان مدل/firmware/واحد/اثر/مقادیر و پذیرش سخت‌افزار هنوز لازم است؛ generic setter یا ادعای پشتیبانی تمام مدل‌ها وجود ندارد. |
 | `DeviceOperationsController.GetAdvanced2#1` | 972 | پیاده‌شده؛ آزمون نرم‌افزاری | IP گزارش‌شده اثبات دسترسی مقصد و algorithm raw تأیید قابلیت بیومتریک نیست. |
-| `DeviceOperationsController.SetIP#1` | 1004 | پیاده‌شده؛ آزمون نرم‌افزاری | mask/gateway/MAC مسیر بستهٔ مستقل مصوب دارند؛ شاهد writable COM برای DHCP/TCPPort و H01 واقعی باز است. |
+| `DeviceOperationsController.SetIP#1` | 1004 | پیاده‌شده؛ آزمون نرم‌افزاری | mask/gateway/MAC مسیر بستهٔ مستقل مصوب دارند؛ TCPPort با شاهد write باینری85347c2 نرم‌افزاری پذیرفته؛ DHCP و H01 واقعی باز است. |
 | `DeviceOperationsController.SetAlgorithm#1` | 1038 | پیاده‌شده؛ آزمون نرم‌افزاری | حالت/اثر دقیق نصب، شرط حفظ template، منبع/hash و مجوز مستقل با readback/unknown پذیرفته شد؛ نه تبدیل/حذف بیومتریک یا generic setter. |
 | `DeviceOperationsController.SetSector#1` | 1072 | پیاده‌شده؛ آزمون نرم‌افزاری | قرارداد واقعی نصب همان مدل/firmware/واحد/اثر/مقادیر و پذیرش سخت‌افزار هنوز لازم است؛ generic setter یا ادعای پشتیبانی تمام مدل‌ها وجود ندارد. |
 | `DeviceOperationsController.RemoteEnroll#1` | 1106 | عملیات حساس هنوز ناتمام | سیاست داده/بیومتریک یا حذف، قرارداد مدل، مجوز/تأیید مستقل، شاهد دریافت و recovery هنوز تکمیل نشده؛ restart مجوز اینها نیست. |
@@ -168,3 +168,5 @@ validator هش دقیق Git blob منابع ثابت (و برابری worktree؛
 ## برش نوشتن هفت تنظیم
 
 [شاهد6e8f9d9](s11-profile-settings-evidence.json): پنج ردیف نرم‌افزاری بسته و شمارنده۱۶→۱۱ شد؛ DHCP/TCPPort با وجود مسیر/تست، هنوز شاهد کافی writable COM ندارند. H01/مدل واقعی باز است.
+
+**به‌روزرسانی85347c2:** [شاهد مسیر write SDK](s11-network-native-dispatch.fa.md) با۳۱ probe و SQL۹۹۱/Windows/Linux/light موفق، R07 را نرم‌افزاری بست؛ جمع فعلی شش ردیف و۱۰ فنی باز + H01 است. بند۱۶→۱۱ بالا تاریخچه6e8f9d9 است. DHCP با وجود writer عمومی ثالث هنوز writable-COM همان firmware اثبات‌شده نیست.

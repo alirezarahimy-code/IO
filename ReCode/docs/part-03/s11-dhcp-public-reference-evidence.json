@@ -1,0 +1,58 @@
+{
+  "scope": "DHCP protocol mapping corroboration only; third-party UDP source, not vendor COM or firmware/device acceptance",
+  "repository": "https://github.com/virtualheart/ZKteco-biomatric-lib",
+  "commit": "b35d78d93f906e53dc9e9f8015e5fa772fc40f1b",
+  "firmwareVerified": false,
+  "realDeviceTestedByIO": false,
+  "sources": [
+    {
+      "path": "src/main/java/com/zkteco/terminal/ZKTerminal.java",
+      "gitBlob": "09c7390a03a2900f0597db7981fe8065413b194c",
+      "sha256": "1182e1bed8d93bb5161e409e3b238818fe5d030de69bfe45be98e3bbbbd4b9fd",
+      "url": "https://github.com/virtualheart/ZKteco-biomatric-lib/blob/b35d78d93f906e53dc9e9f8015e5fa772fc40f1b/src/main/java/com/zkteco/terminal/ZKTerminal.java",
+      "excerpts": [
+        {
+          "firstLine": 907,
+          "lastLine": 908,
+          "text": "    public String iSDHCP() throws IOException {\n        int[] toSend = ZKCommand.getPacketByte(CommandCodeEnum.CMD_OPTIONS_RRQ, sessionId, replyNo, \"DHCP\".getBytes());"
+        },
+        {
+          "firstLine": 1515,
+          "lastLine": 1534,
+          "text": "    // on and off Ethernet DHCP\n    public ZKCommandReply setDHCP(OnOffenum state) throws IOException {\n        byte[] DHCPbyte = (\"DHCP=\" + state.getOnOffState()).getBytes();\n        int[] toSend = ZKCommand.getPacketByte(CommandCodeEnum.CMD_OPTIONS_WRQ, sessionId, replyNo, DHCPbyte);\n        byte[] buf = new byte[toSend.length];\n        int index = 0;\n\n        for (int byteToSend : toSend) {\n            buf[index++] = (byte) byteToSend;\n        }\n\n        DatagramPacket packet = new DatagramPacket(buf, buf.length, address, port);\n        socket.send(packet);\n        replyNo++;\n\n        int[] response = readResponse();\n        CommandReplyCodeEnum replyCode = CommandReplyCodeEnum.decode(response[0] + (response[1] * 0x100));\n        int replyId = response[6] + (response[7] * 0x100);\n        int[] payloads = Arrays.copyOfRange(response, 8, response.length);\n"
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/zkteco/Enum/OnOffenum.java",
+      "gitBlob": "aa61740566161e1097aac709f6a961b20b5c7bdc",
+      "sha256": "1bf1c6d93402bf1c5fb320a25be06b2fe1f0f03ddc7a9b2d429ea31c06e80e0d",
+      "url": "https://github.com/virtualheart/ZKteco-biomatric-lib/blob/b35d78d93f906e53dc9e9f8015e5fa772fc40f1b/src/main/java/com/zkteco/Enum/OnOffenum.java",
+      "excerpts": [
+        {
+          "firstLine": 3,
+          "lastLine": 5,
+          "text": "public enum OnOffenum {\n\tON(1),\n\tOFF(0);"
+        },
+        {
+          "firstLine": 13,
+          "lastLine": 15,
+          "text": "    public int getOnOffState() {\n        return State;\n    }   "
+        }
+      ]
+    },
+    {
+      "path": "src/main/java/com/zkteco/Enum/CommandCodeEnum.java",
+      "gitBlob": "fccdbdf1cef9914ad7b82de663ba248ff7d12cb6",
+      "sha256": "0a5f0eaae9c1934c9bbd93b16e773642b6386939114729fce7ac9f34ec951ef0",
+      "url": "https://github.com/virtualheart/ZKteco-biomatric-lib/blob/b35d78d93f906e53dc9e9f8015e5fa772fc40f1b/src/main/java/com/zkteco/Enum/CommandCodeEnum.java",
+      "excerpts": [
+        {
+          "firstLine": 57,
+          "lastLine": 60,
+          "text": "    //Read configuration value of the machine\n    CMD_OPTIONS_RRQ(11),\n    //Change configuration value of the machine\n    CMD_OPTIONS_WRQ(12),"
+        }
+      ]
+    }
+  ]
+}

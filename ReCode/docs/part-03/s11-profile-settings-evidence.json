@@ -1,35 +1,42 @@
 {
-  "verifiedCode": "6e8f9d95888ea6e0b7558aa3ccbf51f26d25b2a5",
+  "verifiedCode": "85347c2d3876fb34844fc4ec78f8d30366dc3ae7",
   "scope": "P3-R01-R07; not Part3 completion or hardware acceptance",
-  "status": "five-software-ledger-rows-closed",
+  "status": "six-software-ledger-rows-closed",
   "closedIds": [
     "P3-R01",
     "P3-R02",
     "P3-R03",
     "P3-R04",
-    "P3-R06"
-  ],
-  "openIds": [
-    "P3-R05",
+    "P3-R06",
     "P3-R07"
   ],
+  "openIds": [
+    "P3-R05"
+  ],
   "baselineOpenTechnical": 16,
-  "currentOpenTechnical": 11,
+  "currentOpenTechnical": 10,
   "hardwarePackage": "P3-H01 remains open and separate",
   "runs": [
     {
       "conclusion": "success",
-      "databaseId": 43611624749,
-      "headSha": "6e8f9d95888ea6e0b7558aa3ccbf51f26d25b2a5",
+      "databaseId": 43618440584,
+      "headSha": "85347c2d3876fb34844fc4ec78f8d30366dc3ae7",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43611624749"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43618440584"
     },
     {
       "conclusion": "success",
-      "databaseId": 43611624708,
-      "headSha": "6e8f9d95888ea6e0b7558aa3ccbf51f26d25b2a5",
+      "databaseId": 43618440580,
+      "headSha": "85347c2d3876fb34844fc4ec78f8d30366dc3ae7",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43611624708"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43618440580"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 43618440620,
+      "headSha": "85347c2d3876fb34844fc4ec78f8d30366dc3ae7",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43618440620"
     }
   ],
   "checks": {
@@ -41,7 +48,8 @@
     "permissions": 143,
     "profilePermissions": 14,
     "foundationMigrations": 47,
-    "identityMigrations": 2
+    "identityMigrations": 2,
+    "offlineNativeNetworkDispatchProbes": 31
   },
   "sourceFiles": [
     "src/IO.DeviceContracts/ZkProfileSettingContract.cs",
@@ -61,7 +69,7 @@
     "Maximum Unicode all-seven approvals plus8keys/daylight fits32KB stdin and unchanged bounded stdout/SQL result; exact SQL roundtrip verified"
   ],
   "limitations": [
-    "DHCP/TCPPort candidate option mappings still lack sufficient writable-COM model evidence",
+    "DHCP candidate mapping has a public third-party UDP writer and native generic forwarding evidence but no sufficient target-firmware writable-COM support evidence; R05 remains open. TCPPort software contract accepted, real model acceptance is still H01.",
     "Installed approvals are requirements, not proof of hardware compatibility",
     "Private TCP stateful fixture and compiled bridge are not actual COM/device execution",
     "Real Windows SDK/ACL/multiple-device outages/exchange/settings acceptance remains in H01"
@@ -69,5 +77,20 @@
   "hardwareVerified": false,
   "realSdkExecuted": false,
   "part3Complete": false,
-  "sourcePathsRelativeTo": "ReCode"
+  "sourcePathsRelativeTo": "ReCode",
+  "initialFiveRowAcceptance": {
+    "code": "6e8f9d95888ea6e0b7558aa3ccbf51f26d25b2a5",
+    "sqlRun": 43611624749,
+    "platformRun": 43611624708,
+    "technicalOpenThen": 11
+  },
+  "nativeDispatchFollowup": {
+    "code": "85347c2d3876fb34844fc4ec78f8d30366dc3ae7",
+    "evidence": "s11-network-native-dispatch-evidence.json",
+    "guide": "s11-network-native-dispatch.fa.md",
+    "closedSoftwareId": "P3-R07",
+    "kind": "hash-pinned-x86-emulation-with-trapped-transport",
+    "realComExecuted": false
+  },
+  "dhcpPublicSource": "s11-dhcp-public-reference-evidence.json"
 }

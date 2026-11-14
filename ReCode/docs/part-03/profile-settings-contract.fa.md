@@ -27,7 +27,7 @@
 | P3-R04 | `gateway` | `GATEIPAddress`؛ setter مرجع PersonnelZKDevice | اثر روی اتصال و مدل واقعی |
 | P3-R05 | `dhcp` | `DHCP` کاندید، مدل‌مقید | شاهد کافی برای write از COM نداریم؛ رشته/USB config اثبات نیست |
 | P3-R06 | `mac` | `GetDeviceMAC`/`SetDeviceMAC` و `RefreshData` | رفتار مدل واقعی و بازیابی شبکه |
-| P3-R07 | `port` | `TCPPort` کاندید؛ نه `CommPort` سریال | رشته DLL/read option اثبات SetSysOption مدل نیست |
+| P3-R07 | `port` | `TCPPort`؛ مسیر write صریح SDK6 و dispatch دو SDK با۳۱ probe؛ نه `CommPort` سریال | نرم‌افزار پذیرفته؛ اثر/پشتیبانی مدل واقعی و بازیابی در H01 |
 
 DLST فقط `SetDaylight` را صدا می‌زند؛ اثر native تغییر Mode در فعال‌سازی و CurrentMode در غیرفعال‌سازی در حالت مطلوب پیش‌نمایش الزام شده است. adapter تنظیمات جانبی را جداگانه و کور نمی‌نویسد. برای غیرشبکه فقط readback دقیق تمام حالت و هویت، موفقیت است. برای تمام پارامترهای شبکه، حتی ACK مثبت `unknown` است.
 
@@ -47,8 +47,10 @@ DLST فقط `SetDaylight` را صدا می‌زند؛ اثر native تغییر M
 - `DeviceProfileSettingTests`: آزمون یکپارچه SQL برای هر هفت پارامتر، مجوز مستقل، لغو زنده، trigger immutable، نتیجه و بازبینی. تا CI موفق دقیق SHA، پذیرفته محسوب نمی‌شود.
 - `VirtualWorkerTests`: مسیر HTTPS/SQL/worker/child/TCP خصوصی stateful و ACK ازدست‌رفته؛ تغییر option در fixture جابه‌جایی شبکهٔ واقعی نیست و جای SDK نیست.
 
-وضعیت اجرایی و SHA/CI در گزارش پیشرفت ثبت می‌شود؛ SDK ویندوز/دستگاه واقعی طبق تصمیم قبلی در انتها، و خلأ شاهد COM دو گزینه DHCP/TCPPort جداگانه باز است.
+وضعیت اجرایی و SHA/CI در گزارش پیشرفت ثبت می‌شود؛ SDK ویندوز/دستگاه واقعی طبق تصمیم قبلی در انتها، و خلأ شاهد writable-COM مدل برای DHCP باز است؛ شاهد write باینری port اکنون تثبیت شد، پذیرش واقعی مدل آن در H01 است.
 
-## پذیرش نرم‌افزار ثبت‌شده
+## پذیرش نرم‌افزار نخست — وضعیت تاریخی 6e8f9d9
 
 `6e8f9d9`: SQL۹۹۱ و Windows/Linux همان SHA موفق؛ [شاهد دقیق](s11-profile-settings-evidence.json). پنج شناسه R01/R02/R03/R04/R06 بستهٔ نرم‌افزاری شدند، نه هفت. R05/R07 هنوز شاهد کافی writable COM ندارند؛ H01 واقعی باز است. حداکثر ورودی Unicode ترکیب همه خواندن‌ها اکنون با stdin محدود32KB عبور می‌کند؛ سقف خروجی settings و نتیجهٔ SQL افزایش نیافته و round-trip دقیق آزموده شده است.
+
+**پذیرش تکمیلی85347c2:** SQL۹۹۱/Windows/Linux/light موفق؛ [۳۱ probe مرز SDK](s11-network-native-dispatch.fa.md) ابهام write باینری TCPPort را برطرف کرد. اکنون شش ردیف نرم‌افزاری بسته و فقط R05 از این هفت باز است؛ بند پنج‌ردیفی بالا وضعیت تاریخی6e8f9d9 است. نمونهٔ writer عمومی DHCP نیز [ثبت شد](s11-dhcp-public-reference-evidence.json)، نه اثبات firmware یا مجوز write بدون قرارداد نصب.
