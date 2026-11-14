@@ -62,6 +62,14 @@ if (args is not ["--verify"])
     var testPin = JsonSerializer.Deserialize<ZkProbeInput>(testPinElement.GetRawText())!;
     if (testPin.ExpectedSerial.StartsWith("virtual-lab-", StringComparison.Ordinal))
     { await VirtualDeviceLab.RelayAsync(text, testPin); return; }
+    if(document.RootElement.TryGetProperty("Enroll",out _))
+    {
+        var enrollment=JsonSerializer.Deserialize<RemoteEnrollInput>(text)!;
+        if(enrollment.Approval.ModelEvidence=="SYNTHETIC-hang")await Task.Delay(TimeSpan.FromMinutes(1));
+        else if(enrollment.Approval.ModelEvidence=="SYNTHETIC-extra")Console.WriteLine("{\"State\":\"completed\",\"TemplateData\":\"forbidden\"}");
+        else Console.WriteLine(JsonSerializer.Serialize(new RemoteEnrollOutput("completed",new(enrollment.OperationId,enrollment.PersonIdentifier,enrollment.Approval.FingerIndex,enrollment.Approval.SuccessActionCode,128))));
+        return;
+    }
     if(document.RootElement.TryGetProperty("ReadAttendance",out _))
     {
         var attendance=JsonSerializer.Deserialize<ZkAttendanceReadInput>(text)!;var serial=attendance.Connection.ExpectedSerial;

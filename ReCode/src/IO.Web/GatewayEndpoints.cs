@@ -14,7 +14,7 @@ internal static class GatewayEndpoints
         app.MapPost("/devices/gateway-bindings/{id:guid}/revoke",(Guid id,GatewayVersion input,HttpContext c,IAntiforgery csrf,PushGatewayIngress service)=>Admin(c,csrf,actor=>service.RevokeAsync(actor,id,input.Version,c.RequestAborted))).RequireAuthorization();
         if(!enabled)return;
         // Deliberately no cookie authority/CSRF exemption on administrative routes. This separate machine route authenticates its exact body using HMAC.
-        app.MapPost(AuthenticatedPushGateway.Path,Receive).AllowAnonymous().WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(ZkPushAttendanceCodec.MaximumBytes));
+        app.MapPost(AuthenticatedPushGateway.Path,Receive).AllowAnonymous().RequireRateLimiting("gateway-ingress").WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(ZkPushAttendanceCodec.MaximumBytes));
     }
     private static async Task<IResult> Receive(HttpContext c,PushGatewayIngress service)
     {

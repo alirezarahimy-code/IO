@@ -4,7 +4,7 @@ using System.Text;
 namespace IO.DeviceContracts;
 
 /// <summary>NEW gateway-to-server protocol, NOT ZKTeco native authentication. Deployment supplies the binding/key.
-/// No public HTTP endpoint or SQL implementation is provided by this portable boundary.</summary>
+/// SQL/HTTPS implementation lives in Infrastructure/Web; this portable boundary supplies no authority by itself.</summary>
 public sealed class PushGatewayBinding
 {
     public Guid GatewayId {get;}

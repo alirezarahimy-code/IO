@@ -28,3 +28,15 @@ for source in evidence['sources']:
     assert params('OnEnrollFingerEx')==[('EnrollNumber','BSTR',1),('FingerIndex','LONG',1),('ActionResult','LONG',1),('TemplateLength','LONG',1)]
     assert methods['OnEnrollFingerEx']['return']=='VOID'
 print('PASS RemoteEnroll two pinned type libraries: BSTR StartEnrollEx, CancelOperation and completion metadata; no native GUID, template bytes, SDK execution or hardware acceptance')
+
+adapter=json.loads((ROOT/'ReCode/docs/part-03/s09-enroll-adapter-typelib-evidence.json').read_text(encoding='utf-8'))
+assert len(adapter['sources'])==2
+for source in adapter['sources']:
+    actual=reader.extract(ROOT/source['source'],('RegEvent','GetUserTmpExStr','GetLastError','OnEnrollFingerEx'),True)
+    assert actual==source and (actual['dllSha256'],actual['typelibSha256'])==pins[source['source']]
+    methods={m['method']:m for m in actual['methods']}
+    assert methods['OnEnrollFingerEx']['interfaceGuid']=='cf83b580-5d32-4c65-b44e-bedc750cdfa8'
+    assert [(p['type'],p['flags']) for p in methods['GetUserTmpExStr']['parameters']]==[('LONG',1),('BSTR',1),('LONG',1),('PTR LONG',2),('PTR BSTR',2),('PTR LONG',2),('PTR VARIANT_BOOL',10)]
+    assert [(p['type'],p['flags']) for p in methods['GetLastError']['parameters']]==[('PTR LONG',3)]
+    assert [(p['type'],p['flags']) for p in methods['RegEvent']['parameters']]==[('LONG',1),('LONG',1),('PTR VARIANT_BOOL',10)]
+print('PASS two pinned adapter ABIs/event IID; presence probe may transiently materialize a template only inside child; no firmware error semantics or execution claimed')

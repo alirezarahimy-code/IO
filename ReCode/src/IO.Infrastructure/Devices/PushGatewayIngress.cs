@@ -55,7 +55,7 @@ public sealed class PushGatewayIngress(IoDbContext db,PermissionTransaction tx,I
     },ct);
     public Task<object> ListAsync(Guid actor,CancellationToken ct=default)=>tx.ExecuteAsync<object>(actor,"devices.credentials.manage","device-gateway.viewed",async token=>
     {
-        var rows=await db.PushGatewayBindings.AsNoTracking().Select(x=>new{x.Id,x.GatewayId,x.DeviceId,x.SourceId,x.ServiceUserId,x.Serial,x.TimeZoneId,x.KeyVersion,x.CreatedAtUtc,x.RevokedAtUtc,x.Version}).ToListAsync(token);
+        var rows=await db.PushGatewayBindings.AsNoTracking().OrderByDescending(x=>x.CreatedAtUtc).ThenBy(x=>x.Id).Take(100).Select(x=>new{x.Id,x.GatewayId,x.DeviceId,x.SourceId,x.ServiceUserId,x.Serial,x.TimeZoneId,x.KeyVersion,x.CreatedAtUtc,x.RevokedAtUtc,x.Version}).ToListAsync(token);
         return(rows,Guid.Empty);
     },ct);
     public async Task<PushGatewayRetention> ReceiveAsync(Guid bindingId,PushGatewayEnvelope input,CancellationToken ct=default)

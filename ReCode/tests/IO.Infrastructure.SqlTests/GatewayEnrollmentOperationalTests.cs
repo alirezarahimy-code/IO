@@ -104,7 +104,7 @@ internal static class GatewayEnrollmentOperationalTests
     check(await Reject<UnauthorizedAccessException>(()=>Request(input,reader)),"enrollment read permission is not enrollment request authority");
     check(await Request(input)==input.Id&&await Request(input)==input.Id,"approved synthetic enrollment intent has durable exact idempotency");
     check(await Reject<DomainConflictException>(()=>Request(input with{PersonIdentifier="01"})),"enrollment retry preserves exact person identity including leading zeros");
-    check(await Reject<DomainConflictException>(()=>Use<DeviceConnections,Guid>(s=>s.RequestAsync(actor,Guid.NewGuid(),native,nativeVersion,30)))&&await Reject<DomainConflictException>(()=>Use<DeviceOperations,Guid>(s=>s.RequestAsync(actor,Guid.NewGuid(),native,nativeVersion,"information.read",30,null,null)))&&await Reject<DomainConflictException>(()=>Use<DeviceUserDownloads,Guid>(s=>s.RequestAsync(actor,Guid.NewGuid(),native,nativeVersion,30)))&&await Reject<DomainConflictException>(()=>Use<DeviceAttendanceDownloads,Guid>(s=>s.RequestAsync(actor,Guid.NewGuid(),native,nativeVersion,30,DateTimeOffset.UtcNow.AddHours(-1),DateTimeOffset.UtcNow,0,1))),"pending enrollment excludes diagnostic operations and user/attendance download queues");
+    check(await Reject<DomainConflictException>(()=>Use<DeviceConnections,Guid>(s=>s.RequestAsync(actor,Guid.NewGuid(),native,nativeVersion,30)))&&await Reject<DomainConflictException>(()=>Use<DeviceOperations,Guid>(s=>s.RequestAsync(actor,Guid.NewGuid(),native,nativeVersion,"information.read",30,null,null)))&&await Reject<DomainConflictException>(()=>Use<DeviceUserDownloads,Guid>(s=>s.RequestAsync(actor,Guid.NewGuid(),native,nativeVersion,30)))&&await Reject<DomainConflictException>(()=>Use<DeviceAttendanceDownloads,Guid>(s=>s.RequestAsync(actor,Guid.NewGuid(),native,nativeVersion,30,DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.AddHours(-1).ToUnixTimeSeconds()),DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()),0,1))),"pending enrollment excludes diagnostic operations and user/attendance download queues");
     var version=await Q(db=>db.RemoteEnrollments.Where(x=>x.Id==input.Id).Select(x=>x.Version).SingleAsync());
     await Use<RemoteEnrollments,Guid>(s=>s.CancelAsync(actor,input.Id,version));
     check(await Q(db=>db.RemoteEnrollments.Where(x=>x.Id==input.Id).Select(x=>x.State).SingleAsync())=="cancelled-before-dispatch","pending enrollment cancellation is durable and never invokes native code");
@@ -115,6 +115,21 @@ internal static class GatewayEnrollmentOperationalTests
     check(await Reject<ArgumentException>(()=>Use<RemoteEnrollments,Guid>(s=>s.CompleteAsync(service,claim,completion with{Completion=completion.Completion! with{OperationId=Guid.NewGuid()}}))),"foreign enrollment completion cannot finish a claimed job");
     await Use<RemoteEnrollments,Guid>(s=>s.CompleteAsync(service,claim,completion));
     check(await Q(db=>db.RemoteEnrollments.Where(x=>x.Id==claim.Id).Select(x=>x.State).SingleAsync())=="completed"&&await Reject<DomainConflictException>(()=>Use<RemoteEnrollments,Guid>(s=>s.CompleteAsync(service,claim,completion))),"correlated synthetic completion commits once and terminal jobs cannot be redispatched");
+    input=input with{Id=Guid.NewGuid()};await Request(input);
+    var dotnet=Path.GetFullPath(Path.Combine(System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory(),"..","..","..","dotnet.exe"));
+    var relay=Path.Combine(AppContext.BaseDirectory,"virtual-relay","IO.DeviceRuntime.Tests.dll");
+    var workerConfig=new WorkerConfiguration(service,[],[new(native,"192.0.2.31",4370,1,approval.Serial,true,EnrollmentApprovals:[approval])],dotnet,relay,false,false,false,false,false,false);
+    using(var worker=new EnrollmentWorker(provider.GetRequiredService<IServiceScopeFactory>(),workerConfig))
+    {
+        await worker.StartAsync(CancellationToken.None);
+        try
+        {
+            using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(30));string workerState;
+            do{await Task.Delay(100,deadline.Token);workerState=await Q(db=>db.RemoteEnrollments.Where(x=>x.Id==input.Id).Select(x=>x.State).SingleAsync());}while(workerState is "pending" or "running");
+            check(workerState=="completed","actual Windows enrollment worker claims SQL intent rechecks credentials and commits bounded synthetic-child completion");
+        }
+        finally{await worker.StopAsync(CancellationToken.None);}
+    }
     input=input with{Id=Guid.NewGuid()};await Request(input);claim=await Use<RemoteEnrollments,RemoteEnrollments.Claim?>(s=>s.ClaimAsync(service))??throw new InvalidOperationException();
     version=await Q(db=>db.RemoteEnrollments.Where(x=>x.Id==claim.Id).Select(x=>x.Version).SingleAsync());await Use<RemoteEnrollments,Guid>(s=>s.CancelAsync(actor,claim.Id,version));
     check(await Use<RemoteEnrollments,bool>(s=>s.ShouldStopAsync(service,claim)),"post-dispatch cancellation requests termination rather than claiming cancellation proof");

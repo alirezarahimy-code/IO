@@ -69,7 +69,7 @@ public sealed class RemoteEnrollments(IoDbContext db,PermissionTransaction tx,Ti
         var device=await db.Devices.AsNoTracking().SingleAsync(x=>x.Id==next.DeviceId,token);var approval=JsonSerializer.Deserialize<RemoteEnrollApproval>(next.ApprovalJson)!;
         if(!Approved(approval)||!await tx.HasDevicePermissionAsync(next.RequestedByUserId,Request,next.DeviceId,token)){next.State="revoked";next.FinishedAtUtc=now;return(null,next.Id);}
         if(now-next.RequestedAtUtc>TimeSpan.FromMinutes(2)||!device.Enabled||device.Profile!="zk-standalone"||device.Host is null||device.Port is null||!device.Version.SequenceEqual(next.ExpectedDeviceVersion)||device.SourceId!=next.SourceId||!await Mapped(next.SourceId,next.EmployeeId,next.PersonIdentifier,token)){next.State="device-changed";next.FinishedAtUtc=now;return(null,next.Id);}
-        if(await Busy(device.Id,token)||await DeviceWriteSafety.UnreviewedAsync(db,device.Id,token))return(null,next.Id);
+        if(await db.RemoteEnrollments.AnyAsync(x=>x.DeviceId==device.Id&&x.Id!=next.Id&&(x.State=="pending"||x.State=="running"||x.State=="unknown"),token)||await Busy(device.Id,token)||await DeviceWriteSafety.UnreviewedAsync(db,device.Id,token))return(null,next.Id);
         next.State="running";next.ClaimId=Guid.NewGuid();next.ServiceUserId=service;next.ClaimedAtUtc=now;
         return(new Claim(next.Id,next.ClaimId.Value,next.DeviceId,device.Host,device.Port.Value,next.PersonIdentifier,approval,next.TimeoutSeconds),next.Id);
     },ct);

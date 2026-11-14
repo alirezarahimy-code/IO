@@ -25,10 +25,11 @@ var connection = windowsOperational?new SqlConnectionStringBuilder{
 }.ConnectionString;
 var options = new DbContextOptionsBuilder<IoDbContext>().UseSqlServer(connection).Options;
 IoDbContext NewDb() => new(options);
+int checkCount=0;
 void Check(bool condition, string message)
 {
     if (!condition) throw new InvalidOperationException(message);
-    Console.WriteLine("PASS " + message);
+    ++checkCount;Console.WriteLine("PASS " + message);
 }
 async Task ExpectSqlFailure(Func<Task> action, params int[] numbers)
 {
@@ -62,8 +63,15 @@ try
 {
     if(windowsOperational)
     {
-        await GatewayEnrollmentOperationalTests.RunAsync(connection,Check);
-        Console.WriteLine("PASS Windows LocalDB gateway/enrollment operational integration (synthetic; no native hardware)");return 0;
+        try
+        {
+            await GatewayEnrollmentOperationalTests.RunAsync(connection,Check);
+            Console.WriteLine($"::notice title=Windows gateway enrollment integration::{checkCount} SQL HTTPS queue and synthetic-process checks passed on Windows LocalDB; no COM hardware or real biometric authorization.");return 0;
+        }
+        catch(Exception error)
+        {
+            Console.Error.WriteLine("::error title=Windows gateway enrollment integration::"+error.ToString().Replace("%","%25").Replace("\r","%0D").Replace("\n","%0A"));return 1;
+        }
     }
     if(args is ["--virtual-worker-only"])
     {

@@ -1,7 +1,7 @@
 namespace IO.DeviceContracts;
 
-/// <summary>Explicit installed-model/policy approval supplied by a FUTURE trusted deployment caller.
-/// Mere text references do not establish organizational authority. No real-device adapter is wired here.</summary>
+/// <summary>Explicit installed-model/policy approval pinned by trusted server and worker deployment configuration.
+/// Mere text references do not establish organizational authority. References alone never enable an adapter.</summary>
 public sealed record RemoteEnrollApproval(string Serial,string Product,string Firmware,int FingerIndex,int SuccessActionCode,
     string ModelEvidence,string AuthorizationReference,string RetentionAndDeletionPolicyReference,bool AllowEnrollment=false,int? EmptySlotErrorCode=null,int EventMask=0)
 {
@@ -23,8 +23,8 @@ public interface IRemoteEnrollSession
     bool CancelOperation();
 }
 
-/// <summary>Single-dispatch lifecycle for a future exclusive per-device child session.
-/// Current use is synthetic doubles only; no web/worker/COM route instantiates this class.
+/// <summary>Single-dispatch lifecycle for an exclusive per-device child session.
+/// RemoteEnrollmentAdapter supplies COM integration; parent supervisor enforces the hard deadline.
 /// ACK != completed; cancel-after-dispatch != cancellation proof; uncertain work is never retried.</summary>
 public sealed class RemoteEnrollWorkflow
 {

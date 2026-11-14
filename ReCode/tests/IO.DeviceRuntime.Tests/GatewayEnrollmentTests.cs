@@ -83,9 +83,18 @@ internal static class GatewayEnrollmentTests
         var negative=Workflow();var falseStart=new EnrollSession{StartResult=false};Check(negative.Start(falseStart)=="unknown"&&falseStart.Starts==1,"RemoteEnroll false start return is not proof that enrollment never began");
         var throwing=Workflow();Check(throwing.Start(new EnrollSession{ThrowStart=true})=="unknown","RemoteEnroll exception after dispatch preserves uncertainty");
         Check(!workflow.ToString().Contains("000123",StringComparison.Ordinal)&&!done.ToString().Contains("000123",StringComparison.Ordinal),"RemoteEnroll state and callback default rendering redact subject and never contain template bytes");
-        Console.WriteLine($"PASS {count} synthetic gateway/enrollment checks; no HTTP SQL COM device or real biometric policy execution");
+        var approvalWire=new RemoteEnrollApproval("SYNTHETIC-SERIAL","SYNTHETIC-PRODUCT","SYNTHETIC-FIRMWARE",1,0,"SYNTHETIC-model-only","SYNTHETIC-authority-only","SYNTHETIC-retention-only",true,-404,65535);
+        var wire=new RemoteEnrollInput(new(Guid.NewGuid(),"192.0.2.31",4370,1,approvalWire.Serial,0),Guid.NewGuid(),"001",approvalWire,1);
+        var executable=Path.GetFullPath(Path.Combine(System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory(),"..","..","..",OperatingSystem.IsWindows()?"dotnet.exe":"dotnet"));var relay=typeof(GatewayEnrollmentTests).Assembly.Location;
+        Check(wire.IsValid()&&!(wire with{Approval=approvalWire with{EmptySlotErrorCode=null}}).IsValid()&&!(wire with{Approval=approvalWire with{EventMask=0}}).IsValid(),"Enrollment wire requires explicitly approved absence semantics and event mask");
+        Check((await NativeProcessSupervisor.RunEnrollAsync(executable,relay,wire,6)).State=="completed","Enrollment supervisor accepts exact correlated synthetic child completion");
+        Check((await NativeProcessSupervisor.RunEnrollAsync(executable,relay,wire with{Approval=approvalWire with{ModelEvidence="SYNTHETIC-extra"}},6)).State=="unknown","Enrollment supervisor rejects child template export or extra properties as unknown");
+        using(var cancelledToken=new CancellationTokenSource()){cancelledToken.Cancel();Check((await NativeProcessSupervisor.RunEnrollAsync(executable,relay,wire,6,cancelledToken.Token)).State=="cancelled-before-dispatch","Enrollment pre-cancelled supervisor never launches a child");}
+        var killTimer=System.Diagnostics.Stopwatch.StartNew();
+        Check((await NativeProcessSupervisor.RunEnrollAsync(executable,relay,wire with{Approval=approvalWire with{ModelEvidence="SYNTHETIC-hang"}},6)).State=="unknown"&&killTimer.Elapsed<TimeSpan.FromSeconds(20),"Enrollment hard process deadline terminates hanging synthetic child and never advertises safe retry");
+        Console.WriteLine($"PASS {count} synthetic gateway/enrollment checks; no HTTP SQL COM device or real biometric policy execution; synthetic child supervisor exercised");
         if(Environment.GetEnvironmentVariable("GITHUB_ACTIONS")=="true")
-            Console.WriteLine($"::notice title=Synthetic gateway and enrollment checks::{count} checks passed; gateway protocol and enrollment lifecycle only, no HTTP SQL COM native-device authentication or real biometrics.");
+            Console.WriteLine($"::notice title=Synthetic gateway and enrollment checks::{count} checks passed; gateway protocol and enrollment lifecycle and synthetic child supervisor only, no HTTP SQL COM native-device authentication or real biometrics.");
     }
     private sealed class Clock(DateTimeOffset now):TimeProvider{public override DateTimeOffset GetUtcNow()=>now;}
     private sealed class Store:IPushGatewayCommitStore
