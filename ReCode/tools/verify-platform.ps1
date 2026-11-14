@@ -28,6 +28,7 @@ Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --
 Run-Dotnet run --project tests/IO.Foundation.Tests --configuration Release --no-build
 $publish = Join-Path ([System.IO.Path]::GetTempPath()) ('io-publish-' + [guid]::NewGuid().ToString('N'))
 try {
+    Run-Dotnet publish src/IO.PushCollector --configuration Release --no-restore --output (Join-Path $publish 'push-collector')
     Run-Dotnet publish src/IO.PushGateway --configuration Release --no-restore --output (Join-Path $publish 'push-gateway')
     Run-Dotnet publish src/IO.Web --configuration Release --no-restore --output (Join-Path $publish 'web')
     Run-Dotnet publish src/IO.Bootstrap --configuration Release --no-restore --output (Join-Path $publish 'bootstrap')

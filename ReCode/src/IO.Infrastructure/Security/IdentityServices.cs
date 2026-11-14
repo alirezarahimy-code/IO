@@ -56,6 +56,8 @@ public static class IdentityServices
         services.AddScoped<DeviceUserUploads>();
         services.AddScoped<DeviceFileImports>();
         services.AddScoped<RemoteEnrollments>();
+        services.AddScoped<RemoteEnrollmentRecovery>();
+        services.AddScoped<DevicePushCommit>();
         services.AddScoped<PushGatewayIngress>();
         services.AddScoped<DevicePushJournal>();
         services.AddScoped<DevicePushReview>();

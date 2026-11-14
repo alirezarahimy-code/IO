@@ -69,7 +69,7 @@ public sealed class RemoteEnrollments(IoDbContext db,PermissionTransaction tx,Ti
         var device=await db.Devices.AsNoTracking().SingleAsync(x=>x.Id==next.DeviceId,token);var approval=JsonSerializer.Deserialize<RemoteEnrollApproval>(next.ApprovalJson)!;
         if(!Approved(approval)||!await tx.HasDevicePermissionAsync(next.RequestedByUserId,Request,next.DeviceId,token)){next.State="revoked";next.FinishedAtUtc=now;return(null,next.Id);}
         if(now-next.RequestedAtUtc>TimeSpan.FromMinutes(2)||!device.Enabled||device.Profile!="zk-standalone"||device.Host is null||device.Port is null||!device.Version.SequenceEqual(next.ExpectedDeviceVersion)||device.SourceId!=next.SourceId||!await Mapped(next.SourceId,next.EmployeeId,next.PersonIdentifier,token)){next.State="device-changed";next.FinishedAtUtc=now;return(null,next.Id);}
-        if(await db.RemoteEnrollments.AnyAsync(x=>x.DeviceId==device.Id&&x.Id!=next.Id&&(x.State=="pending"||x.State=="running"||x.State=="unknown"),token)||await Busy(device.Id,token)||await DeviceWriteSafety.UnreviewedAsync(db,device.Id,token))return(null,next.Id);
+        if(await db.RemoteEnrollments.AnyAsync(x=>x.DeviceId==device.Id&&x.Id!=next.Id&&(x.State=="pending"||x.State=="running"||x.State=="unknown"&&!db.RemoteEnrollmentRecoveries.Any(r=>r.EnrollmentId==x.Id&&r.ApprovedAtUtc!=null)),token)||await Busy(device.Id,token)||await DeviceWriteSafety.UnreviewedAsync(db,device.Id,token))return(null,next.Id);
         next.State="running";next.ClaimId=Guid.NewGuid();next.ServiceUserId=service;next.ClaimedAtUtc=now;
         return(new Claim(next.Id,next.ClaimId.Value,next.DeviceId,device.Host,device.Port.Value,next.PersonIdentifier,approval,next.TimeoutSeconds),next.Id);
     },ct);
@@ -104,7 +104,7 @@ public sealed class RemoteEnrollments(IoDbContext db,PermissionTransaction tx,Ti
         return row.CancelRequestedAtUtc is null&&Approved(JsonSerializer.Deserialize<RemoteEnrollApproval>(row.ApprovalJson)!)&&clock.GetUtcNow()-row.RequestedAtUtc<=TimeSpan.FromMinutes(2)&&device.Enabled&&device.Profile=="zk-standalone"&&device.SourceId==row.SourceId&&device.Version.SequenceEqual(row.ExpectedDeviceVersion)&&await tx.HasDevicePermissionAsync(row.RequestedByUserId,Request,row.DeviceId,ct)&&await Mapped(row.SourceId,row.EmployeeId,row.PersonIdentifier,ct)&&!await Busy(row.DeviceId,ct)&&!await DeviceWriteSafety.UnreviewedAsync(db,row.DeviceId,ct);
     }
     private async Task<bool> Busy(Guid device,CancellationToken ct)=>
-        await db.DeviceConnections.AnyAsync(x=>x.DeviceId==device&&(x.State=="pending"||x.State=="running"),ct)||await db.DeviceOperations.AnyAsync(x=>x.DeviceId==device&&(x.State=="pending"||x.State=="running"),ct)||await db.DeviceUserDownloads.AnyAsync(x=>x.DeviceId==device&&(x.State=="pending"||x.State=="running"),ct)||await db.DeviceUserUploads.AnyAsync(x=>x.DeviceId==device&&(x.State=="pending"||x.State=="running"||x.State=="unknown"&&x.ResolutionSnapshotId==null),ct)||await db.DeviceAttendanceDownloads.AnyAsync(x=>x.DeviceId==device&&(x.State=="pending"||x.State=="running"),ct)||await db.DevicePollSchedules.AnyAsync(x=>x.DeviceId==device&&x.Enabled,ct);
+        await db.DeviceConnections.AnyAsync(x=>x.DeviceId==device&&(x.State=="pending"||x.State=="running"),ct)||await db.DeviceOperations.AnyAsync(x=>x.DeviceId==device&&(x.State=="pending"||x.State=="running"),ct)||await db.DeviceUserDownloads.AnyAsync(x=>x.DeviceId==device&&(x.State=="pending"||x.State=="running"),ct)||await db.DeviceUserUploads.AnyAsync(x=>x.DeviceId==device&&(x.State=="pending"||x.State=="running"||x.State=="unknown"&&!db.RemoteEnrollmentRecoveries.Any(r=>r.EnrollmentId==x.Id&&r.ApprovedAtUtc!=null)&&x.ResolutionSnapshotId==null),ct)||await db.DeviceAttendanceDownloads.AnyAsync(x=>x.DeviceId==device&&(x.State=="pending"||x.State=="running"),ct)||await db.DevicePollSchedules.AnyAsync(x=>x.DeviceId==device&&x.Enabled,ct);
     private async Task<bool> Mapped(Guid source,Guid employee,string person,CancellationToken ct)
     {
         var bytes=Encoding.Unicode.GetBytes(person);var now=clock.GetUtcNow();
@@ -116,6 +116,6 @@ internal static class EnrollmentFence
 {
     internal static async Task EnsureAsync(IoDbContext db,Guid device,bool writing,CancellationToken ct)
     {
-        if(await db.RemoteEnrollments.AnyAsync(x=>x.DeviceId==device&&(x.State=="pending"||x.State=="running"||writing&&x.State=="unknown"),ct))throw new DomainConflictException("Enrollment holds the exclusive device or has an unknown write; no overwrite or replay.");
+        if(await db.RemoteEnrollments.AnyAsync(x=>x.DeviceId==device&&(x.State=="pending"||x.State=="running"||writing&&x.State=="unknown"&&!db.RemoteEnrollmentRecoveries.Any(r=>r.EnrollmentId==x.Id&&r.ApprovedAtUtc!=null)),ct))throw new DomainConflictException("Enrollment holds the exclusive device or has an unknown write; no overwrite or replay.");
     }
 }

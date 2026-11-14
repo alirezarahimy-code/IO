@@ -4,6 +4,11 @@ internal static class EnrollmentEndpoints
 {
     internal static void MapEnrollment(this WebApplication app)
     {
+        app.MapPost("/devices/push/preview",(DevicePushCommit.Input input,HttpContext c,IAntiforgery csrf,DevicePushCommit service)=>GatewayEndpoints.Admin(c,csrf,actor=>service.PreviewAsync(actor,input,c.RequestAborted))).RequireAuthorization();
+        app.MapPost("/devices/push/commit",(DevicePushCommit.CommitInput input,HttpContext c,IAntiforgery csrf,DevicePushCommit service)=>GatewayEndpoints.Admin(c,csrf,actor=>service.CommitAsync(actor,input,c.RequestAborted))).RequireAuthorization();
+        app.MapGet("/devices/enrollments/{id:guid}/recoveries",(Guid id,HttpContext c,RemoteEnrollmentRecovery service)=>GatewayEndpoints.Read(c,actor=>service.ListAsync(actor,id,c.RequestAborted))).RequireAuthorization();
+        app.MapPost("/devices/enrollment-recoveries",(RemoteEnrollmentRecovery.Input input,HttpContext c,IAntiforgery csrf,RemoteEnrollmentRecovery service)=>GatewayEndpoints.Admin(c,csrf,actor=>service.ProposeAsync(actor,input,c.RequestAborted))).RequireAuthorization();
+        app.MapPost("/devices/enrollment-recoveries/{id:guid}/approve",(Guid id,RemoteEnrollmentRecovery.Review input,HttpContext c,IAntiforgery csrf,RemoteEnrollmentRecovery service)=>GatewayEndpoints.Admin(c,csrf,actor=>service.ApproveAsync(actor,id,input,c.RequestAborted))).RequireAuthorization();
         app.MapGet("/devices/enrollments",(Guid? deviceId,int? offset,HttpContext c,RemoteEnrollments service)=>GatewayEndpoints.Read(c,actor=>service.ListAsync(actor,deviceId,offset??0,c.RequestAborted))).RequireAuthorization();
         app.MapPost("/devices/enrollments",(RemoteEnrollments.Input input,HttpContext c,IAntiforgery csrf,RemoteEnrollments service)=>GatewayEndpoints.Admin(c,csrf,actor=>service.RequestAsync(actor,input,c.RequestAborted))).RequireAuthorization().WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(16384));
         app.MapPost("/devices/enrollments/{id:guid}/cancel",(Guid id,GatewayEndpoints.GatewayVersion input,HttpContext c,IAntiforgery csrf,RemoteEnrollments service)=>GatewayEndpoints.Admin(c,csrf,actor=>service.CancelAsync(actor,id,input.Version,c.RequestAborted))).RequireAuthorization();

@@ -63,9 +63,11 @@ public sealed class DevicePushReview(IoDbContext db,PermissionTransaction transa
                 items.Add(new{line.LineNumber,line.Pin,line.LocalTime,line.OccurredAtUtc,line.PunchState,line.VerifyMode,line.WorkCode,
                     line.Reserved1,line.Reserved2,line.PayloadHash,line.MultiplicityRank,wireStatus=line.Status,mappingStatus=mapping,quarantineStatus=quarantine});
             }
+            var commitments=await db.DevicePushCommits.AsNoTracking().Where(x=>x.JournalId==id).Select(x=>new{x.LineNumber,x.RawEventId,x.EventType,x.ReviewedAtUtc}).ToListAsync(token);
+            var gatewayAuthenticated=await db.PushGatewayReceipts.AnyAsync(x=>x.Id==id,token);
             var nextAfter=lines.LastOrDefault()?.LineNumber??after;
             return(new{row.Id,row.DeviceId,row.SourceId,row.CompanyId,row.SiteId,row.Serial,row.Stamp,row.Contract,row.PayloadHash,
                 row.TimeZoneId,row.RowCount,row.ParsedCount,after,nextAfter,hasMore=nextAfter<row.RowCount,sameTarget,
-                deviceIdentityVerified=false,attendanceWritten=false,vendorAckAvailable=false,items},id);
+                deviceIdentityVerified=false,attendanceWritten=commitments.Count>0,vendorAckAvailable=false,gatewayAuthenticated,commitments,deviceVersion=row.ExpectedDeviceVersion,items},id);
         },ct);
 }

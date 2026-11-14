@@ -52,8 +52,8 @@ internal static class GatewayEnrollmentOperationalTests
         await using var scope=provider.CreateAsyncScope();await scope.ServiceProvider.GetRequiredService<LoginIdentityDbContext>().Database.MigrateAsync();
         db.Organizations.Add(new(){Id=org,Name="SYNTHETIC operational org"});db.Companies.Add(new(){Id=company,OrganizationId=org,Name="SYNTHETIC company"});db.Sites.Add(new(){Id=site,CompanyId=company,Name="SYNTHETIC site",TimeZoneId="UTC"});
         db.Employees.Add(new(){Id=employee,CompanyId=company,PersonnelNumber="SYNTHETIC-001",DisplayName="Synthetic subject"});
-        foreach(var (user,role,codes)in new[]{(actor,actorRole,new[]{DeviceRegistry.Create,DeviceRegistry.Credentials,DevicePushJournal.Retain,DevicePushJournal.Read,RemoteEnrollments.Request,RemoteEnrollments.Read,DeviceConnections.Test,DeviceOperations.Read,DeviceOperations.SetClock,DeviceUserDownloads.Download,DeviceAttendanceDownloads.Download}),
-            (service,serviceRole,new[]{DevicePushJournal.Retain,RemoteEnrollments.Execute}),(reader,readerRole,new[]{RemoteEnrollments.Read})})
+        foreach(var (user,role,codes)in new[]{(actor,actorRole,new[]{DeviceRegistry.Create,DeviceRegistry.Credentials,DevicePushCommit.Permission,"attendance.events.receive",RemoteEnrollmentRecovery.Propose,DevicePushJournal.Retain,DevicePushJournal.Read,RemoteEnrollments.Request,RemoteEnrollments.Read,DeviceConnections.Test,DeviceOperations.Read,DeviceOperations.SetClock,DeviceUserDownloads.Download,DeviceAttendanceDownloads.Download}),
+            (service,serviceRole,new[]{DevicePushJournal.Retain,RemoteEnrollments.Execute}),(reader,readerRole,new[]{RemoteEnrollments.Read,RemoteEnrollmentRecovery.Approve})})
         {
             db.Users.Add(new(){Id=user,UserName="synthetic-"+user.ToString("N"),IsActive=true});db.Roles.Add(new(){Id=role,Name="synthetic-"+role.ToString("N")});db.UserRoles.Add(new(){UserId=user,RoleId=role});
             foreach(var code in codes){var permission=db.Permissions.Local.FirstOrDefault(x=>x.Code==code);if(permission is null){permission=new(){Id=Guid.NewGuid(),Code=code};db.Permissions.Add(permission);}db.RolePermissions.Add(new(){RoleId=role,PermissionId=permission.Id});}
@@ -142,6 +142,21 @@ internal static class GatewayEnrollmentOperationalTests
                     return child.ExitCode;
                 }
                 check(await Courier()==0&&File.Exists(courierTransfer+".receipt.json")&&File.Exists(bodyFile)&&await Q(db=>db.PushGatewayReceipts.CountAsync(x=>x.TransferId==courierId))==1,"real courier validates trusted HTTPS endpoint and persists receipt without deleting spool");
+                var collectorSpool=Path.Combine(spool,"native");Directory.CreateDirectory(collectorSpool);
+                var collectorConfig=new NativePushCollectorConfiguration(new(host.Client.BaseAddress!.AbsoluteUri,bindingId,gateway,push,push,binding.Serial,"UTC","key-1",Convert.ToBase64String(key)),"127.0.0.1",0,"127.0.0.1",collectorSpool,"SYNTHETIC classic ATTLOG model","SYNTHETIC durable quarantine ACK approval","Encrypt=0\nATTLOGStamp=0",true,true,true);
+                check(await Reject<InvalidOperationException>(()=>{IoPushCollectorHost.Build(collectorConfig with{EnableNativeCollector=false},true);return Task.CompletedTask;}),"native collector refuses to start without explicit deployment enablement");
+                await using(var collector=IoPushCollectorHost.Build(collectorConfig,true))
+                {
+                    await collector.StartAsync();var collectorUrl=collector.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();using var terminal=new HttpClient{BaseAddress=new Uri(collectorUrl)};
+                    using var options=await terminal.GetAsync("/iclock/cdata?SN="+binding.Serial+"&options=all");check(options.IsSuccessStatusCode&&(await options.Content.ReadAsStringAsync()).Contains("Encrypt=0"),"classic LAN handshake serves only installed-approved bounded options");
+                    using var wrong=await terminal.PostAsync("/iclock/cdata?SN=OTHER&table=ATTLOG",new ByteArrayContent(body));check(wrong.StatusCode==HttpStatusCode.Forbidden,"collector serial pin rejects another terminal without trusting serial as authentication");
+                    using var nativeResponse=await terminal.PostAsync("/iclock/cdata?SN="+binding.Serial+"&table=ATTLOG&Stamp=synthetic",new ByteArrayContent(body));
+                    var nativeTransfer=Directory.GetFiles(collectorSpool,"transfer.json",SearchOption.AllDirectories).Single();var nativeId=JsonSerializer.Deserialize<GatewayCourierTransfer>(await File.ReadAllTextAsync(nativeTransfer))!.TransferId;
+                    check(nativeResponse.StatusCode==HttpStatusCode.OK&&await nativeResponse.Content.ReadAsStringAsync()=="OK: 2"&&File.Exists(nativeTransfer+".receipt.json")&&File.Exists(nativeTransfer+".ack-intent.json")&&await Q(db=>db.PushGatewayReceipts.AnyAsync(x=>x.TransferId==nativeId)),"actual native HTTP upload ACK follows durable original, authenticated HTTPS SQL receipt and ACK intent");
+                    using var unsupported=await terminal.PostAsync("/iclock/cdata?SN="+binding.Serial+"&table=OPERLOG",new ByteArrayContent(body));check(unsupported.StatusCode==HttpStatusCode.BadRequest,"collector refuses biometric/user/unknown tables instead of acknowledging unsupported data");
+                    using var malformed=await terminal.PostAsync("/iclock/cdata?SN="+binding.Serial+"&table=ATTLOG",new StringContent("bad-line"));check(malformed.StatusCode==HttpStatusCode.BadRequest&&Directory.GetFiles(collectorSpool,"*.ack-intent.json",SearchOption.AllDirectories).Length==1,"malformed ATTLOG remains evidence and never earns vendor ACK");
+                    await collector.StopAsync();
+                }
                 var firstReceipt=await File.ReadAllTextAsync(courierTransfer+".receipt.json");
                 check(await Courier()==0&&await File.ReadAllTextAsync(courierTransfer+".receipt.json")==firstReceipt&&await Q(db=>db.PushGatewayReceipts.CountAsync(x=>x.TransferId==courierId))==1,"real courier retry reuses the same transfer and SQL receipt without duplicate quarantine evidence");
             }
@@ -151,6 +166,25 @@ internal static class GatewayEnrollmentOperationalTests
         using var admin=await host.Client.PostAsJsonAsync("/devices/gateway-bindings",provision);check(admin.StatusCode==HttpStatusCode.Unauthorized,"gateway HMAC route does not grant anonymous binding administration");
         using var nativePost=await host.Client.PostAsync("/iclock/cdata",new StringContent("not-native-auth"));check(nativePost.StatusCode==HttpStatusCode.Unauthorized&&!host.App.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>().Any(x=>x.RoutePattern.RawText=="/iclock/cdata"),"native unauthenticated iclock route remains unmapped behind the protected fallback");
     }
+    // Review is separate from delivery. An evidence-line acceptance id is not a physical-event id.
+    await Q(async db=>{db.SourceEmployeeMappings.Add(new(){Id=Guid.NewGuid(),SourceId=push,EmployeeId=employee,CompanyId=company,SourcePersonId="001",ValidFromUtc=DateTimeOffset.Parse("2026-01-01T00:00:00Z")});await db.SaveChangesAsync();return true;});
+    var review=new DevicePushCommit.Input(Guid.NewGuid(),receipt.ReceiptId,1,pushVersion,"in","SYNTHETIC isolated-LAN inspection","SYNTHETIC cross-pull and retransmission review");
+    Task<object> Preview(DevicePushCommit.Input i)=>Use<DevicePushCommit,object>(x=>x.PreviewAsync(actor,i));
+    check(await Reject<DomainConflictException>(()=>Preview(review)),"PUSH row promotion is default-off even with exact mapping and commit authority");
+    config["IO:PushGateway:EnableReviewedAttendanceCommit"]="true";
+    check(await Reject<UnauthorizedAccessException>(()=>Use<DevicePushCommit,object>(x=>x.PreviewAsync(reader,review))),"read authority alone never promotes gateway evidence");
+    var preview=JsonSerializer.SerializeToElement(await Preview(review));
+    var commit=new DevicePushCommit.CommitInput(review,preview.GetProperty("previewHash").GetString()!,DevicePushCommit.Confirmation);
+    Task<Guid> Commit(DevicePushCommit.CommitInput i)=>Use<DevicePushCommit,Guid>(x=>x.CommitAsync(actor,i));
+    check(await Reject<DomainConflictException>(()=>Commit(commit with{PreviewHash=new string('A',64)})),"changed or stale PUSH preview cannot promote a row");
+    var rawId=await Commit(commit);
+    check(await Commit(commit)==rawId&&await Q(db=>db.DevicePushCommits.CountAsync())==1&&await Q(db=>db.RawAttendanceEvents.CountAsync())==1,"exact reviewed-row retry returns immutable commitment without duplicating attendance");
+    check(await Reject<DomainConflictException>(()=>Commit(commit with{Review=review with{EventType="out"}})),"accepted PUSH review cannot be changed on retry");
+    check(await Reject<DomainConflictException>(()=>Commit(commit with{Review=review with{Id=Guid.NewGuid()}})),"a second review id cannot accept the same evidence line twice");
+    var repeated=review with{Id=Guid.NewGuid(),LineNumber=2};var repeatedPreview=JsonSerializer.SerializeToElement(await Preview(repeated));
+    await Commit(new(repeated,repeatedPreview.GetProperty("previewHash").GetString()!,DevicePushCommit.Confirmation));
+    check(await Q(db=>db.RawAttendanceEvents.CountAsync())==2,"explicitly reviewed repeated physical punches preserve multiplicity rather than content-hash collapse");
+    check(await SqlReject("DELETE FROM dbo.DevicePushCommits WHERE Id='"+review.Id+"'",51039),"SQL independently preserves PUSH acceptance history");
     await Use<PushGatewayIngress,Guid>(s=>s.RevokeAsync(actor,bindingId,stored.Version));
     check(await Reject<UnauthorizedAccessException>(()=>Receive(Envelope(transfer))),"gateway revocation blocks new deliveries and even previously committed transfer retries");
 
@@ -197,7 +231,30 @@ internal static class GatewayEnrollmentOperationalTests
     var readJob=Guid.NewGuid();check(await Use<DeviceOperations,Guid>(s=>s.RequestAsync(actor,readJob,native,nativeVersion,"information.read",30,null,null))==readJob,"unknown enrollment permits nonwriting recovery observations");
     check(!PermissionCatalog.Templates.Any(x=>x.Permissions.Any(p=>p.StartsWith("devices.enrollment.",StringComparison.Ordinal))),"no default role silently acquires biometric authority");
     check(await SqlReject("UPDATE dbo.RemoteEnrollments SET State=N'pending',ServiceUserId=NULL,ClaimId=NULL,ClaimedAtUtc=NULL,CancelRequestedAtUtc=NULL,FinishedAtUtc=NULL,ResultJson=NULL WHERE Id='"+claim.Id+"'",51038),"SQL terminal-history guard independently prevents unknown enrollment requeue");
-    var rawAfter=await Q(db=>db.RawAttendanceEvents.CountAsync());check(rawAfter==0,"operational gateway/enrollment tests never fabricate processed attendance or store fingerprint bytes");
+    var readVersion=await Q(db=>db.DeviceOperations.Where(x=>x.Id==readJob).Select(x=>x.Version).SingleAsync());
+    await Use<DeviceOperations,Guid>(x=>x.CancelAsync(actor,readJob,readVersion));
+    var recoveryApproval=new RemoteEnrollmentRecoveryApproval(approval,"SYNTHETIC power-cycle-clears-pending evidence",10,true,true);
+    var resetAt=DateTimeOffset.UtcNow;
+    await Task.Delay(11000); // Exercise actual settling validation; no wall-clock bypass in production.
+    var recovery=new RemoteEnrollmentRecovery.Input(Guid.NewGuid(),claim.Id,nativeVersion,recoveryApproval,resetAt,"SYNTHETIC worker and child stopped","SYNTHETIC physical reset performed","SYNTHETIC slot inspection no template", "present",RemoteEnrollmentRecovery.Confirmation);
+    Task<Guid> Propose(RemoteEnrollmentRecovery.Input i)=>Use<RemoteEnrollmentRecovery,Guid>(x=>x.ProposeAsync(actor,i));
+    check(await Reject<DomainConflictException>(()=>Propose(recovery)),"physical recovery remains default-off; unknown cannot be unlocked by browser assertions alone");
+    config["IO:RemoteEnroll:EnablePhysicalRecovery"]="true";
+    void Configure(string prefix,JsonElement value){foreach(var p in value.EnumerateObject()){if(p.Value.ValueKind==JsonValueKind.Object)Configure(prefix+":"+p.Name,p.Value);else config[prefix+":"+p.Name]=p.Value.ToString();}}
+    Configure("IO:RemoteEnroll:RecoveryApprovals:0",JsonSerializer.SerializeToElement(recoveryApproval));
+    await Propose(recovery);
+    check(await Reject<DomainConflictException>(()=>Request(input with{Id=Guid.NewGuid()})),"a recovery proposal alone does not release the unknown write fence");
+    var recoveryVersion=await Q(db=>db.RemoteEnrollmentRecoveries.Where(x=>x.Id==recovery.Id).Select(x=>x.Version).SingleAsync());
+    var recoveryReview=new RemoteEnrollmentRecovery.Review(recoveryVersion,"SYNTHETIC independent technician review",RemoteEnrollmentRecovery.Confirmation);
+    // Give the proposer the approve grant solely to test separation of duties beyond RBAC.
+    await Q(async db=>{var p=await db.Permissions.SingleAsync(x=>x.Code==RemoteEnrollmentRecovery.Approve);db.RolePermissions.Add(new(){RoleId=actorRole,PermissionId=p.Id});await db.SaveChangesAsync();return true;});
+    check(await Reject<DomainConflictException>(()=>Use<RemoteEnrollmentRecovery,Guid>(x=>x.ApproveAsync(actor,recovery.Id,recoveryReview))),"even a proposer with both permissions cannot countersign their own physical recovery");
+    await Use<RemoteEnrollmentRecovery,Guid>(x=>x.ApproveAsync(reader,recovery.Id,recoveryReview));
+    check(await Q(db=>db.RemoteEnrollments.Where(x=>x.Id==claim.Id).Select(x=>x.State=="unknown"&&x.ResultJson==null).SingleAsync()),"countersigned physical recovery preserves original UNKNOWN and does not fabricate enrollment completion");
+    check(await SqlReject("DELETE FROM dbo.RemoteEnrollmentRecoveries WHERE Id='"+recovery.Id+"'",51040),"physical recovery evidence is immutable at SQL boundary");
+    var afterRecovery=input with{Id=Guid.NewGuid()};await Request(afterRecovery);var afterVersion=await Q(db=>db.RemoteEnrollments.Where(x=>x.Id==afterRecovery.Id).Select(x=>x.Version).SingleAsync());await Use<RemoteEnrollments,Guid>(x=>x.CancelAsync(actor,afterRecovery.Id,afterVersion));
+    check(await Q(db=>db.RemoteEnrollments.Where(x=>x.Id==claim.Id).Select(x=>x.State).SingleAsync())=="unknown","recovered device accepts only a new explicit intent, never requeues the old unknown job");
+    var rawAfter=await Q(db=>db.RawAttendanceEvents.CountAsync());check(rawAfter==2,"only explicitly reviewed PUSH rows enter raw attendance; enrollment never fabricates attendance");
     }
     finally{try{Directory.Delete(ring,true);}catch(IOException){} }
  }
