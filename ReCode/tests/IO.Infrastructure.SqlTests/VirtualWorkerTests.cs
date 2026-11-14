@@ -200,7 +200,7 @@ internal static class VirtualWorkerTests
             {
                 var source=await Settings();var desired=ProfileSettingTests.New(parameter);ZkProfilePlan plan;string hash;
                 using(var response=await Post("/device-settings/profile-preview",new DeviceProfilePreview(a.Pin.DeviceId,av,source,desired,"synthetic-effect","synthetic-profile-contract",new(a.Pin.Address,parameter=="port"?4371:a.Pin.Port))))
-                {response.EnsureSuccessStatusCode();var json=JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement;plan=json.GetProperty("plan").Deserialize<ZkProfilePlan>(new JsonSerializerOptions{PropertyNameCaseInsensitive=true})!;hash=json.GetProperty("previewHash").GetString()!;}
+                {response.EnsureSuccessStatusCode();var json=JsonDocument.Parse(await response.Content.ReadAsStringAsync()).RootElement.GetProperty("result");plan=json.GetProperty("plan").Deserialize<ZkProfilePlan>(new JsonSerializerOptions{PropertyNameCaseInsensitive=true})!;hash=json.GetProperty("previewHash").GetString()!;}
                 a.Fault="drop-operation-ack";var id=Guid.NewGuid();
                 await Send("/device-operations",new DeviceOperationInput(id,a.Pin.DeviceId,av,"settings.profile.set",2,null,ZkProfilePlan.Confirmation,ProfilePlan:plan,ProfilePreviewHash:hash));
                 await Wait(()=>Q(db=>db.DeviceOperations.AnyAsync(x=>x.Id==id&&x.State=="unknown")),"profile lost ACK");
@@ -237,13 +237,13 @@ internal static class VirtualWorkerTests
             // is live. No routes, fetch, responses, SQL receipts or outcomes are mocked.
             var browser=new ProcessStartInfo("node"){RedirectStandardOutput=true,RedirectStandardError=true,UseShellExecute=false};
             browser.Environment.Remove("MSSQL_SA_PASSWORD");browser.ArgumentList.Add("tests/IO.Infrastructure.SqlTests/virtual-worker-browser.cjs");
-            foreach(var argument in new[]{address,name,b.Pin.DeviceId.ToString(),Convert.ToBase64String(bv),service.ToString(),a.Pin.DeviceId.ToString(),legacy.Pin.DeviceId.ToString(),Convert.ToBase64String(lv),a.Pin.DeviceId.ToString()})browser.ArgumentList.Add(argument);
+            foreach(var argument in new[]{address,name,b.Pin.DeviceId.ToString(),Convert.ToBase64String(bv),service.ToString(),a.Pin.DeviceId.ToString(),legacy.Pin.DeviceId.ToString(),Convert.ToBase64String(lv),a.Pin.DeviceId.ToString(),a.Pin.Port.ToString()})browser.ArgumentList.Add(argument);
             using(var process=Process.Start(browser)??throw new InvalidOperationException())
             {
                 var stdout=process.StandardOutput.ReadToEndAsync();var stderr=process.StandardError.ReadToEndAsync();using var timeout=new CancellationTokenSource(TimeSpan.FromSeconds(150));
                 try{await process.WaitForExitAsync(timeout.Token);}catch{process.Kill(true);throw;}
                 if(process.ExitCode!=0)throw new InvalidOperationException("Virtual browser failed: "+await stderr);
-                check((await stdout).Contains("Virtual browser device flow passed.",StringComparison.Ordinal),"virtual-e2e real Chromium form queues downloads and commits all three pages from the live worker and two-device laboratory");
+                check((await stdout).Contains("Virtual browser device flow passed.",StringComparison.Ordinal)&&a.ProfileMutations==8&&a.ProfileValues["mask"]==ProfileSettingTests.Old("mask"),"virtual-e2e real Chromium form queues downloads and commits all three pages from the live worker and two-device laboratory");
             }
             check(await Use<LoginIdentityDbContext,bool>(async db=>await db.DeviceOperatorPolicies.AnyAsync(x=>x.UserId==service&&x.Restricted)&&await db.DeviceOperatorGrants.CountAsync(x=>x.UserId==service)==2&&await db.DeviceOperatorGrants.CountAsync(x=>x.UserId==service&&x.RevokedAtUtc==null&&x.DeviceId==a.Pin.DeviceId)==1),"virtual-e2e real Chromium scope forms restrict the worker and retain explicit grant revoke and new-grant history through HTTPS SQL");
             check(await Q(db=>db.RawAttendanceEvents.CountAsync(x=>x.SourceId==b.Pin.DeviceId))==103&&await Q(db=>db.DeviceAttendanceRows.CountAsync(x=>db.DeviceAttendanceDownloads.Any(d=>d.Id==x.DownloadId&&d.DeviceId==b.Pin.DeviceId)&&x.RawEventId!=null))==206,"virtual-e2e repeated browser extraction retains 206 original receipts but only 103 immutable raw events including tuple multiplicity");

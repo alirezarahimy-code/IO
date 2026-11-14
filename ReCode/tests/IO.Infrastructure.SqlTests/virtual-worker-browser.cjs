@@ -3,7 +3,7 @@
 // stateful loopback laboratory. No route/fetch/outcome/receipt mocks.
 const assert=require('node:assert/strict');
 const {chromium}=require('playwright-core');
-const [address,user,device,version,scopeUser,scopeDevice,legacyDevice,legacyVersion,settingsDevice]=process.argv.slice(2);
+const [address,user,device,version,scopeUser,scopeDevice,legacyDevice,legacyVersion,settingsDevice,settingsPort]=process.argv.slice(2);
 if(!address?.startsWith('https://127.0.0.1:')||!user?.startsWith('virtual-operator-')||!settingsDevice?.match(/^[0-9a-f-]{36}$/i))throw Error('Disposable virtual laboratory only');
 (async()=>{
  const browser=await chromium.launch({executablePath:process.env.IO_CHROME_BINARY,headless:true,args:['--no-sandbox']});
@@ -19,6 +19,36 @@ if(!address?.startsWith('https://127.0.0.1:')||!user?.startsWith('virtual-operat
   assert.match(await page.locator('[data-network-report]').first().textContent(),/255.255.255.0/);
   assert.match(await page.locator('#items').textContent(),/virtual-key-not-ZK/);
   assert.match(await page.locator('#items').textContent(),/Index 3.*گزارش نشده/);
+  // Real database-backed profile form: choose fresh source, preview, one network
+  // dispatch, independent read, explicit review. No page routes/fetch are mocked.
+  page.on('dialog',dialog=>dialog.accept());
+  await page.locator('#profile-form input[name=deviceId]').fill(settingsDevice);
+  await page.locator('#profile-refresh').click();
+  await page.locator('[data-profile-source="mask"]').first().waitFor();
+  await page.locator('[data-profile-source="mask"]').first().click();
+  await page.locator('#profile-form input[name=raw]').fill('255.255.255.0');
+  await page.locator('#profile-form input[name=effect]').fill('synthetic-effect');
+  await page.locator('#profile-form input[name=approvalReference]').fill('synthetic-profile-contract');
+  await page.locator('#profile-form input[name=recoveryAddress]').fill('127.0.0.1');
+  await page.locator('#profile-form input[name=recoveryPort]').fill(settingsPort);
+  await page.locator('#profile-preview').click();
+  await page.locator('#profile-plan').filter({hasText:'synthetic-profile-contract'}).waitFor();
+  await page.locator('#profile-form input[name=confirmed]').check();
+  const queued=page.waitForResponse(r=>new URL(r.url()).pathname==='/device-operations'&&r.request().method()==='POST');
+  await page.locator('#profile-submit').click();
+  const writeId=(await (await queued).json()).result;
+  async function awaitState(id,state){await page.waitForFunction(async({id,state,device})=>{const r=await fetch('/device-settings-snapshots?deviceId='+device);if(!r.ok)return false;return (await r.json()).items.some(x=>x.id===id&&x.state===state);},{id,state,device:settingsDevice});}
+  await awaitState(writeId,'unknown');await page.locator('#profile-refresh').click();
+  const parent=page.locator('#profile-items > li').filter({has:page.locator('[data-profile-review="'+writeId+'"]')});
+  const reading=page.waitForResponse(r=>new URL(r.url()).pathname==='/device-operations'&&r.request().method()==='POST');
+  await parent.locator('[data-profile-inspect="false"]').click();
+  const inspection=(await (await reading).json()).result;
+  await awaitState(inspection,'succeeded');await page.locator('#profile-refresh').click();
+  await parent.locator('input').fill(inspection);
+  const reviewed=page.waitForResponse(r=>new URL(r.url()).pathname==='/device-operations/'+writeId+'/resolve-profile');
+  await parent.locator('[data-profile-review]').click();assert.equal((await reviewed).status(),200);
+  await page.waitForFunction(async({id,device})=>{const r=await fetch('/device-settings-snapshots?deviceId='+device);return (await r.json()).items.some(x=>x.id===id&&x.state==='unknown'&&x.resolvedAtUtc);},{id:writeId,device:settingsDevice});
+  assert.equal(errors.length,0,errors.join('; '));
   const completed=[];
   for(let run=0;run<4;run++){
    const target=run<2?device:legacyDevice,pinnedVersion=run<2?version:legacyVersion;
