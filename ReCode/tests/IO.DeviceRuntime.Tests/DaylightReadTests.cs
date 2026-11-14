@@ -33,6 +33,9 @@ internal static class DaylightReadTests
         Check((await NativeProcessSupervisor.RunOperationAsync(host,assembly,input,5)).IsValidFor(input),"real child roundtrip preserves typed raw daylight without SDK execution");
         Check((await NativeProcessSupervisor.RunOperationAsync(host,assembly,input with{Connection=pin with{ExpectedSerial="daylight-missing"}},5)).State=="bridge-failed","old child missing requested daylight fails closed");
         Check((await NativeProcessSupervisor.RunOperationAsync(host,assembly,input with{Connection=pin with{ExpectedSerial="settings-hang"}},1)).State=="timed-out","hung read terminates at external process deadline");
+        var combined=input with{Connection=pin with{ExpectedSerial="function-large"},DaylightReadApproval=approval with{Product="function-product",Firmware="function-fw"},FunctionKeyReadApproval=new("function-product","function-fw",Enumerable.Range(0,8).ToArray(),"synthetic-combined-keys")};
+        var combinedOutput=await NativeProcessSupervisor.RunOperationAsync(host,assembly,combined,5);
+        Check(combinedOutput.IsValidFor(combined)&&combinedOutput.Settings?.FunctionKeys?.Items.Length==8&&combinedOutput.Settings.Daylight?.Value?.BeginTime.Length==128&&JsonSerializer.Serialize(combinedOutput).Length>8192,"maximum Unicode daylight and eight key tuples coexist in the same bounded real child snapshot without truncation");
         Console.WriteLine($"PASS {count} daylight read checks; synthetic sessions and real child, NOT hardware acceptance");
     }
     internal sealed class Session:IZkDaylightReadSession

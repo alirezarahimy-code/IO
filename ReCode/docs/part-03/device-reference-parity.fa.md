@@ -23,7 +23,7 @@
 | تداخل polling و unknown | IO صف‌های clock/restart/network/idle و user upload | polling فعال قبل از هر چهار نوشتن مانع است؛ native write pending/running/unknown ایجاد یا resume schedule را مسدود می‌کند؛ unknown ساعت/restart نیز مانند شبکه/idle مانع user write است. unknown user مانع clock/restart هم شد. خواندن recovery باز می‌ماند. |
 | دادهٔ ظرفیت نادرست | Personnel GetDeviceCapacity یک ref Int32 را با عدم بررسی نتیجه چند بار استفاده می‌کند | reader قابل‌آزمون با همان۹ code ثابت، null مستقل و حفظ صفر؛ سریال قبل/بعد کنترل می‌شود، snapshot بیگانه برای review پذیرفته نمی‌شود. نام vendor ثابت تولید نمی‌شود. |
 | GetAdvanced2 ناقص | T5 GetAdvanced2: IP/Algorithm/Sector؛ Personnel GetAlgorithmVersion fallback9 | دو خواندن ثابت ReportedIp و AlgorithmVersionRaw اضافه شد؛ sector همان62 است. خطا null است، نه نسخه۹ یا IP پیش‌فرض. نه setter عمومی و نه ادعای سازگاری بیومتریک. |
-| کلید عملکردی، نه رمز | T5 ReadKey/ChangeKey، Personnel FunctionKey و SSR_GetShortkey/SSR_SetShortkey | برداشت مبهم قدیمی در گزارش اولیه تصحیح شد؛ رمز ارتباط با function key یکی نیست. خواندن مصوب هر پنج خروجی با pin دقیق محصول/firmware و indexهای نصب اکنون ساخته شده؛ [وضعیت آزمون و قرارداد](s11-function-key-read.fa.md). نوشتن و حذف برنامهٔ AutoChange منتقل نشده است. |
+| کلید عملکردی، نه رمز | T5 ReadKey/ChangeKey، Personnel FunctionKey و SSR_GetShortkey/SSR_SetShortkey | برداشت مبهم قدیمی در گزارش اولیه تصحیح شد؛ رمز ارتباط با function key یکی نیست. خواندن مصوب هر پنج خروجی با pin دقیق محصول/firmware و indexهای نصب اکنون ساخته شده؛ [وضعیت آزمون و قرارداد](s11-function-key-read.fa.md). [نوشتن کامل](s11-function-key-write.fa.md) نیز روی97cac12 نرم‌افزاری آزموده شد؛ AutoChange قدیم/جدید دقیق حفظ می‌شود و reset ضمنی منتقل نشده است. |
 | دریافت تردد و ثبت جدا | T5 GetRecords/GetTimeRecords سپس Thread(SaveRecords) | صف SQL، اصل tuple، quarantine و commit پایدار جای پاسخ قبل از ثبت و خطاهای پنهان را گرفته‌اند؛ فیلتر بازه در سرور است و هم‌ارزی API بازه‌ای دستگاه ادعا نشده است. |
 | USB | T5 USBManagement.ReadRecords: ASCII، RecordReader و BulkInsert | فایل اصلی و parse/preview/commit مستقل و محدود IO حفظ شد. در این بدنهٔ کنترلر بررسی مستقیم lock دیده نشد؛ این به معنی نفی تمام وابستگی‌های لایه‌های پایین نیست. حذف کلی USB با استناد صرف به نام دانگل قابل توجیه نیست. |
 | PUSH | T5 iclock: SN lookup، Encrypt=0، zone ثابت210، OK حتی بدون پذیرش معتبر؛ getrequest بدون صف عملی | کد آسیب‌پذیر به‌عنوان PUSH امن منتقل نشد. احراز هویت/replay/bounds/model contract هنوز باید ساخته شود؛ polling PUSH نیست. |
@@ -116,7 +116,7 @@
 این موارد با «نام تابع موجود است»، «تطبیق تمام شد» یا «CI سبز است» بسته نمی‌شوند:
 
 1. **دامنهٔ دستگاه منتخب برای اپراتور** اکنون ساخته و در SQL/Chromium/worker آزموده شده؛ [شاهد مستقل](s04-device-operator-scope-evidence.json). گروه metadata جای آن نیست؛ پذیرش واقعی مدل همچنان جداست.
-2. **قراردادهای نوشتنی تنظیمات باقی‌مانده**: پنج پارامتر عددی اکنون مسیر بستهٔ مصوب و آزموده دارند؛ برای نصب واقعی سند مدل/firmware/مقادیر/واحد/اثر لازم است. الگوریتم، DLST و نوشتن کلید عملکردی هنوز adapter/قرارداد مستقل می‌خواهند؛ مقدار/اثر/حریم خصوصی و read-back دقیق هر مدل، نه setter عمومی.
+2. **قراردادهای نوشتنی تنظیمات باقی‌مانده**: پنج پارامتر عددی اکنون مسیر بستهٔ مصوب و آزموده دارند؛ برای نصب واقعی سند مدل/firmware/مقادیر/واحد/اثر لازم است. الگوریتم و نوشتن DLST هنوز adapter/قرارداد مستقل می‌خواهند؛ نوشتن کامل کلید با حفظ برنامه اکنون ساخته و روی97cac12 آزموده شده است؛ مقدار/اثر/حریم خصوصی و read-back دقیق هر مدل، نه setter عمومی.
 3. **عملیات حساس**: حذف تردد/بازه/کاربر/الگو/مدیر و reset، هرکدام مجوز/تأیید/شاهد دریافت و unknown recovery مستقل؛ RemoteEnroll و جابه‌جایی دادهٔ بیومتریک فقط با سیاست دسترسی/رضایت/نگهداری و قرارداد مدل. دستور کلی «تکمیل» سیاست بیومتریک یا اجازهٔ کنترل درب محسوب نمی‌شود.
 4. **PUSH امن** برای مدل پشتیبان؛ SN ساده/Encrypt=0 قدیمی کافی نیست. مدل‌هایی که قرارداد امن ندارند باید صریحاً با وضعیت پشتیبانی اثبات‌نشده/غیرفعال بمانند؛ unsupported فقط با شاهد همان مدل، نه endpoint ظاهراً موفق.
 5. **پوشش مدل/فرمت**: تردد native non-TFT اکنون adapter صریح و زمان‌بندی قالب‌دار دارد؛ [شواهد انتقال](s09-legacy-attendance-evidence.json) و [polling](s10-legacy-polling-evidence.json). پذیرش مدل واقعی باقی است؛ Serial/USB اتصال مستقیم یا پروتکل‌های دیگر با واردکردن فایل یکی نیستند. پشتیبانی Virdi/UNIS نیز مشروط و اثبات‌نشده باقی است.
@@ -151,12 +151,16 @@ validator هش دقیق Git blob منابع ثابت (و برابری worktree؛
 
 [جدول قرارداد و تصمیم مشخص هر خانواده](model-and-policy-decisions.fa.md) API و خط مرجع، ابهام دقیق واحد/اثر/داده، و شرط پیاده‌سازی امن را جدا می‌کند. دستور عمومی ادامه، مجوز حذف/بیومتریک نیست و pending یا غیرفعال‌بودن به معنی تکمیل قابلیت نیست.
 
-برش خواندنی کلید عملکردی و mask/gateway روی `f08cbb3` با۸۵۵ بررسی SQL و ویندوز/لینوکس سبز شد؛ [شاهد](s11-function-key-read-evidence.json). ناسازگاری سقف بزرگ SQL در ممیزی بعدی پیدا شد و migration مستقل۴۴ و regression بزرگ برای آن در دست پیاده‌سازی است؛ این شاهد، تست SQL هشت کلید بزرگ را ادعا نمی‌کند.
+برش خواندنی کلید عملکردی و mask/gateway روی `f08cbb3` با۸۵۵ بررسی SQL و ویندوز/لینوکس سبز شد؛ [شاهد](s11-function-key-read-evidence.json). ناسازگاری سقف بزرگ SQL در ممیزی بعدی پیدا و در migration مستقل۴۴ و regression بزرگ اصلاح شد؛ شاهد اولیه f08cbb3 آن اصلاح را پوشش نمی‌داد، اما suiteهای پذیرفته‌شدهٔ بعدی از جمله97cac12 آن را دارند.
 
 ## برش جاری، نه پذیرش نهایی
 
 پنج setter عددی اکنون مسیر بستهٔ [مدل مصوب](s11-approved-raw-settings.fa.md) دارند، قرارداد واقعی نصب همچنان لازم است. ReadKey با حق مستقل انسان/سرویس و redaction تاریخچه اکنون در f737144 با SQL888 و Windows/Linux/light موفق شد؛ نتیجه سبز قبلی به‌تنهایی این اصلاح مجوز را اثبات نکرده بود. جدول بالا از CSV جاری بازسازی شد و متن قدیمی «scope ساخته نشده» حذف شد.
 
-## نوشتن کامل کلید در دست آزمون
+## نوشتن کامل کلید؛ پذیرش نرم‌افزاری مستقل
 
-[s11-function-key-write.fa.md](s11-function-key-write.fa.md) مسیر کامل مدل مصوب و مجوزهای مستقل را اضافه می‌کند؛ برنامه AutoChange/Time برخلاف مرجع خودکار پاک نمی‌شود. وضعیت ChangeKey تا CI همان SHA partial-software است؛ آزمون دستگاه واقعی همچنان برای انتها باقی است.
+[s11-function-key-write.fa.md](s11-function-key-write.fa.md) مسیر کامل مدل مصوب و مجوزهای مستقل را اضافه می‌کند؛ برنامه AutoChange/Time برخلاف مرجع خودکار پاک نمی‌شود. SQL۹۱۰ و Windows/Linux/light روی97cac12 موفق‌اند. وضعیت ChangeKey همچنان partial-software است، چون پذیرش واقعی مدل/دستگاه باقی است؛ آزمون دستگاه واقعی همچنان برای انتها باقی است.
+
+## خواندن خام DLST با شاهد TypeLib
+
+[GetDaylight مصوب نصب](s11-daylight-read.fa.md) به worker/bridge/SQL/UI اضافه شده است؛ وضعیت CI خواندن در progress-evidence ثبت می‌شود. این مسیر خواندنی، action نوشتنی SetDLST را تکمیل نمی‌کند و جدول action باید نیاز قرارداد نوشتن را همچنان حفظ کند.

@@ -1,6 +1,6 @@
 # S11 — خواندن خام DLST با شاهد TypeLib
 
-**پیاده‌سازی نرم‌افزاری خواندن؛ نه تکمیل نوشتن DLST یا بخش۳.** آزمایش محلی ۲۰ قرارداد و فرایند child موفق است؛ پنج بررسی جدید SQL/worker برای CI همین commit تعریف شده‌اند و تا سبزشدن ادعای اجرای موفق ندارند. شاهد SDK/دستگاه واقعی همچنان برای انتها باقی است.
+**پذیرش نرم‌افزاری خواندن روی6bcd7ac؛ نه تکمیل نوشتن DLST یا بخش۳.** بیست قرارداد/child، پنج بررسی تازه SQL/worker و کل suite۹۱۵ با Windows/Linux/light موفق شدند. تست تکمیلی ترکیبی Unicode محلی موفق است (جمع۲۱) و به CI commit بعدی نیاز دارد. شاهد SDK/دستگاه واقعی همچنان برای انتها باقی است.
 
 ## منشأ قابل بازتولید، نه سورس اصلی
 
@@ -40,14 +40,29 @@ worker و bridge باید هماهنگ منتشر شوند. bridge قدیمی ک
 - SDK false، exception یا خروجی خراب → `Reported=false,Value=null`؛ مقادیر initializeشده موفقیت نیستند. سایر خواندن‌های مستقل تنظیمات ادامه دارند.
 - بدون approval → `Daylight=null`، یعنی «درخواست نشده»؛ این حالت با «گزارش نشده» و Support=0 فرق دارد.
 - سریال قبل و بعد snapshot pin می‌شود. snapshot مجموعهٔ مشاهده‌های مستقل است، نه snapshot اتمیک یا طرح آمادهٔ نوشتن.
-- خروجی child باید با مدل/firmware/مرجع درخواست منطبق باشد؛ دادهٔ ناخواسته رد می‌شود. مهلت فرایند و سقف pipe موجود حفظ شده؛ hang نتیجهٔ موفق تولید نمی‌کند.
+- خروجی child باید با مدل/firmware/مرجع درخواست منطبق باشد؛ دادهٔ ناخواسته رد می‌شود. مهلت فرایند و سقف pipe موجود حفظ شده؛ تست child ترکیبی حداکثر Unicode DLST و هشت tuple کلید در یک snapshot نیز موفق است؛ hang نتیجهٔ موفق تولید نمی‌کند.
 - JSON در همان ResultJson تاریخچهٔ غیرقابل حذف/بازنویسی ذخیره می‌شود. ستون یا kind جدیدی لازم نیست، پس migration جدید ایجاد نشده است؛ migration46 و سقف۶۵۵۳۶بایت settings موجود کافی‌اند. parse typed وجود/نوع/محدودیت داده را کنترل می‌کند.
 - DOM از textContent استفاده می‌کند؛ متن خام، HTML نمی‌شود. revoke خواندن، history و cache صفحه را پاک می‌کند.
 
 ## آزمون و ماندهٔ دقیق
 
-۲۰ بررسی portable: تأیید نصب، mismatch بدون native call، یک getter، signed/zero/Unicode/whitespace، false/exception/malformed، JSON ناقص، منع دادهٔ ناخواسته، bind مرجع/firmware، child واقعی، bridge ناقص و deadline. این‌ها SDK واقعی را اجرا نکرده‌اند.
+۲۱ بررسی portable: تأیید نصب، mismatch بدون native call، یک getter، signed/zero/Unicode/whitespace، false/exception/malformed، JSON ناقص، منع دادهٔ ناخواسته، bind مرجع/firmware، child واقعی، bridge ناقص و deadline. این‌ها SDK واقعی را اجرا نکرده‌اند.
 
-دو بررسی SQL تازه: malformed/متناقض در completion رد می‌شود و raw صفر/whitespace همراه مرجع در تاریخچهٔ typed واقعی حفظ می‌شود. snapshot fixture اصلی نیز DLST دارد تا کنترل revoke/credential/history موجود روی همین داده اجرا شود. سه سناریوی worker تازه: مسیر واقعی HTTPS→SQL→worker→child→TCP، history HTTP و unavailable مستقل بدون نوشتن. شمار موردانتظار کل SQL از۹۱۰ به۹۱۵ می‌رسد؛ تا نتیجهٔ CI «انتظار» است. آزمون DOM موجود نیز raw امن، صفر، unavailable، not-requested و پاک‌شدن پس از revoke را می‌سنجد.
+دو بررسی SQL تازه: malformed/متناقض در completion رد می‌شود و raw صفر/whitespace همراه مرجع در تاریخچهٔ typed واقعی حفظ می‌شود. snapshot fixture اصلی نیز DLST دارد تا کنترل revoke/credential/history موجود روی همین داده اجرا شود. سه سناریوی worker تازه: مسیر واقعی HTTPS→SQL→worker→child→TCP، history HTTP و unavailable مستقل بدون نوشتن. شمار کل SQL از۹۱۰ به۹۱۵ رسید و guard دقیق suite روی6bcd7ac موفق شد. [SQL](https://github.com/alirezarahimy-code/IO/actions/runs/43583998187)، [Windows/Linux](https://github.com/alirezarahimy-code/IO/actions/runs/43583998189)، [light](https://github.com/alirezarahimy-code/IO/actions/runs/43583998217). آزمون DOM موجود نیز raw امن، صفر، unavailable، not-requested و پاک‌شدن پس از revoke را می‌سنجد.
 
 **نوشتن هنوز باز است:** encoding واقعی مدل (مرجع `MMddHHmm` در برابر خروجی واقعی getter)، دامنه/معنای Support، سالانه/یک‌باره، timezone، اثر تغییر و زمان‌های مبهم/ناموجود باید در قرارداد مدل مشخص شوند. سپس preview کامل old/new، مجوز مستقل، یک dispatch، read-back دقیق و recovery بدون replay لازم است. پیدا شدن getter مجوز حدس این قرارداد یا اجرای SetDaylight نیست. `SetDLST` همچنان در dispatch عمومی بسته است.
+
+## تکمیل تحقیق پیش از نوشتن
+
+فایل دوم مستقل `NewPack Dlls 10.06.1398/zkemkeeper.dll` نیز فقط‌خواندنی بررسی شد: SHA256 `261b769b6923a4df8fa266955f18b3431f6c6bd202130f996640e367dfe9c5e2`؛ TypeLib۴۷۰۷۶بایتی با SHA256 `ecbc3b9f6301bd49e36f9738bd83c98c8b7f8954469de270a4525137d0ccd414` و همان امضا/flags/DispId دو متد در offset36468/36560. بازتولید با `--newpack` و بررسی هر دو با `--verify`؛ JSON مستقل `s11-daylight-newpack-typelib-evidence.json`. یکسانی امضا، سازگاری firmware یا اثر اجرای setter را اثبات نمی‌کند.
+
+در رشته‌های ASCII DLL نخست، این دو متن دقیق نیز دیده می‌شوند:
+
+```text
+~DSTF=0,DaylightSavingTimeOn=0,CurTimeMode=0,DaylightSavingTime=%d,StandardTime=%d
+~DSTF=1,DaylightSavingTimeOn=1,DLSTMode=0,DaylightSavingTime=%d,StandardTime=%d
+```
+
+این فقط شاهد رشتهٔ باینری است، نه اثبات مسیر فراخوانی یا مجوز استفاده از این نام‌ها در GetSysOption/SetSysOption. هیچ option حدسی به production اضافه نشده است. وجود آن‌ها ضرورت بررسی mode و اثر جانبی را تقویت می‌کند؛ getter سه‌خروجی ما mode یا NTP را گزارش نمی‌کند.
+
+دفترچهٔ رسمی 2.4inch TFT هر دو حالت date/time و week/day را نشان می‌دهد [4](https://www.zkteco.me/download-file/1084). دفترچهٔ خانواده WL صریحاً پایان را دیرتر از آغاز در همان سال می‌خواهد [3](https://www.zkteco-ea.com/wp-content/uploads/2023/01/WLSeriesUserManualV1.0-20170330.pdf). دفترچه FaceDepot-7BL نیز NTP را جدا مطرح می‌کند [5](https://www.zkteco.com.br/site_marketing/ZK_FaceDepot-7BL%20UM_EN%20v1.2_20220620%20(1).pdf). این شواهد خانواده‌های متفاوت، قرارداد واحد برای مدل نامعلوم تولید نمی‌کنند؛ حالت هفتگی، عبور سال و همزیستی NTP نباید از نام متد فرض شوند. این‌ها تصمیم/شاهد دقیق لازم برای نوشتن‌اند، نه برچسب unsupported همگانی.

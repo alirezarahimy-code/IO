@@ -103,7 +103,14 @@ if __name__ == '__main__':
     if sys.argv[1:] == ['--verify']:
         saved = ROOT/'ReCode/docs/part-03/s11-daylight-typelib-evidence.json'
         assert json.loads(saved.read_text()) == result
-        print('PASS read-only daylight typelib hashes, exact signatures and checked-in evidence; no SDK execution')
+        other = extract(ROOT/'NewPack Dlls 10.06.1398/zkemkeeper.dll')
+        assert other['dllSha256'] == '261b769b6923a4df8fa266955f18b3431f6c6bd202130f996640e367dfe9c5e2'
+        assert other['typelibSha256'] == 'ecbc3b9f6301bd49e36f9738bd83c98c8b7f8954469de270a4525137d0ccd414'
+        assert [{k:v for k,v in m.items() if k != 'recordOffset'} for m in other['methods']] == [{k:v for k,v in m.items() if k != 'recordOffset'} for m in result['methods']]
+        assert json.loads((ROOT/'ReCode/docs/part-03/s11-daylight-newpack-typelib-evidence.json').read_text()) == other
+        print('PASS two read-only daylight typelib hashes, exact signatures and checked-in evidence; no SDK execution')
+    elif sys.argv[1:] == ['--newpack']:
+        print(json.dumps(extract(ROOT/'NewPack Dlls 10.06.1398/zkemkeeper.dll'), ensure_ascii=False, indent=2))
     else:
         assert not sys.argv[1:]
         print(rendered, end='')

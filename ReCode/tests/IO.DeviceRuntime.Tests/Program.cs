@@ -127,8 +127,9 @@ if (args is not ["--verify"])
             }
             if(operation.DaylightReadApproval is {} daylightApproval)
             {
-                settings=settings with{Product="daylight-product",Firmware="daylight-fw"};
-                settings=ZkDaylightReader.Add(settings,daylightApproval,new DaylightReadTests.Session())!;
+                if(operation.FunctionKeyReadApproval is null)settings=settings with{Product="daylight-product",Firmware="daylight-fw"};
+                var daylightSession=operation.Connection.ExpectedSerial=="function-large"?new DaylightReadTests.Session{Value=new(int.MaxValue,new string('ژ',128),new string('ژ',128))}:new DaylightReadTests.Session();
+                settings=ZkDaylightReader.Add(settings,daylightApproval,daylightSession)!;
                 if(settings is null){Console.WriteLine(JsonSerializer.Serialize(new ZkOperationOutput("unsupported")));return;}
                 if(operation.Connection.ExpectedSerial=="daylight-missing")settings=settings with{Daylight=null};
             }
