@@ -11,6 +11,7 @@ using IO.Infrastructure.Security;
 using IO.Infrastructure.Storage;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Data.SqlClient;
@@ -109,7 +110,7 @@ internal static class GatewayEnrollmentOperationalTests
         await app.StartAsync();var url=app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();return new(app,new HttpClient(new HttpClientHandler{ServerCertificateCustomValidationCallback=(_,_,_,_)=>true,AllowAutoRedirect=false}){BaseAddress=new Uri(url)});
     }
     HttpRequestMessage Wire(PushGatewayEnvelope e){var request=new HttpRequestMessage(HttpMethod.Post,AuthenticatedPushGateway.Path){Content=new ByteArrayContent(e.Body)};request.Content.Headers.ContentType=new("application/octet-stream");request.Headers.Add("X-IO-Binding",bindingId.ToString("D"));request.Headers.Add("X-IO-Transfer",e.TransferId.ToString("D"));request.Headers.Add("X-IO-Sent",e.SentAtUtc.ToUnixTimeSeconds().ToString(System.Globalization.CultureInfo.InvariantCulture));request.Headers.Add("X-IO-Signature",e.Signature);if(e.Stamp is not null)request.Headers.Add("X-IO-Stamp",Convert.ToBase64String(Encoding.UTF8.GetBytes(e.Stamp)));return request;}
-    await using(var host=await Host(false)){using var request=Wire(Envelope(Guid.NewGuid()));using var response=await host.Client.SendAsync(request);check(response.StatusCode==HttpStatusCode.NotFound,"gateway HTTPS ingress remains absent by default");}
+    await using(var host=await Host(false)){using var request=Wire(Envelope(Guid.NewGuid()));using var response=await host.Client.SendAsync(request);check(response.StatusCode==HttpStatusCode.Unauthorized&&!host.App.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>().Any(x=>x.RoutePattern.RawText==AuthenticatedPushGateway.Path),"gateway HTTPS ingress remains unmapped by default and protected fallback rejects anonymous requests");}
     await using(var host=await Host(true))
     {
         var httpId=Guid.NewGuid();using var request=Wire(Envelope(httpId));using var response=await host.Client.SendAsync(request);var httpReceipt=await response.Content.ReadFromJsonAsync<JsonElement>();
@@ -144,7 +145,7 @@ internal static class GatewayEnrollmentOperationalTests
         }
         using var bad=Wire(Envelope(Guid.NewGuid()) with{Signature=new string('0',64)});using var rejected=await host.Client.SendAsync(bad);check(rejected.StatusCode==HttpStatusCode.Unauthorized,"actual HTTPS ingress rejects tampered MAC without session cookies");
         using var admin=await host.Client.PostAsJsonAsync("/devices/gateway-bindings",provision);check(admin.StatusCode==HttpStatusCode.Unauthorized,"gateway HMAC route does not grant anonymous binding administration");
-        using var nativePost=await host.Client.PostAsync("/iclock/cdata",new StringContent("not-native-auth"));check(nativePost.StatusCode==HttpStatusCode.NotFound,"native unauthenticated iclock route remains absent");
+        using var nativePost=await host.Client.PostAsync("/iclock/cdata",new StringContent("not-native-auth"));check(nativePost.StatusCode==HttpStatusCode.Unauthorized&&!host.App.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>().Any(x=>x.RoutePattern.RawText=="/iclock/cdata"),"native unauthenticated iclock route remains unmapped behind the protected fallback");
     }
     await Use<PushGatewayIngress,Guid>(s=>s.RevokeAsync(actor,bindingId,stored.Version));
     check(await Reject<UnauthorizedAccessException>(()=>Receive(Envelope(transfer))),"gateway revocation blocks new deliveries and even previously committed transfer retries");
