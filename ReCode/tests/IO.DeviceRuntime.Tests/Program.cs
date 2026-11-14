@@ -3,6 +3,8 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using IO.DeviceContracts;
 
+if (args is ["--push-codec-contracts"]) { ZkPushCodecTests.Run(); return; }
+
 if (args is ["--profile-setting-contracts"]) { await ProfileSettingTests.RunAsync(); return; }
 
 if (args is ["--daylight-read-contracts"]) { await DaylightReadTests.RunAsync(); return; }

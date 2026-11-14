@@ -90,6 +90,15 @@ class Routing(unittest.TestCase):
             for workflow in [SQL, PLATFORM]:
                 self.assertTrue(triggered(workflow, [path]))
 
+    def test_push_codec_runs_on_sql_and_both_platforms_without_claiming_ingress(self):
+        step = next(s for s in SQL['jobs']['verify']['steps'] if s.get('name') ==
+                    'Test explicit PUSH ATTLOG codec without claiming authentication or durable SQL receipt')
+        self.assertNotIn('if', step)
+        self.assertIn('--push-codec-contracts', step['run'])
+        self.assertIn('--push-codec-contracts', (ROOT / 'ReCode/tools/verify-platform.ps1').read_text())
+        for workflow in [SQL, PLATFORM]:
+            self.assertTrue(triggered(workflow, ['ReCode/src/IO.DeviceContracts/ZkPushAttendanceCodec.cs']))
+
     def test_sensitive_or_unknown_changes_still_run_full(self):
         for path in ["ReCode/src/IO.Infrastructure/Migrations/new.cs", "ReCode/src/IO.Infrastructure/Security/DeviceAccess.cs", "ReCode/src/IO.Web/Program.cs", "ReCode/src/IO.DeviceWorker/Program.cs", "ReCode/src/IO.Web/Ui/HelpContent.json", "ReCode/tests/IO.Infrastructure.SqlTests/VirtualWorkerTests.cs", "ReCode/tools/verify-platform.ps1", "ReCode/global.json", "ReCode/Directory.Build.props", "ReCode/src/IO.Web/IO.Web.csproj", ".github/workflows/io-cross-platform.yml", "future/unclassified.file"]:
             for workflow in [SQL, PLATFORM]:

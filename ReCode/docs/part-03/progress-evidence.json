@@ -447,5 +447,20 @@
       "platformRun": 43621619029,
       "reason": "Shared SQL fixture was missing linked mapper test dependencies; corrected before acceptance."
     }
+  },
+  "pushWireFollowup": {
+    "status": "local-codec-tested-CI-not-yet-accepted",
+    "ledgerId": "P3-R08",
+    "technicalOpenCount": 9,
+    "newPortableCodecChecks": 47,
+    "guide": "s10-push-attlog-contract.fa.md",
+    "referenceEvidence": "s10-push-protocol-reference-evidence.json",
+    "authenticationImplemented": false,
+    "httpEndpointImplemented": false,
+    "sqlJournalImplemented": false,
+    "ledgerRowClosed": false,
+    "part3Complete": false,
+    "hardwareVerified": false,
+    "nextExactAction": "Resolve vendor cryptographic session library/algorithm availability versus explicitly approved authenticated edge trust boundary; then implement SQL immutable journal/receipt and scoped UI before opening any device HTTP ingress. The codec formatter does not prove a commit."
   }
 }

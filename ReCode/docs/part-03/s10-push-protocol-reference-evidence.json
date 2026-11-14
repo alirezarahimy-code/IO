@@ -1,0 +1,40 @@
+{
+  "scope": "P3-R08 research and wire codec only; NOT authenticated PUSH receiver or a row closure",
+  "repository": "daniel-mekuria/zk_server",
+  "commit": "3139200c0f7364b51973ad4d160f78e3a5b83cab",
+  "path": "604032067-Attendance-PUSH-Communication-Protocol-20200325.txt",
+  "gitBlob": "bdc00d5bdcbbea5b94f9a0945afb362364f9d3a1",
+  "sha256": "4c4b8032c32d3e9ed3dbad32b9847302b2c377e1a4adb54fd7ea980f704a5d9c",
+  "sourceKind": "public-text-mirror-of-vendor-attributed-20200325-manual-not-an-authenticated-vendor-release",
+  "url": "https://github.com/daniel-mekuria/zk_server/blob/3139200c0f7364b51973ad4d160f78e3a5b83cab/604032067-Attendance-PUSH-Communication-Protocol-20200325.txt",
+  "sourceExecuted": false,
+  "vendorCryptoImplemented": false,
+  "hardwareVerified": false,
+  "excerpts": [
+    {
+      "firstLine": 1422,
+      "lastLine": 1446,
+      "text": "A request message from the client:\n  POST /iclock/cdata?SN=${SerialNumber}&table=ATTLOG&Stamp=${XXX} HTTP/1.1\n  Host: ${ServerIP}: ${ServerPort}\n  Content-Length: ${XXX}\n  ……\n\n\n \r\n ${DataRecord}\n\nAnnotation:\n HTTP request method: POST method\n\n Used URI: /iclock/cdata\n\n HTTP protocol version: 1.1\n\n Client configuration information:\n\n SN: ${Required} Serial number of the client   table=ATTLOG: ${Required} Indicating that the uploaded d\n ata is attendance records.\n\n Stamp: ${Optional} Latest timestamp at which the attendance record is uploaded to the server. (For detai\n ls, see the \"Stamp\" or \"ATTLOGStamp\" parameter in \"Initializing Information Exchange\".)\n"
+    },
+    {
+      "firstLine": 1454,
+      "lastLine": 1490,
+      "text": "\n Host header field: ${Required}\n\n Content-Length header field: ${Required}\n\n Other header fields: ${Optional}\n\n Request entity: ${DataRecord}, attendance record data, in the following format:\n\n ${Pin}${HT}${Time}${HT}${Status}${HT}${Verify}${HT}${Workcode}${HT}${Reserved}${HT}${Reserved}\n Note:\n ${Time}: Verification time, in the format of XXXX-XX-XX XX: XX: XX. For example, 2015-07-29 11: 11: 11,\n with ${LF} used to connect multiple records.\n\n\nA normal response message from the server:\n HTTP/1.1 200 OK\n Content-Length: ${XXX}\n ……\n\n OK: ${XXX}\n\n\nAnnotation:\n HTTP status line: Defined with standard HTTP protocol\n\n HTTP response header field:\n\n Content-Length header field: According to the HTTP 1.1, this header field is generally used to specify the\n data length of the response entity. If the response entity size is uncertain, head fields of Transfer-\n Encoding: chunked, Content-Length and Transfer-Encoding are supported, all of which are standard\n definitions of HTTP and are not described in details here.\n Response entity: When the server normally receives data and successfully processes data, OK: ${XXX} is r\n eplied. ${XXX} represents the number of records successfully processed. When an error occurs, the error\n description is replied.\n\n"
+    },
+    {
+      "firstLine": 6212,
+      "lastLine": 6226,
+      "text": "Appendix 8\nData encryption key exchange scheme\n\n\n\n\n    Algorithm: Encryption algorithm library will be unified packaging, the device used for the static library.\n\n    Scheme:\n\n     a)    The asymmetric encrypted public-private key is initialized when the device and server reconnect.\n\n\n\nP a g e | 110                                                   Copyright©2020 ZKTECO CO., LTD. All rights reserved."
+    },
+    {
+      "firstLine": 6250,
+      "lastLine": 6257,
+      "text": "               The device uses the device private key to solve the server factor R2.\n\n               Complete the factor exchange. Both the device and the server have factors R1 and R2.\n\n     d)    Device and server at the same time have factor R1, R2, and then confused device and a server\n           using the same algorithm was born into a session key (sessionKey), after the transfer of data to\n           value as the symmetric encryption keys.\n"
+    },
+    {
+      "firstLine": 6282,
+      "lastLine": 6308,
+      "text": "           communication protocol version number of the device, and PushProtVer is added to the data\n           returned by the software to indicate which protocol version the software was developed on. The\n           device and server take the lowest protocol version and communicate according to the lowest\n           protocol version.\n\n           Case 1: When protocol versions of both the server and the device are not supported, explicit\n           transmission of data communication is used.\n           Case 2: Set a protocol version that supports data encryption. When both the server and the\n           device support the protocol version, use the data encryption scheme.\n\nThe order of interaction is as follows:\n\n    The new protocol exchanges the public keys P1 and P2 of the device and server.\n\n\n\n\nP a g e | 112                                                   Copyright©2020 ZKTECO CO., LTD. All rights reserved.\n\fPUSH SDK                                                                 Attendance PUSH Communication Protocol\n\n\n\n     The new protocol exchanges the factors R1 and R2 of the device and server.\n\n     Crc32 verification is carried out for the signature of communication data. Both the device and the\n      server have factors R1 and R2 at the same time. Then, the device and the server use the same\n      obconfusion algorithm to generate sessionKey (sessionKey)."
+    }
+  ]
+}
