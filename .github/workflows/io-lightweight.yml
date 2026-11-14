@@ -11,6 +11,7 @@ on:
       - 'ReCode/tools/ci-*'
       - 'ReCode/tools/check-ui-dom.sh'
       - 'ReCode/tools/inspect-zkem-network-dispatch.py'
+      - 'ReCode/tools/audit-dhcp-firmware-reference.py'
       - '.github/workflows/**'
   workflow_dispatch:
 concurrency:
@@ -45,6 +46,10 @@ jobs:
         run: python3 -m pip install --disable-pip-version-check pefile==2024.8.26 unicorn==2.1.4
       - name: Verify hash-pinned network setter dispatch with trapped transport
         run: python3 ReCode/tools/inspect-zkem-network-dispatch.py --verify
+      - name: Audit pinned DHCP firmware source reference without execution
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 ReCode/tools/audit-dhcp-firmware-reference.py
       - name: Prepare offline DOM dependencies
         if: steps.scope.outputs.ui == 'true' || steps.scope.outputs.preview == 'true'
         run: npm install --prefix "$RUNNER_TEMP/io-browser" --ignore-scripts --no-audit --no-fund playwright-core@1.56.1 jsdom@26.1.0

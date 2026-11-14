@@ -1,0 +1,92 @@
+{
+  "repository": "eric4409/jz4725",
+  "commit": "de2de02fd0224f96d65a350ecad5efbc84ab230e",
+  "kind": "public-historical-ZKSoftware-attributed-firmware-source-not-authenticated-vendor-release",
+  "targetFirmwareVerified": false,
+  "deviceExecuted": false,
+  "scope": "DHCP option recognition and command12 persistence contract; not network application or running firmware compatibility",
+  "sources": [
+    {
+      "path": "jz4740/firmware/options.c",
+      "gitBlob": "9012121dcfe65c8c2ba69018e74bb68751e5051b",
+      "sha256": "b9009e251848894d7ac8e3cec166664eea71844537134c12249528f8dce72cd5",
+      "url": "https://github.com/eric4409/jz4725/blob/de2de02fd0224f96d65a350ecad5efbc84ab230e/jz4740/firmware/options.c",
+      "excerpts": [
+        {
+          "firstLine": 1,
+          "lastLine": 9,
+          "text": "/*************************************************\n                                           \n ZEM 200                                          \n                                                    \n options.c all function for options                               \n                                                      \n Copyright (C) 2003-2005, ZKSoftware Inc.      \t\t\n                                                      \n Author: Richard Chen"
+        },
+        {
+          "firstLine": 299,
+          "lastLine": 306,
+          "text": "BOOL SaveStr(const char *name, const char *value, int SaveTrue)\n{\n\tchar buffer[VALUE_BUFFERLEN]; \n\tint len;\n\t\n\tlen=strlen(value);\n\tif (LoadStr(name, buffer))\n\t{"
+        },
+        {
+          "firstLine": 315,
+          "lastLine": 330,
+          "text": "\tCombineNameAndValue(name, value, SaveTrue, buffer);\t\n\tlen=lseek(fdOptions, 0, SEEK_END);\n\tif (len>=MAX_OPTION_SIZE)\n\t{ \n\t    ClearOptionItem(\"NONE\");\n\t    len=lseek(fdOptions, 0, SEEK_END);\n\t}\n\tif (len<MAX_OPTION_SIZE)\n\t    write(fdOptions, buffer, strlen(buffer));\n\t\n\tExecuteActionForOption(name, value);\n\tyaffs_flush(fdOptions);\n\treturn ((len<MAX_OPTION_SIZE)?TRUE:FALSE);\n}\n\nchar *GetCardKeyStr(char *Buffer, BYTE *Key)"
+        },
+        {
+          "firstLine": 1206,
+          "lastLine": 1208,
+          "text": "\t{\"AAVOLUME\",\t\t67,\t\t\t1,\toptoffset(AutoAlarmAudioVol),\t0,\t\t\t99,\t\t1 \t},\n\t{\"DHCP\",\t\t0,\t\t\t1,\toptoffset(DHCP),\t\t0,\t\t\t1,\t\t0\t},\n\t{\"AutoSyncTime\",\t0xFFFF,\t\t\t1,\toptoffset(AutoSyncTime),\t\t\t\t\t\t\t},"
+        },
+        {
+          "firstLine": 1422,
+          "lastLine": 1443,
+          "text": "\t\t\tif(!exitsign)\n\t\t\t{\n\t\t\t\tfor(i=0;i<OPTIONSRESINTCOUNT;i++)\n\t\t\t\t{\n\t\t\t\t\tif(strcmp(name1, OptionsResInt[i].OptionName)==0)\n\t\t\t\t\t{\n\t\t\t\t\t\tvalue=str2int(value1, OptionsResInt[i].DefaultValue);\n\t\t\t\t\t\tif(OptionsResInt[i].MaxValue>OptionsResInt[i].MinValue)\n\t\t\t\t\t\t{\n\t\t\t\t\t\t\tif(OptionsResInt[i].MaxValue<value) \n\t\t\t\t\t\t\t\tvalue=OptionsResInt[i].MaxValue;\n\t\t\t\t\t\t\telse if(OptionsResInt[i].MinValue>value) \n\t\t\t\t\t\t\t\tvalue=OptionsResInt[i].MinValue;\n\t\t\t\t\t\t}\n\t\t\t\t\t\tmemcpy(((char*)opts)+OptionsResInt[i].Offset, &value, 4);\n\t\t\t\t\t\tbreak;\n\t\t\t\t\t}\n\t\t\t\t}\t\t\t\t\n\t\t\t}\t\t\t\n\t\t}\n\t\telse\n\t\t\tbreak;"
+        }
+      ]
+    },
+    {
+      "path": "jz4740/firmware/options.h",
+      "gitBlob": "9515b1dd072574e05d3af2b3827e84797446c371",
+      "sha256": "9ea4173052814bdb6c1a4ad7ce6f3d1f30e26bbc8874adf175ed132df5a4338c",
+      "url": "https://github.com/eric4409/jz4725/blob/de2de02fd0224f96d65a350ecad5efbc84ab230e/jz4740/firmware/options.h",
+      "excerpts": [
+        {
+          "firstLine": 699,
+          "lastLine": 703,
+          "text": "\tBYTE WebServerIP[4];\t\t\t\t//Network IP Address\n\tint AudioVol;\t\t\t\t\t//Audio volumn\n\tint AutoAlarmAudioVol;\t\t\t\t//Auto alarm audio volume\n\tint DHCP;\t\t\t\t\t//DHCP enable or disable\n\tint AutoSyncTimeFunOn;\t\t\t\t//Synchronize time from remote time server"
+        },
+        {
+          "firstLine": 808,
+          "lastLine": 817,
+          "text": "typedef struct __OPTIONSRESINT__{\n\tchar *OptionName;\n\tint DefaultValue;\n\tint IsNeedRestoreFactory;\n\tint Offset;\n\tint MenuResID;\n\tint MaxValue;\n\tint MinValue;\n}TOptionsResInt,*POptionsResInt;\n"
+        }
+      ]
+    },
+    {
+      "path": "jz4740/firmware/commu.c",
+      "gitBlob": "ae6e480646f90037cd6be641efd53c7515cf8c3e",
+      "sha256": "17c3980461e29c0a6bed14ab4f3c5d3dc72adc07b224f72d831b1808b44acacf",
+      "url": "https://github.com/eric4409/jz4725/blob/de2de02fd0224f96d65a350ecad5efbc84ab230e/jz4740/firmware/commu.c",
+      "excerpts": [
+        {
+          "firstLine": 1471,
+          "lastLine": 1505,
+          "text": "\tcase CMD_OPTIONS_RRQ:\n\t\tif(0==(i=GetOptionNameAndValue(p, size)))\n\t\t\tchdr->Command=CMD_ACK_ERROR;\n\t\telse\n\t\t\tlen+=i;\n\t\tbreak;\t\t\n\tcase CMD_OPTIONS_WRQ:\n\t\t{\n\t\t\tchar *value=p;\n\t\t\tint namel=0;\n\t\t\tp[size]=0;\n\t\t\twhile(*value)\n\t\t\t{\n\t\t\t\tif('='==*value++)\n\t\t\t\t\tbreak;\n\t\t\t\tif(namel++>size) break;\n\t\t\t}\n\t\t\tif(namel>=size || namel<1)\n\t\t\t{\n\t\t\t\tchdr->Command=CMD_ACK_ERROR;\n\t\t\t\tchdr->SessionID=1;\n\t\t\t}\n\t\t\telse\n\t\t\t{\n\t\t\t\tp[namel]=0;\n\t\t\t\tif(!SaveStr(p,value,TRUE))\n\t\t\t\t{\t\t\t\n\t\t\t\t       chdr->Command=CMD_ACK_ERROR;\n\t\t\t\t       chdr->SessionID=2;\t\t\t\t\t\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t\tbreak;\n\tcase CMD_ATTLOG_RRQ:\n\t\tif(!(chdr->SessionID=ReadBlockAndSend(chdr, session, FCT_ATTLOG)))"
+        },
+        {
+          "firstLine": 1541,
+          "lastLine": 1544,
+          "text": "\tcase CMD_REFRESHOPTION:\n\t\tLoadOptions(&gOptions);\n\t\tFPInit(NULL);\n\t\tbreak;"
+        }
+      ]
+    },
+    {
+      "path": "jz4740/firmware/commu.h",
+      "gitBlob": "e6020bc23600a53d1103172b62633010d0859069",
+      "sha256": "4d641208bc20b8dc9da1e010c315cd4ec1fd09534a2a9afcb192c0a1ecfc3a54",
+      "url": "https://github.com/eric4409/jz4725/blob/de2de02fd0224f96d65a350ecad5efbc84ab230e/jz4740/firmware/commu.h",
+      "excerpts": [
+        {
+          "firstLine": 24,
+          "lastLine": 25,
+          "text": "#define CMD_OPTIONS_RRQ\t\t11\t\t\t/* read request */\n#define CMD_OPTIONS_WRQ \t12\t\t\t/* write request */"
+        }
+      ]
+    }
+  ]
+}

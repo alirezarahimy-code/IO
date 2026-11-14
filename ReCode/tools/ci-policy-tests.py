@@ -79,6 +79,17 @@ class Routing(unittest.TestCase):
                           'Prepare offline native instruction emulator')
         self.assertIn('pefile==2024.8.26 unicorn==2.1.4', dependency['run'])
 
+    def test_firmware_reference_and_production_mapper_cannot_skip_checks(self):
+        self.assertTrue(triggered(LIGHT, ['ReCode/tools/audit-dhcp-firmware-reference.py']))
+        audit = next(s for s in LIGHT['jobs']['light']['steps'] if s.get('name') ==
+                     'Audit pinned DHCP firmware source reference without execution')
+        self.assertEqual(audit['run'], 'python3 ReCode/tools/audit-dhcp-firmware-reference.py')
+        self.assertNotIn('if', audit)
+        for path in ['ReCode/src/IO.ZkBridge/ZkComProfileSession.cs',
+                     'ReCode/tests/IO.DeviceRuntime.Tests/DhcpComProfileTests.cs']:
+            for workflow in [SQL, PLATFORM]:
+                self.assertTrue(triggered(workflow, [path]))
+
     def test_sensitive_or_unknown_changes_still_run_full(self):
         for path in ["ReCode/src/IO.Infrastructure/Migrations/new.cs", "ReCode/src/IO.Infrastructure/Security/DeviceAccess.cs", "ReCode/src/IO.Web/Program.cs", "ReCode/src/IO.DeviceWorker/Program.cs", "ReCode/src/IO.Web/Ui/HelpContent.json", "ReCode/tests/IO.Infrastructure.SqlTests/VirtualWorkerTests.cs", "ReCode/tools/verify-platform.ps1", "ReCode/global.json", "ReCode/Directory.Build.props", "ReCode/src/IO.Web/IO.Web.csproj", ".github/workflows/io-cross-platform.yml", "future/unclassified.file"]:
             for workflow in [SQL, PLATFORM]:

@@ -45,6 +45,7 @@ internal static class ProfileSettingTests
         var readInput=new ZkOperationInput(Input(daylight).Connection,"settings.read",null,false,true,ProfileReadApprovals:readings);
         Check(new ZkOperationOutput("succeeded",Settings:observed).IsValidFor(readInput)&&!new ZkOperationOutput("succeeded",Settings:observed).IsValidFor(readInput with{ProfileReadApprovals=null}),"unsolicited profile reads and approval omission cannot pass typed child boundary");
         multi=new(){Unavailable=true};observed=ZkProfileExecutor.AddReadings(snapshot,readings,multi)!;Check(observed.Profiles!.All(x=>!x.Reported&&x.Value is null),"unavailable native options stay unavailable without invented values");
+        count+=DhcpComProfileTests.Run();
         var maximum=MaximumRead();var maximumChild=await NativeProcessSupervisor.RunOperationAsync(host,assembly,maximum.Input,5);
         Check(maximum.Output.IsValidFor(maximum.Input)&&JsonSerializer.Serialize(maximum.Input).Length>8192&&JsonSerializer.Serialize(maximum.Output).Length<=32768&&maximumChild.IsValidFor(maximum.Input)&&JsonSerializer.Serialize(maximumChild.Settings)==JsonSerializer.Serialize(maximum.Output.Settings),"maximum Unicode seven profile approvals plus eight full keys and daylight cross real child without widening SQL result or truncating input");
         Console.WriteLine($"PASS {count} profile-setting contract and actual child checks; synthetic only, no hardware acceptance");
