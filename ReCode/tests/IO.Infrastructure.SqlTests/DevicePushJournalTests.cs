@@ -112,6 +112,20 @@ internal static class DevicePushJournalTests
         finally{await I(db=>db.Database.ExecuteSqlRawAsync("ALTER TABLE dbo.SecurityAudit DROP CONSTRAINT CK_Test_PushAuditFailure"));}
         check((await Retain(input with{OperationId=failed})).Id==failed,
             "R08 a deliberate retry after rollback can commit the same operation without a phantom prior receipt");
+        async Task<bool> SqlReject(Func<Task> f,int number)
+        {try{await f();return false;}catch(SqlException e)when(e.Number==number){return true;}}
+        check(await SqlReject(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.DevicePushJournal SET Stamp=N'changed' WHERE Id={id}")),51028)&&
+            await SqlReject(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"DELETE dbo.DevicePushJournal WHERE Id={id}")),51028),
+            "R08 SQL triggers forbid original evidence or receipt mutation and deletion");
+        var badHashId=Guid.NewGuid();
+        check(await SqlReject(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.DevicePushJournal SELECT {badHashId},DeviceId,SourceId,SiteId,CompanyId,RetainedByUserId,RetainedAtUtc,ExpectedDeviceVersion,0x01,Serial,Stamp,Contract,TimeZoneId,PayloadHash,RowsJson,RowCount,ParsedCount FROM dbo.DevicePushJournal WHERE Id={id}")),547),
+            "R08 SQL independently verifies original payload SHA256 instead of trusting a supplied hash");
+        var badCountId=Guid.NewGuid();
+        check(await SqlReject(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.DevicePushJournal SELECT {badCountId},DeviceId,SourceId,SiteId,CompanyId,RetainedByUserId,RetainedAtUtc,ExpectedDeviceVersion,OriginalBody,Serial,Stamp,Contract,TimeZoneId,PayloadHash,RowsJson,RowCount+1,ParsedCount FROM dbo.DevicePushJournal WHERE Id={id}")),51028),
+            "R08 SQL rejects a snapshot whose row counts disagree with its retained receipt");
+        check(await SqlReject(()=>Q(async db=>{await db.GetService<IMigrator>().MigrateAsync("20261114100000_DeviceProfileSettings");return true;}),51028)&&
+            await Q(db=>db.DevicePushJournal.AnyAsync(x=>x.Id==id)),
+            "R08 destructive downgrade refuses to discard retained PUSH evidence and leaves the migration applied");
         await Q(db=>db.Sites.Where(x=>x.Id==site).ExecuteUpdateAsync(s=>s.SetProperty(x=>x.TimeZoneId,"Asia/Tehran")));
         await Retain(input);
         check(await Q(db=>db.DevicePushJournal.Where(x=>x.Id==id).Select(x=>x.TimeZoneId).SingleAsync())=="UTC",
@@ -132,19 +146,5 @@ internal static class DevicePushJournalTests
         check(await Reject<UnauthorizedAccessException>(()=>Retain(input)),"R08 retain permission revocation also denies an otherwise exact retry");
         await Q(db=>db.Devices.Where(x=>x.Id==device).ExecuteUpdateAsync(s=>s.SetProperty(x=>x.Enabled,false)));
         check(await Reject<DomainConflictException>(()=>Retain(input,other)),"R08 disabled device rejects retries even when the operator retains its grant");
-        async Task<bool> SqlReject(Func<Task> f,int number)
-        {try{await f();return false;}catch(SqlException e)when(e.Number==number){return true;}}
-        check(await SqlReject(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.DevicePushJournal SET Stamp=N'changed' WHERE Id={id}")),51028)&&
-            await SqlReject(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"DELETE dbo.DevicePushJournal WHERE Id={id}")),51028),
-            "R08 SQL triggers forbid original evidence or receipt mutation and deletion");
-        var badHashId=Guid.NewGuid();
-        check(await SqlReject(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.DevicePushJournal SELECT {badHashId},DeviceId,SourceId,SiteId,CompanyId,RetainedByUserId,RetainedAtUtc,ExpectedDeviceVersion,0x01,Serial,Stamp,Contract,TimeZoneId,PayloadHash,RowsJson,RowCount,ParsedCount FROM dbo.DevicePushJournal WHERE Id={id}")),547),
-            "R08 SQL independently verifies original payload SHA256 instead of trusting a supplied hash");
-        var badCountId=Guid.NewGuid();
-        check(await SqlReject(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.DevicePushJournal SELECT {badCountId},DeviceId,SourceId,SiteId,CompanyId,RetainedByUserId,RetainedAtUtc,ExpectedDeviceVersion,OriginalBody,Serial,Stamp,Contract,TimeZoneId,PayloadHash,RowsJson,RowCount+1,ParsedCount FROM dbo.DevicePushJournal WHERE Id={id}")),51028),
-            "R08 SQL rejects a snapshot whose row counts disagree with its retained receipt");
-        check(await SqlReject(()=>Q(async db=>{await db.GetService<IMigrator>().MigrateAsync("20261114100000_DeviceProfileSettings");return true;}),51028)&&
-            await Q(db=>db.DevicePushJournal.AnyAsync(x=>x.Id==id)),
-            "R08 destructive downgrade refuses to discard retained PUSH evidence and leaves the migration applied");
     }
 }
