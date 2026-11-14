@@ -315,5 +315,40 @@
       }
     ]
   },
-  "nextExactAction": "DLST write: the reviewed native setter accepts eight-character MMddHHmm-style fields and changes DLSTMode/CurTimeMode option state. Establish approved read-back/preservation contract for those control options and exact model timezone/effect before implementing preview/independent write rights/single dispatch/recovery. Do not treat GetDaylight tuple alone as complete old device state."
+  "nextExactAction": "Read SQL43606887242 outcome and bounded exact-parent browser diagnostics; fix root cause, pass full SQL plus Windows/Linux on final executable SHA, then reduce only genuinely completed ledger rows. Never count pending/failure or synthetic SDK acceptance as done.",
+  "profileSettingsFollowup": {
+    "code": "18225df3296d814f2f87b561c604f7af96551c25",
+    "accepted": false,
+    "ledgerIds": [
+      "P3-R01",
+      "P3-R02",
+      "P3-R03",
+      "P3-R04",
+      "P3-R05",
+      "P3-R06",
+      "P3-R07"
+    ],
+    "technicalOpenCount": 16,
+    "hardwareAcceptanceSeparate": "P3-H01",
+    "implementation": "Seven typed intents, fourteen independent default-ungranted rights, SQL migration47/guards, worker and native adapters, exact endpoint old/new inspection, UI and model-specific install approvals. No automatic retry or metadata retarget.",
+    "localEvidence": {
+      "portableProfileChecks": 99,
+      "offlineDomFiles": 18,
+      "referenceParityChecks": 36,
+      "realSdkExecuted": false
+    },
+    "ci": {
+      "sqlRun": 43606887242,
+      "status": "in_progress_at_document_update",
+      "windowsLinuxRun": 43606887246
+    },
+    "priorFailure": {
+      "code": "38e7d7d6a2f77d31d4e323ff399cb88a77cd37d0",
+      "sqlRun": 43605795205,
+      "status": "failure",
+      "reason": "Real Chromium profile write reached unknown; locating the subsequent read-only inspection control timed out. Not waived. Full seven-parameter HTTPS/SQL/worker/TCP outage flow passed before browser. Profile-specific SQL guard suite reordered before browser for independent diagnosis."
+    },
+    "supportEvidenceLimit": "DHCP and TCPPort remain candidate generic option mappings; native strings/read or USB config and installation approval are not universal COM write/model proof.",
+    "contract": "ReCode/docs/part-03/profile-settings-contract.fa.md"
+  }
 }
