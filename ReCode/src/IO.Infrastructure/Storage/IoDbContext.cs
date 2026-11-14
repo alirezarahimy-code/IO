@@ -101,7 +101,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
                 t.HasTrigger("TR_DevicePushJournal_Immutable");t.UseSqlOutputClause(false);
                 t.HasCheckConstraint("CK_DevicePushJournal_Bounds","DATALENGTH([OriginalBody]) BETWEEN 1 AND 1048576 AND DATALENGTH([ExpectedDeviceVersion])=8 AND [RowCount] BETWEEN 1 AND 10000 AND [ParsedCount] BETWEEN 0 AND [RowCount]");
                 t.HasCheckConstraint("CK_DevicePushJournal_Hash","DATALENGTH([PayloadHash])=128 AND [PayloadHash] COLLATE Latin1_General_100_BIN2=CONVERT(nvarchar(64),HASHBYTES('SHA2_256',[OriginalBody]),2) COLLATE Latin1_General_100_BIN2");
-                t.HasCheckConstraint("CK_DevicePushJournal_Contract","[Contract] COLLATE Latin1_General_100_BIN2=N'zk-attendance-push-20200325-attlog-seven-utf8-v1' AND DATALENGTH([Contract])=96 AND DATALENGTH([Serial]) BETWEEN 2 AND 200 AND DATALENGTH([TimeZoneId]) BETWEEN 2 AND 200 AND ISJSON([RowsJson])=1");
+                t.HasCheckConstraint("CK_DevicePushJournal_Contract","[Contract] COLLATE Latin1_General_100_BIN2=N'zk-attendance-push-20200325-attlog-seven-utf8-v1' AND DATALENGTH([Contract])=96 AND DATALENGTH([Serial]) BETWEEN 2 AND 200 AND DATALENGTH([TimeZoneId]) BETWEEN 2 AND 200 AND ISJSON([RowsJson])=1 AND DATALENGTH([RowsJson]) BETWEEN 2 AND 33554432");
                 t.HasCheckConstraint("CK_DevicePushJournal_Utc","DATEPART(TZOFFSET,[RetainedAtUtc])=0");
             });
             b.HasKey(x=>x.Id);b.Property(x=>x.Id).ValueGeneratedNever();

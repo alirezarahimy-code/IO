@@ -43,9 +43,9 @@ internal static class DevicePushJournalTests
             }
             await db.SaveChangesAsync();return true;
         });
-        foreach(var(id,profile)in new[]{(device,"zk-push"),(offline,"offline-file")})
-            await Use<DeviceRegistry,Guid>(s=>s.CreateAsync(manager,id,new(site,"PUSH-"+id.ToString("N"),"PUSH evidence fixture","unverified",profile,null,null,true)));
-        Task<byte[]> Version(Guid id)=>Q(db=>db.Devices.Where(x=>x.Id==id).Select(x=>x.Version).SingleAsync());
+        foreach(var(deviceKey,profile)in new[]{(device,"zk-push"),(offline,"offline-file")})
+            await Use<DeviceRegistry,Guid>(s=>s.CreateAsync(manager,deviceKey,new(site,"PUSH-"+deviceKey.ToString("N"),"PUSH evidence fixture","unverified",profile,null,null,true)));
+        Task<byte[]> Version(Guid deviceKey)=>Q(db=>db.Devices.Where(x=>x.Id==deviceKey).Select(x=>x.Version).SingleAsync());
         var offlineVersion=await Version(offline);var version=await Version(device);var id=Guid.NewGuid();
         var line="001\t2026-11-08 08:00:00\t0\t15\t000\t0\t0";
         var bytes=Encoding.UTF8.GetBytes(line+"\r\n"+line+"\r\nnot-seven-columns\r\n");
