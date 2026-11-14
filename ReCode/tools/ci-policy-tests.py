@@ -44,6 +44,8 @@ def glob_match(pattern, path):
 
 
 def triggered(workflow, paths):
+    if "push" not in workflow["on"]:
+        return False
     for path in paths:
         selected = False
         for pattern in workflow["on"]["push"]["paths"]:
@@ -56,15 +58,26 @@ def triggered(workflow, paths):
 
 
 class Routing(unittest.TestCase):
+    def test_automatic_jobs_are_windows_only_and_sql_linux_requires_explicit_opt_in(self):
+        self.assertEqual(PLATFORM["jobs"]["platform"]["runs-on"], "windows-2022")
+        self.assertNotIn("strategy", PLATFORM["jobs"]["platform"])
+        self.assertEqual(LIGHT["jobs"]["light"]["runs-on"], "windows-2022")
+        self.assertEqual(LIGHT["jobs"]["light"]["defaults"]["run"]["shell"], "bash")
+        self.assertNotIn("push", SQL["on"])
+        self.assertFalse(triggered(SQL, ["ReCode/src/IO.Infrastructure/Storage/IoDbContext.cs"]))
+        self.assertEqual(SQL["on"]["workflow_dispatch"]["inputs"]["allow_linux_runner"]["default"], "false")
+        self.assertIn("inputs.allow_linux_runner == true", SQL["jobs"]["verify"]["if"])
+        self.assertIn("github.event_name == 'workflow_dispatch'", SQL["jobs"]["verify"]["if"])
+
     def test_documentation_does_not_launch_heavy_jobs(self):
         for path in ["README.md", "ReCode/docs/part-03/progress-evidence.json", "ReCode/docs/part-03/s10-legacy-polling.fa.md"]:
-            for workflow in [SQL, PLATFORM]:
+            for workflow in [PLATFORM]:
                 self.assertFalse(triggered(workflow, [path]), path)
             self.assertTrue(triggered(LIGHT, [path]), path)
 
     def test_ui_and_preview_use_light_checks(self):
         for path in ["ReCode/src/IO.Web/Ui/device-schedules.js", "ReCode/src/IO.Web/Ui/DeviceSchedules.html", "ReCode/preview/pages-first/pages.js", "ReCode/tests/IO.Infrastructure.SqlTests/device-access-ui-check.cjs"]:
-            for workflow in [SQL, PLATFORM]:
+            for workflow in [PLATFORM]:
                 self.assertFalse(triggered(workflow, [path]), path)
             self.assertTrue(triggered(LIGHT, [path]), path)
 
@@ -73,7 +86,7 @@ class Routing(unittest.TestCase):
         steps = LIGHT['jobs']['light']['steps']
         probe = next(s for s in steps if s.get('name') ==
                      'Verify hash-pinned network setter dispatch with trapped transport')
-        self.assertEqual(probe['run'], 'python3 ReCode/tools/inspect-zkem-network-dispatch.py --verify')
+        self.assertEqual(probe['run'], 'python ReCode/tools/inspect-zkem-network-dispatch.py --verify')
         self.assertNotIn('if', probe)
         dependency = next(s for s in steps if s.get('name') ==
                           'Prepare offline native instruction emulator')
@@ -83,14 +96,14 @@ class Routing(unittest.TestCase):
         self.assertTrue(triggered(LIGHT, ['ReCode/tools/audit-dhcp-firmware-reference.py']))
         audit = next(s for s in LIGHT['jobs']['light']['steps'] if s.get('name') ==
                      'Audit pinned DHCP firmware source reference without execution')
-        self.assertEqual(audit['run'], 'python3 ReCode/tools/audit-dhcp-firmware-reference.py')
+        self.assertEqual(audit['run'], 'python ReCode/tools/audit-dhcp-firmware-reference.py')
         self.assertNotIn('if', audit)
         for path in ['ReCode/src/IO.ZkBridge/ZkComProfileSession.cs',
                      'ReCode/tests/IO.DeviceRuntime.Tests/DhcpComProfileTests.cs']:
-            for workflow in [SQL, PLATFORM]:
+            for workflow in [PLATFORM]:
                 self.assertTrue(triggered(workflow, [path]))
 
-    def test_push_review_is_read_only_and_runs_full_service_http_and_dom_contracts(self):
+    def test_push_review_preserves_read_only_manual_sql_and_windows_dom_contracts(self):
         program = (ROOT / "ReCode/src/IO.Web/Program.cs").read_text()
         self.assertIn('app.MapGet("/device-push-evidence",', program)
         self.assertNotIn('app.MapPost("/device-push-evidence', program)
@@ -98,7 +111,7 @@ class Routing(unittest.TestCase):
         self.assertIn("await DevicePushReviewTests.RunAsync(connection, Check);",
                       (ROOT / "ReCode/tests/IO.Infrastructure.SqlTests/Program.cs").read_text())
         self.assertTrue((ROOT / "ReCode/tests/IO.Infrastructure.SqlTests/device-push-evidence-ui-check.cjs").exists())
-        for workflow in [SQL, PLATFORM]:
+        for workflow in [PLATFORM]:
             self.assertTrue(triggered(workflow, ["ReCode/src/IO.Infrastructure/Devices/DevicePushReview.cs"]))
         self.assertTrue(triggered(LIGHT, ["ReCode/tests/IO.Infrastructure.SqlTests/device-push-evidence-ui-check.cjs"]))
 
@@ -109,25 +122,25 @@ class Routing(unittest.TestCase):
         self.assertNotIn("if", step)
         self.assertIn("await DevicePushJournalTests.RunAsync(connection, Check);",
                       (ROOT / "ReCode/tests/IO.Infrastructure.SqlTests/Program.cs").read_text())
-        for workflow in [SQL, PLATFORM]:
+        for workflow in [PLATFORM]:
             self.assertTrue(triggered(workflow, ["ReCode/src/IO.Infrastructure/Devices/DevicePushJournal.cs"]))
 
-    def test_push_codec_runs_on_sql_and_both_platforms_without_claiming_ingress(self):
+    def test_push_codec_remains_in_manual_sql_and_windows_without_claiming_ingress(self):
         step = next(s for s in SQL['jobs']['verify']['steps'] if s.get('name') ==
                     'Test explicit PUSH ATTLOG codec without claiming authentication or durable SQL receipt')
         self.assertNotIn('if', step)
         self.assertIn('--push-codec-contracts', step['run'])
         self.assertIn('--push-codec-contracts', (ROOT / 'ReCode/tools/verify-platform.ps1').read_text())
-        for workflow in [SQL, PLATFORM]:
+        for workflow in [PLATFORM]:
             self.assertTrue(triggered(workflow, ['ReCode/src/IO.DeviceContracts/ZkPushAttendanceCodec.cs']))
 
-    def test_sensitive_or_unknown_changes_still_run_full(self):
+    def test_sensitive_or_unknown_changes_still_run_windows(self):
         for path in ["ReCode/src/IO.Infrastructure/Migrations/new.cs", "ReCode/src/IO.Infrastructure/Security/DeviceAccess.cs", "ReCode/src/IO.Web/Program.cs", "ReCode/src/IO.DeviceWorker/Program.cs", "ReCode/src/IO.Web/Ui/HelpContent.json", "ReCode/tests/IO.Infrastructure.SqlTests/VirtualWorkerTests.cs", "ReCode/tools/verify-platform.ps1", "ReCode/global.json", "ReCode/Directory.Build.props", "ReCode/src/IO.Web/IO.Web.csproj", ".github/workflows/io-cross-platform.yml", "future/unclassified.file"]:
-            for workflow in [SQL, PLATFORM]:
+            for workflow in [PLATFORM]:
                 self.assertTrue(triggered(workflow, [path]), path)
 
     def test_mixed_push_cannot_hide_backend_changes(self):
-        for workflow in [SQL, PLATFORM]:
+        for workflow in [PLATFORM]:
             self.assertTrue(triggered(workflow, ["ReCode/docs/guide.md", "ReCode/src/IO.Infrastructure/Storage/IoDbContext.cs"]))
 
     def test_manual_and_superseded_runs(self):
@@ -161,6 +174,7 @@ class SqlModes(unittest.TestCase):
     def run_suite(self, suite, fail=""):
         step = next(step for step in SQL["jobs"]["verify"]["steps"] if step.get("name") == "Test isolated SQL Server Developer")
         script = "set -euo pipefail\n" + step["run"][step["run"].index('case "$IO_CI_SQL_SUITE"'):]
+        script = script.replace("python3 ", "python ")
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
             host = tmp / "dotnet"
@@ -173,13 +187,14 @@ echo "$mode" >> "$IO_TEST_CALLS"
 if [[ "$mode" == virtual ]]; then
   echo 'PASS disposable virtual worker preflight complete'
 else
-  python3 -c 'print("PASS synthetic policy fixture\\n" * (int(__import__("os").environ["IO_TEST_PASS_LINES"]) - 1), end=""); print("PASS disposable SQL Server integration checks")'
+  python -c 'print("PASS synthetic policy fixture\\n" * (int(__import__("os").environ["IO_TEST_PASS_LINES"]) - 1), end=""); print("PASS disposable SQL Server integration checks")'
 fi
-''')
+''', encoding="utf-8", newline="\n")
             host.chmod(0o755)
             calls, summary = tmp / "calls", tmp / "summary"
-            env = {**os.environ, "PATH": str(tmp) + os.pathsep + os.environ["PATH"], "RUNNER_TEMP": str(tmp), "GITHUB_STEP_SUMMARY": str(summary), "IO_CI_SQL_SUITE": suite, "IO_TEST_CALLS": str(calls), "IO_TEST_FAIL": fail, "IO_TEST_PASS_LINES": re.search(r"len\(lines\) != (\d+)", (ROOT / "ReCode/tools/phase03-report-tests.py").read_text()).group(1)}
-            result = subprocess.run(["bash", "-c", script], cwd=ROOT / "ReCode", env=env, capture_output=True, text=True)
+            env = {**os.environ, "PATH": str(tmp) + os.pathsep + os.environ["PATH"], "RUNNER_TEMP": tmp.as_posix(), "GITHUB_STEP_SUMMARY": summary.as_posix(), "IO_CI_SQL_SUITE": suite, "IO_TEST_CALLS": calls.as_posix(), "IO_TEST_FAIL": fail, "IO_TEST_PASS_LINES": re.search(r"len\(lines\) != (\d+)", (ROOT / "ReCode/tools/phase03-report-tests.py").read_text()).group(1)}
+            bash = str(Path(os.environ.get("ProgramFiles", "C:/Program Files")) / "Git/bin/bash.exe") if os.name == "nt" else "bash"
+            result = subprocess.run([bash, "-c", script], cwd=ROOT / "ReCode", env=env, capture_output=True, text=True)
             return result.returncode, calls.read_text().splitlines() if calls.exists() else [], summary.read_text() if summary.exists() else ""
 
     def test_default_full_does_not_duplicate_worker_lab(self):

@@ -1,20 +1,12 @@
 # Authorized exception: isolated phase 2–3 test workflow; no production data.
 name: IO foundation isolated SQL test
 on:
-  push:
-    branches:
-      - arena/5496cceb-io
-    paths:
-      - '**'
-      - '!ReCode/docs/**'
-      - '!**/*.md'
-      - '!ReCode/preview/**'
-      - '!ReCode/src/IO.Web/Ui/**'
-      # The permission-filtered help catalogue is also consumed by C# tests.
-      - 'ReCode/src/IO.Web/Ui/HelpContent.json'
-      - '!ReCode/tests/**/*-ui-check.cjs'
   workflow_dispatch:
     inputs:
+      allow_linux_runner:
+        description: 'Explicitly re-enable this Linux SQL run; automatic Linux tests are paused by user request'
+        type: boolean
+        default: false
       suite:
         description: 'Full integration, focused worker lab, or full with extra fresh-DB isolation'
         type: choice
@@ -27,6 +19,8 @@ permissions:
   contents: read
 jobs:
   verify:
+    # No Linux allocation or SQL acceptance unless explicitly re-enabled for this manual run.
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.allow_linux_runner == true }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:

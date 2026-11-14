@@ -1,4 +1,4 @@
-name: IO lightweight UI and documentation checks
+name: IO lightweight Windows UI and documentation checks
 on:
   push:
     branches: [arena/5496cceb-io]
@@ -21,7 +21,13 @@ permissions:
   contents: read
 jobs:
   light:
-    runs-on: ubuntu-24.04
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: bash
+    env:
+      PYTHONUTF8: '1'
+      PYTHONIOENCODING: utf-8
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
@@ -32,24 +38,24 @@ jobs:
         env:
           IO_CI_BASE: ${{ github.event.before }}
           IO_CI_HEAD: ${{ github.sha }}
-        run: python3 ReCode/tools/ci-light-scope.py
+        run: python ReCode/tools/ci-light-scope.py
       - name: Prepare workflow policy test dependency
-        run: python3 -m pip install --disable-pip-version-check PyYAML==6.0.3
+        run: python -m pip install --disable-pip-version-check PyYAML==6.0.3
       - name: Test CI routing and retained safety gates
-        run: python3 ReCode/tools/ci-policy-tests.py
+        run: python ReCode/tools/ci-policy-tests.py
       - name: Validate reference evidence and capability inventory
         run: |
-          python3 ReCode/tools/device-reference-audit.py
-          python3 ReCode/tools/inspect-zkem-daylight-typelib.py --verify
-          python3 ReCode/tools/validate-capability-audit.py
+          python ReCode/tools/device-reference-audit.py
+          python ReCode/tools/inspect-zkem-daylight-typelib.py --verify
+          python ReCode/tools/validate-capability-audit.py
       - name: Prepare offline native instruction emulator
-        run: python3 -m pip install --disable-pip-version-check pefile==2024.8.26 unicorn==2.1.4
+        run: python -m pip install --disable-pip-version-check pefile==2024.8.26 unicorn==2.1.4
       - name: Verify hash-pinned network setter dispatch with trapped transport
-        run: python3 ReCode/tools/inspect-zkem-network-dispatch.py --verify
+        run: python ReCode/tools/inspect-zkem-network-dispatch.py --verify
       - name: Audit pinned DHCP firmware source reference without execution
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 ReCode/tools/audit-dhcp-firmware-reference.py
+        run: python ReCode/tools/audit-dhcp-firmware-reference.py
       - name: Prepare offline DOM dependencies
         if: steps.scope.outputs.ui == 'true' || steps.scope.outputs.preview == 'true'
         run: npm install --prefix "$RUNNER_TEMP/io-browser" --ignore-scripts --no-audit --no-fund playwright-core@1.56.1 jsdom@26.1.0
@@ -68,11 +74,14 @@ jobs:
           NODE_PATH: ${{ runner.temp }}/io-browser/node_modules
         run: |
           set -euo pipefail
-          export IO_CHROME_BINARY="$(command -v google-chrome)"
-          python3 -m http.server 4174 --bind 127.0.0.1 > "$RUNNER_TEMP/io-pages-server.log" 2>&1 &
+          chrome='/c/Program Files/Google/Chrome/Application/chrome.exe'
+          if [[ ! -f "$chrome" ]]; then chrome='/c/Program Files (x86)/Google/Chrome/Application/chrome.exe'; fi
+          [[ -f "$chrome" ]] || { echo 'Windows Chrome executable not found.' >&2; exit 1; }
+          export IO_CHROME_BINARY="$(cygpath -m "$chrome")"
+          python -m http.server 4174 --bind 127.0.0.1 > "$RUNNER_TEMP/io-pages-server.log" 2>&1 &
           server_pid=$!
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
-          python3 -c 'import time, urllib.request
+          python -c 'import time, urllib.request
           for _ in range(100):
               try:
                   urllib.request.urlopen("http://127.0.0.1:4174/", timeout=1).close()
@@ -91,5 +100,5 @@ jobs:
             echo 'Lightweight checks only; no .NET build, SQL, worker or device SDK execution.'
             echo "Offline UI contracts selected: $UI_CHECKED"
             echo "Standalone Chromium preview selected: $PREVIEW_CHECKED"
-            echo 'This result does not replace full integration or Windows/Linux acceptance.'
+            echo 'Windows lightweight checks only; Linux platform tests and SQL integration were NOT run.'
           } >> "$GITHUB_STEP_SUMMARY"

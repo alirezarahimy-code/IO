@@ -561,5 +561,23 @@
     },
     "lightUiAssetsMatchVerifiedCode": true,
     "evidence": "s10-push-review-evidence.json"
+  },
+  "ciWindowsOnlyFollowup": {
+    "status": "implemented-awaiting-Windows-CI",
+    "reason": "explicit-user-request-to-skip-Linux-tests-for-time-and-resource-cost",
+    "guide": "ci-windows-only.fa.md",
+    "automaticPlatform": "windows-2022",
+    "automaticLight": "windows-2022",
+    "automaticLinuxJobs": false,
+    "automaticSql": false,
+    "manualLinuxRequiresExplicitOptIn": true,
+    "manualLinuxOptInDefault": false,
+    "localPolicyChecks": 20,
+    "freshSqlExecuted": false,
+    "latestFullSqlCode": "adcb551a6c65148358b12f910a93580907e0b229",
+    "latestFullSqlRun": 43629451568,
+    "latestFullSqlPassLines": 1031,
+    "linuxAcceptanceForNewCode": false,
+    "ledgerRowClosed": false
   }
 }
