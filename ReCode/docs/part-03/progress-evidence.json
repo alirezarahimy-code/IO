@@ -8,7 +8,7 @@
     "realDeviceExecution": "not performed",
     "testingSequence": "User explicitly requires virtual-device software completion now, copying reference behavior as appropriate, with real Windows SDK/multidevice acceptance deferred to the end. Lack of local hardware must not block further software implementation."
   },
-  "latestVerifiedCode": "6bcd7ac11a6f27104460e3737282ec005d4ce01a",
+  "latestVerifiedCode": "c71d1d15424aaaa94e079e70a6fa001dcc572066",
   "checks": {
     "integrationPassLines": 915,
     "foundation": 48,
@@ -69,7 +69,7 @@
     "offlineDomFiles": 17,
     "freshPreflightDisclosure": "Not repeated on latest SHA: full suite includes all26 actual worker scenarios; explicit full-with-preflight mode remains available and its fixture order is restored safely after guarded downgrades.",
     "portableFunctionKeyWrite": 23,
-    "portableDaylightRead": 20
+    "portableDaylightRead": 21
   },
   "stages": {
     "S04": "accepted registry and metadata groups; explicit versioned selected-device operator scope now software-verified in SQL and Chromium, with current human target authority enforced in worker dispatch/polling",
@@ -87,24 +87,24 @@
   "runs": [
     {
       "conclusion": "success",
-      "databaseId": 43583998187,
-      "headSha": "6bcd7ac11a6f27104460e3737282ec005d4ce01a",
+      "databaseId": 43584724170,
+      "headSha": "c71d1d15424aaaa94e079e70a6fa001dcc572066",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43583998187"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43584724170"
     },
     {
       "conclusion": "success",
-      "databaseId": 43583998189,
-      "headSha": "6bcd7ac11a6f27104460e3737282ec005d4ce01a",
+      "databaseId": 43584724166,
+      "headSha": "c71d1d15424aaaa94e079e70a6fa001dcc572066",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43583998189"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43584724166"
     },
     {
       "conclusion": "success",
-      "databaseId": 43583998217,
-      "headSha": "6bcd7ac11a6f27104460e3737282ec005d4ce01a",
+      "databaseId": 43584724286,
+      "headSha": "c71d1d15424aaaa94e079e70a6fa001dcc572066",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43583998217"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43584724286"
     }
   ],
   "remainingSoftware": [
@@ -234,61 +234,86 @@
     "writeImplemented": false,
     "realSdkExecuted": false,
     "part3Complete": false,
-    "verifiedCode": "6bcd7ac11a6f27104460e3737282ec005d4ce01a",
+    "verifiedCode": "c71d1d15424aaaa94e079e70a6fa001dcc572066",
     "runs": [
       {
         "conclusion": "success",
-        "databaseId": 43583998187,
-        "headSha": "6bcd7ac11a6f27104460e3737282ec005d4ce01a",
+        "databaseId": 43584724170,
+        "headSha": "c71d1d15424aaaa94e079e70a6fa001dcc572066",
         "status": "completed",
-        "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43583998187"
+        "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43584724170"
       },
       {
         "conclusion": "success",
-        "databaseId": 43583998189,
-        "headSha": "6bcd7ac11a6f27104460e3737282ec005d4ce01a",
+        "databaseId": 43584724166,
+        "headSha": "c71d1d15424aaaa94e079e70a6fa001dcc572066",
         "status": "completed",
-        "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43583998189"
+        "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43584724166"
       },
       {
         "conclusion": "success",
-        "databaseId": 43583998217,
-        "headSha": "6bcd7ac11a6f27104460e3737282ec005d4ce01a",
+        "databaseId": 43584724286,
+        "headSha": "c71d1d15424aaaa94e079e70a6fa001dcc572066",
         "status": "completed",
-        "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43583998217"
+        "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43584724286"
       }
     ],
     "observedSqlPassLines": 915,
-    "ciPortableChecks": 20
+    "ciPortableChecks": 21
   },
   "priorVerifiedRuns": [
     {
       "conclusion": "success",
-      "databaseId": 43583286620,
-      "headSha": "97cac12dd12e8e7a6ed6c67b4eb15d0b37b9eaf3",
+      "databaseId": 43583998187,
+      "headSha": "6bcd7ac11a6f27104460e3737282ec005d4ce01a",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43583286620"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43583998187"
     },
     {
       "conclusion": "success",
-      "databaseId": 43583286608,
-      "headSha": "97cac12dd12e8e7a6ed6c67b4eb15d0b37b9eaf3",
+      "databaseId": 43583998189,
+      "headSha": "6bcd7ac11a6f27104460e3737282ec005d4ce01a",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43583286608"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43583998189"
     },
     {
       "conclusion": "success",
-      "databaseId": 43583286621,
-      "headSha": "97cac12dd12e8e7a6ed6c67b4eb15d0b37b9eaf3",
+      "databaseId": 43583998217,
+      "headSha": "6bcd7ac11a6f27104460e3737282ec005d4ce01a",
       "status": "completed",
-      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43583286621"
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43583998217"
     }
   ],
   "daylightReadIpcFollowup": {
-    "status": "locally-verified-pending-exact-SHA-CI",
+    "status": "software-verified-exact-SHA-CI",
     "localPortableChecks": 21,
     "newCheck": "combined maximum Unicode daylight and eight key tuples through actual child",
     "secondBinaryEvidence": "s11-daylight-newpack-typelib-evidence.json",
-    "part3Complete": false
-  }
+    "part3Complete": false,
+    "verifiedCode": "c71d1d15424aaaa94e079e70a6fa001dcc572066",
+    "runs": [
+      {
+        "conclusion": "success",
+        "databaseId": 43584724170,
+        "headSha": "c71d1d15424aaaa94e079e70a6fa001dcc572066",
+        "status": "completed",
+        "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43584724170"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 43584724166,
+        "headSha": "c71d1d15424aaaa94e079e70a6fa001dcc572066",
+        "status": "completed",
+        "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43584724166"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 43584724286,
+        "headSha": "c71d1d15424aaaa94e079e70a6fa001dcc572066",
+        "status": "completed",
+        "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43584724286"
+      }
+    ]
+  },
+  "nextExactAction": "DLST write: the reviewed native setter accepts eight-character MMddHHmm-style fields and changes DLSTMode/CurTimeMode option state. Establish approved read-back/preservation contract for those control options and exact model timezone/effect before implementing preview/independent write rights/single dispatch/recovery. Do not treat GetDaylight tuple alone as complete old device state."
 }

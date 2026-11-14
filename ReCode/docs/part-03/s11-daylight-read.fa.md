@@ -1,6 +1,6 @@
 # S11 — خواندن خام DLST با شاهد TypeLib
 
-**پذیرش نرم‌افزاری خواندن روی6bcd7ac؛ نه تکمیل نوشتن DLST یا بخش۳.** بیست قرارداد/child، پنج بررسی تازه SQL/worker و کل suite۹۱۵ با Windows/Linux/light موفق شدند. تست تکمیلی ترکیبی Unicode محلی موفق است (جمع۲۱) و به CI commit بعدی نیاز دارد. شاهد SDK/دستگاه واقعی همچنان برای انتها باقی است.
+**پذیرش نرم‌افزاری خواندن رویc71d1d1؛ نه تکمیل نوشتن DLST یا بخش۳.** بیست‌ویک قرارداد/child از جمله IPC ترکیبی Unicode، پنج بررسی تازه SQL/worker و کل suite۹۱۵ با Windows/Linux/light موفق شدند. شاهد SDK/دستگاه واقعی همچنان برای انتها باقی است.
 
 ## منشأ قابل بازتولید، نه سورس اصلی
 
@@ -48,7 +48,7 @@ worker و bridge باید هماهنگ منتشر شوند. bridge قدیمی ک
 
 ۲۱ بررسی portable: تأیید نصب، mismatch بدون native call، یک getter، signed/zero/Unicode/whitespace، false/exception/malformed، JSON ناقص، منع دادهٔ ناخواسته، bind مرجع/firmware، child واقعی، bridge ناقص و deadline. این‌ها SDK واقعی را اجرا نکرده‌اند.
 
-دو بررسی SQL تازه: malformed/متناقض در completion رد می‌شود و raw صفر/whitespace همراه مرجع در تاریخچهٔ typed واقعی حفظ می‌شود. snapshot fixture اصلی نیز DLST دارد تا کنترل revoke/credential/history موجود روی همین داده اجرا شود. سه سناریوی worker تازه: مسیر واقعی HTTPS→SQL→worker→child→TCP، history HTTP و unavailable مستقل بدون نوشتن. شمار کل SQL از۹۱۰ به۹۱۵ رسید و guard دقیق suite روی6bcd7ac موفق شد. [SQL](https://github.com/alirezarahimy-code/IO/actions/runs/43583998187)، [Windows/Linux](https://github.com/alirezarahimy-code/IO/actions/runs/43583998189)، [light](https://github.com/alirezarahimy-code/IO/actions/runs/43583998217). آزمون DOM موجود نیز raw امن، صفر، unavailable، not-requested و پاک‌شدن پس از revoke را می‌سنجد.
+دو بررسی SQL تازه: malformed/متناقض در completion رد می‌شود و raw صفر/whitespace همراه مرجع در تاریخچهٔ typed واقعی حفظ می‌شود. snapshot fixture اصلی نیز DLST دارد تا کنترل revoke/credential/history موجود روی همین داده اجرا شود. سه سناریوی worker تازه: مسیر واقعی HTTPS→SQL→worker→child→TCP، history HTTP و unavailable مستقل بدون نوشتن. شمار کل SQL از۹۱۰ به۹۱۵ رسید و guard دقیق suite رویc71d1d1 موفق شد. [SQL](https://github.com/alirezarahimy-code/IO/actions/runs/43584724170)، [Windows/Linux](https://github.com/alirezarahimy-code/IO/actions/runs/43584724166)، [light](https://github.com/alirezarahimy-code/IO/actions/runs/43584724286). آزمون DOM موجود نیز raw امن، صفر، unavailable، not-requested و پاک‌شدن پس از revoke را می‌سنجد.
 
 **نوشتن هنوز باز است:** encoding واقعی مدل (مرجع `MMddHHmm` در برابر خروجی واقعی getter)، دامنه/معنای Support، سالانه/یک‌باره، timezone، اثر تغییر و زمان‌های مبهم/ناموجود باید در قرارداد مدل مشخص شوند. سپس preview کامل old/new، مجوز مستقل، یک dispatch، read-back دقیق و recovery بدون replay لازم است. پیدا شدن getter مجوز حدس این قرارداد یا اجرای SetDaylight نیست. `SetDLST` همچنان در dispatch عمومی بسته است.
 
@@ -66,3 +66,21 @@ worker و bridge باید هماهنگ منتشر شوند. bridge قدیمی ک
 این فقط شاهد رشتهٔ باینری است، نه اثبات مسیر فراخوانی یا مجوز استفاده از این نام‌ها در GetSysOption/SetSysOption. هیچ option حدسی به production اضافه نشده است. وجود آن‌ها ضرورت بررسی mode و اثر جانبی را تقویت می‌کند؛ getter سه‌خروجی ما mode یا NTP را گزارش نمی‌کند.
 
 دفترچهٔ رسمی 2.4inch TFT هر دو حالت date/time و week/day را نشان می‌دهد [4](https://www.zkteco.me/download-file/1084). دفترچهٔ خانواده WL صریحاً پایان را دیرتر از آغاز در همان سال می‌خواهد [3](https://www.zkteco-ea.com/wp-content/uploads/2023/01/WLSeriesUserManualV1.0-20170330.pdf). دفترچه FaceDepot-7BL نیز NTP را جدا مطرح می‌کند [5](https://www.zkteco.com.br/site_marketing/ZK_FaceDepot-7BL%20UM_EN%20v1.2_20220620%20(1).pdf). این شواهد خانواده‌های متفاوت، قرارداد واحد برای مدل نامعلوم تولید نمی‌کنند؛ حالت هفتگی، عبور سال و همزیستی NTP نباید از نام متد فرض شوند. این‌ها تصمیم/شاهد دقیق لازم برای نوشتن‌اند، نه برچسب unsupported همگانی.
+
+## شاهد disassembly بعدی؛ مانع دقیق حفظ حالت، نه getter مفقود
+
+خواندن فقط‌خواندنی disassembly همان DLL نخست، دامنهٔ ابهام را کمتر کرد. جزئیات byte/VA/file-offset در `s11-daylight-native-observations.json` ثبت و بایت‌ها با فایل دارای hash بالا مقایسه شدند؛ این سورس اصلی و آزمایش SDK نیست.
+
+- دو pointer مجاور در file offsetهای0x107244/0x107248 به تابع‌های0x1006acf0/0x1006b230 اشاره دارند و با offsetهای vtable748/752 در TypeLib منطبق‌اند (base مشاهده‌شده0x10108558).
+- تابع setter در0x1006afb8 و0x1006afcc طول هر دو رشته را با۸ مقایسه می‌کند؛ فرمت در0x10109408 دقیقاً `%02d%02d%02d%02d` است. مسیر مشاهده‌شده در setter چهار جزء را با shiftهای24/16/8/0 به عدد می‌چیند؛ getter همان چهار جزء را با همان فرمت بازمی‌سازد (مرجع فرمت در0x1006b4a8). این شاهد از رشتهٔ مرجع `MMddHHmm` در **همین DLL** پشتیبانی می‌کند، نه قالب خط‌تیره‌دار همگانی یا اعتبارسنجی تقویم/zone مدل.
+- مقایسه Support با۱ در0x1006b0d2 شاخهٔ متن enable در0x101093b8 را انتخاب می‌کند؛ شاخهٔ دیگر متن disable در0x10109360 را. بنابراین دیگر فقط «هم‌جواری رشته‌ها» نیست: این دو format string در همین مسیر تابع pointer-matched مورد استفاده‌اند.
+- متن enable شامل `DLSTMode=0` و متن disable شامل `CurTimeMode=0` است. پس اجرای setter می‌تواند بیش از سه خروجی GetDaylight را هدف بگیرد. getter مشاهده‌شده فقط `~DSTF,DaylightSavingTime,StandardTime` را می‌خواهد؛ read-back این سه خروجی به‌تنهایی شاهد حفظ mode قبلی نیست.
+
+بازتولید بدون اجرای DLL:
+
+```sh
+objdump -d -M intel --start-address=0x1006acf0 --stop-address=0x1006b182 'SDK 6.3.1.45/zkemkeeper.dll'
+objdump -d -M intel --start-address=0x1006b230 --stop-address=0x1006b774 'SDK 6.3.1.45/zkemkeeper.dll'
+```
+
+**اقدام بعدی مشخص:** قرارداد خواندن/حفظ یا تغییر صریح control-optionهای mode همان مدل، همراه encoding هشت‌رقمی همان SDK و zone/اثر مصوب؛ سپس plan کامل، permission مستقل، یک dispatch، read-back کامل و unknown review. کپی مستقیم SetDLST مرجع یا whitelist صرف سه‌فیلدی، این حالت‌های جانبی را پوشش نمی‌دهد. هیچ GetSysOption حدسی، mode write، disable، reset یا setter جدید در این برش باز نشده است.

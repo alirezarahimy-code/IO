@@ -67,7 +67,7 @@
 | `DeviceOperationsController.DeleteAllRecords#1` | 590 | عملیات حساس هنوز ناتمام | سیاست داده/بیومتریک یا حذف، قرارداد مدل، مجوز/تأیید مستقل، شاهد دریافت و recovery هنوز تکمیل نشده؛ restart مجوز اینها نیست. |
 | `DeviceOperationsController.TimeSync#1` | 624 | جایگزین ایمن؛ نه هم‌ارزی عینی | هم‌ارزی خودکار TimeSync قدیمی ادعا نمی‌شود؛ آزمون drift/zone مدل واقعی باز. |
 | `DeviceOperationsController.SyncTimeData#1` | 658 | جایگزین ایمن؛ نه هم‌ارزی عینی | هم‌ارزی خودکار TimeSync قدیمی ادعا نمی‌شود؛ آزمون drift/zone مدل واقعی باز. |
-| `DeviceOperationsController.SetDLST#1` | 697 | قرارداد/آداپتر ناتمام | قرارداد مدل دقیق، مقدار/واحد/اثر و readback/unknown و مجوز مستقل لازم؛ generic setter باز نشده است. |
+| `DeviceOperationsController.SetDLST#1` | 697 | قرارداد/آداپتر ناتمام | نوشتن همچنان قرارداد encoding/Support/zone/mode/اثر دقیق مدل، preview و مجوز مستقل و readback/unknown می‌خواهد؛ getter دیگر مفقود نیست. s11-daylight-read.fa.md. |
 | `DeviceOperationsController.RemoveTimeRecords#1` | 738 | عملیات حساس هنوز ناتمام | سیاست داده/بیومتریک یا حذف، قرارداد مدل، مجوز/تأیید مستقل، شاهد دریافت و recovery هنوز تکمیل نشده؛ restart مجوز اینها نیست. |
 | `DeviceOperationsController.GetAdvanced#1` | 779 | پیاده‌شده؛ آزمون نرم‌افزاری | unit/range سایر کدها و firmwareها تأیید نشده؛ این snapshot اجازه نوشتن نیست. |
 | `DeviceOperationsController.Set1_1#1` | 802 | پیاده‌شده؛ آزمون نرم‌افزاری | قرارداد واقعی نصب همان مدل/firmware/واحد/اثر/مقادیر و پذیرش سخت‌افزار هنوز لازم است؛ generic setter یا ادعای پشتیبانی تمام مدل‌ها وجود ندارد. |
@@ -80,7 +80,7 @@
 | `DeviceOperationsController.SetAlgorithm#1` | 1038 | قرارداد/آداپتر ناتمام | قرارداد مدل دقیق، مقدار/واحد/اثر و readback/unknown و مجوز مستقل لازم؛ generic setter باز نشده است. |
 | `DeviceOperationsController.SetSector#1` | 1072 | پیاده‌شده؛ آزمون نرم‌افزاری | قرارداد واقعی نصب همان مدل/firmware/واحد/اثر/مقادیر و پذیرش سخت‌افزار هنوز لازم است؛ generic setter یا ادعای پشتیبانی تمام مدل‌ها وجود ندارد. |
 | `DeviceOperationsController.RemoteEnroll#1` | 1106 | عملیات حساس هنوز ناتمام | سیاست داده/بیومتریک یا حذف، قرارداد مدل، مجوز/تأیید مستقل، شاهد دریافت و recovery هنوز تکمیل نشده؛ restart مجوز اینها نیست. |
-| `DeviceOperationsController.ChangeKey#1` | 1140 | بخشی ساخته؛ مانده دارد | CI کامل همان SHA و قرارداد واقعی مدل/firmware/index/حالت‌های attendance-only/اثر و پذیرش واقعی لازم است؛ reset ضمنی برنامهٔ مرجع کپی نمی‌شود. |
+| `DeviceOperationsController.ChangeKey#1` | 1140 | بخشی ساخته؛ مانده دارد | قرارداد واقعی مدل/firmware/index/حالت‌های attendance-only/اثر و پذیرش واقعی لازم است؛ reset ضمنی برنامهٔ مرجع کپی نمی‌شود. |
 | `DeviceOperationsController.ReadKey#1` | 1173 | پیاده‌شده؛ آزمون نرم‌افزاری | پذیرش واقعی مدل/SDK در انتها؛ نوشتن SSR_SetShortkey و حفظ/تغییر AutoChange قرارداد و مجوز مستقل می‌خواهد. |
 | `DeviceOperationsController.Connect#1` | 1196 | جایگزین ایمن؛ نه هم‌ارزی عینی | Disconnect صف به معنی لغو عملیات dispatch‌شده نیست؛ پایداری/قطعی مدل واقعی باز. |
 | `DeviceOperationsController.Disconnect#1` | 1203 | جایگزین ایمن؛ نه هم‌ارزی عینی | Disconnect صف به معنی لغو عملیات dispatch‌شده نیست؛ پایداری/قطعی مدل واقعی باز. |

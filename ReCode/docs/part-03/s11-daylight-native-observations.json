@@ -1,0 +1,66 @@
+{
+  "source": "SDK 6.3.1.45/zkemkeeper.dll",
+  "dllSha256": "33b5d535cffdd14dd123d22d8a069004add468c71a7c8411a906f641b7ef2399",
+  "imageBase": "0x10000000",
+  "methodIdentification": "TypeLib vtable offsets748/752 align adjacent function pointers at file offsets0x107244/0x107248. Candidate vtable base VA0x10108558. Disassembly inspected, not executed.",
+  "checks": [
+    {
+      "va": "0x10109408",
+      "fileOffset": "0x107e08",
+      "bytesHex": "2530326425303264253032642530326400",
+      "observation": "shared four two-digit decimal format"
+    },
+    {
+      "va": "0x1006afb8",
+      "fileOffset": "0x6a3b8",
+      "bytesHex": "83f808",
+      "observation": "first raw string length compared to eight"
+    },
+    {
+      "va": "0x1006afcc",
+      "fileOffset": "0x6a3cc",
+      "bytesHex": "83f808",
+      "observation": "second raw string length compared to eight"
+    },
+    {
+      "va": "0x1006b0d2",
+      "fileOffset": "0x6a4d2",
+      "bytesHex": "837d1001",
+      "observation": "Support argument compared to one"
+    },
+    {
+      "va": "0x1006b0e6",
+      "fileOffset": "0x6a4e6",
+      "bytesHex": "68b8931010",
+      "observation": "enabled branch references DLSTMode=0 option string"
+    },
+    {
+      "va": "0x1006b10f",
+      "fileOffset": "0x6a50f",
+      "bytesHex": "6860931010",
+      "observation": "disabled branch references CurTimeMode=0 option string"
+    },
+    {
+      "va": "0x1006b4a8",
+      "fileOffset": "0x6a8a8",
+      "bytesHex": "6808941010",
+      "observation": "getter-side reference to same four-field format"
+    },
+    {
+      "va": "0x10108844",
+      "fileOffset": "0x107244",
+      "bytesHex": "f0ac0610",
+      "observation": "SetDaylight function pointer at candidate vtable base +748"
+    },
+    {
+      "va": "0x10108848",
+      "fileOffset": "0x107248",
+      "bytesHex": "30b20610",
+      "observation": "GetDaylight function pointer at candidate vtable base +752"
+    }
+  ],
+  "executedBinary": false,
+  "originalSourceAvailable": false,
+  "hardwareVerified": false,
+  "scope": "Exact reviewed native implementation only; no universal model/date/mode contract."
+}
