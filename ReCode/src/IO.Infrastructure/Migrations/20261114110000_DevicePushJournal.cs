@@ -46,7 +46,7 @@ public sealed class DevicePushJournal:Migration
         BEGIN SET NOCOUNT ON;
          IF EXISTS(SELECT 1 FROM deleted) THROW 51028,''PUSH original evidence and retention receipts are immutable.'',1;
          IF EXISTS(SELECT 1 FROM inserted i JOIN dbo.Devices d ON d.Id=i.DeviceId JOIN dbo.Sites s ON s.Id=d.SiteId WHERE i.SourceId<>d.SourceId OR i.SiteId<>d.SiteId OR i.CompanyId<>s.CompanyId OR i.TimeZoneId COLLATE Latin1_General_100_BIN2<>s.TimeZoneId COLLATE Latin1_General_100_BIN2 OR DATALENGTH(i.TimeZoneId)<>DATALENGTH(s.TimeZoneId) OR i.ExpectedDeviceVersion<>d.Version) THROW 51028,''PUSH evidence must pin the current device installation.'',1;
-         IF EXISTS(SELECT 1 FROM inserted i WHERE LEFT(i.RowsJson,1)<>N''['' OR (SELECT COUNT(*) FROM OPENJSON(i.RowsJson))<>i.RowCount OR (SELECT COUNT(*) FROM OPENJSON(i.RowsJson) WITH(Status nvarchar(64)) j WHERE j.Status COLLATE Latin1_General_100_BIN2=N''parsed-requires-mapping-review'')<>i.ParsedCount) THROW 51028,''PUSH row snapshot counts must match evidence.'',1;
+         IF EXISTS(SELECT 1 FROM inserted i WHERE LEFT(i.RowsJson,1)<>N''['' OR (SELECT COUNT(*) FROM OPENJSON(i.RowsJson))<>i.[RowCount] OR (SELECT COUNT(*) FROM OPENJSON(i.RowsJson) WITH(Status nvarchar(64)) j WHERE j.Status COLLATE Latin1_General_100_BIN2=N''parsed-requires-mapping-review'')<>i.ParsedCount) THROW 51028,''PUSH row snapshot counts must match evidence.'',1;
         END');
         """);
     protected override void Down(MigrationBuilder m)=>m.Sql("""

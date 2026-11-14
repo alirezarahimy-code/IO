@@ -118,10 +118,10 @@ internal static class DevicePushJournalTests
             await SqlReject(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"DELETE dbo.DevicePushJournal WHERE Id={id}")),51028),
             "R08 SQL triggers forbid original evidence or receipt mutation and deletion");
         var badHashId=Guid.NewGuid();
-        check(await SqlReject(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.DevicePushJournal SELECT {badHashId},DeviceId,SourceId,SiteId,CompanyId,RetainedByUserId,RetainedAtUtc,ExpectedDeviceVersion,0x01,Serial,Stamp,Contract,TimeZoneId,PayloadHash,RowsJson,RowCount,ParsedCount FROM dbo.DevicePushJournal WHERE Id={id}")),547),
+        check(await SqlReject(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.DevicePushJournal SELECT {badHashId},DeviceId,SourceId,SiteId,CompanyId,RetainedByUserId,RetainedAtUtc,ExpectedDeviceVersion,0x01,Serial,Stamp,Contract,TimeZoneId,PayloadHash,RowsJson,[RowCount],ParsedCount FROM dbo.DevicePushJournal WHERE Id={id}")),547),
             "R08 SQL independently verifies original payload SHA256 instead of trusting a supplied hash");
         var badCountId=Guid.NewGuid();
-        check(await SqlReject(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.DevicePushJournal SELECT {badCountId},DeviceId,SourceId,SiteId,CompanyId,RetainedByUserId,RetainedAtUtc,ExpectedDeviceVersion,OriginalBody,Serial,Stamp,Contract,TimeZoneId,PayloadHash,RowsJson,RowCount+1,ParsedCount FROM dbo.DevicePushJournal WHERE Id={id}")),51028),
+        check(await SqlReject(()=>Q(db=>db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.DevicePushJournal SELECT {badCountId},DeviceId,SourceId,SiteId,CompanyId,RetainedByUserId,RetainedAtUtc,ExpectedDeviceVersion,OriginalBody,Serial,Stamp,Contract,TimeZoneId,PayloadHash,RowsJson,[RowCount]+1,ParsedCount FROM dbo.DevicePushJournal WHERE Id={id}")),51028),
             "R08 SQL rejects a snapshot whose row counts disagree with its retained receipt");
         check(await SqlReject(()=>Q(async db=>{await db.GetService<IMigrator>().MigrateAsync("20261114100000_DeviceProfileSettings");return true;}),51028)&&
             await Q(db=>db.DevicePushJournal.AnyAsync(x=>x.Id==id)),
