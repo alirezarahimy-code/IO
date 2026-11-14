@@ -39,10 +39,13 @@ if(!address?.startsWith('https://127.0.0.1:')||!user?.startsWith('virtual-operat
   const writeId=(await (await queued).json()).result;
   async function awaitState(id,state){await page.waitForFunction(async({id,state,device})=>{const r=await fetch('/device-settings-snapshots?deviceId='+device);if(!r.ok)return false;return (await r.json()).items.some(x=>x.id===id&&x.state===state);},{id,state,device:settingsDevice});}
   await awaitState(writeId,'unknown');await page.locator('#profile-refresh').click();
-  const parent=page.locator('#profile-items > li').filter({has:page.locator('[data-profile-review="'+writeId+'"]')});
-  const reading=page.waitForResponse(r=>new URL(r.url()).pathname==='/device-operations'&&r.request().method()==='POST');
-  await parent.locator('[data-profile-inspect="false"]').click();
-  const inspection=(await (await reading).json()).result;
+  const parent=page.locator('[data-profile-operation="'+writeId+'"]');
+  let inspection;
+  try{
+   await parent.locator('[data-profile-inspect="false"]').waitFor();
+   const [reading]=await Promise.all([page.waitForResponse(r=>new URL(r.url()).pathname==='/device-operations'&&r.request().method()==='POST'),parent.locator('[data-profile-inspect="false"]').click()]);
+   assert.equal(reading.status(),200);inspection=(await reading.json()).result;
+  }catch(error){throw Error(String(error)+' | profile notice: '+await page.locator('#profile-notice').textContent()+' | retained rows: '+await page.locator('#profile-items').textContent()+' | browser errors: '+errors.join('; '));}
   await awaitState(inspection,'succeeded');await page.locator('#profile-refresh').click();
   await parent.locator('input').fill(inspection);
   const reviewed=page.waitForResponse(r=>new URL(r.url()).pathname==='/device-operations/'+writeId+'/resolve-profile');
