@@ -46,8 +46,8 @@ internal static class DevicePushReviewTests
             }
             await db.SaveChangesAsync();return true;
         });
-        foreach(var(key,number)in new[]{(device,"PUSH-REVIEW-A"),(otherDevice,"PUSH-REVIEW-B")})
-            await Use<DeviceRegistry,Guid>(s=>s.CreateAsync(manager,key,new(site,number,number,"synthetic unverified","zk-push",null,null,true)));
+        foreach(var(deviceKey,number)in new[]{(device,"PUSH-REVIEW-A"),(otherDevice,"PUSH-REVIEW-B")})
+            await Use<DeviceRegistry,Guid>(s=>s.CreateAsync(manager,deviceKey,new(site,number,number,"synthetic unverified","zk-push",null,null,true)));
         await Q(async db=>
         {
             db.SourceEmployeeMappings.AddRange(new SourceEmployeeMappingRecord{Id=Guid.NewGuid(),SourceId=device,SourcePersonId="001",EmployeeId=employee,CompanyId=company,
