@@ -78,7 +78,7 @@
     "pinnedDhcpFirmwareSourceBlobs": 4,
     "portablePushWireCodecChecks": 47,
     "pushJournalSqlChecks": 24,
-    "ciPolicyChecks": 19,
+    "ciPolicyChecks": 20,
     "pushReviewSqlHttpsChecks": 16
   },
   "stages": {
@@ -563,7 +563,7 @@
     "evidence": "s10-push-review-evidence.json"
   },
   "ciWindowsOnlyFollowup": {
-    "status": "implemented-awaiting-Windows-CI",
+    "status": "Windows-only-automatic-CI-verified-exact-SHA",
     "reason": "explicit-user-request-to-skip-Linux-tests-for-time-and-resource-cost",
     "guide": "ci-windows-only.fa.md",
     "automaticPlatform": "windows-2022",
@@ -578,6 +578,43 @@
     "latestFullSqlRun": 43629451568,
     "latestFullSqlPassLines": 1031,
     "linuxAcceptanceForNewCode": false,
-    "ledgerRowClosed": false
-  }
+    "ledgerRowClosed": false,
+    "code": "e94e0b9d36dcc15046e641f55c1d73b0d047479f",
+    "runs": [
+      {
+        "conclusion": "success",
+        "databaseId": 43631123619,
+        "headSha": "e94e0b9d36dcc15046e641f55c1d73b0d047479f",
+        "status": "completed",
+        "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43631123619"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 43631123626,
+        "headSha": "e94e0b9d36dcc15046e641f55c1d73b0d047479f",
+        "status": "completed",
+        "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43631123626"
+      }
+    ],
+    "jobs": [
+      {
+        "run": 43631123619,
+        "name": "platform",
+        "labels": [
+          "windows-2022"
+        ],
+        "conclusion": "success"
+      },
+      {
+        "run": 43631123626,
+        "name": "light",
+        "labels": [
+          "windows-2022"
+        ],
+        "conclusion": "success"
+      }
+    ],
+    "evidence": "ci-windows-only-evidence.json"
+  },
+  "latestVerifiedCiCode": "e94e0b9d36dcc15046e641f55c1d73b0d047479f"
 }

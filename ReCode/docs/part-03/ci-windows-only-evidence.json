@@ -1,0 +1,68 @@
+{
+  "verifiedCiCode": "e94e0b9d36dcc15046e641f55c1d73b0d047479f",
+  "scope": "Windows-only automatic CI by explicit user request; not new R08 feature or new SQL/Linux acceptance",
+  "runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 43631123619,
+      "headSha": "e94e0b9d36dcc15046e641f55c1d73b0d047479f",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43631123619"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 43631123626,
+      "headSha": "e94e0b9d36dcc15046e641f55c1d73b0d047479f",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43631123626"
+    }
+  ],
+  "jobs": [
+    {
+      "run": 43631123619,
+      "name": "platform",
+      "labels": [
+        "windows-2022"
+      ],
+      "conclusion": "success"
+    },
+    {
+      "run": 43631123626,
+      "name": "light",
+      "labels": [
+        "windows-2022"
+      ],
+      "conclusion": "success"
+    }
+  ],
+  "onlyTheseTwoRunsOnVerifiedSha": true,
+  "automaticLinuxJobs": false,
+  "automaticSqlExecuted": false,
+  "freshLinuxAcceptance": false,
+  "freshFullSqlAcceptance": false,
+  "manualSqlRequiresExplicitLinuxOptIn": true,
+  "manualLinuxOptInDefault": false,
+  "checks": {
+    "ciPolicy": 20,
+    "offlineDomFiles": 19,
+    "windowsDotnetBuildContractsPublishAndLifecycle": true,
+    "windowsStandaloneChromiumPreview": true
+  },
+  "lastActualFullSql": {
+    "code": "adcb551a6c65148358b12f910a93580907e0b229",
+    "run": 43629451568,
+    "passLines": 1031,
+    "historicalNotRerun": true
+  },
+  "guide": "ci-windows-only.fa.md",
+  "ledgerRowClosed": false,
+  "technicalOpenCount": 9,
+  "hardwareVerified": false,
+  "part3Complete": false,
+  "portabilityFix": "TypeLib evidence source paths normalized with Path.as_posix; immutable reference hashes and signatures unchanged",
+  "earlierLightFailure": {
+    "code": "c36e31b0675dc12c2ccc50fe53dc2af4ef255420",
+    "run": 43631014735,
+    "reason": "Windows source-path separator mismatch; fixed, not accepted"
+  }
+}

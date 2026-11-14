@@ -29,3 +29,9 @@ SQL قدیمی به Windows منتقل یا اجراشده معرفی نشده �
 ## وضعیت R08
 
 آخرین کارکرد پذیرفته‌شده هنوز codec، journal داخلی و review فقط‌خواندنی است؛ [راهنمای review](s10-push-review-contract.fa.md). احراز هویت بومی دستگاه، receiver، پردازش/رسید و ACK هنوز ساخته نشده‌اند. تغییر CI پیش‌شرط قرارداد cryptographic یا تصمیم آگاهانه برای مرز اعتماد متفاوت را دور نمی‌زند. شمار رسمی۹ فنی + H01 ثابت است.
+
+## نتیجهٔ تأیید همین تغییر
+
+روی `e94e0b9d36dcc15046e641f55c1d73b0d047479f`، [build/قرارداد/publish/lifecycle ویندوز](https://github.com/alirezarahimy-code/IO/actions/runs/43631123619) و [light ویندوز](https://github.com/alirezarahimy-code/IO/actions/runs/43631123626) success شدند. API هر run دقیقاً یک job با label `windows-2022` نشان داد؛ مجموع runهای همان SHA فقط همین دو مورد است. در light،۲۰ policy،۱۹ فایل DOM و Chromium preview نیز واقعاً اجرا و موفق شدند. هیچ SQL یا Linux تازه‌ای اجرا نشده است.
+
+مشکل اولیهٔ جداکنندهٔ مسیر در TypeLib audit با `Path.as_posix()` رفع شد؛ hashهای DLL و signatureهای مصوب دست‌نخورده‌اند. [شاهد ماشین‌خوان](ci-windows-only-evidence.json). نام نمایشی قدیمی workflow ممکن است در بعضی خروجی‌های GitHub cache شده باشد؛ label واقعی jobها و YAML جاری ملاک Windows-only بودن‌اند. پذیرش محصول/SQL قبلی در progress حفظ شده و این پذیرش CI جدا ثبت می‌شود.
