@@ -91,3 +91,5 @@ R16 قابلیت اثبات‌شدهٔ مدل نامعلوم نیستند و ا�
 ### R08/R09 — پیشنهاد انتخاب‌شده و برش مستقل جدید
 
 با واگذاری انتخاب به عامل، جهت gateway احرازشده (مرزی جدا از native authentication) و RemoteEnroll صرفاً مصنوعی تا تعیین policy انتخاب شدند. [کد و حدود دقیق](s10-gateway-and-s09-enroll-contracts.fa.md): HMAC/binding/commit boundary و lifecycle یک‌dispatch با اثبات حضور و unknown/cancel؛ شاهد امضای۳ متد از۲ DLL. این‌ها هنوز production store/receiver یا RemoteEnroll صف/bridge/API نیستند؛ policy واقعی تصویب نشده است. هیچ ردیف بسته نمی‌شود؛۹ فنی + H01 ثابت است.
+
+تأیید برش مستقل روی `5dae6ad`:۴۲ قرارداد مصنوعی Windows،۲۱ policy و auditor دو TypeLib موفق؛ [شاهد](s10-gateway-s09-enroll-software-evidence.json). این نتیجه به معنی تکمیل عملیاتی PUSH/RemoteEnroll نیست؛ store/receiver و مسیر یکپارچهٔ enrollment و policy واقعی باقی‌اند. هیچ کاهش شمارنده‌ای انجام نشد.

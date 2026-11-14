@@ -78,8 +78,10 @@
     "pinnedDhcpFirmwareSourceBlobs": 4,
     "portablePushWireCodecChecks": 47,
     "pushJournalSqlChecks": 24,
-    "ciPolicyChecks": 20,
-    "pushReviewSqlHttpsChecks": 16
+    "ciPolicyChecks": 21,
+    "pushReviewSqlHttpsChecks": 16,
+    "portableGatewayAndRemoteEnrollChecks": 42,
+    "pinnedRemoteEnrollTypeLibraries": 2
   },
   "stages": {
     "S04": "accepted registry and metadata groups; explicit versioned selected-device operator scope now software-verified in SQL and Chromium, with current human target authority enforced in worker dispatch/polling",
@@ -347,7 +349,7 @@
       }
     ]
   },
-  "nextExactAction": "R08 remains first and open: independent operator codec, immutable SQL retention, scoped read-only review APIs/UI and mapping/quarantine preview are tested. Establish vendor-native authenticated commissioning/session contract with crypto provider, or obtain explicit approval for a DIFFERENT onsite gateway trust boundary. Then implement authorized processing with approved code mapping and immutable per-row processing receipts; no vendor ACK from retention/review alone. Native receiver/transfer identity/replay/atomic processed-before-ACK remain absent. R09–R16 keep their order; nine technical rows plus separate H01 remain.",
+  "nextExactAction": "R08/R09 remain OPEN: the user delegated recommendations, selecting the proposed authenticated-onsite-gateway direction distinct from native-device auth, and synthetic/default-off enrollment while biometric policy is unknown. Portable HMAC/commit-boundary and enrollment lifecycle have42 synthetic Windows checks. Next implement a production transactional gateway store, secure key provisioning/HTTPS and onsite sender with explicit trust boundary, then integration proof; R09 additionally needs authorized model/biometric policy and SQL/permissions/UI/worker/bridge plus exclusive child callback correlation and hard deadlines. No real enrollment is authorized by generic continuation. Do not treat a fake commit store as SQL replay protection, or callback metadata as real model acceptance. Automatic Linux and SQL remain off by user request; nine technical rows plus H01 remain.",
   "profileSettingsFollowup": {
     "code": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
     "accepted": true,
@@ -618,7 +620,7 @@
   },
   "latestVerifiedCiCode": "e94e0b9d36dcc15046e641f55c1d73b0d047479f",
   "gatewayEnrollFollowup": {
-    "status": "portable-components-implemented-awaiting-Windows-CI",
+    "status": "portable-components-Windows-tested-not-operationally-complete",
     "guide": "s10-gateway-and-s09-enroll-contracts.fa.md",
     "selectedPushDirection": "authenticated-onsite-gateway-distinct-from-native-device-authentication",
     "selectedEnrollmentScope": "synthetic-lifecycle-only-real-enrollment-disabled-until-authorized-model-and-biometric-policy",
@@ -635,6 +637,26 @@
     "realBiometricPolicyApproved": false,
     "nativeDeviceAuthenticationImplemented": false,
     "ledgerRowsClosed": [],
-    "hardwareVerified": false
-  }
+    "hardwareVerified": false,
+    "code": "5dae6addd8c74e4b4081d66beae9c2559c572193",
+    "runs": [
+      {
+        "conclusion": "success",
+        "databaseId": 43635321558,
+        "headSha": "5dae6addd8c74e4b4081d66beae9c2559c572193",
+        "status": "completed",
+        "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43635321558"
+      },
+      {
+        "conclusion": "success",
+        "databaseId": 43635321557,
+        "headSha": "5dae6addd8c74e4b4081d66beae9c2559c572193",
+        "status": "completed",
+        "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43635321557"
+      }
+    ],
+    "syntheticContractChecks": 42,
+    "evidence": "s10-gateway-s09-enroll-software-evidence.json"
+  },
+  "latestVerifiedPortableCode": "5dae6addd8c74e4b4081d66beae9c2559c572193"
 }

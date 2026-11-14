@@ -1,0 +1,52 @@
+{
+  "verifiedPortableCode": "5dae6addd8c74e4b4081d66beae9c2559c572193",
+  "scope": "portable gateway HMAC/commit boundary and RemoteEnroll lifecycle with synthetic sessions; neither row operationally complete",
+  "runs": [
+    {
+      "conclusion": "success",
+      "databaseId": 43635321558,
+      "headSha": "5dae6addd8c74e4b4081d66beae9c2559c572193",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43635321558"
+    },
+    {
+      "conclusion": "success",
+      "databaseId": 43635321557,
+      "headSha": "5dae6addd8c74e4b4081d66beae9c2559c572193",
+      "status": "completed",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43635321557"
+    }
+  ],
+  "automaticRunnerLabels": [
+    "windows-2022"
+  ],
+  "checks": {
+    "syntheticGatewayAndEnrollment": 42,
+    "ciPolicy": 21,
+    "remoteEnrollTypeLibraries": 2
+  },
+  "verification": "Both exact-SHA Windows runs succeeded; named annotation independently confirms42 synthetic checks. No Linux or SQL run exists for this SHA.",
+  "productionGatewayStoreImplemented": false,
+  "gatewayHttpReceiverImplemented": false,
+  "nativeDeviceAuthenticationImplemented": false,
+  "gatewayToNativeDeviceTrustEstablished": false,
+  "remoteEnrollQueueApiUiWorkerBridgeImplemented": false,
+  "realBiometricPolicyApproved": false,
+  "nativeSdkExecuted": false,
+  "hardwareVerified": false,
+  "part3Complete": false,
+  "ledgerRowsClosed": [],
+  "technicalOpenCount": 9,
+  "lastFullSql": {
+    "code": "adcb551a6c65148358b12f910a93580907e0b229",
+    "run": 43629451568,
+    "passLines": 1031,
+    "historicalNotRerun": true
+  },
+  "guide": "s10-gateway-and-s09-enroll-contracts.fa.md",
+  "nativeSignatureEvidence": "s09-remote-enroll-typelib-evidence.json",
+  "remaining": [
+    "R08 production transactional commit store with binding/key/grant revocation and immutable retry proof, secure provisioning/HTTPS receiver and onsite gateway, then integration tests and explicit gateway trust acceptance",
+    "R09 authorized biometric policy and target firmware contract including success/cancel/presence semantics; exclusive claim/child event correlation, hard deadline, durable SQL/audit, independent permissions/API/UI and bridge, then integration tests"
+  ]
+}

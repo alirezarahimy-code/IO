@@ -50,3 +50,7 @@ HMAC به‌تنهایی replay protection ماندگار نیست. dictionary �
 پرچم `--gateway-enroll-contracts` در اجرای Windows قراردادهای HMAC/tamper/time/retry/commit/cancel و چرخهٔ enrollment با doubles مصنوعی را اجرا می‌کند. auditor امضاهای دو DLL نیز به light ویندوز اضافه شده است. تست Linux و SQL تازه اجرا نمی‌شود. شمار۱۰۳۱ SQL مربوط به نسخهٔ تاریخی adcb551 است و با تست‌های جدید مخلوط نمی‌شود. build محلی فقط کامپایل بود، بدون اجرای تست Linux؛ صفر warning/error.
 
 در زمان نگارش اولیه، CI جدید هنوز پذیرفته نشده است. نتیجهٔ دقیق Windows باید جدا ثبت شود. **R08 و R09 بازند؛ شمار۹ فنی + H01 ثابت است.** policy واقعی بیومتریک، production gateway store/HTTPS/provisioning، RemoteEnroll SQL/permissions/API/UI/worker/bridge و آزمون‌های یکپارچهٔ تازه هنوز باقی‌اند.
+
+## نتیجهٔ آزمون Windows
+
+روی `5dae6addd8c74e4b4081d66beae9c2559c572193`، [Windows build/contracts/publish](https://github.com/alirezarahimy-code/IO/actions/runs/43635321558) و [light Windows](https://github.com/alirezarahimy-code/IO/actions/runs/43635321557) success شدند. annotation نام‌دار،۴۲ بررسی مصنوعی gateway/enrollment را مستقلاً تأیید می‌کند؛۲۱ policy و auditor دو TypeLib نیز موفق‌اند. API هر run فقط یک job با label windows-2022 نشان داد و هیچ SQL/Linux روی همین SHA اجرا نشده است. [شاهد دقیق](s10-gateway-s09-enroll-software-evidence.json). این تأیید فقط برای دو component قابل‌ترکیب است؛ هیچ production receiver/store یا RemoteEnroll یکپارچه و مجاز ساخته‌شده ادعا نمی‌شود. هر دو ردیف بازند.
