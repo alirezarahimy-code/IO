@@ -63,3 +63,9 @@ migration۵۵ سه ستون nullable به جدول موجود اضافه می‌
 شاهد نهایی runها و شمار دقیق بررسی‌ها در [r12-attendance-range-erase-evidence.json](r12-attendance-range-erase-evidence.json) ثبت می‌شود؛ pending یا شکست CI، پذیرش نیست. آزمون‌های جدید شامل قرارداد مرز/دقت/تکرار ساعت، خود executor و production COM mapper با double، supervisor واقعی با child مصنوعی، SQL/صف/worker واقعی Windows و ورود/TLS/CSRF/default-off/revoke واقعی HTTPS و DOM هستند. LocalDB و child مصنوعی، اجرای SDK/COM روی دستگاه نیستند.
 
 Linux و suite کامل تاریخی SQL۱۰۳۱ دوباره اجرا نشده‌اند. اثبات مرز شامل و دقت native روی مدل واقعی، کنترل capture همهٔ کانال‌ها، سیاست واقعی سازمان، Windows/SDK نصب‌شده و سناریوی قطع/over-deletion با دادهٔ مجاز در H01 باقی‌اند. تا احراز این‌ها، default-off حفظ می‌شود. تکمیل R12 نرم‌افزاری، مجوز حذف واقعی یا تکمیل بخش۳ نیست؛ بعدی R13 است.
+
+### نتیجهٔ ثبت‌شدهٔ پذیرش
+
+روی `7787f650f04dfe689b8c4234c6b7fbd5a7dab63c`، [run43703583328/job132779767059](https://github.com/alirezarahimy-code/IO/actions/runs/43703583328) با label واقعی `windows-2022` موفق شد:۱۷۵ یکپارچه (۴۶ جدید R12:۴۰ SQL/worker +۶ HTTPS)،۳۴ قرارداد مصنوعی جدید بازه و regressionهای۲۳ حذف همه،۶۳ بیومتریک/EFS و۴۷ gateway/enrollment. [run43702837985/job132777493246](https://github.com/alirezarahimy-code/IO/actions/runs/43702837985) روی55d5a47،۲۳ فایل DOM و Chromium را اجرا کرد؛ تمام UI/DOM/workflow با کد نهایی بایت‌به‌بایت برابر است. run اول با startup LocalDB شکست خورد؛ run دوم ایراد واقعی binding ستون تازه در batch migration را یافت. افزودن ستون‌ها و constraintها به دو command داخل یک تراکنش تفکیک شد؛ آزمون‌ها دست‌نخورده ماندند و اجرای نهایی موفق است. این failures نه پاک شده‌اند و نه پذیرش محسوب می‌شوند.
+
+R12 **صرفاً نرم‌افزاری** بسته شد؛ شمار ثابت۵→۴، بعدی R13، H01 آخر. شمار PASS جای تعداد قابلیت نیست. هیچ SDK، COM دستگاه یا حذف واقعی مجاز/اجراشده معرفی نمی‌شود.

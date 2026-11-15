@@ -1,0 +1,233 @@
+{
+  "scope": "P3-R12 software acceptance: separately authorized closed device-local wall-second range; full durable archive, external installed capture quiescence, two humans, two whole multiset scans, one range-only dispatch and exact preserved outside-multiset readback; independent recovery preserves original unknown. No real SDK boundary or physical capture-stop proof.",
+  "code": "7787f650f04dfe689b8c4234c6b7fbd5a7dab63c",
+  "runs": [
+    {
+      "id": 43703583328,
+      "headSha": "7787f650f04dfe689b8c4234c6b7fbd5a7dab63c",
+      "conclusion": "success",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43703583328",
+      "jobs": [
+        {
+          "id": 132779767059,
+          "labels": [
+            "windows-2022"
+          ],
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "conclusion": "success"
+            },
+            {
+              "name": "Provision isolated encrypted synthetic photo volume",
+              "conclusion": "success"
+            },
+            {
+              "name": "Build, catalogue checks and portable publish",
+              "conclusion": "success"
+            },
+            {
+              "name": "Windows LocalDB authenticated gateway and enrollment integration",
+              "conclusion": "success"
+            },
+            {
+              "name": "Detach synthetic photo volume",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 43702837985,
+      "headSha": "55d5a47ec2f4c10522c617fffca918fa37599143",
+      "conclusion": "success",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43702837985",
+      "jobs": [
+        {
+          "id": 132777493246,
+          "labels": [
+            "windows-2022"
+          ],
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "conclusion": "success"
+            },
+            {
+              "name": "Select lightweight scope over the entire push",
+              "conclusion": "success"
+            },
+            {
+              "name": "Prepare workflow policy test dependency",
+              "conclusion": "success"
+            },
+            {
+              "name": "Test CI routing and retained safety gates",
+              "conclusion": "success"
+            },
+            {
+              "name": "Validate reference evidence and capability inventory",
+              "conclusion": "success"
+            },
+            {
+              "name": "Prepare offline native instruction emulator",
+              "conclusion": "success"
+            },
+            {
+              "name": "Verify hash-pinned network setter dispatch with trapped transport",
+              "conclusion": "success"
+            },
+            {
+              "name": "Audit pinned DHCP firmware source reference without execution",
+              "conclusion": "success"
+            },
+            {
+              "name": "Prepare offline DOM dependencies",
+              "conclusion": "success"
+            },
+            {
+              "name": "Check JavaScript syntax and offline DOM contracts",
+              "conclusion": "success"
+            },
+            {
+              "name": "Check standalone page preview in Chromium",
+              "conclusion": "success"
+            },
+            {
+              "name": "Record actual coverage",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "checks": {
+    "windowsIntegratedSqlHttpsQueueChecks": 175,
+    "newR12SqlWorkerAndHttpsChecks": 46,
+    "newR12HttpsChecks": 6,
+    "newR12SqlWorkerChecks": 40,
+    "syntheticRangeEraseContracts": 34,
+    "regressionDeleteAllContracts": 23,
+    "regressionBiometricEfsContracts": 63,
+    "regressionGatewayEnrollmentContracts": 47,
+    "offlineDomFiles": 23,
+    "migrations": 55,
+    "domainTables": 69,
+    "pagesAndHelp": 56
+  },
+  "annotations": [
+    {
+      "title": "Windows gateway enrollment integration",
+      "message": "175 SQL HTTPS queue and synthetic-process checks passed on Windows LocalDB; no COM hardware or real biometric authorization."
+    },
+    {
+      "title": "Windows HTTPS fixture",
+      "message": "Temporary synthetic trust anchor removed."
+    },
+    {
+      "title": "Windows HTTPS fixture",
+      "message": "Temporary synthetic trust anchor installed; exercising production courier TLS validation."
+    },
+    {
+      "title": "Windows HTTPS fixture",
+      "message": "Installing one temporary synthetic loopback trust anchor on disposable runner."
+    },
+    {
+      "title": "Synthetic gateway and enrollment checks",
+      "message": "47 checks passed; gateway protocol and enrollment lifecycle and synthetic child supervisor only, no HTTP SQL COM native-device authentication or real biometrics."
+    },
+    {
+      "title": "Biometric transfer contracts",
+      "message": "63 synthetic checks passed; synthetic JPEG and real EFS staging, no real biometric material, SQL or native SDK executed."
+    },
+    {
+      "title": "Attendance erase contracts",
+      "message": "23 synthetic checks passed; production fixed-flag mapper and supervisor, no SDK device or real deletion."
+    },
+    {
+      "title": "Attendance range erase contracts",
+      "message": "34 synthetic checks passed; real production mapper and supervisor, no installed SDK boundary proof or device deletion."
+    }
+  ],
+  "uiByteEquality": {
+    "testedCode": "55d5a47ec2f4c10522c617fffca918fa37599143",
+    "acceptedCompiledCode": "7787f650f04dfe689b8c4234c6b7fbd5a7dab63c",
+    "paths": [
+      "ReCode/src/IO.Web/Ui",
+      "ReCode/tests/IO.Infrastructure.SqlTests/*-ui-check.cjs",
+      ".github/workflows",
+      "ReCode/tools/check-ui-dom.sh"
+    ],
+    "gitDiffNameOnly": [],
+    "explanation": "All UI, DOM check and workflow bytes unchanged between successful Windows UI run and final compiled/SQL run."
+  },
+  "notAcceptedRuns": [
+    {
+      "id": 43702837984,
+      "headSha": "55d5a47ec2f4c10522c617fffca918fa37599143",
+      "reason": "Build, 34 range contracts and UI passed but Windows LocalDB could not start. No integrated SQL acceptance."
+    },
+    {
+      "id": 43703258180,
+      "headSha": "90cf33ed83fe00034781227ab38bed87d8425245",
+      "reason": "Actual SQL execution caught new-column constraints in same compiled ADD COLUMN batch; split into two commands in same transaction. Assertions retained."
+    }
+  ],
+  "softwareLedgerRowClosed": true,
+  "remainingTechnicalCount": 4,
+  "remainingTechnicalIds": [
+    "P3-R13",
+    "P3-R14",
+    "P3-R15",
+    "P3-R16"
+  ],
+  "independentFinalLabPackage": "P3-H01",
+  "realDeploymentDefaultOff": true,
+  "nativeTypeLibrariesAudited": 2,
+  "nativeSdkExecuted": false,
+  "realDeviceLogsDeleted": false,
+  "realBoundarySemanticsVerified": false,
+  "realDeletionPolicyApproved": false,
+  "physicalCaptureQuiescenceVerified": false,
+  "hardwareVerified": false,
+  "linuxTestsExecuted": false,
+  "fullHistoricalSql1031Rerun": false,
+  "fullRollbackSuiteRerun": false,
+  "part3Complete": false
+}

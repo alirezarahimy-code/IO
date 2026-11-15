@@ -8,7 +8,7 @@
     "realDeviceExecution": "not performed",
     "testingSequence": "User explicitly requires virtual-device software completion now, copying reference behavior as appropriate, with real Windows SDK/multidevice acceptance deferred to the end. Lack of local hardware must not block further software implementation."
   },
-  "latestVerifiedCode": "d2c5d95f902a21d1ee7d86dd761ab242102990dd",
+  "latestVerifiedCode": "7787f650f04dfe689b8c4234c6b7fbd5a7dab63c",
   "checks": {
     "integrationPassLines": 1031,
     "foundation": 48,
@@ -113,8 +113,8 @@
     }
   ],
   "remainingSoftware": [
-    "P3-R12 independently authorized device attendance deletion in a precise range; preserve a full durable pre-delete native archive, installed capture quiescence, exact time boundaries, readback and unknown recovery.",
-    "P3-R13 user/template deletion, P3-R14 device administrator deletion, P3-R15 all-data clear and explicit factory-reset disposition; no authority implied by R11.",
+    "P3-R13 user/template deletion with exact installed model/format, independent authority and safe unknown recovery.",
+    "P3-R14 device administrator deletion, P3-R15 all-data clear versus explicit factory-reset disposition; no authority implied by R11 or R12.",
     "P3-R16 direct USB/serial support disposition; existing file parser is not direct connectivity."
   ],
   "realSdkExecuted": false,
@@ -349,7 +349,7 @@
       }
     ]
   },
-  "nextExactAction": "Continue in order with P3-R12: independently authorized attendance deletion in a range, exact installed-model local/UTC and inclusive/exclusive boundary contract, full durable native archive under physical capture quiescence, live preflight, remaining-data readback and dedicated unknown recovery. Legacy reference DeleteAttlogBetweenTheDate uses yyyy-MM-dd HH:mm:ss but does not itself prove firmware endpoint semantics. R11 software accepted ond2c5d95 with129 integrated Windows checks including29 new R11 (23 SQL/worker+6 HTTPS),23 new erase contracts and22 DOM files. Five software rows R12–R16 plus H01 remain. All real destructive execution remains default-off. No Linux tests or full SQL1031 rerun.",
+  "nextExactAction": "Continue in order from P3-R13 user/template deletion, then R14 administrators, R15 all-data versus factory reset, R16 direct USB/serial disposition; physical Windows/SDK/multidevice H01 last. R12 software accepted on 7787f650f04dfe689b8c4234c6b7fbd5a7dab63c with 175 Windows integrated checks (46 new R12),34 new range contracts and23 Windows DOM files. Four software rows plus H01 remain. Actual destructive execution stays default-off; installed firmware boundary semantics and real data policy not approved. No Linux tests or full SQL1031 rerun.",
   "profileSettingsFollowup": {
     "code": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
     "accepted": true,
@@ -659,7 +659,7 @@
     "evidence": "s10-gateway-s09-enroll-software-evidence.json",
     "historicalPortableScopeSupersededBy": "gatewayEnrollmentOperationalFollowup"
   },
-  "latestVerifiedPortableCode": "d2c5d95f902a21d1ee7d86dd761ab242102990dd",
+  "latestVerifiedPortableCode": "7787f650f04dfe689b8c4234c6b7fbd5a7dab63c",
   "gatewayEnrollmentOperationalFollowup": {
     "status": "windows-integrated-software-accepted-with-explicit-native-and-policy-gaps",
     "code": "248cbcdf45f40ea9c7d4b2527be7af1b7cdf3843",
@@ -683,7 +683,7 @@
     "guide": "gateway-enrollment-operations.fa.md",
     "historicalScopeSupersededBy": "nativePushReviewedRecoveryFollowup"
   },
-  "latestVerifiedWindowsIntegratedCode": "d2c5d95f902a21d1ee7d86dd761ab242102990dd",
+  "latestVerifiedWindowsIntegratedCode": "7787f650f04dfe689b8c4234c6b7fbd5a7dab63c",
   "nativePushReviewedRecoveryFollowup": {
     "scope": "Software acceptance of selected isolated-LAN authenticated-gateway PUSH and default-off RemoteEnroll with assisted two-person physical recovery. Not native device authentication or installed hardware acceptance.",
     "code": "cffed8264635f00bcb460c78e9960afa1f5b462b",
@@ -766,5 +766,34 @@
       43697294069
     ],
     "realDeploymentDefaultOff": true
+  },
+  "r12AttendanceRangeEraseFollowup": {
+    "scope": "P3-R12 software acceptance: separately authorized closed device-local wall-second range; full durable archive, external installed capture quiescence, two humans, two whole multiset scans, one range-only dispatch and exact preserved outside-multiset readback; independent recovery preserves original unknown. No real SDK boundary or physical capture-stop proof.",
+    "code": "7787f650f04dfe689b8c4234c6b7fbd5a7dab63c",
+    "windowsIntegratedSqlHttpsQueueChecks": 175,
+    "newR12SqlWorkerAndHttpsChecks": 46,
+    "newR12HttpsChecks": 6,
+    "newR12SqlWorkerChecks": 40,
+    "syntheticRangeEraseContracts": 34,
+    "regressionDeleteAllContracts": 23,
+    "regressionBiometricEfsContracts": 63,
+    "regressionGatewayEnrollmentContracts": 47,
+    "offlineDomFiles": 23,
+    "migrations": 55,
+    "domainTables": 69,
+    "pagesAndHelp": 56,
+    "softwareLedgerRowClosed": true,
+    "remainingTechnicalCount": 4,
+    "evidence": "r12-attendance-range-erase-evidence.json",
+    "guide": "r12-attendance-range-erase.fa.md",
+    "runs": [
+      43703583328,
+      43702837985
+    ],
+    "realDeploymentDefaultOff": true,
+    "nativeSdkExecuted": false,
+    "hardwareVerified": false,
+    "realDeviceLogsDeleted": false,
+    "linuxTestsExecuted": false
   }
 }
