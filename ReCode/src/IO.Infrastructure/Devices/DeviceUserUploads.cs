@@ -100,17 +100,30 @@ public sealed class DeviceUserUploads(IoDbContext db,PermissionTransaction trans
     public Task<DeviceCommunicationKey?> CredentialAsync(Guid service,Claim claim,bool allowDefault,CancellationToken ct=default)=>transaction.ExecuteAsync<DeviceCommunicationKey?>(service,Execute,"device-user-upload.credential-used",async token=>
     {
         await transaction.LockAsync("IO.DeviceConnections",token);var row=await Owned(service,claim.Id,claim.Token,token);var d=await db.Devices.AsNoTracking().SingleAsync(x=>x.Id==row.DeviceId,token);
-        var format=await db.DeviceUserDownloads.Where(x=>x.Id==row.SnapshotId).Select(x=>x.ReadFormat).SingleAsync(token);
-        if(claim.DeviceId!=row.DeviceId||claim.Host!=d.Host||claim.Port!=d.Port||claim.TimeoutSeconds!=row.TimeoutSeconds||claim.Expected!=(row.ExpectedJson is null?null:JsonSerializer.Deserialize<ZkUser>(row.ExpectedJson))||claim.Desired!=JsonSerializer.Deserialize<ZkUser>(row.DesiredJson)||claim.WriteFormat!=format||!d.Enabled||!d.Version.SequenceEqual(row.ExpectedDeviceVersion)||!await transaction.HasDevicePermissionAsync(row.RequestedByUserId,Upload,row.DeviceId,token))return(null,row.Id);
-        var snapshot=await db.DeviceUserDownloads.AsNoTracking().SingleAsync(x=>x.Id==row.SnapshotId,token);
-        if(d.SourceId!=snapshot.SourceId||!await Mapped(d.SourceId,snapshot.CompanyId,row.EmployeeId,row.PersonIdentifier,token)||!await db.Employees.AnyAsync(x=>x.Id==row.EmployeeId&&x.CompanyId==snapshot.CompanyId&&x.DisplayName==claim.Desired.Name,token)||await DeviceWriteSafety.UnreviewedAsync(db,row.DeviceId,token))return(null,row.Id);
+        if(!await Current(claim,row,token))return(null,row.Id);
         var cipher=await db.DeviceSecrets.Where(x=>x.DeviceId==d.Id).Select(x=>x.ProtectedValue).SingleOrDefaultAsync(token);if(cipher is null)return(allowDefault?new DeviceCommunicationKey(0):null,row.Id);
         try{var text=protection.CreateProtector("IO.Devices.Credential.v1",d.Id.ToString("N")).Unprotect(cipher);return(text.Length>0&&text.All(c=>c is >='0' and <='9')&&int.TryParse(text,NumberStyles.None,CultureInfo.InvariantCulture,out var key)?new DeviceCommunicationKey(key):null,row.Id);}catch(CryptographicException){return(null,row.Id);}
     },ct);
     public Task<Guid> CompleteAsync(Guid service,Guid id,Guid claim,ZkUserWriteOutput outcome,CancellationToken ct=default)=>transaction.ExecuteAsync(service,Execute,"device-user-upload.finished",async token=>
     {
-        if(outcome?.IsValid()!=true)throw new ArgumentException("Invalid private outcome.");await transaction.LockAsync("IO.DeviceConnections",token);var row=await Owned(service,id,claim,token);row.State=outcome.State;row.FinishedAtUtc=clock.GetUtcNow();return(id,id);
+        if(outcome?.IsValid()!=true)throw new ArgumentException("Invalid private outcome.");await transaction.LockAsync("IO.DeviceConnections",token);var row=await Owned(service,id,claim,token);
+        var d=await db.Devices.AsNoTracking().SingleAsync(x=>x.Id==row.DeviceId,token);
+        var format=await db.DeviceUserDownloads.Where(x=>x.Id==row.SnapshotId).Select(x=>x.ReadFormat).SingleAsync(token);
+        var owned=new Claim(row.Id,row.ClaimId!.Value,row.DeviceId,d.Host,d.Port,row.TimeoutSeconds,row.ExpectedJson is null?null:JsonSerializer.Deserialize<ZkUser>(row.ExpectedJson),JsonSerializer.Deserialize<ZkUser>(row.DesiredJson)!,format);
+        row.State=await Current(owned,row,token)?outcome.State:"unknown";row.FinishedAtUtc=clock.GetUtcNow();return(id,id);
     },ct);
+    public Task<bool> ShouldStopAsync(Guid service,Claim claim,CancellationToken ct=default)=>transaction.ExecuteAsync(service,Execute,"device-user-upload.authority-checked",async token=>
+    {
+        await transaction.LockAsync("IO.DeviceConnections",token);var row=await Owned(service,claim.Id,claim.Token,token);
+        return(!await Current(claim,row,token),row.Id);
+    },ct);
+    private async Task<bool> Current(Claim claim,DeviceUserUploadRecord row,CancellationToken ct)
+    {
+        var d=await db.Devices.AsNoTracking().SingleAsync(x=>x.Id==row.DeviceId,ct);
+        var snapshot=await db.DeviceUserDownloads.AsNoTracking().SingleAsync(x=>x.Id==row.SnapshotId,ct);
+        if(claim.DeviceId!=row.DeviceId||claim.Host!=d.Host||claim.Port!=d.Port||claim.TimeoutSeconds!=row.TimeoutSeconds||claim.Expected!=(row.ExpectedJson is null?null:JsonSerializer.Deserialize<ZkUser>(row.ExpectedJson))||claim.Desired!=JsonSerializer.Deserialize<ZkUser>(row.DesiredJson)||claim.WriteFormat!=snapshot.ReadFormat||!d.Enabled||!DeviceTransportSupport.IsSdkProfile(d.Profile)||!d.Version.SequenceEqual(row.ExpectedDeviceVersion)||!await transaction.HasDevicePermissionAsync(row.RequestedByUserId,Upload,row.DeviceId,ct))return false;
+        return d.SourceId==snapshot.SourceId&&await Mapped(d.SourceId,snapshot.CompanyId,row.EmployeeId,row.PersonIdentifier,ct)&&await db.Employees.AnyAsync(x=>x.Id==row.EmployeeId&&x.CompanyId==snapshot.CompanyId&&x.DisplayName==claim.Desired.Name,ct)&&!await DeviceWriteSafety.UnreviewedAsync(db,row.DeviceId,ct);
+    }
     // SnapshotId and its ReadFormat are both SQL-immutable, so the existing
     // approval hash binds the format without a mutable duplicate column.
     private Task<Dictionary<Guid,string>> Formats(IEnumerable<Guid> ids,CancellationToken ct)

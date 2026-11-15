@@ -15,8 +15,8 @@ internal static class LocalTransportOperationalTests
   Task<T> Q<T>(Func<IoDbContext,Task<T>> f)=>Use<IoDbContext,T>(f);
   async Task<bool> Reject<E>(Func<Task> f)where E:Exception{try{await f();return false;}catch(E){return true;}}
   void Check(bool value,string message)=>check(value,"R16 local "+message);
-  foreach(var (user,codes) in new[]{(actor,new[]{DeviceRegistry.Read,DeviceRegistry.Create,DeviceRegistry.Credentials,DeviceRegistry.Update,DeviceConnections.Test,DeviceOperations.Read,DeviceUserDownloads.Download,DeviceUserDownloads.Read,DeviceAttendanceDownloads.Download,DeviceAttendanceDownloads.Read}),
-   (service,new[]{DeviceConnections.Execute,DeviceOperations.Execute,DeviceUserDownloads.Execute,DeviceAttendanceDownloads.Execute})})
+  foreach(var (user,codes) in new[]{(actor,new[]{DeviceRegistry.Read,DeviceRegistry.Create,DeviceRegistry.Credentials,DeviceRegistry.Update,DeviceConnections.Test,DeviceOperations.Read,DeviceUserDownloads.Download,DeviceUserDownloads.Read,DeviceUserUploads.Upload,DeviceAttendanceDownloads.Download,DeviceAttendanceDownloads.Read}),
+   (service,new[]{DeviceConnections.Execute,DeviceOperations.Execute,DeviceUserDownloads.Execute,DeviceUserUploads.Execute,DeviceAttendanceDownloads.Execute})})
    await Q(async db=>{var role=await db.UserRoles.Where(x=>x.UserId==user).Select(x=>x.RoleId).SingleAsync();foreach(var code in codes){var p=await db.Permissions.SingleOrDefaultAsync(x=>x.Code==code);if(p is null){p=new(){Id=Guid.NewGuid(),Code=code};db.Permissions.Add(p);}if(!await db.RolePermissions.AnyAsync(x=>x.RoleId==role&&x.PermissionId==p.Id))db.RolePermissions.Add(new(){RoleId=role,PermissionId=p.Id});}await db.SaveChangesAsync();return true;});
   var station=Environment.MachineName.ToUpperInvariant();
   var host=Path.GetFullPath(Path.Combine(System.Runtime.InteropServices.RuntimeEnvironment.GetRuntimeDirectory(),"..","..","..","dotnet.exe"));
@@ -34,10 +34,11 @@ internal static class LocalTransportOperationalTests
    bool sqlRejected=false;try{await Q(async db=>{await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.Devices SET Port={-1} WHERE Id={id}");return true;});}catch(SqlException e)when(e.Number==547){sqlRejected=true;}
    Check(sqlRejected,"SQL constraint independently rejects malformed physical selector");
    var local=new ZkLocalTransport(kind,station,port,kind=="usb"?0:57600,"SYNTHETIC-DRIVER","SYNTHETIC-SINGLE-DEVICE-ONLY",true);
-   var native=new NativeEndpoint(id,station,port,7,"SYNTHETIC-LOCAL",true,AllowUserRead:true,AllowAttendanceRead:true,LocalTransport:local);
-   var cfg=new WorkerConfiguration(service,[],[native],host,relay,true,true,false,true,false,false);
+   var native=new NativeEndpoint(id,station,port,7,"SYNTHETIC-LOCAL",true,AllowUserRead:true,AttendanceOnlyUserWriteApproved:true,AllowAttendanceRead:true,LocalTransport:local);
+   var cfg=new WorkerConfiguration(service,[],[native],host,relay,true,true,true,true,false,false);
    Check(await native.RegisteredAsync(provider.GetRequiredService<IServiceScopeFactory>(),CancellationToken.None),"worker local binding matches real current registry profile station and selector");
    Check(!await (native with{LocalTransport=local with{Kind=kind=="usb"?"serial":"usb"}}).RegisteredAsync(provider.GetRequiredService<IServiceScopeFactory>(),CancellationToken.None),"worker rejects cross-profile retargeting even with same device UUID");
+   LocalExchangeFixtureStore.Save(id,LocalExchangeState.Initial(ZkUserReadFormats.Ssr));
    using var worker=new DiagnosticWorker(provider.GetRequiredService<IServiceScopeFactory>(),cfg);await worker.StartAsync(CancellationToken.None);
    try
    {
@@ -57,9 +58,10 @@ internal static class LocalTransportOperationalTests
     var logs=Guid.NewGuid();await Use<DeviceAttendanceDownloads,Guid>(x=>x.RequestAsync(actor,logs,id,version,20,new DateTimeOffset(2026,11,8,0,0,0,TimeSpan.Zero),new DateTimeOffset(2026,11,9,0,0,0,TimeSpan.Zero),0,1));
     await Wait(()=>Q(db=>db.DeviceAttendanceDownloads.Where(x=>x.Id==logs).Select(x=>x.State).SingleAsync()),"succeeded");
     Check(await Q(db=>db.DeviceAttendanceRows.CountAsync(x=>x.DownloadId==logs))==2,"native local archive preserves duplicate tuples without implicit raw ingestion");
+    await LocalUserUploadOperationalTests.RunAsync(provider,actor,service,reader,id,version,users,Check);
     Check(await Reject<UnauthorizedAccessException>(()=>Use<DeviceUserDownloads,Guid>(x=>x.RequestAsync(reader,Guid.NewGuid(),id,version,20))),"local transport never bypasses ordinary request grants");
    }
-   finally{await worker.StopAsync(CancellationToken.None);}
+   finally{await worker.StopAsync(CancellationToken.None);LocalExchangeFixtureStore.Delete(id);}
   }
  }
 }

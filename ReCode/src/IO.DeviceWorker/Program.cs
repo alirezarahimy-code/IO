@@ -164,7 +164,15 @@ internal class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfiguration
         DeviceCommunicationKey? credential;
         await using(var scope=scopes.CreateAsyncScope())credential=await scope.ServiceProvider.GetRequiredService<DeviceUserUploads>().CredentialAsync(configuration.ServiceUserId,claim,native.AllowDefaultCommunicationKey,ct);
         if(credential is null)return new("failed-before-write");
-        return await NativeProcessSupervisor.RunUserWriteAsync(configuration.DotnetPath!,configuration.BridgePath!,new(new(claim.DeviceId,native.Address,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value,native.LocalTransport),true,true,claim.Expected,claim.Desired,claim.WriteFormat),claim.TimeoutSeconds,ct);
+        using var stop=CancellationTokenSource.CreateLinkedTokenSource(ct);
+        var process=NativeProcessSupervisor.RunUserWriteAsync(configuration.DotnetPath!,configuration.BridgePath!,new(new(claim.DeviceId,native.Address,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value,native.LocalTransport),true,true,claim.Expected,claim.Desired,claim.WriteFormat),claim.TimeoutSeconds,stop.Token);
+        while(!process.IsCompleted)
+        {
+            if(await Task.WhenAny(process,Task.Delay(500,ct))==process)break;
+            bool revoked;try{await using var scope=scopes.CreateAsyncScope();revoked=await scope.ServiceProvider.GetRequiredService<DeviceUserUploads>().ShouldStopAsync(configuration.ServiceUserId,claim,ct);}catch{revoked=true;}
+            if(revoked||ct.IsCancellationRequested){await stop.CancelAsync();break;}
+        }
+        return await process;
     }
 
     private async Task<NativeAttendanceReadSupervisor.Result> DownloadAttendance(DeviceAttendanceDownloads.Claim claim,CancellationToken ct)

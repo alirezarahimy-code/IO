@@ -48,6 +48,7 @@ internal static class LocalTransportTests
   Check(logs.Last().State=="succeeded"&&logs.Count(f=>f.Type=="record")==2,"local serial uses unchanged native attendance executor preserving duplicate tuples");
   var erase=AllDataEraseTests.Input();
   Check(!(erase with{Connection=usb with{ExpectedSerial=erase.Connection.ExpectedSerial}}).IsValid(),"local all-data deletion is explicitly rejected until its transport-specific safety contract is accepted");
+  LocalUserWriteTests.Run();
   Console.WriteLine($"::notice title=Local SDK transport contracts::{count} synthetic contract and Windows physical-resource mutex checks passed; production connector uses fake SDK only. No installed driver device or destructive execution.");
  }
  internal static void Attempt(string text)
@@ -62,10 +63,33 @@ internal static class LocalTransportTests
   using var lease=ZkTransportLease.AcquireEnvelope(root);
   var input=root.TryGetProperty("Connection",out var connection)?connection.Deserialize<ZkProbeInput>()!:root.Deserialize<ZkProbeInput>()!;
   if(!ZkSdkConnection.Connect(new LocalSdkDouble(),input))throw new InvalidOperationException("Synthetic local router refused binding.");
+  if(Environment.GetEnvironmentVariable("GITHUB_ACTIONS")=="true"&&LocalExchangeFixtureStore.Exists(input.DeviceId))
+  {
+   var state=LocalExchangeFixtureStore.Read(input.DeviceId);
+   if(root.TryGetProperty("WriteUser",out _)||root.TryGetProperty("WriteLegacyUser",out _))
+   {
+    var write=root.TryGetProperty("WriteLegacyUser",out _)?root.Deserialize<ZkLegacyUserWriteInput>()!.AsRequest():root.Deserialize<ZkUserWriteInput>()!;
+    var sdk=new LocalExchangeSdkDouble(state,()=>LocalExchangeFixtureStore.Save(input.DeviceId,state),()=>{if(state.PauseBeforeWrite)LocalExchangeFixtureStore.Pause(input.DeviceId);});
+    var result=ZkComUserWriter.Run(sdk,write,out _);
+    // The fake SDK has already durably mutated; the parent must conservatively retain unknown.
+    if(sdk.DropReply)return;
+    Console.WriteLine(JsonSerializer.Serialize(result));return;
+   }
+   if(root.TryGetProperty("ReadUsers",out _))
+   {
+    ZkUserReadExecutor.Execute(root.Deserialize<ZkUserReadInput>()!,new ExchangeReadSession(state),f=>Console.WriteLine(JsonSerializer.Serialize(f)));return;
+   }
+  }
+  if(root.TryGetProperty("WriteUser",out _)||root.TryGetProperty("WriteLegacyUser",out _))throw new InvalidOperationException("Missing explicit synthetic exchange fixture.");
   if(root.TryGetProperty("ReadUsers",out _))ZkUserReadExecutor.Execute(root.Deserialize<ZkUserReadInput>()!,new UserSession(input.ExpectedSerial),f=>Console.WriteLine(JsonSerializer.Serialize(f)));
   else if(root.TryGetProperty("ReadAttendance",out _))ZkAttendanceReadExecutor.Execute(root.Deserialize<ZkAttendanceReadInput>()!,new LogSession(input.ExpectedSerial),f=>Console.WriteLine(JsonSerializer.Serialize(f)));
   else if(root.TryGetProperty("Operation",out _))Console.WriteLine(JsonSerializer.Serialize(new ZkOperationOutput("succeeded",new(input.ExpectedSerial,"SYNTHETIC-PRODUCT","SYNTHETIC-FIRMWARE",null,null,2,10,2,10,0,0,10,0,0,false))));
   else Console.WriteLine("sdk-serial-matched");
+ }
+ private sealed class ExchangeReadSession(LocalExchangeState state):IZkUserReadSession
+ {
+  private int index;public string Serial()=>state.Serial;public int? UserCount()=>state.Users.Count;public bool Begin(){index=0;return true;}
+  public ZkUser? Next(string format)=>index<state.Users.Count?state.Users[index++].User:null;
  }
  private sealed class UserSession(string serial):IZkUserReadSession
  {
