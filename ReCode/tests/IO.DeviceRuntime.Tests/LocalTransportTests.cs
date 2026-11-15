@@ -33,6 +33,7 @@ internal static class LocalTransportTests
   Check(Reject(()=>{using var lease=ZkTransportLease.Acquire([wrong]);}),"wrong Windows station fails before SDK activation");
   foreach(var local in new[]{serial.LocalTransport! with{SerialPort=0},serial.LocalTransport! with{SerialPort=257},serial.LocalTransport! with{BaudRate=0},serial.LocalTransport! with{BaudRate=12345},serial.LocalTransport! with{ExclusiveAccessApproved=false},serial.LocalTransport! with{DriverReference=""},serial.LocalTransport! with{StationName="COM1/secret"},serial.LocalTransport! with{Kind="unknown"}})
    Check(!local.IsValid(),"closed local installation approval rejects invalid kind port baud station driver or authority");
+  Check(!ZkLocalTransport.Station("LABHOST\n"),"station canonicalization rejects trailing-newline aliases before SQL or SDK");
   Check(!(usb with{Port=4370}).IsValid()&&!(serial with{Address="192.0.2.45"}).IsValid(),"cross-transport endpoint injection rejected");
   var network=new ZkProbeInput(Guid.NewGuid(),"192.0.2.45",4370,7,"SYNTHETIC",0);sdk=new();
   Check(ZkSdkConnection.Connect(sdk,network)&&sdk.Calls.SequenceEqual(["NET:192.0.2.45:4370"]),"network-only input retains exact legacy routing and does not acquire local resources");

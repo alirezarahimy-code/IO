@@ -1,7 +1,7 @@
 namespace IO.DeviceContracts;
 
 /// <summary>Product support disposition, NOT a hardware capability detector or automatic fallback selector.
-/// Direct USB/serial have real reference SDK methods but are not transports supported by this delivery.</summary>
+/// Direct USB/serial use explicit installed station bindings; route availability is not all-operation or hardware acceptance.</summary>
 public static class DeviceTransportSupport
 {
  public sealed record Entry(string Kind,string Status,string? RegistryProfile,bool DirectConnection,bool SoftwareRouteAvailable,string Limitation);

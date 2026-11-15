@@ -10,7 +10,7 @@ public sealed record ZkLocalTransport(string Kind,string StationName,int SerialP
 {
     public bool IsValid()=>ExclusiveAccessApproved&&Station(StationName)&&Reference(DriverReference)&&Reference(ExclusiveSelectionReference)&&
         (Kind=="usb"?SerialPort==0&&BaudRate==0:Kind=="serial"&&SerialPort is >=1 and <=256&&BaudRate is 9600 or 19200 or 38400 or 57600 or 115200);
-    public static bool Station(string? value)=>value is not null&&Regex.IsMatch(value,"^[A-Z][A-Z0-9-]{0,62}$",RegexOptions.CultureInvariant);
+    public static bool Station(string? value)=>value is not null&&Regex.IsMatch(value,"\\A[A-Z][A-Z0-9-]{0,62}\\z",RegexOptions.CultureInvariant);
     private static bool Reference(string? value)=>!string.IsNullOrWhiteSpace(value)&&value.Length<=200&&!value.Any(char.IsControl);
     public string Profile=>Kind=="usb"?"zk-usb-direct":"zk-serial-direct";
     internal string Resource=>Kind=="usb"?"USB":$"COM{SerialPort}";
