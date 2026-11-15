@@ -25,7 +25,7 @@ internal static class LocalUserUploadOperationalTests
   {
    using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(30));string state;
    do{await Task.Delay(75,deadline.Token);state=await read();}while(state is "pending" or "running");
-   check(state==expected,"ordinary direct upload actual SQL/worker/production mapper outcome "+expected);
+   check(state==expected,"ordinary direct upload actual SQL/worker/production mapper expected "+expected+", observed "+state);
   }
   Task WaitUpload(Guid id,string expected)=>Wait(()=>Q(db=>db.DeviceUserUploads.Where(x=>x.Id==id).Select(x=>x.State).SingleAsync()),expected);
   async Task<Guid> Snapshot()

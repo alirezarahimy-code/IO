@@ -63,7 +63,7 @@ internal static class LocalTransportTests
   using var lease=ZkTransportLease.AcquireEnvelope(root);
   var input=root.TryGetProperty("Connection",out var connection)?connection.Deserialize<ZkProbeInput>()!:root.Deserialize<ZkProbeInput>()!;
   if(!ZkSdkConnection.Connect(new LocalSdkDouble(),input))throw new InvalidOperationException("Synthetic local router refused binding.");
-  if(Environment.GetEnvironmentVariable("GITHUB_ACTIONS")=="true"&&LocalExchangeFixtureStore.Exists(input.DeviceId))
+  if(LocalExchangeFixtureStore.Exists(input.DeviceId))
   {
    var state=LocalExchangeFixtureStore.Read(input.DeviceId);
    if(root.TryGetProperty("WriteUser",out _)||root.TryGetProperty("WriteLegacyUser",out _))

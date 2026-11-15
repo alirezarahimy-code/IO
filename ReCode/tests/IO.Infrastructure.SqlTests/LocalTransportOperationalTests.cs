@@ -38,7 +38,7 @@ internal static class LocalTransportOperationalTests
    var cfg=new WorkerConfiguration(service,[],[native],host,relay,true,true,true,true,false,false);
    Check(await native.RegisteredAsync(provider.GetRequiredService<IServiceScopeFactory>(),CancellationToken.None),"worker local binding matches real current registry profile station and selector");
    Check(!await (native with{LocalTransport=local with{Kind=kind=="usb"?"serial":"usb"}}).RegisteredAsync(provider.GetRequiredService<IServiceScopeFactory>(),CancellationToken.None),"worker rejects cross-profile retargeting even with same device UUID");
-   LocalExchangeFixtureStore.Save(id,LocalExchangeState.Initial(ZkUserReadFormats.Ssr));
+   LocalExchangeFixtureStore.Create(id,LocalExchangeState.Initial(ZkUserReadFormats.Ssr));
    using var worker=new DiagnosticWorker(provider.GetRequiredService<IServiceScopeFactory>(),cfg);await worker.StartAsync(CancellationToken.None);
    try
    {

@@ -5,6 +5,7 @@ using IO.DeviceContracts;
 // Test assembly only; never referenced by a production project or selectable in product configuration.
 public sealed class LocalExchangeState
 {
+ public string FixtureKind {get;set;}="IO-SYNTHETIC-LOCAL-EXCHANGE-V1";
  public string Serial {get;set;}="SYNTHETIC-LOCAL";
  public List<LocalExchangeUser> Users {get;set;}=[];
  public int Writes {get;set;}
@@ -60,17 +61,30 @@ public sealed class LocalExchangeSdkDouble(LocalExchangeState state,Action? pers
  }
 }
 
-// GUID-only paths and explicit disposable-CI guard; synthetic state never enters SQL receipts or product config.
+// GUID-only synthetic fixture, test assemblies only. Parent creation requires disposable CI.
+// Production supervisors intentionally clear CI environment variables from children: do NOT weaken that allowlist.
 internal static class LocalExchangeFixtureStore
 {
  private static string PathFor(Guid id)
  {
-  if(Environment.GetEnvironmentVariable("GITHUB_ACTIONS")!="true"||id==Guid.Empty)throw new InvalidOperationException("Disposable synthetic CI fixture required.");
+  if(!OperatingSystem.IsWindows()||id==Guid.Empty)throw new InvalidOperationException("Windows synthetic fixture required.");
   return Path.Combine(Path.GetTempPath(),"io-local-exchange-"+id.ToString("N")+".json");
  }
  internal static bool Exists(Guid id)=>File.Exists(PathFor(id));
- internal static LocalExchangeState Read(Guid id)=>JsonSerializer.Deserialize<LocalExchangeState>(File.ReadAllText(PathFor(id)))??throw new InvalidDataException();
- internal static void Save(Guid id,LocalExchangeState value)=>File.WriteAllText(PathFor(id),JsonSerializer.Serialize(value));
+ internal static LocalExchangeState Read(Guid id)
+ {
+  var state=JsonSerializer.Deserialize<LocalExchangeState>(File.ReadAllText(PathFor(id)))??throw new InvalidDataException();
+  return state.FixtureKind=="IO-SYNTHETIC-LOCAL-EXCHANGE-V1"?state:throw new InvalidDataException("Not a synthetic exchange fixture.");
+ }
+ internal static void Create(Guid id,LocalExchangeState value)
+ {
+  if(Environment.GetEnvironmentVariable("GITHUB_ACTIONS")!="true")throw new InvalidOperationException("Disposable CI parent creation required.");
+  using var file=new FileStream(PathFor(id),FileMode.CreateNew,FileAccess.Write);JsonSerializer.Serialize(file,value);
+ }
+ internal static void Save(Guid id,LocalExchangeState value)
+ {
+  _=Read(id);File.WriteAllText(PathFor(id),JsonSerializer.Serialize(value));
+ }
  internal static bool Ready(Guid id)=>File.Exists(PathFor(id)+".ready");
  internal static void Pause(Guid id){File.WriteAllText(PathFor(id)+".ready","SYNTHETIC-PREFLIGHT");Thread.Sleep(15000);}
  internal static void Delete(Guid id){File.Delete(PathFor(id));File.Delete(PathFor(id)+".ready");}
