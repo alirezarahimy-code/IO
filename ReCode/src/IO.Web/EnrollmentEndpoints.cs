@@ -4,6 +4,15 @@ internal static class EnrollmentEndpoints
 {
     internal static void MapEnrollment(this WebApplication app)
     {
+        foreach(var family in new[]{"all-data"})
+        {
+            var f=family;var route="/devices/all-data-erases";
+            app.MapGet(route,(HttpContext c,DeviceAllDataErases service)=>GatewayEndpoints.Read(c,actor=>service.ListAsync(actor,f,c.RequestAborted))).RequireAuthorization();
+            app.MapPost(route+"/preview",(DeviceAllDataErases.Input input,HttpContext c,IAntiforgery csrf,DeviceAllDataErases service)=>GatewayEndpoints.Admin(c,csrf,actor=>service.PreviewAsync(actor,input,f,c.RequestAborted))).RequireAuthorization().WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(16384));
+            app.MapPost(route,(DeviceAllDataErases.Confirm input,HttpContext c,IAntiforgery csrf,DeviceAllDataErases service)=>GatewayEndpoints.Admin(c,csrf,actor=>service.ProposeAsync(actor,input,f,c.RequestAborted))).RequireAuthorization().WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(16384));
+            app.MapPost(route+"/{id:guid}/approve",(Guid id,DeviceAllDataErases.Review input,HttpContext c,IAntiforgery csrf,DeviceAllDataErases service)=>GatewayEndpoints.Admin(c,csrf,actor=>service.ApproveAsync(actor,id,input,f,c.RequestAborted))).RequireAuthorization();
+            app.MapPost(route+"/{id:guid}/cancel",(Guid id,GatewayEndpoints.GatewayVersion input,HttpContext c,IAntiforgery csrf,DeviceAllDataErases service)=>GatewayEndpoints.Admin(c,csrf,actor=>service.CancelAsync(actor,id,input.Version,f,c.RequestAborted))).RequireAuthorization();
+        }
         foreach(var family in new[]{"users","fingerprints","administrators"})
         {
             var f=family;var route="/devices/protected-erases/"+f;

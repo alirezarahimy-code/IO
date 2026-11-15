@@ -23,6 +23,7 @@ Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --daylight-read-contracts
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --profile-setting-contracts
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --push-codec-contracts
+Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --all-data-erase-contracts
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --protected-erase-contracts
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --user-erase-core-contracts
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --attendance-range-erase-contracts
@@ -115,5 +116,7 @@ if ($LASTEXITCODE -ne 0) { throw "Attendance erase ABI verification failed" }
 & python tools/audit-user-erase-typelib.py --verify
 if ($LASTEXITCODE -ne 0) { throw "User erase core ABI verification failed" }
 
+& python tools/audit-all-data-clear-typelib.py --verify
+if ($LASTEXITCODE -ne 0) { throw "All-data clear and transport ABI verification failed" }
 & python tools/audit-protected-erase-typelib.py --verify
 if ($LASTEXITCODE -ne 0) { throw "Protected erase ABI verification failed" }

@@ -77,7 +77,7 @@ internal static class UserEraseTests
 }
 
 // Public for C# dynamic binding to the exact production adapter, never a COM registration or device implementation.
-public sealed class UserEraseSdkDouble(UserEraseApproval approval)
+public class UserEraseSdkDouble(UserEraseApproval approval)
 {
  public List<UserEraseEntry> Entries=Initial(approval).ToList();private int cursor;private UserEraseEntry? current;private UserEraseEntry? orphan;
  public int Reads,Writes,LastMachine,LastFlag,LastEnrollmentMachine;public string? LastPerson,LastApi;

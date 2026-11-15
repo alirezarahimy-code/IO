@@ -4860,5 +4860,70 @@
       "ClearAdministrators فقط تنزل privilege به۰ با حفظ اشخاص/رمز/کارت/template؛ اثر واقعی باید در نصب اثبات شود.",
       "شمار ثابت و mutex، کنترل فیزیکی نیست؛ backup/restore، secure erase یا آزمایش SDK واقعی ادعا نمی‌شود."
     ]
+  },
+  {
+    "Slug": "device-all-data-erases",
+    "Route": "/workspace/device-all-data-erases",
+    "Title": "پاکسازی همهٔ داده‌های پروفایل دستگاه، نه بازگشت کارخانه",
+    "Group": "اپراتور",
+    "Overview": "ClearData(machine,5) فقط با اثر نصب مصوب و مجوز مستقل، دو آرشیو کامل کاربران و تردد و دو انسان. هیچ factory reset، حذف SQL یا raw backup مجاز نیست.",
+    "Steps": [
+      "کنترل فیزیکی انحصاری تمام کانال‌ها و توقف polling و کارهای رقیب؛ سپس settling مصوب و دو دریافت کامل و تازه از کاربران و تردد SDK بسازید.",
+      "AllDataEraseApproval عین سرور/worker، نسخهٔ دستگاه و نسخه و UUID هر دو archive را وارد و preview بدون SDK را بررسی کنید.",
+      "پیشنهاد مستقل با عبارت دقیق ثبت و توسط شخص دیگر تأیید شود؛ worker یک فرمان ثابت۵ و سپس اتصال و خواندن با همان endpoint/key را اجرا می‌کند.",
+      "در unknown، child قبلی را متوقف و reset غیرحذفی مصوب کنید؛ دو archive تازه پس از آن بسازید؛ پیشنهاد بازیابی فقط مشاهدهٔ خواندنی و امضای مستقل رفع fence است."
+    ],
+    "Example": "دو آرشیو کامل و همان نصب بعد از settling؛ DELETE-DEVICE-ALL-DATA-IRREVERSIBLY فقط پروفایل users/password/card/ten-fingerprints/logs را هدف می‌گیرد، نه کارخانه یا SQL.",
+    "Fields": [
+      {
+        "Name": "archiveId",
+        "Label": "archiveId",
+        "Description": "دریافت موفق و کامل metadata کاربران"
+      },
+      {
+        "Name": "archiveVersion",
+        "Label": "archiveVersion",
+        "Description": "rowversion همان دریافت"
+      },
+      {
+        "Name": "attendanceArchiveId",
+        "Label": "attendanceArchiveId",
+        "Description": "آرشیو کامل native تردد با duplicateها و کدهای ناشناس؛ نه فقط رکوردهای ingestion"
+      },
+      {
+        "Name": "attendanceArchiveVersion",
+        "Label": "attendanceArchiveVersion",
+        "Description": "rowversion دریافت تردد"
+      },
+      {
+        "Name": "approval",
+        "Label": "approval",
+        "Description": "AllDataEraseApproval exact نصب؛ نه فعال‌سازی از فرم"
+      },
+      {
+        "Name": "recoveryOfId",
+        "Label": "recoveryOfId",
+        "Description": "unknown اصلی همین نصب؛ بدون بازپخش حذف"
+      }
+    ],
+    "Actions": [
+      "پیش‌نمایش بدون SDK",
+      "پیشنهاد با حق مستقل",
+      "تأیید توسط شخص مستقل",
+      "لغو/کنارگذاشتن observation بدون رفع unknown"
+    ],
+    "Errors": [
+      "پیش‌فرض خاموش یا approval نامطابق",
+      "نسخه/آرشیو کهنه یا قبل از settling",
+      "مجوز/دامنهٔ ناکافی یا خودامضایی",
+      "قفل صف رقیب یا unknown رفع‌نشده",
+      "ACK یا readback ناقص و از دست رفتن endpoint/credential: unknown بدون retry"
+    ],
+    "Limitations": [
+      "فقط profile عددی fingerprint-only، ده اسلات و بدون face/photo/palm/vein/door/hidden store؛ مدل با اثر متفاوت unsupported.",
+      "ClearData(5) اثبات factory reset، secure media erase یا حفظ تمام تنظیمات نیست؛ success فقط خالی‌بودن storeهای مصوب، هویت و دسترسی مجدد با همان endpoint/key را بررسی می‌کند.",
+      "raw template/password backup یا restore خودکار نداریم؛ مجوز حذف غیرقابل‌بازیابی و کنترل همهٔ کانال‌ها شرط خارجی‌اند.",
+      "SDK/دستگاه واقعی در H01 انتهای کار آزموده می‌شوند؛ default-off."
+    ]
   }
 ]

@@ -215,7 +215,9 @@ public static class IoWebHost
         app.MapGet("/workspace/device-attendance", () => Results.Content(Resource("IO.Web.Ui.DeviceAttendance.html"), "text/html; charset=utf-8"));
         app.MapGet("/workspace/device-attendance-range-erases",()=>Results.Content(Resource("IO.Web.Ui.DeviceAttendanceRangeErases.html"),"text/html; charset=utf-8"));
         app.MapGet("/assets/device-attendance-range-erases.js",()=>Results.Content(Resource("IO.Web.Ui.device-attendance-range-erases.js"),"text/javascript; charset=utf-8"));
+        app.MapGet("/workspace/device-all-data-erases",()=>Results.Content(Resource("IO.Web.Ui.DeviceAllDataErases.html"),"text/html; charset=utf-8"));
         app.MapGet("/workspace/device-protected-erases",()=>Results.Content(Resource("IO.Web.Ui.DeviceProtectedErases.html"),"text/html; charset=utf-8"));
+        app.MapGet("/assets/device-all-data-erases.js",()=>Results.Content(Resource("IO.Web.Ui.device-all-data-erases.js"),"text/javascript; charset=utf-8"));
         app.MapGet("/assets/device-protected-erases.js",()=>Results.Content(Resource("IO.Web.Ui.device-protected-erases.js"),"text/javascript; charset=utf-8"));
         app.MapGet("/workspace/device-attendance-erases",()=>Results.Content(Resource("IO.Web.Ui.DeviceAttendanceErases.html"),"text/html; charset=utf-8"));
         app.MapGet("/assets/device-attendance-erases.js",()=>Results.Content(Resource("IO.Web.Ui.device-attendance-erases.js"),"text/javascript; charset=utf-8"));

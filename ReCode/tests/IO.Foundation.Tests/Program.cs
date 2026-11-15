@@ -26,14 +26,14 @@ Check(PermissionCatalog.Templates.Count == 5 && PermissionCatalog.Templates.Sele
 Check(PermissionCatalog.Templates.All(t => t.Permissions.All(PermissionCatalog.Codes.Contains)), "templates grant only implemented catalogue permissions");
 Check(PermissionCatalog.Templates.Single(t => t.Key == "operator").Permissions.SequenceEqual(new[] { "devices.health.read", "devices.settings.read", "devices.commands.read", "devices.schedules.read", "devices.attendance.read", "devices.files.read", "devices.users.read", "devices.info.read", "devices.connection.read", "devices.read", "devices.groups.read" }), "device operator grants only implemented registry read without hardware command rights");
 Check(PermissionCatalog.Templates.Single(t => t.Key == "executive").Permissions.SequenceEqual(new[] { "executive.dashboard.read" }), "executive role has no administrator grant");
-Check(WorkspaceCatalog.Pages.Count == 57 && WorkspaceCatalog.Pages.Select(p => p.Route).Distinct().Count() == 57, "existing pages, help and reversal catalogue");
+Check(WorkspaceCatalog.Pages.Count == 58 && WorkspaceCatalog.Pages.Select(p => p.Route).Distinct().Count() == 58, "existing pages, help and reversal catalogue");
 Check(WorkspaceCatalog.Pages.All(p => p.AnyPermissions.All(PermissionCatalog.Codes.Contains)), "every page permission exists");
 var executive = new HashSet<string>(new[] { "executive.dashboard.read" }, StringComparer.Ordinal);
 Check(WorkspaceCatalog.Pages.Where(p => WorkspaceCatalog.CanView(p, executive) && p.Group != "common").Select(p => p.Route).SequenceEqual(new[] { "/workspace/executive-home" }), "executive exact menu excludes administration and team pages");
 var empty = new HashSet<string>(StringComparer.Ordinal);
 Check(!WorkspaceCatalog.CanView(WorkspaceCatalog.Pages.Single(p => p.Route == "/workspace/roles"), empty), "no-role account has no role administration menu");
 var articles = SystemHelp.Parse(Resource("HelpContent.json"));
-Check(articles.Count == 57 && articles.Select(a => a.Slug).Distinct().Count() == 57, "help has 57 unique articles");
+Check(articles.Count == 58 && articles.Select(a => a.Slug).Distinct().Count() == 58, "help has 58 unique articles");
 Check(WorkspaceCatalog.Pages.All(p => articles.Any(a => a.Route == p.Route)), "every existing route has context help");
 Check(articles.All(a => a.Steps.Length >= 3 && a.Errors.Length > 0 && a.Example.Length > 10 && a.Limitations.Length > 0), "articles include workflow example errors and limitations");
 Check(articles.Where(a => SystemHelp.CanRead(a, false, empty)).Select(a => a.Route).SequenceEqual(new[] { "/login" }), "anonymous help contains only login article");

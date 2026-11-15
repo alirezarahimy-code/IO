@@ -281,6 +281,7 @@ internal static class GatewayEnrollmentOperationalTests
     await AttendanceEraseOperationalTests.RunAsync(provider,config,actor,service,reader,site,check);
     await AttendanceRangeEraseOperationalTests.RunAsync(provider,config,actor,service,reader,site,check);
     await ProtectedEraseOperationalTests.RunAsync(provider,config,actor,service,reader,site,check);
+    await AllDataEraseOperationalTests.RunAsync(provider,config,actor,service,reader,site,check);
     var rawAfter=await Q(db=>db.RawAttendanceEvents.CountAsync());check(rawAfter==2,"only explicitly reviewed PUSH rows enter raw attendance; enrollment never fabricates attendance");
     }
     finally{try{Directory.Delete(ring,true);}catch(IOException){} }

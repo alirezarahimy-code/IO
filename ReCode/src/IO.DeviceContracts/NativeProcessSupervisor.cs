@@ -121,6 +121,16 @@ public static class NativeProcessSupervisor
         catch(System.Text.Json.JsonException){return new(input.OperationId,"unknown");}
     }
 
+    public static async Task<AllDataEraseOutput> RunAllDataEraseAsync(string executable,string assembly,AllDataEraseInput input,int seconds,CancellationToken ct=default)
+    {
+        var failure=input.InspectOnly?"inspection-failed":"unknown";
+        if(!input.IsValid()||seconds is <1 or >60)return new(input.OperationId,input.InspectOnly?failure:"unsupported");
+        if(ct.IsCancellationRequested)return new(input.OperationId,input.InspectOnly?failure:"failed-before-write");
+        var exchange=await ExchangeAsync(executable,assembly,System.Text.Json.JsonSerializer.Serialize(input),seconds,ct,4096,16384);
+        if(exchange.State!="exited")return new(input.OperationId,failure);
+        try{var result=System.Text.Json.JsonSerializer.Deserialize<AllDataEraseOutput>(exchange.Output,new System.Text.Json.JsonSerializerOptions{UnmappedMemberHandling=System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow});return result?.IsValidFor(input)==true?result:new(input.OperationId,failure);}catch(System.Text.Json.JsonException){return new(input.OperationId,failure);}
+    }
+
     public static async Task<ProtectedEraseOutput> RunProtectedEraseAsync(string executable,string assembly,ProtectedEraseInput input,int seconds,CancellationToken ct=default)
     {
         var failure=input.InspectOnly?"inspection-failed":"unknown";
