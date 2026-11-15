@@ -27,7 +27,7 @@ public sealed class DeviceAttendanceDownloads(IoDbContext db,PermissionTransacti
         if(await db.DeviceUserDownloads.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device has unfinished user downloads.");
         var d=await db.Devices.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==deviceId,token)??throw new ArgumentException("Unknown device.");
         if(!d.Enabled||!d.Version.SequenceEqual(version))throw new DomainConflictException("Device changed.");
-        if(d.Profile!="zk-standalone")throw new ArgumentException("Only explicitly approved native endpoints are supported.");
+        if(!IO.DeviceContracts.DeviceTransportSupport.IsSdkProfile(d.Profile))throw new ArgumentException("Only explicitly approved native endpoints are supported.");
         if(await db.DeviceAttendanceDownloads.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token)||await db.DeviceOperations.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token)||await db.DeviceConnections.AnyAsync(x=>x.DeviceId==deviceId&&(x.State=="pending"||x.State=="running"),token))throw new DomainConflictException("Device already has active work.");
         var site=await db.Sites.AsNoTracking().SingleAsync(x=>x.Id==d.SiteId,token);_=Zone(site.TimeZoneId);
         db.DeviceAttendanceDownloads.Add(new(){Id=id,DeviceId=deviceId,SourceId=d.SourceId,CompanyId=site.CompanyId,SiteId=site.Id,TimeZoneId=site.TimeZoneId,FromUtc=fromUtc,UntilUtcExclusive=untilUtcExclusive,InCode=inCode,OutCode=outCode,RequestedByUserId=actor,RequestedAtUtc=clock.GetUtcNow(),ExpectedDeviceVersion=version.ToArray(),TimeoutSeconds=seconds,ReadFormat=readFormat});return(id,id);

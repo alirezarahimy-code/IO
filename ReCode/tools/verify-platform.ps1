@@ -25,6 +25,7 @@ Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --push-codec-contracts
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --all-data-erase-contracts
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --transport-support-contracts
+if ($IsWindows) { Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --local-transport-contracts }
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --protected-erase-contracts
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --user-erase-core-contracts
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --attendance-range-erase-contracts

@@ -17,10 +17,10 @@ internal static class AllDataEraseOperationalTests
   void Configure(string prefix,JsonElement value){foreach(var p in value.EnumerateObject()){if(p.Value.ValueKind==JsonValueKind.Object)Configure(prefix+":"+p.Name,p.Value);else if(p.Value.ValueKind!=JsonValueKind.Null)config[prefix+":"+p.Name]=p.Value.ToString();}}
   await Q(async db=>{var role=await db.UserRoles.Where(x=>x.UserId==actor).Select(x=>x.RoleId).SingleAsync();var p=await db.Permissions.SingleOrDefaultAsync(x=>x.Code==DeviceRegistry.Read);if(p is null){p=new(){Id=Guid.NewGuid(),Code=DeviceRegistry.Read};db.Permissions.Add(p);}if(!await db.RolePermissions.AnyAsync(x=>x.RoleId==role&&x.PermissionId==p.Id))db.RolePermissions.Add(new(){RoleId=role,PermissionId=p.Id});await db.SaveChangesAsync();return true;});
   var transport=JsonSerializer.SerializeToElement(await Use<DeviceRegistry,object>(x=>x.TransportSupportAsync(actor)));
-  check(transport.GetProperty("transports").GetArrayLength()==4,"R16 authenticated transport inventory explicitly separates network/file and unsupported USB/serial direct");
+  check(transport.GetProperty("transports").GetArrayLength()==4,"R16 authenticated transport inventory explicitly separates network/file and bounded USB/serial direct");
   check(await Reject<UnauthorizedAccessException>(()=>Use<DeviceRegistry,object>(x=>x.TransportSupportAsync(service))),"R16 service execution grants do not imply transport catalogue read");
   foreach(var profile in new[]{"zk-usb-direct","zk-serial-direct","usb","serial"})
-   check(await Reject<ArgumentException>(()=>Use<DeviceRegistry,Guid>(x=>x.CreateAsync(actor,Guid.NewGuid(),new(site,"R16-"+profile,"SYNTHETIC","unverified",profile,null,null,true)))),"R16 registry rejects unsupported direct profile "+profile+" before persistence");
+   check(await Reject<ArgumentException>(()=>Use<DeviceRegistry,Guid>(x=>x.CreateAsync(actor,Guid.NewGuid(),new(site,"R16-"+profile,"SYNTHETIC","unverified",profile,null,null,true)))),"R16 registry rejects missing physical binding or unknown direct profile "+profile+" before persistence");
   foreach(var host in new[]{"COM1","USB","serial:COM1","/dev/ttyUSB0","\\\\.\\COM1"})
    check(await Reject<ArgumentException>(()=>Use<DeviceRegistry,Guid>(x=>x.CreateAsync(actor,Guid.NewGuid(),new(site,"R16-LOCAL","SYNTHETIC","unverified","zk-standalone",host,4370,true)))),"R16 registry does not treat local endpoint as a network hostname: "+host);
   int index=0;

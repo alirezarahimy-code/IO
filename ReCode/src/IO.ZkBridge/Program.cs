@@ -1,3 +1,4 @@
+using IO.ZkBridgeTransport;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -15,7 +16,7 @@ internal static class Program
         {
             using var stdin=Console.OpenStandardInput();using var bytes=new MemoryStream();var buffer=new byte[1024];int count;
             while((count=stdin.Read(buffer,0,buffer.Length))>0){if(bytes.Length+count>32768)return Result("invalid-input");bytes.Write(buffer,0,count);}
-            var json=new UTF8Encoding(false,true).GetString(bytes.ToArray());using var document=JsonDocument.Parse(json);
+            var json=new UTF8Encoding(false,true).GetString(bytes.ToArray());using var document=JsonDocument.Parse(json);using var physicalLeases=ZkTransportLease.AcquireEnvelope(document.RootElement);
             if(document.RootElement.TryGetProperty("EraseAllData",out _))
             {
                 var request=JsonSerializer.Deserialize<AllDataEraseInput>(json);
@@ -105,7 +106,7 @@ internal static class Program
             var type=Type.GetTypeFromCLSID(new Guid("00853A19-BD51-419B-9269-2DABE57EB61F"),throwOnError:true)!;
             instance=Activator.CreateInstance(type)??throw new InvalidOperationException();dynamic sdk=instance;
             if(!(bool)sdk.SetCommPassword(input.CommKey))return new(operation=="probe"?"unreachable":"failed");
-            connected=sdk.Connect_Net(input.Address,input.Port);
+            connected=ZkSdkConnection.Connect(instance,input);
             if(!connected)return new(operation=="probe"?"unreachable":"failed");
             string serial;
             if(!(bool)sdk.GetSerialNumber(input.MachineNumber,out serial)||string.IsNullOrWhiteSpace(serial)||serial.Length>100||serial.Any(char.IsControl)||serial.Trim()!=input.ExpectedSerial)
@@ -224,7 +225,7 @@ internal static class Program
         try
         {
             var pin=input.Connection;instance=Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("00853A19-BD51-419B-9269-2DABE57EB61F"),true)!)!;dynamic sdk=instance;
-            if(!(bool)sdk.SetCommPassword(pin.CommKey)||!(connected=(bool)sdk.Connect_Net(pin.Address,pin.Port)))return new("failed-before-write");
+            if(!(bool)sdk.SetCommPassword(pin.CommKey)||!(connected=ZkSdkConnection.Connect(instance,pin)))return new("failed-before-write");
             string serial;if(!(bool)sdk.GetSerialNumber(pin.MachineNumber,out serial)||serial?.Trim()!=pin.ExpectedSerial)return new("identity-mismatch");
             return ZkUserWriteExecutor.Execute(input,new UserWriteSession(instance,pin.MachineNumber,pin.ExpectedSerial,input.WriteFormat));
         }
@@ -280,7 +281,7 @@ internal static class Program
         try
         {
             var pin=request.Connection;instance=Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("00853A19-BD51-419B-9269-2DABE57EB61F"),true)!)!;dynamic sdk=instance;
-            if(!(bool)sdk.SetCommPassword(pin.CommKey)||!(connected=(bool)sdk.Connect_Net(pin.Address,pin.Port))){AttendanceFrame(new("end",Count:0,State:"failed"));return;}
+            if(!(bool)sdk.SetCommPassword(pin.CommKey)||!(connected=ZkSdkConnection.Connect(instance,pin))){AttendanceFrame(new("end",Count:0,State:"failed"));return;}
             string serial;if(!(bool)sdk.GetSerialNumber(pin.MachineNumber,out serial)||serial?.Trim()!=pin.ExpectedSerial){AttendanceFrame(new("end",Count:0,State:"identity-mismatch"));return;}
             ZkAttendanceReadExecutor.Execute(request,new ZkComAttendanceSession(instance,pin.MachineNumber),AttendanceFrame);
         }
@@ -297,7 +298,7 @@ internal static class Program
         {
             instance=Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("00853A19-BD51-419B-9269-2DABE57EB61F"),true)!)!;dynamic sdk=instance;
             var c=input.Connection;
-            if(!(bool)sdk.SetCommPassword(c.CommKey)||!(bool)sdk.Connect_Net(c.Address,c.Port))return new(input.OperationId,"failed-before-write");
+            if(!(bool)sdk.SetCommPassword(c.CommKey)||!ZkSdkConnection.Connect(instance,c))return new(input.OperationId,"failed-before-write");
             executorEntered=true;
             return AttendanceEraseExecutor.Execute(input,new ZkComAttendanceSession(instance,c.MachineNumber));
         }
@@ -312,7 +313,7 @@ internal static class Program
         try
         {
             instance=Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("00853A19-BD51-419B-9269-2DABE57EB61F"),true)!)!;dynamic sdk=instance;var c=input.Connection;
-            if(!(bool)sdk.SetCommPassword(c.CommKey)||!(bool)sdk.Connect_Net(c.Address,c.Port))return new(input.OperationId,"failed-before-write");
+            if(!(bool)sdk.SetCommPassword(c.CommKey)||!ZkSdkConnection.Connect(instance,c))return new(input.OperationId,"failed-before-write");
             entered=true;return AttendanceRangeEraseExecutor.Execute(input,new ZkComAttendanceSession(instance,c.MachineNumber));
         }
         catch{return new(input.OperationId,entered?"unknown":"failed-before-write");}
@@ -326,7 +327,7 @@ internal static class Program
         try
         {
             instance=Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("00853A19-BD51-419B-9269-2DABE57EB61F"),true)!)!;dynamic sdk=instance;var c=input.Connection;
-            if(!(bool)sdk.SetCommPassword(c.CommKey)||!(bool)sdk.Connect_Net(c.Address,c.Port))return new(input.OperationId,input.InspectOnly?"inspection-failed":"failed-before-write");
+            if(!(bool)sdk.SetCommPassword(c.CommKey)||!ZkSdkConnection.Connect(instance,c))return new(input.OperationId,input.InspectOnly?"inspection-failed":"failed-before-write");
             entered=true;return AllDataEraseExecutor.Execute(input,new ZkComAllDataEraseSession(instance,c));
         }
         catch{return new(input.OperationId,input.InspectOnly?"inspection-failed":entered?"unknown":"failed-before-write");}
@@ -340,7 +341,7 @@ internal static class Program
         try
         {
             instance=Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("00853A19-BD51-419B-9269-2DABE57EB61F"),true)!)!;dynamic sdk=instance;var c=input.Connection;
-            if(!(bool)sdk.SetCommPassword(c.CommKey)||!(bool)sdk.Connect_Net(c.Address,c.Port))return new(input.OperationId,input.InspectOnly?"inspection-failed":"failed-before-write");
+            if(!(bool)sdk.SetCommPassword(c.CommKey)||!ZkSdkConnection.Connect(instance,c))return new(input.OperationId,input.InspectOnly?"inspection-failed":"failed-before-write");
             entered=true;return ProtectedEraseExecutor.Execute(input,new ZkComUserEraseSession(instance,c.MachineNumber));
         }
         catch{return new(input.OperationId,input.InspectOnly?"inspection-failed":entered?"unknown":"failed-before-write");}
@@ -356,7 +357,7 @@ internal static class Program
         {
             var pin=request.Connection;var type=Type.GetTypeFromCLSID(new Guid("00853A19-BD51-419B-9269-2DABE57EB61F"),true)!;
             instance=Activator.CreateInstance(type)!;dynamic sdk=instance;
-            if(!(bool)sdk.SetCommPassword(pin.CommKey)||!(connected=(bool)sdk.Connect_Net(pin.Address,pin.Port))){UserFrame(new("end",Count:0,State:"failed"));return;}
+            if(!(bool)sdk.SetCommPassword(pin.CommKey)||!(connected=ZkSdkConnection.Connect(instance,pin))){UserFrame(new("end",Count:0,State:"failed"));return;}
             string serial;if(!(bool)sdk.GetSerialNumber(pin.MachineNumber,out serial)||serial?.Trim()!=pin.ExpectedSerial){UserFrame(new("end",Count:0,State:"identity-mismatch"));return;}
             ZkUserReadExecutor.Execute(request,new UserReadSession(instance,pin.MachineNumber),UserFrame);
         }

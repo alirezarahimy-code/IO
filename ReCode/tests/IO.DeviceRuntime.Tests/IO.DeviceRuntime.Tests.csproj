@@ -5,4 +5,5 @@
   <ItemGroup><Compile Include="../../src/IO.ZkBridge/ZkComAttendanceSession.cs" Link="Production/ZkComAttendanceSession.cs" /></ItemGroup>
   <ItemGroup><Compile Include="../../src/IO.ZkBridge/ZkComUserEraseSession.cs" Link="Production/ZkComUserEraseSession.cs" /></ItemGroup>
   <ItemGroup><Compile Include="../../src/IO.ZkBridge/ZkComAllDataEraseSession.cs" Link="Production/ZkComAllDataEraseSession.cs" /></ItemGroup>
+  <ItemGroup><Compile Include="../../src/IO.ZkBridge/ZkSdkConnection.cs" Link="Production/ZkSdkConnection.cs" /></ItemGroup>
 </Project>

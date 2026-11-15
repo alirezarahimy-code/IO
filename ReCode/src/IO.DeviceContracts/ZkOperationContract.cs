@@ -8,6 +8,7 @@ public sealed record ZkOperationInput(ZkProbeInput Connection, string Operation,
     public bool IsValid()
     {
         if(Connection?.IsValid()!=true)return false;
+        if(Connection.LocalTransport is not null&&Operation is not("probe" or "information.read" or "settings.read" or "clock.set" or "device.restart"))return false;
         if(ProfileReadApprovals is not null&&(Operation!="settings.read"||!AllowAdvancedSettingsRead||ProfileReadApprovals.Length is <1 or >7||ProfileReadApprovals.Any(x=>x is null||!x.IsValid())||ProfileReadApprovals.Select(x=>x.Parameter).Distinct().Count()!=ProfileReadApprovals.Length))return false;
         if(Operation is "settings.profile.set" or "settings.profile.inspect")return AllowAdvancedSettingsRead&&ProfilePlan?.IsValid()==true&&ProfileApproval?.Allows(ProfilePlan)==true&&ProfilePlan.Serial==Connection.ExpectedSerial&&Connection.Address==(ProfileObserveRecovery?ProfilePlan.Recovery:ProfilePlan.Original).Address&&Connection.Port==(ProfileObserveRecovery?ProfilePlan.Recovery:ProfilePlan.Original).Port&&(Operation!="settings.profile.set"||(AllowProfileWrite&&!ProfileObserveRecovery))&&NetworkPlan is null&&IdlePlan is null&&IdleApproval is null&&RawSettingPlan is null&&RawSettingApproval is null&&FunctionKeyPlan is null&&FunctionKeyWriteApproval is null&&FunctionKeyReadApproval is null&&DaylightReadApproval is null&&ProfileReadApprovals is null&&ClockLocal is null;
         if(ProfilePlan is not null||ProfileApproval is not null||ProfileObserveRecovery)return false;

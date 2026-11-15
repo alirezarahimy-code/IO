@@ -13,7 +13,7 @@ public sealed record AttendanceEraseApproval(BiometricDeviceIdentity Device,stri
 }
 public sealed record AttendanceEraseInput(ZkProbeInput Connection,Guid OperationId,AttendanceEraseApproval Approval,int ExpectedCount,string ArchiveDigest,bool EraseAllAttendance=true)
 {
- public bool IsValid()=>EraseAllAttendance&&Connection?.IsValid()==true&&OperationId!=Guid.Empty&&Approval?.IsValid()==true&&Connection.ExpectedSerial==Approval.Device.Serial&&ExpectedCount>=0&&ExpectedCount<=Approval.MaximumRecords&&AttendanceArchiveDigest.Valid(ArchiveDigest);
+ public bool IsValid()=>EraseAllAttendance&&Connection?.IsValid()==true&&Connection.LocalTransport is null&&OperationId!=Guid.Empty&&Approval?.IsValid()==true&&Connection.ExpectedSerial==Approval.Device.Serial&&ExpectedCount>=0&&ExpectedCount<=Approval.MaximumRecords&&AttendanceArchiveDigest.Valid(ArchiveDigest);
  public override string ToString()=>"Attendance erase IPC [credentials and archive commitment redacted]";
 }
 /// <summary>Sorted SHA256 of exact canonical native tuples, retaining duplicate multiplicity; never a physical event identity.</summary>

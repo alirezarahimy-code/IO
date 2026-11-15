@@ -3,7 +3,7 @@ namespace IO.DeviceContracts;
 /// <summary>One enrollment per isolated child; approval must be pinned by trusted deployment configuration, never inferred from a browser.</summary>
 public sealed record RemoteEnrollInput(ZkProbeInput Connection,Guid OperationId,string PersonIdentifier,RemoteEnrollApproval Approval,int SubjectWaitSeconds,bool Enroll=true)
 {
-    public bool IsValid()=>Enroll&&Connection?.IsValid()==true&&OperationId!=Guid.Empty&&PersonIdentifier is{Length:>=1 and <=100}&&PersonIdentifier.All(char.IsAsciiDigit)&&Approval?.IsValid()==true&&Approval.EmptySlotErrorCode is not null and not 0 and not int.MinValue&&Approval.EventMask>0&&Approval.Serial==Connection.ExpectedSerial&&SubjectWaitSeconds is >=1 and <=45;
+    public bool IsValid()=>Enroll&&Connection?.IsValid()==true&&Connection.LocalTransport is null&&OperationId!=Guid.Empty&&PersonIdentifier is{Length:>=1 and <=100}&&PersonIdentifier.All(char.IsAsciiDigit)&&Approval?.IsValid()==true&&Approval.EmptySlotErrorCode is not null and not 0 and not int.MinValue&&Approval.EventMask>0&&Approval.Serial==Connection.ExpectedSerial&&SubjectWaitSeconds is >=1 and <=45;
     public override string ToString()=>"Remote enrollment request [credentials and subject redacted]";
 }
 public sealed record RemoteEnrollOutput(string State,RemoteEnrollCompletion? Completion=null)

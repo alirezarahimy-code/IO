@@ -18,7 +18,7 @@ public static class UserMetadataCommitment
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record ProtectedEraseInput(ZkProbeInput Connection,Guid OperationId,ProtectedEraseApproval Approval,ZkUser? Expected,int ArchiveCount,string MetadataDigest,bool InspectOnly=false,bool EraseProtectedCatalogue=true)
 {
- public bool IsValid()=>EraseProtectedCatalogue&&Connection?.IsValid()==true&&OperationId!=Guid.Empty&&Approval?.IsValid()==true&&Connection.ExpectedSerial==Approval.Inventory.Device.Serial&&ArchiveCount>=0&&ArchiveCount<=Approval.Inventory.MaximumUsers&&AttendanceArchiveDigest.Valid(MetadataDigest)&&(Approval.Family==ProtectedEraseApproval.Admins?Expected is null:InspectOnly&&Expected is null||Expected is not null&&new UserEraseInput(Connection,OperationId,Expected,Approval.Inventory).IsValid());
+ public bool IsValid()=>EraseProtectedCatalogue&&Connection?.IsValid()==true&&Connection.LocalTransport is null&&OperationId!=Guid.Empty&&Approval?.IsValid()==true&&Connection.ExpectedSerial==Approval.Inventory.Device.Serial&&ArchiveCount>=0&&ArchiveCount<=Approval.Inventory.MaximumUsers&&AttendanceArchiveDigest.Valid(MetadataDigest)&&(Approval.Family==ProtectedEraseApproval.Admins?Expected is null:InspectOnly&&Expected is null||Expected is not null&&new UserEraseInput(Connection,OperationId,Expected,Approval.Inventory).IsValid());
  public override string ToString()=>"Protected erase private IPC [metadata and credentials redacted]";
 }
 public interface IProtectedEraseSession:IUserEraseSession {bool ClearAdministrators();}

@@ -15,7 +15,9 @@
   $('previous').disabled=busy||!has('devices.read')||offset===0;$('next').disabled=busy||!has('devices.read')||count<50||offset>=100000;
   $('locations-previous').disabled=busy||locationOffset===0;$('locations-next').disabled=busy||locationCount<50||locationOffset>=100000;
   $('refresh').disabled=busy;$('filter').querySelector('button').disabled=busy||!has('devices.read');
-  const tcp=form.elements.profile.value==='zk-standalone';
+  const tcp=['zk-standalone','zk-usb-direct','zk-serial-direct'].includes(form.elements.profile.value);
+  form.elements.port.min=form.elements.profile.value==='zk-usb-direct'?'0':'1';
+  form.elements.port.max=form.elements.profile.value==='zk-serial-direct'?'256':'65535';
   for(const key of ['host','port']){form.elements[key].disabled=busy||!tcp||!has(selected?'devices.update':'devices.create');form.elements[key].required=tcp;}
   for(const button of $('body').querySelectorAll('button'))button.disabled=busy;
  }
@@ -47,7 +49,7 @@
  form.elements.profile.addEventListener('change',controls);
  $('new-device').addEventListener('click',()=>{if(uncertain){notice('ثبت نامعلوم: تغییر شناسه پیش از بررسی یا تکرار همان درخواست مجاز نیست.');return;}reset();});
  form.addEventListener('submit',async e=>{e.preventDefault();if(busy||!has(selected?'devices.update':'devices.create'))return;
-  const f=form.elements,tcp=f.profile.value==='zk-standalone',device={siteId:f.siteId.value.trim(),number:f.number.value,name:f.name.value,model:f.model.value,profile:f.profile.value,host:tcp?f.host.value:null,port:tcp?Number(f.port.value):null,enabled:f.enabled.checked};
+  const f=form.elements,tcp=['zk-standalone','zk-usb-direct','zk-serial-direct'].includes(f.profile.value),device={siteId:f.siteId.value.trim(),number:f.number.value,name:f.name.value,model:f.model.value,profile:f.profile.value,host:tcp?f.host.value:null,port:tcp?Number(f.port.value):null,enabled:f.enabled.checked};
   const payload=selected?{expectedVersion:f.version.value,device}:{operationId:f.operationId.value,device},serialized=JSON.stringify(payload);
   if(uncertain&&uncertain!==serialized){notice('دادهٔ ثبت نامعلوم را به حالت قبلی برگردانید؛ همان شناسه باید با همان داده تکرار شود.');return;}
   const editing=!!selected;busy=true;controls();try{if(!editing)uncertain=serialized;await post(editing?'/devices/'+selected.id:'/devices',payload);uncertain=null;reset();notice('مشخصات دستگاه ثبت شد؛ ارتباط هنوز آزموده‌نشده است.');await load();}

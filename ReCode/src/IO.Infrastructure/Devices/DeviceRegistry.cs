@@ -52,6 +52,7 @@ public sealed class DeviceRegistry(IoDbContext db, PermissionTransaction transac
                 if (existing.CreatedByUserId != actor || existing.CreationFingerprint != fingerprint) throw new DomainConflictException("Changed create replay.");
                 return (existing.Id, existing.Id);
             }
+            await EnsureLocalEndpoint(value,operationId,token);
             await EnsureSite(value.SiteId, token);
             await EnsureNumber(value.Number, operationId, token);
             if (await db.EventSources.AnyAsync(s => s.Id == operationId, token)) throw new DomainConflictException("Identity already used by a source.");
@@ -69,6 +70,7 @@ public sealed class DeviceRegistry(IoDbContext db, PermissionTransaction transac
             var value = Validate(input);
             await transaction.LockAsync("IO.DeviceRegistry", token);
             var device = await LoadForWrite(id, expectedVersion, token);
+            await EnsureLocalEndpoint(value,id,token);
             await EnsureSite(value.SiteId, token); await EnsureNumber(value.Number, id, token);
             if(device.GroupId is not null && !await (from g in db.DeviceGroups join site in db.Sites on g.CompanyId equals site.CompanyId
                 where g.Id==device.GroupId && g.DeletedAtUtc==null && site.Id==value.SiteId select g.Id).AnyAsync(token))
@@ -167,6 +169,11 @@ public sealed class DeviceRegistry(IoDbContext db, PermissionTransaction transac
     { if (!await db.Sites.AnyAsync(s => s.Id == site, ct)) throw new ArgumentException("Unknown site."); }
     private async Task EnsureNumber(string number, Guid id, CancellationToken ct)
     { if (await db.Devices.AnyAsync(d => d.Number == number && d.Id != id, ct)) throw new DomainConflictException("Device number is already registered."); }
+    private async Task EnsureLocalEndpoint(Input value,Guid id,CancellationToken ct)
+    {
+        if(value.Profile is "zk-usb-direct" or "zk-serial-direct" && await db.Devices.AnyAsync(d=>d.Id!=id&&(d.Profile=="zk-usb-direct"||d.Profile=="zk-serial-direct")&&d.Host==value.Host&&d.Port==value.Port,ct))
+            throw new DomainConflictException("Physical station endpoint already registered; aliases cannot bypass unknown-outcome fences.");
+    }
     private static Input Validate(Input value)
     {
         if (value is null || value.SiteId == Guid.Empty) throw new ArgumentException("Site required.");
@@ -180,6 +187,11 @@ public sealed class DeviceRegistry(IoDbContext db, PermissionTransaction transac
             if (DeviceTransportSupport.IsDirectLocalAddress(value.Host) || string.IsNullOrWhiteSpace(value.Host) || value.Host != value.Host.Trim() || value.Host.Length > 253 ||
                 Uri.CheckHostName(value.Host) == UriHostNameType.Unknown || value.Port is null or < 1 or > 65535)
                 throw new ArgumentException("A plain host and valid port are required (not a URL or credential).");
+        }
+        else if(value.Profile is "zk-usb-direct" or "zk-serial-direct")
+        {
+            if(!ZkLocalTransport.Station(value.Host)||(value.Profile=="zk-usb-direct"?value.Port!=0:value.Port is null or <1 or >256))
+                throw new ArgumentException("Canonical Windows station and explicit USB selector 0 or COM number 1..256 required.");
         }
         else if (value.Profile is not ("zk-push" or "offline-file") || value.Host is not null || value.Port is not null)
             throw new ArgumentException("Unsupported profile or unexpected endpoint.");

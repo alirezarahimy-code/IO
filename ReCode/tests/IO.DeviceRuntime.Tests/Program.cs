@@ -9,6 +9,8 @@ if (args is ["--all-data-erase-contracts"])
     catch(Exception e){Console.Error.WriteLine("::error title=All-data erase contracts::"+e.ToString().Replace("%","%25").Replace("\r","%0D").Replace("\n","%0A"));Environment.ExitCode=1;}
     return;
 }
+if (args is ["--local-transport-contracts"]) { LocalTransportTests.Run(); return; }
+if (args is ["--local-lease-attempt"]) { LocalTransportTests.Attempt(await Console.In.ReadToEndAsync()); return; }
 if (args is ["--transport-support-contracts"]) { TransportSupportTests.Run(); return; }
 if (args is ["--protected-erase-contracts"])
 {
@@ -96,6 +98,7 @@ if (args is not ["--verify"])
 {
     // This executable is a test-only child fixture, never deployed as the SDK bridge.
     var text=await Console.In.ReadToEndAsync();using var document=JsonDocument.Parse(text);
+    if(LocalTransportTests.IsLocal(document.RootElement)){LocalTransportTests.Child(text);return;}
     if(document.RootElement.TryGetProperty("EraseAllData",out _)){await AllDataEraseTests.ChildAsync(text);return;}
     if(document.RootElement.TryGetProperty("EraseProtectedCatalogue",out _)){await ProtectedEraseTests.ChildAsync(text);return;}
     if(document.RootElement.TryGetProperty("EraseUserOrFingerprints",out _)){await UserEraseTests.ChildAsync(text);return;}

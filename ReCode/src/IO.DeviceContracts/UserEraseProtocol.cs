@@ -13,7 +13,7 @@ public sealed record UserEraseApproval(BiometricDeviceIdentity Device,string Use
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record UserEraseInput(ZkProbeInput Connection,Guid OperationId,ZkUser Expected,UserEraseApproval Approval,bool EraseUserOrFingerprints=true)
 {
- public bool IsValid()=>EraseUserOrFingerprints&&Connection?.IsValid()==true&&OperationId!=Guid.Empty&&Approval?.IsValid()==true&&Connection.ExpectedSerial==Approval.Device.Serial&&Expected?.IsValid()==true&&Expected.Privilege==0&&Expected.Card is not null&&Expected.PersonIdentifier.All(char.IsAsciiDigit)&&(Approval.UserFormat!=ZkUserReadFormats.Legacy||ZkUserReadFormats.IsCanonicalLegacyIdentity(Expected.PersonIdentifier));
+ public bool IsValid()=>EraseUserOrFingerprints&&Connection?.IsValid()==true&&Connection.LocalTransport is null&&OperationId!=Guid.Empty&&Approval?.IsValid()==true&&Connection.ExpectedSerial==Approval.Device.Serial&&Expected?.IsValid()==true&&Expected.Privilege==0&&Expected.Card is not null&&Expected.PersonIdentifier.All(char.IsAsciiDigit)&&(Approval.UserFormat!=ZkUserReadFormats.Legacy||ZkUserReadFormats.IsCanonicalLegacyIdentity(Expected.PersonIdentifier));
  public override string ToString()=>"User erase private IPC [subject, expected metadata and credential redacted]";
 }
 // Raw protected catalogue is deliberately non-serializable, unhashed and never a receipt or a backup.

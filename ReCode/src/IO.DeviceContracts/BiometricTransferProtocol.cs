@@ -21,7 +21,7 @@ public sealed record BiometricTransferApproval(BiometricDeviceIdentity Source,Bi
 }
 public sealed record BiometricTransferInput(ZkProbeInput Source,ZkProbeInput Target,Guid OperationId,string SourcePerson,string TargetPerson,BiometricTransferApproval Approval,bool TransferBiometric=true,BiometricPhotoWorkspace? PhotoWorkspace=null,bool InspectOnly=false)
 {
-    public bool IsValid(bool requireWorkspace=true)=>TransferBiometric&&Source?.IsValid()==true&&Target?.IsValid()==true&&Source.DeviceId!=Target.DeviceId&&OperationId!=Guid.Empty&&Person(SourcePerson)&&Person(TargetPerson)&&Approval?.IsValid()==true&&Source.ExpectedSerial==Approval.Source.Serial&&Target.ExpectedSerial==Approval.Target.Serial&&(Approval.Kind!="photo"||(SourcePerson.Length<=20&&TargetPerson.Length<=20&&(!requireWorkspace||PhotoWorkspace?.IsValid(Approval.PhotoHandlingReference!)==true)));
+    public bool IsValid(bool requireWorkspace=true)=>TransferBiometric&&Source?.IsValid()==true&&Target?.IsValid()==true&&Source.LocalTransport is null&&Target.LocalTransport is null&&Source.DeviceId!=Target.DeviceId&&OperationId!=Guid.Empty&&Person(SourcePerson)&&Person(TargetPerson)&&Approval?.IsValid()==true&&Source.ExpectedSerial==Approval.Source.Serial&&Target.ExpectedSerial==Approval.Target.Serial&&(Approval.Kind!="photo"||(SourcePerson.Length<=20&&TargetPerson.Length<=20&&(!requireWorkspace||PhotoWorkspace?.IsValid(Approval.PhotoHandlingReference!)==true)));
     private static bool Person(string? s)=>s is{Length:>=1 and <=100}&&s.All(char.IsAsciiDigit);
     public override string ToString()=>"Biometric transfer IPC [subjects, credentials and policy redacted]";
 }

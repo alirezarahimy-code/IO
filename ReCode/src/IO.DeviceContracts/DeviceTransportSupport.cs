@@ -8,9 +8,10 @@ public static class DeviceTransportSupport
  public static IReadOnlyList<Entry> Entries {get;}=Array.AsReadOnly(new[]{
   new Entry("sdk-network","implemented-model-approval-required","zk-standalone",true,true,"Only explicit IP/port allowlists, owned credentials, pinned installation and supported per-operation contracts; TCP reachability is not SDK acceptance."),
   new Entry("usb-file","implemented-explicit-file-format-only","offline-file",false,true,"Durable bounded file preview/quarantine is NOT a USB cable, Connect_USB, serial connection or a universal vendor file layout."),
-  new Entry("sdk-usb-direct","unsupported-in-this-delivery",null,true,false,"Connect_USB(machine) exists in the reference ABI; this delivery has no driver/physical-endpoint ownership contract or local USB transport adapter. Never infer hardware incapability."),
-  new Entry("sdk-serial-direct","unsupported-in-this-delivery",null,true,false,"Connect_Com(port,machine,baud) exists; reference COM1/115200 is not an installation default or permission to open a local port. No serial adapter or fallback."),
+  new Entry("sdk-usb-direct","implemented-bounded-local-exchange","zk-usb-direct",true,true,"Explicit single-device USB selector ownership on the pinned Windows station, driver/selection approval and serial pin required. Native acceptance remains H01; no network fallback."),
+  new Entry("sdk-serial-direct","implemented-bounded-local-exchange","zk-serial-direct",true,true,"Explicit pinned Windows station, COM number and baud; global IO physical-resource lease and driver approval. No scanning or COM1 default; hardware acceptance remains H01."),
  });
+ public static bool IsSdkProfile(string? profile)=>profile is "zk-standalone" or "zk-usb-direct" or "zk-serial-direct";
  public static bool IsDirectLocalAddress(string? host)
  {
   if(string.IsNullOrEmpty(host))return false;

@@ -590,7 +590,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.ToTable("Devices", t =>
             {
                 t.HasCheckConstraint("CK_Devices_Number", "LEN([Number]) BETWEEN 1 AND 40 AND REPLACE([Number], N'-', N'') COLLATE Latin1_General_100_BIN2 NOT LIKE N'%[^A-Z0-9_]%' AND DATALENGTH([Number]) = LEN([Number]) * 2 AND LEFT([Number],1) COLLATE Latin1_General_100_BIN2 LIKE '[A-Z0-9]'");
-                t.HasCheckConstraint("CK_Devices_Profile", "([Profile] = N'zk-standalone' AND [Host] IS NOT NULL AND [Port] IS NOT NULL AND [Port] BETWEEN 1 AND 65535) OR ([Profile] IN (N'zk-push', N'offline-file') AND [Host] IS NULL AND [Port] IS NULL)");
+                t.HasCheckConstraint("CK_Devices_Profile", "(([Profile] = N'zk-standalone' AND [Host] IS NOT NULL AND [Port] IS NOT NULL AND [Port] BETWEEN 1 AND 65535) OR ([Profile] IN (N'zk-push', N'offline-file') AND [Host] IS NULL AND [Port] IS NULL)) OR ([Profile] IN (N'zk-usb-direct', N'zk-serial-direct') AND [Host] IS NOT NULL AND LEN([Host]) BETWEEN 1 AND 63 AND DATALENGTH([Host])=2*LEN([Host]) AND [Host] COLLATE Latin1_General_100_BIN2 NOT LIKE N'%[^A-Z0-9-]%' AND LEFT([Host],1) COLLATE Latin1_General_100_BIN2 LIKE N'[A-Z]' AND [Port] IS NOT NULL AND (([Profile]=N'zk-usb-direct' AND [Port]=0) OR ([Profile]=N'zk-serial-direct' AND [Port] BETWEEN 1 AND 256)))");
                 t.HasCheckConstraint("CK_Devices_Utc", "DATEPART(TZOFFSET,[CreatedAtUtc]) = 0 AND DATEPART(TZOFFSET,[UpdatedAtUtc]) = 0 AND [UpdatedAtUtc] >= [CreatedAtUtc]");
                 t.HasTrigger("TR_Devices_Identity"); t.UseSqlOutputClause(false);
             });
@@ -603,6 +603,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
             b.Property(x => x.CreationFingerprint).HasMaxLength(64).IsRequired();
             b.Property(x => x.Version).IsRowVersion();
             b.HasIndex(x => x.Number).IsUnique(); b.HasIndex(x => x.SourceId).IsUnique();
+            b.HasIndex(x=>new{x.Host,x.Port}).IsUnique().HasFilter("[Profile] IN (N'zk-usb-direct', N'zk-serial-direct')");
             b.HasIndex(x => x.SiteId); b.HasIndex(x => x.CreatedByUserId);
             b.HasOne<SiteRecord>().WithMany().HasForeignKey(x => x.SiteId).OnDelete(DeleteBehavior.Restrict);
             b.HasOne<EventSourceRecord>().WithMany().HasForeignKey(x => x.SourceId).OnDelete(DeleteBehavior.Restrict);

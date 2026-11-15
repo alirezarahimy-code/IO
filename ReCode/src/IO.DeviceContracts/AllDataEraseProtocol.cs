@@ -11,7 +11,7 @@ public sealed record AllDataEraseApproval(string Family,UserEraseApproval Invent
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record AllDataEraseInput(ZkProbeInput Connection,Guid OperationId,AllDataEraseApproval Approval,int ArchiveCount,string MetadataDigest,int AttendanceCount,string AttendanceDigest,bool InspectOnly=false,bool EraseAllData=true)
 {
- public bool IsValid()=>EraseAllData&&Connection?.IsValid()==true&&OperationId!=Guid.Empty&&Approval?.IsValid()==true&&Connection.ExpectedSerial==Approval.Inventory.Device.Serial&&ArchiveCount>=0&&ArchiveCount<=Approval.Inventory.MaximumUsers&&AttendanceCount>=0&&AttendanceCount<=Approval.Attendance.MaximumRecords&&AttendanceArchiveDigest.Valid(MetadataDigest)&&AttendanceArchiveDigest.Valid(AttendanceDigest);
+ public bool IsValid()=>EraseAllData&&Connection?.IsValid()==true&&Connection.LocalTransport is null&&OperationId!=Guid.Empty&&Approval?.IsValid()==true&&Connection.ExpectedSerial==Approval.Inventory.Device.Serial&&ArchiveCount>=0&&ArchiveCount<=Approval.Inventory.MaximumUsers&&AttendanceCount>=0&&AttendanceCount<=Approval.Attendance.MaximumRecords&&AttendanceArchiveDigest.Valid(MetadataDigest)&&AttendanceArchiveDigest.Valid(AttendanceDigest);
  public override string ToString()=>"All-data clear IPC [private metadata redacted]";
 }
 public interface IAllDataEraseSession

@@ -26,9 +26,10 @@ if(native.Any(t=>t.FunctionKeyWriteApprovals is not null&&(!t.AllowFunctionKeyWr
 if(native.Any(t=>t.ProfileWriteApprovals is not null&&(!t.AllowAdvancedSettingsRead||t.ProfileWriteApprovals.Length is <1 or >7||t.ProfileWriteApprovals.Any(a=>a is null||!a.IsValid())||t.ProfileWriteApprovals.Select(a=>a.Parameter).Distinct().Count()!=t.ProfileWriteApprovals.Length)))throw new InvalidOperationException("Invalid profile write installation contracts.");
 if(native.Any(t=>t.ProfileReadApprovals is not null&&(!t.AllowAdvancedSettingsRead||t.ProfileReadApprovals.Length is <1 or >7||t.ProfileReadApprovals.Any(a=>a is null||!a.IsValid())||t.ProfileReadApprovals.Select(a=>a.Parameter).Distinct().Count()!=t.ProfileReadApprovals.Length)))throw new InvalidOperationException("Invalid profile read installation contracts.");
 if(native.Any(t=>t.BiometricTransferApprovals is not null&&(t.BiometricTransferApprovals.Length==0||t.BiometricTransferApprovals.Any(a=>a?.IsValid()!=true))))throw new InvalidOperationException("Invalid biometric pair/model/policy approval.");
+if(native.Where(t=>t.LocalTransport is not null).Any(t=>t.LocalTransport!.StationName!=Environment.MachineName.ToUpperInvariant())||native.Where(t=>t.LocalTransport is not null).GroupBy(t=>(t.LocalTransport!.StationName,t.LocalTransport.Kind,t.LocalTransport.SerialPort)).Any(g=>g.Count()>1))throw new InvalidOperationException("Wrong-station or duplicate physical endpoint binding.");
 var dotnetPath = builder.Configuration["IO:DeviceWorker:BridgeDotnetPath"];
 var bridgePath = builder.Configuration["IO:DeviceWorker:BridgeAssemblyPath"];
-if (native.Any(t => (!new ZkProbeInput(t.DeviceId,t.Address,t.Port,t.MachineNumber,t.ExpectedSerial,0).IsValid()||!ZkUserReadFormats.IsKnown(t.UserReadFormat)||!ZkUserReadFormats.IsKnown(t.UserWriteFormat)||!ZkAttendanceReadFormats.IsKnown(t.AttendanceReadFormat)||(t.DaylightReadApproval is not null&&(!t.AllowAdvancedSettingsRead||!t.DaylightReadApproval.IsValid()))||(t.FunctionKeyReadApproval is not null&&(!t.AllowAdvancedSettingsRead||!t.FunctionKeyReadApproval.IsValid())))) ||
+if (native.Any(t => (!new ZkProbeInput(t.DeviceId,t.Address,t.Port,t.MachineNumber,t.ExpectedSerial,0,t.LocalTransport).IsValid()||!ZkUserReadFormats.IsKnown(t.UserReadFormat)||!ZkUserReadFormats.IsKnown(t.UserWriteFormat)||!ZkAttendanceReadFormats.IsKnown(t.AttendanceReadFormat)||(t.DaylightReadApproval is not null&&(!t.AllowAdvancedSettingsRead||!t.DaylightReadApproval.IsValid()))||(t.FunctionKeyReadApproval is not null&&(!t.AllowAdvancedSettingsRead||!t.FunctionKeyReadApproval.IsValid())))) ||
     targets.Select(x=>x.DeviceId).Concat(native.Select(x=>x.DeviceId)).Distinct().Count() != targets.Length+native.Length)
     throw new InvalidOperationException("Invalid or ambiguous native endpoint pin.");
 if (native.Length > 0)
@@ -53,7 +54,18 @@ if(builder.Configuration.GetValue<bool>("IO:Biometrics:EnableTransfers"))builder
 builder.Services.AddHostedService<DiagnosticWorker>();
 await builder.Build().RunAsync();
 
-internal sealed record NativeEndpoint(Guid DeviceId, string Address, int Port, int MachineNumber, string ExpectedSerial, bool AllowDefaultCommunicationKey, bool AllowClockSet=false,bool AllowUserRead=false,bool AttendanceOnlyUserWriteApproved=false,bool AllowAttendanceRead=false,bool AllowAdvancedSettingsRead=false,string UserReadFormat=ZkUserReadFormats.Ssr,string UserWriteFormat=ZkUserReadFormats.Ssr,bool AllowRestart=false,bool AllowNetworkIpChange=false,bool AllowNetworkInspect=false,string[]? ApprovedNetworkAddresses=null,bool AllowIdleMinutesWrite=false,ZkIdleApproval? IdleMinutesApproval=null,string AttendanceReadFormat=ZkAttendanceReadFormats.Ssr,ZkFunctionKeyReadApproval? FunctionKeyReadApproval=null,bool AllowRawSettingsWrite=false,ZkRawSettingApproval[]? RawSettingsApprovals=null,bool AllowFunctionKeyWrite=false,ZkFunctionKeyWriteApproval[]? FunctionKeyWriteApprovals=null,ZkDaylightReadApproval? DaylightReadApproval=null,bool AllowProfileWrite=false,ZkProfileWriteApproval[]? ProfileWriteApprovals=null,ZkProfileReadApproval[]? ProfileReadApprovals=null,RemoteEnrollApproval[]? EnrollmentApprovals=null,BiometricTransferApproval[]? BiometricTransferApprovals=null,AttendanceEraseApproval[]? AttendanceEraseApprovals=null,AttendanceRangeEraseApproval[]? AttendanceRangeEraseApprovals=null,ProtectedEraseApproval[]? ProtectedEraseApprovals=null,AllDataEraseApproval[]? AllDataEraseApprovals=null);
+internal sealed record NativeEndpoint(Guid DeviceId, string Address, int Port, int MachineNumber, string ExpectedSerial, bool AllowDefaultCommunicationKey, bool AllowClockSet=false,bool AllowUserRead=false,bool AttendanceOnlyUserWriteApproved=false,bool AllowAttendanceRead=false,bool AllowAdvancedSettingsRead=false,string UserReadFormat=ZkUserReadFormats.Ssr,string UserWriteFormat=ZkUserReadFormats.Ssr,bool AllowRestart=false,bool AllowNetworkIpChange=false,bool AllowNetworkInspect=false,string[]? ApprovedNetworkAddresses=null,bool AllowIdleMinutesWrite=false,ZkIdleApproval? IdleMinutesApproval=null,string AttendanceReadFormat=ZkAttendanceReadFormats.Ssr,ZkFunctionKeyReadApproval? FunctionKeyReadApproval=null,bool AllowRawSettingsWrite=false,ZkRawSettingApproval[]? RawSettingsApprovals=null,bool AllowFunctionKeyWrite=false,ZkFunctionKeyWriteApproval[]? FunctionKeyWriteApprovals=null,ZkDaylightReadApproval? DaylightReadApproval=null,bool AllowProfileWrite=false,ZkProfileWriteApproval[]? ProfileWriteApprovals=null,ZkProfileReadApproval[]? ProfileReadApprovals=null,RemoteEnrollApproval[]? EnrollmentApprovals=null,BiometricTransferApproval[]? BiometricTransferApprovals=null,AttendanceEraseApproval[]? AttendanceEraseApprovals=null,AttendanceRangeEraseApproval[]? AttendanceRangeEraseApprovals=null,ProtectedEraseApproval[]? ProtectedEraseApprovals=null,AllDataEraseApproval[]? AllDataEraseApprovals=null,ZkLocalTransport? LocalTransport=null)
+{
+ public bool Matches(string? host,int? port)=>port==Port&&(LocalTransport is null?System.Net.IPAddress.TryParse(host,out var address)&&System.Net.IPAddress.TryParse(Address,out var pinned)&&pinned.Equals(address):host==Address);
+ public async Task<bool> RegisteredAsync(IServiceScopeFactory scopes,CancellationToken ct)
+ {
+  if(LocalTransport is null)return true;
+  if(LocalTransport.StationName!=Environment.MachineName.ToUpperInvariant())return false;
+  await using var scope=scopes.CreateAsyncScope();
+  return await scope.ServiceProvider.GetRequiredService<IoDbContext>().Devices.AnyAsync(d=>d.Id==DeviceId&&d.Enabled&&d.Profile==LocalTransport.Profile&&d.Host==Address&&d.Port==Port,ct);
+ }
+ public override string ToString()=>"Native endpoint [private station/credential policy redacted]";
+}
 internal sealed record WorkerConfiguration(Guid ServiceUserId, TcpConnectionDiagnostic.AllowedEndpoint[] AllowedEndpoints, NativeEndpoint[] NativeEndpoints, string? DotnetPath, string? BridgePath, bool EnableOperations,bool EnableUserDownloads,bool EnableUserUploads,bool EnableAttendanceDownloads,bool EnableSchedules,bool EnableSettingsReads,BiometricPhotoStaging? PhotoStaging=null,bool EnableRangeAttendanceErases=false,bool EnableAllAttendanceErases=true,string[]? ProtectedEraseFamilies=null,string[]? AllDataEraseFamilies=null);
 internal class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfiguration configuration) : BackgroundService
 {
@@ -131,14 +143,14 @@ internal class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfiguration
     {
         var native = configuration.NativeEndpoints.SingleOrDefault(x=>x.DeviceId==claim.DeviceId);
         if (native is null) return await TcpConnectionDiagnostic.RunAsync(claim, configuration.AllowedEndpoints, ct);
-        if (claim.Profile != "zk-standalone") return "unsupported";
-        if (claim.Port!=native.Port || !System.Net.IPAddress.TryParse(claim.Host,out var address) || !System.Net.IPAddress.Parse(native.Address).Equals(address)) return "endpoint-denied";
+        if (!DeviceTransportSupport.IsSdkProfile(claim.Profile)||!await native.RegisteredAsync(scopes,ct)) return "unsupported";
+        if (!native.Matches(claim.Host,claim.Port)) return "endpoint-denied";
         if (!NativePlatformSupported) return "unsupported";
         await using var scope = scopes.CreateAsyncScope();
         var credential = await scope.ServiceProvider.GetRequiredService<DeviceConnectionCredential>().LoadAsync(configuration.ServiceUserId,claim,native.AllowDefaultCommunicationKey,ct);
         if (credential is null) return "credential-unavailable";
         var result = await NativeProcessSupervisor.RunAsync(configuration.DotnetPath!,configuration.BridgePath!,
-            new ZkProbeInput(claim.DeviceId,native.Address,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value),claim.TimeoutSeconds,ct);
+            new ZkProbeInput(claim.DeviceId,native.Address,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value,native.LocalTransport),claim.TimeoutSeconds,ct);
         return result == "invalid-input" ? "bridge-failed" : result;
     }
 
@@ -148,23 +160,23 @@ internal class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfiguration
         // Installation approval is NOT a claim of model compatibility. No access-control
         // terminals are admitted; approval requires the isolated lab acceptance procedure.
         if(native is null||!native.AttendanceOnlyUserWriteApproved||native.UserReadFormat!=claim.WriteFormat||native.UserWriteFormat!=claim.WriteFormat||!ZkUserReadFormats.IsKnown(claim.WriteFormat)||!NativePlatformSupported)return new("unsupported");
-        if(claim.Port!=native.Port||!System.Net.IPAddress.TryParse(claim.Host,out var address)||!System.Net.IPAddress.Parse(native.Address).Equals(address))return new("failed-before-write");
+        if(!native.Matches(claim.Host,claim.Port)||!await native.RegisteredAsync(scopes,ct))return new("failed-before-write");
         DeviceCommunicationKey? credential;
         await using(var scope=scopes.CreateAsyncScope())credential=await scope.ServiceProvider.GetRequiredService<DeviceUserUploads>().CredentialAsync(configuration.ServiceUserId,claim,native.AllowDefaultCommunicationKey,ct);
         if(credential is null)return new("failed-before-write");
-        return await NativeProcessSupervisor.RunUserWriteAsync(configuration.DotnetPath!,configuration.BridgePath!,new(new(claim.DeviceId,native.Address,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value),true,true,claim.Expected,claim.Desired,claim.WriteFormat),claim.TimeoutSeconds,ct);
+        return await NativeProcessSupervisor.RunUserWriteAsync(configuration.DotnetPath!,configuration.BridgePath!,new(new(claim.DeviceId,native.Address,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value,native.LocalTransport),true,true,claim.Expected,claim.Desired,claim.WriteFormat),claim.TimeoutSeconds,ct);
     }
 
     private async Task<NativeAttendanceReadSupervisor.Result> DownloadAttendance(DeviceAttendanceDownloads.Claim claim,CancellationToken ct)
     {
         var native=configuration.NativeEndpoints.SingleOrDefault(x=>x.DeviceId==claim.DeviceId);
         if(native is null||!native.AllowAttendanceRead||native.AttendanceReadFormat!=claim.ReadFormat||!ZkAttendanceReadFormats.IsKnown(claim.ReadFormat)||!NativePlatformSupported)return new("unsupported",0);
-        if(claim.Port!=native.Port||!System.Net.IPAddress.TryParse(claim.Host,out var address)||!System.Net.IPAddress.Parse(native.Address).Equals(address))return new("endpoint-denied",0);
+        if(!native.Matches(claim.Host,claim.Port)||!await native.RegisteredAsync(scopes,ct))return new("endpoint-denied",0);
         DeviceCommunicationKey? credential;
         await using(var scope=scopes.CreateAsyncScope())credential=await scope.ServiceProvider.GetRequiredService<DeviceAttendanceDownloads>().CredentialAsync(configuration.ServiceUserId,claim,native.AllowDefaultCommunicationKey,ct);
         if(credential is null)return new("credential-unavailable",0);
         long cursor=0;
-        return await NativeAttendanceReadSupervisor.RunAsync(configuration.DotnetPath!,configuration.BridgePath!,new(new(claim.DeviceId,native.Address,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value),true,native.AllowAttendanceRead,claim.ReadFormat),claim.TimeoutSeconds,async(batch,token)=>
+        return await NativeAttendanceReadSupervisor.RunAsync(configuration.DotnetPath!,configuration.BridgePath!,new(new(claim.DeviceId,native.Address,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value,native.LocalTransport),true,native.AllowAttendanceRead,claim.ReadFormat),claim.TimeoutSeconds,async(batch,token)=>
         {
             await using var scope=scopes.CreateAsyncScope();cursor=await scope.ServiceProvider.GetRequiredService<DeviceAttendanceDownloads>().AppendAsync(configuration.ServiceUserId,claim.Id,claim.Token,cursor,batch,token);
         },ct);
@@ -174,12 +186,12 @@ internal class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfiguration
     {
         var native=configuration.NativeEndpoints.SingleOrDefault(x=>x.DeviceId==claim.DeviceId);
         if(native is null||!native.AllowUserRead||native.UserReadFormat!=claim.ReadFormat||!ZkUserReadFormats.IsKnown(native.UserReadFormat)||!NativePlatformSupported)return new("unsupported",0);
-        if(claim.Port!=native.Port||!System.Net.IPAddress.TryParse(claim.Host,out var address)||!System.Net.IPAddress.Parse(native.Address).Equals(address))return new("endpoint-denied",0);
+        if(!native.Matches(claim.Host,claim.Port)||!await native.RegisteredAsync(scopes,ct))return new("endpoint-denied",0);
         DeviceCommunicationKey? credential;
         await using(var scope=scopes.CreateAsyncScope())credential=await scope.ServiceProvider.GetRequiredService<DeviceUserDownloads>().CredentialAsync(configuration.ServiceUserId,claim,native.AllowDefaultCommunicationKey,ct);
         if(credential is null)return new("credential-unavailable",0);
         long cursor=0;
-        return await NativeUserReadSupervisor.RunAsync(configuration.DotnetPath!,configuration.BridgePath!,new(new(claim.DeviceId,native.Address,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value),true,native.AllowUserRead,claim.ReadFormat),claim.TimeoutSeconds,async(batch,token)=>
+        return await NativeUserReadSupervisor.RunAsync(configuration.DotnetPath!,configuration.BridgePath!,new(new(claim.DeviceId,native.Address,native.Port,native.MachineNumber,native.ExpectedSerial,credential.Value,native.LocalTransport),true,native.AllowUserRead,claim.ReadFormat),claim.TimeoutSeconds,async(batch,token)=>
         {
             await using var scope=scopes.CreateAsyncScope();cursor=await scope.ServiceProvider.GetRequiredService<DeviceUserDownloads>().AppendAsync(configuration.ServiceUserId,claim.Id,claim.Token,cursor,batch,token);
         },ct);
@@ -188,9 +200,10 @@ internal class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfiguration
     private async Task<ZkOperationOutput> Operate(DeviceOperations.Claim claim,CancellationToken ct)
     {
         var native=configuration.NativeEndpoints.SingleOrDefault(x=>x.DeviceId==claim.DeviceId);
-        if(native is null||claim.Profile!="zk-standalone")return new("unsupported");
-        if(claim.Port!=native.Port||!System.Net.IPAddress.TryParse(claim.Host,out var address)||!System.Net.IPAddress.Parse(native.Address).Equals(address))return new("endpoint-denied");
+        if(native is null||!DeviceTransportSupport.IsSdkProfile(claim.Profile))return new("unsupported");
+        if(!native.Matches(claim.Host,claim.Port)||!await native.RegisteredAsync(scopes,ct))return new("endpoint-denied");
         if(!NativePlatformSupported||(claim.Kind=="device.restart"&&!native.AllowRestart)||(claim.Kind=="clock.set"&&!native.AllowClockSet)||(claim.Kind=="settings.read"&&(!configuration.EnableSettingsReads||!native.AllowAdvancedSettingsRead)))return new("unsupported");
+        if(native.LocalTransport is not null&&claim.Kind is not("information.read" or "settings.read" or "clock.set" or "device.restart"))return new("unsupported");
         if(claim.Kind=="settings.idle.set"&&(!native.AllowIdleMinutesWrite||claim.IdlePlan is not{} idle||idle.Serial!=native.ExpectedSerial||native.IdleMinutesApproval?.Allows(idle)!=true))return new("unsupported");
         ZkFunctionKeyWriteApproval? keyApproval=null;
         if(claim.Kind=="settings.key.set")
@@ -221,7 +234,7 @@ internal class DiagnosticWorker(IServiceScopeFactory scopes, WorkerConfiguration
         var credential=await scope.ServiceProvider.GetRequiredService<DeviceOperations>().CredentialAsync(configuration.ServiceUserId,claim,native.AllowDefaultCommunicationKey,ct);
         if(credential is null)return new("credential-unavailable");
         return await NativeProcessSupervisor.RunOperationAsync(configuration.DotnetPath!,configuration.BridgePath!,
-            new(new(claim.DeviceId,target,profileEndpoint.Port,native.MachineNumber,native.ExpectedSerial,credential.Value),claim.Kind,claim.ClockLocal,native.AllowClockSet,native.AllowAdvancedSettingsRead,native.AllowRestart,claim.NetworkPlan,native.AllowNetworkIpChange,native.AllowNetworkInspect,claim.IdlePlan,native.AllowIdleMinutesWrite,claim.Kind=="settings.idle.set"?native.IdleMinutesApproval:null,claim.Kind=="settings.read"&&claim.ReadFunctionKeys?native.FunctionKeyReadApproval:null,claim.RawSettingPlan,native.AllowRawSettingsWrite,rawApproval,claim.FunctionKeyPlan,native.AllowFunctionKeyWrite,keyApproval,claim.Kind=="settings.read"?native.DaylightReadApproval:null,claim.ProfilePlan,native.AllowProfileWrite,profileApproval,claim.ProfileObserveRecovery,claim.Kind=="settings.read"?native.ProfileReadApprovals:null),claim.TimeoutSeconds,ct);
+            new(new(claim.DeviceId,target,profileEndpoint.Port,native.MachineNumber,native.ExpectedSerial,credential.Value,native.LocalTransport),claim.Kind,claim.ClockLocal,native.AllowClockSet,native.AllowAdvancedSettingsRead,native.AllowRestart,claim.NetworkPlan,native.AllowNetworkIpChange,native.AllowNetworkInspect,claim.IdlePlan,native.AllowIdleMinutesWrite,claim.Kind=="settings.idle.set"?native.IdleMinutesApproval:null,claim.Kind=="settings.read"&&claim.ReadFunctionKeys?native.FunctionKeyReadApproval:null,claim.RawSettingPlan,native.AllowRawSettingsWrite,rawApproval,claim.FunctionKeyPlan,native.AllowFunctionKeyWrite,keyApproval,claim.Kind=="settings.read"?native.DaylightReadApproval:null,claim.ProfilePlan,native.AllowProfileWrite,profileApproval,claim.ProfileObserveRecovery,claim.Kind=="settings.read"?native.ProfileReadApprovals:null),claim.TimeoutSeconds,ct);
     }
 
 }

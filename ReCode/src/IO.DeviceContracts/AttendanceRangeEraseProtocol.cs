@@ -34,7 +34,7 @@ public sealed record AttendanceRangeErasePlan(AttendanceRangeEraseApproval Appro
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record AttendanceRangeEraseInput(ZkProbeInput Connection,Guid OperationId,AttendanceRangeErasePlan Plan,int ExpectedCount,string ArchiveDigest,int SelectedCount,string RemainingDigest,bool EraseAttendanceRange=true)
 {
- public bool IsValid()=>EraseAttendanceRange&&Connection?.IsValid()==true&&OperationId!=Guid.Empty&&Plan?.IsValid()==true&&Connection.ExpectedSerial==Plan.Approval.Erase.Device.Serial&&ExpectedCount>=0&&ExpectedCount<=Plan.Approval.Erase.MaximumRecords&&SelectedCount>=0&&SelectedCount<=ExpectedCount&&AttendanceArchiveDigest.Valid(ArchiveDigest)&&AttendanceArchiveDigest.Valid(RemainingDigest);
+ public bool IsValid()=>EraseAttendanceRange&&Connection?.IsValid()==true&&Connection.LocalTransport is null&&OperationId!=Guid.Empty&&Plan?.IsValid()==true&&Connection.ExpectedSerial==Plan.Approval.Erase.Device.Serial&&ExpectedCount>=0&&ExpectedCount<=Plan.Approval.Erase.MaximumRecords&&SelectedCount>=0&&SelectedCount<=ExpectedCount&&AttendanceArchiveDigest.Valid(ArchiveDigest)&&AttendanceArchiveDigest.Valid(RemainingDigest);
  public override string ToString()=>"Attendance range erase IPC [private metadata redacted]";
 }
 public interface IAttendanceRangeEraseSession:IAttendanceEraseSession
