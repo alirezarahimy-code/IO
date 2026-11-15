@@ -98,8 +98,14 @@
 
 ماندهٔ ثابت **۵ نرم‌افزاری + H01**: R12 حذف بازه با مرز زمانی دقیق، R13 حذف کاربر/قالب، R14 حذف مدیران، R15 all-data در برابر factory reset و R16 تعیین‌تکلیف USB/serial مستقیم. سپس H01 واقعی. ردیف‌های «R11 باقی» در متن‌های بالاتر تاریخچه‌اند. Linux یا suite کامل تاریخی SQL۱۰۳۱ تکرار نشده است. مرحلهٔ بعد R12 هنوز پیاده‌سازی/پذیرفته نشده؛ امضای `DeleteAttlogBetweenTheDate` و قالب رشتهٔ مرجع به‌تنهایی inclusive/exclusive بودن مرز firmware را اثبات نمی‌کنند.
 
-## وضعیت جاری — R12 پذیرفته؛ ادامه از R13
+## وضعیت پس از پذیرش R12 و پیش از برش اول R13
 
 حذف بازهٔ بستهٔ ساعت محلی دستگاه با مجوز مستقل مدل/مرز/دقت، آرشیو کامل native، دو انسان مستقل، دو scan کامل، تک‌dispatch و تطبیق دقیق multiset باقی‌مانده تکمیل شد. بازیابی اختصاصی بدون بازپخش، unknown اصلی را ثابت نگه می‌دارد؛ مجوز حذف همه جایگزین مجوز بازه نیست. [Windows7787f65:۱۷۵ یکپارچه، شامل۴۶ جدید R12؛۳۴ قرارداد مصنوعی بازه](https://github.com/alirezarahimy-code/IO/actions/runs/43703583328) و [UI ویندوز۲۳ فایل DOM و Chromium، محتوای بدون تغییر](https://github.com/alirezarahimy-code/IO/actions/runs/43702837985). [راهنما](r12-attendance-range-erase.fa.md)، [شاهد دقیق SHA/job و failureهای اصلاح‌شده](r12-attendance-range-erase-evidence.json).
 
 ماندهٔ ثابت **۴ نرم‌افزاری + H01**: R13 حذف کاربر/قالب، R14 حذف مدیران، R15 all-data در برابر factory reset و R16 تعیین‌تکلیف USB/serial مستقیم. سپس H01 واقعی. مطالب «R12 باقی/ساخته‌نشده» در بالا تاریخچهٔ همان برش‌ها هستند. actual SDK/COM و حذف واقعی اجرا نشده، معنای مرز firmware و توقف فیزیکی capture باید در نصب هدف اثبات شوند؛ default-off باقی است. هیچ Linux یا suite کامل تاریخی SQL۱۰۳۱/rollback تازه اجرا نشد. R13 مرحلهٔ بعد است و هنوز پیاده‌سازی/پذیرفته نشده؛ part3Complete=false.
+
+## وضعیت جاری — R13 در حال اجرا؛ هستهٔ اولیه آزموده شد
+
+هستهٔ محدود حذف کاربر عادی یا تمام اثرانگشت‌های همان فرد در پروفایل مصوب فاقد face/photo/door، با دو catalogue transient محافظت‌شده و readback دقیق سایر کاربران ساخته شد. [Windows6854850:۴۸ بررسی مصنوعی جدید +۱۷۵ یکپارچهٔ قبلی به‌عنوان regression](https://github.com/alirezarahimy-code/IO/actions/runs/43708241242). [راهنما و محدودیت‌ها](r13-user-erase-core.fa.md)، [شاهد](r13-user-erase-core-evidence.json). flag۱۳ SSR و۱۱ legacy معادل فرض نشده‌اند؛ raw template/رمز در DB یا IPC خروجی نیست. dispatcher تولیدی هنوز عمداً اضافه نشده است.
+
+**۴ نرم‌افزاری + H01 ثابت است؛ R13 بسته نشده.** مرحلهٔ بعد همچنان تکمیل R13 است: مسیر durable مجوز/preview/دو امضا، صف و fence، observation و بازیابی اختصاصی unknown، سپس worker/bridge/API/UI و Windows integrated acceptance. سایر storeهای بیومتریک و کنترل دسترسی بدون قرارداد جدا پشتیبانی‌شده نیستند و باید پیش از بستن ردیف تعیین‌تکلیف شوند. R14–R16 بعد از آن و پذیرش واقعی H01 در انتهاست. هیچ Linux، SQL۱۰۳۱ کامل، SDK/COM یا حذف واقعی اجرا نشد.

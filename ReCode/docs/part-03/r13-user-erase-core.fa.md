@@ -53,3 +53,9 @@
 - تعیین‌تکلیف روشن مدل‌های دارای face/photo/door و رفتار broad delete؛ این برش مجوز حذف یا ادعای حفظ storeهای اثبات‌نشده نمی‌دهد.
 
 شاهد CI این برش پس از موفقیت واقعی در `r13-user-erase-core-evidence.json` ثبت می‌شود؛ بیلد محلی به‌تنهایی پذیرش نیست. هیچ route تولیدی، اجرای COM/SDK یا حذف واقعی در این برش انجام نشده است.
+
+## نتیجهٔ CI همین برش
+
+[run43708241242/job132793947609](https://github.com/alirezarahimy-code/IO/actions/runs/43708241242) روی `685485067012440dc93e19104dafb1e5e7f2dae5` با label واقعی `windows-2022` موفق است: **۴۸ بررسی مصنوعی جدید R13** از خود executor و mapper تولیدی، تطبیق دادهٔ محافظت‌شده، مرز دو قالب/دو mode، خطا/over-deletion/orphan، عدم افشای raw و supervisor با child واقعی مصنوعی.۱۷۵ بررسی SQL/HTTPS/صف/worker قبلی،۳۴ قرارداد بازه،۲۳ حذف همه،۶۳ بیومتریک/EFS و۴۷ gateway/enrollment نیز regression سبز ماندند؛ هیچ تست عملیاتی SQL/worker/HTTPS جدید R13 اضافه نشده است.
+
+[light43708241251](https://github.com/alirezarahimy-code/IO/actions/runs/43708241251) نیز موفق است؛ در این scope، DOM/Chromium به‌درستی skip شده‌اند چون UI تغییر نکرده است. بایت‌های dispatcher واقعی bridge، تمام worker/web/infrastructure با مبنای۲۷۱۲۷۹۹ برابرند؛ route جدید native اضافه نشده است. [شاهد ماشین‌خوان](r13-user-erase-core-evidence.json). پذیرش فقط هسته است؛ **R13 هنوز باز و شمار۴ + H01 ثابت**.
