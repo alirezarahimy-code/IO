@@ -2,6 +2,10 @@
 
 این worker جدا از وب روی .NET 10 اجرا می‌شود و COM را در process خود یا وب بار نمی‌کند. مسیر اولیه TCP handshake است؛ مسیر candidate ZK در child مستقلِ بخش پایانی همین سند اجرا می‌شود. `tcp-reachable` اثبات دستگاه، رمز، مدل، firmware یا پروتکل نیست. S05 و کل بخش سوم هنوز پذیرفته نشده‌اند.
 
+## وضعیت جاری و ترتیب استقرار
+
+این راهنما لایه‌های تاریخی S05 به بعد را هم حفظ می‌کند؛ [تحویل نرم‌افزاری جاری](part-03-software-delivery.fa.md) و [پذیرش واقعی H01](h01-final-windows-lab-handoff.fa.md) مرجع وضعیت نهایی‌اند. نرم‌افزار در دامنهٔ مستند پذیرفته شده ولی نصب عملیاتی/SDK/چنددستگاه هنوز نه. R15 فقط [ClearData۵ مصوب](r15-all-data-clear.fa.md) است، نه factory reset. [R16](r16-direct-transport-disposition.fa.md) مستقیم USB/serial را unsupported اعلام می‌کند؛ فایل USB adapter مستقیم نیست. برای قابلیت‌های تازه، وب/worker/bridge و **تمام migrationهای نسخهٔ مصوب تا `20261116120000_AllDataErases`** هماهنگ منتشر شوند؛ مجوز و تمام switchهای نصب مستقل و پیش‌فرض خاموش‌اند. Linux در پذیرش نهایی تازه اجرا نشده است.
+
 ## پیش‌نیاز و اعتماد
 
 1. از DB پشتیبان بگیرید؛ تمام migrationها تا `20261112150000_DeviceLegacyUserReads` (یا آخرین نسخهٔ تأییدشدهٔ استقرار) با ابزار مهاجرت موجود اعمال شوند؛ اعمال فقط migration اتصال برای قابلیت‌های جدید کافی نیست. میزبان وب/worker خودکار migrate یا seed نمی‌کند. downgrade پس از اولین درخواست تست عمداً خطای 51016 می‌دهد؛ زنجیرهٔ downgrade اتمیک فرض نشود.
@@ -55,7 +59,7 @@ worker اکنون روی Windows با `AddWindowsService` و نام ثابت `IO
 2. `ReCode/deploy/device-worker/install-windows-service.ps1 -DotnetPath <absolute-dotnet.exe> -WorkerAssemblyPath <absolute-IO.DeviceWorker.dll> -ValidateOnly` فقط وجود مسیر محلیِ کامل و فایل‌های publish را بررسی می‌کند. این گزینه **ACL، درستی SDK، اتصال SQL، نصب سرویس یا سخت‌افزار** را تأیید نمی‌کند.
 3. همان فرمان بدون `-ValidateOnly` را با اختیار نصب Administrator اجرا کنید. `-WhatIf` هم موجود است. نصب با startup دستی و حساب مجازی اختصاصی `NT SERVICE\IODeviceWorker` انجام می‌شود؛ LocalSystem، گذرواژهٔ حساب، grant دیتابیس، policy بازیابی و شروع خودکار ساخته نمی‌شود. سرویس موجود هرگز overwrite نمی‌شود. خروج ناموفق `sc.exe` نصب موفق تلقی نمی‌شود.
 4. پیش از `Start-Service IODeviceWorker`، مجوز read/execute پوشهٔ برنامه و runtime، read تنظیمات و key ring موجود، دسترسی SQL لازم و identity فعالِ بنیادین را برای همان حساب فراهم کنید. ACL نوشتن روی binary/runtime را به اپراتور وب ندهید. حساب مجازی مجوز خودکارِ SQL راه‌دور یا هویت دستگاه نیست؛ روش احراز هویت SQL/سرویس باید توسط استقرار تنظیم شود. برای تغییر به حساب سازمانی از ابزار امن سیستم‌عامل استفاده شود؛ password در آرگومان/فایل repo/چت نرود.
-5. وضعیت شروع/توقف/راه‌اندازی مجدد را در آزمایشگاه Windows ثبت کنید. اجرای همین script در CI **فقط Parse و ValidateOnly بدون نصب/شروع** است و شاهد نصب عملیاتی نیست. حذف دستی بعد از توقف با `sc.exe delete IODeviceWorker` صرفاً registration سرویس را حذف می‌کند؛ تاریخچهٔ SQL یا اصل فایل‌ها حذف نمی‌شود.
+5. وضعیت شروع/توقف/راه‌اندازی مجدد را در آزمایشگاه Windows ثبت کنید. مرحلهٔ ValidateOnly این script در CI **فقط Parse و بررسی مسیر بدون نصب/شروع** است؛ smoke جداگانهٔ `tools/test-worker-windows-service.ps1` چرخهٔ واقعی SCM را با DB مصنوعیِ عمداً unavailable و بدون endpoint انجام داده است (بخش آزمون CI پایین). هیچ‌کدام شاهد نصب عملیاتی/SDK/مدل واقعی نیستند. حذف دستی بعد از توقف با `sc.exe delete IODeviceWorker` صرفاً registration سرویس را حذف می‌کند؛ تاریخچهٔ SQL یا اصل فایل‌ها حذف نمی‌شود.
 
 ### Linux / systemd
 
@@ -148,7 +152,7 @@ UserWriteFormat پیش‌فرض ssr-v1 است. ارسال legacy به UserWriteF
 
 ## نوشتن کلید عملکردی با حفظ برنامهٔ کامل
 
-[قرارداد نصب و حقوق مستقل](s11-function-key-write.fa.md): AllowFunctionKeyWrite پیش‌فرض false، FunctionKeyWriteApprovals شامل دو tuple کامل مصوب همان مدل/firmware/index/اثر/مرجع و AttendanceOnly دارای شاهد معتبر نصب است. AutoChange/AutoChangeTime هرگز مانند مرجع ضمنی صفر نمی‌شوند. migration46 و انتشار هماهنگ worker/bridge لازم است؛ نتیجه CI این برش هنوز باید روی SHA خودش ثبت شود.
+[قرارداد نصب و حقوق مستقل](s11-function-key-write.fa.md): AllowFunctionKeyWrite پیش‌فرض false، FunctionKeyWriteApprovals شامل دو tuple کامل مصوب همان مدل/firmware/index/اثر/مرجع و AttendanceOnly دارای شاهد معتبر نصب است. AutoChange/AutoChangeTime هرگز مانند مرجع ضمنی صفر نمی‌شوند. migration46 و انتشار هماهنگ worker/bridge لازم است؛ پذیرش نرم‌افزاری این برش روی97cac12 در راهنمای پیوندشده ثبت است؛ اثر واقعی نصب همچنان H01 است.
 
 ## خواندن خام DLST
 

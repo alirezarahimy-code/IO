@@ -1,5 +1,5 @@
 {
-  "scope": "Part 3 is S04-S12. Execute all S05-S12; this is progress, NOT completion.",
+  "scope": "Selected Part3 software delivery: R15 restricted-profile ClearData(machine,5), independent authorization/two complete archives/two humans/immutable one-shot queue/worker and read-only unknown recovery; NOT factory reset. R16 is a version-scoped unsupported direct USB/serial disposition with enforcement and reporting, NOT an implementation of those transports or a claim about hardware capabilities. Real Windows/SDK/multidevice H01 remains unexecuted.",
   "userTarget": {
     "family": "ZK standalone/network SDK",
     "lab": "Windows",
@@ -8,7 +8,7 @@
     "realDeviceExecution": "not performed",
     "testingSequence": "User explicitly requires virtual-device software completion now, copying reference behavior as appropriate, with real Windows SDK/multidevice acceptance deferred to the end. Lack of local hardware must not block further software implementation."
   },
-  "latestVerifiedCode": "740dca2f0cb52845bbd04d28d233eea146d4a82f",
+  "latestVerifiedCode": "b6791a58991603d2c099414b3e1ac9a8d6e17d53",
   "checks": {
     "integrationPassLines": 1031,
     "foundation": 48,
@@ -88,11 +88,11 @@
     "S05": "partial: real SQL queues and grant/revoke, four native execution slots, timeouts, serial-pinned candidate, independent persisted worker instance heartbeats and permissioned SQL health dashboard. Actual SCM/systemd published-worker install/start/stop verified in isolated CI with unavailable synthetic DB and no endpoints. Real lab SDK installation/device connection tests remain. Stateful two-endpoint loopback TCP test laboratory now verifies isolated child behavior and fail-fast rejection of blocked malformed streams; private test protocol is not ZK.",
     "S06": "partial software candidate verified in CI: typed information/capacity/clock snapshots, independent read/set/execute permissions, explicitly confirmed UTC/timezone clock writes and immutable unknown outcome with later clock observation plus human review; real model/SDK tests and other supported settings remain Bounded IPv4 change now implemented and verified in software CI: exact immutable old/new/serial plan, separate human/service write and inspection grants, default-off installation flags and two-address allowlist, preflight GetDeviceIP and single SetDeviceIP/RefreshData. ACK remains unknown; fresh read-only old/new inspection plus explicit review records evidence without automatic metadata/pin update. Mask/gateway/MAC closed model-approved software writes and endpoint inspections now pass on 6e8f9d95888ea6e0b7558aa3ccbf51f26d25b2a5; All seven profile software contracts are now source-backed; actual target-firmware/COM and network application acceptance remain in H01. Fixed reported IP and raw algorithm reads are now included; capacity reads preserve independent null outcomes and zero, and serial is rechecked after the snapshot. Five closed raw numeric parameter writes also passed SQL888 and Windows/Linux on f737144: independent raw.set/raw.execute rights, approved installed model/firmware/both values/unit/effect/evidence, immutable preview/hash, one-dispatch exact readback and unknown review. This is not arbitrary code write or actual model acceptance. TCPPort software path is now accepted with explicit native SDK write evidence and31 offline trapped-transport probes on85347c2; real model acceptance is still H01.",
     "S07": "partial software candidate verified in SQL/HTTPS/browser and Windows/Linux CI: streamed read-only SSR exact-string and separately explicitly approved legacy non-TFT Int32 user snapshots; immutable ReadFormat, installed-format match, typed IPC format fencing, stable count and serial checks, exact mapping preview and no employee overwrite. No fallback, no legacy write authorization and no real COM/model acceptance.",
-    "S08": "partial software candidate: SSR and explicitly selected legacy non-TFT ordinary metadata writes, immutable target snapshot/format, mixed batch preview/hash, independent outcomes, protected password preservation/null rejection, exact read-back, separate installed write-format gate, distinct legacy IPC, same-format unknown review and selective fresh intent retry verified in SQL and Windows/Linux CI. No templates/biometrics/admin/AccGroup/door writes or real SDK/model acceptance.",
+    "S08": "Selected ordinary metadata exchange and approved R10 fingerprint/face/photo transfer software paths accepted separately; per-installation biometric/retention approval and hardware H01 still required. Broad deletion is restricted to explicitly approved fingerprint-only profile; not a general hidden-store or door capability.",
     "S09": "partial hardware acceptance, software paths now include observed SSR and explicit legacy non-TFT GetGeneralLogData. Immutable ReadFormat, minute precision, two distinct machine outputs, exact canonical tuples, multiplicity, quarantine, independent confirmed raw ingestion, explicit read-retry format/lineage, cross-format history quarantine and installed worker-format match verified in SQL/HTTPS/Chromium/worker plus portable contracts/TCP. Native ranged API and physical event identity are not claimed; actual COM/model acceptance remains at the end.",
-    "S10": "partial: approved durable SSR and explicit non-TFT polling with immutable ReadFormat and same-format SQL run/download lineage, current creator grants, cursor/run, optional auto-ingestion, pause/resume/backoff and explicit bounded overlap verified in SQL/HTTPS/real browser and Windows/Linux CI. Late tuples inside the approved lookback enter existing immutable raw/dedup pipeline once; older late events remain unguaranteed. Incomplete reads cannot advance cursor. Authenticated supported-model vendor PUSH and actual SDK/model acceptance remain unimplemented/unverified. Cross-queue write/unknown fences now prevent creating/resuming polling during unreviewed native writes; active polling blocks clock/restart as well as IP/idle.",
-    "S11": "partial: SQL command history, immutable FK lineage, current independent human/service grants and separately confirmed retries for information, six fixed advanced-settings reads and attendance downloads verified in SQL/HTTPS/browser and Windows/Linux CI. Settings retry needs additional READ-ADVANCED-SETTINGS consent and typed current read grant; SQL guards forbid native write retries. DLST date-mode, algorithm, mask, gateway, MAC and TCPPort now have verified complete closed approved software paths. RemoteEnroll and destructive operations plus real model/firmware/COM/biometric policy acceptance remain; DHCP software contract is now source-backed, with real lease/application verification still H01. Explicit independently granted Standalone restart candidate now verified with 17 SQL, 3 HTTPS and 11 native-boundary checks; immutable unknown recovery records later same-device reachability, not proven reboot completion. No factory reset/delete or arbitrary SDK command. Independently granted IPv4 transition and serial-pinned read-only network recovery also implemented; no generic setting code write. Exact-model code4 idle-minutes candidate now verified in software CI: server snapshot-derived preview/hash, distinct human and service grants, default-off installed exact product/firmware/value/evidence approval, live descriptor and old-value preflight, one write and typed readback. False/exception/readback mismatch or deadline after dispatch remains unknown; later same-model old/new observation plus explicit review retains unknown. Zero/disabled and arbitrary codes unsupported. Exact installed-model function key reads and fixed raw mask/gateway observations now software-verified; network writes now use only the separately approved closed profile contract, never a public arbitrary option setter. Full tuple function-key writes are now software-verified on97cac12 with one dispatch, exact raw schedule preservation, distinct write grants and unknown review; real device approval remains required. Five closed raw numeric parameter writes also passed SQL888 and Windows/Linux on f737144: independent raw.set/raw.execute rights, approved installed model/firmware/both values/unit/effect/evidence, immutable preview/hash, one-dispatch exact readback and unknown review. This is not arbitrary code write or actual model acceptance. Function key collection/disclosure now additionally needs independently granted keys.read/keys.execute. Retained history is redacted without current human key grant; actual worker negative revoke paths passed. Profile settings: fourteen distinct default-ungranted human/service rights; exact immutable SQL source/model/zone/endpoint plan and hash; complete preflight; one dispatch; network ACK always unknown; separate read-only endpoint/old-new inspection and explicit retained-unknown review; real Chromium form and maximum coupled Unicode IPC/SQL regression passed. Seven software ledger rows closed after source-backed DHCP contract and29 actual-mapper double checks on5e1f332; real target-firmware support remains H01, not claimed from generic forwarding.",
-    "S12": "partial: exact-byte USB/file preview, quarantine/confirmed raw ingestion, SQL health and actual published-worker SCM/systemd lifecycle under dedicated isolated-CI accounts verified. Lifecycle uses unavailable synthetic DB and no native endpoints, not real lab deployment or SDK acceptance. Latest full suite includes40 stateful HTTPS/SQL/worker/child checks and real Chromium forms, including seven profile lost-ACK/inspection paths, SSR and explicit legacy attendance, partial downloads, concurrent outage/recovery, deduplication and current grant/scope revocation. Fresh-worker-only is a separate diagnostic mode, not repeated on this SHA. Private TCP protocol and compiled Windows/Linux bridge are not actual COM. H01 real multiple-device settings/exchange/outage/download/SDK/ACL and file-model acceptance remains deferred to the end."
+    "S10": "Selected authenticated isolated-LAN gateway PUSH/collector/journal/ACK/commit and polling software paths accepted; gateway identity is NOT native cryptographic device authentication. Installed protocol/security/model acceptance remains H01.",
+    "S11": "Selected independent settings/restart/enroll and R11/R12/R13/R14/R15 deletion/recovery software paths accepted, no automatic replay of unknown writes. R15 ClearData5 is NOT factory reset; factory reset unsupported in this delivery. Exact native effect/legal/retention/quiescence assumptions remain external installation prerequisites and H01.",
+    "S12": "Selected explicit-format file preview/quarantine/ingestion, SQL health and prior isolated-CI service lifecycle accepted. R16 direct USB/serial explicitly unsupported-in-this-delivery; file is NOT direct connectivity. Real Windows/SDK/ACL/multidevice/file-model acceptance H01 remains open."
   },
   "hardwareVerified": false,
   "part3Complete": false,
@@ -112,10 +112,7 @@
       "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43629451517"
     }
   ],
-  "remainingSoftware": [
-    "P3-R15 independently authorized all-data clear versus explicit factory-reset disposition; ClearData(machine,5) is not by itself a factory-reset contract.",
-    "P3-R16 direct USB/serial support disposition; existing file parser is not direct connectivity."
-  ],
+  "remainingSoftware": [],
   "realSdkExecuted": false,
   "windowsServiceInstalled": false,
   "linuxServiceInstalled": false,
@@ -149,7 +146,7 @@
   "deviceReferenceParityEvidence": "device-reference-parity-evidence.json",
   "virtualWorkerEvidence": "virtual-worker-evidence.json",
   "softwareAndLabAcceptance": "software-and-lab-acceptance.fa.md",
-  "softwareComplete": false,
+  "softwareComplete": true,
   "selectedDeviceScopeEvidence": "s04-device-operator-scope-evidence.json",
   "legacyAttendanceEvidence": "s09-legacy-attendance-evidence.json",
   "legacyPollingEvidence": "s10-legacy-polling-evidence.json",
@@ -348,7 +345,7 @@
       }
     ]
   },
-  "nextExactAction": "R15: separately approve and implement all-data clear, explicitly distinguish fixed ClearData(machine,5) from factory reset; then R16 direct USB/serial support disposition. Real Windows/SDK/multidevice H01 last. Two software rows remain plus independent H01. No Linux tests or SQL1031 rerun.",
+  "nextExactAction": "Execute H01 in an authorized real Windows/SDK/multidevice lab following h01-final-windows-lab-handoff.fa.md; keep every destructive/model-dependent deployment gate off until installed effects/policies/exclusive control are approved. Direct USB/serial and factory reset are explicitly unsupported, not features waiting to be toggled. No Linux tests or historical SQL1031 rerun.",
   "profileSettingsFollowup": {
     "code": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
     "accepted": true,
@@ -658,7 +655,7 @@
     "evidence": "s10-gateway-s09-enroll-software-evidence.json",
     "historicalPortableScopeSupersededBy": "gatewayEnrollmentOperationalFollowup"
   },
-  "latestVerifiedPortableCode": "740dca2f0cb52845bbd04d28d233eea146d4a82f",
+  "latestVerifiedPortableCode": "b6791a58991603d2c099414b3e1ac9a8d6e17d53",
   "gatewayEnrollmentOperationalFollowup": {
     "status": "windows-integrated-software-accepted-with-explicit-native-and-policy-gaps",
     "code": "248cbcdf45f40ea9c7d4b2527be7af1b7cdf3843",
@@ -682,7 +679,7 @@
     "guide": "gateway-enrollment-operations.fa.md",
     "historicalScopeSupersededBy": "nativePushReviewedRecoveryFollowup"
   },
-  "latestVerifiedWindowsIntegratedCode": "740dca2f0cb52845bbd04d28d233eea146d4a82f",
+  "latestVerifiedWindowsIntegratedCode": "b6791a58991603d2c099414b3e1ac9a8d6e17d53",
   "nativePushReviewedRecoveryFollowup": {
     "scope": "Software acceptance of selected isolated-LAN authenticated-gateway PUSH and default-off RemoteEnroll with assisted two-person physical recovery. Not native device authentication or installed hardware acceptance.",
     "code": "cffed8264635f00bcb460c78e9960afa1f5b462b",
@@ -864,5 +861,119 @@
       43710921010,
       43710921014
     ]
-  }
+  },
+  "softwareCompleteMeaning": "Only the documented selected delivery contracts plus explicit unsupported dispositions; not full legacy feature parity or support for arbitrary model/transport/store.",
+  "fullLegacyFeatureParity": false,
+  "remainingAcceptance": [
+    "P3-H01 real Windows/SDK/ACL and at least two physical devices; not executed."
+  ],
+  "remainingTechnicalCount": 0,
+  "unsupportedInThisDelivery": [
+    "factory-reset",
+    "direct-usb-sdk-transport",
+    "direct-serial-sdk-transport",
+    "face/photo/palm/vein/door/hidden/extra-slot broad deletion outside approved fingerprint-only profile"
+  ],
+  "currentStatusGuide": "part-03-software-delivery.fa.md",
+  "finalLabHandoff": "h01-final-windows-lab-handoff.fa.md",
+  "r15R16SoftwareDeliveryFollowup": {
+    "scope": "Selected Part3 software delivery: R15 restricted-profile ClearData(machine,5), independent authorization/two complete archives/two humans/immutable one-shot queue/worker and read-only unknown recovery; NOT factory reset. R16 is a version-scoped unsupported direct USB/serial disposition with enforcement and reporting, NOT an implementation of those transports or a claim about hardware capabilities. Real Windows/SDK/multidevice H01 remains unexecuted.",
+    "code": "b6791a58991603d2c099414b3e1ac9a8d6e17d53",
+    "windowsIntegratedSqlHttpsQueueChecks": 355,
+    "existingIntegratedRegressionChecks": 296,
+    "newR15SqlWorkerChecks": 39,
+    "newR15HttpsChecks": 7,
+    "newR15IntegratedChecks": 46,
+    "newR16SqlSupportDispositionChecks": 11,
+    "newR16HttpsSupportDispositionChecks": 2,
+    "newR16IntegratedChecks": 13,
+    "syntheticR15MapperExecutorSupervisorChecks": 48,
+    "syntheticR16SupportBoundaryChecks": 26,
+    "regressionProtectedEraseContracts": 34,
+    "regressionUserEraseCoreContracts": 48,
+    "regressionRangeEraseContracts": 34,
+    "regressionAllAttendanceEraseContracts": 23,
+    "regressionBiometricEfsContracts": 63,
+    "regressionGatewayEnrollmentContracts": 47,
+    "offlineDomFiles": 26,
+    "migrations": 57,
+    "domainTables": 71,
+    "pagesAndHelp": 58,
+    "pinnedTypeLibraries": 2,
+    "ledgerDispositions": [
+      {
+        "id": "P3-R15",
+        "result": "software-accepted-restricted-profile",
+        "implemented": "Only ClearData(5), complete users/password/cards/ten-fingerprint-slots/logs profile, full empty readback and same endpoint/key reconnect.",
+        "notImplemented": "Factory reset or hidden/face/photo/palm/vein/door/extra-slot store clearing."
+      },
+      {
+        "id": "P3-R16",
+        "result": "support-disposition-resolved-unsupported-in-this-delivery",
+        "implemented": "Explicit support inventory/read-only authenticated API, registry/strict IPC rejection of local-port aliases and injected transport selectors, UI/help disclosures.",
+        "notImplemented": "Connect_USB or Connect_Com execution, driver enumeration, exclusive physical port ownership or any direct USB/serial adapter."
+      }
+    ],
+    "remainingTechnicalCount": 0,
+    "remainingTechnicalIds": [],
+    "independentFinalLabPackage": "P3-H01",
+    "softwareComplete": true,
+    "fullLegacyFeatureParity": false,
+    "directUsbSerialAdapterImplemented": false,
+    "factoryResetImplemented": false,
+    "hardwareVerified": false,
+    "realSdkExecuted": false,
+    "realDeploymentDefaultOff": true,
+    "linuxTestsExecuted": false,
+    "part3Complete": false,
+    "evidence": "r15-r16-software-evidence.json",
+    "guides": [
+      "r15-all-data-clear.fa.md",
+      "r16-direct-transport-disposition.fa.md",
+      "h01-final-windows-lab-handoff.fa.md"
+    ],
+    "runs": [
+      43713356207,
+      43713356176
+    ]
+  },
+  "stagesHistoricalBeforeLaterFollowups": {
+    "S04": "accepted registry and metadata groups; explicit versioned selected-device operator scope now software-verified in SQL and Chromium, with current human target authority enforced in worker dispatch/polling",
+    "S05": "partial: real SQL queues and grant/revoke, four native execution slots, timeouts, serial-pinned candidate, independent persisted worker instance heartbeats and permissioned SQL health dashboard. Actual SCM/systemd published-worker install/start/stop verified in isolated CI with unavailable synthetic DB and no endpoints. Real lab SDK installation/device connection tests remain. Stateful two-endpoint loopback TCP test laboratory now verifies isolated child behavior and fail-fast rejection of blocked malformed streams; private test protocol is not ZK.",
+    "S06": "partial software candidate verified in CI: typed information/capacity/clock snapshots, independent read/set/execute permissions, explicitly confirmed UTC/timezone clock writes and immutable unknown outcome with later clock observation plus human review; real model/SDK tests and other supported settings remain Bounded IPv4 change now implemented and verified in software CI: exact immutable old/new/serial plan, separate human/service write and inspection grants, default-off installation flags and two-address allowlist, preflight GetDeviceIP and single SetDeviceIP/RefreshData. ACK remains unknown; fresh read-only old/new inspection plus explicit review records evidence without automatic metadata/pin update. Mask/gateway/MAC closed model-approved software writes and endpoint inspections now pass on 6e8f9d95888ea6e0b7558aa3ccbf51f26d25b2a5; All seven profile software contracts are now source-backed; actual target-firmware/COM and network application acceptance remain in H01. Fixed reported IP and raw algorithm reads are now included; capacity reads preserve independent null outcomes and zero, and serial is rechecked after the snapshot. Five closed raw numeric parameter writes also passed SQL888 and Windows/Linux on f737144: independent raw.set/raw.execute rights, approved installed model/firmware/both values/unit/effect/evidence, immutable preview/hash, one-dispatch exact readback and unknown review. This is not arbitrary code write or actual model acceptance. TCPPort software path is now accepted with explicit native SDK write evidence and31 offline trapped-transport probes on85347c2; real model acceptance is still H01.",
+    "S07": "partial software candidate verified in SQL/HTTPS/browser and Windows/Linux CI: streamed read-only SSR exact-string and separately explicitly approved legacy non-TFT Int32 user snapshots; immutable ReadFormat, installed-format match, typed IPC format fencing, stable count and serial checks, exact mapping preview and no employee overwrite. No fallback, no legacy write authorization and no real COM/model acceptance.",
+    "S08": "partial software candidate: SSR and explicitly selected legacy non-TFT ordinary metadata writes, immutable target snapshot/format, mixed batch preview/hash, independent outcomes, protected password preservation/null rejection, exact read-back, separate installed write-format gate, distinct legacy IPC, same-format unknown review and selective fresh intent retry verified in SQL and Windows/Linux CI. No templates/biometrics/admin/AccGroup/door writes or real SDK/model acceptance.",
+    "S09": "partial hardware acceptance, software paths now include observed SSR and explicit legacy non-TFT GetGeneralLogData. Immutable ReadFormat, minute precision, two distinct machine outputs, exact canonical tuples, multiplicity, quarantine, independent confirmed raw ingestion, explicit read-retry format/lineage, cross-format history quarantine and installed worker-format match verified in SQL/HTTPS/Chromium/worker plus portable contracts/TCP. Native ranged API and physical event identity are not claimed; actual COM/model acceptance remains at the end.",
+    "S10": "partial: approved durable SSR and explicit non-TFT polling with immutable ReadFormat and same-format SQL run/download lineage, current creator grants, cursor/run, optional auto-ingestion, pause/resume/backoff and explicit bounded overlap verified in SQL/HTTPS/real browser and Windows/Linux CI. Late tuples inside the approved lookback enter existing immutable raw/dedup pipeline once; older late events remain unguaranteed. Incomplete reads cannot advance cursor. Authenticated supported-model vendor PUSH and actual SDK/model acceptance remain unimplemented/unverified. Cross-queue write/unknown fences now prevent creating/resuming polling during unreviewed native writes; active polling blocks clock/restart as well as IP/idle.",
+    "S11": "partial: SQL command history, immutable FK lineage, current independent human/service grants and separately confirmed retries for information, six fixed advanced-settings reads and attendance downloads verified in SQL/HTTPS/browser and Windows/Linux CI. Settings retry needs additional READ-ADVANCED-SETTINGS consent and typed current read grant; SQL guards forbid native write retries. DLST date-mode, algorithm, mask, gateway, MAC and TCPPort now have verified complete closed approved software paths. RemoteEnroll and destructive operations plus real model/firmware/COM/biometric policy acceptance remain; DHCP software contract is now source-backed, with real lease/application verification still H01. Explicit independently granted Standalone restart candidate now verified with 17 SQL, 3 HTTPS and 11 native-boundary checks; immutable unknown recovery records later same-device reachability, not proven reboot completion. No factory reset/delete or arbitrary SDK command. Independently granted IPv4 transition and serial-pinned read-only network recovery also implemented; no generic setting code write. Exact-model code4 idle-minutes candidate now verified in software CI: server snapshot-derived preview/hash, distinct human and service grants, default-off installed exact product/firmware/value/evidence approval, live descriptor and old-value preflight, one write and typed readback. False/exception/readback mismatch or deadline after dispatch remains unknown; later same-model old/new observation plus explicit review retains unknown. Zero/disabled and arbitrary codes unsupported. Exact installed-model function key reads and fixed raw mask/gateway observations now software-verified; network writes now use only the separately approved closed profile contract, never a public arbitrary option setter. Full tuple function-key writes are now software-verified on97cac12 with one dispatch, exact raw schedule preservation, distinct write grants and unknown review; real device approval remains required. Five closed raw numeric parameter writes also passed SQL888 and Windows/Linux on f737144: independent raw.set/raw.execute rights, approved installed model/firmware/both values/unit/effect/evidence, immutable preview/hash, one-dispatch exact readback and unknown review. This is not arbitrary code write or actual model acceptance. Function key collection/disclosure now additionally needs independently granted keys.read/keys.execute. Retained history is redacted without current human key grant; actual worker negative revoke paths passed. Profile settings: fourteen distinct default-ungranted human/service rights; exact immutable SQL source/model/zone/endpoint plan and hash; complete preflight; one dispatch; network ACK always unknown; separate read-only endpoint/old-new inspection and explicit retained-unknown review; real Chromium form and maximum coupled Unicode IPC/SQL regression passed. Seven software ledger rows closed after source-backed DHCP contract and29 actual-mapper double checks on5e1f332; real target-firmware support remains H01, not claimed from generic forwarding.",
+    "S12": "partial: exact-byte USB/file preview, quarantine/confirmed raw ingestion, SQL health and actual published-worker SCM/systemd lifecycle under dedicated isolated-CI accounts verified. Lifecycle uses unavailable synthetic DB and no native endpoints, not real lab deployment or SDK acceptance. Latest full suite includes40 stateful HTTPS/SQL/worker/child checks and real Chromium forms, including seven profile lost-ACK/inspection paths, SSR and explicit legacy attendance, partial downloads, concurrent outage/recovery, deduplication and current grant/scope revocation. Fresh-worker-only is a separate diagnostic mode, not repeated on this SHA. Private TCP protocol and compiled Windows/Linux bridge are not actual COM. H01 real multiple-device settings/exchange/outage/download/SDK/ACL and file-model acceptance remains deferred to the end."
+  },
+  "checksScope": "Historical full SQL1031 baseline; NOT rerun on latestVerifiedCode. Current selected Windows integrated/runtime/UI counts are in currentVerifiedChecks and r15R16SoftwareDeliveryFollowup.",
+  "currentVerifiedChecks": {
+    "windowsIntegratedSqlHttpsQueueChecks": 355,
+    "existingIntegratedRegressionChecks": 296,
+    "newR15SqlWorkerChecks": 39,
+    "newR15HttpsChecks": 7,
+    "newR15IntegratedChecks": 46,
+    "newR16SqlSupportDispositionChecks": 11,
+    "newR16HttpsSupportDispositionChecks": 2,
+    "newR16IntegratedChecks": 13,
+    "syntheticR15MapperExecutorSupervisorChecks": 48,
+    "syntheticR16SupportBoundaryChecks": 26,
+    "regressionProtectedEraseContracts": 34,
+    "regressionUserEraseCoreContracts": 48,
+    "regressionRangeEraseContracts": 34,
+    "regressionAllAttendanceEraseContracts": 23,
+    "regressionBiometricEfsContracts": 63,
+    "regressionGatewayEnrollmentContracts": 47,
+    "offlineDomFiles": 26,
+    "migrations": 57,
+    "domainTables": 71,
+    "pagesAndHelp": 58,
+    "pinnedTypeLibraries": 2
+  },
+  "currentVerifiedRuns": [
+    43713356207,
+    43713356176
+  ]
 }

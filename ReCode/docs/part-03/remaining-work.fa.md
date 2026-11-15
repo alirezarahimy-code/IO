@@ -2,6 +2,14 @@
 
 **این فهرست، تغییر دامنه یا پذیرش نهایی نیست. `part3Complete=false`.** طبق تأکید مجدد کاربر، آزمایش واقعی Windows/SDK و دستگاه فیزیکی به انتها موکول است و مانع اجرای نرم‌افزار نیست. [تصمیم اجرا و معیارهای مستقل](software-and-lab-acceptance.fa.md). کدهای فعال دو مرجع مبنای اقتباس رفتارند؛ تست مجازی از مسیر واقعی وب/SQL/worker نیز به مجموعه اضافه شده است. کدهای مرجع فقط‌خواندنی و بدنه‌های decompile باینری مبنای مشاهدهٔ قراردادند؛ نام DLL یا API اثبات پشتیبانی مدل/firmware نیست. آخرین commit و CI معتبر در [progress-evidence.json](progress-evidence.json) ثبت می‌شود.
 
+## وضعیت جاری پس از R15/R16
+
+**ماندهٔ فنی حل‌نشده در دامنهٔ مستند تحویل:۰؛ پذیرش واقعی H01:باز.** R15 مسیر مصوب ClearData۵ دارد و **factory reset نیست**. R16 به‌عنوان تعیین‌تکلیف بسته شد: **USB/serial مستقیم در این نسخه unsupported است و adapter آن ساخته نشده**؛ فایل USB جای آن نیست. این نتیجه هم‌ارزی تمام قابلیت‌های مرجع یا پذیرش دستگاه نیست. [گزارش تحویل جاری](part-03-software-delivery.fa.md)، [شاهد نهایی Windows/UI](r15-r16-software-evidence.json)، [آزمایشگاه پایانی H01](h01-final-windows-lab-handoff.fa.md). `part3Complete=false` و default-off واقعی حفظ شده؛ Linux تست نشده است.
+
+## جدول و ادامه‌های تاریخی ثبت نیازها
+
+جدول زیر و برش‌های بعدی تاریخچه‌اند؛ عبارت‌های «ساخته نشده/مانده» در آن‌ها با followup همان ردیف و ledger جاری خوانده شوند، نه به‌عنوان وضعیت نهایی نرم‌افزار.
+
 | مرحله | آنچه نرم‌افزاری ساخته و آزموده شده | ماندهٔ واقعی |
 |---|---|---|
 | S04 | ثبت چنددستگاه، گروه metadata، grant/revoke، حفاظت secret | پذیرفته‌شده؛ ثبت دستگاه اثبات اتصال نیست |
@@ -110,10 +118,16 @@
 
 **۴ نرم‌افزاری + H01 ثابت است؛ R13 بسته نشده.** مرحلهٔ بعد همچنان تکمیل R13 است: مسیر durable مجوز/preview/دو امضا، صف و fence، observation و بازیابی اختصاصی unknown، سپس worker/bridge/API/UI و Windows integrated acceptance. سایر storeهای بیومتریک و کنترل دسترسی بدون قرارداد جدا پشتیبانی‌شده نیستند و باید پیش از بستن ردیف تعیین‌تکلیف شوند. R14–R16 بعد از آن و پذیرش واقعی H01 در انتهاست. هیچ Linux، SQL۱۰۳۱ کامل، SDK/COM یا حذف واقعی اجرا نشد.
 
-## وضعیت جاری — R13 و R14 نرم‌افزاری پذیرفته؛۲ مانده + H01
+## وضعیت تاریخی — پس از R13/R14 و پیش از R15/R16
 
 مسیر کامل سه خانوادهٔ مستقل users/fingerprints/administrators از archive و preview/دو انسان تا صف immutable، fence همهٔ صف‌های native، worker/bridge/API/UI، readback محافظت‌شده و بازیابی اختصاصی unknown ساخته و روی Windows پذیرفته شد. R14 فقط demotion با `ClearAdministrators` و حفظ افراد/رمز/کارت/template است، نه حذف مدیر به‌عنوان شخص. profile محدود فاقد face/photo/palm/vein/door/hidden store و ده اسلات fingerprint صریحاً تعیین‌تکلیف شده؛ مدل دیگر پشتیبانی‌شده فرض نمی‌شود و default-off می‌ماند. [قرارداد و راهنمای نصب/بازیابی](r13-r14-protected-erases.fa.md)، [شاهد](r13-r14-protected-erases-evidence.json).
 
 [Windows740dca2](https://github.com/alirezarahimy-code/IO/actions/runs/43710921010):۲۹۶ یکپارچه، شامل۱۲۱ جدید R13/R14 (۱۰۳ SQL/صف/worker و۱۸ HTTPS واقعی) +۳۴ قرارداد مصنوعی جدید protected و۴۸ هستهٔ قبلی R13؛ سایر regressionها نیز موفق. [UI همان SHA](https://github.com/alirezarahimy-code/IO/actions/runs/43710921014):۲۴ فایل DOM و Chromium موفق. observation بازیابی قابل کنارگذاشتن به inspection-failed است تا انقضای مهلت بازبین قفل دائمی ایجاد نکند؛ این عمل original unknown را تغییر یا unlock نمی‌کند و inspection تازه لازم است.
 
 ماندهٔ جاری **۲ نرم‌افزاری**: **R15** پاکسازی همهٔ داده‌ها با قرارداد و مجوز مستقل و تمایز صریح از factory reset، سپس **R16** تعیین‌تکلیف USB/serial مستقیم؛ **H01** پذیرش واقعی Windows/SDK/چنددستگاه جدا و آخر. متن‌های مانده‌های قدیمی، تاریخچهٔ همان SHAها هستند. هیچ SDK/COM، بیومتریک واقعی یا حذف واقعی اجرا نشده؛ مجوز واقعی سازمان/اثر مدل/کنترل همهٔ کانال‌ها هنوز شرط فعال‌سازی‌اند و default-off حفظ شده. Linux، SQL۱۰۳۱ کامل و rollback کامل دوباره اجرا نشد؛ `part3Complete=false`.
+
+## تحویل جاری R15/R16
+
+[Windows355](https://github.com/alirezarahimy-code/IO/actions/runs/43713356207) و [UI26 DOM/Chromium همان b6791a5](https://github.com/alirezarahimy-code/IO/actions/runs/43713356176) موفق‌اند. R15 پس از دو archive کامل و دو امضای مستقل، یک ClearData۵ و readback کل profile و reconnect همان endpoint/key؛ unknown بدون replay و recovery با observation خواندنی/امضای مستقل. [راهنما](r15-all-data-clear.fa.md). R16 صریحاً عدم پشتیبانی USB/serial مستقیم در این نسخه، با علت فنی/مرجع واقعی و کنترل registry/IPC/API/UI؛ نه حذف نامرئی دامنه یا ادعای ساخت adapter. [تصمیم](r16-direct-transport-disposition.fa.md).
+
+طبق [ledger](remaining-count-ledger.fa.md)، R01–R15 در قراردادهای مصوب پذیرفته و R16 تعیین‌تکلیف شده‌اند؛ ۰ فنی حل‌نشدهٔ این تحویل + H01 واقعی. SDK/COM، اثر واقعی۵، سیاست/کنترل فیزیکی سازمان و نصب دو دستگاه هنوز آزموده نشده‌اند. factory reset، direct USB/serial و broad deletion خارج profile به قابلیت پیاده‌شده تبدیل نمی‌شوند. softwareComplete=true فقط دامنهٔ منتخب؛ fullLegacyFeatureParity=false و part3Complete=false. Linux، SQL تاریخی۱۰۳۱ و rollback کامل تکرار نشدند.
