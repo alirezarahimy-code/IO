@@ -112,7 +112,9 @@
       "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43629451517"
     }
   ],
-  "remainingSoftware": [],
+  "remainingSoftware": [
+    "P3-R16 expanded direct USB/serial implementation: base connection/exchange candidate implemented; specialized settings and direct sensitive families/enrollment/biometric/recovery remain to implement and verify."
+  ],
   "realSdkExecuted": false,
   "windowsServiceInstalled": false,
   "linuxServiceInstalled": false,
@@ -146,7 +148,7 @@
   "deviceReferenceParityEvidence": "device-reference-parity-evidence.json",
   "virtualWorkerEvidence": "virtual-worker-evidence.json",
   "softwareAndLabAcceptance": "software-and-lab-acceptance.fa.md",
-  "softwareComplete": true,
+  "softwareComplete": false,
   "selectedDeviceScopeEvidence": "s04-device-operator-scope-evidence.json",
   "legacyAttendanceEvidence": "s09-legacy-attendance-evidence.json",
   "legacyPollingEvidence": "s10-legacy-polling-evidence.json",
@@ -345,7 +347,7 @@
       }
     ]
   },
-  "nextExactAction": "H01 deferred and open by user decision: real lab environment not ready. Resume the existing Windows/SDK/multidevice handoff when available; do not substitute more synthetic tests or evidence-index tooling for physical acceptance. Keep destructive/model-dependent deployment gates off. No new software section selected.",
+  "nextExactAction": "Verify direct SDK base exchange on Windows CI, then continue the remaining direct transport software paths without asking for hardware or repeating scope permission. H01 remains deferred until the physical lab is available.",
   "profileSettingsFollowup": {
     "code": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
     "accepted": true,
@@ -862,16 +864,14 @@
       43710921014
     ]
   },
-  "softwareCompleteMeaning": "Only the documented selected delivery contracts plus explicit unsupported dispositions; not full legacy feature parity or support for arbitrary model/transport/store.",
+  "softwareCompleteMeaning": "Expanded scope explicitly requested by user: direct USB/serial must be implemented, not closed by unsupported disposition. Base direct exchange is implemented; remaining specialized/direct sensitive paths still open.",
   "fullLegacyFeatureParity": false,
   "remainingAcceptance": [
     "P3-H01 real Windows/SDK/ACL and at least two physical devices; not executed."
   ],
-  "remainingTechnicalCount": 0,
+  "remainingTechnicalCount": 1,
   "unsupportedInThisDelivery": [
     "factory-reset",
-    "direct-usb-sdk-transport",
-    "direct-serial-sdk-transport",
     "face/photo/palm/vein/door/hidden/extra-slot broad deletion outside approved fingerprint-only profile"
   ],
   "currentStatusGuide": "part-03-software-delivery.fa.md",
@@ -1004,6 +1004,15 @@
     "hardwareVerified": false,
     "part3Complete": false,
     "resumeCondition": "Real Windows/SDK and at least two authorized physical lab devices become available; then follow h01-final-windows-lab-handoff.fa.md.",
-    "scopeChange": "None. This deferral does not accept H01 or authorize starting another software section."
+    "scopeChange": "User now explicitly requests all necessary software implementation despite unavailable hardware. Reopen R16; no further hardware prerequisite for software development."
+  },
+  "directTransportImplementationFollowup": {
+    "status": "base-direct-exchange-implemented-windows-ci-pending",
+    "guide": "r16-direct-sdk-implementation.fa.md",
+    "migration": "20261117120000_LocalSdkTransports",
+    "hardwareVerified": false,
+    "part3Complete": false,
+    "linuxTestsExecuted": false,
+    "supersedesUnsupportedDisposition": true
   }
 }

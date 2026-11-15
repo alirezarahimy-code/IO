@@ -19,7 +19,8 @@ internal static class LocalTransportTests
    Check(ZkSdkConnection.Connect(sdk,usb)&&sdk.Calls.SequenceEqual(["USB:7"]),"production mapper invokes Connect_USB(machine), never Connect_Net");
    Check(Reject(()=>{using var other=ZkTransportLease.Acquire([usb]);}),"same-thread mutex reentrancy cannot admit a second physical owner");
    var start=new ProcessStartInfo(Environment.ProcessPath!){RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true,UseShellExecute=false};
-   start.ArgumentList.Add(Assembly.GetExecutingAssembly().Location);start.ArgumentList.Add("--local-lease-attempt");
+   if(Path.GetFileNameWithoutExtension(Environment.ProcessPath).Equals("dotnet",StringComparison.OrdinalIgnoreCase))start.ArgumentList.Add(Assembly.GetExecutingAssembly().Location);
+   start.ArgumentList.Add("--local-lease-attempt");
    using var process=Process.Start(start)!;process.StandardInput.Write(JsonSerializer.Serialize(usb));process.StandardInput.Close();
    if(!process.WaitForExit(10000)){process.Kill(true);throw new InvalidOperationException("Lease child deadline.");}
    Check(process.ExitCode==2,"independent Windows process cannot steal global USB selector ownership");
