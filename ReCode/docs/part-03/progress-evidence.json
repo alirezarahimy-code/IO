@@ -977,7 +977,7 @@
     43713356176
   ],
   "h01EvidenceIndexTool": {
-    "status": "implemented-windows-tool-tests-pending",
+    "status": "software-tool-verified-windows-synthetic-only-h01-still-open",
     "tool": "ReCode/tools/lab-h01.py",
     "guide": "h01-evidence-index-tool.fa.md",
     "template": "h01-evidence-index.template.json",
@@ -986,6 +986,15 @@
     "hardwareVerified": false,
     "part3Complete": false,
     "networkOrSdkAccess": false,
-    "automaticAcceptance": false
+    "automaticAcceptance": false,
+    "code": "6b8547df971828622e5410816bccbde24b35f839",
+    "syntheticToolUnitTestMethods": 31,
+    "windowsIntegratedRegressionChecks": 355,
+    "evidence": "h01-evidence-index-tool-evidence.json",
+    "runs": [
+      43718499531,
+      43718499537
+    ],
+    "linuxTestsExecuted": false
   }
 }

@@ -1,0 +1,166 @@
+{
+  "scope": "Acceptance of offline H01 evidence-index software only, NOT H01 execution or authenticity of private physical evidence. No device, SQL, SDK or command access in the tool. Independent Windows regression CI uses synthetic processes and isolated LocalDB, not installed-device acceptance.",
+  "code": "6b8547df971828622e5410816bccbde24b35f839",
+  "runs": [
+    {
+      "id": 43718499531,
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43718499531",
+      "code": "6b8547df971828622e5410816bccbde24b35f839",
+      "conclusion": "success",
+      "jobId": 132825116151,
+      "labels": [
+        "windows-2022"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "conclusion": "success"
+        },
+        {
+          "name": "Select lightweight scope over the entire push",
+          "conclusion": "success"
+        },
+        {
+          "name": "Prepare workflow policy test dependency",
+          "conclusion": "success"
+        },
+        {
+          "name": "Test CI routing and retained safety gates",
+          "conclusion": "success"
+        },
+        {
+          "name": "Test offline H01 evidence index with synthetic fixtures only",
+          "conclusion": "success"
+        },
+        {
+          "name": "Validate reference evidence and capability inventory",
+          "conclusion": "success"
+        },
+        {
+          "name": "Prepare offline native instruction emulator",
+          "conclusion": "success"
+        },
+        {
+          "name": "Verify hash-pinned network setter dispatch with trapped transport",
+          "conclusion": "success"
+        },
+        {
+          "name": "Audit pinned DHCP firmware source reference without execution",
+          "conclusion": "success"
+        },
+        {
+          "name": "Prepare offline DOM dependencies",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check JavaScript syntax and offline DOM contracts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check standalone page preview in Chromium",
+          "conclusion": "success"
+        },
+        {
+          "name": "Record actual coverage",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 43718499537,
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43718499537",
+      "code": "6b8547df971828622e5410816bccbde24b35f839",
+      "conclusion": "success",
+      "jobId": 132825140178,
+      "labels": [
+        "windows-2022"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Provision isolated encrypted synthetic photo volume",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build, catalogue checks and portable publish",
+          "conclusion": "success"
+        },
+        {
+          "name": "Windows LocalDB authenticated gateway and enrollment integration",
+          "conclusion": "success"
+        },
+        {
+          "name": "Detach synthetic photo volume",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "files": {
+    "ReCode/tools/lab-h01.py": {
+      "sha256": "10eda2d1480c6939611d2ca2b3269e196dc1a1c9a651def3e55e9cd1c8cd2267"
+    },
+    "ReCode/tools/ci-h01-tests.py": {
+      "sha256": "f0cc40794e2acdd41795b36cb7ef6aecc9328b08c3cf3c48cb45466aab48c6aa"
+    },
+    "ReCode/docs/part-03/h01-evidence-index.template.json": {
+      "sha256": "20f4e5a2a84601f4d14b0ff6411925a6518c62006774acfc317ee17d177355ba"
+    }
+  },
+  "syntheticToolUnitTestMethods": 31,
+  "testCountProvenance": "31 unittest test_* methods in exact-SHA source, all discovered by successful Windows invocation python ReCode/tools/ci-h01-tests.py; not a physical-device check count.",
+  "windowsIntegratedRegressionChecks": 355,
+  "templateDevices": 2,
+  "templateScenarioRows": 24,
+  "scenariosPerDevice": 12,
+  "privateResultDirectoryIgnored": "ReCode/lab-results/",
+  "evidenceAuthenticityVerified": false,
+  "realH01Executed": false,
+  "hardwareVerified": false,
+  "part3Complete": false,
+  "linuxTestsExecuted": false,
+  "fullHistoricalSql1031Rerun": false,
+  "fullRollbackSuiteRerun": false,
+  "directUsbSerialAdapterImplemented": false,
+  "factoryResetImplemented": false,
+  "automaticAcceptance": false,
+  "guides": [
+    "h01-evidence-index-tool.fa.md",
+    "h01-final-windows-lab-handoff.fa.md"
+  ]
+}
