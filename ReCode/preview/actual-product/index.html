@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>موجودی واقعی محصول IO — نمایش فایل‌های اصلی</title>
+<link rel="stylesheet" href="/__preview/viewer.css">
+<script src="/__preview/viewer.js" defer></script>
+</head>
+<body>
+<aside class="sidebar" aria-label="فهرست صفحات موجود">
+  <header class="brand"><div class="mark">IO</div><div><strong>موجودی واقعی محصول</strong><span>نمایشگر سورس موجود · نه طرح مفهومی</span></div></header>
+  <div class="inventory-summary"><b id="route-count">—</b><span>مسیر موجود</span><b id="file-count">—</b><span>فایل HTML</span></div>
+  <label class="search">جست‌وجوی صفحه<input id="search" type="search" placeholder="نام صفحه، مسیر یا فایل…" autocomplete="off"></label>
+  <p id="visible-count" class="visible-count" role="status"></p>
+  <nav id="pages" aria-label="صفحات واقعی کاتالوگ محصول"></nav>
+  <footer class="sidebar-foot">منبع فهرست: <code>WorkspaceCatalog.cs</code><br>مقطع کد: <code id="revision">—</code><br>همهٔ پیوندها به فایل موجود بررسی شده‌اند.</footer>
+</aside>
+<main class="viewer">
+  <section class="notice" aria-label="مرز این نمایشگر"><span class="status-dot"></span><div><strong>فایل‌های اصلی محصول؛ بدون دادهٔ ساختگی</strong><p>این قاب، خودِ فایل HTML و دارایی‌های موجود را نمایش می‌دهد. SQL، ورود، مجوز و SDK به این نمایشگر متصل نیستند. نمایش فرم، تأیید مجوز یا امکان ثبت نیست.</p></div></section>
+  <header class="page-heading"><div><span id="page-group" class="eyebrow"></span><h1 id="page-title">در حال خواندن کاتالوگ واقعی…</h1><p><code id="page-route"></code></p></div><div class="actions"><a id="open-page" href="#" target="_blank" rel="noopener">بازکردن خود صفحه ↗</a><a id="open-source" href="#" target="_blank" rel="noopener">سورس HTML</a></div></header>
+  <section class="toolbar" aria-label="حالت نمایش"><div class="mode-options"><button id="layout-mode" type="button" aria-pressed="true">چیدمان واقعی · اسکریپت خاموش</button><button id="runtime-mode" type="button" aria-pressed="false">اجرای JavaScript اصلی</button></div><div class="sizes"><button id="desktop" type="button" aria-pressed="true">عریض</button><button id="mobile" type="button" aria-pressed="false">موبایل</button><button id="reload" type="button" aria-label="بارگیری دوبارهٔ فایل">↻</button></div></section>
+  <p id="mode-note" class="mode-note" role="status"></p>
+  <div class="source-line"><span>فایل واقعی: <code id="source-path"></code></span><span>SHA-256: <code id="source-hash"></code></span></div>
+  <div id="frame-stage" class="frame-stage"><iframe id="product-frame" title="فایل واقعی صفحهٔ محصول" sandbox="allow-scripts allow-same-origin"></iframe></div>
+  <details class="existing-help"><summary>توضیح و محدودیت‌های ثبت‌شدهٔ همین صفحه در محصول</summary><div id="help-content"></div></details>
+  <footer class="viewer-foot">فقط پوستهٔ فهرست و انتخاب صفحه برای این نمایشگر اضافه شده است؛ HTML، CSS و JavaScript داخل قاب از <code>ReCode/src/IO.Web/Ui</code> می‌آیند و بازطراحی یا کپی نمایشی نشده‌اند.</footer>
+</main>
+</body></html>
