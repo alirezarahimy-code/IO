@@ -39,6 +39,17 @@ async function wait(test){for(let i=0;i<200;i++){if(test())return;await pause();
  assert.equal(credential.elements.secret.value,'','credential input clears before awaiting network');
  await wait(()=>notice.textContent.includes('تغییر رمز ثبت شد')&&!form.querySelector('button').disabled);
  assert.equal(credential.hidden,true,'selection resets after credential mutation');
+ for(const [profile,port] of [['zk-usb-direct',0],['zk-serial-direct',17]]){
+  form.elements.siteId.value=device.siteId;form.elements.number.value='DOM-LOCAL';form.elements.name.value='local fixture';form.elements.model.value='unverified';form.elements.profile.value=profile;form.elements.profile.dispatchEvent(new w.Event('change'));
+  assert.equal(form.elements.host.disabled,false,'direct profile exposes an explicit station binding');
+  form.elements.host.value='LABHOST';form.elements.port.value=String(port);
+  assert.equal(form.elements.port.min,profile==='zk-usb-direct'?'0':'1');
+  assert.equal(form.elements.port.max,profile==='zk-serial-direct'?'256':'65535');
+  const before=writes.length;form.dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));
+  await wait(()=>writes.length===before+1&&!form.querySelector('button').disabled);
+  const payload=writes[writes.length-1].body.device;
+  assert.equal(payload.profile,profile);assert.equal(payload.host,'LABHOST');assert.equal(payload.port,port,'USB selector zero must not become null or a fake network port');
+ }
  granted=false;w.dispatchEvent(new w.Event('focus'));await wait(()=>form.hidden);
  assert.equal(w.document.querySelector('#body tr'),null,'revocation clears old inventory');
  assert.equal(w.document.querySelector('#locations li'),null,'revocation clears location details');
