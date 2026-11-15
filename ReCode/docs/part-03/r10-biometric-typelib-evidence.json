@@ -1,0 +1,643 @@
+{
+  "scope": "Fingerprint/face BSTR exchange ABIs plus historical photo file methods; metadata is not installed-model/format compatibility or authorization. Photo executor intentionally not yet implemented.",
+  "sources": [
+    {
+      "source": "SDK 6.3.1.45/zkemkeeper.dll",
+      "dllSha256": "33b5d535cffdd14dd123d22d8a069004add468c71a7c8411a906f641b7ef2399",
+      "resourceId": 1,
+      "languageId": 1033,
+      "typelibBytes": 58316,
+      "typelibSha256": "f7b8fba2f3d5352b9482a0f6394b916f998aac469ec08c0bd175f7b5c2fbd395",
+      "methods": [
+        {
+          "interface": "IZKEM",
+          "method": "ReadAllUserID",
+          "dispid": 27,
+          "recordOffset": 29772,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "ReadAllTemplate",
+          "dispid": 106,
+          "recordOffset": 35508,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "SSR_GetAllUserInfo",
+          "dispid": 146,
+          "recordOffset": 38536,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "dwEnrollNumber",
+              "type": "PTR BSTR",
+              "flags": 2
+            },
+            {
+              "name": "Name",
+              "type": "PTR BSTR",
+              "flags": 2
+            },
+            {
+              "name": "Password",
+              "type": "PTR BSTR",
+              "flags": 2
+            },
+            {
+              "name": "Privilege",
+              "type": "PTR LONG",
+              "flags": 2
+            },
+            {
+              "name": "Enabled",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 2
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "SendFile",
+          "dispid": 193,
+          "recordOffset": 42628,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "FileName",
+              "type": "BSTR",
+              "flags": 1
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "ReadFile",
+          "dispid": 195,
+          "recordOffset": 42776,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "FileName",
+              "type": "BSTR",
+              "flags": 1
+            },
+            {
+              "name": "FilePath",
+              "type": "BSTR",
+              "flags": 1
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "GetUserFaceStr",
+          "dispid": 233,
+          "recordOffset": 44888,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "dwEnrollNumber",
+              "type": "BSTR",
+              "flags": 1
+            },
+            {
+              "name": "dwFaceIndex",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "TmpData",
+              "type": "PTR BSTR",
+              "flags": 3
+            },
+            {
+              "name": "TmpLength",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "SetUserFaceStr",
+          "dispid": 234,
+          "recordOffset": 44992,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "dwEnrollNumber",
+              "type": "BSTR",
+              "flags": 1
+            },
+            {
+              "name": "dwFaceIndex",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "TmpData",
+              "type": "BSTR",
+              "flags": 1
+            },
+            {
+              "name": "TmpLength",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "GetUserTmpExStr",
+          "dispid": 236,
+          "recordOffset": 45212,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "dwEnrollNumber",
+              "type": "BSTR",
+              "flags": 1
+            },
+            {
+              "name": "dwFingerIndex",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "Flag",
+              "type": "PTR LONG",
+              "flags": 2
+            },
+            {
+              "name": "TmpData",
+              "type": "PTR BSTR",
+              "flags": 2
+            },
+            {
+              "name": "TmpLength",
+              "type": "PTR LONG",
+              "flags": 2
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "SetUserTmpExStr",
+          "dispid": 238,
+          "recordOffset": 45432,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "dwEnrollNumber",
+              "type": "BSTR",
+              "flags": 1
+            },
+            {
+              "name": "dwFingerIndex",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "Flag",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "TmpData",
+              "type": "BSTR",
+              "flags": 1
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        }
+      ],
+      "executedBinary": false,
+      "originalSourceAvailable": false,
+      "hardwareVerified": false
+    },
+    {
+      "source": "NewPack Dlls 10.06.1398/zkemkeeper.dll",
+      "dllSha256": "261b769b6923a4df8fa266955f18b3431f6c6bd202130f996640e367dfe9c5e2",
+      "resourceId": 1,
+      "languageId": 1033,
+      "typelibBytes": 47076,
+      "typelibSha256": "ecbc3b9f6301bd49e36f9738bd83c98c8b7f8954469de270a4525137d0ccd414",
+      "methods": [
+        {
+          "interface": "IZKEM",
+          "method": "ReadAllUserID",
+          "dispid": 27,
+          "recordOffset": 25052,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "ReadAllTemplate",
+          "dispid": 106,
+          "recordOffset": 30788,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "SSR_GetAllUserInfo",
+          "dispid": 146,
+          "recordOffset": 33816,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "dwEnrollNumber",
+              "type": "PTR BSTR",
+              "flags": 2
+            },
+            {
+              "name": "Name",
+              "type": "PTR BSTR",
+              "flags": 2
+            },
+            {
+              "name": "Password",
+              "type": "PTR BSTR",
+              "flags": 2
+            },
+            {
+              "name": "Privilege",
+              "type": "PTR LONG",
+              "flags": 2
+            },
+            {
+              "name": "Enabled",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 2
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "SendFile",
+          "dispid": 193,
+          "recordOffset": 37908,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "FileName",
+              "type": "BSTR",
+              "flags": 1
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "ReadFile",
+          "dispid": 195,
+          "recordOffset": 38056,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "FileName",
+              "type": "BSTR",
+              "flags": 1
+            },
+            {
+              "name": "FilePath",
+              "type": "BSTR",
+              "flags": 1
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "GetUserFaceStr",
+          "dispid": 233,
+          "recordOffset": 40168,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "dwEnrollNumber",
+              "type": "BSTR",
+              "flags": 1
+            },
+            {
+              "name": "dwFaceIndex",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "TmpData",
+              "type": "PTR BSTR",
+              "flags": 3
+            },
+            {
+              "name": "TmpLength",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "SetUserFaceStr",
+          "dispid": 234,
+          "recordOffset": 40272,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "dwEnrollNumber",
+              "type": "BSTR",
+              "flags": 1
+            },
+            {
+              "name": "dwFaceIndex",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "TmpData",
+              "type": "BSTR",
+              "flags": 1
+            },
+            {
+              "name": "TmpLength",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "GetUserTmpExStr",
+          "dispid": 236,
+          "recordOffset": 40492,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "dwEnrollNumber",
+              "type": "BSTR",
+              "flags": 1
+            },
+            {
+              "name": "dwFingerIndex",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "Flag",
+              "type": "PTR LONG",
+              "flags": 2
+            },
+            {
+              "name": "TmpData",
+              "type": "PTR BSTR",
+              "flags": 2
+            },
+            {
+              "name": "TmpLength",
+              "type": "PTR LONG",
+              "flags": 2
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "SetUserTmpExStr",
+          "dispid": 238,
+          "recordOffset": 40712,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "dwEnrollNumber",
+              "type": "BSTR",
+              "flags": 1
+            },
+            {
+              "name": "dwFingerIndex",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "Flag",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "TmpData",
+              "type": "BSTR",
+              "flags": 1
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        }
+      ],
+      "executedBinary": false,
+      "originalSourceAvailable": false,
+      "hardwareVerified": false
+    }
+  ],
+  "nativeExecuted": false,
+  "hardwareVerified": false
+}

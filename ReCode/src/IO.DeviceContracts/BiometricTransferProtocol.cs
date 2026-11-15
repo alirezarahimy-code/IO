@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 namespace IO.DeviceContracts;
 
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
 public sealed record BiometricDeviceIdentity(string Serial,string Product,string Firmware)
 {
     public bool IsValid()=>Text(Serial)&&Text(Product)&&Text(Firmware);
@@ -8,9 +9,10 @@ public sealed record BiometricDeviceIdentity(string Serial,string Product,string
     public override string ToString()=>"Biometric device identity [redacted]";
 }
 /// <summary>Exact pair/model/format/legal approval, never a browser-created capability. No format conversion or overwrite.</summary>
-public sealed record BiometricTransferApproval(BiometricDeviceIdentity Source,BiometricDeviceIdentity Target,string Kind,int Slot,string FormatReference,string AuthorizationReference,string RetentionReference,string ExclusiveControlReference,int SourceAbsentError,int TargetAbsentError,int MaximumCharacters=65536,int MaximumNativeLength=65536,int FingerprintFlag=1,bool RequiresReadAllTemplate=false,bool AllowTransfer=false)
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record BiometricTransferApproval(BiometricDeviceIdentity Source,BiometricDeviceIdentity Target,string Kind,int Slot,string FormatReference,string AuthorizationReference,string RetentionReference,string ExclusiveControlReference,int SourceAbsentError,int TargetAbsentError,int MaximumCharacters=65536,int MaximumNativeLength=65536,int FingerprintFlag=1,bool RequiresReadAllTemplate=false,bool AllowTransfer=false,bool AllowTransientUserEnumeration=false)
 {
-    public bool IsValid()=>AllowTransfer&&Source?.IsValid()==true&&Target?.IsValid()==true&&Source.Serial!=Target.Serial&&Kind is "fingerprint" or "face"&&
+    public bool IsValid()=>AllowTransfer&&AllowTransientUserEnumeration&&Source?.IsValid()==true&&Target?.IsValid()==true&&Source.Serial!=Target.Serial&&Kind is "fingerprint" or "face"&&
         (Kind=="fingerprint"?Slot is >=0 and <=9&&FingerprintFlag is 0 or 1:Slot==15&&FingerprintFlag==0)&&
         Text(FormatReference)&&Text(AuthorizationReference)&&Text(RetentionReference)&&Text(ExclusiveControlReference)&&
         SourceAbsentError is not 0 and not int.MinValue&&TargetAbsentError is not 0 and not int.MinValue&&MaximumCharacters is >=1 and <=1048576&&MaximumNativeLength is >=1 and <=1048576;

@@ -5,7 +5,7 @@ internal static class BiometricTransferTests
  public static async Task RunAsync()
  {
   int count=0;void Check(bool b,string message){if(!b)throw new InvalidOperationException(message);count++;Console.WriteLine("PASS "+message);}
-  var a=new BiometricTransferApproval(new("SYNTHETIC-SOURCE","PRODUCT","FIRMWARE"),new("SYNTHETIC-TARGET","PRODUCT","FIRMWARE"),"fingerprint",1,"SYNTHETIC-FORMAT","SYNTHETIC-AUTH","SYNTHETIC-RETENTION","SYNTHETIC-EXCLUSIVE",-404,-404,AllowTransfer:true);
+  var a=new BiometricTransferApproval(new("SYNTHETIC-SOURCE","PRODUCT","FIRMWARE"),new("SYNTHETIC-TARGET","PRODUCT","FIRMWARE"),"fingerprint",1,"SYNTHETIC-FORMAT","SYNTHETIC-AUTH","SYNTHETIC-RETENTION","SYNTHETIC-EXCLUSIVE",-404,-404,AllowTransfer:true,AllowTransientUserEnumeration:true);
   var i=new BiometricTransferInput(new(Guid.NewGuid(),"192.0.2.1",4370,1,a.Source.Serial,0),new(Guid.NewGuid(),"192.0.2.2",4370,1,a.Target.Serial,0),Guid.NewGuid(),"001","0002",a);
   var synthetic=new BiometricMaterial("SYNTHETIC-TEMPLATE-NOT-A-PERSON",17,1);
   Session Source()=>new(a.Source,new("present",synthetic));Session Target()=>new(a.Target,new("absent"));

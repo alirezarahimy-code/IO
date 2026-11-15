@@ -98,5 +98,7 @@ try {
     if (Test-Path $publish) { Remove-Item $publish -Recurse -Force }
 }
 
+& python tools/audit-biometric-transfer-typelib.py --verify
+if ($LASTEXITCODE -ne 0) { throw "biometric ABI verification failed" }
 & python tools/device-reference-audit.py
 if ($LASTEXITCODE -ne 0) { throw "device reference crosswalk verification failed" }
