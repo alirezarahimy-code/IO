@@ -1,0 +1,12 @@
+'use strict';
+const fs=require('node:fs'),assert=require('node:assert/strict'),{JSDOM}=require('jsdom');
+const root=__dirname+'/../../src/IO.Web/Ui/';
+const dom=new JSDOM(fs.readFileSync(root+'Devices.html','utf8'));
+const d=dom.window.document,section=d.getElementById('transport-support-disposition');
+assert.ok(section);assert.deepEqual([...section.querySelectorAll('[data-transport]')].map(e=>e.dataset.transport),['sdk-network','usb-file','sdk-usb-direct','sdk-serial-direct']);
+for(const kind of ['sdk-usb-direct','sdk-serial-direct'])assert.match(section.querySelector('[data-transport="'+kind+'"]').textContent,/unsupported-in-this-delivery/);
+assert.match(section.textContent,/Connect_USB/);assert.match(section.textContent,/COM1/);assert.match(section.textContent,/115200/);assert.match(section.textContent,/\/devices\/transport-support/);
+assert.deepEqual([...d.querySelector('select[name="profile"]').options].map(e=>e.value),['zk-standalone','zk-push','offline-file']);
+assert.equal(section.querySelector('button,input,form'),null);
+const help=JSON.parse(fs.readFileSync(root+'HelpContent.json','utf8')).find(a=>a.Slug==='devices');assert.ok(help.Limitations.some(t=>t.includes('unsupported-in-this-delivery')&&t.includes('Connect_Com')));
+dom.window.close();console.log('PASS R16 transport UI: explicit version-scoped USB/serial unsupported disposition, no direct-port controls or profile aliases, file/network distinction and traceable read-only API/help');

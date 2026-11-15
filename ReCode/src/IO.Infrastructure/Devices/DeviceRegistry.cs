@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using IO.DeviceContracts;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -143,6 +144,9 @@ public sealed class DeviceRegistry(IoDbContext db, PermissionTransaction transac
             return (new { id, operations }, id);
         }, ct);
 
+    public Task<object> TransportSupportAsync(Guid actor,CancellationToken ct=default)=>
+        transaction.ExecuteAsync<object>(actor,Read,"devices.transport-support.viewed",token=>Task.FromResult(((object)new{transports=DeviceTransportSupport.Entries},actor)),ct);
+
     private IQueryable<DeviceView> Views() => from d in db.Devices.AsNoTracking() join s in db.Sites on d.SiteId equals s.Id
         select new DeviceView { Id=d.Id, GroupId=d.GroupId, GroupName=db.DeviceGroups.Where(g=>g.Id==d.GroupId).Select(g=>g.Name).FirstOrDefault(), SiteId=d.SiteId, CompanyId=s.CompanyId, SourceId=d.SourceId, Number=d.Number, Name=d.Name,
             Model=d.Model, Profile=d.Profile, Host=d.Host, Port=d.Port, Enabled=d.Enabled,
@@ -173,7 +177,7 @@ public sealed class DeviceRegistry(IoDbContext db, PermissionTransaction transac
         var name = Text(value.Name, 200); var model = Text(value.Model, 120);
         if (value.Profile == "zk-standalone")
         {
-            if (string.IsNullOrWhiteSpace(value.Host) || value.Host != value.Host.Trim() || value.Host.Length > 253 ||
+            if (DeviceTransportSupport.IsDirectLocalAddress(value.Host) || string.IsNullOrWhiteSpace(value.Host) || value.Host != value.Host.Trim() || value.Host.Length > 253 ||
                 Uri.CheckHostName(value.Host) == UriHostNameType.Unknown || value.Port is null or < 1 or > 65535)
                 throw new ArgumentException("A plain host and valid port are required (not a URL or credential).");
         }

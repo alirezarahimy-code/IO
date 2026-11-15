@@ -3,6 +3,7 @@ using System.Net;
 namespace IO.DeviceContracts;
 
 /// <summary>Private bounded stdin IPC. Never serialize this into API responses, audit, or logs.</summary>
+[System.Text.Json.Serialization.JsonUnmappedMemberHandling(System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow)]
 public sealed record ZkProbeInput(Guid DeviceId, string Address, int Port, int MachineNumber, string ExpectedSerial, int CommKey)
 {
     public bool IsValid() => DeviceId != Guid.Empty && IPAddress.TryParse(Address, out _) && Port is > 0 and <= 65535 &&

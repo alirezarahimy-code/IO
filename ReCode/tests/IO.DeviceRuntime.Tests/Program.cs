@@ -9,6 +9,7 @@ if (args is ["--all-data-erase-contracts"])
     catch(Exception e){Console.Error.WriteLine("::error title=All-data erase contracts::"+e.ToString().Replace("%","%25").Replace("\r","%0D").Replace("\n","%0A"));Environment.ExitCode=1;}
     return;
 }
+if (args is ["--transport-support-contracts"]) { TransportSupportTests.Run(); return; }
 if (args is ["--protected-erase-contracts"])
 {
     try { await ProtectedEraseTests.RunAsync(); }

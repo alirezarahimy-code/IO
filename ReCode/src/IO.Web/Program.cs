@@ -486,6 +486,7 @@ public static class IoWebHost
             Admin(c, csrf, actor => service.DeleteAsync(actor, id, input.ExpectedVersion, c.RequestAborted)));
         app.MapPost("/devices/{id:guid}/group", (Guid id, DeviceGroupAssignInput input, HttpContext c, IAntiforgery csrf, DeviceGroups service) =>
             Admin(c, csrf, actor => service.AssignAsync(actor, id, input.ExpectedVersion, input.GroupId, c.RequestAborted)));
+        app.MapGet("/devices/transport-support",(HttpContext c,DeviceRegistry service)=>GatewayEndpoints.Read(c,actor=>service.TransportSupportAsync(actor,c.RequestAborted))).RequireAuthorization();
         app.MapGet("/devices", (HttpContext c, DeviceRegistry service, Guid? companyId, int offset = 0) =>
             AdminRead(c, actor => service.ListAsync(actor, companyId, offset, c.RequestAborted)));
         app.MapGet("/devices/locations", (HttpContext c, DeviceRegistry service, int offset = 0) =>
