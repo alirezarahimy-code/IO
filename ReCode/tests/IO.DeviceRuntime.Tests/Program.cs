@@ -3,6 +3,12 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using IO.DeviceContracts;
 
+if (args is ["--user-erase-core-contracts"])
+{
+    try { await UserEraseTests.RunAsync(); }
+    catch(Exception e){Console.Error.WriteLine("::error title=User erase core contracts::"+e.ToString().Replace("%","%25").Replace("\r","%0D").Replace("\n","%0A"));Environment.ExitCode=1;}
+    return;
+}
 if (args is ["--attendance-range-erase-contracts"])
 {
     try { await AttendanceRangeEraseTests.RunAsync(); }
@@ -77,6 +83,7 @@ if (args is not ["--verify"])
 {
     // This executable is a test-only child fixture, never deployed as the SDK bridge.
     var text=await Console.In.ReadToEndAsync();using var document=JsonDocument.Parse(text);
+    if(document.RootElement.TryGetProperty("EraseUserOrFingerprints",out _)){await UserEraseTests.ChildAsync(text);return;}
     if(document.RootElement.TryGetProperty("EraseAttendanceRange",out _)){await AttendanceRangeEraseTests.ChildAsync(text);return;}
     if(document.RootElement.TryGetProperty("EraseAllAttendance",out _))
     {
