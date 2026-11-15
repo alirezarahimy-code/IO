@@ -23,6 +23,7 @@ internal static class BiometricTransferOperationalTests
   await Q(async db=>{db.SourceEmployeeMappings.Add(new(){Id=Guid.NewGuid(),SourceId=target,EmployeeId=employee,CompanyId=company,SourcePersonId="0002",ValidFromUtc=DateTimeOffset.UtcNow.AddDays(-1)});await db.SaveChangesAsync();return true;});
   var approval=new BiometricTransferApproval(new("SYNTHETIC-SERIAL","SYNTHETIC-PRODUCT","SYNTHETIC-FIRMWARE"),new("SYNTHETIC-BIO-TARGET","SYNTHETIC-PRODUCT","SYNTHETIC-FIRMWARE"),"fingerprint",1,"SYNTHETIC-FORMAT","SYNTHETIC-AUTH","SYNTHETIC-RETENTION","SYNTHETIC-EXCLUSIVE",-404,-404,AllowTransfer:true,AllowTransientUserEnumeration:true);
   var intent=new DeviceBiometricTransfers.Input(Guid.NewGuid(),source,target,employee,sourceVersion,targetVersion,"001","0002",approval,30);
+  check(!JsonSerializer.Serialize(intent).Contains("InspectionOfId",StringComparison.Ordinal),"ordinary transfer intent retains its pre-recovery serialization for exact durable retries");
   Task<object> Preview(DeviceBiometricTransfers.Input i,Guid? who=null)=>Use<DeviceBiometricTransfers,object>(x=>x.PreviewAsync(who??actor,i));
   Task<Guid> Request(DeviceBiometricTransfers.Confirm i)=>Use<DeviceBiometricTransfers,Guid>(x=>x.RequestAsync(actor,i));
   check(await Reject<DomainConflictException>(()=>Preview(intent)),"biometric transfer is disabled by default despite valid browser policy and rights");

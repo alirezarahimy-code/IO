@@ -128,7 +128,8 @@ public sealed class BiometricPhotoLease:IDisposable
  {
   ValidatePrivate(dir);
   if(System.IO.Directory.EnumerateDirectories(dir).Any())throw new InvalidOperationException("Unexpected nested photo content; no recursive purge.");
-  var files=System.IO.Directory.GetFiles(dir);
+  var files=System.IO.Directory.EnumerateFiles(dir).Take(5).ToArray();
+  if(files.Length>4)throw new InvalidOperationException("Unexpected photo file count requires review.");
   foreach(var path in files)
   {
    var name=Path.GetFileName(path);
@@ -170,7 +171,14 @@ public sealed class BiometricPhotoFiles(BiometricPhotoWorkspace workspace,bool s
   bool found=sdk.Download(person+".jpg",workspace.Directory+Path.DirectorySeparatorChar);int error=found?int.MinValue:sdk.LastError();
   if(!found)return !File.Exists(path)&&error==(source?approval.SourceAbsentError:approval.TargetAbsentError)?new("absent"):new("unavailable");
   if(!File.Exists(path)||(File.GetAttributes(path)&(FileAttributes.ReparsePoint|FileAttributes.Encrypted))!=FileAttributes.Encrypted||new FileInfo(path).Length>approval.MaximumNativeLength)return new("unavailable");
-  var bytes=File.ReadAllBytes(path);buffers.Add(bytes);var material=new BiometricMaterial("",bytes.Length,0,bytes);
+  byte[] bytes;
+  using(var file=new FileStream(path,FileMode.Open,FileAccess.Read,FileShare.None))
+  {
+   if(file.Length is <16||file.Length>approval.MaximumNativeLength)return new("unavailable");
+   bytes=new byte[(int)file.Length];buffers.Add(bytes);file.ReadExactly(bytes);
+   if(file.ReadByte()!=-1)return new("unavailable");
+  }
+  var material=new BiometricMaterial("",bytes.Length,0,bytes);
   return material.IsValid(approval)?new("present",material):new("unavailable");
  }
  public bool Write(string person,BiometricTransferApproval approval,BiometricMaterial material)

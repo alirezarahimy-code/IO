@@ -62,6 +62,7 @@ public static class NativeProcessSupervisor
         var failure=input.InspectOnly?"inspection-failed":"unknown";
         if(!input.IsValid(false)||timeoutSeconds is <1 or >60)return new(input.OperationId,input.InspectOnly?"inspection-failed":"unsupported");
         if(ct.IsCancellationRequested)return new(input.OperationId,input.InspectOnly?"inspection-failed":"failed-before-write");
+        bool dispatched=false;
         BiometricPhotoLease? staging=null;
         BiometricTransferOutput result=new(input.OperationId,failure);
         try
@@ -72,6 +73,7 @@ public static class NativeProcessSupervisor
                 staging=BiometricPhotoLease.Create(photoStaging,timeoutSeconds);input=input with{PhotoWorkspace=staging.Workspace};
             }
             string wire=input.InspectOnly?System.Text.Json.JsonSerializer.Serialize(new BiometricInspectionInput(input)):System.Text.Json.JsonSerializer.Serialize(input);
+            dispatched=true;
             var exchange=await ExchangeAsync(executable,childAssembly,wire,timeoutSeconds,ct,4096,32768);
             if(exchange.State=="exited")
             {
@@ -79,7 +81,7 @@ public static class NativeProcessSupervisor
                 if(observed?.IsValidFor(input)==true)result=observed;
             }
         }
-        catch{result=new(input.OperationId,failure);}
+        catch{result=new(input.OperationId,!dispatched&&!input.InspectOnly?"failed-before-write":failure);}
         finally{if(OperatingSystem.IsWindows())staging?.Dispose();}
         return OperatingSystem.IsWindows()&&staging is not null&&!staging.Cleaned?new(input.OperationId,failure):result;
     }

@@ -14,7 +14,7 @@ namespace IO.Infrastructure.Devices;
 public sealed class DeviceBiometricTransfers(IoDbContext db,PermissionTransaction tx,TimeProvider clock,IDataProtectionProvider protection,IConfiguration config)
 {
  public const string Read="devices.biometrics.jobs.read",Transfer="devices.biometrics.transfer",ReadMaterial="devices.biometrics.source.read",Inspect="devices.biometrics.inspect",Execute="devices.biometrics.execute",Confirmation="COPY-BIOMETRIC-TO-EMPTY-SLOT";
- public sealed record Input(Guid Id,Guid SourceDeviceId,Guid TargetDeviceId,Guid EmployeeId,byte[] SourceDeviceVersion,byte[] TargetDeviceVersion,string SourcePerson,string TargetPerson,BiometricTransferApproval Approval,int TimeoutSeconds,Guid? InspectionOfId=null)
+ public sealed record Input(Guid Id,Guid SourceDeviceId,Guid TargetDeviceId,Guid EmployeeId,byte[] SourceDeviceVersion,byte[] TargetDeviceVersion,string SourcePerson,string TargetPerson,BiometricTransferApproval Approval,int TimeoutSeconds,[property:System.Text.Json.Serialization.JsonIgnore(Condition=System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]Guid? InspectionOfId=null)
  {public override string ToString()=>"Biometric intent [subjects and policy redacted]";}
  public sealed record Confirm(Input Intent,string PreviewHash,string Confirmation);
  public sealed record Claim(Guid Id,Guid Token,Input Intent,string SourceHost,int SourcePort,string TargetHost,int TargetPort)

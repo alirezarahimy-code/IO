@@ -10,7 +10,7 @@ public sealed record BiometricDeviceIdentity(string Serial,string Product,string
 }
 /// <summary>Exact pair/model/format/legal approval, never a browser-created capability. No format conversion or overwrite.</summary>
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
-public sealed record BiometricTransferApproval(BiometricDeviceIdentity Source,BiometricDeviceIdentity Target,string Kind,int Slot,string FormatReference,string AuthorizationReference,string RetentionReference,string ExclusiveControlReference,int SourceAbsentError,int TargetAbsentError,int MaximumCharacters=65536,int MaximumNativeLength=65536,int FingerprintFlag=1,bool RequiresReadAllTemplate=false,bool AllowTransfer=false,bool AllowTransientUserEnumeration=false,string? PhotoHandlingReference=null)
+public sealed record BiometricTransferApproval(BiometricDeviceIdentity Source,BiometricDeviceIdentity Target,string Kind,int Slot,string FormatReference,string AuthorizationReference,string RetentionReference,string ExclusiveControlReference,int SourceAbsentError,int TargetAbsentError,int MaximumCharacters=65536,int MaximumNativeLength=65536,int FingerprintFlag=1,bool RequiresReadAllTemplate=false,bool AllowTransfer=false,bool AllowTransientUserEnumeration=false,[property:JsonIgnore(Condition=JsonIgnoreCondition.WhenWritingNull)]string? PhotoHandlingReference=null)
 {
     public bool IsValid()=>AllowTransfer&&AllowTransientUserEnumeration&&Source?.IsValid()==true&&Target?.IsValid()==true&&Source.Serial!=Target.Serial&&Kind is "fingerprint" or "face" or "photo"&&
         (Kind=="fingerprint"?Slot is >=0 and <=9&&FingerprintFlag is 0 or 1:Kind=="face"?Slot==15&&FingerprintFlag==0:Slot==0&&FingerprintFlag==0&&!RequiresReadAllTemplate&&Text(PhotoHandlingReference))&&

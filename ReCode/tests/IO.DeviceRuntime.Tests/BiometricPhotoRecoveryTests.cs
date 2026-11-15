@@ -6,6 +6,7 @@ internal static class BiometricPhotoRecoveryTests
  internal static async Task RunAsync(BiometricTransferInput input,string host,string assembly,Action<bool,string> check)
  {
   if(!OperatingSystem.IsWindows())throw new PlatformNotSupportedException("Photo acceptance requires Windows and actual EFS.");
+  check(!JsonSerializer.Serialize(input.Approval).Contains("PhotoHandlingReference",StringComparison.Ordinal),"optional photo approval field is omitted to preserve first-increment fingerprint intent hashes");
   var a=input.Approval;var observe=input with{InspectOnly=true};var material=new BiometricMaterial("SYNTHETIC",9,1);
   foreach(var (slot,state) in new[]{(new BiometricSlot("present",material),"observed-equal"),(new BiometricSlot("present",new("OTHER",5,1)),"observed-different"),(new BiometricSlot("absent"),"target-absent"),(new BiometricSlot("unavailable"),"inspection-failed")})
   {
@@ -51,6 +52,7 @@ internal static class BiometricPhotoRecoveryTests
   var old=lease.Workspace with{NotAfterUtc=DateTimeOffset.UtcNow.AddMinutes(-3)};File.WriteAllText(Path.Combine(old.Directory,"lease.json"),JsonSerializer.Serialize(old));
   var replacement=BiometricPhotoLease.Create(config,5);check(!Directory.Exists(old.Directory),"expired unlocked orphan is removed before admitting another photo job");replacement.Dispose();check(replacement.Cleaned,"normal encrypted workspace cleanup removes metadata and photo files");
   var pi=input with{Approval=photo};
+  check((await NativeProcessSupervisor.RunBiometricTransferAsync(host,assembly,pi,5,photoStaging:config with{Enable=false})).State=="failed-before-write","disabled photo staging fails before child dispatch without inventing unknown device write");
   check((await NativeProcessSupervisor.RunBiometricTransferAsync(host,assembly,pi,5,photoStaging:config)).State=="copied"&&!Directory.EnumerateDirectories(root).Any(),"production supervisor provisions EFS staging and cleans it after synthetic child exit");
   check((await NativeProcessSupervisor.RunBiometricTransferAsync(host,assembly,pi with{Approval=photo with{FormatReference="SYNTHETIC-HANG"}},1,photoStaging:config)).State=="unknown"&&!Directory.EnumerateDirectories(root).Any(),"supervisor kills timed-out photo child before deleting private staging, never retries write");
  }
