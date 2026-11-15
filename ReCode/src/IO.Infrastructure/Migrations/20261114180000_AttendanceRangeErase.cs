@@ -6,8 +6,12 @@ namespace IO.Infrastructure.Migrations;
 [Migration("20261114180000_AttendanceRangeErase")]
 public sealed class AttendanceRangeErase:Migration
 {
- protected override void Up(MigrationBuilder m)=>m.Sql("""
-ALTER TABLE dbo.DeviceAttendanceErases ADD RangeJson nvarchar(max) NULL,RangeSelectedCount int NULL,RangeRemainingDigest nvarchar(64) NULL;
+ protected override void Up(MigrationBuilder m)
+ {
+  // SQL Server must bind the new columns in a subsequent command, not in the
+  // same compiled batch as ADD COLUMN. Both commands remain one EF transaction.
+  m.Sql("ALTER TABLE dbo.DeviceAttendanceErases ADD RangeJson nvarchar(max) NULL,RangeSelectedCount int NULL,RangeRemainingDigest nvarchar(64) NULL;");
+  m.Sql("""
 ALTER TABLE dbo.DeviceAttendanceErases DROP CONSTRAINT CK_DeviceAttendanceErases_State;
 ALTER TABLE dbo.DeviceAttendanceErases ADD CONSTRAINT CK_DeviceAttendanceErases_State CHECK(State COLLATE Latin1_General_100_BIN2 IN(N'proposed',N'pending',N'running',N'cancelled',N'expired',N'revoked',N'deleted-verified',N'already-empty',N'range-deleted-verified',N'range-empty',N'archive-mismatch',N'failed-before-write',N'unknown',N'unsupported',N'released') AND (RecoveryOfId IS NULL OR State IN(N'proposed',N'cancelled',N'expired',N'released')) AND (State<>N'released' OR RecoveryOfId IS NOT NULL));
 ALTER TABLE dbo.DeviceAttendanceErases DROP CONSTRAINT CK_DeviceAttendanceErases_Lifecycle;
@@ -26,6 +30,7 @@ BEGIN SET NOCOUNT ON;
  IF EXISTS(SELECT 1 FROM inserted i JOIN dbo.DeviceAttendanceErases p ON p.Id=i.RecoveryOfId WHERE p.State<>N''unknown'' OR p.RecoveryOfId IS NOT NULL OR p.DeviceId<>i.DeviceId OR EXISTS(SELECT CONVERT(varbinary(max),p.RangeJson) EXCEPT SELECT CONVERT(varbinary(max),i.RangeJson)) OR p.DeviceVersion<>i.DeviceVersion OR p.FinishedAtUtc>i.QuiescedAtUtc) THROW 51043,''Recovery pins original unknown and post-reset observation; never original success.'',1;
 END');
 """);
+ }
  protected override void Down(MigrationBuilder m)=>m.Sql("""
 IF EXISTS(SELECT 1 FROM dbo.DeviceAttendanceErases WHERE RangeJson IS NOT NULL) THROW 51043,'Range deletion history prevents downgrade.',1;
 EXEC(N'CREATE OR ALTER TRIGGER dbo.TR_DeviceAttendanceErases_History ON dbo.DeviceAttendanceErases AFTER INSERT,UPDATE,DELETE AS
