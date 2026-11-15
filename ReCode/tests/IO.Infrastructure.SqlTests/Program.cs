@@ -105,7 +105,7 @@ try
         Check(!db.Database.HasPendingModelChanges(), "model matches migration snapshot");
         await db.Database.MigrateAsync();
         await db.Database.MigrateAsync();
-        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 54, "foundation and fifty-three later migrations applied idempotently");
+        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 55, "foundation and fifty-four later migrations applied idempotently");
         var created = 0;
         foreach (var table in expectedTables) if (await HasTable(table)) created++;
         Check(created == expectedTables.Length, "all 69 foundation and later tables created");
@@ -329,7 +329,7 @@ try
         var recreated = 0;
         foreach (var table in expectedTables) if (await HasTable(table)) recreated++;
         Check(recreated == expectedTables.Length, "migrations recreated all 69 foundation and later tables");
-        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 54, "migration history restored");
+        Check((await db.Database.GetAppliedMigrationsAsync()).Count() == 55, "migration history restored");
     }
     // Independent Identity schema and bootstrap: the foundation DB was just
     // recreated empty above. Never run this against non-disposable data.

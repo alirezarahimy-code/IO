@@ -1,5 +1,5 @@
 using IO.DeviceContracts;
-internal sealed class ZkComAttendanceSession(object instance,int machine):IAttendanceEraseSession
+internal sealed class ZkComAttendanceSession(object instance,int machine):IAttendanceRangeEraseSession
     {
         public BiometricDeviceIdentity Identity()
         {
@@ -7,6 +7,7 @@ internal sealed class ZkComAttendanceSession(object instance,int machine):IAtten
             if(!(bool)sdk.GetSerialNumber(machine,out serial)||!(bool)sdk.GetProductCode(machine,out product)||!(bool)sdk.GetFirmwareVersion(machine,out firmware))throw new InvalidOperationException();
             return new(serial.Trim(),product.Trim(),firmware.Trim());
         }
+        public bool DeleteAttendanceRange(string fromLocalInclusive,string throughLocalInclusive)=>(bool)((dynamic)instance).DeleteAttlogBetweenTheDate(machine,fromLocalInclusive,throughLocalInclusive);
         public bool ClearAttendance()=>(bool)((dynamic)instance).ClearData(machine,1);
         public string? Serial(){string serial;return (bool)((dynamic)instance).GetSerialNumber(machine,out serial)?serial?.Trim():null;}
         public int? RecordCount(){int value=0;return (bool)((dynamic)instance).GetDeviceStatus(machine,6,ref value)?value:null;}

@@ -1,0 +1,623 @@
+{
+  "scope": "R12 exact DeleteAttlogBetweenTheDate(machine,from,through) ABI and full log read ABI. Legacy yyyy-MM-dd HH:mm:ss format is reference only, not installed inclusive-boundary, precision or physical capture-stop proof.",
+  "sources": [
+    {
+      "source": "SDK 6.3.1.45/zkemkeeper.dll",
+      "dllSha256": "33b5d535cffdd14dd123d22d8a069004add468c71a7c8411a906f641b7ef2399",
+      "resourceId": 1,
+      "languageId": 1033,
+      "typelibBytes": 58316,
+      "typelibSha256": "f7b8fba2f3d5352b9482a0f6394b916f998aac469ec08c0bd175f7b5c2fbd395",
+      "methods": [
+        {
+          "interface": "IZKEM",
+          "method": "ReadAllGLogData",
+          "dispid": 8,
+          "recordOffset": 27808,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "GetDeviceStatus",
+          "dispid": 11,
+          "recordOffset": 28036,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "dwStatus",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "dwValue",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "GetGeneralLogData",
+          "dispid": 22,
+          "recordOffset": 28952,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "dwTMachineNumber",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "dwEnrollNumber",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "dwEMachineNumber",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "dwVerifyMode",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "dwInOutMode",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "dwYear",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "dwMonth",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "dwDay",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "dwHour",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "dwMinute",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "GetSerialNumber",
+          "dispid": 29,
+          "recordOffset": 29944,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "dwSerialNumber",
+              "type": "PTR BSTR",
+              "flags": 2
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "GetProductCode",
+          "dispid": 33,
+          "recordOffset": 30124,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "lpszProductCode",
+              "type": "PTR BSTR",
+              "flags": 2
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "GetFirmwareVersion",
+          "dispid": 34,
+          "recordOffset": 30192,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "strVersion",
+              "type": "PTR BSTR",
+              "flags": 3
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "SSR_GetGeneralLogData",
+          "dispid": 145,
+          "recordOffset": 38360,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "dwEnrollNumber",
+              "type": "PTR BSTR",
+              "flags": 2
+            },
+            {
+              "name": "dwVerifyMode",
+              "type": "PTR LONG",
+              "flags": 2
+            },
+            {
+              "name": "dwInOutMode",
+              "type": "PTR LONG",
+              "flags": 2
+            },
+            {
+              "name": "dwYear",
+              "type": "PTR LONG",
+              "flags": 2
+            },
+            {
+              "name": "dwMonth",
+              "type": "PTR LONG",
+              "flags": 2
+            },
+            {
+              "name": "dwDay",
+              "type": "PTR LONG",
+              "flags": 2
+            },
+            {
+              "name": "dwHour",
+              "type": "PTR LONG",
+              "flags": 2
+            },
+            {
+              "name": "dwMinute",
+              "type": "PTR LONG",
+              "flags": 2
+            },
+            {
+              "name": "dwSecond",
+              "type": "PTR LONG",
+              "flags": 2
+            },
+            {
+              "name": "dwWorkCode",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "DeleteAttlogBetweenTheDate",
+          "dispid": 501,
+          "recordOffset": 48284,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "sTime",
+              "type": "BSTR",
+              "flags": 1
+            },
+            {
+              "name": "eTime",
+              "type": "BSTR",
+              "flags": 1
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        }
+      ],
+      "executedBinary": false,
+      "originalSourceAvailable": false,
+      "hardwareVerified": false
+    },
+    {
+      "source": "NewPack Dlls 10.06.1398/zkemkeeper.dll",
+      "dllSha256": "261b769b6923a4df8fa266955f18b3431f6c6bd202130f996640e367dfe9c5e2",
+      "resourceId": 1,
+      "languageId": 1033,
+      "typelibBytes": 47076,
+      "typelibSha256": "ecbc3b9f6301bd49e36f9738bd83c98c8b7f8954469de270a4525137d0ccd414",
+      "methods": [
+        {
+          "interface": "IZKEM",
+          "method": "ReadAllGLogData",
+          "dispid": 8,
+          "recordOffset": 23088,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "GetDeviceStatus",
+          "dispid": 11,
+          "recordOffset": 23316,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "dwStatus",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "dwValue",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "GetGeneralLogData",
+          "dispid": 22,
+          "recordOffset": 24232,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "dwTMachineNumber",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "dwEnrollNumber",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "dwEMachineNumber",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "dwVerifyMode",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "dwInOutMode",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "dwYear",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "dwMonth",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "dwDay",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "dwHour",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "dwMinute",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "GetSerialNumber",
+          "dispid": 29,
+          "recordOffset": 25224,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "dwSerialNumber",
+              "type": "PTR BSTR",
+              "flags": 2
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "GetProductCode",
+          "dispid": 33,
+          "recordOffset": 25404,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "lpszProductCode",
+              "type": "PTR BSTR",
+              "flags": 2
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "GetFirmwareVersion",
+          "dispid": 34,
+          "recordOffset": 25472,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "strVersion",
+              "type": "PTR BSTR",
+              "flags": 3
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "SSR_GetGeneralLogData",
+          "dispid": 145,
+          "recordOffset": 33640,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "dwEnrollNumber",
+              "type": "PTR BSTR",
+              "flags": 2
+            },
+            {
+              "name": "dwVerifyMode",
+              "type": "PTR LONG",
+              "flags": 2
+            },
+            {
+              "name": "dwInOutMode",
+              "type": "PTR LONG",
+              "flags": 2
+            },
+            {
+              "name": "dwYear",
+              "type": "PTR LONG",
+              "flags": 2
+            },
+            {
+              "name": "dwMonth",
+              "type": "PTR LONG",
+              "flags": 2
+            },
+            {
+              "name": "dwDay",
+              "type": "PTR LONG",
+              "flags": 2
+            },
+            {
+              "name": "dwHour",
+              "type": "PTR LONG",
+              "flags": 2
+            },
+            {
+              "name": "dwMinute",
+              "type": "PTR LONG",
+              "flags": 2
+            },
+            {
+              "name": "dwSecond",
+              "type": "PTR LONG",
+              "flags": 2
+            },
+            {
+              "name": "dwWorkCode",
+              "type": "PTR LONG",
+              "flags": 3
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        },
+        {
+          "interface": "IZKEM",
+          "method": "DeleteAttlogBetweenTheDate",
+          "dispid": 280,
+          "recordOffset": 43472,
+          "return": "HRESULT",
+          "parameters": [
+            {
+              "name": "dwMachineNumber",
+              "type": "LONG",
+              "flags": 1
+            },
+            {
+              "name": "sTime",
+              "type": "BSTR",
+              "flags": 1
+            },
+            {
+              "name": "eTime",
+              "type": "BSTR",
+              "flags": 1
+            },
+            {
+              "name": "pVal",
+              "type": "PTR VARIANT_BOOL",
+              "flags": 10
+            }
+          ],
+          "interfaceGuid": "102f4206-e43d-4fc9-bab0-331cffe4d25b"
+        }
+      ],
+      "executedBinary": false,
+      "originalSourceAvailable": false,
+      "hardwareVerified": false
+    }
+  ],
+  "nativeExecuted": false,
+  "hardwareVerified": false
+}

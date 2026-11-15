@@ -15,6 +15,9 @@ public sealed class DeviceAttendanceEraseRecord
  public string ApprovalJson {get;set;}=null!;
  public string ArchiveDigest {get;set;}=null!;
  public int ArchiveCount {get;set;}
+ public string? RangeJson {get;set;}
+ public int? RangeSelectedCount {get;set;}
+ public string? RangeRemainingDigest {get;set;}
  public string RequestHash {get;set;}=null!;
  public string State {get;set;}="proposed";
  public Guid? ApprovedByUserId {get;set;}

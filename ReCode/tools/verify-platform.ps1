@@ -23,6 +23,7 @@ Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --daylight-read-contracts
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --profile-setting-contracts
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --push-codec-contracts
+Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --attendance-range-erase-contracts
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --attendance-erase-contracts
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --biometric-transfer-contracts
 Run-Dotnet run --project tests/IO.DeviceRuntime.Tests --configuration Release --no-build -- --gateway-enroll-contracts
@@ -104,5 +105,7 @@ if ($LASTEXITCODE -ne 0) { throw "biometric ABI verification failed" }
 & python tools/device-reference-audit.py
 if ($LASTEXITCODE -ne 0) { throw "device reference crosswalk verification failed" }
 
+& python tools/audit-attendance-range-erase-typelib.py --verify
+if ($LASTEXITCODE -ne 0) { throw 'Range erase typelib audit failed' }
 & python tools/audit-attendance-erase-typelib.py --verify
 if ($LASTEXITCODE -ne 0) { throw "Attendance erase ABI verification failed" }

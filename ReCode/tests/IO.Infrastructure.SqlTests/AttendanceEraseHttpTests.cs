@@ -16,14 +16,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 internal static class AttendanceEraseHttpTests
 {
- internal static async Task RunAsync(ServiceProvider provider,Guid actor,DeviceAttendanceErases.Input input,Action<bool,string> check)
+ internal static async Task RunAsync(ServiceProvider provider,Guid actor,DeviceAttendanceErases.Input input,Action<bool,string> check,bool rangeOnly=false)
  {
+  var route=rangeOnly?"/devices/attendance-range-erases":"/devices/attendance-erases";
+  var pageRoute=rangeOnly?"device-attendance-range-erases":"device-attendance-erases";
   string connection,name;
   const string password="Synthetic!Erase-Test-2026";
   await using(var scope=provider.CreateAsyncScope())
   {
    var db=scope.ServiceProvider.GetRequiredService<IoDbContext>();connection=db.Database.GetConnectionString()!;name=await db.Users.Where(x=>x.Id==actor).Select(x=>x.UserName).SingleAsync();
-   var manager=scope.ServiceProvider.GetRequiredService<UserManager<LoginAccount>>();var created=await manager.CreateAsync(new LoginAccount{Id=actor,UserName=name,LockoutEnabled=true},password);if(!created.Succeeded)throw new InvalidOperationException("Synthetic HTTP erase identity creation failed.");
+   var manager=scope.ServiceProvider.GetRequiredService<UserManager<LoginAccount>>();if(await manager.FindByIdAsync(actor.ToString()) is null){var created=await manager.CreateAsync(new LoginAccount{Id=actor,UserName=name,LockoutEnabled=true},password);if(!created.Succeeded)throw new InvalidOperationException("Synthetic HTTP erase identity creation failed.");}
   }
   using var rsa=RSA.Create(2048);var req=new CertificateRequest("CN=localhost",rsa,HashAlgorithmName.SHA256,RSASignaturePadding.Pkcs1);
   using var generated=req.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1),DateTimeOffset.UtcNow.AddDays(1));
@@ -34,17 +36,17 @@ internal static class AttendanceEraseHttpTests
   {
    var address=app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.Single();
    using var client=new HttpClient(new HttpClientHandler{CookieContainer=new CookieContainer(),AllowAutoRedirect=false,ServerCertificateCustomValidationCallback=(_,_,_,_)=>true}){BaseAddress=new(address)};
-   check((await client.GetAsync("/devices/attendance-erases")).StatusCode==HttpStatusCode.Unauthorized,"actual HTTPS erase metadata denies unauthenticated caller");
+   check((await client.GetAsync(route)).StatusCode==HttpStatusCode.Unauthorized,"actual HTTPS erase metadata denies unauthenticated caller");
    async Task<string> Csrf(){using var r=await client.GetAsync("/auth/csrf");r.EnsureSuccessStatusCode();var j=await r.Content.ReadFromJsonAsync<JsonElement>();return j.GetProperty("token").GetString()!;}
    using var login=new HttpRequestMessage(HttpMethod.Post,"/auth/login"){Content=JsonContent.Create(new{UserName=name,Password=password})};login.Headers.Add("X-CSRF-TOKEN",await Csrf());
    check((await client.SendAsync(login)).StatusCode==HttpStatusCode.NoContent,"actual HTTPS erase test logs in through production identity and antiforgery");
-   using var page=await client.GetAsync("/workspace/device-attendance-erases");using var script=await client.GetAsync("/assets/device-attendance-erases.js");
+   using var page=await client.GetAsync("/workspace/"+pageRoute);using var script=await client.GetAsync("/assets/"+pageRoute+".js");
    check(page.StatusCode==HttpStatusCode.OK&&script.StatusCode==HttpStatusCode.OK&&(await page.Content.ReadAsStringAsync()).Contains("intent-form",StringComparison.Ordinal)&&(await script.Content.ReadAsStringAsync()).Contains("X-CSRF-TOKEN",StringComparison.Ordinal),"published embedded erase page and local asset are mapped behind authenticated grants (page="+(int)page.StatusCode+", script="+(int)script.StatusCode+")");
-   check((await client.PostAsJsonAsync("/devices/attendance-erases/preview",input)).StatusCode==HttpStatusCode.BadRequest,"actual HTTPS erase preview rejects missing CSRF before any side effect");
-   async Task<HttpResponseMessage> Preview(){using var request=new HttpRequestMessage(HttpMethod.Post,"/devices/attendance-erases/preview"){Content=JsonContent.Create(input)};request.Headers.Add("X-CSRF-TOKEN",await Csrf());return await client.SendAsync(request);}
+   check((await client.PostAsJsonAsync(route+"/preview",input)).StatusCode==HttpStatusCode.BadRequest,"actual HTTPS erase preview rejects missing CSRF before any side effect");
+   async Task<HttpResponseMessage> Preview(){using var request=new HttpRequestMessage(HttpMethod.Post,route+"/preview"){Content=JsonContent.Create(input)};request.Headers.Add("X-CSRF-TOKEN",await Csrf());return await client.SendAsync(request);}
    using var disabled=await Preview();check(disabled.StatusCode==HttpStatusCode.Conflict,"actual HTTPS valid-CSRF erase request remains default-off independently of browser approval");
    Guid role,permission;
-   await using(var scope=provider.CreateAsyncScope()){var db=scope.ServiceProvider.GetRequiredService<IoDbContext>();role=await db.UserRoles.Where(x=>x.UserId==actor).Select(x=>x.RoleId).SingleAsync();permission=await db.Permissions.Where(x=>x.Code==DeviceAttendanceErases.Propose).Select(x=>x.Id).SingleAsync();db.RolePermissions.Remove(await db.RolePermissions.SingleAsync(x=>x.RoleId==role&&x.PermissionId==permission));await db.SaveChangesAsync();}
+   await using(var scope=provider.CreateAsyncScope()){var db=scope.ServiceProvider.GetRequiredService<IoDbContext>();role=await db.UserRoles.Where(x=>x.UserId==actor).Select(x=>x.RoleId).SingleAsync();permission=await db.Permissions.Where(x=>x.Code==(rangeOnly?DeviceAttendanceErases.RangePropose:DeviceAttendanceErases.Propose)).Select(x=>x.Id).SingleAsync();db.RolePermissions.Remove(await db.RolePermissions.SingleAsync(x=>x.RoleId==role&&x.PermissionId==permission));await db.SaveChangesAsync();}
    try{using var revoked=await Preview();check(revoked.StatusCode==HttpStatusCode.Forbidden,"actual HTTPS erase permission revocation invalidates an already authenticated session immediately");}
    finally{await using var scope=provider.CreateAsyncScope();var db=scope.ServiceProvider.GetRequiredService<IoDbContext>();db.RolePermissions.Add(new(){RoleId=role,PermissionId=permission});await db.SaveChangesAsync();}
   }
