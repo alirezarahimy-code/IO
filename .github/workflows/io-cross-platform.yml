@@ -33,6 +33,8 @@ jobs:
       - uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1
         with:
           dotnet-version: 10.0.x
+      - name: Provision isolated encrypted synthetic photo volume
+        run: ./tools/prepare-biometric-photo-ci.ps1
       - name: Build, catalogue checks and portable publish
         run: ./tools/verify-platform.ps1
       - name: Windows LocalDB authenticated gateway and enrollment integration
@@ -45,3 +47,6 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'LocalDB startup failed' }
           dotnet run --project tests/IO.Infrastructure.SqlTests --configuration Release --no-build -- --gateway-enroll-operational
           if ($LASTEXITCODE -ne 0) { throw 'Windows gateway/enrollment SQL integration failed' }
+      - name: Detach synthetic photo volume
+        if: always()
+        run: ./tools/prepare-biometric-photo-ci.ps1 -Cleanup

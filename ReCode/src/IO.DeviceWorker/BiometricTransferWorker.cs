@@ -11,10 +11,17 @@ internal sealed class BiometricTransferWorker(IServiceScopeFactory scopes,Worker
  protected override async Task ExecuteAsync(CancellationToken ct)
  {
   if(!OperatingSystem.IsWindows())return;
+  var nextSweep=DateTimeOffset.MinValue;
   while(!ct.IsCancellationRequested)
   {
    try
    {
+    if(configuration.PhotoStaging?.Enable==true&&DateTimeOffset.UtcNow>=nextSweep)
+    {
+     nextSweep=DateTimeOffset.UtcNow.AddSeconds(30);
+     try{using var sweep=BiometricPhotoLease.Create(configuration.PhotoStaging,1);}
+     catch{Console.Error.WriteLine("Photo staging requires administrator review; photo dispatch remains fail-closed.");}
+    }
     DeviceBiometricTransfers.Claim? claim;
     await using(var scope=scopes.CreateAsyncScope())
     {
@@ -37,13 +44,13 @@ internal sealed class BiometricTransferWorker(IServiceScopeFactory scopes,Worker
  {
   var i=claim.Intent;var source=configuration.NativeEndpoints.SingleOrDefault(x=>x.DeviceId==i.SourceDeviceId);var target=configuration.NativeEndpoints.SingleOrDefault(x=>x.DeviceId==i.TargetDeviceId);
   bool Matches(NativeEndpoint? n,string host,int port,string serial)=>n is not null&&n.Port==port&&System.Net.IPAddress.TryParse(host,out var ip)&&System.Net.IPAddress.Parse(n.Address).Equals(ip)&&n.ExpectedSerial==serial&&n.BiometricTransferApprovals?.Count(a=>a==i.Approval)==1;
-  if(!Matches(source,claim.SourceHost,claim.SourcePort,i.Approval.Source.Serial)||!Matches(target,claim.TargetHost,claim.TargetPort,i.Approval.Target.Serial))return new(claim.Id,"unsupported");
+  if(!Matches(source,claim.SourceHost,claim.SourcePort,i.Approval.Source.Serial)||!Matches(target,claim.TargetHost,claim.TargetPort,i.Approval.Target.Serial))return new(claim.Id,i.InspectionOfId is null?"unsupported":"inspection-failed");
   DeviceBiometricTransfers.Keys? keys;
   await using(var scope=scopes.CreateAsyncScope())keys=await scope.ServiceProvider.GetRequiredService<DeviceBiometricTransfers>().CredentialAsync(configuration.ServiceUserId,claim,source!.AllowDefaultCommunicationKey,target!.AllowDefaultCommunicationKey,ct);
-  if(keys is null)return new(claim.Id,"failed-before-write");
-  var input=new BiometricTransferInput(new(i.SourceDeviceId,source!.Address,source.Port,source.MachineNumber,source.ExpectedSerial,keys.Source.Value),new(i.TargetDeviceId,target!.Address,target.Port,target.MachineNumber,target.ExpectedSerial,keys.Target.Value),claim.Id,i.SourcePerson,i.TargetPerson,i.Approval);
+  if(keys is null)return new(claim.Id,i.InspectionOfId is null?"failed-before-write":"inspection-failed");
+  var input=new BiometricTransferInput(new(i.SourceDeviceId,source!.Address,source.Port,source.MachineNumber,source.ExpectedSerial,keys.Source.Value),new(i.TargetDeviceId,target!.Address,target.Port,target.MachineNumber,target.ExpectedSerial,keys.Target.Value),claim.Id,i.SourcePerson,i.TargetPerson,i.Approval,InspectOnly:i.InspectionOfId is not null);
   using var stop=CancellationTokenSource.CreateLinkedTokenSource(ct);
-  var process=NativeProcessSupervisor.RunBiometricTransferAsync(configuration.DotnetPath!,configuration.BridgePath!,input,i.TimeoutSeconds,stop.Token);
+  var process=NativeProcessSupervisor.RunBiometricTransferAsync(configuration.DotnetPath!,configuration.BridgePath!,input,i.TimeoutSeconds,stop.Token,configuration.PhotoStaging);
   while(!process.IsCompleted)
   {
    if(await Task.WhenAny(process,Task.Delay(500,ct))==process)break;

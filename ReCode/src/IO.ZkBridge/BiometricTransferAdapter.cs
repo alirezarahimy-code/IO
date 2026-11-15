@@ -2,7 +2,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using IO.DeviceContracts;
 
-/// <summary>Templates stay within one disposable STA process. No photo/file, metadata write, delete, enroll or broad batch setter.</summary>
+/// <summary>Templates stay within one disposable STA process. Photo uses only bounded private EFS staging; no metadata write, delete, enroll or broad batch setter.</summary>
 [SupportedOSPlatform("windows")]
 internal static class BiometricTransferAdapter
 {
@@ -11,20 +11,22 @@ internal static class BiometricTransferAdapter
         try
         {
             if(!input.IsValid())return new(input.OperationId,"unsupported");
-            using var source=new Session(input.Source,true);
-            using var target=new Session(input.Target,false);
-            return BiometricTransferExecutor.Execute(input,source,target);
+            using var photo=input.Approval.Kind=="photo"?BiometricPhotoLease.OpenChild(input.PhotoWorkspace!,input.Approval.PhotoHandlingReference!):null;
+            using var source=new Session(input.Source,true,input.PhotoWorkspace);
+            using var target=new Session(input.Target,false,input.PhotoWorkspace);
+            return input.InspectOnly?BiometricTransferExecutor.Observe(input,source,target):BiometricTransferExecutor.Execute(input,source,target);
         }
-        catch{return new(input.OperationId,"failed-before-write");} // Executor owns every mutation; construction only connects.
+        catch{return new(input.OperationId,input.InspectOnly?"inspection-failed":"failed-before-write");} // Executor owns every mutation; construction only connects.
     }
     private sealed class Session:IBiometricTransferSession,IDisposable
     {
         private object? instance;
         private readonly ZkProbeInput connection;
         private readonly bool source;
-        internal Session(ZkProbeInput connection,bool source)
+        private readonly BiometricPhotoWorkspace? workspace;
+        internal Session(ZkProbeInput connection,bool source,BiometricPhotoWorkspace? workspace)
         {
-            this.connection=connection;this.source=source;
+            this.connection=connection;this.source=source;this.workspace=workspace;
             try
             {
                 instance=Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("00853A19-BD51-419B-9269-2DABE57EB61F"),true)!)!;
@@ -56,6 +58,7 @@ internal static class BiometricTransferAdapter
         }
         public BiometricSlot Read(string person,BiometricTransferApproval a)
         {
+            if(a.Kind=="photo")return ReadPhoto(person,a);
             dynamic sdk=instance!;int machine=connection.MachineNumber;
             if(a.RequiresReadAllTemplate&&!(bool)sdk.ReadAllTemplate(machine))return new("unavailable");
             string data="";int length=0,flag=0;bool found;
@@ -74,6 +77,7 @@ internal static class BiometricTransferAdapter
         public bool Write(string person,BiometricTransferApproval a,BiometricMaterial material)
         {
             if(source||!material.IsValid(a))return false;
+            if(a.Kind=="photo")return WritePhoto(person,a,material);
             dynamic sdk=instance!;
             return a.Kind switch
             {
@@ -82,8 +86,18 @@ internal static class BiometricTransferAdapter
                 _=>false
             };
         }
+        private BiometricPhotoFiles? photos;
+        private BiometricSlot ReadPhoto(string person,BiometricTransferApproval a)=>(photos??=new(workspace!,source,new PhotoSdk(instance!,connection.MachineNumber))).Read(person,a);
+        private bool WritePhoto(string person,BiometricTransferApproval a,BiometricMaterial m)=>(photos??=new(workspace!,source,new PhotoSdk(instance!,connection.MachineNumber))).Write(person,a,m);
+        private sealed class PhotoSdk(object sdk,int machine):IBiometricPhotoSdk
+        {
+            public bool Download(string name,string directory)=>(bool)((dynamic)sdk).ReadFile(machine,name,directory);
+            public bool Upload(string path)=>(bool)((dynamic)sdk).SendFile(machine,path);
+            public int LastError(){int code=int.MinValue;((dynamic)sdk).GetLastError(ref code);return code;}
+        }
         public void Dispose()
         {
+            photos?.Dispose();
             if(instance is null)return;
             try{((dynamic)instance).Disconnect();}catch{}
             try{if(Marshal.IsComObject(instance))Marshal.FinalReleaseComObject(instance);}catch{}

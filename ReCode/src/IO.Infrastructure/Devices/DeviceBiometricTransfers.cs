@@ -10,11 +10,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 namespace IO.Infrastructure.Devices;
 
-/// <summary>Direct device-to-device transient exchange. Web/SQL/worker never receive template material. Fingerprint/face only in this increment.</summary>
+/// <summary>Direct device-to-device transient exchange. Web/SQL/worker never receive template material. Photo requires private bounded EFS staging in the child.</summary>
 public sealed class DeviceBiometricTransfers(IoDbContext db,PermissionTransaction tx,TimeProvider clock,IDataProtectionProvider protection,IConfiguration config)
 {
- public const string Read="devices.biometrics.jobs.read",Transfer="devices.biometrics.transfer",ReadMaterial="devices.biometrics.source.read",Execute="devices.biometrics.execute",Confirmation="COPY-BIOMETRIC-TO-EMPTY-SLOT";
- public sealed record Input(Guid Id,Guid SourceDeviceId,Guid TargetDeviceId,Guid EmployeeId,byte[] SourceDeviceVersion,byte[] TargetDeviceVersion,string SourcePerson,string TargetPerson,BiometricTransferApproval Approval,int TimeoutSeconds)
+ public const string Read="devices.biometrics.jobs.read",Transfer="devices.biometrics.transfer",ReadMaterial="devices.biometrics.source.read",Inspect="devices.biometrics.inspect",Execute="devices.biometrics.execute",Confirmation="COPY-BIOMETRIC-TO-EMPTY-SLOT";
+ public sealed record Input(Guid Id,Guid SourceDeviceId,Guid TargetDeviceId,Guid EmployeeId,byte[] SourceDeviceVersion,byte[] TargetDeviceVersion,string SourcePerson,string TargetPerson,BiometricTransferApproval Approval,int TimeoutSeconds,Guid? InspectionOfId=null)
  {public override string ToString()=>"Biometric intent [subjects and policy redacted]";}
  public sealed record Confirm(Input Intent,string PreviewHash,string Confirmation);
  public sealed record Claim(Guid Id,Guid Token,Input Intent,string SourceHost,int SourcePort,string TargetHost,int TargetPort)
@@ -24,7 +24,7 @@ public sealed class DeviceBiometricTransfers(IoDbContext db,PermissionTransactio
  private static string Hash(object o)=>Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(o)));
  private static void Validate(Input i)
  {
-  if(i is null||i.Id==Guid.Empty||i.SourceDeviceId==Guid.Empty||i.TargetDeviceId==Guid.Empty||i.SourceDeviceId==i.TargetDeviceId||i.EmployeeId==Guid.Empty||i.SourceDeviceVersion is not{Length:8}||i.TargetDeviceVersion is not{Length:8}||!Person(i.SourcePerson)||!Person(i.TargetPerson)||i.Approval?.IsValid()!=true||i.TimeoutSeconds is <1 or >60)throw new ArgumentException("Exact pair, employee, versions, supported format and policy required; photo exchange is not enabled by this contract.");
+  if(i is null||i.Id==Guid.Empty||i.SourceDeviceId==Guid.Empty||i.TargetDeviceId==Guid.Empty||i.SourceDeviceId==i.TargetDeviceId||i.EmployeeId==Guid.Empty||i.SourceDeviceVersion is not{Length:8}||i.TargetDeviceVersion is not{Length:8}||!Person(i.SourcePerson)||!Person(i.TargetPerson)||(i.Approval?.Kind=="photo"&&(i.SourcePerson.Length>20||i.TargetPerson.Length>20))||i.Approval?.IsValid()!=true||i.TimeoutSeconds is <1 or >60)throw new ArgumentException("Exact pair, employee, versions, supported format and policy required; photo requires exact storage approval and bounded decimal file identity.");
  }
  private static bool Person(string? s)=>s is{Length:>=1 and <=100}&&s.All(char.IsAsciiDigit);
  private static Input Freeze(Input i){Validate(i);return i with{SourceDeviceVersion=i.SourceDeviceVersion.ToArray(),TargetDeviceVersion=i.TargetDeviceVersion.ToArray()};}
@@ -32,7 +32,7 @@ public sealed class DeviceBiometricTransfers(IoDbContext db,PermissionTransactio
  private async Task Authority(Guid actor,Input i,CancellationToken ct)
  {
   if(!Approved(i.Approval))throw new DomainConflictException("Biometric transfer is default-off; trusted exact-pair format and legal/retention/exclusive-control approval required.");
-  if(!await tx.HasDevicePermissionAsync(actor,Transfer,i.TargetDeviceId,ct)||!await tx.HasDevicePermissionAsync(actor,ReadMaterial,i.SourceDeviceId,ct)||!await tx.HasDevicePermissionAsync(actor,Transfer,i.SourceDeviceId,ct)||!await tx.HasDevicePermissionAsync(actor,ReadMaterial,i.TargetDeviceId,ct))throw new UnauthorizedAccessException();
+  if(!await tx.HasDevicePermissionAsync(actor,i.InspectionOfId is null?Transfer:Inspect,i.TargetDeviceId,ct)||!await tx.HasDevicePermissionAsync(actor,ReadMaterial,i.SourceDeviceId,ct)||!await tx.HasDevicePermissionAsync(actor,i.InspectionOfId is null?Transfer:Inspect,i.SourceDeviceId,ct)||!await tx.HasDevicePermissionAsync(actor,ReadMaterial,i.TargetDeviceId,ct))throw new UnauthorizedAccessException();
  }
  private sealed record Plan(DeviceRecord Source,DeviceRecord Target,SourceEmployeeMappingRecord SourceMapping,SourceEmployeeMappingRecord TargetMapping,string Hash);
  private async Task<Plan> Build(Guid actor,Input i,bool ownJob,CancellationToken ct)
@@ -43,7 +43,17 @@ public sealed class DeviceBiometricTransfers(IoDbContext db,PermissionTransactio
   if(!Valid(source,i.SourceDeviceVersion)||!Valid(target,i.TargetDeviceVersion)||source.Host==target.Host&&source.Port==target.Port)throw new DomainConflictException("Changed, disabled, unsupported or aliased endpoints.");
   foreach(var d in new[]{source,target})
   {
-   if(await Busy(d.Id,ownJob?i.Id:Guid.Empty,ct)||await DeviceWriteSafety.UnreviewedAsync(db,d.Id,ct))throw new DomainConflictException("Pause polling and finish/review all work on both endpoints first.");
+   if(await Busy(d.Id,ownJob?i.Id:Guid.Empty,ct,i.InspectionOfId)||await DeviceWriteSafety.UnreviewedAsync(db,d.Id,ct,i.InspectionOfId))throw new DomainConflictException("Pause polling and finish/review all work on both endpoints first.");
+  }
+  if(i.InspectionOfId is{} parentId)
+  {
+   var parent=await db.DeviceBiometricTransfers.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==parentId,ct);
+   if(parent is null||parent.State!="unknown"||parent.InspectionOfId!=null||parent.SourceDeviceId!=i.SourceDeviceId||parent.TargetDeviceId!=i.TargetDeviceId||parent.EmployeeId!=i.EmployeeId||parent.SourcePerson!=i.SourcePerson||parent.TargetPerson!=i.TargetPerson||JsonSerializer.Deserialize<BiometricTransferApproval>(parent.ApprovalJson)!=i.Approval||!parent.SourceDeviceVersion.SequenceEqual(i.SourceDeviceVersion)||!parent.TargetDeviceVersion.SequenceEqual(i.TargetDeviceVersion)||await db.DeviceBiometricRecoveries.AnyAsync(x=>x.TransferId==parentId&&x.ApprovedAtUtc!=null,ct))throw new DomainConflictException("Inspection must preserve an unresolved original unknown target exactly.");
+   if(ownJob)
+   {
+    var recovery=await db.DeviceBiometricRecoveries.AsNoTracking().SingleOrDefaultAsync(x=>x.InspectionId==i.Id,ct);
+    if(recovery is null||recovery.ProposedByUserId!=actor||!DeviceBiometricRecovery.Approved(config,JsonSerializer.Deserialize<BiometricRecoveryApproval>(recovery.ApprovalJson)!)||!await tx.HasDevicePermissionAsync(actor,DeviceBiometricRecovery.Propose,i.SourceDeviceId,ct)||!await tx.HasDevicePermissionAsync(actor,DeviceBiometricRecovery.Propose,i.TargetDeviceId,ct))throw new DomainConflictException("Recovery authority changed; read-only inspection revoked.");
+   }
   }
   var employee=await db.Employees.AsNoTracking().SingleOrDefaultAsync(x=>x.Id==i.EmployeeId,ct)??throw new ArgumentException("Unknown employee.");
   var sourceSite=await db.Sites.AsNoTracking().SingleAsync(x=>x.Id==source.SiteId,ct);var targetSite=await db.Sites.AsNoTracking().SingleAsync(x=>x.Id==target.SiteId,ct);
@@ -62,13 +72,13 @@ public sealed class DeviceBiometricTransfers(IoDbContext db,PermissionTransactio
  private async Task Lock(CancellationToken ct){await tx.LockAsync("IO.DeviceRegistry",ct);await tx.LockAsync("IO.DeviceConnections",ct);}
  public Task<object> PreviewAsync(Guid actor,Input input,CancellationToken ct=default)
  {
-  input=Freeze(input);return tx.ExecuteAsync<object>(actor,Transfer,"device-biometric.previewed",async token=>
+  input=Freeze(input);if(input.InspectionOfId!=null)throw new ArgumentException("Use recovery proposal to create read-only inspection.");return tx.ExecuteAsync<object>(actor,Transfer,"device-biometric.previewed",async token=>
   {await Lock(token);var p=await Build(actor,input,false,token);return(new{previewHash=p.Hash,input.SourceDeviceId,input.TargetDeviceId,input.EmployeeId,input.SourcePerson,input.TargetPerson,input.Approval.Kind,input.Approval.Slot,input.Approval.FormatReference,noOverwrite=true,materialReturned=false,confirmation=Confirmation},input.Id);},ct);
  }
  public Task<Guid> RequestAsync(Guid actor,Confirm input,CancellationToken ct=default)
  {
   if(input is null||input.Confirmation!=Confirmation||input.PreviewHash is not{Length:64})throw new ArgumentException("Exact preview and confirmation required.");
-  input=input with{Intent=Freeze(input.Intent)};
+  input=input with{Intent=Freeze(input.Intent)};if(input.Intent.InspectionOfId!=null)throw new ArgumentException("Use recovery proposal for inspection.");
   return tx.ExecuteAsync(actor,Transfer,"device-biometric.requested",async token=>
   {
    await Lock(token);var i=input.Intent;await Authority(actor,i,token);var requestHash=Hash(input);
@@ -82,10 +92,13 @@ public sealed class DeviceBiometricTransfers(IoDbContext db,PermissionTransactio
  public Task<object> ListAsync(Guid actor,int offset,CancellationToken ct=default)=>tx.ExecuteAsync<object>(actor,Read,"device-biometric.viewed",async token=>
  {
   if(offset is <0 or >100000)throw new ArgumentException("Invalid page.");
-  var items=await db.DeviceBiometricTransfers.AsNoTracking().OrderByDescending(x=>x.RequestedAtUtc).ThenBy(x=>x.Id).Skip(offset).Take(50).Select(x=>new{x.Id,x.SourceDeviceId,x.TargetDeviceId,x.EmployeeId,x.SourcePerson,x.TargetPerson,x.State,x.RequestedAtUtc,x.ClaimedAtUtc,x.CancelRequestedAtUtc,x.FinishedAtUtc,x.Version}).ToListAsync(token);
+  var items=await db.DeviceBiometricTransfers.AsNoTracking().OrderByDescending(x=>x.RequestedAtUtc).ThenBy(x=>x.Id).Skip(offset).Take(50).Select(x=>new{x.Id,x.SourceDeviceId,x.TargetDeviceId,x.InspectionOfId,x.EmployeeId,x.SourcePerson,x.TargetPerson,x.State,x.RequestedAtUtc,x.ClaimedAtUtc,x.CancelRequestedAtUtc,x.FinishedAtUtc,x.Version}).ToListAsync(token);
   return(new{items,offset,pageSize=50,templateMaterialAvailable=false},actor);
  },ct);
- public Task<Guid> CancelAsync(Guid actor,Guid id,byte[] version,CancellationToken ct=default)=>tx.ExecuteAsync(actor,Transfer,"device-biometric.cancel-requested",async token=>
+ public async Task<Guid> CancelAsync(Guid actor,Guid id,byte[] version,CancellationToken ct=default)
+ {
+ var inspection=await db.DeviceBiometricTransfers.AsNoTracking().Where(x=>x.Id==id).Select(x=>x.InspectionOfId!=null).SingleOrDefaultAsync(ct);
+ return await tx.ExecuteAsync(actor,inspection?Inspect:Transfer,"device-biometric.cancel-requested",async token=>
  {
   await Lock(token);var row=await db.DeviceBiometricTransfers.AsTracking().SingleOrDefaultAsync(x=>x.Id==id,token)??throw new ArgumentException("Unknown or inaccessible transfer.");
   if(version is not{Length:8}||!version.SequenceEqual(row.Version))throw new DomainConflictException("Refresh version.");
@@ -93,17 +106,18 @@ public sealed class DeviceBiometricTransfers(IoDbContext db,PermissionTransactio
   else if(row.State=="running")row.CancelRequestedAtUtc??=clock.GetUtcNow();else throw new DomainConflictException("Terminal result; never replay an unknown transfer.");
   return(row.Id,row.Id);
  },ct);
+ }
  public Task<Claim?> ClaimAsync(Guid service,CancellationToken ct=default)=>tx.ExecuteAsync<Claim?>(service,Execute,"device-biometric.claimed",async token=>
  {
   await Lock(token);var now=clock.GetUtcNow();
-  foreach(var stale in await db.DeviceBiometricTransfers.AsTracking().Where(x=>x.State=="running"&&x.ClaimedAtUtc<now.AddMinutes(-2)).ToListAsync(token)){stale.State="unknown";stale.FinishedAtUtc=now;}
+  foreach(var stale in await db.DeviceBiometricTransfers.AsTracking().Where(x=>x.State=="running"&&x.ClaimedAtUtc<now.AddMinutes(-2)).ToListAsync(token)){stale.State=stale.InspectionOfId is null?"unknown":"inspection-failed";stale.FinishedAtUtc=now;}
   var row=await db.DeviceBiometricTransfers.AsTracking().Where(x=>x.State=="pending").OrderBy(x=>x.RequestedAtUtc).ThenBy(x=>x.Id).FirstOrDefaultAsync(token);if(row is null)return(null,service);
   Plan p;try{if(now-row.RequestedAtUtc>TimeSpan.FromMinutes(2))throw new DomainConflictException("Expired intent.");p=await Build(row.RequestedByUserId,Intent(row),true,token);}
   catch(Exception e)when(e is DomainConflictException or UnauthorizedAccessException or ArgumentException){row.State="revoked-before-dispatch";row.FinishedAtUtc=now;return(null,row.Id);}
   row.State="running";row.ClaimId=Guid.NewGuid();row.ServiceUserId=service;row.ClaimedAtUtc=now;
   return(new Claim(row.Id,row.ClaimId.Value,Intent(row),p.Source.Host!,p.Source.Port!.Value,p.Target.Host!,p.Target.Port!.Value),row.Id);
  },ct);
- private static Input Intent(DeviceBiometricTransferRecord r)=>new(r.Id,r.SourceDeviceId,r.TargetDeviceId,r.EmployeeId,r.SourceDeviceVersion,r.TargetDeviceVersion,r.SourcePerson,r.TargetPerson,JsonSerializer.Deserialize<BiometricTransferApproval>(r.ApprovalJson)!,r.TimeoutSeconds);
+ private static Input Intent(DeviceBiometricTransferRecord r)=>new(r.Id,r.SourceDeviceId,r.TargetDeviceId,r.EmployeeId,r.SourceDeviceVersion,r.TargetDeviceVersion,r.SourcePerson,r.TargetPerson,JsonSerializer.Deserialize<BiometricTransferApproval>(r.ApprovalJson)!,r.TimeoutSeconds,r.InspectionOfId);
  private async Task<DeviceBiometricTransferRecord> Owned(Guid service,Claim claim,CancellationToken ct)
  {
   var row=await db.DeviceBiometricTransfers.AsTracking().SingleOrDefaultAsync(x=>x.Id==claim.Id,ct)??throw new ArgumentException("Unknown transfer.");
@@ -131,11 +145,24 @@ public sealed class DeviceBiometricTransfers(IoDbContext db,PermissionTransactio
  }
  public Task<Guid> CompleteAsync(Guid service,Claim claim,BiometricTransferOutput result,CancellationToken ct=default)=>tx.ExecuteAsync(service,Execute,"device-biometric.finished",async token=>
  {
-  await Lock(token);var row=await Owned(service,claim,token);if(result is null||result.OperationId!=row.Id||!BiometricTransferOutput.Known(result.State))throw new ArgumentException("Invalid correlated metadata-only result.");
-  row.State=await Current(row,claim,token)?result.State:"unknown";row.FinishedAtUtc=clock.GetUtcNow();return(row.Id,row.Id);
+  await Lock(token);var row=await Owned(service,claim,token);if(result is null||result.OperationId!=row.Id||!(row.InspectionOfId is null?BiometricTransferOutput.Known(result.State):BiometricTransferOutput.Observation(result.State)))throw new ArgumentException("Invalid correlated metadata-only result.");
+  row.State=await Current(row,claim,token)?result.State:row.InspectionOfId is null?"unknown":"inspection-failed";row.FinishedAtUtc=clock.GetUtcNow();return(row.Id,row.Id);
  },ct);
- private async Task<bool> Busy(Guid d,Guid self,CancellationToken ct)=>
-  await db.DeviceBiometricTransfers.IgnoreQueryFilters().AnyAsync(x=>x.Id!=self&&(x.SourceDeviceId==d||x.TargetDeviceId==d)&&(x.State=="pending"||x.State=="running"||x.TargetDeviceId==d&&x.State=="unknown"),ct)||
+ internal async Task<Guid> EnqueueInspectionInTransactionAsync(Guid actor,DeviceBiometricTransferRecord parent,Guid id,CancellationToken ct)
+ {
+  var input=Intent(parent) with{Id=id,InspectionOfId=parent.Id};Validate(input);
+  if(id==Guid.Empty||await db.DeviceBiometricTransfers.AnyAsync(x=>x.Id==id,ct))throw new DomainConflictException("Inspection id already used.");
+  await Build(actor,input,false,ct);
+  db.DeviceBiometricTransfers.Add(new(){Id=id,InspectionOfId=parent.Id,SourceDeviceId=parent.SourceDeviceId,TargetDeviceId=parent.TargetDeviceId,EmployeeId=parent.EmployeeId,RequestedByUserId=actor,RequestedAtUtc=clock.GetUtcNow(),SourceDeviceVersion=parent.SourceDeviceVersion.ToArray(),TargetDeviceVersion=parent.TargetDeviceVersion.ToArray(),SourcePerson=parent.SourcePerson,TargetPerson=parent.TargetPerson,ApprovalJson=parent.ApprovalJson,RequestHash=Hash(new{parent.Id,inspectionId=id}),TimeoutSeconds=parent.TimeoutSeconds});
+  return id;
+ }
+ internal async Task ValidateRecoveryTargetInTransactionAsync(Guid actor,DeviceBiometricTransferRecord parent,CancellationToken ct)
+ {
+  // Apply the same current pair/mapping/authority checks without creating a job or reading any material.
+  var input=Intent(parent) with{Id=Guid.NewGuid(),InspectionOfId=parent.Id};await Build(actor,input,false,ct);
+ }
+ private async Task<bool> Busy(Guid d,Guid self,CancellationToken ct,Guid? ignoredUnknown=null)=>
+  await db.DeviceBiometricTransfers.IgnoreQueryFilters().AnyAsync(x=>x.Id!=self&&(x.SourceDeviceId==d||x.TargetDeviceId==d)&&(x.State=="pending"||x.State=="running"||x.TargetDeviceId==d&&x.State=="unknown"&&x.Id!=ignoredUnknown&&!db.DeviceBiometricRecoveries.IgnoreQueryFilters().Any(r=>r.TransferId==x.Id&&r.ApprovedAtUtc!=null)),ct)||
   await db.RemoteEnrollments.AnyAsync(x=>x.DeviceId==d&&(x.State=="pending"||x.State=="running"),ct)||
   await db.DeviceConnections.AnyAsync(x=>x.DeviceId==d&&(x.State=="pending"||x.State=="running"),ct)||
   await db.DeviceOperations.AnyAsync(x=>x.DeviceId==d&&(x.State=="pending"||x.State=="running"),ct)||
@@ -149,6 +176,6 @@ internal static class BiometricTransferFence
  internal static async Task EnsureAsync(IoDbContext db,Guid device,bool writing,CancellationToken ct)
  {
   // Existence-only safety check must include a pair invisible to an operator restricted to just one endpoint.
-  if(await db.DeviceBiometricTransfers.IgnoreQueryFilters().AnyAsync(x=>(x.SourceDeviceId==device||x.TargetDeviceId==device)&&(x.State=="pending"||x.State=="running"||writing&&x.TargetDeviceId==device&&x.State=="unknown"),ct))throw new DomainConflictException("Biometric transfer owns endpoint or target write is unknown; no overwrite/replay.");
+  if(await db.DeviceBiometricTransfers.IgnoreQueryFilters().AnyAsync(x=>(x.SourceDeviceId==device||x.TargetDeviceId==device)&&(x.State=="pending"||x.State=="running"||writing&&x.TargetDeviceId==device&&x.State=="unknown"&&!db.DeviceBiometricRecoveries.IgnoreQueryFilters().Any(r=>r.TransferId==x.Id&&r.ApprovedAtUtc!=null)),ct))throw new DomainConflictException("Biometric transfer owns endpoint or target write is unknown; no overwrite/replay.");
  }
 }

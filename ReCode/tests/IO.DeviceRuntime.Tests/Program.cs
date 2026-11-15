@@ -65,6 +65,13 @@ if (args is not ["--verify"])
 {
     // This executable is a test-only child fixture, never deployed as the SDK bridge.
     var text=await Console.In.ReadToEndAsync();using var document=JsonDocument.Parse(text);
+    if(document.RootElement.TryGetProperty("InspectBiometric",out _))
+    {
+        var inspection=JsonSerializer.Deserialize<BiometricInspectionInput>(text)!.Request;
+        if(inspection.Approval.FormatReference=="SYNTHETIC-HANG")await Task.Delay(TimeSpan.FromMinutes(1));
+        else Console.WriteLine(JsonSerializer.Serialize(new BiometricTransferOutput(inspection.OperationId,inspection.Approval.FormatReference=="SYNTHETIC-EXTRA"?"copied":"observed-equal")));
+        return;
+    }
     if(document.RootElement.TryGetProperty("TransferBiometric",out _))
     {
         var transfer=JsonSerializer.Deserialize<BiometricTransferInput>(text)!;

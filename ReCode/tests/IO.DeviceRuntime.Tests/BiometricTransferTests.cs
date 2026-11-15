@@ -40,7 +40,8 @@ internal static class BiometricTransferTests
   Check((await NativeProcessSupervisor.RunBiometricTransferAsync(host,assembly,i with{Approval=a with{FormatReference="SYNTHETIC-FOREIGN"}},5)).State=="unknown","foreign operation id cannot manufacture a completed transfer");
   Check((await NativeProcessSupervisor.RunBiometricTransferAsync(host,assembly,i with{Approval=a with{FormatReference="SYNTHETIC-HANG"}},1)).State=="unknown","hung native child is killed at deadline without replay");
   using var cancelled=new CancellationTokenSource();cancelled.Cancel();Check((await NativeProcessSupervisor.RunBiometricTransferAsync(host,assembly,i,5,cancelled.Token)).State=="failed-before-write","pre-cancelled transfer does not dispatch a child");
-  Console.WriteLine("::notice title=Biometric transfer contracts::"+count+" synthetic checks passed; no real biometric material, photo/file, SQL or native SDK executed.");
+  await BiometricPhotoRecoveryTests.RunAsync(i,host,assembly,Check);
+  Console.WriteLine("::notice title=Biometric transfer contracts::"+count+" synthetic checks passed; synthetic JPEG and real EFS staging, no real biometric material, SQL or native SDK executed.");
  }
  private sealed class Session(BiometricDeviceIdentity identity,BiometricSlot slot):IBiometricTransferSession
  {

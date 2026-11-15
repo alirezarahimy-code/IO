@@ -64,6 +64,7 @@ internal static class BiometricTransferOperationalTests
   check(await Reject<DomainConflictException>(()=>Preview(intent with{Id=Guid.NewGuid()})),"unknown biometric target write cannot be retried or overwritten by a new transfer");
   check(await Reject<DomainConflictException>(()=>Use<DeviceOperations,Guid>(x=>x.RequestAsync(actor,Guid.NewGuid(),target,targetVersion,"clock.set",30,DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()),"SET-CLOCK"))),"unknown biometric write fences unrelated native writes on target");
   bool sqlRejected=false;try{await Q(async db=>{await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.DeviceBiometricTransfers SET State=N'pending',ClaimId=NULL,ServiceUserId=NULL,ClaimedAtUtc=NULL,CancelRequestedAtUtc=NULL,FinishedAtUtc=NULL WHERE Id={intent.Id}");return true;});}catch(SqlException e)when(e.Number==51041){sqlRejected=true;}check(sqlRejected,"SQL independently prevents unknown biometric requeue or terminal history mutation");
+  await BiometricRecoveryOperationalTests.RunAsync(provider,config,actor,service,reader,intent,configuration,check);
   check(!PermissionCatalog.Templates.Any(x=>x.Permissions.Any(p=>p.StartsWith("devices.biometrics.",StringComparison.Ordinal))),"no default role gains template access or service transfer authority");
   check(await Q(db=>db.RawAttendanceEvents.CountAsync())==2,"biometric exchange creates no attendance or biometric payload in raw event stream");
  }

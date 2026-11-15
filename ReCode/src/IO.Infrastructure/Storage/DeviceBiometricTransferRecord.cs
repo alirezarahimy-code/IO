@@ -3,6 +3,7 @@ namespace IO.Infrastructure.Storage;
 public sealed class DeviceBiometricTransferRecord
 {
  public Guid Id {get;set;}
+ public Guid? InspectionOfId {get;set;}
  public Guid SourceDeviceId {get;set;}
  public Guid TargetDeviceId {get;set;}
  public Guid EmployeeId {get;set;}

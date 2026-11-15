@@ -57,18 +57,31 @@ public static class NativeProcessSupervisor
         catch(System.Text.Json.JsonException){return new("unknown");}
     }
 
-    public static async Task<BiometricTransferOutput> RunBiometricTransferAsync(string executable,string childAssembly,BiometricTransferInput input,int timeoutSeconds,CancellationToken ct=default)
+    public static async Task<BiometricTransferOutput> RunBiometricTransferAsync(string executable,string childAssembly,BiometricTransferInput input,int timeoutSeconds,CancellationToken ct=default,BiometricPhotoStaging? photoStaging=null)
     {
-        if(!input.IsValid()||timeoutSeconds is <1 or >60)return new(input.OperationId,"unsupported");
-        if(ct.IsCancellationRequested)return new(input.OperationId,"failed-before-write");
-        var exchange=await ExchangeAsync(executable,childAssembly,System.Text.Json.JsonSerializer.Serialize(input),timeoutSeconds,ct,4096,32768);
-        if(exchange.State!="exited")return new(input.OperationId,"unknown");
+        var failure=input.InspectOnly?"inspection-failed":"unknown";
+        if(!input.IsValid(false)||timeoutSeconds is <1 or >60)return new(input.OperationId,input.InspectOnly?"inspection-failed":"unsupported");
+        if(ct.IsCancellationRequested)return new(input.OperationId,input.InspectOnly?"inspection-failed":"failed-before-write");
+        BiometricPhotoLease? staging=null;
+        BiometricTransferOutput result=new(input.OperationId,failure);
         try
         {
-            var result=System.Text.Json.JsonSerializer.Deserialize<BiometricTransferOutput>(exchange.Output,new System.Text.Json.JsonSerializerOptions{UnmappedMemberHandling=System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow});
-            return result?.IsValidFor(input)==true?result:new(input.OperationId,"unknown");
+            if(input.Approval.Kind=="photo")
+            {
+                if(!OperatingSystem.IsWindows()||photoStaging is null||photoStaging.StoragePolicyReference!=input.Approval.PhotoHandlingReference)return new(input.OperationId,input.InspectOnly?"inspection-failed":"failed-before-write");
+                staging=BiometricPhotoLease.Create(photoStaging,timeoutSeconds);input=input with{PhotoWorkspace=staging.Workspace};
+            }
+            string wire=input.InspectOnly?System.Text.Json.JsonSerializer.Serialize(new BiometricInspectionInput(input)):System.Text.Json.JsonSerializer.Serialize(input);
+            var exchange=await ExchangeAsync(executable,childAssembly,wire,timeoutSeconds,ct,4096,32768);
+            if(exchange.State=="exited")
+            {
+                var observed=System.Text.Json.JsonSerializer.Deserialize<BiometricTransferOutput>(exchange.Output,new System.Text.Json.JsonSerializerOptions{UnmappedMemberHandling=System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow});
+                if(observed?.IsValidFor(input)==true)result=observed;
+            }
         }
-        catch(System.Text.Json.JsonException){return new(input.OperationId,"unknown");}
+        catch{result=new(input.OperationId,failure);}
+        finally{if(OperatingSystem.IsWindows())staging?.Dispose();}
+        return OperatingSystem.IsWindows()&&staging is not null&&!staging.Cleaned?new(input.OperationId,failure):result;
     }
 
     private sealed record Exchange(string State,string Output="");
@@ -107,7 +120,7 @@ public static class NativeProcessSupervisor
         catch (Exception) { return new("bridge-failed"); }
         finally
         {
-            try { if (process.Id > 0 && !process.HasExited) process.Kill(entireProcessTree: true); }
+            try { if (process.Id > 0 && !process.HasExited) { process.Kill(entireProcessTree: true); await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5)); } }
             catch (Exception) { /* No raw process exception or secret-bearing configuration escapes. */ }
             // Observe eventual errors without waiting indefinitely for a broken native process.
             if (interaction is not null)
