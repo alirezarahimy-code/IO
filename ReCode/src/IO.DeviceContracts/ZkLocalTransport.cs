@@ -49,7 +49,7 @@ public sealed class ZkTransportLease:IDisposable
         var result=new ZkTransportLease();
         try
         {
-            var locals=connections.Select(c=>c.IsValid()?c.LocalTransport:throw new ArgumentException("Invalid connection binding.")).Where(c=>c is not null).Cast<ZkLocalTransport>().ToArray();
+            var locals=connections.Where(c=>c.LocalTransport is not null).Select(c=>c.IsValid()?c.LocalTransport!:throw new ArgumentException("Invalid local connection binding.")).ToArray();
             if(locals.Length==0)return result;
             if(!OperatingSystem.IsWindows())throw new PlatformNotSupportedException();
             if(locals.Any(c=>c.StationName!=Environment.MachineName.ToUpperInvariant())||locals.Select(c=>c.Resource).Distinct().Count()!=locals.Length)throw new InvalidOperationException("Ambiguous or wrong-station physical binding.");
