@@ -83,7 +83,7 @@ public sealed class DeviceProtectedErases(IoDbContext db,PermissionTransaction t
   await Lock(t);var r=await db.DeviceProtectedErases.AsTracking().SingleOrDefaultAsync(x=>x.Id==id&&x.Family==family,t)??throw new ArgumentException("Unknown family proposal.");
   if(!await tx.HasDevicePermissionAsync(actor,Right(family,r.RecoveryOfId is null?"propose":"recover.propose"),r.DeviceId,t))throw new UnauthorizedAccessException();
   if(version is not{Length:8}||!r.Version.SequenceEqual(version))throw new DomainConflictException("Refresh version.");
-  if(r.State is "proposed" or "pending"){r.State="cancelled";r.FinishedAtUtc=clock.GetUtcNow();}else if(r.State=="running")r.CancelRequestedAtUtc??=clock.GetUtcNow();else throw new DomainConflictException("No terminal replay.");return(r.Id,r.Id);
+  if(r.State=="observed"){r.State="inspection-failed";}else if(r.State is "proposed" or "pending"){r.State="cancelled";r.FinishedAtUtc=clock.GetUtcNow();}else if(r.State=="running")r.CancelRequestedAtUtc??=clock.GetUtcNow();else throw new DomainConflictException("No terminal replay.");return(r.Id,r.Id);
  },ct);
  public Task<Claim?> ClaimAsync(Guid service,string family,CancellationToken ct=default)=>tx.ExecuteAsync<Claim?>(service,Right(family,"execute"),"protected-erase.claimed",async t=>
  {

@@ -4,14 +4,14 @@ const root=__dirname+'/../../src/IO.Web/Ui/';
 async function wait(f){for(let n=0;n<300;n++){if(f())return;await new Promise(r=>setTimeout(r,10));}throw Error('Erase DOM timeout');}
 (async()=>{
  const dom=new JSDOM(fs.readFileSync(root+'DeviceProtectedErases.html','utf8'),{url:'https://io.example/workspace/device-protected-erases',runScripts:'outside-only'}),w=dom.window,d=w.document,$=id=>d.getElementById(id);
- let rights=[],deny=false,hold=false,release;const posts=[],id='11111111-1111-4111-8111-111111111111',version='AQIDBAUGBwg=';
+ let rights=[],deny=false,hold=false,release,observed=false;const posts=[],id='11111111-1111-4111-8111-111111111111',version='AQIDBAUGBwg=';
  w.fetch=async(path,options={})=>{
   assert.equal(options.credentials,'same-origin');assert.equal(options.cache,'no-store');
   if(path==='/workspace/capabilities')return{ok:true,status:200,json:async()=>({permissions:rights})};
   if(deny)return{ok:false,status:403};
   if(path==='/auth/csrf')return{ok:true,status:200,json:async()=>({token:'SYNTHETIC-CSRF'})};
   if(options.method==='POST'){assert.equal(options.headers['X-CSRF-TOKEN'],'SYNTHETIC-CSRF');posts.push({path,body:JSON.parse(options.body)});return{ok:true,status:200,json:async()=>({result:path.endsWith('/preview')?{previewHash:'A'.repeat(64),archiveCount:2,meaning:'<img src=x>'}:id})};}
-  const result={items:[{id,deviceId:id,archiveId:id,state:'proposed',version,evidenceReference:'<script>bad()</script>'}]};
+  const result={items:[{id,deviceId:id,archiveId:id,state:observed?'observed':'proposed',recoveryOfId:observed?id:null,version,evidenceReference:'<script>bad()</script>'}]};
   if(hold)return new Promise(resolve=>{release=()=>resolve({ok:true,status:200,json:async()=>({result})});});
   return{ok:true,status:200,json:async()=>({result})};
  };
@@ -24,6 +24,7 @@ async function wait(f){for(let n=0;n<300;n++){if(f())return;await new Promise(r=
  f.elements.recoveryOfId.value=id;f.dispatchEvent(new w.Event('submit',{cancelable:true}));await wait(()=>posts.length===2&&!$('refresh').disabled);$('confirmation').value='RELEASE-USERS-FENCE-NOT-DELETE-SUCCESS';$('submit-proposal').click();await wait(()=>posts.length===3&&!$('refresh').disabled);assert.equal(posts[2].body.intent.recoveryOfId,id);assert.equal(posts[2].body.intent.archiveVersion,version);assert.equal(f.elements.approval.value,'');assert.equal($('preview').textContent,'');assert.equal($('confirmation').value,'');
  const r=$('review-form');r.elements.id.value=id;r.elements.version.value=version;r.elements.evidenceReference.value='SYNTHETIC-REVIEW';r.elements.confirmation.value='DELETE-DEVICE-USERS-IRREVERSIBLY';r.dispatchEvent(new w.Event('submit',{cancelable:true}));await wait(()=>posts.length===4&&!$('refresh').disabled);assert.equal(posts[3].body.version,version);assert.match(posts[3].path,/\/approve$/);
  d.querySelector('#jobs button').click();await wait(()=>posts.length===5&&!$('refresh').disabled);assert.equal(posts[4].body.version,version);assert.match(posts[4].path,/\/cancel$/);
+ observed=true;w.dispatchEvent(new w.Event('focus'));await wait(()=>!$('refresh').disabled&&d.querySelector('#jobs button'));assert.match(d.querySelector('#jobs button').textContent,/unknown/);d.querySelector('#jobs button').click();await wait(()=>posts.length===6&&!$('refresh').disabled);assert.equal(posts[5].body.version,version);assert.match(posts[5].path,/\/cancel$/);observed=false;
  $('family').value='administrators';$('family').dispatchEvent(new w.Event('change'));await wait(()=>!$('refresh').disabled);assert.equal($('proposal').hidden,true);assert.equal($('preview').textContent,'');assert.equal($('jobs').textContent,'');$('family').value='users';$('family').dispatchEvent(new w.Event('change'));await wait(()=>!$('refresh').disabled);hold=true;w.dispatchEvent(new w.Event('focus'));await wait(()=>release);hold=false;rights=[];w.dispatchEvent(new w.Event('focus'));await wait(()=>!$('refresh').disabled&&$('history').hidden);release();await new Promise(r=>setTimeout(r,20));assert.equal($('jobs').textContent,'');assert.equal($('preview').textContent,'');
  rights=['devices.protected.erase.users.read'];deny=true;w.dispatchEvent(new w.Event('focus'));await wait(()=>$('notice').textContent.includes('لغو'));assert.equal($('history').hidden,true);
  dom.window.close();console.log('PASS protected erase DOM: independent roles, CSRF, archive/version binding, no implicit delete, recovery mode, preview invalidation, review/cancel versions, safe text and late/revoked clearing');

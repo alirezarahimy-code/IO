@@ -70,7 +70,13 @@ internal static class ProtectedEraseOperationalTests
    var reset=DateTimeOffset.UtcNow;await Task.Delay(TimeSpan.FromSeconds(11));var recovery=await Input(id,reset);
    Check(await Reject<DomainConflictException>(()=>Preview(recovery)),"recovery has its own default-off switch");config["IO:ProtectedErase:"+family+":EnableRecovery"]="true";
    var recoveryId=await Propose(recovery);Check(await Reject<DomainConflictException>(()=>Approve(reader,recoveryId,true)),"independent recovery approval cannot bypass pending native read-only observation");
-   await Work(recoveryId,"observed");Check(await Reject<DomainConflictException>(()=>Approve(actor,recoveryId,true)),"recovery observation cannot be self-approved");await Approve(reader,recoveryId,true);
+   await Work(recoveryId,"observed");Check(await Reject<DomainConflictException>(()=>Approve(actor,recoveryId,true)),"recovery observation cannot be self-approved");
+   var observation=await Q(db=>db.DeviceProtectedErases.Where(x=>x.Id==recoveryId).Select(x=>x.FinishedAtUtc).SingleAsync());
+   await Use<DeviceProtectedErases,Guid>(async x=>await x.CancelAsync(actor,recoveryId,await Version(recoveryId),family));
+   Check(await Q(db=>db.DeviceProtectedErases.AnyAsync(x=>x.Id==recoveryId&&x.State=="inspection-failed"&&x.FinishedAtUtc==observation)),"discarding an observed recovery preserves its original inspection time and never releases unknown");
+   Check(await Reject<DomainConflictException>(()=>Approve(reader,recoveryId,true)),"discarded observation cannot be released or replayed");
+   Check(await Reject<DomainConflictException>(()=>Use<DeviceOperations,Guid>(x=>x.RequestAsync(actor,Guid.NewGuid(),device,version,"clock.set",30,DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()),"SET-CLOCK"))),"discarded observation leaves original unknown write fence intact");
+   recovery=await Input(id,reset);recoveryId=await Propose(recovery);await Work(recoveryId,"observed");await Approve(reader,recoveryId,true);
    Check(await Q(db=>db.DeviceProtectedErases.Where(x=>x.Id==id).Select(x=>x.State).SingleAsync())=="unknown","physical-reset read-only observation and independent release preserve original unknown forever");
    tamper=false;try{await Q(async db=>{await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM dbo.DeviceProtectedErases WHERE Id={recoveryId}");return true;});}catch(SqlException e)when(e.Number==51044){tamper=true;}Check(tamper,"SQL refuses recovery evidence deletion");
    var after=await Input();var afterId=await Propose(after);await Approve(reader,afterId);config["IO:ProtectedErase:"+family+":Enabled"]="false";Check(await Use<DeviceProtectedErases,DeviceProtectedErases.Claim?>(x=>x.ClaimAsync(service,family)) is null&&await Q(db=>db.DeviceProtectedErases.Where(x=>x.Id==afterId).Select(x=>x.State).SingleAsync())=="revoked","live installation policy revocation prevents claim dispatch");config["IO:ProtectedErase:"+family+":Enabled"]="true";

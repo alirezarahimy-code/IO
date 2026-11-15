@@ -63,7 +63,7 @@ internal static class UserEraseTests
    Check((await NativeProcessSupervisor.RunUserEraseAsync(host,assembly,i,kind=="SYNTHETIC-HANG"?1:5)).State=="unknown","R13 child "+kind+" cannot manufacture a safe result or permit replay");
   }
   using var stop=new CancellationTokenSource();stop.Cancel();Check((await NativeProcessSupervisor.RunUserEraseAsync(host,assembly,input,5,stop.Token)).State=="failed-before-write","R13 pre-cancel never launches a destructive child");
-  Console.WriteLine("::notice title=User erase core contracts::"+count+" synthetic checks passed; production mapper and supervisor only. R13 queue/authorization/recovery/UI incomplete, no production route or SDK/device execution.");
+  Console.WriteLine("::notice title=User erase core contracts::"+count+" synthetic checks passed; core-only production mapper and supervisor subset; operational queue/authorization/recovery/UI covered separately, no SDK/device execution.");
  }
  internal static async Task ChildAsync(string text)
  {
