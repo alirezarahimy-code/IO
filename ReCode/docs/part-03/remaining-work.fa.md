@@ -14,7 +14,7 @@
 | S11 | history پنج صف، retry خواندنی با lineage؛ settings.read با حق و تأیید دوم؛ زمان بیکاری کد۴ با preview/hash، approval دقیق محصول/firmware/مقدار و unknown review؛ برش جدید device.restart با حقوق مستقل/unknown review و بدون replay نوشتن (CI موفق؛۱۷ SQL،۳ HTTPS و۱۱ قرارداد/فرایند) | RemoteEnroll با قرارداد مدل و سیاست بیومتریک، و تکمیل پذیرش واقعی restart و تعیین‌تکلیف/پیاده‌سازی مصوب reset/delete تردد/کاربر/مدیر با حقوق و تأییدهای مستقل و unknown recovery؛ هیچ‌کدام از دکمهٔ retry خواندن قابل اجرا نیستند |
 | S12 | فایل UTF-8 پنج‌ستونی Personnel، حفظ bytes، preview/قرنطینه/commit، نصب lifecycle واقعی دو OS در CI و health SQL | نصب عملیاتی آزمایشگاه/کلید/ACL/SDK و ماتریس واقعی مدل‌ها؛ سناریوی واقعی چنددستگاه/قطعی/دریافت تکراری/تبادل/تنظیمات، نمونهٔ واقعی فایل مدل‌های هدف و فساد فایل؛ simulator کافی نیست |
 
-## وضعیت جاری R08/R09 و ادامه از R10
+## وضعیت تاریخی پس از R08/R09 و پیش از پذیرش R10
 
 مسیر نرم‌افزاری gateway منتخب و RemoteEnroll پیش‌فرض خاموش، شامل collector/ACK بادوام، پذیرش صریح raw و بازیابی فیزیکی دو نفره تکمیل و روی `cffed82` در Windows با۶۳ بررسی یکپارچه و۴۷ قرارداد پذیرفته شد. [راهنما](native-push-reviewed-recovery.fa.md)، [شاهد](native-push-reviewed-recovery-evidence.json)، [شمارندهٔ به‌روز:۷ فنی + H01](remaining-count-ledger.fa.md). مدل/سیاست/دستگاه واقعی هنوز پیش‌شرط استقرار است؛ متن‌های قدیمی زیر که collector یا unknown recovery را «ساخته‌نشده» می‌نامند تاریخی‌اند. ادامه از R10 است؛ part3Complete=false.
 
@@ -82,6 +82,12 @@
 برش `248cbcd` با۳۹ بررسی یکپارچهٔ Windows LocalDB/HTTPS/courier/صف/worker و۴۷ قرارداد/child و light موفق، مسیرهای واقعی نرم‌افزار را وصل کرد. [راهنمای عملیاتی](gateway-enrollment-operations.fa.md) و [شاهد](gateway-enrollment-operational-evidence.json). هویت gateway با هویت دستگاه یکی نیست: receiver بومی محل و پردازش/ACK هنوز ساخته نشده‌اند. enrollment واقعی default-off است؛ policy/مدل و بازیابی unknown هنوز لازم‌اند و COM واقعی آزمایش نشده است. R08/R09 بسته نشده‌اند؛۹ فنی + H01 باقی است. هیچ تست Linux یا اجرای مجدد suite کامل SQL در این برش انجام نشد.
 
 
-## آخرین اقدام مرتب — R10، برش اول پذیرفته‌شده
+## برش نخست تاریخی R10
 
 انتقال مستقیم اثرانگشت/چهره به اسلات خالی اکنون metadata-only SQL queue، مجوز و scope هر دو سر، preview دقیق نگاشت، UI فارسی، worker واقعی و bridge ایزوله دارد. [Windows `5a64085`:۳۱ قرارداد مصنوعی و۸۲ بررسی یکپارچه، شامل۱۹ جدید](r10-biometric-transfer-evidence.json). عکس و بازیابی اختصاصی unknown باقی‌اند؛ R10 باز و R11 هنوز شروع نشده است. جزئیات و محدودیت‌های واقعی SDK/قالب/حافظه در [راهنمای R10](r10-biometric-transfer.fa.md) ثبت شده‌اند. عدد۷ فنی + H01 تغییر نکرده است.
+
+## وضعیت جاری — R10 پذیرفته؛ ادامه از R11
+
+عکس خصوصی bounded روی NTFS/EFS، پاک‌سازی crash و بازیابی اختصاصی unknown با observation بدون setter و امضای مستقل تکمیل و روی `22105bd` پذیرفته شد: [Windows۱۰۰ یکپارچه +۶۳ قرارداد مصنوعی زیست‌سنجی +۴۷ قرارداد قبلی](https://github.com/alirezarahimy-code/IO/actions/runs/43695380624)، [light/UI](https://github.com/alirezarahimy-code/IO/actions/runs/43695380618). [راهنما](r10-photo-recovery.fa.md)، [شاهد](r10-photo-recovery-evidence.json). R10 صرفاً نرم‌افزاری بسته شد؛ واقعی default-off و H01 باز است. Linux و suite کامل تاریخی SQL۱۰۳۱ تکرار نشدند.
+
+ماندهٔ ثابت اکنون **۶ نرم‌افزاری + H01** است: R11 حذف همهٔ تردد، R12 حذف بازه، R13 حذف کاربر/قالب، R14 حذف مدیران، R15 پاکسازی همهٔ داده‌ها/تفاوت factory reset، R16 تعیین‌تکلیف USB/serial مستقیم؛ سپس پذیرش واقعی H01. ترتیب حفظ می‌شود. شمارنده و معیار دقیق در [دفتر مانده‌ها](remaining-count-ledger.fa.md) است. R11 هنوز پیاده‌سازی/پذیرفته نشده؛ مرجع `ClearData(machine,1)` به‌تنهایی اخذ durable پیش از حذف یا جلوگیری از ازدست‌رفتن تردد جدید را اثبات نمی‌کند.

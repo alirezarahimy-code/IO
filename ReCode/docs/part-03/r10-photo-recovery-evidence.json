@@ -1,0 +1,275 @@
+{
+  "scope": "P3-R10 software acceptance: fingerprint/face and bounded private EFS photo exchange, explicit pair/policy/permissions, no overwrite, durable observation and independently reviewed unknown recovery. Real deployment remains default-off. Not installed SDK/hardware or real biometric policy acceptance.",
+  "code": "22105bd28f6d7a13d4aed6b8ca9e818e3b2ed80a",
+  "runs": [
+    {
+      "id": 43695380624,
+      "headSha": "22105bd28f6d7a13d4aed6b8ca9e818e3b2ed80a",
+      "conclusion": "success",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43695380624",
+      "jobs": [
+        {
+          "id": 132754619902,
+          "labels": [
+            "windows-2022"
+          ],
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "conclusion": "success"
+            },
+            {
+              "name": "Provision isolated encrypted synthetic photo volume",
+              "conclusion": "success"
+            },
+            {
+              "name": "Build, catalogue checks and portable publish",
+              "conclusion": "success"
+            },
+            {
+              "name": "Windows LocalDB authenticated gateway and enrollment integration",
+              "conclusion": "success"
+            },
+            {
+              "name": "Detach synthetic photo volume",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 43695380618,
+      "headSha": "22105bd28f6d7a13d4aed6b8ca9e818e3b2ed80a",
+      "conclusion": "success",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43695380618",
+      "jobs": [
+        {
+          "id": 132754620415,
+          "labels": [
+            "windows-2022"
+          ],
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "conclusion": "success"
+            },
+            {
+              "name": "Select lightweight scope over the entire push",
+              "conclusion": "success"
+            },
+            {
+              "name": "Prepare workflow policy test dependency",
+              "conclusion": "success"
+            },
+            {
+              "name": "Test CI routing and retained safety gates",
+              "conclusion": "success"
+            },
+            {
+              "name": "Validate reference evidence and capability inventory",
+              "conclusion": "success"
+            },
+            {
+              "name": "Prepare offline native instruction emulator",
+              "conclusion": "success"
+            },
+            {
+              "name": "Verify hash-pinned network setter dispatch with trapped transport",
+              "conclusion": "success"
+            },
+            {
+              "name": "Audit pinned DHCP firmware source reference without execution",
+              "conclusion": "success"
+            },
+            {
+              "name": "Prepare offline DOM dependencies",
+              "conclusion": "success"
+            },
+            {
+              "name": "Check JavaScript syntax and offline DOM contracts",
+              "conclusion": "success"
+            },
+            {
+              "name": "Check standalone page preview in Chromium",
+              "conclusion": "success"
+            },
+            {
+              "name": "Record actual coverage",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "annotations": [
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/alirezarahimy-code/IO/blob/22105bd28f6d7a13d4aed6b8ca9e818e3b2ed80a/.github",
+      "start_line": 118,
+      "start_column": null,
+      "end_line": 118,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Windows gateway enrollment integration",
+      "message": "100 SQL HTTPS queue and synthetic-process checks passed on Windows LocalDB; no COM hardware or real biometric authorization.",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/alirezarahimy-code/IO/blob/22105bd28f6d7a13d4aed6b8ca9e818e3b2ed80a/.github",
+      "start_line": 44,
+      "start_column": null,
+      "end_line": 44,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Windows HTTPS fixture",
+      "message": "Temporary synthetic trust anchor removed.",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/alirezarahimy-code/IO/blob/22105bd28f6d7a13d4aed6b8ca9e818e3b2ed80a/.github",
+      "start_line": 31,
+      "start_column": null,
+      "end_line": 31,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Windows HTTPS fixture",
+      "message": "Temporary synthetic trust anchor installed; exercising production courier TLS validation.",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/alirezarahimy-code/IO/blob/22105bd28f6d7a13d4aed6b8ca9e818e3b2ed80a/.github",
+      "start_line": 30,
+      "start_column": null,
+      "end_line": 30,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Windows HTTPS fixture",
+      "message": "Installing one temporary synthetic loopback trust anchor on disposable runner.",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/alirezarahimy-code/IO/blob/22105bd28f6d7a13d4aed6b8ca9e818e3b2ed80a/.github",
+      "start_line": 748,
+      "start_column": null,
+      "end_line": 748,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Synthetic gateway and enrollment checks",
+      "message": "47 checks passed; gateway protocol and enrollment lifecycle and synthetic child supervisor only, no HTTP SQL COM native-device authentication or real biometrics.",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/alirezarahimy-code/IO/blob/22105bd28f6d7a13d4aed6b8ca9e818e3b2ed80a/.github",
+      "start_line": 699,
+      "start_column": null,
+      "end_line": 699,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Biometric transfer contracts",
+      "message": "63 synthetic checks passed; synthetic JPEG and real EFS staging, no real biometric material, SQL or native SDK executed.",
+      "raw_details": ""
+    }
+  ],
+  "windowsIntegratedSqlHttpsQueueChecks": 100,
+  "previousIntegratedChecks": 82,
+  "newRecoveryPhotoAndCompatibilitySqlWorkerChecks": 18,
+  "syntheticBiometricContracts": 63,
+  "previousBiometricContracts": 31,
+  "newPhotoRecoveryAndCompatibilityContracts": 32,
+  "existingGatewayEnrollmentContracts": 47,
+  "offlineDomFiles": 21,
+  "softwareLedgerRowClosed": true,
+  "softwareLedgerRow": "P3-R10",
+  "remainingTechnicalCount": 6,
+  "remainingSoftwareRows": [
+    "P3-R11",
+    "P3-R12",
+    "P3-R13",
+    "P3-R14",
+    "P3-R15",
+    "P3-R16"
+  ],
+  "hardwarePackage": "P3-H01",
+  "hardwareVerified": false,
+  "realSdkExecuted": false,
+  "realBiometricMaterialUsed": false,
+  "realBiometricPolicyApproved": false,
+  "linuxTestsExecuted": false,
+  "fullHistoricalSql1031Rerun": false,
+  "part3Complete": false,
+  "migrations": 53,
+  "domainTables": 68,
+  "guide": "r10-photo-recovery.fa.md",
+  "firstIncrementEvidence": "r10-biometric-transfer-evidence.json",
+  "typelibEvidence": "r10-biometric-typelib-evidence.json",
+  "photoExchangeImplemented": true,
+  "unknownRecoveryImplemented": true,
+  "implemented": [
+    "bounded baseline JPEG profile and fixed exact decimal .jpg names; no guessed BYTE pointer APIs",
+    "dedicated small non-system NTFS volume and service-owned protected ACL plus actual EFS",
+    "parent root/child leases and crash-orphan cleanup; no generic temp fallback or recursive unknown purge",
+    "bounded file reads, zeroed child-owned photo byte buffers, exact readback/no overwrite",
+    "dedicated persistent read-only inspection and separate wire; never transfer completion or setter",
+    "installed non-destructive quiescence/reset approval plus two independent reviewers; no self-signature",
+    "fresh successful observation and rechecked policy, mappings, installation and pair scope before fence release",
+    "original unknown immutable forever; no replay, requeue or inferred original success",
+    "metadata-only Persian UI with CSRF, explicit versions, safe rendering and revoked/late-response clearing",
+    "compatibility: absent new optional fields omitted to preserve first-increment ordinary-intent hash serialization"
+  ],
+  "limits": [
+    "no COM or real device executed",
+    "no real legal/retention/format/exclusive-control approval inferred from synthetic tests",
+    "EFS is not secure erasure or protection against local administrators; retained orphan needs bounded cleanup or admin review",
+    "managed template/password strings and native SDK memory erasure are not guaranteed",
+    "current source must remain readable and present for comparison; absent/unavailable source fails recovery closed",
+    "external device exclusive control/quiescence requires installed procedure and honest independent human evidence",
+    "service-account volume/ACL/EFS keys must be provisioned explicitly before enabling photo; CI script is disposable-only",
+    "no full historical SQL1031 rerun, no Linux tests"
+  ],
+  "preAcceptanceFailure": {
+    "code": "80045d81048f39211a46ed76b6e2dfacae5855b1",
+    "run": 43694633257,
+    "reason": "Synthetic config helper mapped null optional PhotoHandlingReference to empty string, violating exact approval equality. Fixed helper omission before successful 762aa68 and hardened 22105bd acceptance. Initial Windows EFS/contracts already passed."
+  }
+}

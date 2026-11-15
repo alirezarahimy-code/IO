@@ -245,5 +245,7 @@
     "code": "ff8f26e6f69ec3bc4d59b4d1bdc9cee59c8d8888",
     "run": 43692034300,
     "reason": "EF1002 diagnostic for concatenated Guid SQL test query; replaced with parameterized ExecuteSqlInterpolatedAsync before acceptance"
-  }
+  },
+  "historicalFirstIncrement": true,
+  "supersededForCurrentR10StatusBy": "r10-photo-recovery-evidence.json"
 }
