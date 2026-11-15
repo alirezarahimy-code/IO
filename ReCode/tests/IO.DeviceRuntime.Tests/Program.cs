@@ -3,6 +3,13 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using IO.DeviceContracts;
 
+if (args is ["--biometric-transfer-contracts"])
+{
+    try { await BiometricTransferTests.RunAsync(); }
+    catch(Exception e){Console.Error.WriteLine("::error title=Biometric transfer contracts::"+e.ToString().Replace("%","%25").Replace("\r","%0D").Replace("\n","%0A"));Environment.ExitCode=1;}
+    return;
+}
+
 if (args is ["--gateway-enroll-contracts"])
 {
     try { await GatewayEnrollmentTests.RunAsync(); }
@@ -58,6 +65,14 @@ if (args is not ["--verify"])
 {
     // This executable is a test-only child fixture, never deployed as the SDK bridge.
     var text=await Console.In.ReadToEndAsync();using var document=JsonDocument.Parse(text);
+    if(document.RootElement.TryGetProperty("TransferBiometric",out _))
+    {
+        var transfer=JsonSerializer.Deserialize<BiometricTransferInput>(text)!;
+        if(transfer.Approval.FormatReference=="SYNTHETIC-HANG")await Task.Delay(TimeSpan.FromMinutes(1));
+        else if(transfer.Approval.FormatReference=="SYNTHETIC-EXTRA")Console.WriteLine("{\"OperationId\":\""+transfer.OperationId+"\",\"State\":\"copied\",\"TemplateData\":\"forbidden\"}");
+        else Console.WriteLine(JsonSerializer.Serialize(new BiometricTransferOutput(transfer.Approval.FormatReference=="SYNTHETIC-FOREIGN"?Guid.NewGuid():transfer.OperationId,"copied")));
+        return;
+    }
     var testPinElement = document.RootElement.TryGetProperty("Connection", out var testConnection) ? testConnection : document.RootElement;
     var testPin = JsonSerializer.Deserialize<ZkProbeInput>(testPinElement.GetRawText())!;
     if (testPin.ExpectedSerial.StartsWith("virtual-lab-", StringComparison.Ordinal))

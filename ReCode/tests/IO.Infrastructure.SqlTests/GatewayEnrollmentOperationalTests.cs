@@ -277,6 +277,7 @@ internal static class GatewayEnrollmentOperationalTests
     check(await SqlReject("DELETE FROM dbo.RemoteEnrollmentRecoveries WHERE Id='"+recovery.Id+"'",51040),"physical recovery evidence is immutable at SQL boundary");
     var afterRecovery=input with{Id=Guid.NewGuid()};await Request(afterRecovery);var afterVersion=await Q(db=>db.RemoteEnrollments.Where(x=>x.Id==afterRecovery.Id).Select(x=>x.Version).SingleAsync());await Use<RemoteEnrollments,Guid>(x=>x.CancelAsync(actor,afterRecovery.Id,afterVersion));
     check(await Q(db=>db.RemoteEnrollments.Where(x=>x.Id==claim.Id).Select(x=>x.State).SingleAsync())=="unknown","recovered device accepts only a new explicit intent, never requeues the old unknown job");
+    await BiometricTransferOperationalTests.RunAsync(provider,config,actor,service,reader,native,nativeVersion,employee,site,company,check);
     var rawAfter=await Q(db=>db.RawAttendanceEvents.CountAsync());check(rawAfter==2,"only explicitly reviewed PUSH rows enter raw attendance; enrollment never fabricates attendance");
     }
     finally{try{Directory.Delete(ring,true);}catch(IOException){} }

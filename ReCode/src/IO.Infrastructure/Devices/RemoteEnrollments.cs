@@ -116,6 +116,7 @@ internal static class EnrollmentFence
 {
     internal static async Task EnsureAsync(IoDbContext db,Guid device,bool writing,CancellationToken ct)
     {
+        await BiometricTransferFence.EnsureAsync(db,device,writing,ct);
         if(await db.RemoteEnrollments.AnyAsync(x=>x.DeviceId==device&&(x.State=="pending"||x.State=="running"||writing&&x.State=="unknown"&&!db.RemoteEnrollmentRecoveries.Any(r=>r.EnrollmentId==x.Id&&r.ApprovedAtUtc!=null)),ct))throw new DomainConflictException("Enrollment holds the exclusive device or has an unknown write; no overwrite or replay.");
     }
 }

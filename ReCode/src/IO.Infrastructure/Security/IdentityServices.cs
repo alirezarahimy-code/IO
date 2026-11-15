@@ -55,6 +55,7 @@ public static class IdentityServices
         services.AddScoped<DeviceCommands>();
         services.AddScoped<DeviceUserUploads>();
         services.AddScoped<DeviceFileImports>();
+        services.AddScoped<DeviceBiometricTransfers>();
         services.AddScoped<RemoteEnrollments>();
         services.AddScoped<RemoteEnrollmentRecovery>();
         services.AddScoped<DevicePushCommit>();

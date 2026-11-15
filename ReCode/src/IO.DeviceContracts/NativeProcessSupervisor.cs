@@ -57,6 +57,20 @@ public static class NativeProcessSupervisor
         catch(System.Text.Json.JsonException){return new("unknown");}
     }
 
+    public static async Task<BiometricTransferOutput> RunBiometricTransferAsync(string executable,string childAssembly,BiometricTransferInput input,int timeoutSeconds,CancellationToken ct=default)
+    {
+        if(!input.IsValid()||timeoutSeconds is <1 or >60)return new(input.OperationId,"unsupported");
+        if(ct.IsCancellationRequested)return new(input.OperationId,"failed-before-write");
+        var exchange=await ExchangeAsync(executable,childAssembly,System.Text.Json.JsonSerializer.Serialize(input),timeoutSeconds,ct,4096,32768);
+        if(exchange.State!="exited")return new(input.OperationId,"unknown");
+        try
+        {
+            var result=System.Text.Json.JsonSerializer.Deserialize<BiometricTransferOutput>(exchange.Output,new System.Text.Json.JsonSerializerOptions{UnmappedMemberHandling=System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow});
+            return result?.IsValidFor(input)==true?result:new(input.OperationId,"unknown");
+        }
+        catch(System.Text.Json.JsonException){return new(input.OperationId,"unknown");}
+    }
+
     private sealed record Exchange(string State,string Output="");
     private static async Task<Exchange> ExchangeAsync(string executable,string childAssembly,string json,int timeoutSeconds,CancellationToken stoppingToken,int maxOutputChars=4096,int maxInputChars=8192)
     {
