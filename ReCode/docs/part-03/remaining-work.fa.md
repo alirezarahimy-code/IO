@@ -86,8 +86,14 @@
 
 انتقال مستقیم اثرانگشت/چهره به اسلات خالی اکنون metadata-only SQL queue، مجوز و scope هر دو سر، preview دقیق نگاشت، UI فارسی، worker واقعی و bridge ایزوله دارد. [Windows `5a64085`:۳۱ قرارداد مصنوعی و۸۲ بررسی یکپارچه، شامل۱۹ جدید](r10-biometric-transfer-evidence.json). عکس و بازیابی اختصاصی unknown باقی‌اند؛ R10 باز و R11 هنوز شروع نشده است. جزئیات و محدودیت‌های واقعی SDK/قالب/حافظه در [راهنمای R10](r10-biometric-transfer.fa.md) ثبت شده‌اند. عدد۷ فنی + H01 تغییر نکرده است.
 
-## وضعیت جاری — R10 پذیرفته؛ ادامه از R11
+## وضعیت تاریخی پس از R10 و پیش از R11
 
 عکس خصوصی bounded روی NTFS/EFS، پاک‌سازی crash و بازیابی اختصاصی unknown با observation بدون setter و امضای مستقل تکمیل و روی `22105bd` پذیرفته شد: [Windows۱۰۰ یکپارچه +۶۳ قرارداد مصنوعی زیست‌سنجی +۴۷ قرارداد قبلی](https://github.com/alirezarahimy-code/IO/actions/runs/43695380624)، [light/UI](https://github.com/alirezarahimy-code/IO/actions/runs/43695380618). [راهنما](r10-photo-recovery.fa.md)، [شاهد](r10-photo-recovery-evidence.json). R10 صرفاً نرم‌افزاری بسته شد؛ واقعی default-off و H01 باز است. Linux و suite کامل تاریخی SQL۱۰۳۱ تکرار نشدند.
 
 ماندهٔ ثابت اکنون **۶ نرم‌افزاری + H01** است: R11 حذف همهٔ تردد، R12 حذف بازه، R13 حذف کاربر/قالب، R14 حذف مدیران، R15 پاکسازی همهٔ داده‌ها/تفاوت factory reset، R16 تعیین‌تکلیف USB/serial مستقیم؛ سپس پذیرش واقعی H01. ترتیب حفظ می‌شود. شمارنده و معیار دقیق در [دفتر مانده‌ها](remaining-count-ledger.fa.md) است. R11 هنوز پیاده‌سازی/پذیرفته نشده؛ مرجع `ClearData(machine,1)` به‌تنهایی اخذ durable پیش از حذف یا جلوگیری از ازدست‌رفتن تردد جدید را اثبات نمی‌کند.
+
+## وضعیت جاری — R11 پذیرفته؛ ادامه از R12
+
+حذف همهٔ تردد دستگاه با آرشیو کامل native، دو بازبین مستقل، تطبیق دوبارهٔ multiset، read-back خالی و بازیابی اختصاصی unknown تکمیل شد. [Windows d2c5d95:۱۲۹ بررسی یکپارچه، شامل۲۹ جدید؛۲۳ قرارداد مصنوعی جدید حذف](https://github.com/alirezarahimy-code/IO/actions/runs/43697672956) و [light/UI۲۲ فایل DOM، محتوای UI بدون تغییر](https://github.com/alirezarahimy-code/IO/actions/runs/43697294069). [راهنما](r11-attendance-erase.fa.md)، [شاهد](r11-attendance-erase-evidence.json). شرط توقف فیزیکی capture با count یا mutex جایگزین نشده و اجرای واقعی همچنان default-off است؛ هیچ SDK/حذف واقعی اجرا نشد.
+
+ماندهٔ ثابت **۵ نرم‌افزاری + H01**: R12 حذف بازه با مرز زمانی دقیق، R13 حذف کاربر/قالب، R14 حذف مدیران، R15 all-data در برابر factory reset و R16 تعیین‌تکلیف USB/serial مستقیم. سپس H01 واقعی. ردیف‌های «R11 باقی» در متن‌های بالاتر تاریخچه‌اند. Linux یا suite کامل تاریخی SQL۱۰۳۱ تکرار نشده است. مرحلهٔ بعد R12 هنوز پیاده‌سازی/پذیرفته نشده؛ امضای `DeleteAttlogBetweenTheDate` و قالب رشتهٔ مرجع به‌تنهایی inclusive/exclusive بودن مرز firmware را اثبات نمی‌کنند.

@@ -8,7 +8,7 @@
     "realDeviceExecution": "not performed",
     "testingSequence": "User explicitly requires virtual-device software completion now, copying reference behavior as appropriate, with real Windows SDK/multidevice acceptance deferred to the end. Lack of local hardware must not block further software implementation."
   },
-  "latestVerifiedCode": "22105bd28f6d7a13d4aed6b8ca9e818e3b2ed80a",
+  "latestVerifiedCode": "d2c5d95f902a21d1ee7d86dd761ab242102990dd",
   "checks": {
     "integrationPassLines": 1031,
     "foundation": 48,
@@ -113,8 +113,9 @@
     }
   ],
   "remainingSoftware": [
-    "P3-R11–R15 independently authorized destructive attendance/range/user/template/admin/all-data operations and explicit factory-reset disposition; no implied permission from enrollment recovery.",
-    "P3-R16 direct USB/serial support disposition; file parser is not direct connectivity."
+    "P3-R12 independently authorized device attendance deletion in a precise range; preserve a full durable pre-delete native archive, installed capture quiescence, exact time boundaries, readback and unknown recovery.",
+    "P3-R13 user/template deletion, P3-R14 device administrator deletion, P3-R15 all-data clear and explicit factory-reset disposition; no authority implied by R11.",
+    "P3-R16 direct USB/serial support disposition; existing file parser is not direct connectivity."
   ],
   "realSdkExecuted": false,
   "windowsServiceInstalled": false,
@@ -348,7 +349,7 @@
       }
     ]
   },
-  "nextExactAction": "Continue in order with P3-R11: independently authorized delete-all-device-attendance with explicit installed-model approval, durable verified pre-delete acquisition, capture/quiescence boundaries, readback and unknown recovery, default-off. Legacy reference uses ClearData(machine,1), not flag5 (all-data clear). Then R12 range, R13 user/template, R14 administrators, R15 all-data vs factory reset, R16 direct USB/serial disposition, then H01 installed Windows/SDK/multidevice acceptance. P3-R10 is software-accepted on 22105bd with100 Windows integrated and63 biometric synthetic checks plus47 existing contracts and21 DOM files. Six software rows plus H01 remain. No Linux tests or full SQL1031 rerun.",
+  "nextExactAction": "Continue in order with P3-R12: independently authorized attendance deletion in a range, exact installed-model local/UTC and inclusive/exclusive boundary contract, full durable native archive under physical capture quiescence, live preflight, remaining-data readback and dedicated unknown recovery. Legacy reference DeleteAttlogBetweenTheDate uses yyyy-MM-dd HH:mm:ss but does not itself prove firmware endpoint semantics. R11 software accepted ond2c5d95 with129 integrated Windows checks including29 new R11 (23 SQL/worker+6 HTTPS),23 new erase contracts and22 DOM files. Five software rows R12–R16 plus H01 remain. All real destructive execution remains default-off. No Linux tests or full SQL1031 rerun.",
   "profileSettingsFollowup": {
     "code": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
     "accepted": true,
@@ -658,7 +659,7 @@
     "evidence": "s10-gateway-s09-enroll-software-evidence.json",
     "historicalPortableScopeSupersededBy": "gatewayEnrollmentOperationalFollowup"
   },
-  "latestVerifiedPortableCode": "22105bd28f6d7a13d4aed6b8ca9e818e3b2ed80a",
+  "latestVerifiedPortableCode": "d2c5d95f902a21d1ee7d86dd761ab242102990dd",
   "gatewayEnrollmentOperationalFollowup": {
     "status": "windows-integrated-software-accepted-with-explicit-native-and-policy-gaps",
     "code": "248cbcdf45f40ea9c7d4b2527be7af1b7cdf3843",
@@ -682,7 +683,7 @@
     "guide": "gateway-enrollment-operations.fa.md",
     "historicalScopeSupersededBy": "nativePushReviewedRecoveryFollowup"
   },
-  "latestVerifiedWindowsIntegratedCode": "22105bd28f6d7a13d4aed6b8ca9e818e3b2ed80a",
+  "latestVerifiedWindowsIntegratedCode": "d2c5d95f902a21d1ee7d86dd761ab242102990dd",
   "nativePushReviewedRecoveryFollowup": {
     "scope": "Software acceptance of selected isolated-LAN authenticated-gateway PUSH and default-off RemoteEnroll with assisted two-person physical recovery. Not native device authentication or installed hardware acceptance.",
     "code": "cffed8264635f00bcb460c78e9960afa1f5b462b",
@@ -741,5 +742,29 @@
     "remainingR10Software": [],
     "realDeploymentDefaultOff": true,
     "firstIncrementEvidence": "r10-biometric-transfer-evidence.json"
+  },
+  "r11AttendanceEraseFollowup": {
+    "scope": "P3-R11 software acceptance: fixed ClearData(machine,1), whole-native-log durable archive binding, external installed physical capture-quiescence prerequisite, two independent humans, two live full-multiset checks and empty readback; dedicated post-reset durable read-only archive recovery preserving original unknown. Not firmware CAS, real hardware or real deletion authorization.",
+    "code": "d2c5d95f902a21d1ee7d86dd761ab242102990dd",
+    "windowsIntegratedSqlHttpsQueueChecks": 129,
+    "newR11Checks": 29,
+    "newSyntheticEraseContracts": 23,
+    "offlineDomFiles": 22,
+    "softwareLedgerRowClosed": true,
+    "remainingTechnicalCount": 5,
+    "realSdkExecuted": false,
+    "realDeviceLogsDeleted": false,
+    "realDeletionPolicyApproved": false,
+    "hardwareVerified": false,
+    "linuxTestsExecuted": false,
+    "migrations": 54,
+    "domainTables": 69,
+    "evidence": "r11-attendance-erase-evidence.json",
+    "guide": "r11-attendance-erase.fa.md",
+    "runs": [
+      43697672956,
+      43697294069
+    ],
+    "realDeploymentDefaultOff": true
   }
 }

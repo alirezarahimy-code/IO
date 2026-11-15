@@ -1,0 +1,301 @@
+{
+  "scope": "P3-R11 software acceptance: fixed ClearData(machine,1), whole-native-log durable archive binding, external installed physical capture-quiescence prerequisite, two independent humans, two live full-multiset checks and empty readback; dedicated post-reset durable read-only archive recovery preserving original unknown. Not firmware CAS, real hardware or real deletion authorization.",
+  "code": "d2c5d95f902a21d1ee7d86dd761ab242102990dd",
+  "runs": [
+    {
+      "id": 43697672956,
+      "headSha": "d2c5d95f902a21d1ee7d86dd761ab242102990dd",
+      "conclusion": "success",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43697672956",
+      "jobs": [
+        {
+          "id": 132761703721,
+          "labels": [
+            "windows-2022"
+          ],
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "conclusion": "success"
+            },
+            {
+              "name": "Provision isolated encrypted synthetic photo volume",
+              "conclusion": "success"
+            },
+            {
+              "name": "Build, catalogue checks and portable publish",
+              "conclusion": "success"
+            },
+            {
+              "name": "Windows LocalDB authenticated gateway and enrollment integration",
+              "conclusion": "success"
+            },
+            {
+              "name": "Detach synthetic photo volume",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 43697294069,
+      "headSha": "3b6c5ee9d6313f50fc94274501c8539008feab8f",
+      "conclusion": "success",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43697294069",
+      "jobs": [
+        {
+          "id": 132760566463,
+          "labels": [
+            "windows-2022"
+          ],
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "conclusion": "success"
+            },
+            {
+              "name": "Select lightweight scope over the entire push",
+              "conclusion": "success"
+            },
+            {
+              "name": "Prepare workflow policy test dependency",
+              "conclusion": "success"
+            },
+            {
+              "name": "Test CI routing and retained safety gates",
+              "conclusion": "success"
+            },
+            {
+              "name": "Validate reference evidence and capability inventory",
+              "conclusion": "success"
+            },
+            {
+              "name": "Prepare offline native instruction emulator",
+              "conclusion": "success"
+            },
+            {
+              "name": "Verify hash-pinned network setter dispatch with trapped transport",
+              "conclusion": "success"
+            },
+            {
+              "name": "Audit pinned DHCP firmware source reference without execution",
+              "conclusion": "success"
+            },
+            {
+              "name": "Prepare offline DOM dependencies",
+              "conclusion": "success"
+            },
+            {
+              "name": "Check JavaScript syntax and offline DOM contracts",
+              "conclusion": "success"
+            },
+            {
+              "name": "Check standalone page preview in Chromium",
+              "conclusion": "success"
+            },
+            {
+              "name": "Record actual coverage",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "annotations": [
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/alirezarahimy-code/IO/blob/d2c5d95f902a21d1ee7d86dd761ab242102990dd/.github",
+      "start_line": 147,
+      "start_column": null,
+      "end_line": 147,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Windows gateway enrollment integration",
+      "message": "129 SQL HTTPS queue and synthetic-process checks passed on Windows LocalDB; no COM hardware or real biometric authorization.",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/alirezarahimy-code/IO/blob/d2c5d95f902a21d1ee7d86dd761ab242102990dd/.github",
+      "start_line": 44,
+      "start_column": null,
+      "end_line": 44,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Windows HTTPS fixture",
+      "message": "Temporary synthetic trust anchor removed.",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/alirezarahimy-code/IO/blob/d2c5d95f902a21d1ee7d86dd761ab242102990dd/.github",
+      "start_line": 31,
+      "start_column": null,
+      "end_line": 31,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Windows HTTPS fixture",
+      "message": "Temporary synthetic trust anchor installed; exercising production courier TLS validation.",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/alirezarahimy-code/IO/blob/d2c5d95f902a21d1ee7d86dd761ab242102990dd/.github",
+      "start_line": 30,
+      "start_column": null,
+      "end_line": 30,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Windows HTTPS fixture",
+      "message": "Installing one temporary synthetic loopback trust anchor on disposable runner.",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/alirezarahimy-code/IO/blob/d2c5d95f902a21d1ee7d86dd761ab242102990dd/.github",
+      "start_line": 772,
+      "start_column": null,
+      "end_line": 772,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Synthetic gateway and enrollment checks",
+      "message": "47 checks passed; gateway protocol and enrollment lifecycle and synthetic child supervisor only, no HTTP SQL COM native-device authentication or real biometrics.",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/alirezarahimy-code/IO/blob/d2c5d95f902a21d1ee7d86dd761ab242102990dd/.github",
+      "start_line": 723,
+      "start_column": null,
+      "end_line": 723,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Biometric transfer contracts",
+      "message": "63 synthetic checks passed; synthetic JPEG and real EFS staging, no real biometric material, SQL or native SDK executed.",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/alirezarahimy-code/IO/blob/d2c5d95f902a21d1ee7d86dd761ab242102990dd/.github",
+      "start_line": 659,
+      "start_column": null,
+      "end_line": 659,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Attendance erase contracts",
+      "message": "23 synthetic checks passed; production fixed-flag mapper and supervisor, no SDK device or real deletion.",
+      "raw_details": ""
+    }
+  ],
+  "windowsIntegratedSqlHttpsQueueChecks": 129,
+  "previousIntegratedChecks": 100,
+  "newR11Checks": 29,
+  "newSqlQueueWorkerChecks": 23,
+  "newAuthenticatedHttpsChecks": 6,
+  "newSyntheticEraseContracts": 23,
+  "existingSyntheticBiometricContracts": 63,
+  "existingGatewayEnrollmentContracts": 47,
+  "offlineDomFiles": 22,
+  "migrations": 54,
+  "domainTables": 69,
+  "softwareLedgerRow": "P3-R11",
+  "softwareLedgerRowClosed": true,
+  "remainingTechnicalCount": 5,
+  "remainingSoftwareRows": [
+    "P3-R12",
+    "P3-R13",
+    "P3-R14",
+    "P3-R15",
+    "P3-R16"
+  ],
+  "hardwarePackage": "P3-H01",
+  "hardwareVerified": false,
+  "realSdkExecuted": false,
+  "realDeviceLogsDeleted": false,
+  "realDeletionPolicyApproved": false,
+  "linuxTestsExecuted": false,
+  "fullHistoricalSql1031Rerun": false,
+  "part3Complete": false,
+  "guide": "r11-attendance-erase.fa.md",
+  "typelibEvidence": "r11-attendance-erase-typelib-evidence.json",
+  "implemented": [
+    "exact installed identity/format/legal/retention/capture-quiescence/reset approval, default-off",
+    "same-installation full durable canonical tuple multiset, retaining duplicates and unknown/out-of-range rows",
+    "two humans with independent delete/recovery permissions and selected-device scopes; no self-signature",
+    "immutable proposal and approval, queue/claim/audit, cross-queue endpoint and unknown write fences",
+    "actual Windows worker with exact native endpoint approval and fresh credentials/authority",
+    "two complete matching native scans before fixed flag1; one clear and full empty readback",
+    "unknown on false/exception/timeout/revoke after dispatch; never requeue or auto replay",
+    "dedicated post-reset newer full read-only archive plus independent recovery; original unknown immutable",
+    "published Persian page and local asset with CSRF/version binding, epoch clearing and text-only rendering",
+    "real HTTPS production login, anonymous denial, CSRF rejection, default-off policy and immediate grant revocation"
+  ],
+  "limits": [
+    "no SDK/COM, real firmware, real device or real logs executed/deleted",
+    "capture MUST remain physically quiescent from before archive through readback; stable count and mutex do not prove this",
+    "no automatic EnableDevice(false), access-control/door/admin/user/template/all-data or date-range deletion",
+    "human evidence and actual person independence are organizational installed prerequisites, not proved by two accounts",
+    "typed native tuple archive is not raw wire bytes or automatic raw ingestion; multiplicity is not physical event identity",
+    "readback is current state, not firmware transaction proof or protection against an unquiesced arrival during clear",
+    "unknown recovery is physical quiescence/reset attestation and current durable observation, not original deletion success",
+    "no automatic restore-to-device, no full historical SQL1031/downgrade rerun and no Linux tests"
+  ],
+  "priorVerifiedIncrement": {
+    "code": "faab5b3407a45e0e8b7aaedc1f1cd977b878199d",
+    "windowsRun": 43696942625,
+    "lightRun": 43696942644,
+    "integratedChecks": 123,
+    "syntheticEraseContracts": 23
+  },
+  "unchangedUiEvidenceReuse": {
+    "lightCode": "3b6c5ee9d6313f50fc94274501c8539008feab8f",
+    "compiledCode": "d2c5d95f902a21d1ee7d86dd761ab242102990dd",
+    "verifiedPaths": [
+      "ReCode/src/IO.Web/Ui",
+      "ReCode/tests/IO.Infrastructure.SqlTests/*-ui-check.cjs",
+      ".github/workflows"
+    ],
+    "difference": "none; final code fixes C# HTML routing and HTTP-test diagnostics only, both re-exercised on Windows"
+  },
+  "preAcceptanceFailure": {
+    "code": "3b6c5ee9d6313f50fc94274501c8539008feab8f",
+    "run": 43697294121,
+    "reason": "Authenticated HTTPS regression found missing workspace HTML MapGet despite embedded resource/menu presence. Added actual HTML route; retained HTTP test rather than weakening assertion."
+  }
+}
