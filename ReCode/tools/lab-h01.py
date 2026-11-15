@@ -115,7 +115,7 @@ def validate(value, now=None):
                 seen.add(device[key])
         for key in ("model", "firmware"):
             matching(device[key], VERSION, path + "." + key)
-        if device["readFormat"] not in ("ssr", "legacy-int32"):
+        if device["readFormat"] not in ("ssr-v1", "legacy-int32-v1"):
             issue(path + ".readFormat", "explicit-read-format-required")
     scenarios = value["scenarios"]
     if not isinstance(scenarios, list) or len(scenarios) > 32 * len(SCENARIOS):

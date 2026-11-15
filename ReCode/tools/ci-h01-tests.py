@@ -24,7 +24,7 @@ def indexed_fixture():
         runtimeVersion="test-runtime", sdkVersion="test-sdk", deploymentReference="TEST-deployment",
         physicalLabReference="TEST-physical-lab")
     for i, device in enumerate(value["devices"]):
-        device.update(physicalIdentityReference=f"TEST-identity-{i}", model="test-model", firmware="test-firmware", readFormat="ssr")
+        device.update(physicalIdentityReference=f"TEST-identity-{i}", model="test-model", firmware="test-firmware", readFormat="ssr-v1")
     for row in value["scenarios"]:
         row.update(outcome="pass", observedAtUtc="2020-01-01T12:00:00Z", operatorReference="TEST-operator",
                    reviewerReference="TEST-reviewer", evidenceReferences=["TEST-evidence"], receiptReferences=["TEST-receipt"], capabilityDisabled=False)
@@ -109,8 +109,16 @@ class EvidenceIndex(unittest.TestCase):
             v = deepcopy(self.value)
             v["devices"][0][field] = None
             self.assertTrue(h01.validate(v, NOW))
-        self.value["devices"][0]["readFormat"] = "legacy-int32"
+        self.value["devices"][0]["readFormat"] = "legacy-int32-v1"
         self.assertEqual(self.issues(), [])
+
+    def test_versioned_read_formats_match_native_contract(self):
+        path = Path(__file__).resolve().parents[1] / "src/IO.DeviceContracts/ZkUserReadExecutor.cs"
+        source = path.read_text(encoding="utf-8")
+        self.assertIn('Ssr = "ssr-v1"', source)
+        self.assertIn('Legacy = "legacy-int32-v1"', source)
+        self.value["devices"][0]["readFormat"] = "ssr"
+        self.assertTrue(self.issues())
 
     def test_each_device_needs_every_scenario(self):
         self.value["scenarios"].pop()
