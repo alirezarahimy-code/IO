@@ -142,6 +142,7 @@ public sealed class DeviceAttendanceErases(IoDbContext db,PermissionTransaction 
  public Task<Guid> CompleteAsync(Guid service,Claim c,AttendanceEraseOutput output,CancellationToken ct=default)=>tx.ExecuteAsync(service,c.Range is null?Execute:RangeExecute,"attendance-erase.finished",async token=>
  {await Lock(token);var r=await Owned(service,c,token);if(output.OperationId!=r.Id||!(c.Range is null?AttendanceEraseOutput.Known(output.State):AttendanceRangeEraseExecutor.Known(output.State)))throw new ArgumentException("Correlated bounded result required.");r.State=await IsCurrent(r,c,token)?output.State:"unknown";r.FinishedAtUtc=clock.GetUtcNow();return(r.Id,r.Id);},ct);
  private async Task<bool> Busy(Guid device,Guid? self,CancellationToken ct)=>
+  await db.DeviceProtectedErases.IgnoreQueryFilters().AnyAsync(x=>x.DeviceId==device&&(x.State=="proposed"||x.State=="pending"||x.State=="running"||x.State=="observed"),ct)||
   await db.DeviceAttendanceErases.IgnoreQueryFilters().AnyAsync(x=>x.DeviceId==device&&x.Id!=self&&(x.State=="proposed"||x.State=="pending"||x.State=="running"),ct)||
   await db.DeviceBiometricTransfers.IgnoreQueryFilters().AnyAsync(x=>(x.SourceDeviceId==device||x.TargetDeviceId==device)&&(x.State=="pending"||x.State=="running"),ct)||
   await db.RemoteEnrollments.AnyAsync(x=>x.DeviceId==device&&(x.State=="pending"||x.State=="running"),ct)||await db.DeviceConnections.AnyAsync(x=>x.DeviceId==device&&(x.State=="pending"||x.State=="running"),ct)||await db.DeviceOperations.AnyAsync(x=>x.DeviceId==device&&(x.State=="pending"||x.State=="running"),ct)||await db.DeviceUserDownloads.AnyAsync(x=>x.DeviceId==device&&(x.State=="pending"||x.State=="running"),ct)||await db.DeviceUserUploads.AnyAsync(x=>x.DeviceId==device&&(x.State=="pending"||x.State=="running"||x.State=="unknown"&&x.ResolutionSnapshotId==null),ct)||await db.DeviceAttendanceDownloads.AnyAsync(x=>x.DeviceId==device&&(x.State=="pending"||x.State=="running"),ct)||await db.DevicePollSchedules.AnyAsync(x=>x.DeviceId==device&&x.Enabled,ct);
@@ -150,6 +151,7 @@ internal static class AttendanceEraseFence
 {
  internal static async Task EnsureAsync(IoDbContext db,Guid device,bool writing,CancellationToken ct)
  {
+  await ProtectedEraseFence.EnsureAsync(db,device,writing,ct);
   if(await db.DeviceAttendanceErases.IgnoreQueryFilters().AnyAsync(x=>x.DeviceId==device&&(x.State=="proposed"||x.State=="pending"||x.State=="running"||writing&&x.State=="unknown"&&!db.DeviceAttendanceErases.IgnoreQueryFilters().Any(r=>r.RecoveryOfId==x.Id&&r.State=="released")),ct))throw new DomainConflictException("Attendance erase owns the device or has an unresolved destructive unknown; no replay.");
  }
 }

@@ -122,6 +122,10 @@ public sealed class UserEraseSdkDouble(UserEraseApproval approval)
   var result=GetUserTmpExStr(machine,person.ToString(System.Globalization.CultureInfo.InvariantCulture),slot,out _,out var d,out var n);data=d;length=n;return result;
  }
  public void GetLastError(ref int error)=>error=AbsenceError;
+ public bool ClearAdministrators(int machine)
+ {
+  Writes++;LastMachine=machine;LastApi="administrators";Entries=Entries.Select(e=>new UserEraseEntry(e.User with{Privilege=0},e.Password,e.Fingerprints)).ToList();AfterWrite?.Invoke(this);if(ThrowWrite)throw new InvalidOperationException();return !ReturnFalse;
+ }
  public bool SSR_DeleteEnrollDataExt(int machine,string person,int flag){LastApi="ssr";return Delete(machine,person,flag,0);}
  public bool DeleteEnrollData(int machine,int person,int enrollmentMachine,int flag){LastApi="legacy";return Delete(machine,person.ToString(System.Globalization.CultureInfo.InvariantCulture),flag,enrollmentMachine);}
  private bool Delete(int machine,string person,int flag,int enrollmentMachine)

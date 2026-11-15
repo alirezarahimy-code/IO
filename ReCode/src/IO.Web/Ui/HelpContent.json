@@ -4827,5 +4827,38 @@
       "دو اسکن کامل جای توقف فیزیکی capture را نمی‌گیرد. ACK بدون تطبیق کامل خارج بازه unknown است؛ retry ممنوع.",
       "پذیرش نصب Windows/SDK/COM و مرز واقعی firmware در H01؛ تأیید نرم‌افزار مجوز حذف واقعی نیست."
     ]
+  },
+  {
+    "Slug": "device-protected-erases",
+    "Route": "/workspace/device-protected-erases",
+    "Title": "حذف مصوب کاربر/اثرانگشت و مدیران",
+    "Group": "اپراتور",
+    "Overview": "سه خانوادهٔ مستقل، آرشیو کامل metadata کاربران پس از کنترل انحصاری، دو شخص، سه catalogue محافظت‌شده در child؛ raw رمز/template وارد وب یا SQL نمی‌شود.",
+    "Steps": [
+      "مدل فاقد سایر storeها، اثر دقیق، حذف غیرقابل‌بازیابی و کنترل واقعی همهٔ کانال‌ها مصوب شود؛ همهٔ switchها پیش‌فرض خاموش‌اند.",
+      "پس از توقف کار رقیب و ده ثانیه settling، دریافت کامل کاربران بسازید؛ خانواده، نسخه، شناسه و approval دقیق را preview و پیشنهاد کنید.",
+      "شخص مستقل با خواندن آرشیو و شواهد و نسخهٔ تازه تأیید کند؛ self-signature ممنوع است.",
+      "unknown هرگز تکرار نشود؛ پس از توقف child، reset غیرحذفی و آرشیو تازه، بازیابی همان خانواده/subject را پیشنهاد کنید؛ پس از observed شخص دوم فقط fence را رفع کند."
+    ],
+    "Example": "مثال مصنوعی: SSR شناسهٔ001 با1 یکی نیست؛ حذف fingerprints باید کاربر و رمز/کارت و دادهٔ تمام کاربران دیگر را عیناً نگه دارد.",
+    "Fields": [
+      {
+        "Name": "person",
+        "Label": "شناسهٔ دقیق",
+        "Description": "برای users/fingerprints عدد رشته‌ای exact؛ legacy فقط canonical Int32؛ administrators باید خالی باشد."
+      }
+    ],
+    "Actions": [
+      "preview بدون SDK؛ پیشنهاد؛ تأیید مستقل؛ لغو؛ observation بازیابی و بازبینی پس از observed."
+    ],
+    "Errors": [
+      "403: مجوز خانواده یا scope/خواندن آرشیو کافی نیست.",
+      "409: policy/نسخه/آرشیو/کنترل انحصاری/تازگی یا وضعیت مشاهده تغییر کرده است."
+    ],
+    "Limitations": [
+      "فقط مدل تردد با ده اسلات اثرانگشت و بدون face/photo/door/palm؛ دیگری unsupported.",
+      "ClearAdministrators فقط تنزل privilege به۰ با حفظ اشخاص/رمز/کارت/template؛ اثر واقعی باید در نصب اثبات شود.",
+      "شمار ثابت و mutex، کنترل فیزیکی نیست؛ backup/restore، secure erase یا آزمایش SDK واقعی ادعا نمی‌شود."
+    ]
   }
 ]

@@ -16,6 +16,12 @@ internal static class Program
             using var stdin=Console.OpenStandardInput();using var bytes=new MemoryStream();var buffer=new byte[1024];int count;
             while((count=stdin.Read(buffer,0,buffer.Length))>0){if(bytes.Length+count>32768)return Result("invalid-input");bytes.Write(buffer,0,count);}
             var json=new UTF8Encoding(false,true).GetString(bytes.ToArray());using var document=JsonDocument.Parse(json);
+            if(document.RootElement.TryGetProperty("EraseProtectedCatalogue",out _))
+            {
+                var request=JsonSerializer.Deserialize<ProtectedEraseInput>(json);
+                var output=request?.IsValid()==true&&OperatingSystem.IsWindows()?EraseProtectedWindows(request):new ProtectedEraseOutput(request?.OperationId??Guid.Empty,request?.InspectOnly==true?"inspection-failed":"unsupported");
+                Console.WriteLine(JsonSerializer.Serialize(output));return 0;
+            }
             if(document.RootElement.TryGetProperty("EraseAttendanceRange",out _))
             {
                 var range=JsonSerializer.Deserialize<AttendanceRangeEraseInput>(json);
@@ -304,6 +310,20 @@ internal static class Program
             entered=true;return AttendanceRangeEraseExecutor.Execute(input,new ZkComAttendanceSession(instance,c.MachineNumber));
         }
         catch{return new(input.OperationId,entered?"unknown":"failed-before-write");}
+        finally{if(instance is not null){try{((dynamic)instance).Disconnect();}catch{}try{Marshal.FinalReleaseComObject(instance);}catch{}}}
+    }
+
+    [SupportedOSPlatform("windows")]
+    private static ProtectedEraseOutput EraseProtectedWindows(ProtectedEraseInput input)
+    {
+        object? instance=null;bool entered=false;
+        try
+        {
+            instance=Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("00853A19-BD51-419B-9269-2DABE57EB61F"),true)!)!;dynamic sdk=instance;var c=input.Connection;
+            if(!(bool)sdk.SetCommPassword(c.CommKey)||!(bool)sdk.Connect_Net(c.Address,c.Port))return new(input.OperationId,input.InspectOnly?"inspection-failed":"failed-before-write");
+            entered=true;return ProtectedEraseExecutor.Execute(input,new ZkComUserEraseSession(instance,c.MachineNumber));
+        }
+        catch{return new(input.OperationId,input.InspectOnly?"inspection-failed":entered?"unknown":"failed-before-write");}
         finally{if(instance is not null){try{((dynamic)instance).Disconnect();}catch{}try{Marshal.FinalReleaseComObject(instance);}catch{}}}
     }
 

@@ -3,6 +3,9 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../IO.DeviceRuntime.Tests/ProtectedEraseTests.cs" Link="ProtectedEraseTests.cs" />
+    <Compile Include="../IO.DeviceRuntime.Tests/UserEraseTests.cs" Link="UserEraseTests.cs" />
+    <Compile Include="../../src/IO.ZkBridge/ZkComUserEraseSession.cs" Link="Production/ZkComUserEraseSession.cs" />
     <Compile Include="../IO.DeviceRuntime.Tests/VirtualDeviceLab.cs" Link="VirtualDeviceLab.cs" />
     <Compile Include="../IO.DeviceRuntime.Tests/ProfileSettingTests.cs" Link="ProfileSettingTests.cs" />
     <Compile Include="../IO.DeviceRuntime.Tests/DhcpComProfileTests.cs" Link="DhcpComProfileTests.cs" />

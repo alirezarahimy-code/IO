@@ -2,7 +2,7 @@ using System.Globalization;
 using IO.DeviceContracts;
 
 /// <summary>Closed reference mappings only. Not routed by Program or any worker until durable independent authorization/recovery is implemented.</summary>
-internal sealed class ZkComUserEraseSession(object instance,int machine):IUserEraseSession
+internal sealed class ZkComUserEraseSession(object instance,int machine):IProtectedEraseSession
 {
  public BiometricDeviceIdentity Identity()
  {
@@ -66,6 +66,7 @@ internal sealed class ZkComUserEraseSession(object instance,int machine):IUserEr
   return slots;
  }
  private static bool Person(string? s,UserEraseApproval a)=>s is{Length:>=1 and <=40}&&s.All(char.IsAsciiDigit)&&(a.UserFormat!=ZkUserReadFormats.Legacy||ZkUserReadFormats.IsCanonicalLegacyIdentity(s));
+ public bool ClearAdministrators()=>(bool)((dynamic)instance).ClearAdministrators(machine);
  public bool Delete(string person,UserEraseApproval a)
  {
   if(!a.IsValid()||!Person(person,a))return false;

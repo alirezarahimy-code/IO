@@ -4,6 +4,15 @@ internal static class EnrollmentEndpoints
 {
     internal static void MapEnrollment(this WebApplication app)
     {
+        foreach(var family in new[]{"users","fingerprints","administrators"})
+        {
+            var f=family;var route="/devices/protected-erases/"+f;
+            app.MapGet(route,(HttpContext c,DeviceProtectedErases service)=>GatewayEndpoints.Read(c,actor=>service.ListAsync(actor,f,c.RequestAborted))).RequireAuthorization();
+            app.MapPost(route+"/preview",(DeviceProtectedErases.Input input,HttpContext c,IAntiforgery csrf,DeviceProtectedErases service)=>GatewayEndpoints.Admin(c,csrf,actor=>service.PreviewAsync(actor,input,f,c.RequestAborted))).RequireAuthorization().WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(16384));
+            app.MapPost(route,(DeviceProtectedErases.Confirm input,HttpContext c,IAntiforgery csrf,DeviceProtectedErases service)=>GatewayEndpoints.Admin(c,csrf,actor=>service.ProposeAsync(actor,input,f,c.RequestAborted))).RequireAuthorization().WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(16384));
+            app.MapPost(route+"/{id:guid}/approve",(Guid id,DeviceProtectedErases.Review input,HttpContext c,IAntiforgery csrf,DeviceProtectedErases service)=>GatewayEndpoints.Admin(c,csrf,actor=>service.ApproveAsync(actor,id,input,f,c.RequestAborted))).RequireAuthorization();
+            app.MapPost(route+"/{id:guid}/cancel",(Guid id,GatewayEndpoints.GatewayVersion input,HttpContext c,IAntiforgery csrf,DeviceProtectedErases service)=>GatewayEndpoints.Admin(c,csrf,actor=>service.CancelAsync(actor,id,input.Version,f,c.RequestAborted))).RequireAuthorization();
+        }
         app.MapGet("/devices/attendance-range-erases",(HttpContext c,DeviceAttendanceErases service)=>GatewayEndpoints.Read(c,actor=>service.ListAsync(actor,c.RequestAborted,rangeOnly:true))).RequireAuthorization();
         app.MapPost("/devices/attendance-range-erases/preview",(DeviceAttendanceErases.Input input,HttpContext c,IAntiforgery csrf,DeviceAttendanceErases service)=>GatewayEndpoints.Admin(c,csrf,actor=>service.PreviewAsync(actor,input,c.RequestAborted,rangeOnly:true))).RequireAuthorization().WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(16384));
         app.MapPost("/devices/attendance-range-erases",(DeviceAttendanceErases.Confirm input,HttpContext c,IAntiforgery csrf,DeviceAttendanceErases service)=>GatewayEndpoints.Admin(c,csrf,actor=>service.ProposeAsync(actor,input,c.RequestAborted,rangeOnly:true))).RequireAuthorization().WithMetadata(new Microsoft.AspNetCore.Mvc.RequestSizeLimitAttribute(16384));

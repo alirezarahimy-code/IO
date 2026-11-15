@@ -10,6 +10,8 @@
     <EmbeddedResource Include="Ui/DeviceAttendance.html" />
     <EmbeddedResource Include="Ui/DeviceAttendanceRangeErases.html" />
     <EmbeddedResource Include="Ui/device-attendance-range-erases.js" />
+    <EmbeddedResource Include="Ui/DeviceProtectedErases.html" />
+    <EmbeddedResource Include="Ui/device-protected-erases.js" />
     <EmbeddedResource Include="Ui/DeviceAttendanceErases.html" />
     <EmbeddedResource Include="Ui/device-attendance-erases.js" />
     <EmbeddedResource Include="Ui/DeviceHealth.html" />
