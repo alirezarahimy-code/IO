@@ -345,7 +345,7 @@
       }
     ]
   },
-  "nextExactAction": "Execute H01 in an authorized real Windows/SDK/multidevice lab following h01-final-windows-lab-handoff.fa.md; keep every destructive/model-dependent deployment gate off until installed effects/policies/exclusive control are approved. Direct USB/serial and factory reset are explicitly unsupported, not features waiting to be toggled. No Linux tests or historical SQL1031 rerun.",
+  "nextExactAction": "H01 deferred and open by user decision: real lab environment not ready. Resume the existing Windows/SDK/multidevice handoff when available; do not substitute more synthetic tests or evidence-index tooling for physical acceptance. Keep destructive/model-dependent deployment gates off. No new software section selected.",
   "profileSettingsFollowup": {
     "code": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
     "accepted": true,
@@ -996,5 +996,14 @@
       43718499537
     ],
     "linuxTestsExecuted": false
+  },
+  "h01LabAvailabilityDecision": {
+    "status": "deferred-open-environment-not-ready",
+    "source": "User selected: physical Windows/SDK/two-device environment is not currently ready.",
+    "realH01Executed": false,
+    "hardwareVerified": false,
+    "part3Complete": false,
+    "resumeCondition": "Real Windows/SDK and at least two authorized physical lab devices become available; then follow h01-final-windows-lab-handoff.fa.md.",
+    "scopeChange": "None. This deferral does not accept H01 or authorize starting another software section."
   }
 }
