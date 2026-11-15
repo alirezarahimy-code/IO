@@ -48,11 +48,20 @@ internal static class AttendanceRangeEraseOperationalTests
   async Task<Guid> Approve(Guid who,Guid id,bool recovery=false)=>await Use<DeviceAttendanceErases,Guid>(async x=>await x.ApproveAsync(who,id,new(await Version(id),"SYNTHETIC-INDEPENDENT-REVIEW",recovery?DeviceAttendanceErases.RangeRecoveryConfirmation:DeviceAttendanceErases.RangeConfirmation),rangeOnly:true));
   var intent=await Input();check(await Reject<DomainConflictException>(()=>Preview(intent)),"destructive range erase is disabled despite valid browser approval");
   check(config.GetValue<bool>("IO:AttendanceErase:EnableDeleteAll"),"range default-off holds even while delete-all is independently enabled");
-  config["IO:AttendanceErase:EnableRangeDeletes"]="true";Configure("IO:AttendanceErase:RangeApprovals:0",JsonSerializer.SerializeToElement(rangeApproval));
+  config["IO:AttendanceErase:EnableRangeDeletes"]="true";
+  check(await Reject<DomainConflictException>(()=>Preview(intent)),"range switch alone cannot replace exact installed range allowlist");
+  Configure("IO:AttendanceErase:RangeApprovals:0",JsonSerializer.SerializeToElement(rangeApproval));
+  var alternate=rangeApproval with{TimeZoneId=zone=="UTC"?"Asia/Tehran":"UTC"};Configure("IO:AttendanceErase:RangeApprovals:1",JsonSerializer.SerializeToElement(alternate));
+  var role=await Q(db=>db.UserRoles.Where(x=>x.UserId==actor).Select(x=>x.RoleId).SingleAsync());var permission=await Q(db=>db.Permissions.Where(x=>x.Code==DeviceAttendanceErases.RangePropose).Select(x=>x.Id).SingleAsync());
+  await Q(async db=>{db.RolePermissions.Remove(await db.RolePermissions.SingleAsync(x=>x.RoleId==role&&x.PermissionId==permission));await db.SaveChangesAsync();return true;});
+  try{check(await Reject<UnauthorizedAccessException>(()=>Preview(intent)),"delete-all grants cannot substitute for revoked independent range proposal grant");}
+  finally{await Q(async db=>{db.RolePermissions.Add(new(){RoleId=role,PermissionId=permission});await db.SaveChangesAsync();return true;});}
   check(await Reject<ArgumentException>(()=>Use<DeviceAttendanceErases,object>(x=>x.PreviewAsync(actor,intent))),"all-log API cannot accept range intent");
   check(await Reject<ArgumentException>(()=>Preview(intent with{Range=null})),"range API cannot accept all-log intent");
-  check(await Reject<DomainConflictException>(()=>Preview(intent with{Range=plan with{Approval=rangeApproval with{TimeZoneId="UTC"}}})),"range approval cannot silently change archive installation time zone");
+  check(await Reject<DomainConflictException>(()=>Preview(intent with{Range=plan with{Approval=alternate}})),"range approval cannot silently change archive installation time zone");
   var preview=JsonSerializer.SerializeToElement(await Preview(intent));check(preview.GetProperty("archiveCount").GetInt32()==6&&preview.GetProperty("selectedCount").GetInt32()==3&&preview.GetProperty("remainingCount").GetInt32()==3,"durable preview binds selected and outside counts over entire archive including unknown codes and duplicates");
+  var changed=new DeviceAttendanceErases.Confirm(intent with{Range=plan with{ThroughLocalInclusive="2026-11-08 06:00:02"}},preview.GetProperty("previewHash").GetString()!,DeviceAttendanceErases.RangeConfirmation);
+  check(await Reject<DomainConflictException>(()=>Use<DeviceAttendanceErases,Guid>(x=>x.ProposeAsync(actor,changed,rangeOnly:true))),"range bounds cannot change between preview and durable proposal even with same full archive");
   check(await Reject<UnauthorizedAccessException>(()=>Preview(intent,reader)),"metadata/reviewer authority does not grant delete proposal or archive device scope");
   check(await Reject<DomainConflictException>(()=>Preview(intent with{QuiescedAtUtc=DateTimeOffset.UtcNow})),"archive made before settled physical capture stop cannot authorize deletion");
   check(await Reject<DomainConflictException>(()=>Preview(intent with{ArchiveVersion=new byte[8]})),"stale archive version is rejected before erase proposal");
@@ -77,6 +86,7 @@ internal static class AttendanceRangeEraseOperationalTests
   intent=await Input();id=await Propose(intent);await Approve(reader,id);
   var claim=await Use<DeviceAttendanceErases,DeviceAttendanceErases.Claim?>(x=>x.ClaimAsync(service,rangeOnly:true))??throw new InvalidOperationException("Erase claim required.");
   check(await Reject<ArgumentException>(()=>Use<DeviceAttendanceErases,Guid>(x=>x.CompleteAsync(service,claim,new(id,"deleted-verified")))),"range result refuses a correlated but wrong-family all-log success state");
+  bool wrongFamily=false;try{await Q(async db=>{await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.DeviceAttendanceErases SET State=N'deleted-verified',FinishedAtUtc=SYSUTCDATETIME() WHERE Id={id}");return true;});}catch(SqlException e)when(e.Number==547){wrongFamily=true;}check(wrongFamily,"SQL independently rejects all-log success state on a range execution");
   await Use<DeviceAttendanceErases,Guid>(async x=>await x.CancelAsync(actor,id,await Version(id),rangeOnly:true));
   check(await Use<DeviceAttendanceErases,bool>(x=>x.ShouldStopAsync(service,claim)),"running erase cancellation revokes authority rather than proving device cancellation");
   await Use<DeviceAttendanceErases,Guid>(x=>x.CompleteAsync(service,claim,new(id,"range-deleted-verified")));
@@ -84,6 +94,9 @@ internal static class AttendanceRangeEraseOperationalTests
   check(await Reject<DomainConflictException>(()=>Use<DeviceOperations,Guid>(x=>x.RequestAsync(actor,Guid.NewGuid(),device,version,"clock.set",30,DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds()),"SET-CLOCK"))),"unknown attendance deletion blocks unrelated native writes");
   var reset=DateTimeOffset.UtcNow;await Task.Delay(TimeSpan.FromSeconds(11));var recovery=await Input(id,reset);
   check(await Reject<DomainConflictException>(()=>Preview(recovery)),"unknown erase recovery requires its independent default-off switch");config["IO:AttendanceErase:EnableRangeRecovery"]="true";
+  Configure("IO:AttendanceErase:Approvals:1",JsonSerializer.SerializeToElement(approval));
+  check(await Reject<DomainConflictException>(()=>Use<DeviceAttendanceErases,object>(x=>x.PreviewAsync(actor,recovery with{Range=null}))),"all-log recovery cannot release original range unknown even with exact all-log approval");
+  check(await Reject<DomainConflictException>(()=>Preview(recovery with{Range=plan with{ThroughLocalInclusive="2026-11-08 06:00:02"}})),"range recovery must preserve original exact wall bounds");
   var recoveryId=await Propose(recovery);check(await Reject<DomainConflictException>(()=>Approve(actor,recoveryId,true)),"destructive recovery also forbids self-signature");await Approve(reader,recoveryId,true);
   check(await Q(db=>db.DeviceAttendanceErases.Where(x=>x.Id==id).Select(x=>x.State).SingleAsync())=="unknown","post-reset read-only archive and independent recovery preserve original unknown forever");
   bool rejected=false;try{await Q(async db=>{await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM dbo.DeviceAttendanceErases WHERE Id={recoveryId}");return true;});}catch(SqlException e)when(e.Number==51043){rejected=true;}check(rejected,"SQL independently prevents deletion of destructive recovery evidence");
