@@ -1,5 +1,5 @@
 {
-  "scope": "Expanded Part3 software implementation explicitly requested despite unavailable hardware: R16 base direct SDK connection/exchange now verified; remaining direct specialized/sensitive families remain open. H01 physical lab remains deferred, not a development prerequisite.",
+  "scope": "Expanded Part3 software implementation despite unavailable hardware: R16 base direct SDK exchange plus ordinary-user direct write/unknown recovery now Windows software-verified; specialized/sensitive direct families remain open. H01 remains independently deferred.",
   "userTarget": {
     "family": "ZK standalone/network SDK",
     "lab": "Windows",
@@ -8,7 +8,7 @@
     "realDeviceExecution": "not performed",
     "testingSequence": "User explicitly requires virtual-device software completion now, copying reference behavior as appropriate, with real Windows SDK/multidevice acceptance deferred to the end. Lack of local hardware must not block further software implementation."
   },
-  "latestVerifiedCode": "ee4b0712d5b6e849be896e67c6bfe02bf7a43870",
+  "latestVerifiedCode": "f7b661861d8896f36600e082bc28abd7909ab842",
   "checks": {
     "integrationPassLines": 1031,
     "foundation": 48,
@@ -113,7 +113,7 @@
     }
   ],
   "remainingSoftware": [
-    "P3-R16 expanded direct USB/serial: base connection/exchange verified on Windows; dedicated upload/recovery coverage and specialized settings/enrollment/biometric/deletion/recovery direct paths remain open."
+    "P3-R16 expanded direct USB/serial: base exchange and dedicated ordinary upload/recovery accepted in Windows synthetic CI; specialized settings/enrollment/biometric/deletion/recovery direct paths remain open."
   ],
   "realSdkExecuted": false,
   "windowsServiceInstalled": false,
@@ -950,7 +950,7 @@
   },
   "checksScope": "Historical full SQL1031 baseline; NOT rerun on latestVerifiedCode. Current selected Windows integrated/runtime/UI counts are in currentVerifiedChecks and r15R16SoftwareDeliveryFollowup.",
   "currentVerifiedChecks": {
-    "windowsIntegratedSqlHttpsQueueChecks": 383,
+    "windowsIntegratedSqlHttpsQueueChecks": 427,
     "existingIntegratedRegressionChecks": 296,
     "newR15SqlWorkerChecks": 39,
     "newR15HttpsChecks": 7,
@@ -974,10 +974,12 @@
     "priorIntegratedRegressionChecks": 355,
     "newDirectSqlWorkerChecks": 28,
     "syntheticLocalSdkAndRealWindowsMutexChecks": 30,
-    "transportSupportBoundaryChecks": 26
+    "transportSupportBoundaryChecks": 26,
+    "newDirectUploadSqlWorkerChecks": 44,
+    "syntheticDirectUserWriteProductionMapperChecks": 40
   },
   "currentVerifiedRuns": [
-    43747192483,
+    43749746581,
     43746623088
   ],
   "h01EvidenceIndexTool": {
@@ -1011,17 +1013,17 @@
     "scopeChange": "User now explicitly requests all necessary software implementation despite unavailable hardware. Reopen R16; no further hardware prerequisite for software development."
   },
   "directTransportImplementationFollowup": {
-    "status": "base-direct-exchange-software-accepted-remaining-direct-families-open",
+    "status": "direct-base-exchange-and-ordinary-user-write-recovery-accepted-specialized-families-open",
     "guide": "r16-direct-sdk-implementation.fa.md",
     "migration": "20261117120000_LocalSdkTransports",
     "hardwareVerified": false,
     "part3Complete": false,
     "linuxTestsExecuted": false,
     "supersedesUnsupportedDisposition": true,
-    "code": "ee4b0712d5b6e849be896e67c6bfe02bf7a43870",
+    "code": "f7b661861d8896f36600e082bc28abd7909ab842",
     "evidence": "r16-direct-sdk-software-evidence.json",
     "checks": {
-      "windowsIntegratedSqlHttpsQueueChecks": 383,
+      "windowsIntegratedSqlHttpsQueueChecks": 427,
       "priorIntegratedRegressionChecks": 355,
       "newDirectSqlWorkerChecks": 28,
       "syntheticLocalSdkAndRealWindowsMutexChecks": 30,
@@ -1029,19 +1031,50 @@
       "migrations": 58,
       "domainTables": 71,
       "offlineDomFiles": 26,
-      "pagesAndHelp": 58
+      "pagesAndHelp": 58,
+      "newDirectUploadSqlWorkerChecks": 44,
+      "priorDirectExchangeIntegratedChecks": 383,
+      "syntheticDirectUserWriteProductionMapperChecks": 40
     },
     "runs": [
-      43747192483,
+      43749746581,
       43746623088
     ],
     "stillOpenDirectFamilies": [
-      "dedicated-direct-upload-write-and-unknown-recovery-operational-coverage",
       "specialized-profile-raw-idle-key-write-and-recovery-contracts",
       "native-enrollment-and-recovery",
       "biometric-pair-transfer-and-recovery",
       "attendance-all-and-range-delete-and-recovery",
       "protected-user-fingerprint-admin-and-all-data-delete-and-recovery"
-    ]
+    ],
+    "ordinaryUserUploadAcceptance": {
+      "runtimeFormats": [
+        "ssr-v1",
+        "legacy-int32-v1"
+      ],
+      "runtimeTransportKinds": [
+        "usb",
+        "serial"
+      ],
+      "operationalFormats": [
+        "ssr-v1"
+      ],
+      "operationalTransportKinds": [
+        "usb",
+        "serial"
+      ],
+      "productionSourceLinkedMapper": "ReCode/src/IO.ZkBridge/ZkComUserWriter.cs",
+      "continuousAuthorityRecheck": true,
+      "completionAuthorityRecheck": true,
+      "syntheticStateOnly": true,
+      "realSdkExecuted": false,
+      "legacyOperationalUploadNotSeparatelyRerun": true,
+      "firstRun": {
+        "id": 43749196283,
+        "code": "a9dfebdcd032b181b384ac7ce93e10e8796f6080",
+        "conclusion": "failure",
+        "reason": "Test fixture incorrectly depended on GITHUB_ACTIONS in the sanitized native child. Fixed fixture only; production environment allowlist was not weakened. Mapper40 and Windows mutex30 passed before integrated failure."
+      }
+    }
   }
 }

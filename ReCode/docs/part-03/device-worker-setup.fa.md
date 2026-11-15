@@ -1,12 +1,12 @@
 # نصب worker و سرویس سیستم‌عامل — اجزای S05–S07/S12، نه پذیرش سخت‌افزار
 
-> **وضعیت جاری USB/serial:** [پیاده‌سازی مستقیم R16](r16-direct-sdk-implementation.fa.md) از migration۵۸ `20261117120000_LocalSdkTransports` و config مستقل LocalTransport استفاده می‌کند. توضیحات عدم پشتیبانی در لایه‌های تاریخی پایین مربوط به تحویل قبلی است. اتصال/تبادل پایه ساخته شده؛ خانواده‌های حساس مستقیم هنوز در این برش مجاز نیستند و H01 معوق است.
+> **وضعیت جاری USB/serial:** [پیاده‌سازی مستقیم R16](r16-direct-sdk-implementation.fa.md) از migration۵۸ `20261117120000_LocalSdkTransports` و config مستقل LocalTransport استفاده می‌کند. توضیحات عدم پشتیبانی در لایه‌های تاریخی پایین مربوط به تحویل قبلی است. اتصال/تبادل پایه و ارسال عادی/بازیابی unknown با آزمون نرم‌افزاری Windows ساخته شده؛ خانواده‌های حساس مستقیم هنوز در این برش مجاز نیستند و H01 معوق است.
 
 این worker جدا از وب روی .NET 10 اجرا می‌شود و COM را در process خود یا وب بار نمی‌کند. مسیر اولیه TCP handshake است؛ مسیر candidate ZK در child مستقلِ بخش پایانی همین سند اجرا می‌شود. `tcp-reachable` اثبات دستگاه، رمز، مدل، firmware یا پروتکل نیست. S05 و کل بخش سوم هنوز پذیرفته نشده‌اند.
 
 ## وضعیت جاری و ترتیب استقرار
 
-این راهنما لایه‌های تاریخی S05 به بعد را هم حفظ می‌کند؛ [تحویل نرم‌افزاری جاری](part-03-software-delivery.fa.md) و [پذیرش واقعی H01](h01-final-windows-lab-handoff.fa.md) مرجع وضعیت نهایی‌اند. نرم‌افزار در دامنهٔ مستند پذیرفته شده ولی نصب عملیاتی/SDK/چنددستگاه هنوز نه. R15 فقط [ClearData۵ مصوب](r15-all-data-clear.fa.md) است، نه factory reset. [R16](r16-direct-transport-disposition.fa.md) مستقیم USB/serial را unsupported اعلام می‌کند؛ فایل USB adapter مستقیم نیست. برای قابلیت‌های تازه، وب/worker/bridge و **تمام migrationهای نسخهٔ مصوب تا `20261116120000_AllDataErases`** هماهنگ منتشر شوند؛ مجوز و تمام switchهای نصب مستقل و پیش‌فرض خاموش‌اند. Linux در پذیرش نهایی تازه اجرا نشده است.
+این راهنما لایه‌های تاریخی S05 به بعد را هم حفظ می‌کند؛ [تحویل نرم‌افزاری جاری](part-03-software-delivery.fa.md) و [پذیرش واقعی H01](h01-final-windows-lab-handoff.fa.md) مرجع وضعیت نهایی‌اند. نرم‌افزار در دامنهٔ مستند پذیرفته شده ولی نصب عملیاتی/SDK/چنددستگاه هنوز نه. R15 فقط [ClearData۵ مصوب](r15-all-data-clear.fa.md) است، نه factory reset. [R16 جاری](r16-direct-sdk-implementation.fa.md) اتصال و تبادل پایهٔ USB/serial مستقیم را می‌سازد؛ تصمیم unsupported در پایین تاریخی است و فایل USB همچنان adapter مستقیم نیست. برای قابلیت‌های تازه، وب/worker/bridge و **تمام migrationهای نسخهٔ مصوب تا `20261117120000_LocalSdkTransports`** هماهنگ منتشر شوند؛ مجوز و تمام switchهای نصب مستقل و پیش‌فرض خاموش‌اند. Linux در پذیرش نهایی تازه اجرا نشده است.
 
 ## پیش‌نیاز و اعتماد
 
@@ -74,6 +74,8 @@ worker اکنون روی Windows با `AddWindowsService` و نام ثابت `IO
 ## ارسال عادی S08 (پیش‌فرض خاموش)
 
 `IO:DeviceWorker:EnableUserUploads=true`، grant مستقل `devices.users.upload.execute` و `AttendanceOnlyUserWriteApproved=true` روی NativeEndpoint لازم‌اند. SSR یا legacy Int32 فقط attendance-only و **نه ترمینال کنترل درب**، پس از آزمون مدل واقعی؛ این flag اثبات سازگاری نیست. [راهنمای preview/تأیید/بازیابی/partial](s08-user-upload.fa.md). عملیات عادی به سیاست بایومتریک وابسته نیست؛ password قدیمی فقط در حافظهٔ child حفظ می‌شود. صف مشترک چهار slot را بین دریافت کاربران/ارسال عادی/عملیات/diagnostic/استخراج تردد عادلانه تقسیم می‌کند؛ چهار slot سقف تعداد دستگاه نیست.
+
+در مسیر مستقیم نیز همین switchها به‌علاوهٔ LocalTransport و registration منطبق لازم‌اند؛ هیچ تأیید نوشتنی از تأیید USB/serial به‌تنهایی به‌دست نمی‌آید. Worker هنگام اجرای آپلود هر۵۰۰ میلی‌ثانیه اعتبار جاری claim/مجوز/نگاشت/نام مصوب و fence ایمنی را می‌سنجد و در تغییر/خطا child را متوقف می‌کند؛ Complete نیز recheck می‌کند. این کنترل rollback یا اتمی‌شدن SDK نیست: پس از dispatch، قطع/پاسخ نامعتبر به `unknown` منتهی می‌شود. snapshot تازهٔ هم‌قالب و `REVIEWED-USER` نتیجهٔ اصلی را موفق نمی‌کند؛ درخواست مجدد یک intent تازه است و در صورت `unchanged` دوباره نمی‌نویسد. [شاهد مستقل آپلود مستقیم و مرز SSR/legacy](r16-direct-sdk-software-evidence.json).
 
 ## استخراج خواندنی S09 (پیش‌فرض خاموش)
 

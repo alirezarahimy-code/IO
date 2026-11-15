@@ -21,7 +21,7 @@
 | ساعت و restart با حق/تأیید مستقل | برقرار | همان صف و قرارداد با اتصال مستقیم؛ اثبات reboot از ACK نتیجه نمی‌شود |
 | دریافت کامل کاربران SSR/legacy | برقرار | همان streaming executor و SQL archive، قالب صریح و حفظ leading zero |
 | استخراج تردد SSR/legacy، polling، دریافت مجدد/قرنطینه | برقرار | همان tuple/multiplicity/ingestion جدا؛ parser فایل همچنان مستقل |
-| ارسال metadata کاربر عادی با preview و no-overwrite | برقرار | worker/mapper مستقیم و همان قرارداد حفاظت؛ بدون حق template/admin/door ضمنی |
+| ارسال metadata کاربر عادی با preview و no-overwrite | برقرار | worker و mapper تولیدی مستقیم؛ پوشش مستقل نوشتن/unknown و بازبینی تازه؛ بدون حق template/admin/door ضمنی |
 | setterهای تخصصی profile/raw/function-key و recovery شبکه | برقرار تحت قرارداد مستقل | **هنوز این برش مجاز نمی‌کند؛ ادامهٔ نرم‌افزاری R16 باز است** |
 | enroll، انتقال biometric، حذف R11–R15 و recovery آن‌ها | برقرار تحت قرارداد مستقل | **هنوز این برش مجاز نمی‌کند**؛ private input هم transport محلی را صریحاً رد می‌کند، نه dispatch ناقص یا fallback شبکه |
 | factory reset | ساخته نشده؛ ClearData۵ نیست | فرمان/اثر معتبر جدا لازم است؛ API حدسی ساخته نمی‌شود |
@@ -57,8 +57,25 @@
 تست‌های جدید connector تولیدی با SDK double و mutex واقعی Windows، منع مالک دوم در process مستقل، ورودی‌های نامعتبر، stream کاربران/تردد و عدم dispatch فرمان‌های هنوز پشتیبانی‌نشده را بررسی می‌کنند. تست یکپارچه نیز registry/constraint و worker واقعی/credential/child مصنوعی/SQL را برای USB و serial جدا اجرا می‌کند؛ این **اجرای driver یا دستگاه نیست**. نتیجهٔ نهایی این برش در شاهد مقید به SHA زیر ثبت شده؛ شمار تاریخی۳۵۵ به‌تنهایی جای اجرای تازه را نمی‌گیرد. Linux طبق دستور کاربر تست نمی‌شود. H01 معوق و `hardwareVerified=false` و `part3Complete=false` باقی‌اند.
 
 
-## شاهد پذیرفته‌شدهٔ این برش
+## ارسال مستقیم عادی و بازیابی نتیجهٔ نامعلوم
 
-کد `ee4b0712d5b6e849be896e67c6bfe02bf7a43870` در [Windows](https://github.com/alirezarahimy-code/IO/actions/runs/43747192483) موفق شد: **۳۸۳ بررسی یکپارچه =۳۵۵ قبلی +۲۸ بررسی جدید مستقیم**، **۳۰ بررسی connector تولیدی با SDK double و mutex واقعی Windows/مالک دوم process مستقل** و۲۶ بررسی مرز transport؛ regressionهای قبلی هم حفظ شدند. [DOM رابط](https://github.com/alirezarahimy-code/IO/actions/runs/43746623088) روی fa770c0 موفق است و فایل‌های UI/DOM تا SHA تولیدی بعدی عیناً تغییر نکرده‌اند؛ دو submit واقعی فرم DOM برای USB با port۰ و serial با COM۱۷/ایستگاه، رفتار JS تولیدی را بررسی می‌کنند. [شاهد ماشینی SHA/job و دامنهٔ واقعی](r16-direct-sdk-software-evidence.json).
+- mapper واقعی نوشتن از بدنهٔ Program به `IO.ZkBridge/ZkComUserWriter.cs` استخراج شد؛ bridge تولیدی و تست source-linked دقیقاً همین کد را اجرا می‌کنند. اتصال با `ZkSdkConnection` و lease قبلی است؛ SSR فقط `SSR_SetUserInfo` و legacy فقط `SetUserInfo` دارد، بدون fallback.
+- هر نوشتن همچنان snapshot مصوب/قالب تغییرناپذیر، preview/hash دقیق، مجوز انسانی و سرویس، mapping جاری و تأیید مستقل نصب `AttendanceOnlyUserWriteApproved` می‌خواهد. قالب‌های `UserReadFormat` و `UserWriteFormat` باید با snapshot برابر باشند؛ روشن‌کردن اتصال مستقیم، تأیید نوشتن نیست.
+- پیش از mutation، serial و شمارش کامل اسکن دوباره کنترل می‌شوند؛ conflict، duplicate، اسکن ناقص یا password نامعلوم نمی‌تواند به «کاربر وجود ندارد» یا پاک‌کردن رمز تبدیل شود. رمز موجود فقط در حافظهٔ child حفظ می‌شود؛ گروه، template، administrator و door قابل ویرایش در این مسیر نیستند. کاربر جدید عمداً رمز خالی دارد.
+- Worker در مدت اجرای child هر۵۰۰ میلی‌ثانیه اختیار جاری/نسخه/endpoint/نگاشت/نام مصوب و fenceهای ایمنی را دوباره بررسی می‌کند؛ تغییر یا خطای بررسی باعث لغو و کشتن child می‌شود. هنگام Complete نیز اعتبار جاری کنترل می‌شود و نتیجهٔ دیگر معتبرنبودن، `unknown` است. **این polling تضمین اتمی یا rollbackِ SDK نیست**؛ نوشتن ممکن است پیش از دریافت لغو اتفاق افتاده باشد.
+- پاسخ گم‌شده پس از نوشتن یا قطع child پس از dispatch، نتیجهٔ نامعلوم است؛ replay خودکار ممنوع. snapshot موفقِ جدیدتر با همان نسخه و قالب + `REVIEWED-USER` فقط شاهد بازبینی را ثبت می‌کند و unknown قبلی را موفق نمی‌کند. درخواست تازه پس از بازبینی مستقل است؛ اگر حالت مشاهده‌شده همان desired باشد، `unchanged` هیچ نوشتن دیگری انجام نمی‌دهد.
+- fixture متغیر فقط در assembly تست و با دادهٔ کاملاً مصنوعی است؛ مسیر فایل GUID-only و ایجاد اولیه فقط در CI. child تولیدی همچنان allowlist محدود محیط را دارد؛ برای fixture، متغیر CI یا DB به محیط child اضافه نشده است. در اولین اجرای تست، وابستگی نادرست fixture به متغیر پاک‌شده آشکار و فقط خود fixture اصلاح شد.
 
-آزمون عملیاتی جدید، ثبت/constraint و worker→credential→child مصنوعی→probe/info/user/log→SQL را برای هر دو transport می‌سنجد؛ دریافت native و حفظ duplicate/leading zero و منع alias واقعی SQL پوشش دارند. ارسال عادی مستقیم سیم‌کشی تولیدی دارد و قرارداد عمومی قبلی regression می‌شود، ولی **پوشش عملیاتی اختصاصی نوشتن مستقیم/unknown آن هنوز مانده**؛ از شمار۲۸ نتیجهٔ آزمون‌نشده استنتاج نمی‌شود. Chromium مستقل در run اخیر UI به‌علت فیلتر دامنه skip شد؛ آخرین اجرای پیشین آن روی e92a82a در [run43746283437](https://github.com/alirezarahimy-code/IO/actions/runs/43746283437) موفق بوده و به تغییر HTML/DOM بعدی نسبت داده نمی‌شود. برای دامنهٔ گسترش‌یافته، R16 و `softwareComplete=false` همچنان بازند؛ این پذیرش، پایان بخش۳ نیست.
+## شاهد پذیرفته‌شدهٔ جاری
+
+کد `f7b661861d8896f36600e082bc28abd7909ab842` در [Windows run43749746581](https://github.com/alirezarahimy-code/IO/actions/runs/43749746581) موفق شد:
+
+- **۴۲۷ بررسی یکپارچه =۳۸۳ قبلی +۴۴ جدید آپلود مستقیم/unknown**؛ مسیر واقعی registry/SQL/صف/credential/worker/child و mapper تولیدی با SDK double متغیر، برای USB و serial جدا. گم‌شدن پاسخ بعد از mutation، منع retry کور، رد snapshot قدیمی، review تازه و حفظ unknown، retry تازهٔ بدون نوشتن مجدد و لغو نگاشت حین اجرای child پوشش دارند.
+- **۴۰ بررسی mapper تولیدی نوشتن** برای ترکیب USB/serial × SSR/legacy: انتخاب دقیق API، حفظ رمز/گروه/fingerprint و administrator دست‌نخورده، unchanged، conflict، null password، اسکن ناقص، duplicate، serial اشتباه و ایجاد کاربر عادی جدید.
+- **۳۰ بررسی اتصال و mutex واقعی Windows**، شامل منع مالک دوم process مستقل، و **۲۶ بررسی مرز transport**؛ regressionهای قبلی نگه داشته شدند.
+
+پوشش عملیاتی اختصاصی آپلود صف→worker→SQL در این برش **SSR روی هر دو transport** است؛ legacy مستقیم در سطح mapper واقعی با double برای هر دو transport پوشش دارد، نه اجرای عملیاتی جداگانهٔ legacy یا SDK واقعی. شاهد قبلی اتصال/دریافت پایه روی [ee4b071](https://github.com/alirezarahimy-code/IO/actions/runs/43747192483) نیز در [شاهد ماشینی SHA/job و دامنهٔ دقیق](r16-direct-sdk-software-evidence.json) نگه داشته شده است.
+
+UI در این برش تغییر نکرده و اجرای تازهٔ DOM/Chromium به SHA آپلود نسبت داده نمی‌شود. [DOM رابط](https://github.com/alirezarahimy-code/IO/actions/runs/43746623088) روی fa770c0 موفق بود؛ source رابط/تست DOM تا SHA جاری عیناً تغییر نکرده است. Chromium مستقل در آن run به‌علت فیلتر دامنه skip شد؛ آخرین اجرای پیشین روی e92a82a در [run43746283437](https://github.com/alirezarahimy-code/IO/actions/runs/43746283437) موفق بود، نه اثبات تغییر HTML بعدی.
+
+**هیچ SDK نصب‌شده، driver یا دستگاه واقعی اجرا نشد؛ Linux تست نشد.** مجموعهٔ تاریخی کامل SQL۱۰۳۱ و rollback کامل نیز در این SHA اجرا نشده‌اند. R16/تکمیل نرم‌افزارِ دامنهٔ گسترش‌یافته برای خانواده‌های تخصصی جدول هنوز باز است: `softwareComplete=false`، `hardwareVerified=false` و `part3Complete=false`؛ H01 مستقل معوق می‌ماند. مورد بعدی به‌ترتیب، قرارداد تنظیمات تخصصی مستقیم و بازیابی آن‌هاست؛ تنظیمات شبکه نباید صرفاً با حذف fence روی transport محلی مجاز شوند.

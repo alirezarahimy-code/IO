@@ -1,7 +1,59 @@
 {
-  "scope": "Base direct USB/serial SDK connection and exchange software acceptance, not completion of expanded Part3/R16 or physical lab acceptance. Existing specialized/sensitive families remain network-only and reject local IPC until separately implemented.",
-  "code": "ee4b0712d5b6e849be896e67c6bfe02bf7a43870",
+  "scope": "Base direct USB/serial connection/exchange and ordinary-user upload/recovery software acceptance. Actual production connector/writer with SDK doubles, real Windows worker/SQL/child lifecycle. Not expanded Part3/R16 completion or physical SDK/driver/device acceptance. Specialized/sensitive direct families remain fenced and open.",
+  "code": "f7b661861d8896f36600e082bc28abd7909ab842",
   "runs": [
+    {
+      "id": 43749746581,
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43749746581",
+      "code": "f7b661861d8896f36600e082bc28abd7909ab842",
+      "conclusion": "success",
+      "jobId": 132920847780,
+      "labels": [
+        "windows-2022"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Provision isolated encrypted synthetic photo volume",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build, catalogue checks and portable publish",
+          "conclusion": "success"
+        },
+        {
+          "name": "Windows LocalDB authenticated gateway and enrollment integration",
+          "conclusion": "success"
+        },
+        {
+          "name": "Detach synthetic photo volume",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
     {
       "id": 43747192483,
       "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43747192483",
@@ -132,7 +184,7 @@
     }
   ],
   "checks": {
-    "windowsIntegratedSqlHttpsQueueChecks": 383,
+    "windowsIntegratedSqlHttpsQueueChecks": 427,
     "priorIntegratedRegressionChecks": 355,
     "newDirectSqlWorkerChecks": 28,
     "syntheticLocalSdkAndRealWindowsMutexChecks": 30,
@@ -140,12 +192,15 @@
     "migrations": 58,
     "domainTables": 71,
     "offlineDomFiles": 26,
-    "pagesAndHelp": 58
+    "pagesAndHelp": 58,
+    "newDirectUploadSqlWorkerChecks": 44,
+    "priorDirectExchangeIntegratedChecks": 383,
+    "syntheticDirectUserWriteProductionMapperChecks": 40
   },
   "annotations": [
     {
       "title": "Windows gateway enrollment integration",
-      "message": "383 SQL HTTPS queue and synthetic-process checks passed on Windows LocalDB; no COM hardware or real biometric authorization."
+      "message": "427 SQL HTTPS queue and synthetic-process checks passed on Windows LocalDB; no COM hardware or real biometric authorization."
     },
     {
       "title": "Windows HTTPS fixture",
@@ -188,6 +243,10 @@
       "message": "30 synthetic contract and Windows physical-resource mutex checks passed; production connector uses fake SDK only. No installed driver device or destructive execution."
     },
     {
+      "title": "Local user write production mapper",
+      "message": "40 USB/serial SSR/legacy synthetic SDK mapper checks passed; no physical SDK driver or device."
+    },
+    {
       "title": "Transport support disposition",
       "message": "26 checks passed; product network/file versus explicitly bound direct USB/serial boundary only, no physical transport or driver executed."
     },
@@ -198,11 +257,11 @@
   ],
   "uiProvenance": {
     "testedCode": "fa770c024f446fb0fa22bc02f3e10c2d8efac596",
-    "productionCode": "ee4b0712d5b6e849be896e67c6bfe02bf7a43870",
+    "productionCode": "f7b661861d8896f36600e082bc28abd7909ab842",
     "exactUiAndDomSourceUnchangedBetweenTheseShas": true,
     "standaloneChromiumSkippedOnLatestUiRun": true,
     "lastEarlierChromiumRun": 43746283437,
-    "method": "git diff --name-only testedCode productionCode -- ReCode/src/IO.Web/Ui ReCode/tests/IO.Infrastructure.SqlTests/*-ui-check.cjs is empty; native fixes after UI acceptance affect only private transport contract and native fixture."
+    "method": "Exact git diff of UI and DOM test source is empty from testedCode to productionCode. Later changes affect native transport, production user-write mapper, authority checks, worker and synthetic fixtures only. No fresh browser or DOM pass is claimed on the upload SHA."
   },
   "implementedFamilies": [
     "explicit-station-sdk-probe",
@@ -223,10 +282,17 @@
     "real-worker-information-read",
     "real-worker-user-stream-to-sql-leading-zero",
     "real-worker-attendance-stream-to-sql-duplicate-preservation",
-    "unchanged-operator-grants"
+    "unchanged-operator-grants",
+    "usb-and-serial-ordinary-ssr-user-upload-through-production-writer",
+    "preview-hash-rbac-idempotent-batch-no-rewrite",
+    "mutable-synthetic-sdk-state-observed-by-fresh-download",
+    "lost-reply-after-write-retains-unknown-and-blocks-blind-retry",
+    "fresh-same-format-snapshot-explicit-review-retains-original-unknown",
+    "reviewed-new-intent-unchanged-does-not-write-again",
+    "in-flight-mapping-revocation-kills-child-retains-unknown",
+    "protected-password-group-fingerprint-and-unrelated-admin-preservation"
   ],
   "stillOpenDirectFamilies": [
-    "dedicated-direct-upload-write-and-unknown-recovery-operational-coverage",
     "specialized-profile-raw-idle-key-write-and-recovery-contracts",
     "native-enrollment-and-recovery",
     "biometric-pair-transfer-and-recovery",
@@ -247,5 +313,34 @@
   "fullHistoricalSql1031Rerun": false,
   "fullRollbackSuiteRerun": false,
   "part3Complete": false,
-  "guide": "r16-direct-sdk-implementation.fa.md"
+  "guide": "r16-direct-sdk-implementation.fa.md",
+  "uploadAcceptance": {
+    "runtimeFormats": [
+      "ssr-v1",
+      "legacy-int32-v1"
+    ],
+    "runtimeTransportKinds": [
+      "usb",
+      "serial"
+    ],
+    "operationalFormats": [
+      "ssr-v1"
+    ],
+    "operationalTransportKinds": [
+      "usb",
+      "serial"
+    ],
+    "productionSourceLinkedMapper": "ReCode/src/IO.ZkBridge/ZkComUserWriter.cs",
+    "continuousAuthorityRecheck": true,
+    "completionAuthorityRecheck": true,
+    "syntheticStateOnly": true,
+    "realSdkExecuted": false,
+    "legacyOperationalUploadNotSeparatelyRerun": true,
+    "firstRun": {
+      "id": 43749196283,
+      "code": "a9dfebdcd032b181b384ac7ce93e10e8796f6080",
+      "conclusion": "failure",
+      "reason": "Test fixture incorrectly depended on GITHUB_ACTIONS in the sanitized native child. Fixed fixture only; production environment allowlist was not weakened. Mapper40 and Windows mutex30 passed before integrated failure."
+    }
+  }
 }

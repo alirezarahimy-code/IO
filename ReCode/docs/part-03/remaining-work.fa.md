@@ -1,10 +1,14 @@
 # ماندهٔ دقیق بخش سوم — S04 تا S12
 
-> **به‌روزرسانی دامنه با دستور جدید کاربر:** USB/serial مستقیم دیگر با unsupported بسته محسوب نمی‌شود. [پیاده‌سازی جاری R16](r16-direct-sdk-implementation.fa.md) مسیر اتصال/تبادل را می‌سازد؛ ادامهٔ خانواده‌های تخصصی و حساس مستقیم هنوز باز است. مطالب تحویل قبلی پایین تاریخچهٔ همان دامنه‌اند؛ `softwareComplete=false` برای دامنهٔ گسترش‌یافته و H01 معوق/باز است.
+> **به‌روزرسانی دامنه با دستور جدید کاربر:** USB/serial مستقیم دیگر با unsupported بسته محسوب نمی‌شود. [پیاده‌سازی جاری R16](r16-direct-sdk-implementation.fa.md) مسیر اتصال/تبادل و ارسال عادی/بازیابی unknown را با آزمون Windows می‌سازد؛ ادامهٔ خانواده‌های تخصصی و حساس مستقیم هنوز باز است. مطالب تحویل قبلی پایین تاریخچهٔ همان دامنه‌اند؛ `softwareComplete=false` برای دامنهٔ گسترش‌یافته و H01 معوق/باز است.
 
 **این فهرست، تغییر دامنه یا پذیرش نهایی نیست. `part3Complete=false`.** طبق تأکید مجدد کاربر، آزمایش واقعی Windows/SDK و دستگاه فیزیکی به انتها موکول است و مانع اجرای نرم‌افزار نیست. [تصمیم اجرا و معیارهای مستقل](software-and-lab-acceptance.fa.md). کدهای فعال دو مرجع مبنای اقتباس رفتارند؛ تست مجازی از مسیر واقعی وب/SQL/worker نیز به مجموعه اضافه شده است. کدهای مرجع فقط‌خواندنی و بدنه‌های decompile باینری مبنای مشاهدهٔ قراردادند؛ نام DLL یا API اثبات پشتیبانی مدل/firmware نیست. آخرین commit و CI معتبر در [progress-evidence.json](progress-evidence.json) ثبت می‌شود.
 
-## وضعیت جاری پس از R15/R16
+## وضعیت جاری برش ارسال عادی مستقیم
+
+R16 همچنان یک ردیف باز نرم‌افزاری است. اتصال/دریافت پایه و ارسال عادی مستقیم با بازیابی unknown روی [f7b6618، Windows۴۲۷ یکپارچه و۴۰ mapper](https://github.com/alirezarahimy-code/IO/actions/runs/43749746581) پذیرفته شد. مانده‌ها به‌ترتیب: تنظیمات تخصصی مستقیم و recovery، enrollment و recovery، انتقال biometric و recovery، حذف همه/بازهٔ تردد، سپس حذف محافظت‌شدهٔ کاربر/fingerprint/admin/all-data و recovery. factory reset بدون فرمان/اثر معتبر ساخته‌شده فرض نمی‌شود. H01 مستقل معوق است؛ SDK/driver/دستگاه واقعی اجرا نشده و Linux تست نشده. دامنهٔ دقیق SSR عملیاتی و SSR/legacy mapper در [راهنمای جاری](r16-direct-sdk-implementation.fa.md).
+
+## وضعیت تاریخی تحویل محدود پس از R15/R16
 
 **ماندهٔ فنی حل‌نشده در دامنهٔ مستند تحویل:۰؛ پذیرش واقعی H01:باز.** R15 مسیر مصوب ClearData۵ دارد و **factory reset نیست**. R16 به‌عنوان تعیین‌تکلیف بسته شد: **USB/serial مستقیم در این نسخه unsupported است و adapter آن ساخته نشده**؛ فایل USB جای آن نیست. این نتیجه هم‌ارزی تمام قابلیت‌های مرجع یا پذیرش دستگاه نیست. [گزارش تحویل جاری](part-03-software-delivery.fa.md)، [شاهد نهایی Windows/UI](r15-r16-software-evidence.json)، [آزمایشگاه پایانی H01](h01-final-windows-lab-handoff.fa.md). `part3Complete=false` و default-off واقعی حفظ شده؛ Linux تست نشده است.
 
@@ -128,7 +132,7 @@
 
 ماندهٔ جاری **۲ نرم‌افزاری**: **R15** پاکسازی همهٔ داده‌ها با قرارداد و مجوز مستقل و تمایز صریح از factory reset، سپس **R16** تعیین‌تکلیف USB/serial مستقیم؛ **H01** پذیرش واقعی Windows/SDK/چنددستگاه جدا و آخر. متن‌های مانده‌های قدیمی، تاریخچهٔ همان SHAها هستند. هیچ SDK/COM، بیومتریک واقعی یا حذف واقعی اجرا نشده؛ مجوز واقعی سازمان/اثر مدل/کنترل همهٔ کانال‌ها هنوز شرط فعال‌سازی‌اند و default-off حفظ شده. Linux، SQL۱۰۳۱ کامل و rollback کامل دوباره اجرا نشد؛ `part3Complete=false`.
 
-## تحویل جاری R15/R16
+## تحویل تاریخی محدود R15/R16
 
 [Windows355](https://github.com/alirezarahimy-code/IO/actions/runs/43713356207) و [UI26 DOM/Chromium همان b6791a5](https://github.com/alirezarahimy-code/IO/actions/runs/43713356176) موفق‌اند. R15 پس از دو archive کامل و دو امضای مستقل، یک ClearData۵ و readback کل profile و reconnect همان endpoint/key؛ unknown بدون replay و recovery با observation خواندنی/امضای مستقل. [راهنما](r15-all-data-clear.fa.md). R16 صریحاً عدم پشتیبانی USB/serial مستقیم در این نسخه، با علت فنی/مرجع واقعی و کنترل registry/IPC/API/UI؛ نه حذف نامرئی دامنه یا ادعای ساخت adapter. [تصمیم](r16-direct-transport-disposition.fa.md).
 
