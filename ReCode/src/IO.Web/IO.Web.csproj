@@ -8,6 +8,8 @@
     <EmbeddedResource Include="Ui/device-files.js" />
     <EmbeddedResource Include="Ui/DeviceUsers.html" />
     <EmbeddedResource Include="Ui/DeviceAttendance.html" />
+    <EmbeddedResource Include="Ui/DeviceAttendanceErases.html" />
+    <EmbeddedResource Include="Ui/device-attendance-erases.js" />
     <EmbeddedResource Include="Ui/DeviceHealth.html" />
     <EmbeddedResource Include="Ui/device-health.js" />
     <EmbeddedResource Include="Ui/DeviceSettings.html" />
