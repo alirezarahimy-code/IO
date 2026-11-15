@@ -1,0 +1,550 @@
+{
+  "schema": "io-h01-evidence-index-v1",
+  "buildSha": null,
+  "packageSha256": null,
+  "environment": {
+    "kind": "unverified",
+    "windowsVersion": null,
+    "runtimeVersion": null,
+    "sdkVersion": null,
+    "deploymentReference": null,
+    "physicalLabReference": null
+  },
+  "devices": [
+    {
+      "alias": "LAB-A",
+      "physicalIdentityReference": null,
+      "model": null,
+      "firmware": null,
+      "readFormat": null
+    },
+    {
+      "alias": "LAB-B",
+      "physicalIdentityReference": null,
+      "model": null,
+      "firmware": null,
+      "readFormat": null
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "H01-01",
+      "device": "LAB-A",
+      "outcome": "pending",
+      "observedAtUtc": null,
+      "operatorReference": null,
+      "reviewerReference": null,
+      "evidenceReferences": [],
+      "receiptReferences": [],
+      "checks": {
+        "scm-start-stop-restart": null,
+        "child-exit": null,
+        "identity-acl-keyring-sql": null
+      },
+      "authorizationReference": null,
+      "effectReference": null,
+      "exclusiveControlReference": null,
+      "recoveryPlanReference": null,
+      "capabilityDisabled": true,
+      "unsupportedDispositionReference": null
+    },
+    {
+      "id": "H01-02",
+      "device": "LAB-A",
+      "outcome": "pending",
+      "observedAtUtc": null,
+      "operatorReference": null,
+      "reviewerReference": null,
+      "evidenceReferences": [],
+      "receiptReferences": [],
+      "checks": {
+        "native-connect-pin": null,
+        "wrong-endpoint-serial-rejected": null,
+        "operator-scope": null
+      },
+      "authorizationReference": null,
+      "effectReference": null,
+      "exclusiveControlReference": null,
+      "recoveryPlanReference": null,
+      "capabilityDisabled": true,
+      "unsupportedDispositionReference": null
+    },
+    {
+      "id": "H01-03",
+      "device": "LAB-A",
+      "outcome": "pending",
+      "observedAtUtc": null,
+      "operatorReference": null,
+      "reviewerReference": null,
+      "evidenceReferences": [],
+      "receiptReferences": [],
+      "checks": {
+        "full-users": null,
+        "full-native-attendance": null,
+        "duplicates-unknown-leading-zero": null
+      },
+      "authorizationReference": null,
+      "effectReference": null,
+      "exclusiveControlReference": null,
+      "recoveryPlanReference": null,
+      "capabilityDisabled": true,
+      "unsupportedDispositionReference": null
+    },
+    {
+      "id": "H01-04",
+      "device": "LAB-A",
+      "outcome": "pending",
+      "observedAtUtc": null,
+      "operatorReference": null,
+      "reviewerReference": null,
+      "evidenceReferences": [],
+      "receiptReferences": [],
+      "checks": {
+        "one-device-outage-other-continues": null,
+        "service-restart": null,
+        "read-repeat-dedup": null
+      },
+      "authorizationReference": null,
+      "effectReference": null,
+      "exclusiveControlReference": null,
+      "recoveryPlanReference": null,
+      "capabilityDisabled": true,
+      "unsupportedDispositionReference": null
+    },
+    {
+      "id": "H01-05",
+      "device": "LAB-A",
+      "outcome": "pending",
+      "observedAtUtc": null,
+      "operatorReference": null,
+      "reviewerReference": null,
+      "evidenceReferences": [],
+      "receiptReferences": [],
+      "checks": {
+        "poll-pause-resume-revoke-overlap": null,
+        "real-file-format": null,
+        "quarantine-original-bytes": null
+      },
+      "authorizationReference": null,
+      "effectReference": null,
+      "exclusiveControlReference": null,
+      "recoveryPlanReference": null,
+      "capabilityDisabled": true,
+      "unsupportedDispositionReference": null
+    },
+    {
+      "id": "H01-06",
+      "device": "LAB-A",
+      "outcome": "pending",
+      "observedAtUtc": null,
+      "operatorReference": null,
+      "reviewerReference": null,
+      "evidenceReferences": [],
+      "receiptReferences": [],
+      "checks": {
+        "settings-read": null,
+        "approved-setters-readback": null,
+        "network-reconnect-lease": null,
+        "per-setting-support-matrix": null
+      },
+      "authorizationReference": null,
+      "effectReference": null,
+      "exclusiveControlReference": null,
+      "recoveryPlanReference": null,
+      "capabilityDisabled": true,
+      "unsupportedDispositionReference": null
+    },
+    {
+      "id": "H01-07",
+      "device": "LAB-A",
+      "outcome": "pending",
+      "observedAtUtc": null,
+      "operatorReference": null,
+      "reviewerReference": null,
+      "evidenceReferences": [],
+      "receiptReferences": [],
+      "checks": {
+        "single-multiple-two-device-upload": null,
+        "no-overwrite-protected-preserved": null,
+        "partial-late-ack": null
+      },
+      "authorizationReference": null,
+      "effectReference": null,
+      "exclusiveControlReference": null,
+      "recoveryPlanReference": null,
+      "capabilityDisabled": true,
+      "unsupportedDispositionReference": null
+    },
+    {
+      "id": "H01-08",
+      "device": "LAB-A",
+      "outcome": "pending",
+      "observedAtUtc": null,
+      "operatorReference": null,
+      "reviewerReference": null,
+      "evidenceReferences": [],
+      "receiptReferences": [],
+      "checks": {
+        "gateway-native-trust-boundary": null,
+        "real-enrollment-readback": null,
+        "biometric-format-retention-revoke": null,
+        "private-photo-staging-or-disabled": null
+      },
+      "authorizationReference": null,
+      "effectReference": null,
+      "exclusiveControlReference": null,
+      "recoveryPlanReference": null,
+      "capabilityDisabled": true,
+      "unsupportedDispositionReference": null
+    },
+    {
+      "id": "H01-09",
+      "device": "LAB-A",
+      "outcome": "pending",
+      "observedAtUtc": null,
+      "operatorReference": null,
+      "reviewerReference": null,
+      "evidenceReferences": [],
+      "receiptReferences": [],
+      "checks": {
+        "all-attendance-clear": null,
+        "range-boundaries-dst-seconds": null,
+        "outside-range-duplicates-preserved": null
+      },
+      "authorizationReference": null,
+      "effectReference": null,
+      "exclusiveControlReference": null,
+      "recoveryPlanReference": null,
+      "capabilityDisabled": true,
+      "unsupportedDispositionReference": null
+    },
+    {
+      "id": "H01-10",
+      "device": "LAB-A",
+      "outcome": "pending",
+      "observedAtUtc": null,
+      "operatorReference": null,
+      "reviewerReference": null,
+      "evidenceReferences": [],
+      "receiptReferences": [],
+      "checks": {
+        "ordinary-user-erase": null,
+        "selected-fingerprint-slots": null,
+        "administrator-demotion-preservation": null
+      },
+      "authorizationReference": null,
+      "effectReference": null,
+      "exclusiveControlReference": null,
+      "recoveryPlanReference": null,
+      "capabilityDisabled": true,
+      "unsupportedDispositionReference": null
+    },
+    {
+      "id": "H01-11",
+      "device": "LAB-A",
+      "outcome": "pending",
+      "observedAtUtc": null,
+      "operatorReference": null,
+      "reviewerReference": null,
+      "evidenceReferences": [],
+      "receiptReferences": [],
+      "checks": {
+        "clear-data-5-not-factory-reset": null,
+        "same-endpoint-key-reconnect": null,
+        "empty-users-logs-orphan-probes": null
+      },
+      "authorizationReference": null,
+      "effectReference": null,
+      "exclusiveControlReference": null,
+      "recoveryPlanReference": null,
+      "capabilityDisabled": true,
+      "unsupportedDispositionReference": null
+    },
+    {
+      "id": "H01-12",
+      "device": "LAB-A",
+      "outcome": "pending",
+      "observedAtUtc": null,
+      "operatorReference": null,
+      "reviewerReference": null,
+      "evidenceReferences": [],
+      "receiptReferences": [],
+      "checks": {
+        "loss-of-ack-cancel-kill": null,
+        "old-child-stop-nondestructive-reset": null,
+        "fresh-archives-read-only-inspection": null,
+        "independent-release-original-unknown": null,
+        "scope-policy-revoke": null
+      },
+      "authorizationReference": null,
+      "effectReference": null,
+      "exclusiveControlReference": null,
+      "recoveryPlanReference": null,
+      "capabilityDisabled": true,
+      "unsupportedDispositionReference": null
+    },
+    {
+      "id": "H01-01",
+      "device": "LAB-B",
+      "outcome": "pending",
+      "observedAtUtc": null,
+      "operatorReference": null,
+      "reviewerReference": null,
+      "evidenceReferences": [],
+      "receiptReferences": [],
+      "checks": {
+        "scm-start-stop-restart": null,
+        "child-exit": null,
+        "identity-acl-keyring-sql": null
+      },
+      "authorizationReference": null,
+      "effectReference": null,
+      "exclusiveControlReference": null,
+      "recoveryPlanReference": null,
+      "capabilityDisabled": true,
+      "unsupportedDispositionReference": null
+    },
+    {
+      "id": "H01-02",
+      "device": "LAB-B",
+      "outcome": "pending",
+      "observedAtUtc": null,
+      "operatorReference": null,
+      "reviewerReference": null,
+      "evidenceReferences": [],
+      "receiptReferences": [],
+      "checks": {
+        "native-connect-pin": null,
+        "wrong-endpoint-serial-rejected": null,
+        "operator-scope": null
+      },
+      "authorizationReference": null,
+      "effectReference": null,
+      "exclusiveControlReference": null,
+      "recoveryPlanReference": null,
+      "capabilityDisabled": true,
+      "unsupportedDispositionReference": null
+    },
+    {
+      "id": "H01-03",
+      "device": "LAB-B",
+      "outcome": "pending",
+      "observedAtUtc": null,
+      "operatorReference": null,
+      "reviewerReference": null,
+      "evidenceReferences": [],
+      "receiptReferences": [],
+      "checks": {
+        "full-users": null,
+        "full-native-attendance": null,
+        "duplicates-unknown-leading-zero": null
+      },
+      "authorizationReference": null,
+      "effectReference": null,
+      "exclusiveControlReference": null,
+      "recoveryPlanReference": null,
+      "capabilityDisabled": true,
+      "unsupportedDispositionReference": null
+    },
+    {
+      "id": "H01-04",
+      "device": "LAB-B",
+      "outcome": "pending",
+      "observedAtUtc": null,
+      "operatorReference": null,
+      "reviewerReference": null,
+      "evidenceReferences": [],
+      "receiptReferences": [],
+      "checks": {
+        "one-device-outage-other-continues": null,
+        "service-restart": null,
+        "read-repeat-dedup": null
+      },
+      "authorizationReference": null,
+      "effectReference": null,
+      "exclusiveControlReference": null,
+      "recoveryPlanReference": null,
+      "capabilityDisabled": true,
+      "unsupportedDispositionReference": null
+    },
+    {
+      "id": "H01-05",
+      "device": "LAB-B",
+      "outcome": "pending",
+      "observedAtUtc": null,
+      "operatorReference": null,
+      "reviewerReference": null,
+      "evidenceReferences": [],
+      "receiptReferences": [],
+      "checks": {
+        "poll-pause-resume-revoke-overlap": null,
+        "real-file-format": null,
+        "quarantine-original-bytes": null
+      },
+      "authorizationReference": null,
+      "effectReference": null,
+      "exclusiveControlReference": null,
+      "recoveryPlanReference": null,
+      "capabilityDisabled": true,
+      "unsupportedDispositionReference": null
+    },
+    {
+      "id": "H01-06",
+      "device": "LAB-B",
+      "outcome": "pending",
+      "observedAtUtc": null,
+      "operatorReference": null,
+      "reviewerReference": null,
+      "evidenceReferences": [],
+      "receiptReferences": [],
+      "checks": {
+        "settings-read": null,
+        "approved-setters-readback": null,
+        "network-reconnect-lease": null,
+        "per-setting-support-matrix": null
+      },
+      "authorizationReference": null,
+      "effectReference": null,
+      "exclusiveControlReference": null,
+      "recoveryPlanReference": null,
+      "capabilityDisabled": true,
+      "unsupportedDispositionReference": null
+    },
+    {
+      "id": "H01-07",
+      "device": "LAB-B",
+      "outcome": "pending",
+      "observedAtUtc": null,
+      "operatorReference": null,
+      "reviewerReference": null,
+      "evidenceReferences": [],
+      "receiptReferences": [],
+      "checks": {
+        "single-multiple-two-device-upload": null,
+        "no-overwrite-protected-preserved": null,
+        "partial-late-ack": null
+      },
+      "authorizationReference": null,
+      "effectReference": null,
+      "exclusiveControlReference": null,
+      "recoveryPlanReference": null,
+      "capabilityDisabled": true,
+      "unsupportedDispositionReference": null
+    },
+    {
+      "id": "H01-08",
+      "device": "LAB-B",
+      "outcome": "pending",
+      "observedAtUtc": null,
+      "operatorReference": null,
+      "reviewerReference": null,
+      "evidenceReferences": [],
+      "receiptReferences": [],
+      "checks": {
+        "gateway-native-trust-boundary": null,
+        "real-enrollment-readback": null,
+        "biometric-format-retention-revoke": null,
+        "private-photo-staging-or-disabled": null
+      },
+      "authorizationReference": null,
+      "effectReference": null,
+      "exclusiveControlReference": null,
+      "recoveryPlanReference": null,
+      "capabilityDisabled": true,
+      "unsupportedDispositionReference": null
+    },
+    {
+      "id": "H01-09",
+      "device": "LAB-B",
+      "outcome": "pending",
+      "observedAtUtc": null,
+      "operatorReference": null,
+      "reviewerReference": null,
+      "evidenceReferences": [],
+      "receiptReferences": [],
+      "checks": {
+        "all-attendance-clear": null,
+        "range-boundaries-dst-seconds": null,
+        "outside-range-duplicates-preserved": null
+      },
+      "authorizationReference": null,
+      "effectReference": null,
+      "exclusiveControlReference": null,
+      "recoveryPlanReference": null,
+      "capabilityDisabled": true,
+      "unsupportedDispositionReference": null
+    },
+    {
+      "id": "H01-10",
+      "device": "LAB-B",
+      "outcome": "pending",
+      "observedAtUtc": null,
+      "operatorReference": null,
+      "reviewerReference": null,
+      "evidenceReferences": [],
+      "receiptReferences": [],
+      "checks": {
+        "ordinary-user-erase": null,
+        "selected-fingerprint-slots": null,
+        "administrator-demotion-preservation": null
+      },
+      "authorizationReference": null,
+      "effectReference": null,
+      "exclusiveControlReference": null,
+      "recoveryPlanReference": null,
+      "capabilityDisabled": true,
+      "unsupportedDispositionReference": null
+    },
+    {
+      "id": "H01-11",
+      "device": "LAB-B",
+      "outcome": "pending",
+      "observedAtUtc": null,
+      "operatorReference": null,
+      "reviewerReference": null,
+      "evidenceReferences": [],
+      "receiptReferences": [],
+      "checks": {
+        "clear-data-5-not-factory-reset": null,
+        "same-endpoint-key-reconnect": null,
+        "empty-users-logs-orphan-probes": null
+      },
+      "authorizationReference": null,
+      "effectReference": null,
+      "exclusiveControlReference": null,
+      "recoveryPlanReference": null,
+      "capabilityDisabled": true,
+      "unsupportedDispositionReference": null
+    },
+    {
+      "id": "H01-12",
+      "device": "LAB-B",
+      "outcome": "pending",
+      "observedAtUtc": null,
+      "operatorReference": null,
+      "reviewerReference": null,
+      "evidenceReferences": [],
+      "receiptReferences": [],
+      "checks": {
+        "loss-of-ack-cancel-kill": null,
+        "old-child-stop-nondestructive-reset": null,
+        "fresh-archives-read-only-inspection": null,
+        "independent-release-original-unknown": null,
+        "scope-policy-revoke": null
+      },
+      "authorizationReference": null,
+      "effectReference": null,
+      "exclusiveControlReference": null,
+      "recoveryPlanReference": null,
+      "capabilityDisabled": true,
+      "unsupportedDispositionReference": null
+    }
+  ],
+  "review": {
+    "operatorReference": null,
+    "independentReviewerReference": null,
+    "matrixApprovalReference": null
+  },
+  "hardwareVerified": false,
+  "part3Complete": false
+}

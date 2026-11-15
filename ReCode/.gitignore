@@ -7,3 +7,5 @@ TestResults/
 *.db
 *.sqlite
 appsettings.*.local.json
+# Private site-lab evidence indexes/results must never be published with source.
+/lab-results/

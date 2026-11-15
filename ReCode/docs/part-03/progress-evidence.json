@@ -975,5 +975,17 @@
   "currentVerifiedRuns": [
     43713356207,
     43713356176
-  ]
+  ],
+  "h01EvidenceIndexTool": {
+    "status": "implemented-windows-tool-tests-pending",
+    "tool": "ReCode/tools/lab-h01.py",
+    "guide": "h01-evidence-index-tool.fa.md",
+    "template": "h01-evidence-index.template.json",
+    "test": "ReCode/tools/ci-h01-tests.py",
+    "testScope": "Synthetic offline structural validation only; not physical evidence authenticity or H01 execution.",
+    "hardwareVerified": false,
+    "part3Complete": false,
+    "networkOrSdkAccess": false,
+    "automaticAcceptance": false
+  }
 }

@@ -58,6 +58,15 @@ def triggered(workflow, paths):
 
 
 class Routing(unittest.TestCase):
+    def test_h01_index_checks_are_windows_offline_fixtures_not_hardware_acceptance(self):
+        self.assertTrue(triggered(LIGHT, ["ReCode/tools/lab-h01.py"]))
+        self.assertTrue(triggered(LIGHT, ["ReCode/tools/ci-h01-tests.py"]))
+        steps = LIGHT["jobs"]["light"]["steps"]
+        step = next(s for s in steps if s.get("name") == "Test offline H01 evidence index with synthetic fixtures only")
+        self.assertEqual(step["run"], "python ReCode/tools/ci-h01-tests.py")
+        self.assertNotIn("if", step)
+        self.assertEqual(LIGHT["jobs"]["light"]["runs-on"], "windows-2022")
+
     def test_gateway_and_remote_enroll_contracts_cannot_implicitly_enable_native_or_linux_execution(self):
         verifier = (ROOT / "ReCode/tools/verify-platform.ps1").read_text()
         self.assertIn("--gateway-enroll-contracts", verifier)
