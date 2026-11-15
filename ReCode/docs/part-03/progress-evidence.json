@@ -8,7 +8,7 @@
     "realDeviceExecution": "not performed",
     "testingSequence": "User explicitly requires virtual-device software completion now, copying reference behavior as appropriate, with real Windows SDK/multidevice acceptance deferred to the end. Lack of local hardware must not block further software implementation."
   },
-  "latestVerifiedCode": "685485067012440dc93e19104dafb1e5e7f2dae5",
+  "latestVerifiedCode": "740dca2f0cb52845bbd04d28d233eea146d4a82f",
   "checks": {
     "integrationPassLines": 1031,
     "foundation": 48,
@@ -113,8 +113,7 @@
     }
   ],
   "remainingSoftware": [
-    "P3-R13 initial user/fingerprint erasure core tested on 685485067012440dc93e19104dafb1e5e7f2dae5; operational durable proposal/independent authorization, cross-native fences, unknown recovery and worker/bridge/API/UI still incomplete. Exact restricted fingerprint-only profile does not authorize face/photo/door or administrator deletion.",
-    "P3-R14 device administrator deletion, P3-R15 all-data clear versus explicit factory-reset disposition; no authority implied by R11 or R12.",
+    "P3-R15 independently authorized all-data clear versus explicit factory-reset disposition; ClearData(machine,5) is not by itself a factory-reset contract.",
     "P3-R16 direct USB/serial support disposition; existing file parser is not direct connectivity."
   ],
   "realSdkExecuted": false,
@@ -349,7 +348,7 @@
       }
     ]
   },
-  "nextExactAction": "Complete R13 durable metadata archive binding, independently scoped exact-mode proposal/review, immutable one-shot queue, all cross-native fences, read-only physical unknown recovery, guarded worker/bridge/API/Persian UI and Windows integrated acceptance; document unsupported face/photo/door profiles before considering ledger closure. R13 core software tested only; four software rows R13–R16 plus H01 remain. Real hardware/SDK/multidevice H01 is last; no Linux tests or SQL1031 rerun.",
+  "nextExactAction": "R15: separately approve and implement all-data clear, explicitly distinguish fixed ClearData(machine,5) from factory reset; then R16 direct USB/serial support disposition. Real Windows/SDK/multidevice H01 last. Two software rows remain plus independent H01. No Linux tests or SQL1031 rerun.",
   "profileSettingsFollowup": {
     "code": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
     "accepted": true,
@@ -659,7 +658,7 @@
     "evidence": "s10-gateway-s09-enroll-software-evidence.json",
     "historicalPortableScopeSupersededBy": "gatewayEnrollmentOperationalFollowup"
   },
-  "latestVerifiedPortableCode": "685485067012440dc93e19104dafb1e5e7f2dae5",
+  "latestVerifiedPortableCode": "740dca2f0cb52845bbd04d28d233eea146d4a82f",
   "gatewayEnrollmentOperationalFollowup": {
     "status": "windows-integrated-software-accepted-with-explicit-native-and-policy-gaps",
     "code": "248cbcdf45f40ea9c7d4b2527be7af1b7cdf3843",
@@ -683,7 +682,7 @@
     "guide": "gateway-enrollment-operations.fa.md",
     "historicalScopeSupersededBy": "nativePushReviewedRecoveryFollowup"
   },
-  "latestVerifiedWindowsIntegratedCode": "685485067012440dc93e19104dafb1e5e7f2dae5",
+  "latestVerifiedWindowsIntegratedCode": "740dca2f0cb52845bbd04d28d233eea146d4a82f",
   "nativePushReviewedRecoveryFollowup": {
     "scope": "Software acceptance of selected isolated-LAN authenticated-gateway PUSH and default-off RemoteEnroll with assisted two-person physical recovery. Not native device authentication or installed hardware acceptance.",
     "code": "cffed8264635f00bcb460c78e9960afa1f5b462b",
@@ -819,6 +818,51 @@
     "runs": [
       43708241242,
       43708241251
+    ],
+    "historicalScopeSupersededBy": "r13R14ProtectedErasesOperationalFollowup"
+  },
+  "r13R14ProtectedErasesOperationalFollowup": {
+    "scope": "P3-R13/R14 operational software acceptance: independently authorized users, fingerprints and administrator-demotion families; whole metadata archive commitment, preview/two humans, immutable one-shot SQL history and cross-native fences, Windows worker/STA bridge and strict protected catalogue readback; separate post-reset read-only observation and independent fence release preserving original unknown. Restricted fingerprint-only attendance installation profile, no face/photo/door/hidden-store support or real SDK/device acceptance.",
+    "code": "740dca2f0cb52845bbd04d28d233eea146d4a82f",
+    "windowsIntegratedSqlHttpsQueueChecks": 296,
+    "existingIntegratedRegressionChecks": 175,
+    "newR13R14SqlWorkerAndHttpsChecks": 121,
+    "newR13R14SqlWorkerChecks": 103,
+    "newR13R14HttpsChecks": 18,
+    "newSyntheticProtectedEraseContracts": 34,
+    "regressionUserEraseCoreContracts": 48,
+    "regressionRangeEraseContracts": 34,
+    "regressionAllAttendanceEraseContracts": 23,
+    "regressionBiometricEfsContracts": 63,
+    "regressionGatewayEnrollmentContracts": 47,
+    "offlineDomFiles": 24,
+    "migrations": 56,
+    "domainTables": 70,
+    "pagesAndHelp": 57,
+    "pinnedTypeLibraries": 2,
+    "closedSoftwareLedgerRows": [
+      "P3-R13",
+      "P3-R14"
+    ],
+    "remainingTechnicalCount": 2,
+    "remainingTechnicalIds": [
+      "P3-R15",
+      "P3-R16"
+    ],
+    "independentFinalLabPackage": "P3-H01",
+    "r13OperationalIntegrationComplete": true,
+    "r14AdministratorDemotionIntegrationComplete": true,
+    "realNativeExecutionRouteAdded": true,
+    "realDeploymentDefaultOff": true,
+    "realSdkExecuted": false,
+    "hardwareVerified": false,
+    "linuxTestsExecuted": false,
+    "part3Complete": false,
+    "evidence": "r13-r14-protected-erases-evidence.json",
+    "guide": "r13-r14-protected-erases.fa.md",
+    "runs": [
+      43710921010,
+      43710921014
     ]
   }
 }

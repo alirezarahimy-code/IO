@@ -104,8 +104,16 @@
 
 ماندهٔ ثابت **۴ نرم‌افزاری + H01**: R13 حذف کاربر/قالب، R14 حذف مدیران، R15 all-data در برابر factory reset و R16 تعیین‌تکلیف USB/serial مستقیم. سپس H01 واقعی. مطالب «R12 باقی/ساخته‌نشده» در بالا تاریخچهٔ همان برش‌ها هستند. actual SDK/COM و حذف واقعی اجرا نشده، معنای مرز firmware و توقف فیزیکی capture باید در نصب هدف اثبات شوند؛ default-off باقی است. هیچ Linux یا suite کامل تاریخی SQL۱۰۳۱/rollback تازه اجرا نشد. R13 مرحلهٔ بعد است و هنوز پیاده‌سازی/پذیرفته نشده؛ part3Complete=false.
 
-## وضعیت جاری — R13 در حال اجرا؛ هستهٔ اولیه آزموده شد
+## وضعیت تاریخی — برش اول هستهٔ R13، پیش از پذیرش عملیاتی
 
 هستهٔ محدود حذف کاربر عادی یا تمام اثرانگشت‌های همان فرد در پروفایل مصوب فاقد face/photo/door، با دو catalogue transient محافظت‌شده و readback دقیق سایر کاربران ساخته شد. [Windows6854850:۴۸ بررسی مصنوعی جدید +۱۷۵ یکپارچهٔ قبلی به‌عنوان regression](https://github.com/alirezarahimy-code/IO/actions/runs/43708241242). [راهنما و محدودیت‌ها](r13-user-erase-core.fa.md)، [شاهد](r13-user-erase-core-evidence.json). flag۱۳ SSR و۱۱ legacy معادل فرض نشده‌اند؛ raw template/رمز در DB یا IPC خروجی نیست. dispatcher تولیدی هنوز عمداً اضافه نشده است.
 
 **۴ نرم‌افزاری + H01 ثابت است؛ R13 بسته نشده.** مرحلهٔ بعد همچنان تکمیل R13 است: مسیر durable مجوز/preview/دو امضا، صف و fence، observation و بازیابی اختصاصی unknown، سپس worker/bridge/API/UI و Windows integrated acceptance. سایر storeهای بیومتریک و کنترل دسترسی بدون قرارداد جدا پشتیبانی‌شده نیستند و باید پیش از بستن ردیف تعیین‌تکلیف شوند. R14–R16 بعد از آن و پذیرش واقعی H01 در انتهاست. هیچ Linux، SQL۱۰۳۱ کامل، SDK/COM یا حذف واقعی اجرا نشد.
+
+## وضعیت جاری — R13 و R14 نرم‌افزاری پذیرفته؛۲ مانده + H01
+
+مسیر کامل سه خانوادهٔ مستقل users/fingerprints/administrators از archive و preview/دو انسان تا صف immutable، fence همهٔ صف‌های native، worker/bridge/API/UI، readback محافظت‌شده و بازیابی اختصاصی unknown ساخته و روی Windows پذیرفته شد. R14 فقط demotion با `ClearAdministrators` و حفظ افراد/رمز/کارت/template است، نه حذف مدیر به‌عنوان شخص. profile محدود فاقد face/photo/palm/vein/door/hidden store و ده اسلات fingerprint صریحاً تعیین‌تکلیف شده؛ مدل دیگر پشتیبانی‌شده فرض نمی‌شود و default-off می‌ماند. [قرارداد و راهنمای نصب/بازیابی](r13-r14-protected-erases.fa.md)، [شاهد](r13-r14-protected-erases-evidence.json).
+
+[Windows740dca2](https://github.com/alirezarahimy-code/IO/actions/runs/43710921010):۲۹۶ یکپارچه، شامل۱۲۱ جدید R13/R14 (۱۰۳ SQL/صف/worker و۱۸ HTTPS واقعی) +۳۴ قرارداد مصنوعی جدید protected و۴۸ هستهٔ قبلی R13؛ سایر regressionها نیز موفق. [UI همان SHA](https://github.com/alirezarahimy-code/IO/actions/runs/43710921014):۲۴ فایل DOM و Chromium موفق. observation بازیابی قابل کنارگذاشتن به inspection-failed است تا انقضای مهلت بازبین قفل دائمی ایجاد نکند؛ این عمل original unknown را تغییر یا unlock نمی‌کند و inspection تازه لازم است.
+
+ماندهٔ جاری **۲ نرم‌افزاری**: **R15** پاکسازی همهٔ داده‌ها با قرارداد و مجوز مستقل و تمایز صریح از factory reset، سپس **R16** تعیین‌تکلیف USB/serial مستقیم؛ **H01** پذیرش واقعی Windows/SDK/چنددستگاه جدا و آخر. متن‌های مانده‌های قدیمی، تاریخچهٔ همان SHAها هستند. هیچ SDK/COM، بیومتریک واقعی یا حذف واقعی اجرا نشده؛ مجوز واقعی سازمان/اثر مدل/کنترل همهٔ کانال‌ها هنوز شرط فعال‌سازی‌اند و default-off حفظ شده. Linux، SQL۱۰۳۱ کامل و rollback کامل دوباره اجرا نشد؛ `part3Complete=false`.

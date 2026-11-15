@@ -1,0 +1,276 @@
+{
+  "scope": "P3-R13/R14 operational software acceptance: independently authorized users, fingerprints and administrator-demotion families; whole metadata archive commitment, preview/two humans, immutable one-shot SQL history and cross-native fences, Windows worker/STA bridge and strict protected catalogue readback; separate post-reset read-only observation and independent fence release preserving original unknown. Restricted fingerprint-only attendance installation profile, no face/photo/door/hidden-store support or real SDK/device acceptance.",
+  "code": "740dca2f0cb52845bbd04d28d233eea146d4a82f",
+  "runs": [
+    {
+      "id": 43710921010,
+      "headSha": "740dca2f0cb52845bbd04d28d233eea146d4a82f",
+      "conclusion": "success",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43710921010",
+      "jobs": [
+        {
+          "id": 132802056876,
+          "labels": [
+            "windows-2022"
+          ],
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "conclusion": "success"
+            },
+            {
+              "name": "Provision isolated encrypted synthetic photo volume",
+              "conclusion": "success"
+            },
+            {
+              "name": "Build, catalogue checks and portable publish",
+              "conclusion": "success"
+            },
+            {
+              "name": "Windows LocalDB authenticated gateway and enrollment integration",
+              "conclusion": "success"
+            },
+            {
+              "name": "Detach synthetic photo volume",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 43710921014,
+      "headSha": "740dca2f0cb52845bbd04d28d233eea146d4a82f",
+      "conclusion": "success",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43710921014",
+      "jobs": [
+        {
+          "id": 132802056718,
+          "labels": [
+            "windows-2022"
+          ],
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "conclusion": "success"
+            },
+            {
+              "name": "Select lightweight scope over the entire push",
+              "conclusion": "success"
+            },
+            {
+              "name": "Prepare workflow policy test dependency",
+              "conclusion": "success"
+            },
+            {
+              "name": "Test CI routing and retained safety gates",
+              "conclusion": "success"
+            },
+            {
+              "name": "Validate reference evidence and capability inventory",
+              "conclusion": "success"
+            },
+            {
+              "name": "Prepare offline native instruction emulator",
+              "conclusion": "success"
+            },
+            {
+              "name": "Verify hash-pinned network setter dispatch with trapped transport",
+              "conclusion": "success"
+            },
+            {
+              "name": "Audit pinned DHCP firmware source reference without execution",
+              "conclusion": "success"
+            },
+            {
+              "name": "Prepare offline DOM dependencies",
+              "conclusion": "success"
+            },
+            {
+              "name": "Check JavaScript syntax and offline DOM contracts",
+              "conclusion": "success"
+            },
+            {
+              "name": "Check standalone page preview in Chromium",
+              "conclusion": "success"
+            },
+            {
+              "name": "Record actual coverage",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "checks": {
+    "windowsIntegratedSqlHttpsQueueChecks": 296,
+    "existingIntegratedRegressionChecks": 175,
+    "newR13R14SqlWorkerAndHttpsChecks": 121,
+    "newR13R14SqlWorkerChecks": 103,
+    "newR13R14HttpsChecks": 18,
+    "newSyntheticProtectedEraseContracts": 34,
+    "regressionUserEraseCoreContracts": 48,
+    "regressionRangeEraseContracts": 34,
+    "regressionAllAttendanceEraseContracts": 23,
+    "regressionBiometricEfsContracts": 63,
+    "regressionGatewayEnrollmentContracts": 47,
+    "offlineDomFiles": 24,
+    "migrations": 56,
+    "domainTables": 70,
+    "pagesAndHelp": 57,
+    "pinnedTypeLibraries": 2
+  },
+  "annotations": [
+    {
+      "title": "Windows gateway enrollment integration",
+      "message": "296 SQL HTTPS queue and synthetic-process checks passed on Windows LocalDB; no COM hardware or real biometric authorization."
+    },
+    {
+      "title": "Windows HTTPS fixture",
+      "message": "Temporary synthetic trust anchor removed."
+    },
+    {
+      "title": "Windows HTTPS fixture",
+      "message": "Temporary synthetic trust anchor installed; exercising production courier TLS validation."
+    },
+    {
+      "title": "Windows HTTPS fixture",
+      "message": "Installing one temporary synthetic loopback trust anchor on disposable runner."
+    },
+    {
+      "title": "Synthetic gateway and enrollment checks",
+      "message": "47 checks passed; gateway protocol and enrollment lifecycle and synthetic child supervisor only, no HTTP SQL COM native-device authentication or real biometrics."
+    },
+    {
+      "title": "Biometric transfer contracts",
+      "message": "63 synthetic checks passed; synthetic JPEG and real EFS staging, no real biometric material, SQL or native SDK executed."
+    },
+    {
+      "title": "Attendance erase contracts",
+      "message": "23 synthetic checks passed; production fixed-flag mapper and supervisor, no SDK device or real deletion."
+    },
+    {
+      "title": "Attendance range erase contracts",
+      "message": "34 synthetic checks passed; real production mapper and supervisor, no installed SDK boundary proof or device deletion."
+    },
+    {
+      "title": "User erase core contracts",
+      "message": "48 synthetic checks passed; core-only production mapper and supervisor subset; operational queue/authorization/recovery/UI covered separately, no SDK/device execution."
+    },
+    {
+      "title": "Protected erase contracts",
+      "message": "34 synthetic R13/R14 checks passed; no SDK/device execution or real authorization."
+    }
+  ],
+  "domExecutionEvidence": {
+    "method": "Successful Windows light step executes check-ui-dom.sh glob of every *-ui-check.cjs file; count derived from source at this exact SHA, not an inaccessible downloaded log.",
+    "script": "ReCode/tools/check-ui-dom.sh",
+    "files": [
+      "ReCode/tests/IO.Infrastructure.SqlTests/attendance-erase-ui-check.cjs",
+      "ReCode/tests/IO.Infrastructure.SqlTests/attendance-range-erase-ui-check.cjs",
+      "ReCode/tests/IO.Infrastructure.SqlTests/biometric-transfer-ui-check.cjs",
+      "ReCode/tests/IO.Infrastructure.SqlTests/device-access-ui-check.cjs",
+      "ReCode/tests/IO.Infrastructure.SqlTests/device-attendance-ui-check.cjs",
+      "ReCode/tests/IO.Infrastructure.SqlTests/device-commands-ui-check.cjs",
+      "ReCode/tests/IO.Infrastructure.SqlTests/device-connection-ui-check.cjs",
+      "ReCode/tests/IO.Infrastructure.SqlTests/device-files-ui-check.cjs",
+      "ReCode/tests/IO.Infrastructure.SqlTests/device-groups-ui-check.cjs",
+      "ReCode/tests/IO.Infrastructure.SqlTests/device-health-ui-check.cjs",
+      "ReCode/tests/IO.Infrastructure.SqlTests/device-idle-ui-check.cjs",
+      "ReCode/tests/IO.Infrastructure.SqlTests/device-information-ui-check.cjs",
+      "ReCode/tests/IO.Infrastructure.SqlTests/device-ingress-enrollment-ui-check.cjs",
+      "ReCode/tests/IO.Infrastructure.SqlTests/device-key-write-ui-check.cjs",
+      "ReCode/tests/IO.Infrastructure.SqlTests/device-profiles-ui-check.cjs",
+      "ReCode/tests/IO.Infrastructure.SqlTests/device-push-evidence-ui-check.cjs",
+      "ReCode/tests/IO.Infrastructure.SqlTests/device-raw-ui-check.cjs",
+      "ReCode/tests/IO.Infrastructure.SqlTests/device-schedules-ui-check.cjs",
+      "ReCode/tests/IO.Infrastructure.SqlTests/device-settings-ui-check.cjs",
+      "ReCode/tests/IO.Infrastructure.SqlTests/device-ui-check.cjs",
+      "ReCode/tests/IO.Infrastructure.SqlTests/device-user-uploads-ui-check.cjs",
+      "ReCode/tests/IO.Infrastructure.SqlTests/device-users-ui-check.cjs",
+      "ReCode/tests/IO.Infrastructure.SqlTests/protected-erase-ui-check.cjs",
+      "ReCode/tests/IO.Infrastructure.SqlTests/reversal-ui-check.cjs"
+    ]
+  },
+  "closedSoftwareLedgerRows": [
+    "P3-R13",
+    "P3-R14"
+  ],
+  "remainingTechnicalCount": 2,
+  "remainingTechnicalIds": [
+    "P3-R15",
+    "P3-R16"
+  ],
+  "independentFinalLabPackage": "P3-H01",
+  "r13OperationalIntegrationComplete": true,
+  "r14AdministratorDemotionIntegrationComplete": true,
+  "obsoleteObservedRecoveryDisposition": "Recover proposer may discard observed -> inspection-failed through versioned cancel; original observation time/evidence and original unknown remain immutable; new read-only observation and independent reviewer required. No delete replay or unknown unlock.",
+  "restrictedSupportDisposition": {
+    "supportedContract": "Explicitly installed fingerprint-only attendance profile: numeric SSR or canonical nonnegative legacy Int32 identifiers, exact metadata/password/card and ten fingerprint slots, ordinary R13 target only.",
+    "notSupported": [
+      "single-slot deletion",
+      "face/photo/palm/vein deletion or preservation",
+      "door/access-group/hidden credential stores",
+      "extra fingerprint slots",
+      "ClearAdministrators implementations deleting people/passwords/templates"
+    ],
+    "unknownModelDisposition": "Must remain default-off; not an assertion that unspecified hardware lacks these stores. New profile requires new contract/software acceptance."
+  },
+  "priorSuccessfulBaseline": {
+    "code": "b5c46cdca275d65cdf613a3d143337def8b443e4",
+    "windowsRun": 43710362046,
+    "lightRun": 43710362086,
+    "integratedChecks": 281,
+    "reasonForFollowup": "Final review added non-replaying cancellation of obsolete observed recovery to avoid permanent review-deadline fence; followup is accepted only after new green Windows run."
+  },
+  "realNativeExecutionRouteAdded": true,
+  "realDeploymentDefaultOff": true,
+  "realSdkExecuted": false,
+  "realDeviceUsersOrTemplatesDeleted": false,
+  "realDeviceAdministratorsCleared": false,
+  "realOrganizationDeletionPolicyApproved": false,
+  "installedNoOtherBiometricStoresVerified": false,
+  "installedAdministratorEffectVerified": false,
+  "physicalExclusiveControlVerified": false,
+  "hardwareVerified": false,
+  "linuxTestsExecuted": false,
+  "fullHistoricalSql1031Rerun": false,
+  "fullRollbackSuiteRerun": false,
+  "part3Complete": false,
+  "next": "R15: separately approve and implement all-data clear, explicitly distinguish fixed ClearData(machine,5) from factory reset; then R16 direct USB/serial support disposition. Real Windows/SDK/multidevice H01 last."
+}
