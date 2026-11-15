@@ -74,6 +74,7 @@ internal static class AttendanceEraseOperationalTests
   rejected=false;try{await Q(async db=>{await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.DeviceAttendanceErases SET State=N'pending',ClaimId=NULL,ServiceUserId=NULL,ClaimedAtUtc=NULL,CancelRequestedAtUtc=NULL,FinishedAtUtc=NULL WHERE Id={id}");return true;});}catch(SqlException e)when(e.Number==51043){rejected=true;}check(rejected,"SQL independently refuses unknown destructive requeue");
   var after=await Input();var afterId=await Propose(after);await Use<DeviceAttendanceErases,Guid>(async x=>await x.CancelAsync(actor,afterId,await Version(afterId)));
   check(await Q(db=>db.DeviceAttendanceErases.Where(x=>x.Id==id).Select(x=>x.State).SingleAsync())=="unknown","only a new explicit preview/proposal can follow recovery, never replay original erase");
+  await AttendanceEraseHttpTests.RunAsync(provider,actor,after,check);
   check(!PermissionCatalog.Templates.Any(t=>t.Permissions.Any(p=>p.StartsWith("devices.attendance.erase.",StringComparison.Ordinal))),"no default role gains destructive erase or recovery authority");
  }
 }

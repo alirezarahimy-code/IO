@@ -274,15 +274,16 @@ internal static class Program
     [SupportedOSPlatform("windows")]
     private static AttendanceEraseOutput EraseAttendanceWindows(AttendanceEraseInput input)
     {
-        object? instance=null;
+        object? instance=null;bool executorEntered=false;
         try
         {
             instance=Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("00853A19-BD51-419B-9269-2DABE57EB61F"),true)!)!;dynamic sdk=instance;
             var c=input.Connection;
             if(!(bool)sdk.SetCommPassword(c.CommKey)||!(bool)sdk.Connect_Net(c.Address,c.Port))return new(input.OperationId,"failed-before-write");
+            executorEntered=true;
             return AttendanceEraseExecutor.Execute(input,new ZkComAttendanceSession(instance,c.MachineNumber));
         }
-        catch{return new(input.OperationId,"failed-before-write");}
+        catch{return new(input.OperationId,executorEntered?"unknown":"failed-before-write");}
         finally{if(instance is not null){try{((dynamic)instance).Disconnect();}catch{}try{Marshal.FinalReleaseComObject(instance);}catch{}}}
     }
 
