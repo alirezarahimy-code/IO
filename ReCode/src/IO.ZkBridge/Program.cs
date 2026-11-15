@@ -16,6 +16,12 @@ internal static class Program
             using var stdin=Console.OpenStandardInput();using var bytes=new MemoryStream();var buffer=new byte[1024];int count;
             while((count=stdin.Read(buffer,0,buffer.Length))>0){if(bytes.Length+count>32768)return Result("invalid-input");bytes.Write(buffer,0,count);}
             var json=new UTF8Encoding(false,true).GetString(bytes.ToArray());using var document=JsonDocument.Parse(json);
+            if(document.RootElement.TryGetProperty("EraseAllAttendance",out _))
+            {
+                var erase=JsonSerializer.Deserialize<AttendanceEraseInput>(json);
+                var eraseResult=erase?.IsValid()==true&&OperatingSystem.IsWindows()?EraseAttendanceWindows(erase):new AttendanceEraseOutput(erase?.OperationId??Guid.Empty,"unsupported");
+                Console.WriteLine(JsonSerializer.Serialize(eraseResult));return 0;
+            }
             if(document.RootElement.TryGetProperty("InspectBiometric",out _))
             {
                 var inspection=JsonSerializer.Deserialize<BiometricInspectionInput>(json);
@@ -258,37 +264,26 @@ internal static class Program
             var pin=request.Connection;instance=Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("00853A19-BD51-419B-9269-2DABE57EB61F"),true)!)!;dynamic sdk=instance;
             if(!(bool)sdk.SetCommPassword(pin.CommKey)||!(connected=(bool)sdk.Connect_Net(pin.Address,pin.Port))){AttendanceFrame(new("end",Count:0,State:"failed"));return;}
             string serial;if(!(bool)sdk.GetSerialNumber(pin.MachineNumber,out serial)||serial?.Trim()!=pin.ExpectedSerial){AttendanceFrame(new("end",Count:0,State:"identity-mismatch"));return;}
-            ZkAttendanceReadExecutor.Execute(request,new AttendanceReadSession(instance,pin.MachineNumber),AttendanceFrame);
+            ZkAttendanceReadExecutor.Execute(request,new ZkComAttendanceSession(instance,pin.MachineNumber),AttendanceFrame);
         }
         catch{AttendanceFrame(new("end",Count:count,State:"failed"));}
         finally{if(instance is not null){try{if(connected)((dynamic)instance).Disconnect();}catch{}try{if(Marshal.IsComObject(instance))Marshal.FinalReleaseComObject(instance);}catch{}}}
     }
 
-    private sealed class AttendanceReadSession(object instance,int machine):IZkAttendanceReadSession
+
+    [SupportedOSPlatform("windows")]
+    private static AttendanceEraseOutput EraseAttendanceWindows(AttendanceEraseInput input)
     {
-        public string? Serial(){string serial;return (bool)((dynamic)instance).GetSerialNumber(machine,out serial)?serial?.Trim():null;}
-        public int? RecordCount(){int value=0;return (bool)((dynamic)instance).GetDeviceStatus(machine,6,ref value)?value:null;}
-        public bool Begin()=>(bool)((dynamic)instance).ReadAllGLogData(machine);
-        public ZkAttendanceRaw? Next(string format)
+        object? instance=null;
+        try
         {
-            dynamic sdk=instance;
-            if(format==ZkAttendanceReadFormats.Ssr)
-            {
-                string badge;int verify,check,y,m,d,h,n,s,work=0;
-                if(!(bool)sdk.SSR_GetGeneralLogData(machine,out badge,out verify,out check,out y,out m,out d,out h,out n,out s,ref work))return null;
-                return new(badge,verify,check,y,m,d,h,n,s,work);
-            }
-            if(format==ZkAttendanceReadFormats.Legacy)
-            {
-                // IZKEM GetGeneralLogData has two separate machine outputs. The
-                // reference aliases them; preserve BOTH instead of losing evidence.
-                int terminal=0,badge=0,enrollmentMachine=0,verify=0,check=0,y=0,m=0,d=0,h=0,n=0;
-                if(!(bool)sdk.GetGeneralLogData(machine,ref terminal,ref badge,ref enrollmentMachine,ref verify,ref check,ref y,ref m,ref d,ref h,ref n))return null;
-                // Legacy exposes minute precision, no seconds/work-code outputs.
-                return new(badge.ToString(System.Globalization.CultureInfo.InvariantCulture),verify,check,y,m,d,h,n,0,0,terminal,enrollmentMachine);
-            }
-            throw new InvalidOperationException();
+            instance=Activator.CreateInstance(Type.GetTypeFromCLSID(new Guid("00853A19-BD51-419B-9269-2DABE57EB61F"),true)!)!;dynamic sdk=instance;
+            var c=input.Connection;
+            if(!(bool)sdk.SetCommPassword(c.CommKey)||!(bool)sdk.Connect_Net(c.Address,c.Port))return new(input.OperationId,"failed-before-write");
+            return AttendanceEraseExecutor.Execute(input,new ZkComAttendanceSession(instance,c.MachineNumber));
         }
+        catch{return new(input.OperationId,"failed-before-write");}
+        finally{if(instance is not null){try{((dynamic)instance).Disconnect();}catch{}try{Marshal.FinalReleaseComObject(instance);}catch{}}}
     }
 
     private static void UserFrame(ZkUserFrame frame){Console.WriteLine(JsonSerializer.Serialize(frame));Console.Out.Flush();}

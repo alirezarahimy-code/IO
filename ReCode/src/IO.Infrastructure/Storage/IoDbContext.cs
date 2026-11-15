@@ -9,6 +9,7 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
     // these context-instance values per query (including dependent-row queries).
     public bool RestrictDeviceAccess { get; internal set; }
     public Guid[] PermittedDeviceIds { get; internal set; } = [];
+    public DbSet<DeviceAttendanceEraseRecord> DeviceAttendanceErases => Set<DeviceAttendanceEraseRecord>();
     public DbSet<DeviceBiometricRecoveryRecord> DeviceBiometricRecoveries => Set<DeviceBiometricRecoveryRecord>();
     public DbSet<DeviceBiometricTransferRecord> DeviceBiometricTransfers => Set<DeviceBiometricTransferRecord>();
     public DbSet<DevicePushCommitRecord> DevicePushCommits => Set<DevicePushCommitRecord>();
@@ -84,6 +85,8 @@ public sealed class IoDbContext(DbContextOptions<IoDbContext> options) : DbConte
 
     protected override void OnModelCreating(ModelBuilder model)
     {
+        AttendanceEraseModel.Configure(model);
+        model.Entity<DeviceAttendanceEraseRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||PermittedDeviceIds.Contains(x.DeviceId));
         BiometricRecoveryModel.Configure(model);
         model.Entity<DeviceBiometricRecoveryRecord>().HasQueryFilter(x=>!RestrictDeviceAccess||(PermittedDeviceIds.Contains(x.SourceDeviceId)&&PermittedDeviceIds.Contains(x.TargetDeviceId)));
         BiometricTransferModel.Configure(model);

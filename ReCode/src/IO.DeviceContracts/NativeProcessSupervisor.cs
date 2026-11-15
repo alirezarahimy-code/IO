@@ -86,6 +86,16 @@ public static class NativeProcessSupervisor
         return OperatingSystem.IsWindows()&&staging is not null&&!staging.Cleaned?new(input.OperationId,failure):result;
     }
 
+    public static async Task<AttendanceEraseOutput> RunAttendanceEraseAsync(string executable,string assembly,AttendanceEraseInput input,int seconds,CancellationToken ct=default)
+    {
+        if(!input.IsValid()||seconds is <1 or >60)return new(input.OperationId,"unsupported");
+        if(ct.IsCancellationRequested)return new(input.OperationId,"failed-before-write");
+        var exchange=await ExchangeAsync(executable,assembly,System.Text.Json.JsonSerializer.Serialize(input),seconds,ct,4096,16384);
+        if(exchange.State!="exited")return new(input.OperationId,"unknown");
+        try{var result=System.Text.Json.JsonSerializer.Deserialize<AttendanceEraseOutput>(exchange.Output,new System.Text.Json.JsonSerializerOptions{UnmappedMemberHandling=System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow});return result?.IsValidFor(input)==true?result:new(input.OperationId,"unknown");}
+        catch(System.Text.Json.JsonException){return new(input.OperationId,"unknown");}
+    }
+
     private sealed record Exchange(string State,string Output="");
     private static async Task<Exchange> ExchangeAsync(string executable,string childAssembly,string json,int timeoutSeconds,CancellationToken stoppingToken,int maxOutputChars=4096,int maxInputChars=8192)
     {

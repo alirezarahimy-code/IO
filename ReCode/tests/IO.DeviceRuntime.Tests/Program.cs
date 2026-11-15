@@ -3,6 +3,12 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using IO.DeviceContracts;
 
+if (args is ["--attendance-erase-contracts"])
+{
+    try { await AttendanceEraseTests.RunAsync(); }
+    catch(Exception e){Console.Error.WriteLine("::error title=Attendance erase contracts::"+e.ToString().Replace("%","%25").Replace("\r","%0D").Replace("\n","%0A"));Environment.ExitCode=1;}
+    return;
+}
 if (args is ["--biometric-transfer-contracts"])
 {
     try { await BiometricTransferTests.RunAsync(); }
@@ -65,6 +71,14 @@ if (args is not ["--verify"])
 {
     // This executable is a test-only child fixture, never deployed as the SDK bridge.
     var text=await Console.In.ReadToEndAsync();using var document=JsonDocument.Parse(text);
+    if(document.RootElement.TryGetProperty("EraseAllAttendance",out _))
+    {
+        var erase=JsonSerializer.Deserialize<AttendanceEraseInput>(text)!;
+        if(erase.Approval.AuthorizationReference=="SYNTHETIC-HANG")await Task.Delay(TimeSpan.FromMinutes(1));
+        else if(erase.Approval.AuthorizationReference=="SYNTHETIC-EXTRA")Console.WriteLine("{\"OperationId\":\""+erase.OperationId+"\",\"State\":\"deleted-verified\",\"Rows\":[]}");
+        else Console.WriteLine(JsonSerializer.Serialize(new AttendanceEraseOutput(erase.Approval.AuthorizationReference=="SYNTHETIC-FOREIGN"?Guid.NewGuid():erase.OperationId,"deleted-verified")));
+        return;
+    }
     if(document.RootElement.TryGetProperty("InspectBiometric",out _))
     {
         var inspection=JsonSerializer.Deserialize<BiometricInspectionInput>(text)!.Request;

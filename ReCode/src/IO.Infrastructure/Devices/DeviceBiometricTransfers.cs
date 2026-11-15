@@ -43,6 +43,7 @@ public sealed class DeviceBiometricTransfers(IoDbContext db,PermissionTransactio
   if(!Valid(source,i.SourceDeviceVersion)||!Valid(target,i.TargetDeviceVersion)||source.Host==target.Host&&source.Port==target.Port)throw new DomainConflictException("Changed, disabled, unsupported or aliased endpoints.");
   foreach(var d in new[]{source,target})
   {
+   await AttendanceEraseFence.EnsureAsync(db,d.Id,true,ct);
    if(await Busy(d.Id,ownJob?i.Id:Guid.Empty,ct,i.InspectionOfId)||await DeviceWriteSafety.UnreviewedAsync(db,d.Id,ct,i.InspectionOfId))throw new DomainConflictException("Pause polling and finish/review all work on both endpoints first.");
   }
   if(i.InspectionOfId is{} parentId)
