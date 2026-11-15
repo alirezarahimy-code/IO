@@ -1,0 +1,249 @@
+{
+  "scope": "R10 first integrated software increment: default-off direct fingerprint/face transfer to an empty slot, no material in bridge output/web/SQL. R10 remains open; not photo, unknown recovery, real biometric authorization or hardware acceptance.",
+  "code": "5a640852e2ffd50408f5ad47aceb507dee601f0d",
+  "runs": [
+    {
+      "id": 43692226428,
+      "headSha": "5a640852e2ffd50408f5ad47aceb507dee601f0d",
+      "conclusion": "success",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43692226428",
+      "jobs": [
+        {
+          "id": 132745101666,
+          "labels": [
+            "windows-2022"
+          ],
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "conclusion": "success"
+            },
+            {
+              "name": "Build, catalogue checks and portable publish",
+              "conclusion": "success"
+            },
+            {
+              "name": "Windows LocalDB authenticated gateway and enrollment integration",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 43692226421,
+      "headSha": "5a640852e2ffd50408f5ad47aceb507dee601f0d",
+      "conclusion": "success",
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43692226421",
+      "jobs": [
+        {
+          "id": 132745101633,
+          "labels": [
+            "windows-2022"
+          ],
+          "conclusion": "success",
+          "steps": [
+            {
+              "name": "Set up job",
+              "conclusion": "success"
+            },
+            {
+              "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "conclusion": "success"
+            },
+            {
+              "name": "Select lightweight scope over the entire push",
+              "conclusion": "success"
+            },
+            {
+              "name": "Prepare workflow policy test dependency",
+              "conclusion": "success"
+            },
+            {
+              "name": "Test CI routing and retained safety gates",
+              "conclusion": "success"
+            },
+            {
+              "name": "Validate reference evidence and capability inventory",
+              "conclusion": "success"
+            },
+            {
+              "name": "Prepare offline native instruction emulator",
+              "conclusion": "success"
+            },
+            {
+              "name": "Verify hash-pinned network setter dispatch with trapped transport",
+              "conclusion": "success"
+            },
+            {
+              "name": "Audit pinned DHCP firmware source reference without execution",
+              "conclusion": "success"
+            },
+            {
+              "name": "Prepare offline DOM dependencies",
+              "conclusion": "success"
+            },
+            {
+              "name": "Check JavaScript syntax and offline DOM contracts",
+              "conclusion": "success"
+            },
+            {
+              "name": "Check standalone page preview in Chromium",
+              "conclusion": "success"
+            },
+            {
+              "name": "Record actual coverage",
+              "conclusion": "success"
+            },
+            {
+              "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "conclusion": "success"
+            },
+            {
+              "name": "Complete job",
+              "conclusion": "success"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "windowsIntegratedSqlHttpsQueueChecks": 82,
+  "previousIntegratedChecks": 63,
+  "newBiometricSqlWorkerChecks": 19,
+  "newSyntheticBiometricContracts": 31,
+  "existingGatewayEnrollmentContracts": 47,
+  "offlineDomFiles": 21,
+  "policyMethods": 21,
+  "implemented": [
+    "exact-pair format/policy approval and explicit transient-user-enumeration approval",
+    "both endpoint scopes/permissions, exact mappings to same employee/company and preview",
+    "durable SQL metadata-only single-dispatch queue and atomic audit",
+    "durable pair reservation and target unknown write fence",
+    "Windows worker with both native pins, fresh credentials and authority polling",
+    "isolated STA fingerprint and face adapters preserving native length and flag",
+    "no overwrite/delete/user-metadata/admin/door write, full private read-back",
+    "state-only UI with CSRF and revocation/late-response clearing"
+  ],
+  "remainingR10": [
+    "photo transport with private bounded staging, content validation, crash cleanup and verifiable read-back",
+    "queue-specific observation/review recovery for unknown; never requeue or reuse enrollment recovery implicitly",
+    "further boundary/permission/recovery coverage before full R10 closure"
+  ],
+  "guide": "r10-biometric-transfer.fa.md",
+  "typelibEvidence": "r10-biometric-typelib-evidence.json",
+  "softwareLedgerRowClosed": false,
+  "remainingTechnicalCount": 7,
+  "hardwarePackage": "P3-H01",
+  "realSdkExecuted": false,
+  "realBiometricMaterialUsed": false,
+  "realBiometricPolicyApproved": false,
+  "photoExchangeImplemented": false,
+  "unknownRecoveryImplemented": false,
+  "hardwareVerified": false,
+  "linuxTestsExecuted": false,
+  "fullHistoricalSql1031Rerun": false,
+  "part3Complete": false,
+  "migrations": 52,
+  "domainTables": 67,
+  "annotations": [
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/alirezarahimy-code/IO/blob/5a640852e2ffd50408f5ad47aceb507dee601f0d/.github",
+      "start_line": 99,
+      "start_column": null,
+      "end_line": 99,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Windows gateway enrollment integration",
+      "message": "82 SQL HTTPS queue and synthetic-process checks passed on Windows LocalDB; no COM hardware or real biometric authorization.",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/alirezarahimy-code/IO/blob/5a640852e2ffd50408f5ad47aceb507dee601f0d/.github",
+      "start_line": 43,
+      "start_column": null,
+      "end_line": 43,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Windows HTTPS fixture",
+      "message": "Temporary synthetic trust anchor removed.",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/alirezarahimy-code/IO/blob/5a640852e2ffd50408f5ad47aceb507dee601f0d/.github",
+      "start_line": 30,
+      "start_column": null,
+      "end_line": 30,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Windows HTTPS fixture",
+      "message": "Temporary synthetic trust anchor installed; exercising production courier TLS validation.",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/alirezarahimy-code/IO/blob/5a640852e2ffd50408f5ad47aceb507dee601f0d/.github",
+      "start_line": 29,
+      "start_column": null,
+      "end_line": 29,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Windows HTTPS fixture",
+      "message": "Installing one temporary synthetic loopback trust anchor on disposable runner.",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/alirezarahimy-code/IO/blob/5a640852e2ffd50408f5ad47aceb507dee601f0d/.github",
+      "start_line": 715,
+      "start_column": null,
+      "end_line": 715,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Synthetic gateway and enrollment checks",
+      "message": "47 checks passed; gateway protocol and enrollment lifecycle and synthetic child supervisor only, no HTTP SQL COM native-device authentication or real biometrics.",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/alirezarahimy-code/IO/blob/5a640852e2ffd50408f5ad47aceb507dee601f0d/.github",
+      "start_line": 666,
+      "start_column": null,
+      "end_line": 666,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "Biometric transfer contracts",
+      "message": "31 synthetic checks passed; no real biometric material, photo/file, SQL or native SDK executed.",
+      "raw_details": ""
+    }
+  ],
+  "preAcceptanceFailure": {
+    "code": "ff8f26e6f69ec3bc4d59b4d1bdc9cee59c8d8888",
+    "run": 43692034300,
+    "reason": "EF1002 diagnostic for concatenated Guid SQL test query; replaced with parameterized ExecuteSqlInterpolatedAsync before acceptance"
+  }
+}

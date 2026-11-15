@@ -72,4 +72,4 @@ unknown هدف نوشتن‌های بعدی را مسدود می‌کند و ه�
 
 ## آزمون و پذیرش
 
-تست‌های قرارداد/session و supervisor با مادهٔ صریحاً مصنوعی، و تست Windows LocalDB صف/مجوز/دو endpoint/worker واقعی با child مصنوعی اضافه شده‌اند. وضعیت پذیرش Windows در progress-evidence ثبت خواهد شد؛ compile محلی به معنی پذیرش SQL/SDK نیست. به دستور کاربر تست Linux اجرا نمی‌شود. شمارندهٔ R10 پس از این برش کم نمی‌شود.
+تست‌های قرارداد/session و supervisor با مادهٔ صریحاً مصنوعی، و تست Windows LocalDB صف/مجوز/دو endpoint/worker واقعی با child مصنوعی اضافه شده‌اند. پذیرش نرم‌افزاری این برش روی `5a64085` ثبت شد: [Windows با۸۲ بررسی یکپارچه، شامل۱۹ بررسی جدید صف/worker و۳۱ قرارداد مصنوعی جدید](https://github.com/alirezarahimy-code/IO/actions/runs/43692226428) و [light/UI موفق همان SHA](https://github.com/alirezarahimy-code/IO/actions/runs/43692226421)، شامل۲۱ فایل DOM. [شواهد ساختاریافته](r10-biometric-transfer-evidence.json). این پذیرش، کل R10 یا SDK/دستگاه واقعی را نمی‌بندد؛ suite کامل تاریخی SQL۱۰۳۱ دوباره اجرا نشد. به دستور کاربر تست Linux اجرا نمی‌شود. شمارندهٔ R10 پس از این برش کم نمی‌شود.

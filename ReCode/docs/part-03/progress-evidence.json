@@ -8,7 +8,7 @@
     "realDeviceExecution": "not performed",
     "testingSequence": "User explicitly requires virtual-device software completion now, copying reference behavior as appropriate, with real Windows SDK/multidevice acceptance deferred to the end. Lack of local hardware must not block further software implementation."
   },
-  "latestVerifiedCode": "cffed8264635f00bcb460c78e9960afa1f5b462b",
+  "latestVerifiedCode": "5a640852e2ffd50408f5ad47aceb507dee601f0d",
   "checks": {
     "integrationPassLines": 1031,
     "foundation": 48,
@@ -113,7 +113,7 @@
     }
   ],
   "remainingSoftware": [
-    "P3-R10 fingerprint/face/photo exchange with explicit per-model formats, consent/legal basis, access and retention/deletion policy; no real biometric enabling without approval.",
+    "P3-R10 direct fingerprint/face integrated increment implemented and Windows-tested; photo transfer and dedicated unknown observation/recovery remain. No real biometric enablement without exact-model format/legal/retention and transient-enumeration approvals.",
     "P3-R11–R15 independently authorized destructive attendance/range/user/template/admin/all-data operations and explicit factory-reset disposition; no implied permission from enrollment recovery.",
     "P3-R16 direct USB/serial support disposition; file parser is not direct connectivity."
   ],
@@ -349,7 +349,7 @@
       }
     ]
   },
-  "nextExactAction": "Continue in order at P3-R10 biometric fingerprint/face/photo exchange. P3-R08/P3-R09 selected software paths accepted on Windows; installed-model/physical-reset/biometric authorization remain explicit default-off deployment prerequisites in H01. Do not replay unknown or infer native authentication from gateway/IP/SN. Seven software rows R10–R16 remain; part3Complete=false. No Linux tests or full historical SQL rerun authorized.",
+  "nextExactAction": "Finish P3-R10 in order: private bounded photo transfer with validated fixed names/content, protected staging and crash cleanup/read-back; then queue-specific read-only unknown observation and independently authorized recovery without template disclosure or requeue. Fingerprint/face integrated increment accepted on Windows with31 new synthetic and19 new SQL/worker checks (82 integrated total); R10 is not closed. Do not start destructive R11 until R10 software is accepted. Seven software rows R10–R16 and H01 remain; all real biometric execution default-off without installed model/legal/retention/exclusive-control approval. No Linux tests.",
   "profileSettingsFollowup": {
     "code": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
     "accepted": true,
@@ -659,7 +659,7 @@
     "evidence": "s10-gateway-s09-enroll-software-evidence.json",
     "historicalPortableScopeSupersededBy": "gatewayEnrollmentOperationalFollowup"
   },
-  "latestVerifiedPortableCode": "cffed8264635f00bcb460c78e9960afa1f5b462b",
+  "latestVerifiedPortableCode": "5a640852e2ffd50408f5ad47aceb507dee601f0d",
   "gatewayEnrollmentOperationalFollowup": {
     "status": "windows-integrated-software-accepted-with-explicit-native-and-policy-gaps",
     "code": "248cbcdf45f40ea9c7d4b2527be7af1b7cdf3843",
@@ -683,7 +683,7 @@
     "guide": "gateway-enrollment-operations.fa.md",
     "historicalScopeSupersededBy": "nativePushReviewedRecoveryFollowup"
   },
-  "latestVerifiedWindowsIntegratedCode": "cffed8264635f00bcb460c78e9960afa1f5b462b",
+  "latestVerifiedWindowsIntegratedCode": "5a640852e2ffd50408f5ad47aceb507dee601f0d",
   "nativePushReviewedRecoveryFollowup": {
     "scope": "Software acceptance of selected isolated-LAN authenticated-gateway PUSH and default-off RemoteEnroll with assisted two-person physical recovery. Not native device authentication or installed hardware acceptance.",
     "code": "cffed8264635f00bcb460c78e9960afa1f5b462b",
@@ -716,6 +716,33 @@
     "runs": [
       43643001807,
       43642684493
+    ]
+  },
+  "r10BiometricTransferFollowup": {
+    "scope": "R10 first integrated software increment: default-off direct fingerprint/face transfer to an empty slot, no material in bridge output/web/SQL. R10 remains open; not photo, unknown recovery, real biometric authorization or hardware acceptance.",
+    "code": "5a640852e2ffd50408f5ad47aceb507dee601f0d",
+    "windowsIntegratedSqlHttpsQueueChecks": 82,
+    "newBiometricSqlWorkerChecks": 19,
+    "newSyntheticBiometricContracts": 31,
+    "offlineDomFiles": 21,
+    "remainingR10": [
+      "photo transport with private bounded staging, content validation, crash cleanup and verifiable read-back",
+      "queue-specific observation/review recovery for unknown; never requeue or reuse enrollment recovery implicitly",
+      "further boundary/permission/recovery coverage before full R10 closure"
+    ],
+    "softwareLedgerRowClosed": false,
+    "remainingTechnicalCount": 7,
+    "realSdkExecuted": false,
+    "realBiometricPolicyApproved": false,
+    "hardwareVerified": false,
+    "linuxTestsExecuted": false,
+    "migrations": 52,
+    "domainTables": 67,
+    "evidence": "r10-biometric-transfer-evidence.json",
+    "guide": "r10-biometric-transfer.fa.md",
+    "runs": [
+      43692226428,
+      43692226421
     ]
   }
 }

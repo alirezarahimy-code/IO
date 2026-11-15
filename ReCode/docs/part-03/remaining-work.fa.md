@@ -80,3 +80,8 @@
 ### اتصال جدید R08/R09 روی Windows پذیرفته شد؛ هنوز اعلام تکمیل بی‌قید نیست
 
 برش `248cbcd` با۳۹ بررسی یکپارچهٔ Windows LocalDB/HTTPS/courier/صف/worker و۴۷ قرارداد/child و light موفق، مسیرهای واقعی نرم‌افزار را وصل کرد. [راهنمای عملیاتی](gateway-enrollment-operations.fa.md) و [شاهد](gateway-enrollment-operational-evidence.json). هویت gateway با هویت دستگاه یکی نیست: receiver بومی محل و پردازش/ACK هنوز ساخته نشده‌اند. enrollment واقعی default-off است؛ policy/مدل و بازیابی unknown هنوز لازم‌اند و COM واقعی آزمایش نشده است. R08/R09 بسته نشده‌اند؛۹ فنی + H01 باقی است. هیچ تست Linux یا اجرای مجدد suite کامل SQL در این برش انجام نشد.
+
+
+## آخرین اقدام مرتب — R10، برش اول پذیرفته‌شده
+
+انتقال مستقیم اثرانگشت/چهره به اسلات خالی اکنون metadata-only SQL queue، مجوز و scope هر دو سر، preview دقیق نگاشت، UI فارسی، worker واقعی و bridge ایزوله دارد. [Windows `5a64085`:۳۱ قرارداد مصنوعی و۸۲ بررسی یکپارچه، شامل۱۹ جدید](r10-biometric-transfer-evidence.json). عکس و بازیابی اختصاصی unknown باقی‌اند؛ R10 باز و R11 هنوز شروع نشده است. جزئیات و محدودیت‌های واقعی SDK/قالب/حافظه در [راهنمای R10](r10-biometric-transfer.fa.md) ثبت شده‌اند. عدد۷ فنی + H01 تغییر نکرده است.
