@@ -1,0 +1,251 @@
+{
+  "scope": "Base direct USB/serial SDK connection and exchange software acceptance, not completion of expanded Part3/R16 or physical lab acceptance. Existing specialized/sensitive families remain network-only and reject local IPC until separately implemented.",
+  "code": "ee4b0712d5b6e849be896e67c6bfe02bf7a43870",
+  "runs": [
+    {
+      "id": 43747192483,
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43747192483",
+      "code": "ee4b0712d5b6e849be896e67c6bfe02bf7a43870",
+      "conclusion": "success",
+      "jobId": 132912992489,
+      "labels": [
+        "windows-2022"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Provision isolated encrypted synthetic photo volume",
+          "conclusion": "success"
+        },
+        {
+          "name": "Build, catalogue checks and portable publish",
+          "conclusion": "success"
+        },
+        {
+          "name": "Windows LocalDB authenticated gateway and enrollment integration",
+          "conclusion": "success"
+        },
+        {
+          "name": "Detach synthetic photo volume",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "id": 43746623088,
+      "url": "https://github.com/alirezarahimy-code/IO/actions/runs/43746623088",
+      "code": "fa770c024f446fb0fa22bc02f3e10c2d8efac596",
+      "conclusion": "success",
+      "jobId": 132911229239,
+      "labels": [
+        "windows-2022"
+      ],
+      "steps": [
+        {
+          "name": "Set up job",
+          "conclusion": "success"
+        },
+        {
+          "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "conclusion": "success"
+        },
+        {
+          "name": "Select lightweight scope over the entire push",
+          "conclusion": "success"
+        },
+        {
+          "name": "Prepare workflow policy test dependency",
+          "conclusion": "success"
+        },
+        {
+          "name": "Test CI routing and retained safety gates",
+          "conclusion": "success"
+        },
+        {
+          "name": "Test offline H01 evidence index with synthetic fixtures only",
+          "conclusion": "success"
+        },
+        {
+          "name": "Validate reference evidence and capability inventory",
+          "conclusion": "success"
+        },
+        {
+          "name": "Prepare offline native instruction emulator",
+          "conclusion": "success"
+        },
+        {
+          "name": "Verify hash-pinned network setter dispatch with trapped transport",
+          "conclusion": "success"
+        },
+        {
+          "name": "Audit pinned DHCP firmware source reference without execution",
+          "conclusion": "success"
+        },
+        {
+          "name": "Prepare offline DOM dependencies",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check JavaScript syntax and offline DOM contracts",
+          "conclusion": "success"
+        },
+        {
+          "name": "Check standalone page preview in Chromium",
+          "conclusion": "skipped"
+        },
+        {
+          "name": "Record actual coverage",
+          "conclusion": "success"
+        },
+        {
+          "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+          "conclusion": "success"
+        },
+        {
+          "name": "Complete job",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "checks": {
+    "windowsIntegratedSqlHttpsQueueChecks": 383,
+    "priorIntegratedRegressionChecks": 355,
+    "newDirectSqlWorkerChecks": 28,
+    "syntheticLocalSdkAndRealWindowsMutexChecks": 30,
+    "transportSupportBoundaryChecks": 26,
+    "migrations": 58,
+    "domainTables": 71,
+    "offlineDomFiles": 26,
+    "pagesAndHelp": 58
+  },
+  "annotations": [
+    {
+      "title": "Windows gateway enrollment integration",
+      "message": "383 SQL HTTPS queue and synthetic-process checks passed on Windows LocalDB; no COM hardware or real biometric authorization."
+    },
+    {
+      "title": "Windows HTTPS fixture",
+      "message": "Temporary synthetic trust anchor removed."
+    },
+    {
+      "title": "Windows HTTPS fixture",
+      "message": "Temporary synthetic trust anchor installed; exercising production courier TLS validation."
+    },
+    {
+      "title": "Windows HTTPS fixture",
+      "message": "Installing one temporary synthetic loopback trust anchor on disposable runner."
+    },
+    {
+      "title": "Synthetic gateway and enrollment checks",
+      "message": "47 checks passed; gateway protocol and enrollment lifecycle and synthetic child supervisor only, no HTTP SQL COM native-device authentication or real biometrics."
+    },
+    {
+      "title": "Biometric transfer contracts",
+      "message": "63 synthetic checks passed; synthetic JPEG and real EFS staging, no real biometric material, SQL or native SDK executed."
+    },
+    {
+      "title": "Attendance erase contracts",
+      "message": "23 synthetic checks passed; production fixed-flag mapper and supervisor, no SDK device or real deletion."
+    },
+    {
+      "title": "Attendance range erase contracts",
+      "message": "34 synthetic checks passed; real production mapper and supervisor, no installed SDK boundary proof or device deletion."
+    },
+    {
+      "title": "User erase core contracts",
+      "message": "48 synthetic checks passed; core-only production mapper and supervisor subset; operational queue/authorization/recovery/UI covered separately, no SDK/device execution."
+    },
+    {
+      "title": "Protected erase contracts",
+      "message": "34 synthetic R13/R14 checks passed; no SDK/device execution or real authorization."
+    },
+    {
+      "title": "Local SDK transport contracts",
+      "message": "30 synthetic contract and Windows physical-resource mutex checks passed; production connector uses fake SDK only. No installed driver device or destructive execution."
+    },
+    {
+      "title": "Transport support disposition",
+      "message": "26 checks passed; product network/file versus explicitly bound direct USB/serial boundary only, no physical transport or driver executed."
+    },
+    {
+      "title": "All-data clear contracts",
+      "message": "48 synthetic checks passed; production flag5 mapper and supervisor, no SDK or real all-data deletion or factory reset."
+    }
+  ],
+  "uiProvenance": {
+    "testedCode": "fa770c024f446fb0fa22bc02f3e10c2d8efac596",
+    "productionCode": "ee4b0712d5b6e849be896e67c6bfe02bf7a43870",
+    "exactUiAndDomSourceUnchangedBetweenTheseShas": true,
+    "standaloneChromiumSkippedOnLatestUiRun": true,
+    "lastEarlierChromiumRun": 43746283437,
+    "method": "git diff --name-only testedCode productionCode -- ReCode/src/IO.Web/Ui ReCode/tests/IO.Infrastructure.SqlTests/*-ui-check.cjs is empty; native fixes after UI acceptance affect only private transport contract and native fixture."
+  },
+  "implementedFamilies": [
+    "explicit-station-sdk-probe",
+    "information-read",
+    "settings-snapshot",
+    "explicit-clock-set",
+    "explicit-restart",
+    "ssr-and-legacy-user-download",
+    "ordinary-metadata-user-upload-route",
+    "ssr-and-legacy-attendance-download",
+    "polling"
+  ],
+  "directOperationalAcceptanceScope": [
+    "usb-registry-and-sql-constraint",
+    "serial-registry-and-sql-constraint",
+    "wrong-profile-and-duplicate-physical-alias-rejection",
+    "real-worker-owned-credential-process-probe",
+    "real-worker-information-read",
+    "real-worker-user-stream-to-sql-leading-zero",
+    "real-worker-attendance-stream-to-sql-duplicate-preservation",
+    "unchanged-operator-grants"
+  ],
+  "stillOpenDirectFamilies": [
+    "dedicated-direct-upload-write-and-unknown-recovery-operational-coverage",
+    "specialized-profile-raw-idle-key-write-and-recovery-contracts",
+    "native-enrollment-and-recovery",
+    "biometric-pair-transfer-and-recovery",
+    "attendance-all-and-range-delete-and-recovery",
+    "protected-user-fingerprint-admin-and-all-data-delete-and-recovery"
+  ],
+  "softwareComplete": false,
+  "remainingTechnicalIds": [
+    "P3-R16"
+  ],
+  "remainingTechnicalCount": 1,
+  "independentPhysicalLab": "P3-H01 deferred: environment not ready",
+  "hardwareVerified": false,
+  "realSdkExecuted": false,
+  "installedDriverOrPhysicalCableVerified": false,
+  "realDeletionExecuted": false,
+  "linuxTestsExecuted": false,
+  "fullHistoricalSql1031Rerun": false,
+  "fullRollbackSuiteRerun": false,
+  "part3Complete": false,
+  "guide": "r16-direct-sdk-implementation.fa.md"
+}

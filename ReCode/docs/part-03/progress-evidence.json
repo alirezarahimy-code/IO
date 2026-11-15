@@ -1,5 +1,5 @@
 {
-  "scope": "Selected Part3 software delivery: R15 restricted-profile ClearData(machine,5), independent authorization/two complete archives/two humans/immutable one-shot queue/worker and read-only unknown recovery; NOT factory reset. R16 is a version-scoped unsupported direct USB/serial disposition with enforcement and reporting, NOT an implementation of those transports or a claim about hardware capabilities. Real Windows/SDK/multidevice H01 remains unexecuted.",
+  "scope": "Expanded Part3 software implementation explicitly requested despite unavailable hardware: R16 base direct SDK connection/exchange now verified; remaining direct specialized/sensitive families remain open. H01 physical lab remains deferred, not a development prerequisite.",
   "userTarget": {
     "family": "ZK standalone/network SDK",
     "lab": "Windows",
@@ -8,7 +8,7 @@
     "realDeviceExecution": "not performed",
     "testingSequence": "User explicitly requires virtual-device software completion now, copying reference behavior as appropriate, with real Windows SDK/multidevice acceptance deferred to the end. Lack of local hardware must not block further software implementation."
   },
-  "latestVerifiedCode": "b6791a58991603d2c099414b3e1ac9a8d6e17d53",
+  "latestVerifiedCode": "ee4b0712d5b6e849be896e67c6bfe02bf7a43870",
   "checks": {
     "integrationPassLines": 1031,
     "foundation": 48,
@@ -92,7 +92,7 @@
     "S09": "partial hardware acceptance, software paths now include observed SSR and explicit legacy non-TFT GetGeneralLogData. Immutable ReadFormat, minute precision, two distinct machine outputs, exact canonical tuples, multiplicity, quarantine, independent confirmed raw ingestion, explicit read-retry format/lineage, cross-format history quarantine and installed worker-format match verified in SQL/HTTPS/Chromium/worker plus portable contracts/TCP. Native ranged API and physical event identity are not claimed; actual COM/model acceptance remains at the end.",
     "S10": "Selected authenticated isolated-LAN gateway PUSH/collector/journal/ACK/commit and polling software paths accepted; gateway identity is NOT native cryptographic device authentication. Installed protocol/security/model acceptance remains H01.",
     "S11": "Selected independent settings/restart/enroll and R11/R12/R13/R14/R15 deletion/recovery software paths accepted, no automatic replay of unknown writes. R15 ClearData5 is NOT factory reset; factory reset unsupported in this delivery. Exact native effect/legal/retention/quiescence assumptions remain external installation prerequisites and H01.",
-    "S12": "Selected explicit-format file preview/quarantine/ingestion, SQL health and prior isolated-CI service lifecycle accepted. R16 direct USB/serial explicitly unsupported-in-this-delivery; file is NOT direct connectivity. Real Windows/SDK/ACL/multidevice/file-model acceptance H01 remains open."
+    "S12": "Direct SDK USB/serial base connection/exchange software accepted with explicit Windows station/selector binding and global IO resource leases, same SQL permissions/scopes/archives. Remaining direct specialized/sensitive families are open. File parser remains independent; H01 physical driver/cable/multidevice acceptance is deferred."
   },
   "hardwareVerified": false,
   "part3Complete": false,
@@ -113,7 +113,7 @@
     }
   ],
   "remainingSoftware": [
-    "P3-R16 expanded direct USB/serial implementation: base connection/exchange candidate implemented; specialized settings and direct sensitive families/enrollment/biometric/recovery remain to implement and verify."
+    "P3-R16 expanded direct USB/serial: base connection/exchange verified on Windows; dedicated upload/recovery coverage and specialized settings/enrollment/biometric/deletion/recovery direct paths remain open."
   ],
   "realSdkExecuted": false,
   "windowsServiceInstalled": false,
@@ -347,7 +347,7 @@
       }
     ]
   },
-  "nextExactAction": "Verify direct SDK base exchange on Windows CI, then continue the remaining direct transport software paths without asking for hardware or repeating scope permission. H01 remains deferred until the physical lab is available.",
+  "nextExactAction": "Continue R16 direct software implementation: dedicated direct user-upload/unknown recovery coverage, then specialized settings and explicit direct sensitive/enrollment/biometric families with separate transport-specific contracts and Windows tests. No further hardware prerequisite or repeated permission request. H01 stays deferred.",
   "profileSettingsFollowup": {
     "code": "5e1f332fa8b47baeb14cf42ffb962472817a59d6",
     "accepted": true,
@@ -657,7 +657,7 @@
     "evidence": "s10-gateway-s09-enroll-software-evidence.json",
     "historicalPortableScopeSupersededBy": "gatewayEnrollmentOperationalFollowup"
   },
-  "latestVerifiedPortableCode": "b6791a58991603d2c099414b3e1ac9a8d6e17d53",
+  "latestVerifiedPortableCode": "ee4b0712d5b6e849be896e67c6bfe02bf7a43870",
   "gatewayEnrollmentOperationalFollowup": {
     "status": "windows-integrated-software-accepted-with-explicit-native-and-policy-gaps",
     "code": "248cbcdf45f40ea9c7d4b2527be7af1b7cdf3843",
@@ -681,7 +681,7 @@
     "guide": "gateway-enrollment-operations.fa.md",
     "historicalScopeSupersededBy": "nativePushReviewedRecoveryFollowup"
   },
-  "latestVerifiedWindowsIntegratedCode": "b6791a58991603d2c099414b3e1ac9a8d6e17d53",
+  "latestVerifiedWindowsIntegratedCode": "ee4b0712d5b6e849be896e67c6bfe02bf7a43870",
   "nativePushReviewedRecoveryFollowup": {
     "scope": "Software acceptance of selected isolated-LAN authenticated-gateway PUSH and default-off RemoteEnroll with assisted two-person physical recovery. Not native device authentication or installed hardware acceptance.",
     "code": "cffed8264635f00bcb460c78e9960afa1f5b462b",
@@ -874,7 +874,7 @@
     "factory-reset",
     "face/photo/palm/vein/door/hidden/extra-slot broad deletion outside approved fingerprint-only profile"
   ],
-  "currentStatusGuide": "part-03-software-delivery.fa.md",
+  "currentStatusGuide": "r16-direct-sdk-implementation.fa.md",
   "finalLabHandoff": "h01-final-windows-lab-handoff.fa.md",
   "r15R16SoftwareDeliveryFollowup": {
     "scope": "Selected Part3 software delivery: R15 restricted-profile ClearData(machine,5), independent authorization/two complete archives/two humans/immutable one-shot queue/worker and read-only unknown recovery; NOT factory reset. R16 is a version-scoped unsupported direct USB/serial disposition with enforcement and reporting, NOT an implementation of those transports or a claim about hardware capabilities. Real Windows/SDK/multidevice H01 remains unexecuted.",
@@ -950,7 +950,7 @@
   },
   "checksScope": "Historical full SQL1031 baseline; NOT rerun on latestVerifiedCode. Current selected Windows integrated/runtime/UI counts are in currentVerifiedChecks and r15R16SoftwareDeliveryFollowup.",
   "currentVerifiedChecks": {
-    "windowsIntegratedSqlHttpsQueueChecks": 355,
+    "windowsIntegratedSqlHttpsQueueChecks": 383,
     "existingIntegratedRegressionChecks": 296,
     "newR15SqlWorkerChecks": 39,
     "newR15HttpsChecks": 7,
@@ -967,14 +967,18 @@
     "regressionBiometricEfsContracts": 63,
     "regressionGatewayEnrollmentContracts": 47,
     "offlineDomFiles": 26,
-    "migrations": 57,
+    "migrations": 58,
     "domainTables": 71,
     "pagesAndHelp": 58,
-    "pinnedTypeLibraries": 2
+    "pinnedTypeLibraries": 2,
+    "priorIntegratedRegressionChecks": 355,
+    "newDirectSqlWorkerChecks": 28,
+    "syntheticLocalSdkAndRealWindowsMutexChecks": 30,
+    "transportSupportBoundaryChecks": 26
   },
   "currentVerifiedRuns": [
-    43713356207,
-    43713356176
+    43747192483,
+    43746623088
   ],
   "h01EvidenceIndexTool": {
     "status": "software-tool-verified-windows-synthetic-only-h01-still-open",
@@ -1007,12 +1011,37 @@
     "scopeChange": "User now explicitly requests all necessary software implementation despite unavailable hardware. Reopen R16; no further hardware prerequisite for software development."
   },
   "directTransportImplementationFollowup": {
-    "status": "base-direct-exchange-implemented-windows-ci-pending",
+    "status": "base-direct-exchange-software-accepted-remaining-direct-families-open",
     "guide": "r16-direct-sdk-implementation.fa.md",
     "migration": "20261117120000_LocalSdkTransports",
     "hardwareVerified": false,
     "part3Complete": false,
     "linuxTestsExecuted": false,
-    "supersedesUnsupportedDisposition": true
+    "supersedesUnsupportedDisposition": true,
+    "code": "ee4b0712d5b6e849be896e67c6bfe02bf7a43870",
+    "evidence": "r16-direct-sdk-software-evidence.json",
+    "checks": {
+      "windowsIntegratedSqlHttpsQueueChecks": 383,
+      "priorIntegratedRegressionChecks": 355,
+      "newDirectSqlWorkerChecks": 28,
+      "syntheticLocalSdkAndRealWindowsMutexChecks": 30,
+      "transportSupportBoundaryChecks": 26,
+      "migrations": 58,
+      "domainTables": 71,
+      "offlineDomFiles": 26,
+      "pagesAndHelp": 58
+    },
+    "runs": [
+      43747192483,
+      43746623088
+    ],
+    "stillOpenDirectFamilies": [
+      "dedicated-direct-upload-write-and-unknown-recovery-operational-coverage",
+      "specialized-profile-raw-idle-key-write-and-recovery-contracts",
+      "native-enrollment-and-recovery",
+      "biometric-pair-transfer-and-recovery",
+      "attendance-all-and-range-delete-and-recovery",
+      "protected-user-fingerprint-admin-and-all-data-delete-and-recovery"
+    ]
   }
 }
