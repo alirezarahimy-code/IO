@@ -38,6 +38,8 @@ internal static class BiometricPhotoRecoveryTests
     var slot=files.Read("0002",photo);transient=slot.Material?.Photo;
     check(slot.State=="present"&&sdk.Name=="0002.jpg"&&transient?.SequenceEqual(jpeg)==true,"production file adapter reads fixed leading-zero JPG via fake SDK on actual EFS");
     check(files.Write("0002",photo,pm)&&sdk.Uploads==1,"production photo upload requires actual encrypted file and bounded JPEG");
+    sdk.BadBytes=true;check(files.Read("0002",photo).State=="unavailable","malformed photo bytes downloaded onto EFS never become transferable material");sdk.BadBytes=false;
+    sdk.Decrypt=true;check(files.Read("0002",photo).State=="unavailable","unencrypted SDK output is refused even on the private volume");sdk.Decrypt=false;
     sdk.Found=false;check(files.Read("0002",photo).State=="absent","only exact approved SDK absence with no file is absence");
     sdk.Partial=true;check(files.Read("0002",photo).State=="unavailable","false SDK download with partial file cannot fabricate absence");
     rejected=false;try{files.Read("../0002",photo);}catch(InvalidOperationException){rejected=true;}check(rejected,"production photo path rejects traversal before invoking SDK");
@@ -60,10 +62,13 @@ internal static class BiometricPhotoRecoveryTests
   public BiometricSlot Read(string person,BiometricTransferApproval approval)=>slot;
   public bool Write(string person,BiometricTransferApproval approval,BiometricMaterial material){Writes++;throw new InvalidOperationException("No setter permitted.");}
  }
+ [System.Runtime.Versioning.SupportedOSPlatform("windows")]
  private sealed class FileSdk(byte[] jpeg):IBiometricPhotoSdk
  {
-  public bool Found=true,Partial;public int Uploads;public string? Name;
-  public bool Download(string name,string directory){Name=name;if(Found||Partial)File.WriteAllBytes(Path.Combine(directory,name),jpeg);return Found;}
+  public bool Found=true,Partial,BadBytes,Decrypt;public int Uploads;public string? Name;
+  public bool Download(string name,string directory){Name=name;var path=Path.Combine(directory,name);if(Found||Partial){File.WriteAllBytes(path,BadBytes?[1,2,3]:jpeg);if(Decrypt)DecryptFile(path);}return Found;}
+  [System.Runtime.Versioning.SupportedOSPlatform("windows")]
+  private static void DecryptFile(string path)=>File.Decrypt(path);
   public bool Upload(string path){Uploads++;return File.ReadAllBytes(path).SequenceEqual(jpeg);}
   public int LastError()=>-404;
  }

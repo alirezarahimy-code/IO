@@ -116,6 +116,7 @@ public sealed class BiometricPhotoLease:IDisposable
  {
   if((File.GetAttributes(dir)&FileAttributes.ReparsePoint)!=0)throw new InvalidOperationException("No redirected photo staging.");
   var me=WindowsIdentity.GetCurrent().User??throw new InvalidOperationException();var security=new DirectoryInfo(dir).GetAccessControl();
+  if(!security.AreAccessRulesProtected)throw new InvalidOperationException("Protected non-inheriting photo root ACL required.");
   if(security.GetOwner(typeof(SecurityIdentifier)) is not SecurityIdentifier owner||!owner.Equals(me))throw new InvalidOperationException("Photo root must be owned by service identity.");
   foreach(FileSystemAccessRule rule in security.GetAccessRules(true,true,typeof(SecurityIdentifier)))
    if(rule.AccessControlType==AccessControlType.Allow&&!rule.IdentityReference.Equals(me)&&!rule.IdentityReference.Equals(new SecurityIdentifier(WellKnownSidType.LocalSystemSid,null)))throw new InvalidOperationException("Photo storage ACL must allow only service identity and SYSTEM.");

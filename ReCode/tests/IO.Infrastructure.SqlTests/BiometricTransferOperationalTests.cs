@@ -27,7 +27,7 @@ internal static class BiometricTransferOperationalTests
   Task<Guid> Request(DeviceBiometricTransfers.Confirm i)=>Use<DeviceBiometricTransfers,Guid>(x=>x.RequestAsync(actor,i));
   check(await Reject<DomainConflictException>(()=>Preview(intent)),"biometric transfer is disabled by default despite valid browser policy and rights");
   config["IO:Biometrics:EnableTransfers"]="true";
-  void Configure(string prefix,JsonElement value){foreach(var p in value.EnumerateObject()){if(p.Value.ValueKind==JsonValueKind.Object)Configure(prefix+":"+p.Name,p.Value);else config[prefix+":"+p.Name]=p.Value.ToString();}}
+  void Configure(string prefix,JsonElement value){foreach(var p in value.EnumerateObject()){if(p.Value.ValueKind==JsonValueKind.Object)Configure(prefix+":"+p.Name,p.Value);else if(p.Value.ValueKind!=JsonValueKind.Null)config[prefix+":"+p.Name]=p.Value.ToString();}}
   Configure("IO:Biometrics:Approvals:0",JsonSerializer.SerializeToElement(approval));
   check(await Reject<UnauthorizedAccessException>(()=>Preview(intent,reader)),"metadata job read authority does not authorize template reads or transfers");
   check(await Reject<DomainConflictException>(()=>Preview(intent with{SourcePerson="1"})),"biometric source mapping never aliases leading-zero subject 001 to 1");
